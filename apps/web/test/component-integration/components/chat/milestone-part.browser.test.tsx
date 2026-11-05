@@ -1,14 +1,14 @@
-// "use_case_buddy_records_milestone" in use-cases/projects.md, in Chromium
+// "use_case_construct_records_milestone" in use-cases/projects.md, in Chromium
 // and WebKit: a reopened chat whose saved reply recorded a milestone shows
-// it apart from the buddy's words, with a link to the progress timeline,
+// it apart from the construct's words, with a link to the progress timeline,
 // and a call that failed shows the failure line. What the reply streams and
 // saves is milestones.server.test.ts's.
 import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import {
   RECORD_MILESTONE_TOOL,
   type RecordMilestoneInput,
@@ -29,7 +29,7 @@ const PROJECT_ID = projectIdFixture();
 const MILESTONE_TEXT = "Blocked out the shell and body";
 const MILESTONE_INPUT: RecordMilestoneInput = { text: MILESTONE_TEXT };
 
-// The chat as it was saved: her message, then the buddy's reply with a
+// The chat as it was saved: her message, then the construct's reply with a
 // record_milestone call in the state given.
 async function renderSavedChat(
   call: UIMessage["parts"][number],
@@ -37,7 +37,7 @@ async function renderSavedChat(
   await render(
     <ChatView
       viewer={userIdFixture()}
-      buddyName={getBuddy("hippy").name}
+      constructName={getConstruct("hippy").name}
       chatId={chatIdFixture()}
       initialMessages={[
         {
@@ -59,7 +59,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("use_case_buddy_records_milestone", () => {
+describe("use_case_construct_records_milestone", () => {
   test("a reopened chat shows the milestone it recorded, linked to the progress timeline", async () => {
     await renderSavedChat({
       type: `tool-${RECORD_MILESTONE_TOOL}`,

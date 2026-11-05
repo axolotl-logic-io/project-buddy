@@ -1,6 +1,6 @@
 // The ownership predicates against the test database: two users side by
 // side, each with a project, a chat in it, a standalone chat, their messages,
-// a memory version, a gold balance and its ledger, and a buddy. Each predicate, for her,
+// a memory version, a gold balance and its ledger, and a construct. Each predicate, for her,
 // selects exactly her rows of the two users', through her project or, for a
 // standalone chat, through the chat's own user. owner-scope-coverage.test.ts
 // checks every store builds its queries from these predicates.
@@ -17,13 +17,13 @@ import {
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import { cloneBuddy } from "@/buddies/buddy-store.ts";
-import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import { cloneConstruct } from "@/constructs/construct-store.ts";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
-import { buddies } from "@/db/tables/buddies.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import type { ChatId, OwnPromptId, ProjectId } from "@/ids.ts";
@@ -45,11 +45,11 @@ interface OwnedRows {
   readonly projectId: ProjectId;
   readonly projectChatId: ChatId;
   readonly standaloneChatId: ChatId;
-  readonly buddyId: OwnPromptId;
+  readonly constructId: OwnPromptId;
 }
 
 // Saves a row of each kind for user: a project with a chat and its memory,
-// a standalone chat, an exchange in each chat and a buddy. Gold comes with
+// a standalone chat, an exchange in each chat and a construct. Gold comes with
 // the account.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
@@ -64,15 +64,15 @@ async function ownedRows(user: User): Promise<OwnedRows> {
     basedOn: MEMORY_VERSION_NUMBER.parse(0),
     author: "user",
   });
-  const buddy = await cloneBuddy(user.id, DEFAULT_BUDDY_ID);
-  if (buddy === undefined) {
-    throw new Error("The default buddy could not be cloned");
+  const construct = await cloneConstruct(user.id, DEFAULT_CONSTRUCT_ID);
+  if (construct === undefined) {
+    throw new Error("The default construct could not be cloned");
   }
   return {
     projectId: project.id,
     projectChatId: projectChat.id,
     standaloneChatId: standaloneChat.id,
-    buddyId: buddy.id,
+    constructId: construct.id,
   };
 }
 
@@ -128,8 +128,8 @@ async function ownProjectsAndChats(
 }
 
 // Her rows among both users' memory versions, gold balances, gold ledgers
-// and buddies.
-async function ownMemoryGoldAndBuddies(
+// and constructs.
+async function ownMemoryGoldAndConstructs(
   her: User,
   other: User,
   hers: OwnedRows,
@@ -165,11 +165,11 @@ async function ownMemoryGoldAndBuddies(
         ),
       ),
     await db
-      .select({ id: buddies.id })
-      .from(buddies)
+      .select({ id: ownPrompts.id })
+      .from(ownPrompts)
       .where(
         and(
-          inArray(buddies.id, [hers.buddyId, theirs.buddyId]),
+          inArray(ownPrompts.id, [hers.constructId, theirs.constructId]),
           ownPromptOwnedBy(her.id),
         ),
       ),
@@ -203,14 +203,14 @@ describe("ownership predicates select only the owner's rows", () => {
     });
   });
 
-  test("memory versions, gold and buddies", async () => {
+  test("memory versions, gold and constructs", async () => {
     const { her, other, hers, theirs } = await bothUsersRows();
 
-    expect(await ownMemoryGoldAndBuddies(her, other, hers, theirs)).toEqual([
+    expect(await ownMemoryGoldAndConstructs(her, other, hers, theirs)).toEqual([
       [{ projectId: hers.projectId }],
       [{ userId: her.id }],
       [{ userId: her.id }],
-      [{ id: hers.buddyId }],
+      [{ id: hers.constructId }],
     ]);
   });
 

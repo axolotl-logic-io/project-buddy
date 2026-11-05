@@ -83,7 +83,7 @@ const EXCHANGES = 3;
 // lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
 const ONE_SCREEN_DOWN_BAND = 64;
 
-// Her question and the mock buddy's Markdown reply, EXCHANGES times.
+// Her question and the mock construct's Markdown reply, EXCHANGES times.
 function longChat(): ChatMessage[] {
   return Array.from({ length: EXCHANGES }, (_, index): ChatMessage[] => [
     {
@@ -356,7 +356,7 @@ describe("use_case_rename_chat", () => {
       await expect
         .element(heading)
         .toHaveTextContent(
-          `${CHAT_NAME} ${CHAT_COPY.heading(FOX_CHAT.buddy.name)}`,
+          `${CHAT_NAME} ${CHAT_COPY.heading(FOX_CHAT.construct.name)}`,
         );
       await expect.element(pencil).toHaveFocus();
       expect(renameChatAction).not.toHaveBeenCalled();
@@ -387,7 +387,9 @@ describe("use_case_rename_chat", () => {
       await screen.rerender(await chatPage());
       await expect
         .element(heading)
-        .toHaveTextContent(`My chat ${CHAT_COPY.heading(FOX_CHAT.buddy.name)}`);
+        .toHaveTextContent(
+          `My chat ${CHAT_COPY.heading(FOX_CHAT.construct.name)}`,
+        );
       const [, form] = vi.mocked(renameChatAction).mock.calls.at(-1) ?? [];
       expect(form?.get("name")).toBe("My chat");
       expect(form?.get("chatId")).toBe(FOX_CHAT.id);

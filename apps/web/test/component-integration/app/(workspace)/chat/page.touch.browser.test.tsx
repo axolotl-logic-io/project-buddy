@@ -46,8 +46,8 @@ vi.mock("@/chats/all-chats.ts", () => ({
       { ...FOX_CHAT, project: { ...FOX_CHAT.project, name: LONG_NAME } },
     ]),
 }));
-vi.mock("@/buddies/own-buddy-choices.ts", () => ({
-  ownBuddyChoices: () => Promise.resolve([]),
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: () => Promise.resolve([]),
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
@@ -65,13 +65,17 @@ const NO_PARAMS = Promise.resolve({});
 const PROJECT_CHOICES: readonly {
   choice: string;
   project: ProjectId | undefined;
-  firstBuddy: string;
+  firstConstruct: string;
 }[] = [
-  { choice: "All", project: undefined, firstBuddy: STANDALONE_CHAT.buddy.name },
+  {
+    choice: "All",
+    project: undefined,
+    firstConstruct: STANDALONE_CHAT.construct.name,
+  },
   {
     choice: "owned project",
     project: FOX_PROJECT.id,
-    firstBuddy: FOX_CHAT.buddy.name,
+    firstConstruct: FOX_CHAT.construct.name,
   },
 ];
 
@@ -110,12 +114,12 @@ describe("all-chats composition on phones", () => {
     expect(page.getByRole("listitem").elements()).toHaveLength(2);
     await expect
       .element(page.getByRole("listitem").first().getByRole("link"))
-      .toHaveAccessibleName(STANDALONE_CHAT.buddy.name);
+      .toHaveAccessibleName(STANDALONE_CHAT.construct.name);
     await select.selectOptions(FOX_PROJECT.id);
     expect(page.getByRole("listitem").elements()).toHaveLength(1);
     await expect
       .element(page.getByRole("listitem").getByRole("link"))
-      .toHaveAccessibleName(FOX_CHAT.buddy.name);
+      .toHaveAccessibleName(FOX_CHAT.construct.name);
   });
 
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
@@ -123,7 +127,7 @@ describe("all-chats composition on phones", () => {
       for (const mode of MODES) {
         test.each(PROJECT_CHOICES)(
           `long unbroken project name with $choice selected at ${viewport.width}px in ${theme} ${mode}`,
-          async ({ project, firstBuddy }) => {
+          async ({ project, firstConstruct }) => {
             document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
             document.documentElement.setAttribute(MODE_ATTRIBUTE, mode);
             await page.viewport(viewport.width, viewport.height);
@@ -159,10 +163,10 @@ describe("all-chats composition on phones", () => {
             ).toBeLessThanOrEqual(viewport.width);
             await expect
               .element(card.getByRole("link"))
-              .toHaveAccessibleName(FOX_CHAT.buddy.name);
+              .toHaveAccessibleName(FOX_CHAT.construct.name);
             await expect
               .element(page.getByRole("listitem").first().getByRole("link"))
-              .toHaveAccessibleName(firstBuddy);
+              .toHaveAccessibleName(firstConstruct);
             expect(matchMedia("(pointer: coarse)").matches).toBe(true);
           },
         );

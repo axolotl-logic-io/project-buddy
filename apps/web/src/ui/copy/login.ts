@@ -26,7 +26,7 @@ export const LINK_PAGE_COPY = {
   newLink: "Ask for a new link",
 } as const;
 
-// The email is Hippy's (src/buddies/hippy.ts), for signing in and signing
+// The email is Hippy's (src/constructs/hippy.ts), for signing in and signing
 // up alike, so it reads right to someone new and to someone coming back.
 export const LOGIN_EMAIL_COPY = {
   subject: `Your sign-in link for ${SITE_COPY.name}, friend`,

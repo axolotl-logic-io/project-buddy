@@ -21,7 +21,7 @@ const CITE_BLENDER_MANUAL_INPUT = z.object({
     ),
 });
 
-// The cited sections the buddy read, in the order it named them, each with
+// The cited sections the construct read, in the order it named them, each with
 // the label its search returned. A URL that no search in the conversation
 // returned is left out.
 const CITE_BLENDER_MANUAL_OUTPUT = z.object({

@@ -5,7 +5,7 @@ import { extraTag } from "@/flags/flags.ts";
 import { UPDATE_MEMORY_OUTPUT } from "@/replies/tools/update-memory-contract.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 
-// A change the buddy made to the project's memory, as a notice set apart from
+// A change the construct made to the project's memory, as a notice set apart from
 // its words: the text it removed and the text it added. Nothing shows until
 // the change is saved.
 export function MemoryChangePart({

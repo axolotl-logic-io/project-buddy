@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import {
   createChat,
   createChatWithOpening,
@@ -14,6 +13,7 @@ import {
   saveMessage,
   saveReply,
 } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -21,7 +21,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 import { question, userWithChat } from "../test-database/chat-test-kit.ts";
 
-const buddy = getBuddy("hippy");
+const construct = getConstruct("hippy");
 const activity = builtInActivity(DEFAULT_ACTIVITY_ID);
 
 test("a reply lists immediately after the message it answers, before a later message", async () => {
@@ -54,7 +54,7 @@ describe("new-chat transaction rollback", () => {
     const chatsBefore = await listChats(user.id, chat.project.id);
     await expect(
       createProjectWithChat(user.id, PROJECT_NAME.parse("Must roll back"), {
-        buddy,
+        construct,
         activity,
         opening,
       }),
@@ -63,7 +63,7 @@ describe("new-chat transaction rollback", () => {
     await expect(
       createChatWithOpening(
         user.id,
-        { project: chat.project, buddy, activity },
+        { project: chat.project, construct, activity },
         opening,
       ),
     ).rejects.toHaveProperty("errorCase");
@@ -77,10 +77,14 @@ describe("new-chat transaction rollback", () => {
     const opening = { ...question("Opening"), role: "assistant" as const };
     const log = spyOnErrorLog();
     await expect(
-      createChat(other.id, { project, buddy }),
+      createChat(other.id, { project, construct }),
     ).rejects.toHaveProperty("errorCase", "not-found");
     await expect(
-      createChatWithOpening(other.id, { project, buddy, activity }, opening),
+      createChatWithOpening(
+        other.id,
+        { project, construct, activity },
+        opening,
+      ),
     ).rejects.toHaveProperty("errorCase", "not-found");
     expect(await listChats(owner.id, project.id)).toEqual([]);
     expect(log).not.toHaveBeenCalled();

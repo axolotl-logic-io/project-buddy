@@ -1,4 +1,4 @@
-// Which conversation a chat request asks the buddy to answer. The browser
+// Which conversation a chat request asks the construct to answer. The browser
 // may send a message again, such as after a lost connection: a message the
 // chat holds unanswered is answered once more, and an answered one gets no
 // second reply. Of two requests that send one new message at once, only the

@@ -1,4 +1,4 @@
-// What the mock says when asked to name a chat, with BUDDY_MODEL=mock: a
+// What the mock says when asked to name a chat, with CONSTRUCT_MODEL=mock: a
 // name made from the conversation it is sent, so tests can tell which naming
 // call named the chat.
 import { isNeutralKickoff } from "@/replies/chat-kickoff.ts";
@@ -22,7 +22,7 @@ function mockChatName(firstMessage: string, messageCount: number): string {
 }
 
 // The chat's messages in the naming call, one text each, and her first one.
-// A chat that opens with the buddy's opening is sent after the neutral
+// A chat that opens with the construct's opening is sent after the neutral
 // kickoff (chat-kickoff.ts), which is not one of its messages, and her first
 // message follows the opening.
 function chatMessagesOf(earlierTexts: readonly string[]): {

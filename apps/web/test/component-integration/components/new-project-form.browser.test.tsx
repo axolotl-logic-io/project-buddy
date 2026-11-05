@@ -27,7 +27,7 @@ const NEEDS_NAME: CreateProjectState = {
   kind: "invalidName",
   message: PROJECTS_COPY.needsName,
   name: "Low-poly fox",
-  buddyId: "hippy",
+  constructId: "hippy",
 };
 
 afterEach(() => {
@@ -37,7 +37,7 @@ afterEach(() => {
 describe("use_case_new_project", () => {
   test("a name typed as soon as the form shows is the name sent", async () => {
     actions.createProjectAction.mockResolvedValue(NEEDS_NAME);
-    await render(<NewProjectForm userBuddies={Promise.resolve([])} />);
+    await render(<NewProjectForm userConstructs={Promise.resolve([])} />);
 
     const nameField = page.getByRole("textbox", {
       name: PROJECTS_COPY.nameLabel,
@@ -55,7 +55,7 @@ describe("use_case_new_project", () => {
 
 describe("use_case_new_project_without_name", () => {
   test("an empty name sends nothing and takes her to the name field", async () => {
-    await render(<NewProjectForm userBuddies={Promise.resolve([])} />);
+    await render(<NewProjectForm userConstructs={Promise.resolve([])} />);
     const nameField = page.getByRole("textbox", {
       name: PROJECTS_COPY.nameLabel,
     });
@@ -69,7 +69,7 @@ describe("use_case_new_project_without_name", () => {
 
 describe("use_case_new_project_name_too_long", () => {
   test("the name field takes no more than the limit", async () => {
-    await render(<NewProjectForm userBuddies={Promise.resolve([])} />);
+    await render(<NewProjectForm userConstructs={Promise.resolve([])} />);
     const nameField = page.getByRole("textbox", {
       name: PROJECTS_COPY.nameLabel,
     });
@@ -88,9 +88,9 @@ describe("use_case_new_project_name_too_long", () => {
       kind: "invalidName",
       message: tooLong,
       name,
-      buddyId: "mr-tee",
+      constructId: "mr-tee",
     });
-    await render(<NewProjectForm userBuddies={Promise.resolve([])} />);
+    await render(<NewProjectForm userConstructs={Promise.resolve([])} />);
     const nameField = page.getByRole("textbox", {
       name: PROJECTS_COPY.nameLabel,
     });

@@ -16,15 +16,15 @@ export const SETTINGS_COPY = {
 export const FLAG_COPY = {
   workingNotes: {
     label: "Working notes",
-    hint: "The buddy's short notes in a chat before it looks something up.",
+    hint: "Your guildmate's short notes in a chat before it looks something up.",
   },
   memoryChangeCards: {
     label: "Memory changes",
-    hint: "The cards in a chat that show what the buddy changed in the quest's memory.",
+    hint: "The cards in a chat that show what your guildmate changed in the quest's memory.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in a chat that say what the buddy searched the manual for, or that a tool failed.",
+    hint: "The lines in a chat that say what your guildmate searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
     label: "Pinned chat header",
@@ -32,7 +32,7 @@ export const FLAG_COPY = {
   },
   chatNames: {
     label: "Chat names",
-    hint: "The names in a quest's list of chats. Off, each chat shows its buddy's name alone.",
+    hint: "The names in a quest's list of chats. Off, each chat shows its guildmate's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",
@@ -40,7 +40,7 @@ export const FLAG_COPY = {
   },
   usageMeter: {
     label: "Gold balance",
-    hint: "How much gold you have left for the buddy, on your account page.",
+    hint: "How much gold you have left for your guildmates, on your account page.",
   },
 } as const;
 

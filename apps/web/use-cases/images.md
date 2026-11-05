@@ -2,12 +2,12 @@
 
 ## use_case_generate_image
 
-The user asks their buddy to create an image in a standalone or quest chat.
+The user asks their construct to create an image in a standalone or quest chat.
 
 - **Prerequisites:** the user is signed in, the image provider is configured, and they have enough gold for a generation reservation.
 - **Steps:**
   - The user describes the image they want in a chat message.
-  - The buddy starts creating the requested image.
+  - The construct starts creating the requested image.
   - The chat announces that generation is working, then shows the image, its prompt, a full-image link and a download link.
   - The user reloads the chat and downloads the saved result.
 - **Outcome:** the result persists in the chat and gallery. The quest owner and current team members can read its bytes and metadata through the chat. Users without chat access cannot. The generation sets aside 25 gold of the acting user's balance before calling the provider, then replaces the reservation with the reported cost. Text chats spend the same balance.
@@ -15,7 +15,7 @@ The user asks their buddy to create an image in a standalone or quest chat.
 
 ## use_case_image_gallery
 
-The user finds images their buddy previously generated.
+The user finds images their construct previously generated.
 
 - **Prerequisites:** the user is signed in.
 - **Steps:**

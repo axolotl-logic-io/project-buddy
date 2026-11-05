@@ -1,17 +1,20 @@
 // Every chat in a project works from its one memory, in the test database
-// with the mock buddy: a chat with another buddy reads and changes the same
+// with the mock construct: a chat with another construct reads and changes the same
 // memory, and the next reply in any chat uses the memory as it is now.
 
 import { describe, expect, test, vi } from "vitest";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { getChat, listChats } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { buddyEdits, buddyPrompt } from "../test-database/chat-test-kit.ts";
+import {
+  constructEdits,
+  constructPrompt,
+} from "../test-database/chat-test-kit.ts";
 import { saveFromEditor } from "../test-database/memory-form-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
@@ -25,34 +28,34 @@ vi.mock("next/cache", async (importOriginal) => ({
 const MILESTONE = "Model the roof";
 const CHANGED = "Texture the walls";
 
-describe("use_case_switch_buddy", () => {
-  test("a chat with another buddy opens with the same memory, and its change reaches the first chat", async () => {
+describe("use_case_switch_construct", () => {
+  test("a chat with another construct opens with the same memory, and its change reaches the first chat", async () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
     const hippyChat = await data.chat(project, "hippy");
     await signIn(user);
-    await buddyEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
+    await constructEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
 
     const started = await startChat(user.id, {
       project,
-      buddy: getBuddy("mr-tee"),
+      construct: getConstruct("mr-tee"),
       activity: builtInActivity(DEFAULT_ACTIVITY_ID),
     });
     if (started.kind !== "started") {
       throw new Error(`The chat didn't start: ${started.kind}`);
     }
     const mrTeeChat = started.chat;
-    expect(await buddyPrompt(mrTeeChat.id)).toContain(MILESTONE);
-    await buddyEdits(mrTeeChat.id, MILESTONE, CHANGED);
+    expect(await constructPrompt(mrTeeChat.id)).toContain(MILESTONE);
+    await constructEdits(mrTeeChat.id, MILESTONE, CHANGED);
 
     const [chats, hippyChatNow] = await Promise.all([
       listChats(user.id, project.id),
       getChat(user.id, hippyChat.id),
     ]);
     expect(chats.map(({ id }) => id)).toEqual([mrTeeChat.id, hippyChat.id]);
-    expect(hippyChatNow?.buddy.name).toBe(getBuddy("hippy").name);
-    const prompt = await buddyPrompt(hippyChat.id);
+    expect(hippyChatNow?.construct.name).toBe(getConstruct("hippy").name);
+    const prompt = await constructPrompt(hippyChat.id);
     expect(prompt).toContain(CHANGED);
     expect(prompt).not.toContain(MILESTONE);
   });
@@ -73,10 +76,10 @@ describe("use_case_ask_whats_next", () => {
         oldText: "",
         newText: `## Milestones\n\n- [ ] ${MILESTONE}\n- [ ] ${CHANGED}`,
       },
-      author: "buddy",
+      author: "construct",
     });
 
-    expect(await buddyPrompt(laterChat.id)).toContain(`- [ ] ${MILESTONE}`);
+    expect(await constructPrompt(laterChat.id)).toContain(`- [ ] ${MILESTONE}`);
 
     const { version } = await readMemory(user.id, project.id);
     expect(
@@ -86,6 +89,6 @@ describe("use_case_ask_whats_next", () => {
         version,
       ),
     ).toEqual({ kind: "saved" });
-    expect(await buddyPrompt(laterChat.id)).toContain(`- [x] ${MILESTONE}`);
+    expect(await constructPrompt(laterChat.id)).toContain(`- [x] ${MILESTONE}`);
   });
 });

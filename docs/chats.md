@@ -12,7 +12,7 @@ remains at `/chats/new`, including activity and quest start links. The signed-in
 original standalone chat, opens at its existing `/chats/[chatId]` address. Quest
 conversations link back to their quest; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
-history, buddy and keyboard/composer behavior. `/chat` is a Server Component,
+history, construct and keyboard/composer behavior. `/chat` is a Server Component,
 not a conversation screen, for finding a chat again: the list of chats and its
 quest filter lead the page (#588).
 
@@ -20,16 +20,16 @@ Starting a standalone chat requires no quest. The Chats page's "New chat"
 button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
 new-chat form. The dialog is named "New chat", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
-in the buddy picker's open list closes only the list. That form, like
+in the construct picker's open list closes only the list. That form, like
 the new chat page at `/chats/new`, offers a quest or "No quest", an
-activity and a buddy, built in or the user's own, with the open chat and Hippy
-chosen initially. Starting saves the chat with the buddy's opening; it makes no
+activity and a construct, built in or the user's own, with the open chat and Hippy
+chosen initially. Starting saves the chat with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
 
 A quest's page has its own "New chat" button (#670, replacing the form
 #536 embedded there), so the quest's chats lead the page. The form is
 closed when the page opens or reloads. The button opens the same kind of
-dialog, with the form's activity and buddy but no quest field: given a
+dialog, with the form's activity and construct but no quest field: given a
 `projectId`, `NewChatForm` sends that quest in a hidden field and starts
 every chat in it, in whichever activity is chosen. The quest interview
 there interviews for that quest, so it neither chooses a new quest nor
@@ -45,21 +45,21 @@ that asks for the quest's name; its field and Start quest button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
 action creates the quest and its interview chat through `startProject`, the
 same path as the new quest form, and a blank name, or one longer than a
-quest name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
+quest name's limit, is refused in the name dialog. A built-in construct in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. An interview in an existing quest instead
 uses a generated opening: it asks about the goal when memory is empty, or
-revisits the goals and next step already recorded. With an edited buddy or activity of the user's
-own, the buddy writes its opening, as the activity asks, which takes a model
+revisits the goals and next step already recorded. With an edited construct or activity of the user's
+own, the construct writes its opening, as the activity asks, which takes a model
 call.
 Merely viewing the Chats page, or opening and closing its dialog, creates
 nothing. Standalone chats started before they
 got openings remain accessible alongside later ones, with their history and
-buddy unchanged.
+construct unchanged.
 
 A standalone conversation has no quest memory, so it can't enter the
 quest interview, and no [progress timeline](progress-timeline.md), so it
-can't record milestones. Its buddy can search and cite the Blender manual, change
+can't record milestones. Its construct can search and cite the Blender manual, change
 the chat's activity, and create a quest when the user asks; that does not
 move the standalone conversation into the quest. The new quest's
 interview opens through the link the chat shows.
@@ -115,7 +115,7 @@ The next step is the quest memory's first line that starts "Next step:",
 read by `nextStepOf` in `src/memory/next-step.ts`. List markers, headings
 and bold around the label are allowed. A memory without such a line shows
 the quest without a next step. The `update_memory` tool's description asks
-the buddy to keep one current "Next step:" line, and the user can write or
+the construct to keep one current "Next step:" line, and the user can write or
 edit it on the memory page.
 
 The page stays a Server Component. `readToday` in
@@ -130,13 +130,13 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 Every chat is in one activity at a time: the open chat, the quest
 interview, brainstorming, quest breakdown, or one of the user's own
 activities. Start on the Activities page opens the New chat modal with
-that activity fixed and no Activity field. The user chooses a buddy and
+that activity fixed and no Activity field. The user chooses a construct and
 no quest or an existing quest. Quest interview instead offers a new
 or existing quest, defaulting to new. Closing the modal creates nothing.
 The new chat page remains available for every activity, at
 `/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new quest when no quest is selected;
 an existing quest stays selected. The new quest form starts an interview too. A chat records each
-activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
+activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
 `select_activity` tool. Its in-chat result shows the activity it entered,
 including while the reply streams and after reopening the chat. Saved activity
 sessions persist and apply to subsequent replies. Active standalone and quest
@@ -177,8 +177,8 @@ the full list.
 
 Only the all-chats page opts into quest-name badges. A quest chat displays
 its quest's name outside the conversation link; a standalone chat has no
-badge. The accessible link name remains the chat name and buddy, or just the
-buddy when unnamed. The chat-names extra still controls chat-name visibility.
+badge. The accessible link name remains the chat name and construct, or just the
+construct when unnamed. The chat-names extra still controls chat-name visibility.
 Quest pages keep their existing quest-only list without badges.
 
 The selector uses the semantic theme tokens and
@@ -229,23 +229,23 @@ slug-titled Vitest groups.
 - `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and
-  reopening chats, history and buddy preservation. The former jsdom checks of
+  reopening chats, history and construct preservation. The former jsdom checks of
   the quest page's badge-free output were removed in #508.
 
 Chat behavior stays in Vitest. Playwright covers authentication flows only.
 Server and authentication runs require the non-production test database and
-mock buddy, guarded by `checkTestEnvironment`; never substitute a production
+mock model, guarded by `checkTestEnvironment`; never substitute a production
 database or a real model.
 
 ## Check-ins
 
-A quest's buddy can start a chat on its own: a check-in. The quest's page has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
+A quest's construct can start a chat on its own: a check-in. The quest's page has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
 
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
 
 1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the quest without error when they are out of gold. The new chat is in the open chat, with the buddy of the quest's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the quest's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
-3. Emails the owner the buddy's message, with a link to the chat and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the quest without error when they are out of gold. The new chat is in the open chat, with the construct of the quest's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's memory, about where the user left off and one small next step, so the construct always writes it. The chat is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
+3. Emails the owner the construct's message, with a link to the chat and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
 
 When the owner is out of gold, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
@@ -259,12 +259,12 @@ Chat lists show the viewer's own marks: the Chats page, a quest's page and Today
 
 The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread chat to a mark for its owner. The release that added 0028 (#638) kept writing the column, for a rollback; the release of #665 stopped, and migration 0034 drops it (#637). The [site operations](Site-Operations.md#check-ins) say why a rollback past that release is unsafe.
 
-The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
+The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
 
 ## Chat names
 
 The pencil replaces the chat title with a focused inline name field and
-Save name and Cancel icon buttons on the same row. The buddy stays below
+Save name and Cancel icon buttons on the same row. The construct stays below
 the editor. Saving or cancelling restores the title and pencil. Names have at most 60 characters. Empty or whitespace-only
 names show a validation message and keep the entered text. Cancel discards the
 draft. Saving updates the title and chat lists, persists across reloads, and
@@ -272,7 +272,7 @@ prevents automatic naming from changing the name again. The pencil and editor
 work with a keyboard and on narrow phone screens.
 
 The conversation header uses compact spacing and a smaller title, with quest
-navigation (or Chats for standalone chats) above the title and buddy identity.
+navigation (or Chats for standalone chats) above the title and construct identity.
 Long names truncate visually on phones while retaining their full accessible
 names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
 header's scroll clearance follows its compact size.
@@ -283,11 +283,11 @@ Each user message records its author, the user who sent it, in the
 nullable column `messages.user_id` (#629). A message with no author recorded
 belongs to the chat's owner: the quest's owner, or the standalone chat's
 user. Messages saved before authors were recorded have no author, and the
-buddy's messages never have one. `listMessages` reads every user message
+construct's messages never have one. `listMessages` reads every user message
 with its author in the message's metadata, and `src/chats/message-author.ts`
 defines the author type.
 
-An author's name is the name they asked the buddy to call them
+An author's name is the name they asked the construct to call them
 (`src/accounts/user-name.ts`). On the chat screen, a user message that
 someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
@@ -298,7 +298,7 @@ The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. A chat that only the viewer writes in looks as
 it did before authors were recorded.
 
-When a chat's user messages have more than one author, the buddy needs to
+When a chat's user messages have more than one author, the construct needs to
 know who is speaking. `src/replies/author-names.ts` starts each user turn
 sent to the model with a header, a text part of its own, such as
 `[Message from "Alex"]`. The name is quoted with `JSON.stringify`, and the
@@ -311,11 +311,11 @@ receives an email address.
 
 The chat's part of the system prompt adds the rules for several people
 (`SEVERAL_AUTHORS_RULES` in `src/replies/global-prompt.ts`). They tell the
-buddy that only a turn's header says who wrote it, that a name and a colon
+construct that only a turn's header says who wrote it, that a name and a colon
 inside a message are just what that person typed, and to address people by
 name. The rules stay out of the prompt's shared, cached part. A chat with
 one author sends the model exactly what it sent before, and the saved
-messages never hold the headers. The mock buddy reads a command past the
+messages never hold the headers. The mock model reads a command past the
 header, and `/mock-recall` also searches it.
 
 The quest owner and current members can write in a team quest chat. Replies, generated images and automatic chat names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
@@ -325,7 +325,7 @@ the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`
 
 ## Following messages
 
-When a saved last message is still receiving a reply in another window, the chat shows that the buddy is replying and refreshes until the reply is saved or can be retried.
+When a saved last message is still receiving a reply in another window, the chat shows that the construct is replying and refreshes until the reply is saved or can be retried.
 
 Opening a chat or sending a message brings the latest content into view.
 While the user stays at the bottom, new messages and streamed reply content
@@ -340,7 +340,7 @@ cover these behaviors under `use_case_follow_latest_messages`.
 
 ## Chat image attachments
 
-Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
+Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
 
 See [image storage and operations](Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
 

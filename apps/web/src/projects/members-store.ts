@@ -29,7 +29,7 @@ type ProjectRole = "owner" | "member";
 // Someone in a project, as its Members section lists them.
 interface ProjectMember {
   readonly id: UserId;
-  // What they asked the buddy to call them, or undefined if they have no
+  // What they asked the construct to call them, or undefined if they have no
   // name.
   readonly name: string | undefined;
   // Their email address, for those who may see it: the project's owner sees

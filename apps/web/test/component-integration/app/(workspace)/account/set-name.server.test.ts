@@ -1,5 +1,5 @@
-// "use_case_set_name" in use-cases/accounts.md: she sets the name the buddy
-// calls her, which fills every {{name}} in her buddy's system prompt, and
+// "use_case_set_name" in use-cases/accounts.md: she sets the name the construct
+// calls her, which fills every {{name}} in her construct's system prompt, and
 // clears it again. The prompt is built as a reply builds it (reply.ts). The
 // field and its status are checked in name-form.test.tsx.
 import { expect, test, vi } from "vitest";
@@ -8,11 +8,14 @@ import {
   type SetNameResult,
   setNameAction,
 } from "@/app/(workspace)/account/actions.ts";
-import { cloneBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { getChat } from "@/chats/store.ts";
+import {
+  cloneConstruct,
+  updateConstruct,
+} from "@/constructs/construct-store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
@@ -22,26 +25,26 @@ import { signIn } from "../../../test-database/session-test-kit.ts";
 // The action refreshes the page, which a server test has none of.
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
-const MR_TEE = getBuddy("mr-tee");
+const MR_TEE = getConstruct("mr-tee");
 const VOICE = "Hi {{name}}";
 
 // A chat in a new project of user's, in a clone of Mr. Tee whose voice is
 // VOICE, made straight in the stores.
 async function chatInNamedClone(user: User): Promise<Chat> {
-  const clone = await cloneBuddy(user.id, "mr-tee");
+  const clone = await cloneConstruct(user.id, "mr-tee");
   if (clone === undefined) {
     throw new Error("Mr. Tee could not be cloned");
   }
   const parts = { ...clone.definition, prompt: VOICE };
-  await updateBuddy(user.id, clone.id, { definition: parts });
+  await updateConstruct(user.id, clone.id, { definition: parts });
   const project = await testData(user).project();
   return createChat(user.id, {
     project,
-    buddy: { id: MR_TEE.id, name: clone.name, definition: parts },
+    construct: { id: MR_TEE.id, name: clone.name, definition: parts },
   });
 }
 
-// The buddy's system prompt in owner's chat, as a reply in it builds it.
+// The construct's system prompt in owner's chat, as a reply in it builds it.
 async function promptIn(owner: User, { id }: Chat): Promise<string> {
   const chat = await getChat(owner.id, id);
   if (chat === undefined) {
@@ -50,7 +53,7 @@ async function promptIn(owner: User, { id }: Chat): Promise<string> {
   const instructions = await buildReplyInstructions({
     actingUser: owner.id,
     chat,
-    buddy: chat.buddy,
+    construct: chat.construct,
   });
   return instructions.map(({ content }) => content).join("\n");
 }

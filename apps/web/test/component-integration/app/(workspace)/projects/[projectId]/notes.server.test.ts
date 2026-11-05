@@ -66,7 +66,7 @@ describe("use_case_delete_note", () => {
     await editMemory(user.id, {
       projectId: chat.project.id,
       edit: { oldText: "", newText: "# Goal" },
-      author: "buddy",
+      author: "construct",
     });
     await saveFromQuickCapture(chat.project.id, "keep me", TODAY);
     await saveFromQuickCapture(chat.project.id, "delete me", TODAY);
@@ -80,7 +80,7 @@ describe("use_case_delete_note", () => {
       "user",
       "user",
       "user",
-      "buddy",
+      "construct",
     ]);
     expect(history[0]?.text).toBe(`# Goal\n\nNote (${TODAY}): keep me`);
     expect(await readRecentNotes(user.id, chat.project.id)).toEqual([
@@ -111,7 +111,7 @@ describe("use_case_delete_note", () => {
         oldText: "",
         newText: `# Goal\n\nNote (${TODAY}): ${spaced}\n\nNote (${TODAY}): ${long}`,
       },
-      author: "buddy",
+      author: "construct",
     });
     const listed = await readRecentNotes(user.id, chat.project.id);
     expect(listed.map(({ text }) => text)).toEqual([long, spaced]);

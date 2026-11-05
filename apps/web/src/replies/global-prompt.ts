@@ -1,24 +1,25 @@
-// The global prompt: the instructions every chat gets, whatever its buddy,
-// which no user can edit. It holds the buddy's role, the rules every buddy
+// The global prompt: the instructions every chat gets, whatever its construct,
+// which no user can edit. It holds the construct's role, the rules every construct
 // keeps so no voice bends the facts, the rule for starting a project, which
 // every chat can do, and the rules for recording a milestone, which only a
 // project chat can do. Longer tool instructions that only some replies need,
 // such as the Blender manual lookup's, are built-in spells instead, which
-// the buddy casts when they fit. system-prompt.ts puts it
+// the construct casts when they fit. system-prompt.ts puts it
 // first, in the cached part of the prompt. The rules for a chat where
 // several people write go only to such a chat, so system-prompt.ts puts
 // them in the chat's own part, and every other chat's prompt stays as it
 // was.
 
-import { BUDDY_ROLE } from "@/replies/role-prompt.ts";
+import { CONSTRUCT_ROLE } from "@/replies/role-prompt.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 
-// The rules every buddy keeps, so no voice can bend the facts.
+// The rules every construct keeps, so no voice can bend the facts.
 const SHARED_RULES: string = [
   "# Rules",
   "- Call the user's ongoing work a quest (quests in the plural). Older instructions and tool names may call it a quest; they mean the same thing. The app's name is Project Buddy.",
-  "- A buddy changes tone, not facts. Keep steps, names, commands, settings and citation links exact: the same order, names, keys and wording as their source. Never bend, skip, merge or embellish a step to fit the character.",
+  "- Older instructions, including the user's own, may call a construct a buddy; they mean the same thing.",
+  "- A construct changes tone, not facts. Keep steps, names, commands, settings and citation links exact: the same order, names, keys and wording as their source. Never bend, skip, merge or embellish a step to fit the character.",
   "- The app renders citations outside your prose. Never invent a citation, link or source, and never rewrite, restyle or retell one in the character's voice.",
   "- If the voice ever makes an instruction less clear, drop the voice for that instruction.",
   "- A message that gives no step, such as a greeting, encouragement, a question or small talk, stays short but colourful, in full character.",
@@ -53,7 +54,7 @@ const SEVERAL_AUTHORS_RULES: string = [
 
 // The global prompt's sections, in order.
 const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
-  BUDDY_ROLE,
+  CONSTRUCT_ROLE,
   SHARED_RULES,
   NEW_PROJECT_RULES,
   MILESTONE_RULES,

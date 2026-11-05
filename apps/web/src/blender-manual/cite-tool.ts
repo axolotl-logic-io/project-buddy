@@ -1,7 +1,7 @@
-// The cite_blender_manual tool: the buddy names the manual sections its reply used,
+// The cite_blender_manual tool: the construct names the manual sections its reply used,
 // and the chat shows them as links under the reply. Only sections that a
 // search_blender_manual call in the conversation returned are kept, so every link is
-// a real section the buddy read. The model reads the result with a reminder
+// a real section the construct read. The model reads the result with a reminder
 // that its answer still comes after the call.
 import { type ModelMessage, type ToolResultPart, tool } from "ai";
 import {
@@ -67,7 +67,7 @@ const CITE_BLENDER_MANUAL_REMINDER =
   "The app will show these links under your reply. The links alone don't answer the user: unless you have already written your answer above, write it now, after this call, from the sections you read.";
 
 // Described by its default; tools/index.ts gives each request the
-// buddy's description.
+// construct's description.
 const citeBlenderManualTool = tool({
   description: CITE_BLENDER_MANUAL_DESCRIPTION,
   inputSchema: CITE_BLENDER_MANUAL_INPUT,

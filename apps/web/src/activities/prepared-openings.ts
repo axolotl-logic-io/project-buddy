@@ -1,12 +1,12 @@
 import type { ActivityDefinition, ActivityId } from "@/activities/activity.ts";
-import type { BuddyDefinition, BuddyId } from "@/buddies/index.ts";
+import type { ConstructDefinition, ConstructId } from "@/constructs/index.ts";
 import {
   matchingBuiltInActivity,
-  matchingBuiltInBuddy,
+  matchingBuiltInConstruct,
 } from "@/prompts/matching-built-in.ts";
 
 const PREPARED_OPENINGS: Readonly<
-  Record<ActivityId, Readonly<Record<BuddyId, string>>>
+  Record<ActivityId, Readonly<Record<ConstructId, string>>>
 > = {
   "open-chat": {
     hippy:
@@ -67,15 +67,15 @@ const PREPARED_OPENINGS: Readonly<
 };
 
 function preparedOpening(
-  buddy: BuddyDefinition,
+  construct: ConstructDefinition,
   activity: ActivityDefinition,
 ): string | undefined {
-  const builtInBuddy = matchingBuiltInBuddy(buddy);
+  const builtInConstruct = matchingBuiltInConstruct(construct);
   const builtInActivity = matchingBuiltInActivity(activity);
-  if (builtInBuddy === undefined || builtInActivity === undefined) {
+  if (builtInConstruct === undefined || builtInActivity === undefined) {
     return undefined;
   }
-  return PREPARED_OPENINGS[builtInActivity.id][builtInBuddy.id];
+  return PREPARED_OPENINGS[builtInActivity.id][builtInConstruct.id];
 }
 
 export { preparedOpening };

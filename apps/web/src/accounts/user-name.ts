@@ -1,8 +1,8 @@
-// The name she asks the buddy to call her: one line of text, trimmed, short,
+// The name she asks the construct to call her: one line of text, trimmed, short,
 // with no braces, so a name never holds the {{name}} placeholder it fills
 // in. withUserName puts it in place of every NAME_PLACEHOLDER, in the
-// buddy's system prompt (src/replies/system-prompt.ts) and the spells the
-// buddy casts (src/spells/cast-spell.ts). The browser imports this module, so it
+// construct's system prompt (src/replies/system-prompt.ts) and the spells the
+// construct casts (src/spells/cast-spell.ts). The browser imports this module, so it
 // imports nothing server-only. The users table's users_name_normalized check
 // holds the same rule.
 
@@ -10,7 +10,7 @@
 // check refuses longer ones.
 const USER_NAME_MAX_LENGTH = 60;
 
-// The text a buddy's part says where the buddy should use her name.
+// The text a construct's part says where the construct should use her name.
 const NAME_PLACEHOLDER = "{{name}}";
 
 // Any line break, including Unicode's line and paragraph separators.

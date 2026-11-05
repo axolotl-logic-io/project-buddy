@@ -28,7 +28,7 @@ import {
   writesBy,
 } from "./team-project-test-kit.ts";
 
-// The messages the owner's exchange saved: hers and the buddy's reply.
+// The messages the owner's exchange saved: hers and the construct's reply.
 const EXCHANGE_MESSAGES = 2;
 
 describe("use_case_team_project_access", () => {

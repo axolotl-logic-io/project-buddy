@@ -106,11 +106,11 @@ function NameEditor({
 function RenameChatForm({
   chatId,
   name,
-  buddyName,
+  constructName,
 }: {
   readonly chatId: ChatId;
   readonly name: string | undefined;
-  readonly buddyName: string;
+  readonly constructName: string;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const pencilRef = useRef<HTMLButtonElement>(null);
@@ -132,7 +132,9 @@ function RenameChatForm({
     return (
       <div className="min-w-0">
         <NameEditor chatId={chatId} name={name} onClose={close} />
-        <p className="chat-header-buddy">{CHAT_COPY.heading(buddyName)}</p>
+        <p className="chat-header-construct">
+          {CHAT_COPY.heading(constructName)}
+        </p>
       </div>
     );
   }
@@ -142,8 +144,8 @@ function RenameChatForm({
         <span className="chat-header-name">
           {name ?? CHAT_NAME_COPY.fallback}
         </span>{" "}
-        <span className="chat-header-buddy">
-          {CHAT_COPY.heading(buddyName)}
+        <span className="chat-header-construct">
+          {CHAT_COPY.heading(constructName)}
         </span>
       </h1>
       <Button

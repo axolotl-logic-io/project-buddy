@@ -1,5 +1,5 @@
 // Rows of the chats and messages tables, as the chat stores read and write
-// them. Reads check what the columns cannot: a chat's buddy and name. A chat
+// them. Reads check what the columns cannot: a chat's construct and name. A chat
 // is in a project, a project chat, or in none, a standalone chat; both are
 // one type, Chat, whose project is undefined in a standalone chat.
 import type { UIMessage } from "ai";
@@ -14,17 +14,17 @@ import {
   sql,
 } from "drizzle-orm";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { parseBuddyDefinition } from "@/buddies/buddy-definition.ts";
-import {
-  type BuddyId,
-  type BuddySnapshot,
-  DEFAULT_BUDDY_ID,
-  getBuddy,
-  isBuddyId,
-  snapshotOf,
-} from "@/buddies/index.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { unreadFor } from "@/chats/unread-marks.ts";
+import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
+import {
+  type ConstructId,
+  type ConstructSnapshot,
+  DEFAULT_CONSTRUCT_ID,
+  getConstruct,
+  isConstructId,
+  snapshotOf,
+} from "@/constructs/index.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import {
@@ -47,8 +47,8 @@ interface Chat {
   readonly activityName?: string | undefined;
   // The chat's project, or undefined in a standalone chat.
   readonly project: ChatProject | undefined;
-  // The buddy as it was when the chat started.
-  readonly buddy: BuddySnapshot;
+  // The construct as it was when the chat started.
+  readonly construct: ConstructSnapshot;
   readonly createdAt: Date;
   // Undefined until Claude Haiku or she first names the chat.
   readonly name: ChatName | undefined;
@@ -75,40 +75,40 @@ type ChatRowWithProject = ChatRow & {
 // A message to save as it is, with an id from the AI SDK.
 type NewMessage = UIMessage & { readonly id: MessageId };
 
-// A stored buddy id that no buddy file has any more, because the buddy
-// was retired, reads as the default buddy, so its chats keep working.
-function toBuddyId(stored: string): BuddyId {
-  if (isBuddyId(stored)) {
+// A stored construct id that no construct file has any more, because the construct
+// was retired, reads as the default construct, so its chats keep working.
+function toConstructId(stored: string): ConstructId {
+  if (isConstructId(stored)) {
     return stored;
   }
-  return DEFAULT_BUDDY_ID;
+  return DEFAULT_CONSTRUCT_ID;
 }
 
-// The columns a chat's buddy is read from.
-type BuddyColumns = "buddyId" | "buddyName" | "buddyParts";
+// The columns a chat's construct is read from.
+type ConstructColumns = "constructId" | "constructName" | "constructParts";
 
-// A chat's buddy: its snapshot or, for a chat saved before snapshots, whose
-// snapshot columns are null, the built-in buddy of its id. A snapshot whose
+// A chat's construct: its snapshot or, for a chat saved before snapshots, whose
+// snapshot columns are null, the built-in construct of its id. A snapshot whose
 // parts are not every part, which only a hand-edited row could hold, reads
 // the same way.
-function toBuddy({
-  buddyId,
-  buddyName,
-  buddyParts,
-}: Pick<ChatRow, BuddyColumns>): BuddySnapshot {
-  const parts = parseBuddyDefinition(buddyParts);
-  if (buddyName !== null && parts !== undefined) {
-    return { name: buddyName, definition: parts };
+function toConstruct({
+  constructId,
+  constructName,
+  constructParts,
+}: Pick<ChatRow, ConstructColumns>): ConstructSnapshot {
+  const parts = parseConstructDefinition(constructParts);
+  if (constructName !== null && parts !== undefined) {
+    return { name: constructName, definition: parts };
   }
-  return snapshotOf(getBuddy(toBuddyId(buddyId)));
+  return snapshotOf(getConstruct(toConstructId(constructId)));
 }
 
-// A chat's buddy as a new chat would keep it: its snapshot (toBuddy) and
+// A chat's construct as a new chat would keep it: its snapshot (toConstruct) and
 // the id saved beside it.
-function toBuddyWithId(
-  row: Pick<ChatRow, BuddyColumns>,
-): BuddySnapshot & { readonly id: BuddyId } {
-  return { ...toBuddy(row), id: toBuddyId(row.buddyId) };
+function toConstructWithId(
+  row: Pick<ChatRow, ConstructColumns>,
+): ConstructSnapshot & { readonly id: ConstructId } {
+  return { ...toConstruct(row), id: toConstructId(row.constructId) };
 }
 
 // A chat's project: { project: undefined } for a standalone chat, or
@@ -151,7 +151,7 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
         id,
         activityName: row.activityName ?? undefined,
         project: place.project,
-        buddy: toBuddy(row),
+        construct: toConstruct(row),
         name: parseChatName(row.name ?? ""),
         renamedByHand: row.renamedByHand,
         unread: row.unread,
@@ -280,6 +280,6 @@ export {
   openMessage,
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
-  toBuddyWithId,
   toChats,
+  toConstructWithId,
 };

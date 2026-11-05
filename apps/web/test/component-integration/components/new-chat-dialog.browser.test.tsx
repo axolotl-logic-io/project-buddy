@@ -4,15 +4,15 @@
 // named "New chat", that takes focus and keeps it, holds the new-chat form
 // with the open chat, no project and Hippy chosen, and closes with Escape
 // or its close button, giving focus back to the button. Escape in the
-// buddy list closes only the list. Opening and closing it sends nothing.
+// construct list closes only the list. Opening and closing it sends nothing.
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import type { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { activityChoices } from "../activities/activity-choices-test-kit.ts";
@@ -23,7 +23,7 @@ const actions = vi.hoisted(() => ({
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
-const HIPPY = getBuddy("hippy");
+const HIPPY = getConstruct("hippy");
 const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
 
 async function renderDialog(): Promise<void> {
@@ -32,7 +32,7 @@ async function renderDialog(): Promise<void> {
       activities={await activityChoices()}
       projects={[PROJECT]}
       selectedActivityId={DEFAULT_ACTIVITY_ID}
-      userBuddies={[]}
+      userConstructs={[]}
     />,
   );
 }
@@ -128,11 +128,11 @@ describe("use_case_standalone_chat", () => {
     expect(actions.startChatAction).not.toHaveBeenCalled();
   });
 
-  test("Escape in the buddy list closes the list, not the dialog", async () => {
+  test("Escape in the construct list closes the list, not the dialog", async () => {
     await renderDialog();
     await newChatButton().click();
     await page
-      .getByRole("button", { name: NEW_CHAT_COPY.chooseBuddyButton })
+      .getByRole("button", { name: NEW_CHAT_COPY.chooseConstructButton })
       .click();
     await expect
       .element(page.getByRole("button", { name: HIPPY.name }))
@@ -141,14 +141,16 @@ describe("use_case_standalone_chat", () => {
     await userEvent.keyboard("{Escape}");
 
     await expect
-      .element(page.getByRole("list", { name: NEW_CHAT_COPY.builtInBuddies }))
+      .element(
+        page.getByRole("list", { name: NEW_CHAT_COPY.builtInConstructs }),
+      )
       .not.toBeInTheDocument();
     // A closing dialog stays in the page while it animates out, so its
     // state, not its visibility, shows that it stayed open.
     await expect.element(dialog()).toHaveAttribute("data-state", "open");
     await expect
       .element(
-        page.getByRole("button", { name: NEW_CHAT_COPY.chooseBuddyButton }),
+        page.getByRole("button", { name: NEW_CHAT_COPY.chooseConstructButton }),
       )
       .toBeInTheDocument();
   });

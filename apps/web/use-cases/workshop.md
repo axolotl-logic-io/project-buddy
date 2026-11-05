@@ -2,7 +2,7 @@
 
 ## use_case_workshop_draft
 
-An owner can test an unsaved buddy, activity or spell beside its editing form.
+An owner can test an unsaved construct, activity or spell beside its editing form.
 
 - Given an editable definition, when the user tests a changed draft, the reply uses that draft without saving the original.
 - Given a completed test, when the user sends a follow-up, it keeps the test conversation.

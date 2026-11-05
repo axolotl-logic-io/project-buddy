@@ -215,77 +215,77 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* The buddy picker (src/components/buddy-picker.tsx): the chosen buddy's
-     card between bars to the previous and next buddy, or, laid over the
-     card in the same cell, the list of every buddy. The card always holds
+  /* The construct picker (src/components/construct-picker.tsx): the chosen construct's
+     card between bars to the previous and next construct, or, laid over the
+     card in the same cell, the list of every construct. The card always holds
      three lines of description and the list scrolls inside the card's
      height, so the picker's height never changes. */
-  .buddy-picker {
+  .construct-picker {
     @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
   }
 
-  .buddy-picker-face,
-  .buddy-picker-list {
+  .construct-picker-face,
+  .construct-picker-list {
     grid-area: 1 / 1;
   }
 
-  .buddy-picker-face {
+  .construct-picker-face {
     @apply flex min-w-0;
   }
 
   /* The list adds no height of its own: it fills the card's. */
-  .buddy-picker-list {
+  .construct-picker-list {
     @apply h-0 min-h-full overflow-y-auto p-1;
   }
 
   /* A bar is a target wide and the card's height. The picker's corners clip
      what lies outside them, so the focus ring is drawn inside the bar. */
-  .buddy-picker-bar {
+  .construct-picker-bar {
     @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
   }
 
-  .buddy-picker-bar:focus-visible,
-  .buddy-option:focus-visible {
+  .construct-picker-bar:focus-visible,
+  .construct-option:focus-visible {
     outline-offset: calc(-1 * var(--focus-offset) - 2px);
   }
 
-  .buddy-picker-card {
+  .construct-picker-card {
     @apply flex min-w-0 flex-1 items-start gap-3 p-3;
   }
 
-  .buddy-picker-description {
+  .construct-picker-description {
     @apply mt-1 line-clamp-3 h-[3lh] text-sm;
   }
 
-  /* A buddy's initials, in a circle. On the narrowest screens the card
+  /* A construct's initials, in a circle. On the narrowest screens the card
      leaves them out, to keep room for the description. */
-  .buddy-monogram {
+  .construct-monogram {
     @apply flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold font-heading text-on-primary text-sm;
   }
 
-  .buddy-picker-card .buddy-monogram {
+  .construct-picker-card .construct-monogram {
     @apply max-[24rem]:hidden;
   }
 
-  .buddy-monogram-own {
+  .construct-monogram-own {
     @apply bg-accent text-on-accent;
   }
 
-  .buddy-monogram-small {
+  .construct-monogram-small {
     @apply size-8 text-xs;
   }
 
-  /* A group of the list, such as the user's own buddies, and its name. */
-  .buddy-group-label {
+  /* A group of the list, such as the user's own constructs, and its name. */
+  .construct-group-label {
     @apply px-2 pt-2 pb-1 font-medium text-muted text-xs uppercase tracking-wide;
   }
 
-  /* One buddy in the list, ringed while it is the chosen one. */
-  .buddy-option {
+  /* One construct in the list, ringed while it is the chosen one. */
+  .construct-option {
     @apply flex min-h-(--target-size) w-full cursor-pointer items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-surface aria-[current=true]:ring-(length:--line-width) aria-[current=true]:ring-primary aria-[current=true]:ring-inset;
   }
 
-  .buddy-option-description {
+  .construct-option-description {
     @apply truncate text-muted text-xs;
   }
 
@@ -295,7 +295,7 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
-  /* Compact navigation above the title and buddy. Keep touch targets full
+  /* Compact navigation above the title and construct. Keep touch targets full
      size while giving the conversation more room, including on phones. */
   .chat-header {
     @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
@@ -340,7 +340,7 @@
     @apply line-clamp-(--chat-header-name-lines);
   }
 
-  .chat-header-buddy {
+  .chat-header-construct {
     @apply block truncate font-body font-normal text-base text-muted tracking-normal;
   }
 
@@ -656,7 +656,7 @@
       inset-inline-start: 49%;
       inset-block-start: 63%;
     }
-    .atlas[data-view="map"] .atlas-place[data-place="buddies"] {
+    .atlas[data-view="map"] .atlas-place[data-place="guild"] {
       inset-inline-start: 18%;
       inset-block-start: 57%;
     }

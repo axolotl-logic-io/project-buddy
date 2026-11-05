@@ -1,7 +1,7 @@
 // Anthropic prompt caching, as AI SDK provider options. Other providers
-// ignore them. The buddy marks three cache breakpoints:
+// ignore them. The construct marks three cache breakpoints:
 // - the last tool, which covers the tools, so they stay cached when a
-//   buddy's parts in the system prompt change;
+//   construct's parts in the system prompt change;
 // - the end of the shared system prompt, which covers the tools and the text
 //   that is the same in every chat of an account, the global prompt and the
 //   account's activities, so chats with the same tools read one cached
