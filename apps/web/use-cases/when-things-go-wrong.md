@@ -44,7 +44,7 @@ The user starts a quest or an adventure, with a construct or an activity of her 
 
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat).
 - **Steps:**
-  - She names a new quest with motivation or an edited Interview construct saved in Settings; or she picks a quest and an edited construct for a new adventure. She starts it.
+  - She names a new quest with motivation or an edited New quest construct saved in Settings; or she picks a quest and an edited construct for a new adventure. She starts it.
   - The site shows that it is working while it asks the construct for the adventure's opening, which fails or takes longer than 30 seconds.
 - **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and construct. It shows one fixed message: Claude is unavailable right now, so adventures are turned off, and to try again later. Nothing is saved: no new quest and no new adventure appear in her lists. The site's log records the problem once. Replies inside an adventure that already exists fail as `use_case_reply_fails` says.
 - **Next:**
