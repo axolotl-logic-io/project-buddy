@@ -1,3 +1,4 @@
+import React, { type JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -16,6 +17,7 @@ import {
   signOut,
 } from "../../../auth/current-user-test-kit.ts";
 import { tabForward } from "../../../components/keyboard-test-kit.ts";
+import { applyTheme } from "../../../themes/theme-test-kit.ts";
 import { LAPTOP_VIEWPORT, setViewport } from "../../../viewports-test-kit.ts";
 import { inSiteFrame } from "../../site-frame-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
@@ -46,6 +48,7 @@ const DESTINATIONS = [
 ];
 
 beforeEach(() => {
+  applyTheme("parchment");
   signInAs(SIGNED_IN_USER);
   stores.readToday.mockResolvedValue({ projects: [], chats: [] });
 });
@@ -62,6 +65,27 @@ function destinationLinks(): { name: string | null; href: string | null }[] {
       name: link.element().getAttribute("aria-label"),
       href: link.element().getAttribute("href"),
     }));
+}
+
+// Next keeps visited pages mounted in Activity boundaries during navigation.
+function cachedPages(showHome: boolean): Promise<JSX.Element> {
+  let homeMode: "visible" | "hidden" = "hidden";
+  let captureMode: "visible" | "hidden" = "visible";
+  if (showHome) {
+    homeMode = "visible";
+    captureMode = "hidden";
+  }
+  return inSiteFrame(
+    <div className="page-column">
+      <React.Activity mode={homeMode}>
+        <HomeAtlas latestQuest={undefined} />
+      </React.Activity>
+      <React.Activity mode={captureMode}>
+        <h1 className="page-heading">{QUICK_CAPTURE_COPY.heading}</h1>
+        <p>{QUICK_CAPTURE_COPY.intro}</p>
+      </React.Activity>
+    </div>,
+  );
 }
 
 describe("use_case_home_atlas", () => {
@@ -144,6 +168,53 @@ describe("use_case_home_atlas", () => {
     await expect
       .element(header.getByText(PROJECTS_COPY.heading, { exact: true }).first())
       .toBeVisible();
+  });
+
+  test("restores the page column and header when leaving a cached map", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    const screen = await render(await cachedPages(true));
+    const title = page
+      .getByRole("banner")
+      .getByRole("link", { name: SITE_COPY.name });
+    const capture = page.getByRole("heading", {
+      name: QUICK_CAPTURE_COPY.heading,
+      exact: true,
+    });
+
+    await screen.rerender(await cachedPages(false));
+    await expect.element(title).toBeVisible();
+    await expect.element(capture).toBeVisible();
+    const headingBox = capture.element().getBoundingClientRect();
+    const headerBox = page
+      .getByRole("banner")
+      .element()
+      .getBoundingClientRect();
+    expect(headingBox.top).toBeGreaterThan(headerBox.bottom);
+    expect(headingBox.left).toBeGreaterThan(0);
+    expect(headingBox.width).toBeLessThan(LAPTOP_VIEWPORT.width);
+
+    await screen.rerender(await cachedPages(true));
+    await expect
+      .element(page.getByRole("heading", { name: HOME_COPY.heading }))
+      .toBeVisible();
+    await expect.element(title).not.toBeInTheDocument();
+
+    await screen.rerender(await cachedPages(false));
+    await expect.element(title).toBeVisible();
+    expect(capture.element().getBoundingClientRect().toJSON()).toEqual(
+      headingBox.toJSON(),
+    );
+    await screen.rerender(
+      await inSiteFrame(
+        <div className="page-column">
+          <h1 className="page-heading">{QUICK_CAPTURE_COPY.heading}</h1>
+          <p>{QUICK_CAPTURE_COPY.intro}</p>
+        </div>,
+      ),
+    );
+    expect(capture.element().getBoundingClientRect().toJSON()).toEqual(
+      headingBox.toJSON(),
+    );
   });
 
   test("requires sign-in before reading recent work", async () => {

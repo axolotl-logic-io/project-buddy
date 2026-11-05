@@ -191,6 +191,13 @@
     font-family: var(--body-font);
   }
 
+  /* Align the paper grain with the pinned chat controls where supported. */
+  @supports (background-attachment: fixed) {
+    body {
+      background-attachment: fixed;
+    }
+  }
+
   /* The user has hidden the page decorations (src/flags/flags.ts), and the
      menu's with them. Set on <body>, not <html>, where the theme's own value
      would win (the themes' layer comes after this one), so the body and
