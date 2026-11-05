@@ -9,11 +9,13 @@ import { inTransaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { parseOwnPromptId, type UserId } from "@/ids.ts";
 
+import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
+
 const DESCRIPTION_MAX = 4000;
 const METADATA_EDIT = z.object({
-  name: z.string().trim().min(1),
-  prompt: z.string(),
-  visualDescription: z.string().trim().max(DESCRIPTION_MAX),
+  name: z.string().trim().min(1).optional(),
+  prompt: z.string().optional(),
+  visualDescription: z.string().trim().max(DESCRIPTION_MAX).optional(),
 });
 type ConstructMetadataEdit = z.infer<typeof METADATA_EDIT>;
 type ConstructMetadataOutcome = "saved" | "not-found" | "description-required";
@@ -49,18 +51,20 @@ async function editConstructMetadata(
       return "description-required";
     }
     let { visual } = definition;
-    if (edit.visualDescription !== "") {
+    if (edit.visualDescription !== undefined && edit.visualDescription !== "") {
       visual = { ...visual, version: 1, description: edit.visualDescription };
     }
     await tx
       .update(ownPrompts)
       .set({
         name: edit.name,
-        parts: storedConstructPrompt({
-          ...definition,
-          prompt: edit.prompt,
-          visual,
-        }),
+        parts: storedConstructPrompt(
+          earlierConstructText({
+            ...definition,
+            prompt: edit.prompt ?? definition.prompt,
+            visual,
+          }),
+        ),
         updatedAt: sql`now()`,
       })
       .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, parsedId)));
