@@ -1,6 +1,8 @@
 # Prompts
 
-A construct, activity or spell has a prompt. The editor for an own construct shows one prompt describing its voice and habits. Headings can organize those instructions without making them separate fields. Built-in definitions are read-only; Customize makes an editable copy.
+A construct, activity or spell has a prompt. The editor for an own construct shows one prompt describing its voice and habits. Headings can organize those instructions without making them separate fields. The Visual description is a separate field for appearance and identity. It never enters the conversational prompt. Built-in definitions show their original Visual description and artwork read-only; Customize makes an editable copy with the same images.
+
+Visual descriptions share Save, browser draft recovery and Discard changes with the prompt. Reset prompt preserves the description and images. A saved description with images cannot be cleared; the field explains this before submission. Save accepts description text, while image references and framing stay server-controlled.
 
 An activity has a prompt and a separate opening request. The prompt guides the current activity session. The opening request asks for the first reply when no prepared opening exists. Reset restores the activity prompt while preserving its opening request.
 
@@ -15,6 +17,14 @@ Construct, activity and spell detail pages share the Workshop. The existing save
 Construct tests choose an activity; activity tests choose a construct and can test the opening request. Spell tests choose both and either let the construct select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as adventures. Real tests spend the acting user's gold.
 
 Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save adventures, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating quests, editing the Journal, recording milestones and generating images are unavailable. The test area explains these limits before use. Cancel stops waiting for the test; any model use already incurred can still cost gold.
+
+## Construct images
+
+The Workshop previews avatar, portrait, opening and working appearances. Missing art uses initials. Generate Images uses one canonical generation with framing reused across roles; working art uses that image unless a separate variant exists. Images use the construct’s authorized destination, so private art is never loaded through a public asset URL.
+
+Save all draft changes before generating. The button stays disabled while the name, prompt or Visual description differs from the saved version. The page reads the service’s gold reservation and availability before enabling generation. Generation is separate from conversation tests and never silently saves other edits.
+
+A durable request UUID is kept before submission. While generation is pending, repeated submission is disabled. Check generation status makes a read-only request; reloading recovers pending work without starting another paid generation. A lost response keeps the request unresolved until its status can be read. If the service confirms that the accessible construct has no claim for that request, Resume original request explicitly sends the same UUID and saved payload. It never allocates a second UUID for unresolved work. An inaccessible construct is a different HTTP result and cannot be resumed. Retry after a known terminal failure creates a new UUID and may spend gold. The page shows per-role states, unavailable generation, lack of gold, failure and stale results. Successful images replace the previews without resetting the editor. Failure or stale results preserve good old images and drafts. A service fingerprint reports when saved prompt or description changes make generated art outdated; it contains no prompt text.
 
 ## Storage compatibility
 

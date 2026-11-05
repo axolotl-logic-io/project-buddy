@@ -47,6 +47,10 @@ async function emulateColorScheme(
   await context.page.emulateMedia({ colorScheme });
 }
 
+async function reduceMotion(context: BrowserCommandContext): Promise<void> {
+  await context.page.emulateMedia({ reducedMotion: "reduce" });
+}
+
 // How many test files each browser runs at once, per browser project. Every
 // action a test takes (a click, a hover, a key) waits on the page's frames,
 // and pages that start together starve each other's: with Vitest's default
@@ -118,7 +122,7 @@ function contextBrowserProject(
             provider: playwrightProvider({ contextOptions }),
           },
         ],
-        commands: { emulateColorScheme },
+        commands: { emulateColorScheme, reduceMotion },
       },
     },
   };
@@ -191,7 +195,7 @@ export default defineConfig({
             headless: true,
             provider: playwrightProvider(),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
-            commands: { emulateColorScheme },
+            commands: { emulateColorScheme, reduceMotion },
           },
         },
       },
