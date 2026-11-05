@@ -15,6 +15,7 @@ import {
   listConstructs,
 } from "@/constructs/index.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { userConstructIdFixture } from "../../support/id-fixtures.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
 
@@ -59,6 +60,13 @@ describe("use_case_standalone_chat", () => {
     });
 
     expect(sent(form)).toBe(VELLUM.id);
+    const image = form.querySelector("img");
+    expect(new URL(image?.src ?? "", globalThis.location.href).pathname).toBe(
+      "/constructs/vellum-v1.png",
+    );
+    await expect
+      .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.sample))
+      .toBeVisible();
     await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await next.click();
     expect(sent(form)).toBe(LUMEN.id);
@@ -67,6 +75,8 @@ describe("use_case_standalone_chat", () => {
     await previous.click();
     await previous.click();
     expect(sent(form)).toBe(OWN.id);
+    expect(form.querySelector("img")).toBeNull();
+    await expect.element(page.getByText("P", { exact: true })).toBeVisible();
     await expect
       .element(page.getByText(NEW_CHAT_COPY.constructPosition(COUNT, COUNT)))
       .toBeVisible();
@@ -102,4 +112,23 @@ describe("use_case_standalone_chat", () => {
       .element(page.getByText(NEW_CHAT_COPY.ownConstructDescription))
       .toBeVisible();
   });
+});
+
+test("own choices use their saved art without guessing from their name", async () => {
+  const screen = await render(
+    <ConstructPicker
+      defaultConstructId={OWN.id}
+      userConstructs={[
+        { ...OWN, name: "Lumen", visual: VELLUM.definition.visual },
+      ]}
+    />,
+  );
+  const image = screen.container.querySelector("img");
+  expect(new URL(image?.src ?? "", globalThis.location.href).pathname).toBe(
+    "/constructs/vellum-v1.png",
+  );
+  await expect.element(page.getByText("Lumen", { exact: true })).toBeVisible();
+  await expect
+    .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.sample))
+    .toBeVisible();
 });

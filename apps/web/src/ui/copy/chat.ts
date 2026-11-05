@@ -80,6 +80,7 @@ export const CHAT_COPY = {
   conversationLabel: "Conversation",
   you: "You",
   thinking: (constructName: string): string => `${constructName} is thinking…`,
+  writing: (constructName: string): string => `${constructName} is writing…`,
   workingNote: "Working note",
   messageLabel: "Message",
   send: "Send",

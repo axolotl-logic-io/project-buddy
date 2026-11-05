@@ -104,3 +104,11 @@ The user generates images for an own construct in the Workshop.
   - While a request is pending, the user can check its status or reload without starting another paid request.
 - **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Changed descriptions or prompts mark saved generated art outdated.
 - **Variations:** unavailable generation, lack of gold, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. Retry after a confirmed terminal failure uses a new UUID and may spend gold. Built-ins offer Customize instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
+
+## use_case_view_character_profile
+
+The user meets the construct saved in an adventure.
+
+- **Prerequisites:** an open adventure.
+- **Steps:** open the portrait and name control in the adventure header.
+- **Outcome:** a named profile shows the saved character's artwork, temperament, approach to quests and a representative sample line. Own or legacy characters without public personality copy show useful generic copy and initials when no art is available. Private conversational instructions and Visual descriptions never appear. The profile uses the adventure snapshot, so source edits do not change it. Opening it makes no model call. Keyboard focus stays inside the profile; Escape and Close return focus to its trigger. The profile fits a 320px phone, scrolls when needed and leaves the composer usable after closing.

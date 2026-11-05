@@ -351,3 +351,29 @@ New quest asks for a quest name and optional motivation: why the user wants to c
 New adventure and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the construct picker is hidden for a new quest. Other adventures retain their construct picker. Quests created by a construct from an existing adventure keep that adventure's construct.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
+
+## Construct presence
+
+The adventure header's portrait opens the saved character's profile, with full
+artwork and public personality copy. Its name remains visible in the heading.
+The portrait keeps a full touch target without adding another header row.
+
+Construct messages show a 32px circular portrait beside the construct's name.
+User messages have no portrait. Reply text keeps the conversation's full width
+on narrow phones. Artwork uses the adventure's saved construct snapshot, so
+renaming or editing a source construct does not change existing adventures.
+Missing or unavailable artwork shows initials; names and compatibility ids
+never select built-in artwork.
+
+The first saved message shows a larger illustration when it is a construct
+opening. It appears once in the conversation, including after reopening or
+saved-message refreshes. Legacy conversations starting with a user message
+receive no invented opening. Rendering never requests new artwork or calls a
+model. The shared visual primitives handle artwork and fallback behavior.
+
+While the construct is thinking or writing, Lumen's portrait gently glows and
+Vellum's portrait has a subtle working motion. Finish, stop and error settle the
+portrait. Reduced motion keeps portraits static. Readable thinking/writing
+status and the message's busy state remain available independently of motion.
+`construct-presence.browser.test.tsx` covers this behavior with fake streams
+under `use_case_construct_presence`.
