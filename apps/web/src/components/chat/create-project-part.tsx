@@ -7,7 +7,7 @@ import { userMessage } from "@/errors/app-error.ts";
 import { CREATE_PROJECT_OUTPUT } from "@/replies/tools/create-project-contract.ts";
 import { CREATE_PROJECT_COPY } from "@/ui/copy/chat.ts";
 
-// The project the buddy created from a chat, with a link to its
+// The project the construct created from a chat, with a link to its
 // interview chat, or why it created none: Claude is unavailable, or the
 // user is out of gold. Nothing shows until the call has answered.
 export function CreateProjectPart({

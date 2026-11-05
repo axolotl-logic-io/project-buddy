@@ -132,13 +132,13 @@ describe("use_case_hide_extras", () => {
 vi.mock("@/auth/current-user.ts", () => ({
   requireUser: vi.fn().mockResolvedValue({ id: "user" }),
 }));
-vi.mock("@/buddies/own-buddy-choices.ts", () => ({
-  ownBuddyChoices: vi.fn().mockResolvedValue([]),
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@/buddies/interview-buddy.ts", () => ({
-  interviewBuddy: vi.fn().mockResolvedValue({ id: "vellum" }),
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));
 vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
-  setInterviewBuddyAction: vi.fn().mockResolvedValue({ kind: "saved" }),
+  setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
 }));

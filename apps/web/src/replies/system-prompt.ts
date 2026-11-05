@@ -1,4 +1,4 @@
-// The buddy's system prompt, assembled from two lists of sections. Add a
+// The construct's system prompt, assembled from two lists of sections. Add a
 // section by adding one entry to a list:
 // - SHARED_SECTIONS don't depend on the chat: the global prompt
 //   (global-prompt.ts) and the lists of the account's activities and
@@ -7,9 +7,9 @@
 // - CHAT_SECTIONS render text for one chat: its project, or the standalone
 //   chat's text when it is in none, the rules for several people when more
 //   than one has written in it, its project's memory and newest
-//   milestones, its current activity and its buddy. A section that renders
+//   milestones, its current activity and its construct. A section that renders
 //   "" is left out.
-// Every {{name}} in the buddy's and the activity's parts, and in the spells'
+// Every {{name}} in the construct's and the activity's parts, and in the spells'
 // when-to-use lines, becomes the user's name here: the stored parts keep it
 // as written. cast_spell names the spell's instructions the same way.
 import type { SystemModelMessage } from "ai";
@@ -20,8 +20,8 @@ import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
-import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
+import type { ConstructSnapshot } from "@/constructs/index.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
@@ -47,12 +47,12 @@ import { spellChoices } from "@/spells/spell-choices.ts";
 interface ReplyPromptRequest {
   readonly actingUser: UserId;
   readonly chat: Chat;
-  readonly buddy: BuddySnapshot;
+  readonly construct: ConstructSnapshot;
   readonly severalAuthors?: boolean | undefined;
 }
 
 // What a section may read: the activities and spells the account has, the
-// chat's buddy and current activity, the acting user's name, or undefined if she has
+// chat's construct and current activity, the acting user's name, or undefined if she has
 // none, for a chat in a project, the project, and whether several people have
 // written in the chat, which no new chat has. A standalone chat is in no
 // project, so it has none. A chat's prompt needs nothing else, so it can be
@@ -61,7 +61,7 @@ interface ReplyPromptContext {
   readonly activities: readonly ActivityChoice[];
   readonly spells: readonly SpellChoice[];
   readonly project: PromptProject | undefined;
-  readonly buddy: BuddySnapshot;
+  readonly construct: ConstructSnapshot;
   readonly activity: ActivitySnapshot;
   readonly userName: string | undefined;
   readonly severalAuthors?: boolean | undefined;
@@ -89,7 +89,7 @@ function oneLine(text: string): string {
   return text.replace(WHITE_SPACE, " ").trim();
 }
 
-// One activity in the buddy's list: its id, its name and, if it has one,
+// One activity in the construct's list: its id, its name and, if it has one,
 // what it is.
 function activityLine({ id, name, description }: ActivityChoice): string {
   if (description === undefined) {
@@ -98,7 +98,7 @@ function activityLine({ id, name, description }: ActivityChoice): string {
   return `- \`${id}\`: ${name}. ${description}`;
 }
 
-// The activities the buddy can move the chat into, built in and the
+// The activities the construct can move the chat into, built in and the
 // account's own. They depend only on the account, so they share the cache
 // prefix.
 function activitiesSection({ activities }: ReplyPromptContext): string {
@@ -109,13 +109,13 @@ function activitiesSection({ activities }: ReplyPromptContext): string {
   ].join("\n");
 }
 
-// One spell in the buddy's list: its id, its name and when to use it, each
+// One spell in the construct's list: its id, its name and when to use it, each
 // on the one line, so no line break or heading in them can end the list.
 function spellLine({ id, name, whenToUse }: SpellChoice): string {
   return `- \`${id}\`: ${oneLine(name)}. ${oneLine(whenToUse)}`;
 }
 
-// The spells the buddy can cast, built in and the account's own. They
+// The spells the construct can cast, built in and the account's own. They
 // depend only on the account, so they share the cache prefix.
 function spellsSection({ spells }: ReplyPromptContext): string {
   return [
@@ -163,7 +163,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   memoryPromptSection,
   milestonesPromptSection,
   activitySection,
-  ({ buddy }: ReplyPromptContext): string => buddy.definition.prompt,
+  ({ construct }: ReplyPromptContext): string => construct.definition.prompt,
 ];
 
 // The texts of sections, without the empty ones, as one system message's
@@ -183,17 +183,17 @@ function rendered(
 function renderReplyInstructions(
   context: ReplyPromptContext,
 ): SystemModelMessage[] {
-  const { buddy, activity, spells, userName } = context;
+  const { construct, activity, spells, userName } = context;
   const named: ReplyPromptContext = {
     ...context,
     spells: spells.map((spell) => ({
       ...spell,
       whenToUse: withUserName(spell.whenToUse, userName),
     })),
-    buddy: {
-      ...buddy,
+    construct: {
+      ...construct,
       definition: {
-        prompt: withUserName(buddy.definition.prompt, userName),
+        prompt: withUserName(construct.definition.prompt, userName),
       },
     },
     activity: {
@@ -248,7 +248,7 @@ function promptProject(
 async function buildReplyInstructions({
   actingUser,
   chat,
-  buddy,
+  construct,
   severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
   const [activities, spells, project, activity, userName] = await Promise.all([
@@ -262,7 +262,7 @@ async function buildReplyInstructions({
     activities,
     spells,
     project,
-    buddy,
+    construct,
     activity,
     userName,
     severalAuthors,

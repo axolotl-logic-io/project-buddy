@@ -1,5 +1,5 @@
 // Her projects and a new project's interview chat, in the test database
-// with the mock buddy: the list and a project's chats, as the stores give
+// with the mock construct: the list and a project's chats, as the stores give
 // them to the pages, and what the New Project form's action makes.
 
 import { describe, expect, test } from "vitest";
@@ -10,11 +10,11 @@ import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import { cloneBuddy } from "@/buddies/buddy-store.ts";
-import { getBuddy } from "@/buddies/index.ts";
-import { saveInterviewBuddy } from "@/buddies/interview-buddy.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { cloneConstruct } from "@/constructs/construct-store.ts";
+import { getConstruct } from "@/constructs/index.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
@@ -22,7 +22,7 @@ import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import {
-  buddyPrompt,
+  constructPrompt,
   formOf,
   messageText,
 } from "../../../test-database/chat-test-kit.ts";
@@ -31,19 +31,19 @@ import { signIn } from "../../../test-database/session-test-kit.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// Creates a project named name, in the buddy of buddyId when it is given,
+// Creates a project named name, in the construct of constructId when it is given,
 // from the New Project form as the signed-in user; finds the project's only
 // chat through the stores, checks the action opened that chat, and returns
 // it.
 async function createProject(
   user: User,
   name: string,
-  buddyId?: string,
+  constructId?: string,
 ): Promise<ProjectChat> {
   const form = new FormData();
   form.set("name", name);
-  if (buddyId !== undefined) {
-    await saveInterviewBuddy(user.id, buddyId);
+  if (constructId !== undefined) {
+    await saveInterviewConstruct(user.id, constructId);
   }
   const creating = createProjectAction(IDLE, form);
   await Promise.allSettled([creating]);
@@ -86,9 +86,9 @@ describe("use_case_open_project", () => {
 
     const listed = await listChats(user.id, project.id);
 
-    expect(listed.map(({ id, buddy }) => [id, buddy.name])).toEqual([
-      [newer.id, getBuddy("lumen").name],
-      [older.id, getBuddy("vellum").name],
+    expect(listed.map(({ id, construct }) => [id, construct.name])).toEqual([
+      [newer.id, getConstruct("lumen").name],
+      [older.id, getConstruct("vellum").name],
     ]);
   });
 });
@@ -105,7 +105,7 @@ describe("use_case_new_project", () => {
       (await listProjects(user.id)).map((project) => project.name),
     ).toEqual([name]);
     expect(await listChats(user.id, chat.project.id)).toEqual([chat]);
-    expect(chat.buddy.name).toBe(getBuddy("vellum").name);
+    expect(chat.construct.name).toBe(getConstruct("vellum").name);
     expect((await currentActivity(user.id, chat)).id).toBe(
       INTERVIEW_ACTIVITY_ID,
     );
@@ -115,28 +115,28 @@ describe("use_case_new_project", () => {
   });
 });
 
-describe("use_case_new_project_with_buddy", () => {
-  test("the interview chat is with the built-in buddy she chose", async () => {
+describe("use_case_new_project_with_construct", () => {
+  test("the interview chat is with the built-in construct she chose", async () => {
     const user = await testUser();
     await signIn(user);
 
     const chat = await createProject(user, "Lumen's project", "lumen");
 
-    expect(chat.buddy.name).toBe(getBuddy("lumen").name);
+    expect(chat.construct.name).toBe(getConstruct("lumen").name);
   });
 
-  test("the interview chat is with her own buddy, when she chose it", async () => {
+  test("the interview chat is with her own construct, when she chose it", async () => {
     const user = await testUser();
     await signIn(user);
-    const own = await cloneBuddy(user.id, "lumen");
+    const own = await cloneConstruct(user.id, "lumen");
     if (own === undefined) {
       throw new Error("Lumen could not be cloned");
     }
 
-    const chat = await createProject(user, "Her buddy's project", own.id);
+    const chat = await createProject(user, "Her construct's project", own.id);
 
-    expect(chat.buddy.name).toBe(own.name);
-    expect((await getChat(user.id, chat.id))?.buddy.definition).toEqual(
+    expect(chat.construct.name).toBe(own.name);
+    expect((await getChat(user.id, chat.id))?.construct.definition).toEqual(
       own.definition,
     );
   });
@@ -148,7 +148,7 @@ describe("use_case_new_project_without_name", () => {
     await signIn(user);
     const form = new FormData();
     form.set("name", "   ");
-    form.set("buddyId", "lumen");
+    form.set("constructId", "lumen");
 
     expect(await createProjectAction(IDLE, form)).toEqual({
       kind: "invalidName",
@@ -167,7 +167,7 @@ describe("use_case_new_project_name_too_long", () => {
     const name = "Fox ".repeat(PROJECT_NAME_MAX_LENGTH);
     const form = new FormData();
     form.set("name", name);
-    form.set("buddyId", "lumen");
+    form.set("constructId", "lumen");
 
     expect(await createProjectAction(IDLE, form)).toEqual({
       kind: "invalidName",
@@ -209,17 +209,17 @@ describe("use_case_new_project_name_too_long", () => {
 });
 
 describe("use_case_new_project_motivation", () => {
-  test("keeps motivation in shared memory and uses the setting rather than submitted buddy ids", async () => {
+  test("keeps motivation in shared memory and uses the setting rather than submitted construct ids", async () => {
     const user = await testUser();
     await signIn(user);
-    await saveInterviewBuddy(user.id, "lumen");
+    await saveInterviewConstruct(user.id, "lumen");
     const motivation = "Make a fox as a birthday gift";
     const creating = createProjectAction(
       IDLE,
       formOf({
         name: "Gift",
         motivation: `  ${motivation}  `,
-        buddyId: "vellum",
+        constructId: "vellum",
       }),
     );
     await Promise.allSettled([creating]);
@@ -232,7 +232,7 @@ describe("use_case_new_project_motivation", () => {
       throw new Error("No chat was made");
     }
     await expectRedirect(() => creating, `/chats/${chat.id}`);
-    expect(chat.buddy.name).toBe("Lumen");
+    expect(chat.construct.name).toBe("Lumen");
     expect((await readMemory(user.id, project.id)).text).toBe(motivation);
     expect(await readMemoryHistory(user.id, project.id)).toMatchObject([
       { author: "user", text: motivation },
@@ -240,8 +240,8 @@ describe("use_case_new_project_motivation", () => {
     expect(
       (await listMessages(user.id, chat.id)).map(messageText).join("\n"),
     ).toContain(motivation);
-    expect(await buddyPrompt(chat.id)).toContain(motivation);
-    await saveInterviewBuddy(user.id, "vellum");
-    expect((await getChat(user.id, chat.id))?.buddy.name).toBe("Lumen");
+    expect(await constructPrompt(chat.id)).toContain(motivation);
+    await saveInterviewConstruct(user.id, "vellum");
+    expect((await getChat(user.id, chat.id))?.construct.name).toBe("Lumen");
   });
 });

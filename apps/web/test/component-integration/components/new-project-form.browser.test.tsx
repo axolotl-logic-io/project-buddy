@@ -54,7 +54,7 @@ describe("use_case_new_project", () => {
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
     expect(sent?.get("name")).toBe("Low-poly fox");
     expect(sent?.get("motivation")).toBe("Make a gift for a friend");
-    expect(sent?.has("buddyId")).toBe(false);
+    expect(sent?.has("constructId")).toBe(false);
   });
 });
 

@@ -67,7 +67,7 @@ afterEach(async () => {
 const LONG_NAME_REPEATS = 30;
 const CHAT_NAME_REPEATS = 15;
 const LONG_PROJECT = "Project".repeat(LONG_NAME_REPEATS);
-const LONG_BUDDY = "Buddy".repeat(LONG_NAME_REPEATS);
+const LONG_CONSTRUCT = "Construct".repeat(LONG_NAME_REPEATS);
 const LONG_CHAT = "Chat".repeat(CHAT_NAME_REPEATS);
 const TOUCH_TARGET = 44;
 
@@ -86,7 +86,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         store.getChat.mockResolvedValue({
           ...FOX_CHAT,
           project: { ...FOX_CHAT.project, name: LONG_PROJECT },
-          buddy: { ...FOX_CHAT.buddy, name: LONG_BUDDY },
+          construct: { ...FOX_CHAT.construct, name: LONG_CONSTRUCT },
           name: chatNameFixture(LONG_CHAT),
         });
         store.listMessages.mockResolvedValue([]);
@@ -94,7 +94,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const screen = await render(await chatPage());
         const heading = page.getByRole("heading", {
           level: 1,
-          name: `${LONG_CHAT} Chat with ${LONG_BUDDY}`,
+          name: `${LONG_CHAT} Chat with ${LONG_CONSTRUCT}`,
         });
         await expect.element(heading).toBeVisible();
         await expect.poll(() => window.innerWidth).toBe(viewport.width);
@@ -133,7 +133,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await expect
           .element(page.getByRole("heading", { level: 1 }))
           .toHaveTextContent(
-            `New chat Chat with ${STANDALONE_CHAT.buddy.name}`,
+            `New chat Chat with ${STANDALONE_CHAT.construct.name}`,
           );
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           viewport.width,

@@ -1,4 +1,4 @@
-// The text of a project's memory page, and of the buddy's memory changes in a
+// The text of a project's memory page, and of the construct's memory changes in a
 // chat.
 import { pageTitle } from "@/ui/copy/site.ts";
 
@@ -8,11 +8,11 @@ export const MEMORY_COPY = {
   link: "Quest memory",
   heading: "Memory",
   intro:
-    "What the buddy knows about this quest. Every chat in the quest works from it, and both you and the buddy can change it.",
+    "What your guildmates know about this quest. Every chat in the quest works from it, and both you and your guildmate can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
-    "Nothing is saved in this quest's memory yet. Choose Edit to write it, or tell the buddy what to remember.",
+    "Nothing is saved in this quest's memory yet. Choose Edit to write it, or tell your guildmate what to remember.",
   edit: "Edit",
   newerLabel: "Newer memory",
   textLabel: "Memory",
@@ -28,10 +28,10 @@ export const MEMORY_COPY = {
   versionHeading: (version: number): string => `Version ${version}`,
   versionMade: (author: string, madeAt: string): string =>
     `by ${author}, ${madeAt}`,
-  // Who saved a version: the viewer, another person by name, the buddy, or,
+  // Who saved a version: the viewer, another person by name, the construct, or,
   // on a version saved before savers were recorded, a person not named.
   byUser: "you",
-  byBuddy: "the buddy",
+  byConstruct: "a construct",
   byUnnamedPerson: "a person (name not recorded)",
   newest: "(current)",
   showText: "Show its text",
@@ -49,5 +49,5 @@ export const MEMORY_COPY = {
     `Updated the quest's memory (version ${version})`,
   removed: "Removed:",
   added: "Added:",
-  notChanged: "The buddy's change to the quest's memory did not apply.",
+  notChanged: "Your guildmate's change to the quest's memory did not apply.",
 } as const;

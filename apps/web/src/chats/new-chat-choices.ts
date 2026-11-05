@@ -2,8 +2,8 @@
 // new chat page and on the Chats page.
 import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
-import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
-import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
+import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
+import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 
@@ -15,22 +15,22 @@ interface NewChatChoices {
     readonly name: string;
   }[];
   readonly activities: readonly ActivityChoice[];
-  readonly userBuddies: readonly OwnBuddyChoice[];
+  readonly userConstructs: readonly OwnConstructChoice[];
 }
 
 // The owner's projects, newest first; every activity, including the project
-// interview, for new or existing projects; and the buddies the owner made,
+// interview, for new or existing projects; and the constructs the owner made,
 // oldest first.
 async function newChatChoices(owner: UserId): Promise<NewChatChoices> {
-  const [projects, activities, userBuddies] = await Promise.all([
+  const [projects, activities, userConstructs] = await Promise.all([
     listProjects(owner),
     activityChoices(owner),
-    ownBuddyChoices(),
+    ownConstructChoices(),
   ]);
   return {
     projects: projects.map(({ id, name }) => ({ id, name })),
     activities,
-    userBuddies,
+    userConstructs,
   };
 }
 

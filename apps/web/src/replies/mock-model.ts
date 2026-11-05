@@ -1,5 +1,5 @@
 // A deterministic stand-in for Claude that the AI SDK runs like any model.
-// BUDDY_MODEL=mock selects it, so tests never call Anthropic. It keeps no
+// CONSTRUCT_MODEL=mock selects it, so tests never call Anthropic. It keeps no
 // state between calls: each call plays the script step that matches the
 // number of tool results since the user's last message, streamed or, for
 // generateText, all at once.
@@ -299,13 +299,13 @@ function generateStep(
 
 // The mock model, playing `script`, by default the commands described at the
 // top of this file.
-function mockBuddyModel(
+function mockConstructModel(
   script: MockScript = defaultMockScript,
 ): LanguageModelV4 {
   return {
     specificationVersion: "v4",
     provider: "mock",
-    modelId: "buddy-mock",
+    modelId: "construct-mock",
     supportedUrls: {},
     doGenerate: (
       options: LanguageModelV4CallOptions,
@@ -317,4 +317,4 @@ function mockBuddyModel(
   };
 }
 
-export { mockBuddyModel };
+export { mockConstructModel };

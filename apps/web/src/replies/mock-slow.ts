@@ -1,5 +1,5 @@
-// "/mock-slow <message>" makes the mock buddy wait before it starts its
-// reply, so end-to-end tests can do something while the buddy is still
+// "/mock-slow <message>" makes the mock construct wait before it starts its
+// reply, so end-to-end tests can do something while the construct is still
 // replying, such as send another message from a second tab.
 import type { MockStep } from "@/replies/mock-script.ts";
 
@@ -12,7 +12,7 @@ const MOCK_SLOW_DELAY_MS = 8000;
 function mockSlowReply(message: string): MockStep[] {
   return [
     {
-      text: `The mock buddy took its time. You said: "${message}".`,
+      text: `The mock construct took its time. You said: "${message}".`,
       toolCalls: [],
       delayMs: MOCK_SLOW_DELAY_MS,
     },

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 // "use_case_see_gold" in use-cases/accounts.md: her account page states her
-// gold, in whole gold rounded down, and her balance falls as the buddy
+// gold, in whole gold rounded down, and her balance falls as the construct
 // replies. The extra that hides it is checked in hide-extras.browser.test.tsx.
 import { expect, test } from "vitest";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
@@ -33,7 +33,7 @@ test("use_case_see_gold", async () => {
   const { status } = await sendChatMessage(chat.id, MESSAGE);
 
   expect(status).toBe(HTTP_STATUS.ok);
-  // A reply from the mock buddy costs a fraction of a gold, which the page
+  // A reply from the mock construct costs a fraction of a gold, which the page
   // rounds down.
   expect(renderToStaticMarkup(await AccountPage())).toContain("Gold: 86");
 });

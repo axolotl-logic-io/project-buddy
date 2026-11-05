@@ -1,4 +1,4 @@
-// The buddy's tool for changing its chat's project memory. It edits rather
+// The construct's tool for changing its chat's project memory. It edits rather
 // than rewrites: it names the text it replaces, so a change the user saved
 // meanwhile is kept, and an edit whose text is gone saves nothing.
 import { tool } from "ai";
@@ -32,7 +32,7 @@ async function updateMemory(
   const result = await editMemory(context.actingUser, {
     projectId: context.projectId,
     edit,
-    author: "buddy",
+    author: "construct",
   });
   if (result === undefined) {
     // The reply's chat is read for its acting user, so its project is the acting user's;
@@ -62,7 +62,7 @@ async function updateMemory(
 }
 
 // Described by its default; tools/index.ts gives each request the
-// buddy's description.
+// construct's description.
 const updateMemoryTool = tool({
   description: UPDATE_MEMORY_DESCRIPTION,
   inputSchema: UPDATE_MEMORY_INPUT,

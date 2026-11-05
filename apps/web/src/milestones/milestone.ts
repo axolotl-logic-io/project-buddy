@@ -1,5 +1,5 @@
 // A milestone: something the user got done in a project, a short line the
-// buddy records from one of the project's chats, dated and linked to that
+// construct records from one of the project's chats, dated and linked to that
 // chat. A project's milestones, newest first, are its progress timeline. It
 // imports nothing from the server, because the browser checks a milestone's
 // text with the same rule.

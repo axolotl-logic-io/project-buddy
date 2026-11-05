@@ -20,11 +20,11 @@ import {
 } from "vitest";
 import { page } from "vitest/browser";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
-import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -203,7 +203,7 @@ describe("use_case_open_project", () => {
           {
             id: chatIdFixture(),
             project: { id: PROJECT_ID, name: "Low-poly fox" },
-            buddy: getBuddy("lumen"),
+            construct: getConstruct("lumen"),
             name: undefined,
             renamedByHand: false,
             unread: false,

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { interviewBuddy } from "@/buddies/interview-buddy.ts";
-import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
+import { interviewConstruct } from "@/constructs/interview-construct.ts";
+import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import { readVapidKeysIfSet } from "@/env.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { NOTIFICATIONS_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { FlagSwitches } from "./flag-switches.tsx";
-import { InterviewBuddyForm } from "./interview-buddy-form.tsx";
+import { InterviewConstructForm } from "./interview-construct-form.tsx";
 import { NotificationSwitch } from "./notification-switch.tsx";
 
 const EXTRAS_HEADING_ID = "extras-heading";
@@ -19,16 +19,19 @@ export const metadata: Metadata = { title: SETTINGS_COPY.title };
 // Account preferences and the current device's notification switch.
 export default async function SettingsPage(): Promise<JSX.Element> {
   const user = await requireUser();
-  const [chosen, buddies] = await Promise.all([
-    interviewBuddy(user.id),
-    ownBuddyChoices(),
+  const [chosen, constructs] = await Promise.all([
+    interviewConstruct(user.id),
+    ownConstructChoices(),
   ]);
   const publicKey = readVapidKeysIfSet()?.publicKey;
   return (
     <>
       <BackLink href={HOME_PATH}>{SETTINGS_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{SETTINGS_COPY.heading}</h1>
-      <InterviewBuddyForm buddyId={chosen.id} userBuddies={buddies} />
+      <InterviewConstructForm
+        constructId={chosen.id}
+        userConstructs={constructs}
+      />
       <section
         aria-labelledby={EXTRAS_HEADING_ID}
         className="panel flex flex-col gap-2"

@@ -16,7 +16,7 @@ import { users } from "./users.ts";
 // messages and memory, to its owner and its members (project_members,
 // src/accounts/owner-scope.ts); a user's standalone chat, which is in no
 // project, belongs to that user alone.
-// check_in_frequency is how often the project's buddy checks in
+// check_in_frequency is how often the project's construct checks in
 // (src/check-ins/): one of CHECK_IN_FREQUENCIES, "off" until the user turns
 // check-ins on. last_check_in_at is when the latest check-in was claimed,
 // null before the first.
@@ -45,17 +45,17 @@ export const projects = pgTable(
 
 // A chat is in a project or belongs directly to a user, with no project:
 // exactly one of project_id and user_id is set. A user can have many
-// standalone chats. A chat's place and buddy are fixed at creation.
-// The buddy is a
+// standalone chats. A chat's place and construct are fixed at creation.
+// The construct is a
 // snapshot, buddy_name and buddy_parts, taken when the chat starts, so
-// editing the buddy later leaves the chat as it was. buddy_id is the
-// built-in buddy's id, or the default buddy's for a buddy of the
+// editing the construct later leaves the chat as it was. buddy_id is the
+// built-in construct's id, or the default construct's for a construct of the
 // user's own; it is still written so the build before the snapshot can read
 // new chats, and goes once no build reads it. A chat saved before the
-// snapshot has null snapshot columns and reads as its built-in buddy: the
-// id is text so buddies can be added without a migration, and the chat
-// store narrows it when reading, so an id no buddy has reads as the
-// default buddy.
+// snapshot has null snapshot columns and reads as its built-in construct: the
+// id is text so constructs can be added without a migration, and the chat
+// store narrows it when reading, so an id no construct has reads as the
+// default construct.
 // The name is null until Claude Haiku first names the chat or the user
 // renames it; once they have, renamed_by_hand stops Haiku renaming it.
 // Unread marks are per user, in chat_unreads (chat-unreads.ts).
@@ -66,9 +66,9 @@ export const chats = pgTable(
     projectId: uuid("project_id").references(() => projects.id, {
       onDelete: "cascade",
     }),
-    buddyId: text("buddy_id").notNull(),
-    buddyName: text("buddy_name"),
-    buddyParts: jsonb("buddy_parts"),
+    constructId: text("buddy_id").notNull(),
+    constructName: text("buddy_name"),
+    constructParts: jsonb("buddy_parts"),
     name: text("name"),
     renamedByHand: boolean("renamed_by_hand").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -95,7 +95,7 @@ export const chats = pgTable(
 // no reply is being made to (src/chats/store.ts, claimReply). user_id is
 // the author of a user message: the user who sent it. Null means the chat's
 // owner, as on every message saved before authors were recorded, and on the
-// buddy's messages, which have no author (src/chats/message-author.ts).
+// construct's messages, which have no author (src/chats/message-author.ts).
 export const messages = pgTable(
   "messages",
   {

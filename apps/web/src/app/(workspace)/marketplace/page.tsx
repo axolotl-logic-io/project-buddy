@@ -13,7 +13,11 @@ import {
   listOwnListings,
   type OwnListing,
 } from "@/marketplace/listing-store.ts";
-import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import {
+  PROMPT_KINDS,
+  type PromptKind,
+  STORED_PROMPT_KIND,
+} from "@/prompts/prompt.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { MARKETPLACE_COPY, YOUR_LISTINGS_COPY } from "@/ui/copy/marketplace.ts";
 import { unlistListingAction } from "./actions.ts";
@@ -23,7 +27,8 @@ const YOUR_LISTINGS_ID = "your-listings";
 const YOUR_LISTINGS_HEADING_ID = "your-listings-heading";
 
 const QUERY = z.object({
-  kind: z.enum(PROMPT_KINDS).optional().catch(undefined),
+  // Older links name constructs by their stored kind.
+  kind: STORED_PROMPT_KIND.optional().catch(undefined),
 });
 const CURSOR = z.object({ after: LISTING_ID });
 

@@ -1,5 +1,5 @@
 // For server tests of chatting: the user's messages, sent through POST
-// /api/chat as the chat view sends them, the replies the mock buddy writes,
+// /api/chat as the chat view sends them, the replies the mock construct writes,
 // and readers of what the route saved. A reply's later work runs in
 // next/server's after(), which the setup file (vitest.server-setup.ts)
 // mocks with after-test-kit.ts's. sendChatMessage, and what builds on it,
@@ -14,9 +14,9 @@ import {
   CITE_BLENDER_MANUAL_OUTPUT,
   CITE_BLENDER_MANUAL_TOOL,
 } from "@/blender-manual/cite-tool-contract.ts";
-import type { BuddyId } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { listMessages, listMessagesForModel } from "@/chats/store.ts";
+import type { ConstructId } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
@@ -61,13 +61,13 @@ interface SavedLine {
 }
 
 // A new user, and a new chat of theirs in a new project, in the voice of
-// buddyId or the default buddy.
+// constructId or the default construct.
 async function userWithChat(
-  buddyId?: BuddyId,
+  constructId?: ConstructId,
 ): Promise<{ user: User; chat: ProjectChat }> {
   const user = await testUser();
   const data = testData(user);
-  const chat = await data.chat(await data.project(), buddyId);
+  const chat = await data.chat(await data.project(), constructId);
   return { user, chat };
 }
 
@@ -122,7 +122,10 @@ async function sendChatMessage(
 // Sends text in the chat as the signed-in user, as sendChatMessage does, and
 // returns the reply as saved, as the model reads it in later replies.
 // Rejects unless the route took the message.
-async function buddyReply(chatId: ChatId, text: string): Promise<UIMessage> {
+async function constructReply(
+  chatId: ChatId,
+  text: string,
+): Promise<UIMessage> {
   const user = await currentUser();
   if (user === undefined) {
     throw new Error("Sign the test user in before chatting");
@@ -133,7 +136,7 @@ async function buddyReply(chatId: ChatId, text: string): Promise<UIMessage> {
   }
   const reply = (await listMessagesForModel(user.id, chatId)).at(-1);
   if (reply?.role !== "assistant") {
-    throw new Error("The buddy's reply was not saved");
+    throw new Error("The construct's reply was not saved");
   }
   return reply;
 }
@@ -150,21 +153,21 @@ function messageText(message: UIMessage | undefined): string {
     .join("");
 }
 
-// The buddy's system prompt in the chat, as the mock buddy quotes it.
-async function buddyPrompt(chatId: ChatId): Promise<string> {
-  return messageText(await buddyReply(chatId, "/mock-system-prompt"));
+// The construct's system prompt in the chat, as the mock construct quotes it.
+async function constructPrompt(chatId: ChatId): Promise<string> {
+  return messageText(await constructReply(chatId, "/mock-system-prompt"));
 }
 
-// Has the mock buddy in the chat change the project's memory, replacing
+// Has the mock construct in the chat change the project's memory, replacing
 // oldText with newText (an empty oldText adds newText at the end), and
 // returns what the update_memory tool answered.
-async function buddyEdits(
+async function constructEdits(
   chatId: ChatId,
   oldText: string,
   newText: string,
 ): Promise<UpdateMemoryOutput> {
   const edit = JSON.stringify({ oldText, newText });
-  const reply = await buddyReply(
+  const reply = await constructReply(
     chatId,
     `/mock-tool ${UPDATE_MEMORY_TOOL} ${edit}`,
   );
@@ -172,7 +175,7 @@ async function buddyEdits(
     (part) => isToolUIPart(part) && getToolName(part) === UPDATE_MEMORY_TOOL,
   );
   if (call === undefined || !("output" in call)) {
-    throw new Error("The buddy didn't change the memory");
+    throw new Error("The construct didn't change the memory");
   }
   return UPDATE_MEMORY_OUTPUT.parse(call.output);
 }
@@ -227,7 +230,7 @@ async function savedConversation(
   }));
 }
 
-// The user's message userText and the mock buddy's reply to it, as lines.
+// The user's message userText and the mock construct's reply to it, as lines.
 function exchange(userText: string): SavedLine[] {
   return [
     { role: "user", text: userText },
@@ -248,19 +251,19 @@ function citedSections(message: UIMessage): Citation[] {
 }
 
 async function signedInChat(
-  buddyId?: BuddyId,
+  constructId?: ConstructId,
 ): Promise<{ user: User; chat: ProjectChat }> {
-  const scene = await userWithChat(buddyId);
+  const scene = await userWithChat(constructId);
   await signIn(scene.user);
   return scene;
 }
 
 export type { Citation, SavedLine, SentMessage };
 export {
-  buddyEdits,
-  buddyPrompt,
-  buddyReply,
   citedSections,
+  constructEdits,
+  constructPrompt,
+  constructReply,
   exchange,
   formOf,
   messageText,

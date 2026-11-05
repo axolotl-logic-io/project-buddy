@@ -1,5 +1,5 @@
 // "use_case_see_working_note" in use-cases/chats.md, in Chromium and WebKit:
-// the parts the mock buddy's `/mock-working-note zibble` streams, a note, a
+// the parts the mock construct's `/mock-working-note zibble` streams, a note, a
 // search of the manual for "zibble", then the answer. The note shows quiet
 // (smaller, in another colour) and labelled before the search, and the answer
 // as prose after it, as the reply streams and once it is saved. That the
@@ -18,8 +18,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
@@ -108,7 +108,7 @@ async function renderChat(initialMessages: UIMessage[]): Promise<void> {
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      buddyName={getBuddy("lumen").name}
+      constructName={getConstruct("lumen").name}
     />,
   );
 }

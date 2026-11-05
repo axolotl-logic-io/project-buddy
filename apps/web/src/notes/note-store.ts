@@ -1,4 +1,4 @@
-// A project's notes, kept in its memory, so every chat's buddy reads them
+// A project's notes, kept in its memory, so every chat's construct reads them
 // from its next reply on. Each save or delete is a new memory version by the
 // user, kept in the memory's history, and lands on top of whatever version
 // is newest. No model is called. Notes are open to everyone in their

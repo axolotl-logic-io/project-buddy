@@ -11,17 +11,17 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import { PROMPT_KINDS } from "../../prompts/prompt.ts";
-import { buddies } from "./buddies.ts";
+import { STORED_PROMPT_KIND_LIST } from "../../prompts/prompt.ts";
+import { ownPrompts } from "./own-prompts.ts";
 import { users } from "./users.ts";
 
-// The kinds a listing may be: every kind of prompt, as SQL literals.
+// The kinds a listing may be: every kind of prompt as stored, as SQL literals.
 const KIND_LITERALS = sql.raw(
-  PROMPT_KINDS.map((kind) => `'${kind}'`).join(", "),
+  STORED_PROMPT_KIND_LIST.map((kind) => `'${kind}'`).join(", "),
 );
 
 // Each row is one Marketplace listing (src/marketplace/listing-store.ts): a
-// copy of one of its seller's own prompts, of any kind (a buddy, an
+// copy of one of its seller's own prompts, of any kind (a construct, an
 // activity or a spell), as kind says, with its name and parts as they were when the seller last published
 // it, a description the seller wrote and a price in whole gold. source_id is
 // the own prompt it was published from, which may since have been deleted,
@@ -84,7 +84,7 @@ export const purchases = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     price: integer("price").notNull(),
-    copyId: uuid("copy_id").references(() => buddies.id, {
+    copyId: uuid("copy_id").references(() => ownPrompts.id, {
       onDelete: "set null",
     }),
     createdAt: timestamp("created_at", { withTimezone: true })

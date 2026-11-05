@@ -6,11 +6,11 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Three concepts shape every chat:
 
-- A **[buddy](#buddy)** is who the user talks with: a character, its voice and its habits.
+- A **[guildmate](#guildmate)** is who the user works with. Today every guildmate is a **[construct](#construct)**: an AI character with a voice and habits, found in the user's [Guild](#guild).
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
-- An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity from Activities or its [start page](#start-page). The current activity can change during the chat.
+- An **[activity](#activity)** is what the user and construct are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity from Activities or its [start page](#start-page). The current activity can change during the chat.
 
-Buddies, activities and spells have [prompts](#prompt). The site ships built-in buddies, activities and spells, and users can make and edit their own.
+Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
 
 A chat is a [quest chat](#quest-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a quest chat has quest memory and can record milestones.
 
@@ -18,14 +18,14 @@ A chat is a [quest chat](#quest-chat) or a [standalone chat](#standalone-chat). 
 
 ### Project Buddy
 
-The product: a personal site where buddies help each user with their own quests and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every chat has.
+The product: a personal site where guildmates, today all constructs, help each user with their own quests and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every chat has.
 
 - **UI:** "Project Buddy".
 - **Avoid:** "Project Buddies", "Blender AI tutor", "the Blender tutor", "Blender tutor site".
 
 ### Workshop
 
-The shared editing and testing experience for buddies, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's gold and do not create saved chats.
+The shared editing and testing experience for constructs, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's gold and do not create saved chats.
 
 - **UI:** "Workshop".
 
@@ -33,26 +33,26 @@ The shared editing and testing experience for buddies, activities and spells. It
 
 ### Prompt
 
-Instructions for the model. A buddy, activity or spell has a prompt; it is not itself a prompt. The application assembles prompts into messages sent to the model. A spell's prompt reaches the model through the result of a cast.
+Instructions for the model. A construct, activity or spell has a prompt; it is not itself a prompt. The application assembles prompts into messages sent to the model. A spell's prompt reaches the model through the result of a cast.
 
-### Built-in buddy, activity or spell
+### Built-in construct, activity or spell
 
-A buddy, activity or spell that ships with the site. Built-in ones are read-only; users customize them to make their own copies.
+A construct, activity or spell that ships with the site. Built-in ones are read-only; users customize them to make their own copies.
 
-### Own buddy, activity or spell
+### Own construct, activity or spell
 
-A user's private, editable buddy, activity or spell, made by copying another or writing one from scratch. Its prompt can become part of a shared chat without giving others access to the original.
+A user's private, editable construct, activity or spell, made by copying another or writing one from scratch. Its prompt can become part of a shared chat without giving others access to the original.
 
-- **UI:** "Your buddies", "Your activities", "Your spells".
-- **Avoid:** "custom buddy", "user persona".
+- **UI:** "Your constructs", "Your activities", "Your spells".
+- **Avoid:** "custom construct", "user persona".
 
 ### Customize, write from scratch, tweak, clone, rename
 
-To **customize** is to make an own copy of a built-in buddy, activity or spell. To **write from scratch** is to make one without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+To **customize** is to make an own copy of a built-in construct, activity or spell. To **write from scratch** is to make one without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
 
 ### Message
 
-One contribution to the chat or to the model's input. A message has content and a role that identifies how the model should treat it. Prompts can be assembled into instruction messages; user messages, buddy replies and tool results contribute other content.
+One contribution to the chat or to the model's input. A message has content and a role that identifies how the model should treat it. Prompts can be assembled into instruction messages; user messages, construct replies and tool results contribute other content.
 
 ### Context
 
@@ -66,11 +66,11 @@ A marker in a prompt that is replaced when its text is used. Substitution change
 
 ### Reset prompt or instructions
 
-Replace the draft prompt of an own buddy, activity or spell with its built-in source or starter text. Undo reset restores the previous draft; only Save changes the saved instructions. The name and separate opening request or when-to-use description stay unchanged. Existing chat snapshots and casts stay unchanged. Bought copies and their clones have no built-in reset source; editing and cloning remain available.
+Replace the draft prompt of an own construct, activity or spell with its built-in source or starter text. Undo reset restores the previous draft; only Save changes the saved instructions. The name and separate opening request or when-to-use description stay unchanged. Existing chat snapshots and casts stay unchanged. Bought copies and their clones have no built-in reset source; editing and cloning remain available.
 
 ### Snapshot
 
-A preserved copy of a buddy or activity's name and prompt, kept with a chat. A chat preserves its buddy at the start and its activity each time it enters an activity. Later edits to those originals do not change their snapshots. Current context, such as quest memory, can still change between replies.
+A preserved copy of a construct or activity's name and prompt, kept with a chat. A chat preserves its construct at the start and its activity each time it enters an activity. Later edits to those originals do not change their snapshots. Current context, such as quest memory, can still change between replies.
 
 ### Harness
 
@@ -78,36 +78,73 @@ The application machinery around the model: it assembles context, makes model ca
 
 ### Global prompt
 
-Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules, and the short rules for starting a quest and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the buddy casts when they fit. Users cannot edit the global prompt.
+Instructions that every chat gets, whatever its construct and activity: the role, the shared rules, and the short rules for starting a quest and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the construct casts when they fit. Users cannot edit the global prompt.
 
-## Buddies
+## Guild
 
-### Buddy
+### Guild
 
-A character who talks with the user in a chat. A buddy has a [voice](#voice) and [habits](#habits). Each chat has exactly one buddy, chosen when the chat starts.
+The user's collection of [guildmates](#guildmate), and the page that shows it: the built-in [constructs](#construct) and the user's own. The user chooses a guildmate from it to start a chat.
 
-Use "buddy" for whoever answers the user.
+The Guild is not a group of people: it has no human membership, invitations or shared access model yet. Everything in it today is a construct.
 
-- **UI:** "Buddy", "Buddies".
-- **Avoid:** "tutor", "persona", "assistant", and "character" except to explain a buddy.
+- **UI:** "Guild".
+- **Avoid:** "Buddies", "team", "party", "roster" for this collection.
 
-### Built-in buddy
+### Guildmate
 
-A buddy that ships with the site. Its voice and habits are independent of the subject of a chat.
+Whoever the user works with in a chat, as the broad membership term. Each chat has exactly one guildmate, chosen when the chat starts. Today every guildmate is a construct, so use "construct" wherever something is specific to an AI one: its instructions, model, replies, tool calls and casts.
 
-### Default buddy
+A guildmate is not a prompt; a construct has a prompt.
 
-The buddy initially chosen when starting a chat.
+- **UI:** "Guildmate", "Choose a guildmate…", "your guildmate".
+- **Avoid:** "buddy", "Buddy".
+
+### Construct
+
+An AI [guildmate](#guildmate): a character, with a name and a [prompt](#prompt) that sets its [voice](#voice) and [habits](#habits). The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in a chat.
+
+A construct is not a prompt; it has one.
+
+- **UI:** "Construct", "Constructs", "Built-in constructs", "Your constructs", "New construct".
+- **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
+
+### Human guildmate (under consideration)
+
+A person as a guildmate, for example someone working alongside the user in a chat. It is only under consideration: the site has no human guildmates, no Guild invitations, no multi-member chats and no Guild access model. Don't build, name or imply them in copy until they are agreed. A [team quest](#team-quest)'s [members](#member) are a separate feature and are not guildmates.
+
+### Earlier names (compatibility)
+
+Constructs were first called buddies, and the Guild Buddies. Use the new names everywhere except these compatibility boundaries, which keep the earlier name so that a release, which runs migrations while the earlier build is still live, and a rollback, which never reverts the schema, keep working:
+
+- The `buddies` table (`ownPrompts` in code), its `buddies_*` constraint and index names, and the `buddy_id`, `buddy_name` and `buddy_parts` columns of `chats`.
+- The stored kind `buddy` of an own construct and a listing (`STORED_PROMPT_KINDS` in `src/prompts/prompt.ts`), and the stored memory author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's reader accepts both names; the stored memory author is `user` or `buddy` only. Writers write `buddy`.
+- The `kind` in a saved prompt draft's browser storage key, and old `?kind=buddy` Marketplace links, which are read as constructs.
+- The `buddyId` a Workshop test request also carries, for the earlier build.
+- The `/buddies` and `/buddies/<id>` links, which redirect, temporarily, to `/guild` and `/guild/<id>`.
+- `BUDDY_MODEL`, read when `CONSTRUCT_MODEL` is unset.
+- An own copy of a built-in construct, activity or spell whose text is unchanged is stored in the built-in one's text from before the rename, recorded in `src/prompts/earlier-built-ins.ts`, and read back in today's text, so both builds know it as a copy of the built-in one.
+- Historical migration SQL, snapshots and their test fixtures.
+
+User-written prompts and chat [snapshots](#snapshot) are never rewritten; they may still say "buddy".
+
+### Built-in construct
+
+A construct that ships with the site. Its voice and habits are independent of the subject of a chat.
+
+### Default construct
+
+The construct initially chosen when starting a chat.
 
 ### Voice
 
-How a buddy talks, as described by its prompt.
+How a construct talks, as described by its prompt.
 
 ### Habits
 
-How a buddy works with the user, as described by its prompt. Voice describes how it talks; habits describe how it helps.
+How a construct works with the user, as described by its prompt. Voice describes how it talks; habits describe how it helps.
 
-Habits hold the buddy's personal style, which carries across every activity. Setting the scene and opening the chat belong to the [activity](#activity), not to habits.
+Habits hold the construct's personal style, which carries across every activity. Setting the scene and opening the chat belong to the [activity](#activity), not to habits.
 
 - **Avoid:** "teaching rules".
 
@@ -115,24 +152,24 @@ Habits hold the buddy's personal style, which carries across every activity. Set
 
 ### Activity
 
-What the user and buddy are doing together in a chat, such as brainstorming ideas, breaking down a quest, conducting an interview or having an open chat. An activity has a [prompt](#prompt) that guides the buddy. Users can customize built-in activities or write their own.
+What the user and construct are doing together in a chat, such as brainstorming ideas, breaking down a quest, conducting an interview or having an open chat. An activity has a [prompt](#prompt) that guides the construct. Users can customize built-in activities or write their own.
 
-A chat has one [current activity](#current-activity). Its instructions guide the buddy. Changing activities keeps the conversation and buddy, but changes those instructions.
+A chat has one [current activity](#current-activity). Its instructions guide the construct. Changing activities keeps the conversation and construct, but changes those instructions.
 
 Each activity has a name, a prompt and an [opening request](#activity-opening). The user can start a chat with it from the New chat modal on Activities or its [start page](#start-page). The chat saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
 
-The buddy chooses from the acting user's built-in and own activities.
+The construct chooses from the acting user's built-in and own activities.
 
 - **UI:** "Activity", "Activities".
 - **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
 
 ### Start page
 
-The page where the user starts a chat with an activity and chooses its buddy.
+The page where the user starts a chat with an activity and chooses its construct.
 
 ### Current activity
 
-The activity a chat is in now. The user chooses the starting activity; the buddy can change it during the chat.
+The activity a chat is in now. The user chooses the starting activity; the construct can change it during the chat.
 
 ### Activity session
 
@@ -140,7 +177,7 @@ The stretch of a chat spent in one activity, from the message where the activity
 
 ### Activity opening
 
-A separate prompt belonging to the activity that tells the buddy how to open a new chat when there is no [prepared opening](#prepared-opening).
+A separate prompt belonging to the activity that tells the construct how to open a new chat when there is no [prepared opening](#prepared-opening).
 
 - **UI:** "Opening request".
 
@@ -154,17 +191,17 @@ A user's private, editable activity, made by customizing a built-in activity, cl
 
 ### Interview
 
-The built-in activity that starts every quest. The buddy asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the quest memory.
+The built-in activity that starts every quest. The construct asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the quest memory.
 
 - **UI:** "Quest interview".
 
 The interview requires a quest and its memory. The Quest interview can also start in an existing quest from either chat-start surface. Empty quest memory begins with the goal; existing memory guides what to complete or revisit. Starting an interview does not replace quest memory.
 
-### Interview buddy
+### Interview guildmate
 
-The account setting that chooses the buddy for a new quest's interview. It defaults to Vellum and affects future quests, leaving existing chat snapshots unchanged.
+The account setting that chooses the construct for a new quest's interview. It defaults to Vellum and affects future quests, leaving existing chat snapshots unchanged.
 
-- **UI:** "Interview buddy".
+- **UI:** "Interview guildmate".
 
 ### Open chat
 
@@ -181,7 +218,7 @@ A user's list of [spells](#spell), built in and their own, and the page that sho
 
 ### Spell
 
-Reusable guidance with a [prompt](#prompt) that the buddy loads only when it fits. A spell has a name, a [when-to-use](#when-to-use) description and a prompt, shown as [instructions](#instructions-of-a-spell). The name and when-to-use description help select the spell; they are separate from its prompt. Every chat's instructions list the user's spells by id, name and when-to-use line, and the buddy [casts](#cast) one to load its instructions. A spell grants no tools: its instructions may only say how to use the tools every chat has.
+Reusable guidance with a [prompt](#prompt) that the construct loads only when it fits. A spell has a name, a [when-to-use](#when-to-use) description and a prompt, shown as [instructions](#instructions-of-a-spell). The name and when-to-use description help select the spell; they are separate from its prompt. Every chat's instructions list the user's spells by id, name and when-to-use line, and the construct [casts](#cast) one to load its instructions. A spell grants no tools: its instructions may only say how to use the tools every chat has.
 
 Built-in spells are read-only. The user can make, edit and delete their own spells.
 
@@ -190,20 +227,20 @@ Built-in spells are read-only. The user can make, edit and delete their own spel
 
 ### When to use
 
-A description of when the buddy should cast a [spell](#spell). The buddy sees this beside the spell's name before casting it.
+A description of when the construct should cast a [spell](#spell). The construct sees this beside the spell's name before casting it.
 
 - **UI:** "When to use".
 - **Avoid:** "trigger", "description".
 
 ### Instructions (of a spell)
 
-A [spell](#spell)'s prompt: what the buddy does once it casts the spell. Casting makes these instructions available to the buddy. An activity's prompt guides the chat throughout its current activity session.
+A [spell](#spell)'s prompt: what the construct does once it casts the spell. Casting makes these instructions available to the construct. An activity's prompt guides the chat throughout its current activity session.
 
 - **UI:** "Instructions".
 
 ### Cast
 
-To make a spell's instructions available to the buddy. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that chat, including replies to other team quest members. They are not exposed as readable prompts to people viewing the chat.
+To make a spell's instructions available to the construct. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that chat, including replies to other team quest members. They are not exposed as readable prompts to people viewing the chat.
 
 - **UI:** "Cast SPELL NAME".
 - **Avoid:** "invoke", "run", "load" in copy.
@@ -212,7 +249,7 @@ To make a spell's instructions available to the buddy. A cast preserves the inst
 
 ### Chat
 
-One conversation between the user and one buddy. Every chat is either a [quest chat](#quest-chat) or a [standalone chat](#standalone-chat).
+One conversation between the user and one [guildmate](#guildmate), today always a construct. Every chat is either a [quest chat](#quest-chat) or a [standalone chat](#standalone-chat).
 
 - **UI:** "Chat", "Chats".
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
@@ -230,17 +267,17 @@ A chat about anything, in no quest. It has every ability a quest chat has, excep
 
 ### Opening
 
-The buddy's first message, ready before the chat is saved. Every chat gets one: its [prepared opening](#prepared-opening), if it has one, or else one the buddy writes, as the [activity opening](#activity-opening) of the chat's first activity says.
+The construct's first message, ready before the chat is saved. Every chat gets one: its [prepared opening](#prepared-opening), if it has one, or else one the construct writes, as the [activity opening](#activity-opening) of the chat's first activity says.
 
 - **Avoid:** "synopsis", "first question". Use "opening request" for the prompt that asks for an opening.
 
 ### Prepared opening
 
-An opening written ahead of time for a built-in buddy in a built-in activity, so the chat starts at once, without a model call. A buddy or activity of the user's own whose prompts are unchanged from built-in ones, such as a copy the user has only renamed, gets the built-in one's. An edited one has none, so its buddy writes the opening.
+An opening written ahead of time for a built-in construct in a built-in activity, so the chat starts at once, without a model call. A construct or activity of the user's own whose prompts are unchanged from built-in ones, such as a copy the user has only renamed, gets the built-in one's. An edited one has none, so its construct writes the opening.
 
 ### Check-in
 
-A quest chat the buddy starts automatically on a schedule its owner chooses. Its opening draws on quest memory to help the user resume. Check-ins are optional. For who pays for model use, see [gold](#gold).
+A quest chat the construct starts automatically on a schedule its owner chooses. Its opening draws on quest memory to help the user resume. Check-ins are optional. For who pays for model use, see [gold](#gold).
 
 - **UI:** "Check-ins".
 - **Avoid:** "nudge", "reminder", "ping".
@@ -271,7 +308,7 @@ A view of what is waiting for the user: their recent quests, next steps and chat
 
 ### Image attachment
 
-An image the user selects or pastes into a chat message. It belongs to the chat and remains available to the buddy in follow-up replies.
+An image the user selects or pastes into a chat message. It belongs to the chat and remains available to the construct in follow-up replies.
 
 - **UI:** "Image", "Attach images".
 
@@ -284,7 +321,7 @@ The user who wrote a user message. Authorship belongs to the message and does no
 
 ### Reply
 
-The buddy's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the quest memory and the conversation so far.
+The construct's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the quest memory and the conversation so far.
 
 ## Quests and memory
 
@@ -301,7 +338,7 @@ The code and storage still use `Project`, `project` and `projects`, including ro
 
 A quest that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, quest memory, Quick Notes and progress timeline. A quest with no members is not a team quest, though nothing else sets it apart.
 
-In a team quest chat, the chosen buddy's and activity's instructions are shared with the quest's members, own ones too, through the chat's [snapshots](#snapshot). The original buddy or activity stays private to its user.
+In a team quest chat, the chosen construct's and activity's instructions are shared with the quest's members, own ones too, through the chat's [snapshots](#snapshot). The original construct or activity stays private to its user.
 
 - **UI:** "Shared" on the owner's quests list, "Shared with you" on a member's.
 - **Avoid:** "shared quest" in code, "group quest", "workspace".
@@ -315,7 +352,7 @@ A user in someone else's [team quest](#team-quest), who works in it as the owner
 
 ### Quest memory
 
-One editable Markdown document per quest, shared by all its chats. It holds the quest's goals, milestones, progress and preferences. The user and the buddy can both change it.
+One editable Markdown document per quest, shared by all its chats. It holds the quest's goals, milestones, progress and preferences. The user and the construct can both change it.
 
 - **UI:** "Memory", "Quest memory".
 - **Avoid:** "quest state", "shared memory".
@@ -328,18 +365,18 @@ One saved revision of a quest's memory. Restoring a version saves it again as a 
 
 ### Memory author
 
-Who saved a memory version: the buddy or a person in the quest. A recorded person appears as “you” to that person and by name to other viewers. For older versions whose saver was not recorded, the history says that the name was not recorded.
+Who saved a memory version: the construct or a person in the quest. A recorded person appears as “you” to that person and by name to other viewers. For older versions whose saver was not recorded, the history says that the name was not recorded.
 
 ### Memory change
 
-A note in a chat that the buddy updated the quest's memory.
+A note in a chat that the construct updated the quest's memory.
 
 - **UI:** "Memory change".
 - **Avoid:** "memory change card", "memory change notice".
 
 ### Quick Note
 
-A short, dated line the user saves to a quest between chats, without a chat or model call. It becomes part of the quest memory, so the buddy can read it in later replies. Saving or deleting one makes a new memory version by the user. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to a quest between chats, without a chat or model call. It becomes part of the quest memory, so the construct can read it in later replies. Saving or deleting one makes a new memory version by the user. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for a single item and "Quick Notes" for the feature and collection.
 - **Avoid:** "note" alone or "quick capture" for this feature in UI copy and docs; "memo", "jot", "inbox".
@@ -354,7 +391,7 @@ A meaningful result on the path toward a [goal](#goal). A milestone can be plann
 
 ### Milestone (recorded)
 
-Something the user got done in a quest: one short line, in the past tense, that the buddy records from a quest chat, dated and linked to that chat. The user can edit or delete it. A standalone chat can't record one, as it has no quest.
+Something the user got done in a quest: one short line, in the past tense, that the construct records from a quest chat, dated and linked to that chat. The user can edit or delete it. A standalone chat can't record one, as it has no quest.
 
 - **UI:** "Milestone", "Added to the progress timeline".
 - **Avoid:** "achievement", "accomplishment", "streak", "log entry".
@@ -368,7 +405,7 @@ A quest's collection of recorded milestones. It celebrates what the user has don
 
 ### Next step
 
-The one small thing the user means to do next in a quest, kept in its [quest memory](#quest-memory). It is the first action toward a planned milestone. The buddy keeps it current, and the user can edit it.
+The one small thing the user means to do next in a quest, kept in its [quest memory](#quest-memory). It is the first action toward a planned milestone. The construct keeps it current, and the user can edit it.
 
 - **UI:** "Next step".
 - **Avoid:** "todo", "task", "action item" as names for this concept.
@@ -377,7 +414,7 @@ The one small thing the user means to do next in a quest, kept in its [quest mem
 
 ### Tool
 
-A function the model can call during a reply. Tools are available across activities, subject to their requirements: updating memory and recording a milestone require a quest chat. An activity guides what the user and buddy are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
+A function the model can call during a reply. Tools are available across activities, subject to their requirements: updating memory and recording a milestone require a quest chat. An activity guides what the user and construct are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
 
 ### Tool part
 
@@ -387,7 +424,7 @@ How a tool call appears in a chat: inline in the reply, or under it.
 
 ### Blender manual lookup
 
-Searching the Blender manual and citing what the buddy read. Its instructions are a built-in spell. Casting the spell gives guidance for the lookup; it does not grant access to the tools.
+Searching the Blender manual and citing what the construct read. Its instructions are a built-in spell. Casting the spell gives guidance for the lookup; it does not grant access to the tools.
 
 ### Blender manual
 
@@ -411,11 +448,11 @@ One call to a search tool.
 
 ### Working note
 
-Text a buddy writes before a lookup or a spell [cast](#cast), shown muted above it.
+Text a construct writes before a lookup or a spell [cast](#cast), shown muted above it.
 
 ### Citation
 
-A link to a Blender manual section the buddy used in its reply.
+A link to a Blender manual section the construct used in its reply.
 
 - **UI:** "From the Blender manual".
 - **Avoid:** "manual credit", which is the licence credit on the Credits page.
@@ -484,7 +521,7 @@ The acting user is distinct from a message's author and from the user viewing it
 
 The user something belongs to. A quest's owner is the user who made it. Members share access to its chats, memory, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
 
-Ownership and access are distinct: own buddies, activities, spells and gold belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs, activities, spells and gold belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
@@ -517,7 +554,7 @@ A **session** keeps a user signed in. **Sign out everywhere** ends their existin
 
 ### Generated image
 
-An image a buddy creates at the [acting user](#acting-user)'s request, spending that user's [gold](#gold). It belongs to its source chat. An image in a team quest chat is accessible to the quest's owner and members.
+An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [gold](#gold). It belongs to its source chat. An image in a team quest chat is accessible to the quest's owner and members.
 
 ### Image gallery
 
@@ -551,16 +588,16 @@ A model provider account's prepaid balance. Provider credit is separate from eac
 
 ### Marketplace
 
-The page where users share their own buddies, activities and spells and sell them to each other for gold. Listings are visible to every signed-in user.
+The page where users share their own constructs, activities and spells and sell them to each other for gold. Listings are visible to every signed-in user.
 
 - **UI:** "Marketplace", "Sell in the Marketplace", "Your listings".
 - **Avoid:** "store", "shop" in UI copy.
 
 ### Listing
 
-A published copy of a seller's own buddy, activity or spell, with a description and a price in gold. A free listing lets users share them without payment. Editing the original buddy, activity or spell does not change the listing until the seller updates it. Unlisting stops new sales. Browsing a listing does not reveal its prompt.
+A published copy of a seller's own construct, activity or spell, with a description and a price in gold. A free listing lets users share them without payment. Editing the original construct, activity or spell does not change the listing until the seller updates it. Unlisting stops new sales. Browsing a listing does not reveal its prompt.
 
-Built-in buddies, activities and spells, unchanged copies of them, and bought ones cannot be listed.
+Built-in constructs, activities and spells, unchanged copies of them, and bought ones cannot be listed.
 
 - **UI:** "listing", "Update listing", "Unlist", "Free".
 - **Avoid:** "share link", "product", "item" as names for this concept.
@@ -576,6 +613,6 @@ To get one's own copy of someone else's listing: the buyer's gold moves to the s
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.
 
-### Bought buddy, activity or spell
+### Bought construct, activity or spell
 
-A buddy, activity or spell a user got by buying a listing, or cloned from one. The user can edit it, but cannot list it. Its instructions are another user's, but the tools stay the buyer's own, so it can't reach anyone else's data.
+A construct, activity or spell a user got by buying a listing, or cloned from one. The user can edit it, but cannot list it. Its instructions are another user's, but the tools stay the buyer's own, so it can't reach anyone else's data.

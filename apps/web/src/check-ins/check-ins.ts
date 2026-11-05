@@ -1,9 +1,9 @@
-// Check-ins: on the schedule the user picks for a project, its buddy starts
+// Check-ins: on the schedule the user picks for a project, its construct starts
 // a new chat in it, unread, with a short message about where the user left
 // off and one small next step (src/chats/start-chat.ts, startCheckIn), and
 // emails it to the user with a link to the chat. The scheduler runs
 // runCheckIns; check-in-store.ts says which projects are due. Each project
-// is claimed before its buddy writes, so a second run at the same time, or
+// is claimed before its construct writes, so a second run at the same time, or
 // soon after, starts no second check-in. A check-in skipped because the
 // owner is out of gold keeps its claim, so the project waits its interval
 // like any other, rather than going first in every run. One that failed, because Claude is unavailable or something
@@ -46,7 +46,7 @@ type CheckInsRun = Readonly<Record<CheckInOutcome, number>>;
 // is logged and the chat stays, unread, on the Chats page.
 async function emailCheckIn(
   { owner, email, project }: DueCheckIn,
-  started: { readonly chatId: string; readonly buddyName: string },
+  started: { readonly chatId: string; readonly constructName: string },
   message: string,
   origin: string,
 ): Promise<void> {
@@ -54,7 +54,7 @@ async function emailCheckIn(
     await sendEmail(
       checkInEmail({
         to: email,
-        buddyName: started.buddyName,
+        constructName: started.constructName,
         projectName: project.name,
         message,
         chatUrl: new URL(`/chats/${started.chatId}`, origin).href,
@@ -95,7 +95,7 @@ async function checkIn(
     }
     await emailCheckIn(
       due,
-      { chatId: result.chat.id, buddyName: result.chat.buddy.name },
+      { chatId: result.chat.id, constructName: result.chat.construct.name },
       result.message,
       origin,
     );

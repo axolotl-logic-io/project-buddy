@@ -1,5 +1,5 @@
 // New chats, saved in Postgres: in a project open to the acting user, their
-// own or a team project they are a member of, or standalone, in none. A chat that starts with the buddy's opening is saved with it, and
+// own or a team project they are a member of, or standalone, in none. A chat that starts with the construct's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
@@ -8,8 +8,6 @@ import { QueryBuilder } from "drizzle-orm/pg-core";
 import { projectOpenTo } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
-import { storedBuddyPrompt } from "@/buddies/buddy-definition.ts";
-import type { BuddyId, BuddySnapshot } from "@/buddies/index.ts";
 import {
   type Chat,
   type ChatProject,
@@ -21,6 +19,8 @@ import {
   type ProjectChat,
   toChats,
 } from "@/chats/chat-rows.ts";
+import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
+import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
@@ -36,17 +36,17 @@ import {
 } from "@/ids.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 
-// The buddy a new chat keeps: the snapshot of its name and parts, and the
-// id saved beside it, which is the built-in buddy's or, for a buddy of
-// the user's own, the default buddy's, for the build that reads only ids.
-type NewChatBuddy = BuddySnapshot & { readonly id: BuddyId };
+// The construct a new chat keeps: the snapshot of its name and parts, and the
+// id saved beside it, which is the built-in construct's or, for a construct of
+// the user's own, the default construct's, for the build that reads only ids.
+type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 
 // The chat a new chat is: its project, or none for a standalone chat, and
-// its buddy. A new chat is unread for no one until markChatUnreadFor
+// its construct. A new chat is unread for no one until markChatUnreadFor
 // (store.ts) marks it, as a check-in does.
 interface NewChat {
   readonly project: ChatProject | undefined;
-  readonly buddy: NewChatBuddy;
+  readonly construct: NewChatConstruct;
 }
 
 // A new project chat, with no messages and no activity session, as the
@@ -106,10 +106,10 @@ function chatColumns(
   return {
     id: sql`${id}::uuid`.as("id"),
     projectId: owner.projectId,
-    buddyId: sql`${chat.buddy.id}::text`.as("buddy_id"),
-    buddyName: sql`${chat.buddy.name}::text`.as("buddy_name"),
-    buddyParts:
-      sql`${JSON.stringify(storedBuddyPrompt(chat.buddy.definition))}::jsonb`.as(
+    constructId: sql`${chat.construct.id}::text`.as("buddy_id"),
+    constructName: sql`${chat.construct.name}::text`.as("buddy_name"),
+    constructParts:
+      sql`${JSON.stringify(storedConstructPrompt(chat.construct.definition))}::jsonb`.as(
         "buddy_parts",
       ),
     name: sql`null::text`.as("name"),
@@ -150,7 +150,7 @@ function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
 
 // A new chat, with no messages, in the owner's project. Rejects with the
 // not-found case if the project is another user's. The site starts every
-// chat with the buddy's opening; the end-to-end tests make empty ones.
+// chat with the construct's opening; the end-to-end tests make empty ones.
 export function createChat(
   owner: UserId,
   chat: NewProjectChat,
@@ -200,13 +200,13 @@ export function createChatWithOpening(
 }
 
 // A new project of the owner's named projectName, with its first chat in
-// buddy and activity, which opening starts: the project, the chat, the
+// construct and activity, which opening starts: the project, the chat, the
 // message and the activity session are saved together, in one transaction.
 export function createProjectWithChat(
   owner: UserId,
   projectName: ProjectName,
   chat: {
-    readonly buddy: NewChatBuddy;
+    readonly construct: NewChatConstruct;
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
     readonly motivation?: string;
@@ -239,9 +239,9 @@ export function createProjectWithChat(
         .values({
           id,
           projectId,
-          buddyId: chat.buddy.id,
-          buddyName: chat.buddy.name,
-          buddyParts: storedBuddyPrompt(chat.buddy.definition),
+          constructId: chat.construct.id,
+          constructName: chat.construct.name,
+          constructParts: storedConstructPrompt(chat.construct.definition),
         })
         .returning(),
       db.insert(messages).values({
@@ -259,4 +259,4 @@ export function createProjectWithChat(
   });
 }
 
-export type { NewChat, NewChatBuddy };
+export type { NewChat, NewChatConstruct };

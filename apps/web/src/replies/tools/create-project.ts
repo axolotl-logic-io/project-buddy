@@ -1,11 +1,11 @@
-// The buddy's tool for turning the user's idea into a project, from any
+// The construct's tool for turning the user's idea into a project, from any
 // chat. It starts the project as New Project does, in the chat's
-// buddy, so the project's interview chat opens with the buddy's first
+// construct, so the project's interview chat opens with the construct's first
 // question. It checks the acting user's gold itself rather than reusing the
 // reply's grant, so a reply that spent the last gold creates no project.
 import { tool } from "ai";
-import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { startProject } from "@/chats/start-chat.ts";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import {
   CHAT_TOOL_CONTEXT,
   type ChatToolContext,
@@ -22,12 +22,12 @@ async function createProject(
   { name }: CreateProjectInput,
   { context }: { context: ChatToolContext },
 ): Promise<CreateProjectOutput> {
-  // The chat's buddy is saved under the default buddy's id, as New Project
+  // The chat's construct is saved under the default construct's id, as New Project
   // saves one of the user's own.
   const started = await startProject(context.actingUser, name, {
-    id: DEFAULT_BUDDY_ID,
-    name: context.buddy.name,
-    definition: context.buddy.definition,
+    id: DEFAULT_CONSTRUCT_ID,
+    name: context.construct.name,
+    definition: context.construct.definition,
   });
   switch (started.kind) {
     case "started":
@@ -49,7 +49,7 @@ async function createProject(
 }
 
 // Described by its default; tools/index.ts gives each request the
-// buddy's description.
+// construct's description.
 const createProjectTool = tool({
   description: CREATE_PROJECT_DESCRIPTION,
   inputSchema: CREATE_PROJECT_INPUT,

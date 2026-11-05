@@ -23,10 +23,10 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
-// Where a tool's calls show in their message, and so what the buddy's text
+// Where a tool's calls show in their message, and so what the construct's text
 // before one of them is.
 type Placement =
-  // In the order the parts arrived. The buddy's text before such a call is a
+  // In the order the parts arrived. The construct's text before such a call is a
   // working note if the tool looks something up, such as a search of the
   // manual; otherwise it stays prose, such as a summary written before a
   // memory change.
@@ -167,7 +167,7 @@ function placementOf(part: PlacedPart): PlacementKind | undefined {
   return entryOf(part)?.placement;
 }
 
-// Whether part makes the buddy's text before it a working note: a tool call
+// Whether part makes the construct's text before it a working note: a tool call
 // whose entry shows it inline with textBefore "working-note".
 function makesNoteOfTextBefore(part: PlacedPart): boolean {
   const entry = entryOf(part);
