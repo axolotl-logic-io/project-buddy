@@ -56,11 +56,11 @@ const WORKSHOP_COPY = {
 const WORKSHOP_PAGE_COPY = {
   homeLink: "Home",
   intro:
-    "Write a buddy, activity or spell from scratch, customize a built-in one, or tweak or clone one of your own.",
+    "Write a construct, activity or spell from scratch, customize a built-in one, or tweak or clone one of your own.",
   loading: "Loading the Workshop…",
   kindsLabel: "What to shape",
   kinds: {
-    buddy: "Buddies",
+    buddy: "Constructs",
     activity: "Activities",
     spell: "Spells",
   } satisfies Readonly<Record<PromptKind, string>>,
