@@ -1,6 +1,6 @@
-// "/mock-cast <spell id>" makes the mock buddy cast the spell, then reply
+// "/mock-cast <spell id>" makes the mock construct cast the spell, then reply
 // with the instructions the cast gave it, or with why it cast none, so
-// server tests can check what casting a spell gives the buddy.
+// server tests can check what casting a spell gives the construct.
 import type { MockConversation, MockStep } from "@/replies/mock-script.ts";
 import {
   CAST_SPELL_OUTPUT,
@@ -12,13 +12,13 @@ import {
 function textAfterCast(output: unknown): string {
   const cast = CAST_SPELL_OUTPUT.safeParse(output);
   if (!cast.success) {
-    return "The mock buddy could not cast the spell.";
+    return "The mock construct could not cast the spell.";
   }
   if (cast.data.status === "unknown") {
-    return `The mock buddy cast no spell: ${cast.data.message}`;
+    return `The mock construct cast no spell: ${cast.data.message}`;
   }
   return [
-    `The mock buddy cast ${cast.data.name}:`,
+    `The mock construct cast ${cast.data.name}:`,
     "",
     cast.data.instructions ?? "",
   ].join("\n");

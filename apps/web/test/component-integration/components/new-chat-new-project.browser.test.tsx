@@ -35,7 +35,7 @@ async function openForm(): Promise<void> {
       activities={await activityChoices()}
       projects={[PROJECT]}
       selectedActivityId={DEFAULT_ACTIVITY_ID}
-      userBuddies={[]}
+      userConstructs={[]}
     />,
   );
   await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
@@ -105,7 +105,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(actions.startChatAction).not.toHaveBeenCalled();
   });
 
-  test("Start project sends the name with the new project, the interview and the buddy", async () => {
+  test("Start project sends the name with the new project, the interview and the construct", async () => {
     const { promise, resolve } = Promise.withResolvers<{ kind: "idle" }>();
     actions.startChatAction.mockReturnValue(promise);
     await openForm();
@@ -124,7 +124,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
     expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
-    expect(sent?.has("buddyId")).toBe(false);
+    expect(sent?.has("constructId")).toBe(false);
     resolve({ kind: "idle" });
   });
 
@@ -134,7 +134,7 @@ describe("use_case_new_project_from_new_chat", () => {
       message: NEW_CHAT_COPY.needsProjectName,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
-      buddyId: "vellum",
+      constructId: "vellum",
       name: " ",
     });
     await openForm();
@@ -174,7 +174,7 @@ describe("use_case_new_project_name_too_long", () => {
       message: tooLong,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
-      buddyId: "vellum",
+      constructId: "vellum",
       name,
     });
     await openForm();

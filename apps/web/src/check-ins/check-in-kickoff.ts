@@ -1,5 +1,5 @@
-// The user's side of a check-in before the buddy's message: what asks the
-// buddy to check in (src/replies/chat-opening.ts). The user never sees it.
+// The user's side of a check-in before the construct's message: what asks the
+// construct to check in (src/replies/chat-opening.ts). The user never sees it.
 // It is here, with the recogniser the mock reads it by.
 
 const CHECK_IN_KICKOFF = [

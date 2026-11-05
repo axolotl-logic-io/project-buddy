@@ -19,7 +19,7 @@ const IDLE: CheckInSettingState = { kind: "idle" };
 
 const HEADING_ID = "check-ins-heading";
 
-// A project's check-in setting: how often its buddy checks in, off by
+// A project's check-in setting: how often its construct checks in, off by
 // default, saved for this project alone.
 function CheckInSetting({
   projectId,

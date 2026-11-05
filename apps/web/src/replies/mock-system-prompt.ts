@@ -1,4 +1,4 @@
-// The mock buddy's "/mock-system-prompt" command: the mock replies with the
+// The mock construct's "/mock-system-prompt" command: the mock replies with the
 // text of its system messages, so end-to-end tests can check what the prompt
 // holds, such as the project's memory.
 import type { MockConversation, MockStep } from "@/replies/mock-script.ts";

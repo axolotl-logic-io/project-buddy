@@ -68,7 +68,7 @@ describe("use_case_view_projects", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Choose buddy" }))
+      .element(page.getByRole("button", { name: "Choose construct" }))
       .not.toBeInTheDocument();
     await expect
       .element(page.getByRole("button", { name: PROJECTS_COPY.create }))

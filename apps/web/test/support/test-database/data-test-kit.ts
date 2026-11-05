@@ -15,15 +15,19 @@ import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { addManualSections } from "@/blender-manual/manual-index.ts";
 import type { ManualSection } from "@/blender-manual/manual-sections.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
-import {
-  cloneBuddy,
-  type OwnBuddy,
-  updateBuddy,
-} from "@/buddies/buddy-store.ts";
-import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
+import {
+  cloneConstruct,
+  type OwnConstruct,
+  updateConstruct,
+} from "@/constructs/construct-store.ts";
+import {
+  type ConstructId,
+  DEFAULT_CONSTRUCT_ID,
+  getConstruct,
+} from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { messages, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -33,7 +37,7 @@ import { messageIdFixture } from "../id-fixtures.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
-// One of her messages and the buddy's reply to it, as the reply's stream
+// One of her messages and the construct's reply to it, as the reply's stream
 // saves them. author, another user, writes the message instead, as a
 // member of a team project would; it is recorded straight in the messages
 // table, since the chat isn't theirs.
@@ -48,11 +52,14 @@ interface TestData {
   // A new project, named name, or a unique name when name is missing.
   // Supply createdAt when a test needs a fixed chronological order.
   readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
-  // A new chat in project, in the voice of buddyId or the default buddy.
-  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<ProjectChat>;
-  // A new buddy of the user's own, cloned from the default buddy with its
+  // A new chat in project, in the voice of constructId or the default construct.
+  readonly chat: (
+    project: Project,
+    constructId?: ConstructId,
+  ) => Promise<ProjectChat>;
+  // A new construct of the user's own, cloned from the default construct with its
   // voice edited, so it has no prepared opening and writes its own.
-  readonly editedBuddy: () => Promise<OwnBuddy>;
+  readonly editedConstruct: () => Promise<OwnConstruct>;
   // Makes the chat, a project chat, its project's interview chat.
   readonly interviewChat: (chat: { readonly id: ChatId }) => Promise<void>;
   // Saves the exchanges in the chat, one after another, so they keep their
@@ -61,20 +68,20 @@ interface TestData {
     chat: { readonly id: ChatId },
     exchanges: readonly Exchange[],
   ) => Promise<void>;
-  // Sections added to the manual index, beside any others, so the buddy's
+  // Sections added to the manual index, beside any others, so the construct's
   // search can find them. manualSection makes one.
   readonly manualSections: (
     sections: readonly ManualSection[],
   ) => Promise<void>;
 }
 
-// The owner's clone of the default buddy, with its voice edited.
-async function testEditedBuddy(owner: UserId): Promise<OwnBuddy> {
-  const clone = await cloneBuddy(owner, DEFAULT_BUDDY_ID);
+// The owner's clone of the default construct, with its voice edited.
+async function testEditedConstruct(owner: UserId): Promise<OwnConstruct> {
+  const clone = await cloneConstruct(owner, DEFAULT_CONSTRUCT_ID);
   if (clone === undefined) {
-    throw new Error("The default buddy wasn't cloned");
+    throw new Error("The default construct wasn't cloned");
   }
-  const edited = await updateBuddy(owner, clone.id, {
+  const edited = await updateConstruct(owner, clone.id, {
     definition: {
       ...clone.definition,
       prompt: `${clone.definition.prompt}\n\nEdited.`,
@@ -169,10 +176,10 @@ function testData(user: User): TestData {
     ): Promise<Project> => testProject(user.id, name, createdAt),
     chat: (
       project: Project,
-      buddyId: BuddyId = DEFAULT_BUDDY_ID,
+      constructId: ConstructId = DEFAULT_CONSTRUCT_ID,
     ): Promise<ProjectChat> =>
-      createChat(user.id, { project, buddy: getBuddy(buddyId) }),
-    editedBuddy: (): Promise<OwnBuddy> => testEditedBuddy(user.id),
+      createChat(user.id, { project, construct: getConstruct(constructId) }),
+    editedConstruct: (): Promise<OwnConstruct> => testEditedConstruct(user.id),
     interviewChat: (chat: { readonly id: ChatId }): Promise<void> =>
       setInterviewChat(user.id, chat.id),
     exchanges: (

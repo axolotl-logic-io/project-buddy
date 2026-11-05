@@ -4,29 +4,32 @@ import {
   storedActivityPrompt,
 } from "@/activities/activity-definition.ts";
 import {
-  parseBuddyDefinition,
-  storedBuddyPrompt,
-} from "@/buddies/buddy-definition.ts";
+  parseConstructDefinition,
+  storedConstructPrompt,
+} from "@/constructs/construct-definition.ts";
 import {
   parseSpellDefinition,
   storedSpellPrompt,
 } from "@/spells/spell-definition.ts";
 
-test("legacy buddy text retains rendering and placeholders through a live-build-compatible write", () => {
+test("legacy construct text retains rendering and placeholders through a live-build-compatible write", () => {
   const old = { voice: "# Voice\nHello {{name}}.", habits: "- Ask first." };
-  const text = parseBuddyDefinition(old);
+  const text = parseConstructDefinition(old);
   expect(text).toEqual({
     prompt: "# Voice\nHello {{name}}.\n\n## Habits\n\n- Ask first.",
   });
   if (text === undefined) {
     throw new Error("Missing definition");
   }
-  expect(storedBuddyPrompt(text)).toEqual({ voice: text.prompt, habits: "" });
-  expect(parseBuddyDefinition(storedBuddyPrompt(text))).toEqual(text);
-  expect(parseBuddyDefinition({ voice: "Voice", habits: "" })).toEqual({
+  expect(storedConstructPrompt(text)).toEqual({
+    voice: text.prompt,
+    habits: "",
+  });
+  expect(parseConstructDefinition(storedConstructPrompt(text))).toEqual(text);
+  expect(parseConstructDefinition({ voice: "Voice", habits: "" })).toEqual({
     prompt: "Voice",
   });
-  expect(parseBuddyDefinition({ voice: 42, habits: "" })).toBeUndefined();
+  expect(parseConstructDefinition({ voice: 42, habits: "" })).toBeUndefined();
 });
 test("activity opening requests and spell selection metadata stay separate from prompts", () => {
   const activity = {

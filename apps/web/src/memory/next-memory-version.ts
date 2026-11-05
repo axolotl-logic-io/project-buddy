@@ -12,7 +12,11 @@ import {
 import { opensProject } from "@/accounts/owner-scope.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
-import type { MemoryAuthor, MemoryVersionNumber } from "@/memory/memory.ts";
+import {
+  type MemoryAuthor,
+  type MemoryVersionNumber,
+  storedMemoryAuthor,
+} from "@/memory/memory.ts";
 
 // The next version's text: new text, or a copy of an earlier version's.
 type NextVersionText =
@@ -37,9 +41,9 @@ type VersionColumns = {
 };
 
 // Who saved the next version: the acting user, on a version of a person's,
-// or no one, on the buddy's.
+// or no one, on the construct's.
 function savedBy({ owner, author }: NextMemoryVersion): SQL {
-  if (author === "buddy") {
+  if (author === "construct") {
     return sql`null::uuid`;
   }
   return sql`${owner}::uuid`;
@@ -55,7 +59,7 @@ function versionColumns(
     projectId: sql`${projectId}::uuid`,
     version: sql`${basedOn}::integer + 1`,
     text,
-    author: sql`${author}::text`,
+    author: sql`${storedMemoryAuthor(author)}::text`,
     userId: savedBy(next),
     createdAt: sql`now()`,
   };

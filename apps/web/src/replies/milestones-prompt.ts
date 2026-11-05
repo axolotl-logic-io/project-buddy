@@ -1,6 +1,6 @@
 // The prompt section that gives every chat in a project the project's
 // newest milestones, as the prompt read them when the turn started, between
-// tags, so the buddy can see what is recorded already, in any of the
+// tags, so the construct can see what is recorded already, in any of the
 // project's chats, and not record it again.
 import type { Milestone } from "@/milestones/milestone.ts";
 import type { ReplyPromptContext } from "@/replies/system-prompt.ts";

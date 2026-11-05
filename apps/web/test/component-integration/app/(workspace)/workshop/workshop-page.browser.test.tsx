@@ -7,14 +7,14 @@ import { cleanup, render } from "vitest-browser-react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
-import { listBuddies } from "@/buddies/buddy-store.ts";
-import { listBuddies as listBuiltInBuddies } from "@/buddies/index.ts";
+import { listConstructs } from "@/constructs/construct-store.ts";
+import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
 import { listProjects } from "@/projects/store.ts";
 import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { listSpells } from "@/spells/index.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
+import { GUILD_COPY } from "@/ui/copy/guild.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -34,9 +34,9 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../auth/current-user-test-kit.ts"),
 );
-vi.mock("@/buddies/buddy-store.ts", () => ({
-  getOwnBuddy: vi.fn(),
-  listBuddies: vi.fn<typeof listBuddies>(),
+vi.mock("@/constructs/construct-store.ts", () => ({
+  getOwnConstruct: vi.fn(),
+  listConstructs: vi.fn<typeof listConstructs>(),
 }));
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn(),
@@ -54,10 +54,10 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
   listedPromptIds: vi.fn().mockResolvedValue(new Set()),
 }));
 // The page offers these actions; their own pages' tests submit them.
-vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  cloneBuddyAction: vi.fn(),
-  editBuiltInBuddyAction: vi.fn(),
-  newBuddyAction: vi.fn(),
+vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+  cloneConstructAction: vi.fn(),
+  editBuiltInConstructAction: vi.fn(),
+  newConstructAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
@@ -73,7 +73,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
 
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
-  vi.mocked(listBuddies).mockResolvedValue([VELLUM_CLONE]);
+  vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
   vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   vi.mocked(listProjects).mockResolvedValue([]);
@@ -113,31 +113,33 @@ describe("use_case_workshop_page", () => {
         page.getByRole("heading", { level: 1, name: WORKSHOP_COPY.heading }),
       )
       .toBeVisible();
-    await expect.element(tab("buddy")).toHaveAttribute("aria-current", "page");
+    await expect
+      .element(tab("construct"))
+      .toHaveAttribute("aria-current", "page");
     await expect.element(tab("activity")).not.toHaveAttribute("aria-current");
 
-    const builtIn = listBuiltInBuddies()[0]?.name ?? "";
+    const builtIn = listBuiltInConstructs()[0]?.name ?? "";
     await expect
       .element(
         page.getByRole("button", {
-          name: BUDDIES_COPY.customizeLabel(builtIn),
+          name: GUILD_COPY.customizeLabel(builtIn),
         }),
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
+      .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
       .toBeEnabled();
     await expect
       .element(
         page.getByRole("link", {
-          name: BUDDIES_COPY.tweakLabel(VELLUM_CLONE.name),
+          name: GUILD_COPY.tweakLabel(VELLUM_CLONE.name),
         }),
       )
-      .toHaveAttribute("href", `/buddies/${VELLUM_CLONE.id}`);
+      .toHaveAttribute("href", `/guild/${VELLUM_CLONE.id}`);
     await expect
       .element(
         page.getByRole("button", {
-          name: BUDDIES_COPY.cloneLabel(VELLUM_CLONE.name),
+          name: GUILD_COPY.cloneLabel(VELLUM_CLONE.name),
         }),
       )
       .toBeVisible();
@@ -187,7 +189,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
+      .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
       .not.toBeInTheDocument();
   });
 
@@ -223,23 +225,25 @@ describe("use_case_workshop_page", () => {
 
   test("an unknown kind shows Constructs", async () => {
     await showWorkshop("dragon");
-    await expect.element(tab("buddy")).toHaveAttribute("aria-current", "page");
     await expect
-      .element(page.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
+      .element(tab("construct"))
+      .toHaveAttribute("aria-current", "page");
+    await expect
+      .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
       .toBeEnabled();
   });
 
   test("lists only the user's own, and reads nothing signed out", async () => {
     await showWorkshop();
-    expect(listBuddies).toHaveBeenCalledWith(SIGNED_IN_USER.id);
+    expect(listConstructs).toHaveBeenCalledWith(SIGNED_IN_USER.id);
     signOut();
-    vi.mocked(listBuddies).mockClear();
+    vi.mocked(listConstructs).mockClear();
     await expect(
       WorkshopPage({
         params: Promise.resolve({}),
         searchParams: Promise.resolve({}),
       }),
     ).rejects.toThrow(SIGNED_OUT_REDIRECT);
-    expect(listBuddies).not.toHaveBeenCalled();
+    expect(listConstructs).not.toHaveBeenCalled();
   });
 });

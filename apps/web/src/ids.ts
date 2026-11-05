@@ -1,5 +1,5 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, project invitation, chat, milestone, user buddy
+// expected. User, project, project invitation, chat, milestone, user construct
 // and listing ids are Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
@@ -79,7 +79,7 @@ type ProjectId = z.infer<typeof PROJECT_ID>;
 // A chat's id, as `parseChatId` returns it.
 type ChatId = z.infer<typeof CHAT_ID>;
 
-// The id of a user's own prompt, a buddy or an activity, as
+// The id of a user's own prompt, a construct or an activity, as
 // `parseOwnPromptId` returns it.
 type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
 

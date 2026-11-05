@@ -10,17 +10,17 @@ import {
 } from "@/activities/activity-store.ts";
 import { getActivity } from "@/activities/index.ts";
 import {
-  createBuddy,
-  getOwnBuddy,
-  listBuddies,
-} from "@/buddies/buddy-store.ts";
-import { type BuddyDefinition, getBuddy } from "@/buddies/index.ts";
+  createConstruct,
+  getOwnConstruct,
+  listConstructs,
+} from "@/constructs/construct-store.ts";
+import { type ConstructDefinition, getConstruct } from "@/constructs/index.ts";
 import type { NamedDefinition } from "@/prompts/prompt.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
-const SCRATCH_BUDDY: NamedDefinition<BuddyDefinition> = {
-  name: "Scratch buddy",
-  definition: getBuddy("vellum").definition,
+const SCRATCH_CONSTRUCT: NamedDefinition<ConstructDefinition> = {
+  name: "Scratch construct",
+  definition: getConstruct("vellum").definition,
 };
 
 const SCRATCH_ACTIVITY: NamedDefinition<ActivityDefinition> = {
@@ -31,49 +31,52 @@ const SCRATCH_ACTIVITY: NamedDefinition<ActivityDefinition> = {
 test("a prompt written from scratch has its name and parts and no source", async () => {
   const { id: owner } = await testUser();
 
-  const buddy = await createBuddy(owner, SCRATCH_BUDDY);
+  const construct = await createConstruct(owner, SCRATCH_CONSTRUCT);
   const activity = await createActivity(owner, SCRATCH_ACTIVITY);
 
-  expect(buddy).toMatchObject({ ...SCRATCH_BUDDY, clonedFrom: undefined });
+  expect(construct).toMatchObject({
+    ...SCRATCH_CONSTRUCT,
+    clonedFrom: undefined,
+  });
   expect(activity).toMatchObject({
     ...SCRATCH_ACTIVITY,
     clonedFrom: undefined,
   });
-  expect(await getOwnBuddy(owner, buddy.id)).toEqual(buddy);
+  expect(await getOwnConstruct(owner, construct.id)).toEqual(construct);
   expect(await getOwnActivity(owner, activity.id)).toEqual(activity);
 });
 
 test("a prompt written from scratch is its owner's alone", async () => {
   const [her, other] = await Promise.all([testUser(), testUser()]);
 
-  const buddy = await createBuddy(her.id, SCRATCH_BUDDY);
+  const construct = await createConstruct(her.id, SCRATCH_CONSTRUCT);
 
-  const [herBuddies, otherBuddy, otherBuddies] = await Promise.all([
-    listBuddies(her.id),
-    getOwnBuddy(other.id, buddy.id),
-    listBuddies(other.id),
+  const [herConstructs, otherConstruct, otherConstructs] = await Promise.all([
+    listConstructs(her.id),
+    getOwnConstruct(other.id, construct.id),
+    listConstructs(other.id),
   ]);
-  expect(herBuddies).toEqual([buddy]);
-  expect(otherBuddy).toBeUndefined();
-  expect(otherBuddies).toEqual([]);
+  expect(herConstructs).toEqual([construct]);
+  expect(otherConstruct).toBeUndefined();
+  expect(otherConstructs).toEqual([]);
 });
 
 test("a prompt written from scratch is found only as its own kind", async () => {
   const { id: owner } = await testUser();
 
-  const [buddy, activity] = await Promise.all([
-    createBuddy(owner, SCRATCH_BUDDY),
+  const [construct, activity] = await Promise.all([
+    createConstruct(owner, SCRATCH_CONSTRUCT),
     createActivity(owner, SCRATCH_ACTIVITY),
   ]);
 
-  const [asActivity, activities, asBuddy, buddies] = await Promise.all([
-    getOwnActivity(owner, buddy.id),
+  const [asActivity, activities, asConstruct, constructs] = await Promise.all([
+    getOwnActivity(owner, construct.id),
     listOwnActivities(owner),
-    getOwnBuddy(owner, activity.id),
-    listBuddies(owner),
+    getOwnConstruct(owner, activity.id),
+    listConstructs(owner),
   ]);
   expect(asActivity).toBeUndefined();
   expect(activities).toEqual([activity]);
-  expect(asBuddy).toBeUndefined();
-  expect(buddies).toEqual([buddy]);
+  expect(asConstruct).toBeUndefined();
+  expect(constructs).toEqual([construct]);
 });

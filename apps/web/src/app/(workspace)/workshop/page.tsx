@@ -8,16 +8,16 @@ import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { ActivityLists } from "../activities/activity-lists.tsx";
-import { BuddyLists } from "../buddies/buddy-lists.tsx";
+import { ConstructLists } from "../guild/construct-lists.tsx";
 import { SpellLists } from "../spellbook/spell-lists.tsx";
 
 const QUERY = z.object({
-  kind: z.enum(PROMPT_KINDS).catch("buddy"),
+  kind: z.enum(PROMPT_KINDS).catch("construct"),
 });
 
 // The Workshop's address, showing the kind's tab.
 function workshopPath(kind: PromptKind): Route {
-  if (kind === "buddy") {
+  if (kind === "construct") {
     return "/workshop";
   }
   return `/workshop?kind=${kind}`;
@@ -58,12 +58,12 @@ function kindLists(kind: PromptKind): Promise<JSX.Element> {
   if (kind === "spell") {
     return SpellLists();
   }
-  return BuddyLists();
+  return ConstructLists();
 }
 
 export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
-// Where the user makes, customizes, tweaks and clones buddies, activities
+// Where the user makes, customizes, tweaks and clones constructs, activities
 // and spells, one kind at a time. Each opens in its own Workshop to edit
 // and test.
 export default async function WorkshopPage({

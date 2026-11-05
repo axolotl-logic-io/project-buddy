@@ -2,12 +2,15 @@ import {
   getOwnActivity,
   saveBoughtActivity,
 } from "@/activities/activity-store.ts";
-import { getOwnBuddy, saveBoughtBuddy } from "@/buddies/buddy-store.ts";
+import {
+  getOwnConstruct,
+  saveBoughtConstruct,
+} from "@/constructs/construct-store.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
   matchingBuiltInActivity,
-  matchingBuiltInBuddy,
+  matchingBuiltInConstruct,
   matchingBuiltInSpell,
 } from "@/prompts/matching-built-in.ts";
 import type { BoughtPrompt, OwnPrompt } from "@/prompts/own-prompt-store.ts";
@@ -54,9 +57,9 @@ function finder<Definition>(
 }
 
 const OWN_PROMPT_KINDS: Readonly<Record<PromptKind, OwnPromptKind>> = {
-  buddy: {
-    find: finder(getOwnBuddy, matchingBuiltInBuddy),
-    saveBought: saveBoughtBuddy,
+  construct: {
+    find: finder(getOwnConstruct, matchingBuiltInConstruct),
+    saveBought: saveBoughtConstruct,
   },
   activity: {
     find: finder(getOwnActivity, matchingBuiltInActivity),

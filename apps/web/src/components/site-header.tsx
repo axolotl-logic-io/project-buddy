@@ -6,9 +6,9 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { GUILD_COPY } from "@/ui/copy/guild.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -38,7 +38,7 @@ function AccountLinks(): JSX.Element {
           <MenuLink href="/projects">{PROJECTS_COPY.headerLink}</MenuLink>
         </li>
         <li>
-          <MenuLink href="/buddies">{BUDDIES_COPY.headerLink}</MenuLink>
+          <MenuLink href="/guild">{GUILD_COPY.headerLink}</MenuLink>
         </li>
         <li>
           <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>

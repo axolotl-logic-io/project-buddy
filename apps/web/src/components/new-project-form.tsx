@@ -14,7 +14,7 @@ import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// A new quest starts with the account's interview buddy.
+// A new quest starts with the account's interview construct.
 export function NewProjectForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(
     createProjectAction,

@@ -3,21 +3,24 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { saveInterviewBuddy } from "@/buddies/interview-buddy.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 
-const FORM = z.object({ buddyId: z.string() });
-interface InterviewBuddyState {
+const FORM = z.object({ constructId: z.string() });
+interface InterviewConstructState {
   readonly kind: "idle" | "saved" | "invalid";
 }
 
-async function setInterviewBuddyAction(
-  _state: InterviewBuddyState,
+async function setInterviewConstructAction(
+  _state: InterviewConstructState,
   formData: FormData,
-): Promise<InterviewBuddyState> {
+): Promise<InterviewConstructState> {
   const user = await requireUser();
   const form = FORM.safeParse(Object.fromEntries(formData));
   if (
-    !(form.success && (await saveInterviewBuddy(user.id, form.data.buddyId)))
+    !(
+      form.success &&
+      (await saveInterviewConstruct(user.id, form.data.constructId))
+    )
   ) {
     return { kind: "invalid" };
   }
@@ -25,5 +28,5 @@ async function setInterviewBuddyAction(
   return { kind: "saved" };
 }
 
-export type { InterviewBuddyState };
-export { setInterviewBuddyAction };
+export type { InterviewConstructState };
+export { setInterviewConstructAction };

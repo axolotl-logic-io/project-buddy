@@ -52,7 +52,7 @@ beforeEach(() => {
   vi.mocked(newChatChoices).mockResolvedValue({
     projects: [PROJECT],
     activities: [],
-    userBuddies: [],
+    userConstructs: [],
   });
 });
 

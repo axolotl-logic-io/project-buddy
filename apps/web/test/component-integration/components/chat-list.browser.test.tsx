@@ -61,14 +61,16 @@ function applyTheme(theme: ThemeId, mode: "light" | "dark"): void {
 }
 
 describe("ChatList project badges with hidden chat names", () => {
-  test("keeps the project badge visible and the conversation named by its buddy alone", async () => {
+  test("keeps the project badge visible and the conversation named by its construct alone", async () => {
     document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
     await render(<ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />);
 
     const badge = page.getByText(PROJECT_CHAT.project.name, { exact: true });
     const link = page.getByRole("link");
     await expect.element(badge).toBeVisible();
-    await expect.element(link).toHaveAccessibleName(PROJECT_CHAT.buddy.name);
+    await expect
+      .element(link)
+      .toHaveAccessibleName(PROJECT_CHAT.construct.name);
     await expect
       .element(link)
       .toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
@@ -117,10 +119,13 @@ test("hiding chat names leaves project badges visible and outside accessible lin
     <ChatList chats={[PROJECT_CHAT, standalone]} showProjectNames={true} />,
   );
   const projectLink = page.getByRole("link", {
-    name: CHAT_NAME_COPY.listTitle(PROJECT_CHAT.name, PROJECT_CHAT.buddy.name),
+    name: CHAT_NAME_COPY.listTitle(
+      PROJECT_CHAT.name,
+      PROJECT_CHAT.construct.name,
+    ),
   });
   const standaloneLink = page.getByRole("link", {
-    name: CHAT_NAME_COPY.listTitle(standalone.name, standalone.buddy.name),
+    name: CHAT_NAME_COPY.listTitle(standalone.name, standalone.construct.name),
   });
   await expect.element(projectLink).toBeVisible();
   await expect.element(standaloneLink).toBeVisible();
@@ -128,12 +133,15 @@ test("hiding chat names leaves project badges visible and outside accessible lin
   document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
   await expect
     .element(
-      page.getByRole("link", { name: PROJECT_CHAT.buddy.name, exact: true }),
+      page.getByRole("link", {
+        name: PROJECT_CHAT.construct.name,
+        exact: true,
+      }),
     )
     .toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
   await expect
     .element(
-      page.getByRole("link", { name: standalone.buddy.name, exact: true }),
+      page.getByRole("link", { name: standalone.construct.name, exact: true }),
     )
     .toHaveAttribute("href", `/chats/${standalone.id}`);
   await expect
@@ -197,7 +205,7 @@ describe("use_case_chat_project_badge", () => {
               .toHaveAccessibleName(
                 CHAT_NAME_COPY.listTitle(
                   PROJECT_CHAT.name,
-                  PROJECT_CHAT.buddy.name,
+                  PROJECT_CHAT.construct.name,
                 ),
               );
           },
@@ -220,12 +228,12 @@ describe("use_case_open_unread_check_in", () => {
     const [unreadItem] = page.getByRole("listitem").elements();
     expect(unreadItem).toContainElement(mark.element());
     const readLink = page.getByRole("link", {
-      name: STANDALONE_CHAT.buddy.name,
+      name: STANDALONE_CHAT.construct.name,
     });
     await expect.element(readLink).toBeVisible();
     await expect.element(readLink).not.toHaveAttribute("aria-describedby");
     const unreadLink = page.getByRole("link", {
-      name: CHAT_NAME_COPY.listTitle(unread.name, unread.buddy.name),
+      name: CHAT_NAME_COPY.listTitle(unread.name, unread.construct.name),
       exact: true,
     });
     await expect.element(unreadLink).toBeVisible();

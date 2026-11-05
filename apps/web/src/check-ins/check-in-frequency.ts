@@ -1,4 +1,4 @@
-// How often a project's buddy checks in: off, the default, or one of the
+// How often a project's construct checks in: off, the default, or one of the
 // schedules the user picks on the project's page.
 import { z } from "zod";
 

@@ -4,24 +4,24 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_reply_fails
 
-The buddy cannot reply to a message.
+The construct cannot reply to a message.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
 - **Steps:**
   - She sends a message.
   - Instead of a reply, the chat shows a short, plain message that says what kind of problem it is. Each kind has its own fixed message:
-    - the buddy's account has run out of credit;
-    - the buddy's account key is not accepted;
-    - the buddy is getting too many requests;
-    - the buddy is overloaded right now;
+    - the construct's account has run out of credit;
+    - the construct's account key is not accepted;
+    - the construct is getting too many requests;
+    - the construct is overloaded right now;
     - the conversation has grown too long;
-    - the buddy's service refused the request;
-    - the buddy's service is having trouble;
-    - the buddy cannot be reached;
+    - the construct's service refused the request;
+    - the construct's service is having trouble;
+    - the construct cannot be reached;
     - the site cannot reach its storage;
     - the site's storage refused a request;
     - something unexpected went wrong.
-- **Outcome:** the chat shows the fixed message for that kind of problem and no reply, with Retry reply. Her message is still in the chat after she reloads the page or reopens the chat, and the chat then says the buddy didn't reply to it, with Retry reply, which asks for the reply to that same message without sending it again. Either Retry reply leaves the keyboard's focus in the message box, so she can carry on writing. While a reply to the last message is still being made, such as from another tab, the chat offers no retry. The site's log records the problem, and the chat shows none of those details.
+- **Outcome:** the chat shows the fixed message for that kind of problem and no reply, with Retry reply. Her message is still in the chat after she reloads the page or reopens the chat, and the chat then says the construct didn't reply to it, with Retry reply, which asks for the reply to that same message without sending it again. Either Retry reply leaves the keyboard's focus in the message box, so she can carry on writing. While a reply to the last message is still being made, such as from another tab, the chat offers no retry. The site's log records the problem, and the chat shows none of those details.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): try again once the problem is fixed.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start fresh if the conversation has grown too long.
@@ -40,24 +40,24 @@ The site cannot load or save the user's quests and chats.
 
 ## use_case_start_without_claude
 
-The user starts a quest or a chat, with a buddy or an activity of her own that she has edited, while Claude is unavailable, so the buddy can't write the chat's opening. A chat with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
+The user starts a quest or a chat, with a construct or an activity of her own that she has edited, while Claude is unavailable, so the construct can't write the chat's opening. A chat with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
 
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat).
 - **Steps:**
-  - She names a new quest with motivation or an edited Interview buddy saved in Settings; or she picks a quest and an edited buddy for a new chat. She starts it.
-  - The site shows that it is working while it asks the buddy for the chat's opening, which fails or takes longer than 30 seconds.
-- **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and buddy. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new quest and no new chat appear in her lists. The site's log records the problem once. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
+  - She names a new quest with motivation or an edited Interview guildmate saved in Settings; or she picks a quest and an edited construct for a new chat. She starts it.
+  - The site shows that it is working while it asks the construct for the chat's opening, which fails or takes longer than 30 seconds.
+- **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and construct. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new quest and no new chat appear in her lists. The site's log records the problem once. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat): try again later.
 
-## use_case_send_while_buddy_replies
+## use_case_send_while_construct_replies
 
-The user sends another message while the buddy is still replying to her last one.
+The user sends another message while the construct is still replying to her last one.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with the reply still arriving.
 - **Steps:**
-  - While the buddy is still replying, she opens the same chat in another tab and sends a new message there.
-  - The buddy answers the new message.
+  - While the construct is still replying, she opens the same chat in another tab and sends a new message there.
+  - The construct answers the new message.
   - Later, the first reply finishes.
 - **Outcome:** once she reloads the chat, each reply comes right after the message it answers: her first message, its reply, her second message, then its reply. No reply is lost or shown twice.
 - **Next:**

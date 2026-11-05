@@ -1,5 +1,5 @@
 // Standalone conversations in use-cases/chats.md, in the test database
-// with the mock buddy: no project, just a place to talk ideas through.
+// with the mock construct: no project, just a place to talk ideas through.
 // Its links, heading and view are the page and component tests'
 // (test/app/page.test.tsx, site-header.test.tsx, chat/page.test.tsx and
 // chat-view-*.test.tsx).

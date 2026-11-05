@@ -3,8 +3,8 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { interviewBuddy } from "@/buddies/interview-buddy.ts";
 import { startProject } from "@/chats/start-chat.ts";
+import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import {
   checkProjectName,
@@ -39,7 +39,7 @@ export type CreateProjectState =
     }
   | { readonly kind: "outOfGold"; readonly message: string };
 
-// Starts the quest with the account's interview buddy and supplied motivation.
+// Starts the quest with the account's interview construct and supplied motivation.
 // Opening failures save nothing; a storage failure reaches the error boundary.
 export async function createProjectAction(
   _state: CreateProjectState,
@@ -61,11 +61,11 @@ export async function createProjectAction(
     };
   }
 
-  const chosen = await interviewBuddy(user.id);
+  const chosen = await interviewConstruct(user.id);
   const started = await startProject(
     user.id,
     name.name,
-    chosen.buddy,
+    chosen.construct,
     form.data.motivation,
   );
   if (started.kind === "claudeUnavailable") {

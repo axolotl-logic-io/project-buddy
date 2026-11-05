@@ -12,12 +12,12 @@ function resetTarget(source: string | undefined): string {
   return `“${source}”`;
 }
 
-// The text every prompt's page shares, a buddy's, an activity's or a
+// The text every prompt's page shares, a construct's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
   deleted: "Deleted. Existing chats keep their saved instructions.",
   boughtResetHint:
-    "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Buddies, Activities or Spellbook list.",
+    "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Guild, Activities or Spellbook list.",
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",
@@ -51,7 +51,7 @@ export const PROMPT_COPY = {
   restored: "Your unsaved changes from before are back. Save to keep them.",
   discard: "Discard changes",
   save: "Save",
-  // The button that resets an own buddy's, activity's or spell's prompt
+  // The button that resets an own construct's, activity's or spell's prompt
   // (part), naming the built-in one whose prompt it restores (source), or
   // the starter text when there is none.
   resetLabel: (part: string, source: string | undefined): string =>

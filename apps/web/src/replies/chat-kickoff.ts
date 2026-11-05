@@ -1,10 +1,10 @@
 // How every model call's conversation starts with the user, as Claude
-// needs: a chat begins with the buddy's opening (chat-opening.ts), so the
+// needs: a chat begins with the construct's opening (chat-opening.ts), so the
 // conversation the model sees starts with a message from the user's side
 // that the user never sees. The opening's own call sends the opening
 // kickoff of the chat's first activity (src/activities/), which asks for the
 // opening. Every other call that would start
-// with the buddy gets the neutral kickoff from the userFirst middleware,
+// with the construct gets the neutral kickoff from the userFirst middleware,
 // which src/replies/model.ts wraps every model in. It is here, with the
 // recogniser the mock reads it by: the mock knows it by text, since position
 // can't tell a chat the site started from one a test seeded.
@@ -15,7 +15,7 @@ import type {
   LanguageModelV4Prompt,
 } from "@ai-sdk/provider";
 
-// The user's side of a chat before the buddy's opening, in replies and
+// The user's side of a chat before the construct's opening, in replies and
 // naming calls. It asks for nothing, so the
 // opening's instructions stay in the opening's call.
 const NEUTRAL_KICKOFF = "I have started this chat.";
@@ -53,7 +53,7 @@ function withUserFirst(
 }
 
 // The middleware that makes every call's conversation start with the user,
-// with neutralKickoff where it would start with the buddy.
+// with neutralKickoff where it would start with the construct.
 function userFirst(neutralKickoff: string): LanguageModelV4Middleware {
   const neutralTurn = kickoffTurn(neutralKickoff);
   return {

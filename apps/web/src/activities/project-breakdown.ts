@@ -15,6 +15,6 @@ export const projectBreakdown: Activity = {
   id: "project-breakdown",
   name: "Quest breakdown",
   description:
-    "The buddy helps you split a goal into milestones and the next small steps.",
+    "The construct helps you split a goal into milestones and the next small steps.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };
