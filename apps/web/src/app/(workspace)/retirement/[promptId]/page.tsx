@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { LocalTime } from "@/components/local-time.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
@@ -25,7 +26,8 @@ async function RetiredDefinitionPage({
       <p className="text-muted">
         {RETIREMENT_COPY.kind[definition.kind]}
         {RETIREMENT_COPY.separator}
-        {RETIREMENT_COPY.date(definition.retiredAt.toISOString().slice(0, 10))}
+        {RETIREMENT_COPY.dateLabel}{" "}
+        <LocalTime dateTime={definition.retiredAt} detail="day" />
       </p>
       <RetirementActions definition={definition} />
       {definition.boughtFrom !== null && (

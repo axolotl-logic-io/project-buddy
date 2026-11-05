@@ -10,6 +10,7 @@ const QUEST_STATUS_COPY = {
     completed: "Quest completed. Check-ins paused.",
     abandoned: "Quest abandoned. Check-ins paused.",
   },
+  option: (name: string, status: string): string => `${name} (${status})`,
   menu: "Quest actions",
   tabs: "Quest status",
   restore: "Restore quest",
