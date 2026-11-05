@@ -115,6 +115,7 @@ The user finds the site's places on an illustrated parchment atlas.
   - They follow a labeled destination, or switch between Map and List.
 - **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chats, Guild, Activities, Spellbook, Workshop, Image gallery, Marketplace and Settings are ordinary links to their existing pages. Map and List show the same destinations in the same keyboard order. Home has no header bar: its Quick Note link and menu button stay, over the map's corner, while the site's name and the Quests and Chats shortcuts, which lead only to the map's own places, are left out. Every other page's header is a HUD in the atlas's ink and gold, whose site's name leads back to the map and which names the map's place the page belongs to where there is room. On a phone, the map becomes an overview above large destination rows. Viewing the page creates nothing and makes no model call.
 - **Variations:**
+  - Following a link away from Home restores the destination's header and content column without a refresh. Returning to Home restores the map layout, including with browser back and forward.
   - Before the first quest, Start a quest opens the interview start page.
   - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
   - A signed-out visitor is sent to sign in before any recent work is read.
