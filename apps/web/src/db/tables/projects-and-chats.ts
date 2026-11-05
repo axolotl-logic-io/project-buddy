@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -28,6 +29,8 @@ export const projects = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    status: text("status").notNull().default("active"),
+    statusRevision: integer("status_revision").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -36,6 +39,11 @@ export const projects = pgTable(
   },
   (table) => [
     index("projects_user_id_idx").on(table.userId),
+    check(
+      "projects_status_valid",
+      sql`${table.status} in ('active', 'completed', 'abandoned')`,
+    ),
+    check("projects_status_revision_valid", sql`${table.statusRevision} >= 0`),
     check(
       "projects_check_in_frequency_valid",
       sql`${table.checkInFrequency} in ('off', 'daily', 'few-times-a-week', 'weekly')`,

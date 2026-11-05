@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_view_projects
 
-The user looks over her quests.
+The user looks over her quests. Active quests are shown by default; Completed and Abandoned tabs show those statuses, as described in [quest status](quest-status.md).
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
