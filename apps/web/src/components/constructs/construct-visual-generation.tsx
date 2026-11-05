@@ -93,7 +93,7 @@ function ConstructVisualGeneration({
         apply(next.result);
       }
       if (next.pendingRequestId !== undefined) {
-        let recovered = {
+        let recovered: VisualGenerationRequest = {
           constructId: construct.id,
           requestId: next.pendingRequestId,
           description,
