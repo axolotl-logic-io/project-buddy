@@ -4,10 +4,6 @@
 // the HTML every visitor shares and so could only name the default theme's
 // fonts. Instead the proxy reads the theme cookie and sends a `Link` header
 // naming the saved theme's fonts, and the HTML stays the same for everyone.
-// The site menu's theme choices (appearance-choices.tsx, through
-// preload-theme-fonts.ts) are the map's second consumer: they preload a
-// theme's fonts on the client when its choice is pointed at or focused, so
-// switching to it doesn't show the fallback font.
 //
 // The proxy imports this module, so it is plain runtime code: no Vite, no
 // import.meta.glob, no filesystem.
@@ -38,36 +34,22 @@ import type { ThemeId } from "@/themes/themes.ts";
 // Each typeface's font file, keyed by the variable theme-fonts.ts sets,
 // without "--".
 const TYPEFACE_FONT_URLS: Readonly<Record<string, string>> = {
-  "typeface-grandstander":
-    "/_next/static/media/grandstander_latin_wght_normal-s.456fijm_d-d4h.woff2",
+  "typeface-source-serif-4":
+    "/_next/static/media/source_serif_4_latin_wght_normal-s.2bbm7w9b-e07f.woff2",
   "typeface-nunito":
     "/_next/static/media/nunito_latin_wght_normal-s.1wzrasd95pxo_.woff2",
   "typeface-jetbrains-mono":
     "/_next/static/media/jetbrains_mono_latin_wght_normal-s.2rmhnsrc80fag.woff2",
-  "typeface-oswald":
-    "/_next/static/media/oswald_latin_wght_normal-s.01c2-di5e_1xz.woff2",
-  "typeface-archivo":
-    "/_next/static/media/archivo_latin_wght_normal-s.1_q0qa17ptz5n.woff2",
-  "typeface-martian-mono":
-    "/_next/static/media/martian_mono_latin_wght_normal-s.3t1ax4g-8tve9.woff2",
-  "typeface-ibm-plex-sans":
-    "/_next/static/media/ibm_plex_sans_latin_wght_normal-s.15jby9eboz7vb.woff2",
 };
 
 // The typefaces each theme's CSS reads (src/themes/<id>.css).
 // theme-fonts.test.ts checks this against the CSS.
 const THEME_TYPEFACES: Readonly<Record<ThemeId, readonly string[]>> = {
-  "gravy-falls": [
-    "typeface-grandstander",
+  parchment: [
+    "typeface-source-serif-4",
     "typeface-nunito",
     "typeface-jetbrains-mono",
   ],
-  "ghost-hasslers": [
-    "typeface-oswald",
-    "typeface-archivo",
-    "typeface-jetbrains-mono",
-  ],
-  "ay-liens": ["typeface-martian-mono", "typeface-ibm-plex-sans"],
 };
 
 export { THEME_TYPEFACES, TYPEFACE_FONT_URLS };
