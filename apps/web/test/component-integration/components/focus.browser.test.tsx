@@ -52,9 +52,7 @@ interface FocusShadows {
 // What each theme draws around focus beside its outline. Only Ghost
 // Hasslers glows.
 const FOCUS_SHADOWS: Readonly<Record<ThemeId, FocusShadows>> = {
-  "gravy-falls": { glow: false },
-  "ghost-hasslers": { glow: true },
-  "ay-liens": { glow: false },
+  parchment: { glow: false },
 };
 
 const BEFORE_BUTTON: JSX.Element = (
