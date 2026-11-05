@@ -1,6 +1,7 @@
 // Her constructs, from the constructs pages' forms, in the test database with the
 // mock construct: what customizing, writing from scratch, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
+import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
@@ -24,6 +25,8 @@ import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
 } from "@/constructs/index.ts";
+import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
+import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -37,6 +40,7 @@ import { signIn } from "../test-database/session-test-kit.ts";
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const LUMEN: ConstructDefinition = getConstruct("lumen").definition;
+const GENERATED_COST = 10_000;
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -146,9 +150,12 @@ describe("use_case_new_construct", () => {
     const construct = await writeNew(user);
     expect(construct).toMatchObject({
       name: CONSTRUCTS_COPY.newConstructName,
-      definition: getConstruct(DEFAULT_CONSTRUCT_ID).definition,
+      definition: {
+        prompt: getConstruct(DEFAULT_CONSTRUCT_ID).definition.prompt,
+      },
       clonedFrom: undefined,
     });
+    expect(construct.definition.visual).toBeUndefined();
 
     const edited = {
       prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
@@ -264,6 +271,7 @@ describe("use_case_reset_construct_part", () => {
     const construct = await cloneOf(user, "lumen");
     await updateConstruct(user.id, construct.id, {
       definition: {
+        ...construct.definition,
         prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
       },
     });
@@ -308,4 +316,54 @@ describe("use_case_customize_built_in_construct", () => {
 
     expect(await listOwnConstructs(user.id)).toEqual([]);
   });
+});
+
+test("save and reset retain paid art even when a source lookup returns an older snapshot", async () => {
+  const user = await signedInUser();
+  const stale = await cloneOf(user, "lumen");
+  const generated = await generateConstructVisual(
+    user.id,
+    {
+      constructId: stale.id,
+      requestId: crypto.randomUUID(),
+      description: stale.definition.visual?.description ?? "",
+    },
+    {
+      generate: async () => ({
+        bytes: await sharp({
+          create: { width: 32, height: 32, channels: 3, background: "white" },
+        })
+          .png()
+          .toBuffer(),
+        mediaType: "image/png",
+        costMicroUsd: GENERATED_COST,
+      }),
+    },
+  );
+  const asset = generated.visual?.canonical;
+  if (asset?.kind !== "generated") {
+    throw new Error("No generated art");
+  }
+  const source = await import("@/constructs/construct-store.ts");
+  const read = vi.spyOn(source, "getOwnConstruct").mockResolvedValue(stale);
+  try {
+    await expectRedirect(
+      () =>
+        saveConstructAction(
+          constructForm(stale.id, stale.name, stale.definition),
+        ),
+      `/constructs/${stale.id}`,
+    );
+    const reset = form({ constructId: stale.id });
+    await resetConstructPromptAction(reset);
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: stale.id },
+        asset.assetId,
+      ),
+    ).toBeDefined();
+  } finally {
+    read.mockRestore();
+  }
 });
