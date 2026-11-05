@@ -1,7 +1,7 @@
 // Starting a chat, in the test database with the mock construct: the new-chat
 // page and its Server Action. A built-in construct opens with its prepared
 // opening; a construct of the user's own that has been edited has the mock
-// write its opening, quoting the project's memory. What the form shows
+// write its opening, quoting the quest's memory. What the form shows
 // while it works, and the choices it keeps, are new-chat-form.test.tsx's.
 import { renderToString } from "react-dom/server";
 import { describe, expect, test } from "vitest";
