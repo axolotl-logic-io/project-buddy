@@ -18,6 +18,7 @@ import {
 } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
+import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
@@ -107,6 +108,7 @@ export function ChatView({
   chatId,
   viewer,
   constructName,
+  construct,
   initialMessages,
   stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
@@ -114,6 +116,7 @@ export function ChatView({
   chatId: ChatId;
   viewer: UserId;
   constructName: string;
+  construct?: ConstructSnapshot | undefined;
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
@@ -175,6 +178,10 @@ export function ChatView({
     );
     return (): void => globalThis.clearInterval(refresh);
   }, [replyingElsewhere, router]);
+  let openingMessageId: string | undefined;
+  if (initialMessages[0]?.role === "assistant") {
+    openingMessageId = initialMessages[0].id;
+  }
   const shownError = refusal ?? chat.error;
   const replyStopped =
     stoppedReplyId !== undefined &&
@@ -191,10 +198,14 @@ export function ChatView({
         </p>
       )}
       <ChatThread
+        chatId={chatId}
         error={shownError}
         replyStopped={replyStopped}
         onRetry={retryReply}
-        constructName={constructName}
+        construct={
+          construct ?? { name: constructName, definition: { prompt: "" } }
+        }
+        openingMessageId={openingMessageId}
         authorNames={authorNames}
       />
     </AssistantRuntimeProvider>

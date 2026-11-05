@@ -45,10 +45,9 @@ export const CONSTRUCT_COPY = {
     "Your construct's instructions. Adventures keep the construct as it was when they started, so a change applies to new adventures only.",
 } as const;
 
-// Each part of a construct's instructions, by its key, so a part added to
-// ConstructDefinition fails to compile here until it is named.
+// Conversational fields exposed by the prompt form. Visual metadata has its own editor.
 export const CONSTRUCT_DEFINITION_COPY: Readonly<
-  Record<keyof ConstructDefinition, FieldCopy>
+  Record<keyof Pick<ConstructDefinition, "prompt">, FieldCopy>
 > = {
   prompt: {
     label: "Prompt",

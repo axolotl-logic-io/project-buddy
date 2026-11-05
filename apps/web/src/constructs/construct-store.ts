@@ -7,6 +7,7 @@ import {
   getConstruct,
   isConstructId,
 } from "@/constructs/index.ts";
+import type { ConstructVisual } from "@/constructs/visual.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
@@ -31,7 +32,9 @@ import type { NamedDefinition } from "@/prompts/prompt.ts";
 
 type OwnConstruct = OwnPrompt<ConstructDefinition>;
 
-type OwnConstructChoice = OwnPromptChoice;
+type OwnConstructChoice = OwnPromptChoice & {
+  readonly visual?: ConstructVisual | undefined;
+};
 
 type ConstructEdit = DefinitionEdit<ConstructDefinition>;
 

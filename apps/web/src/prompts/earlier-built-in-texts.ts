@@ -79,13 +79,19 @@ function spellPairs(): TextPair<SpellDefinition>[] {
 export function earlierConstructText(
   text: ConstructDefinition,
 ): ConstructDefinition {
-  return toEarlier(text, constructPairs(), sameConstruct);
+  return {
+    ...text,
+    prompt: toEarlier(text, constructPairs(), sameConstruct).prompt,
+  };
 }
 
 export function currentConstructText(
   text: ConstructDefinition,
 ): ConstructDefinition {
-  return fromEarlier(text, constructPairs(), sameConstruct);
+  return {
+    ...text,
+    prompt: fromEarlier(text, constructPairs(), sameConstruct).prompt,
+  };
 }
 
 export function earlierActivityText(
