@@ -1,3 +1,4 @@
+import type { PromptKind } from "@/prompts/prompt.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 const WORKSHOP_COPY = {
@@ -50,4 +51,19 @@ const WORKSHOP_COPY = {
   longTest: "This test is full. Choose New test to continue.",
 } as const;
 
-export { WORKSHOP_COPY };
+// The Workshop's own page: one tab for each kind, where the user writes one
+// from scratch, customizes a built-in one, or tweaks or clones their own.
+const WORKSHOP_PAGE_COPY = {
+  homeLink: "Home",
+  intro:
+    "Write a construct, activity or spell from scratch, customize a built-in one, or tweak or clone one of your own.",
+  loading: "Loading the Workshop…",
+  kindsLabel: "What to shape",
+  kinds: {
+    buddy: "Constructs",
+    activity: "Activities",
+    spell: "Spells",
+  } satisfies Readonly<Record<PromptKind, string>>,
+} as const;
+
+export { WORKSHOP_COPY, WORKSHOP_PAGE_COPY };

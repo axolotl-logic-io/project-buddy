@@ -40,6 +40,7 @@ import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
+import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
@@ -397,6 +398,25 @@ const activitiesPage = workspacePage(
     }),
 );
 
+// The Workshop's page on the kind's tab, with one of her own of each kind.
+function workshopPage(
+  kind: "buddy" | "activity" | "spell",
+): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(listBuddies).mockResolvedValue([VELLUM_CLONE]);
+      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    },
+    () =>
+      WorkshopPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({ kind }),
+      }),
+  );
+}
+
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the image gallery",
@@ -715,6 +735,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
         }),
     ),
   },
+  { name: "the Workshop's Buddies tab", render: workshopPage("buddy") },
+  { name: "the Workshop's Activities tab", render: workshopPage("activity") },
+  { name: "the Workshop's Spells tab", render: workshopPage("spell") },
   {
     name: "a built-in spell's page",
     render: workspacePage(noData, () => spellPage("ask-one-question")),
