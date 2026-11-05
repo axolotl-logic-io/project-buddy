@@ -3,8 +3,12 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
+import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import type { Today, TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
+import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -12,6 +16,8 @@ import {
   signOut,
 } from "../../../auth/current-user-test-kit.ts";
 import { tabForward } from "../../../components/keyboard-test-kit.ts";
+import { LAPTOP_VIEWPORT, setViewport } from "../../../viewports-test-kit.ts";
+import { inSiteFrame } from "../../site-frame-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 import { FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
 
@@ -36,6 +42,7 @@ const DESTINATIONS = [
   { name: "Workshop", href: "/workshop" },
   { name: "Image gallery", href: "/gallery" },
   { name: "Marketplace", href: "/marketplace" },
+  { name: "Settings", href: "/settings" },
 ];
 
 beforeEach(() => {
@@ -93,6 +100,50 @@ describe("use_case_home_atlas", () => {
     await map.click();
     await expect.element(map).toHaveAttribute("aria-pressed", "true");
     expect(destinationLinks()).toEqual(DESTINATIONS);
+  });
+
+  test("leaves the header's bar off the map but keeps its buttons", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    await render(
+      await inSiteFrame(
+        <div className="page-column">
+          <HomeAtlas latestQuest={undefined} />
+        </div>,
+      ),
+    );
+    const header = page.getByRole("banner");
+    await expect
+      .element(header.getByRole("button", { name: SITE_MENU_COPY.title }))
+      .toBeVisible();
+    await expect
+      .element(
+        header.getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink }),
+      )
+      .toBeVisible();
+    await expect
+      .element(header.getByRole("link", { name: SITE_COPY.name }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(
+        header.getByRole("navigation", { name: SITE_MENU_COPY.placesLabel }),
+      )
+      .not.toBeInTheDocument();
+  });
+
+  test("names the place a page belongs to in every other page's HUD", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    await render(
+      <SiteHeader
+        links={await SignedInLinks({ place: PROJECTS_COPY.heading })}
+      />,
+    );
+    const header = page.getByRole("banner");
+    await expect
+      .element(header.getByRole("link", { name: SITE_COPY.name }))
+      .toHaveAttribute("href", "/home");
+    await expect
+      .element(header.getByText(PROJECTS_COPY.heading, { exact: true }).first())
+      .toBeVisible();
   });
 
   test("requires sign-in before reading recent work", async () => {

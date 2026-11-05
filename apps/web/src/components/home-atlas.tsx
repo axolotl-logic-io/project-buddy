@@ -156,10 +156,7 @@ function HomeAtlas({
         </ul>
       </nav>
       <footer className="atlas-footer">
-        <div className="flex flex-wrap gap-4">
-          <Link href="/settings">{HOME_COPY.settings}</Link>
-          <Link href="/account">{HOME_COPY.account}</Link>
-        </div>
+        <Link href="/account">{HOME_COPY.account}</Link>
         <p>{HOME_COPY.openPlaces}</p>
       </footer>
     </div>
