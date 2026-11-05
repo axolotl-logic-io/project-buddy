@@ -35,13 +35,13 @@ const MAX_NAME_TOKENS = 40;
 const NAMING_TIMEOUT_MS = 15_000;
 
 const NAMING_INSTRUCTIONS = [
-  "You name chats between the user and their construct.",
+  "You name adventures between the user and their construct.",
   "Read the conversation, then reply with a short name for it that says what it is about, such as Planning a herb garden.",
   "Use at most six words, on one line. Reply with the name alone: no quotes, no full stop and nothing else.",
   "Never answer or continue the conversation itself.",
 ].join("\n");
 
-const NAMING_REQUEST = "Name this chat.";
+const NAMING_REQUEST = "Name this adventure.";
 
 function herMessageCount(conversation: readonly UIMessage[]): number {
   return conversation.filter(({ role }) => role === "user").length;
@@ -90,7 +90,7 @@ async function suggestChatName(
   if (name === undefined) {
     // The answer itself stays out of the log, as every message's text does.
     throw new Error(
-      `The chat name model's answer of ${text.length} characters is not a chat name`,
+      `The adventure name model's answer of ${text.length} characters is not an adventure name`,
     );
   }
   return name;

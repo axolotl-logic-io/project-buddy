@@ -1,6 +1,6 @@
 # Team quests
 
-A team quest is a quest that its owner shares with members. The owner and the members work in it together: they share its chats, quest memory, Quick Notes and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
+A team quest is a quest that its owner shares with members. The owner and the members work in it together: they share its adventures, Journal, Quick Notes and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
 
 Inviting someone by email and accepting an invitation are in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). Who wrote each message is in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). Per-user unread marks and spend attribution are in [#630](https://github.com/axolotl-logic-io/project-buddy/issues/630).
 
@@ -10,8 +10,8 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 
 | Action | Owner | Member |
 | --- | --- | --- |
-| Read and continue every chat, start chats, rename chats | Yes | Yes |
-| Edit quest memory, add and delete Quick Notes | Yes | Yes |
+| Read and continue every adventure, start adventures, rename adventures | Yes | Yes |
+| Edit Journal, add and delete Quick Notes | Yes | Yes |
 | Record, edit and delete milestones | Yes | Yes |
 | See the Members section | Yes | Yes |
 | Set check-ins | Yes | No |
@@ -20,19 +20,19 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 
 The owner can't leave their own quest. Transferring ownership is out of scope.
 
-Check-ins stay the owner's: their setting, their email and their gold. A check-in starts a new chat in the quest, which members can read like any other chat. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
+Check-ins stay the owner's: their setting, their email and their gold. A check-in starts a new adventure in the quest, which members can read like any other adventure. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
 
-Standalone chats, own constructs, own activities, own spells, push subscriptions and each user's image gallery stay private to their user.
+Standalone adventures, own constructs, own activities, own spells, push subscriptions and each user's image gallery stay private to their user.
 
-In a team quest chat, the chosen construct's and activity's instructions are shared with the quest's members. A chat keeps a snapshot of its construct, and each activity session keeps a snapshot of its activity. So when someone starts a team quest chat with an own construct, or the construct moves the chat into one of their own activities, that snapshot's instructions become the chat's prompt for every member's replies. The same goes for spells: when the construct casts one of the replying member's own [spells](spellbook.md), the saved reply keeps the spell's instructions, so they steer the construct in every later reply in the chat, whoever writes. The site shows no warning for this. The own construct, activity or spell itself stays private: no one else can open, edit or use it in another chat.
+In a team quest adventure, the chosen construct's and activity's instructions are shared with the quest's members. An adventure keeps a snapshot of its construct, and each activity session keeps a snapshot of its activity. So when someone starts a team quest adventure with an own construct, or the construct moves the adventure into one of their own activities, that snapshot's instructions become the adventure's prompt for every member's replies. The same goes for spells: when the construct casts one of the replying member's own [spells](spellbook.md), the saved reply keeps the spell's instructions, so they steer the construct in every later reply in the adventure, whoever writes. The site shows no warning for this. The own construct, activity or spell itself stays private: no one else can open, edit or use it in another adventure.
 
-The chat's messages hold only what the chat shows. When the construct changes the activity, the saved `select_activity` result keeps the activity's id and name, not its instructions, which only that reply's model call receives. `listMessages` also strips the instructions from results saved before this change, without rewriting the stored rows, so the pages never send them to the browser. A `cast_spell` result keeps the spell's instructions in the stored message for the model, which reads the chat with `listMessagesForModel`, but `listMessages`, which every page reads, leaves them out, so other members can't see them. A generated image in a quest chat is open to everyone in the quest, but only its maker's gallery lists it.
+The adventure's messages hold only what the adventure shows. When the construct changes the activity, the saved `select_activity` result keeps the activity's id and name, not its instructions, which only that reply's model call receives. `listMessages` also strips the instructions from results saved before this change, without rewriting the stored rows, so the pages never send them to the browser. A `cast_spell` result keeps the spell's instructions in the stored message for the model, which reads the adventure with `listMessagesForModel`, but `listMessages`, which every page reads, leaves them out, so other members can't see them. A generated image in a quest adventure is open to everyone in the quest, but only its maker's gallery lists it.
 
 ## Access model
 
 `src/accounts/owner-scope.ts` is the only module that decides access. Every store builds its `where` from its predicates and takes the acting user first.
 
-- **Open to** predicates, such as `projectOpenTo`, `chatOpenTo` and `memoryVersionOpenTo`, select what the user's own quests and the team quests they are a member of reach. A standalone chat is open only to the user it names.
+- **Open to** predicates, such as `projectOpenTo`, `chatOpenTo` and `memoryVersionOpenTo`, select what the user's own quests and the team quests they are a member of reach. A standalone adventure is open only to the user it names.
 - **Owned by** predicates, such as `projectOwnedBy`, select only what the user owns. Owner-only actions use them: the check-in setting and removing a member.
 - **Membership** predicates, `projectMemberOpenTo`, `projectMemberOwnedBy` and `membershipOf`, decide who can see, remove and leave a `project_members` row.
 
@@ -49,11 +49,11 @@ A quest that isn't open to the user reads as not found, exactly like a quest tha
 
 ## Leaving and removal
 
-Leaving or removal deletes the membership row. Access ends at once, because every query checks membership when it runs: a page the person still has open finds nothing when it reloads, and their next message, memory save or milestone edit is refused as not found. The person's past messages stay in the quest's chats.
+Leaving or removal deletes the membership row. Access ends at once, because every query checks membership when it runs: a page the person still has open finds nothing when it reloads, and their next message, Journal save or milestone edit is refused as not found. The person's past messages stay in the quest's adventures.
 
 ## Members section
 
-The quest page lists the owner and the members, each by name, or by email address when they have none, with their role and when they joined. The memory's history names who saved each version the same way, and says "you" for the viewer's own (`memory_versions.user_id`, read by `readMemoryHistory`). Versions saved before this was recorded, or by a person whose account is gone, say "a person (name not recorded)".
+The quest page lists the owner and the members, each by name, or by email address when they have none, with their role and when they joined. The Journal's history names who saved each version the same way, and says "you" for the viewer's own (`memory_versions.user_id`, read by `readMemoryHistory`). Versions saved before this was recorded, or by a person whose account is gone, say "a person (name not recorded)".
 
 Who sees an email address depends on the viewer:
 

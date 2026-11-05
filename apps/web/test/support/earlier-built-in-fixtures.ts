@@ -32,3 +32,11 @@ export const EARLIER_BLENDER_MANUAL_LOOKUP = {
   prompt:
     "# Spell: Blender manual lookup\nThese instructions hold for every question in this chat that needs Blender facts. A question about anything else doesn't need the Blender manual tools: answer it as you would any other.\n- The Blender Reference Manual for the current release is your only source of Blender facts. Before you give Blender steps, menu paths, keyboard shortcuts or settings, look them up with `search_blender_manual`. Search as often as you need, with other keywords when the results miss.\n- Take every Blender fact from a section you read in the search results. Never give Blender steps from memory.\n- Once you know which sections your reply uses, call `cite_blender_manual` once with their URLs, exactly as the search returned them. The app shows them as links under your reply's text; they don't replace it. The links are the same for every buddy, so never write manual links or a list of sources in your text.\n- Write your whole reply to the user after your last tool call. Notes longer than a sentence that you write before or between tool calls may never reach the user.\n- When the manual does not cover what the user asks about Blender, such as a third-party add-on, say so plainly and give no Blender steps. If a section you looked up is related, you may point the user to it and cite it; otherwise don't call `cite_blender_manual`.",
 } as const;
+
+// Recorded before adventures and Journal replaced chat and memory in copy.
+export const EARLIER_OPEN_CHAT = {
+  prompt:
+    "# Activity: Open chat\nThere is no set scene: follow the user's lead. Answer what they ask, and help with whatever they bring up.",
+  openingRequest:
+    "I have just started this chat. Open it with a brief synopsis of what the quest's memory already holds, if this chat has a quest and its memory holds anything, then ask me one question: what to work on, such as the next milestone.",
+};

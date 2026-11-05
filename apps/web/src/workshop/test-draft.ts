@@ -22,7 +22,7 @@ import { spellChoices } from "@/spells/spell-choices.ts";
 import type { WorkshopRequest, WorkshopResult } from "@/workshop/protocol.ts";
 
 const TEST_RULES =
-  "This is a temporary Workshop test. Only cast_spell is available. Do not claim to search, change activities, create projects, change project memory, record milestones or generate images. Explain when the user's request needs those unavailable tools.";
+  "This is a temporary Workshop test. Only cast_spell is available. Do not claim to search, change activities, create projects, change quest Journal, record milestones or generate images. Explain when the user's request needs those unavailable tools.";
 const MAX_STEPS = 6;
 
 async function testDraft(

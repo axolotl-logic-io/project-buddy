@@ -72,13 +72,13 @@ Releases share a concurrency group and never cancel a running release. GitHub ke
 
 A failed or cancelled release opens or updates an `ops` issue titled `Production release failed: <short sha>`, naming the step, commit, deployment and run. A preview failure opens or updates `Integration preview failed: <short sha>`. Fix failures through a PR, or rerun the failed workflow after an external cause is resolved. A failed build leaves production unchanged; a failed migration leaves the old build live but may have partially changed the schema. A promotion or smoke failure needs investigation because the schema has migrated and the new build may be live. A Vercel rollback restores code but never the schema.
 
-### Chats
+### Adventures
 
-A project has many chats, and a user can also have standalone chats in no project. Each chat has one construct, and at most one project, both fixed when it starts, and is in one activity at a time, which can change during the chat (`src/activities/`). Constructs and activities have prompts that the user can customize (`src/prompts/`). The signed-in `/chat` hub lists all owned chats and can filter them to an owned project; conversations, including standalone chats, open at `/chats/[chatId]`. See [Chats](docs/chats.md) for filtering, privacy and standalone-chat behavior, and [Progress timeline](docs/progress-timeline.md) for the milestones a project's chats record. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` hands each new message to `replyToChat` in `src/replies/reply.ts`, which streams Claude's reply through the Vercel AI SDK and saves both messages. The model is chosen once in `src/replies/model.ts`, with the API key that `src/env.ts` reads from `ANTHROPIC_API_KEY`, and `src/replies/system-prompt.ts` builds the system prompt: the global prompt (`src/replies/global-prompt.ts`), the user's activities, the chat's project and memory, its current activity, and its construct's voice and habits. Set `CONSTRUCT_MODEL=mock` to use a deterministic mock model instead of Claude, as the tests do; see `.env.example`.
+A project has many adventures, and a user can also have standalone adventures in no project. Each adventure has one construct, and at most one project, both fixed when it starts, and is in one activity at a time, which can change during the adventure (`src/activities/`). Constructs and activities have prompts that the user can customize (`src/prompts/`). The signed-in `/chat` hub lists all owned adventures and can filter them to an owned project; conversations, including standalone adventures, open at `/chats/[chatId]`. See [Adventures](docs/chats.md) for filtering, privacy and standalone-adventure behavior, and [Progress timeline](docs/progress-timeline.md) for the milestones a project's adventures record. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` hands each new message to `replyToChat` in `src/replies/reply.ts`, which streams Claude's reply through the Vercel AI SDK and saves both messages. The model is chosen once in `src/replies/model.ts`, with the API key that `src/env.ts` reads from `ANTHROPIC_API_KEY`, and `src/replies/system-prompt.ts` builds the system prompt: the global prompt (`src/replies/global-prompt.ts`), the user's activities, the adventure's project and Journal, its current activity, and its construct's voice and habits. Set `CONSTRUCT_MODEL=mock` to use a deterministic mock model instead of Claude, as the tests do; see `.env.example`.
 
 ### Errors
 
-`src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores, the rate limits and `searchManual` run their queries through `withAppErrors`. The chat route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
+`src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores, the rate limits and `searchManual` run their queries through `withAppErrors`. The adventure route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
 
 ### Invitations and sign-in
 
@@ -140,11 +140,11 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the memory link.
+The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Journal link.
 
 ## Image generation
 
-Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with chat uploads and spend the same gold as chat. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
+Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with adventure uploads and spend the same gold as adventure. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
 
 ## Installed app and notifications
 
@@ -152,8 +152,8 @@ Project Buddy installs on a phone's Home Screen from the browser: Chrome on Andr
 
 To send push notifications, set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in `.env.local` and in the Vercel project, then redeploy. Without them, Settings says notifications aren't set up. See [notifications](docs/notifications.md) for generating the keys, how each device turns notifications on, and how code sends one with `sendPushNotification`.
 
-## Chat image attachments
+## Adventure image attachments
 
-Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
+Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the adventure and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
 
 See [image storage and operations](docs/Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.

@@ -18,7 +18,7 @@ const HOME_COPY = {
   account: "Account",
   openPlaces: "Every place is open to you.",
   quests: "Goals, next steps and shared quests.",
-  chats: "New chats and conversations to return to.",
+  chats: "New adventures and conversations to return to.",
   guild:
     "Meet your guildmates: constructs to chat with, or customize your own.",
   activities: "Choose what you and your guildmate do together.",
