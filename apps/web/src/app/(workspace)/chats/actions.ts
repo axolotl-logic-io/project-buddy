@@ -8,8 +8,9 @@ import {
 } from "@/activities/activity.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { type ChosenBuddy, chosenBuddy } from "@/buddies/chosen-buddy.ts";
+import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import type { BuddyId } from "@/buddies/index.ts";
+import { interviewBuddy } from "@/buddies/interview-buddy.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
 import {
   type StartChatResult,
@@ -31,8 +32,9 @@ import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 const START_CHAT_FORM = z.object({
   projectId: z.string().default(""),
   activityId: z.string().default(DEFAULT_ACTIVITY_ID),
-  buddyId: z.string({ error: NEW_CHAT_COPY.chooseBuddy }),
+  buddyId: z.string().default(""),
   name: z.string().default(""),
+  motivation: z.string().trim().default(""),
 });
 
 type StartChatForm = z.infer<typeof START_CHAT_FORM>;
@@ -44,6 +46,7 @@ interface StartChatChoices {
   readonly activityId: string;
   readonly buddyId: BuddyId | OwnPromptId;
   readonly name: string;
+  readonly motivation?: string;
 }
 
 // The new-chat form's state: as first shown, after a submission without a
@@ -82,18 +85,19 @@ function afterStart(
 }
 
 // Creates the project named in the form and its first chat, in the project
-// interview with the chosen buddy, and opens it; or asks for the name it
+// interview with the account's interview buddy, and opens it; or asks for the name it
 // lacks, or for a shorter one.
 async function startNewProject(
   owner: UserId,
   form: StartChatForm,
-  buddy: ChosenBuddy,
 ): Promise<StartChatState> {
+  const buddy = await interviewBuddy(owner);
   const choices = {
     projectId: NEW_PROJECT,
     activityId: INTERVIEW_ACTIVITY_ID,
     buddyId: buddy.id,
     name: form.name,
+    motivation: form.motivation,
   };
   const name = checkProjectName(form.name);
   if (name.kind !== "named") {
@@ -103,7 +107,10 @@ async function startNewProject(
     }
     return { kind: "invalidProjectName", message, ...choices };
   }
-  return afterStart(await startProject(owner, name.name, buddy.buddy), choices);
+  return afterStart(
+    await startProject(owner, name.name, buddy.buddy, form.motivation),
+    choices,
+  );
 }
 
 // The owner's project with this id, or undefined for none; false when the id
@@ -136,11 +143,7 @@ async function startChatAction(
     return { kind: "invalid", message: NEW_CHAT_COPY.chooseBuddy };
   }
   if (form.data.projectId === NEW_PROJECT) {
-    const buddy = await chosenBuddy(user.id, form.data.buddyId);
-    if (buddy === undefined) {
-      return { kind: "invalid", message: NEW_CHAT_COPY.chooseBuddy };
-    }
-    return startNewProject(user.id, form.data, buddy);
+    return startNewProject(user.id, form.data);
   }
   const [project, activity, buddy] = await Promise.all([
     chosenProject(user.id, form.data.projectId),

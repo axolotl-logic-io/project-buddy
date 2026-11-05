@@ -44,9 +44,9 @@ The user starts a quest or a chat, with a buddy or an activity of her own that s
 
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat).
 - **Steps:**
-  - She names a new quest, or picks a quest and a buddy for a new chat, choosing a buddy of her own that she has edited, and starts it.
+  - She names a new quest with motivation or an edited Interview buddy saved in Settings; or she picks a quest and an edited buddy for a new chat. She starts it.
   - The site shows that it is working while it asks the buddy for the chat's opening, which fails or takes longer than 30 seconds.
-- **Outcome:** the form stays on screen with what she entered: the quest's name, or the chosen quest and buddy. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new quest and no new chat appear in her lists. The site's log records the problem once. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
+- **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and buddy. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new quest and no new chat appear in her lists. The site's log records the problem once. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat): try again later.
 

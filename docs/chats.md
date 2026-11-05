@@ -41,12 +41,12 @@ selects a new quest when no quest is chosen, and a new quest selects
 the interview. Another activity leaves a new quest for "No quest".
 An existing quest keeps the chosen activity, including the interview;
 choosing "No quest" leaves the interview for the open chat. With a new quest chosen, Start chat opens a second dialog
-that asks for the quest's name; its field and Start quest button belong
+that asks for the quest's name and optional motivation; its fields and Start quest button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
 action creates the quest and its interview chat through `startProject`, the
 same path as the new quest form, and a blank name, or one longer than a
 quest name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
-has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
+has a prepared opening when no motivation is supplied (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. An interview in an existing quest instead
 uses a generated opening: it asks about the goal when memory is empty, or
 revisits the goals and next step already recorded. With an edited buddy or activity of the user's
@@ -347,3 +347,11 @@ See [image storage and operations](Site-Operations.md#chat-image-attachments) fo
 Unsent message text is kept in this browser per viewer and chat until sent. It survives leaving and reopening the chat; unsent images are not stored. Draft text does not follow you to another device, and anyone with access to this browser’s storage can read it. Clear the composer to discard it on a shared device. Browser storage may be blocked or cleared.
 
 When an unsent message included images, returning to the chat shows a reminder to attach them again. Browser drafts store text and that reminder, never image files or image URLs.
+
+## New quest details
+
+New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **Interview buddy** in Settings, initially Vellum, rather than offering a buddy picker. Settings offers built-in buddies and the user's own buddies. The choice applies to future quests across devices; existing chat snapshots stay unchanged. If the chosen buddy is deleted or unavailable, Vellum starts the interview.
+
+New chat and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the buddy picker is hidden for a new quest. Other chats retain their buddy picker. Quests created by a buddy from an existing chat keep that chat's buddy.
+
+When motivation is supplied, the buddy writes an opening using the name and motivation, briefly acknowledges the reason and asks about missing interview information. This opening requires a model call, even for built-in buddies. The motivation is saved as the user's first quest memory version in the same transaction as the quest, chat and opening. If the opening fails, nothing is saved. Without motivation, a built-in buddy still uses its prepared opening.

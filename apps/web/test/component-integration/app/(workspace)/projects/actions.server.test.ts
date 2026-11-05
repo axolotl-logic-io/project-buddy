@@ -12,14 +12,20 @@ import {
 } from "@/app/(workspace)/projects/actions.ts";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
+import { saveInterviewBuddy } from "@/buddies/interview-buddy.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import { messageText } from "../../../test-database/chat-test-kit.ts";
+import {
+  buddyPrompt,
+  formOf,
+  messageText,
+} from "../../../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
@@ -37,7 +43,7 @@ async function createProject(
   const form = new FormData();
   form.set("name", name);
   if (buddyId !== undefined) {
-    form.set("buddyId", buddyId);
+    await saveInterviewBuddy(user.id, buddyId);
   }
   const creating = createProjectAction(IDLE, form);
   await Promise.allSettled([creating]);
@@ -148,7 +154,7 @@ describe("use_case_new_project_without_name", () => {
       kind: "invalidName",
       message: PROJECTS_COPY.needsName,
       name: "   ",
-      buddyId: "lumen",
+      motivation: "",
     });
     expect(await listProjects(user.id)).toEqual([]);
   });
@@ -167,7 +173,7 @@ describe("use_case_new_project_name_too_long", () => {
       kind: "invalidName",
       message: PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH),
       name,
-      buddyId: "lumen",
+      motivation: "",
     });
     expect(await listProjects(user.id)).toEqual([]);
   });
@@ -199,5 +205,43 @@ describe("use_case_new_project_name_too_long", () => {
     const chat = await createProject(user, atLimit);
 
     expect(chat.project.name).toBe(atLimit);
+  });
+});
+
+describe("use_case_new_project_motivation", () => {
+  test("keeps motivation in shared memory and uses the setting rather than submitted buddy ids", async () => {
+    const user = await testUser();
+    await signIn(user);
+    await saveInterviewBuddy(user.id, "lumen");
+    const motivation = "Make a fox as a birthday gift";
+    const creating = createProjectAction(
+      IDLE,
+      formOf({
+        name: "Gift",
+        motivation: `  ${motivation}  `,
+        buddyId: "vellum",
+      }),
+    );
+    await Promise.allSettled([creating]);
+    const [project] = await listProjects(user.id);
+    if (project === undefined) {
+      throw new Error("No quest was made");
+    }
+    const [chat] = await listChats(user.id, project.id);
+    if (chat === undefined) {
+      throw new Error("No chat was made");
+    }
+    await expectRedirect(() => creating, `/chats/${chat.id}`);
+    expect(chat.buddy.name).toBe("Lumen");
+    expect((await readMemory(user.id, project.id)).text).toBe(motivation);
+    expect(await readMemoryHistory(user.id, project.id)).toMatchObject([
+      { author: "user", text: motivation },
+    ]);
+    expect(
+      (await listMessages(user.id, chat.id)).map(messageText).join("\n"),
+    ).toContain(motivation);
+    expect(await buddyPrompt(chat.id)).toContain(motivation);
+    await saveInterviewBuddy(user.id, "vellum");
+    expect((await getChat(user.id, chat.id))?.buddy.name).toBe("Lumen");
   });
 });

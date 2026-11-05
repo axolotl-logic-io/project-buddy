@@ -52,7 +52,6 @@ import {
   listBuddies,
   type OwnBuddy,
 } from "@/buddies/buddy-store.ts";
-import { listBuddies as listBuiltInBuddies } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
@@ -464,11 +463,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project invitation's page", render: projectInvitationPage },
   {
     name: "the projects list's New project dialog",
-    // Until her own buddies load, the dialog shows a buddy picker that
-    // counts only the built-in ones, which a second picker then replaces.
-    // With one of her own, the check waits for the second picker's count,
-    // so it doesn't measure the first's removed buttons as 0×0 (#660).
-    render: projectsPageOf([], [VELLUM_CLONE]),
+    render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: PROJECTS_COPY.newHeading })
@@ -476,9 +471,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByText(
-            NEW_CHAT_COPY.buddyPosition(1, listBuiltInBuddies().length + 1),
-          )
+          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
           .element(),
       );
     },
@@ -659,7 +652,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Settings page",
-    render: workspacePage(noData, () => Promise.resolve(<SettingsPage />)),
+    render: workspacePage(noData, () => SettingsPage()),
   },
   {
     name: "the buddies page",

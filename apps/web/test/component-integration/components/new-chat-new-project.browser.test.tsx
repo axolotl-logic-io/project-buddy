@@ -124,7 +124,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
     expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
-    expect(sent?.get("buddyId")).toBe("vellum");
+    expect(sent?.has("buddyId")).toBe(false);
     resolve({ kind: "idle" });
   });
 

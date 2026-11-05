@@ -284,7 +284,12 @@ function purchaseOfListingSoldBy(seller: UserId): SQL {
   );
 }
 
+function accountOwnedBy(owner: UserId): SQL {
+  return eq(users.id, owner);
+}
+
 export {
+  accountOwnedBy,
   activitySessionOpenTo,
   chatOpenTo,
   chatUnreadOwnedBy,
