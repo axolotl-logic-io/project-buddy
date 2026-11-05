@@ -17,7 +17,7 @@ function keepEscapeForControl(event: KeyboardEvent): void {
   }
 }
 
-// A button named title and the modal dialog it opens, which holds a form
+// A supplied trigger, or a button named title, and its modal dialog with a form
 // for making something new. The dialog is named by its heading, also
 // title, takes focus when it opens and keeps it, and Escape, its close
 // button or a click beside it closes it, returning focus to the button.
@@ -26,19 +26,25 @@ export function FormDialog({
   title,
   closeLabel,
   children,
+  trigger,
 }: {
   title: string;
   closeLabel: string;
   children: ReactNode;
+  trigger?: ReactNode;
 }): JSX.Element {
+  let triggerButton = trigger;
+  if (triggerButton === undefined) {
+    triggerButton = (
+      <Button className="self-start">
+        <Icon name="plus" />
+        {title}
+      </Button>
+    );
+  }
   return (
     <Dialog.Root>
-      <Dialog.Trigger asChild={true}>
-        <Button className="self-start">
-          <Icon name="plus" />
-          {title}
-        </Button>
-      </Dialog.Trigger>
+      <Dialog.Trigger asChild={true}>{triggerButton}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
         <Dialog.Content
