@@ -21,7 +21,7 @@ export const ACCOUNT_COPY = {
   // Such as "Gold: 87".
   gold: (gold: number): string => `Gold: ${gold}`,
   goldHint:
-    "What your guildmates spend on your replies, chat names, images and check-ins. It doesn't reset.",
+    "What your guildmates spend on your replies, adventure names, images and check-ins. It doesn't reset.",
   signOutHeading: "Signing out",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",

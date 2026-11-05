@@ -16,23 +16,23 @@ export const SETTINGS_COPY = {
 export const FLAG_COPY = {
   workingNotes: {
     label: "Working notes",
-    hint: "Your guildmate's short notes in a chat before it looks something up.",
+    hint: "Your guildmate's short notes in an adventure before it looks something up.",
   },
   memoryChangeCards: {
-    label: "Memory changes",
-    hint: "The cards in a chat that show what your guildmate changed in the quest's memory.",
+    label: "Journal changes",
+    hint: "The cards in an adventure that show what your guildmate changed in the quest's Journal.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in a chat that say what your guildmate searched the manual for, or that a tool failed.",
+    hint: "The lines in an adventure that say what your guildmate searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
-    label: "Pinned chat header",
-    hint: "Keeps a chat's links and name at the top while you scroll. Off, they scroll away with the chat.",
+    label: "Pinned adventure header",
+    hint: "Keeps an adventure's links and name at the top while you scroll. Off, they scroll away with the adventure.",
   },
   chatNames: {
-    label: "Chat names",
-    hint: "The names in a quest's list of chats. Off, each chat shows its guildmate's name alone.",
+    label: "Adventure names",
+    hint: "The names in a quest's list of adventures. Off, each adventure shows its guildmate's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",

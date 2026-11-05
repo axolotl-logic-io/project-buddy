@@ -26,7 +26,7 @@ const MOCK_FIRST_QUESTION =
 
 // The mock opening of any other chat while the project's memory is empty.
 const MOCK_CHAT_QUESTION =
-  "The mock construct starts a chat. What would you like to work on?";
+  "The mock construct starts an adventure. What would you like to work on?";
 
 // The mock check-in's first line, before the project's memory.
 const MOCK_CHECK_IN = "The mock construct checks in. Where you left off:";
@@ -81,7 +81,7 @@ function mockOpeningReply({
   return [
     {
       text: [
-        "The mock construct sums up the quest's memory:",
+        "The mock construct sums up the quest's Journal:",
         "",
         memory,
         "",

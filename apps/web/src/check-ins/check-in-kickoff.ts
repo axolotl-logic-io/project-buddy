@@ -4,8 +4,8 @@
 
 const CHECK_IN_KICKOFF = [
   "I haven't worked on this quest for a while, and you are checking in on me.",
-  "Write a short message, two or three sentences, in your voice: remind me where I left off, from the quest's memory, and suggest one small next step I could take in about ten minutes.",
-  "Ask at most one question. Don't list the whole memory back to me.",
+  "Write a short message, two or three sentences, in your voice: remind me where I left off, from the quest's Journal, and suggest one small next step I could take in about ten minutes.",
+  "Ask at most one question. Don't list the whole Journal back to me.",
 ].join(" ");
 
 // Whether text is the check-in kickoff, so the mock can answer it.

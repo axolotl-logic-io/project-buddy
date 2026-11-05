@@ -16,7 +16,7 @@ export const SPELLBOOK_COPY = {
   homeLink: "Home",
   heading: "Spellbook",
   intro:
-    "A spell is a set of instructions your guildmate casts when it fits what you need. Every chat lists your spells by name and when to use them; a spell's instructions reach your guildmate only in the chats that cast it.",
+    "A spell is a set of instructions your guildmate casts when it fits what you need. Every adventure lists your spells by name and when to use them; a spell's instructions reach your guildmate only in the adventures that cast it.",
   loading: "Loading spells…",
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
@@ -35,7 +35,7 @@ export const SPELLBOOK_COPY = {
   deleteLabel: (name: string): string => `Delete ${name}`,
   deleteTitle: "Delete this spell?",
   deleteDescription: (name: string): string =>
-    `“${name}” will be gone from your Spellbook, and your guildmate won't cast it again. Chats that already cast it keep what it said.`,
+    `“${name}” will be gone from your Spellbook, and your guildmate won't cast it again. Adventures that already cast it keep what it said.`,
   deleteConfirm: "Delete spell",
   deleteCancel: "Keep it",
 } as const;
@@ -49,7 +49,7 @@ export const SPELL_COPY = {
   builtInIntro:
     "A built-in spell can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your spell’s instructions and when-to-use description. A chat that cast it keeps what it said then, so a change applies to the casts after it.",
+    "Your spell’s instructions and when-to-use description. An adventure that cast it keeps what it said then, so a change applies to the casts after it.",
 } as const;
 
 // Each part of a spell's prompt, by its key, so a part added to SpellDefinition
@@ -59,10 +59,10 @@ export const SPELL_DEFINITION_COPY: Readonly<
 > = {
   whenToUse: {
     label: "When to use",
-    help: "One line that tells your guildmate when to cast the spell. Every chat's instructions carry it, so keep it short.",
+    help: "One line that tells your guildmate when to cast the spell. Every adventure's instructions carry it, so keep it short.",
   },
   prompt: {
     label: "Instructions",
-    help: "What your guildmate does once it casts the spell. It reaches your guildmate only in the chats that cast it.",
+    help: "What your guildmate does once it casts the spell. It reaches your guildmate only in the adventures that cast it.",
   },
 };

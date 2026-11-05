@@ -11,30 +11,30 @@ export const QUICK_CAPTURE_COPY = {
   headerLink: "Quick Note",
   heading: "Quick Note",
   intro:
-    "Save a Quick Note for a quest without starting a chat. The Quick Note is saved, with today's date, in the quest's memory, so your guildmate knows it in the quest's next reply.",
+    "Save a Quick Note for a quest without starting an adventure. The Quick Note is saved, with today's date, in the quest's Journal, so your guildmate knows it in the quest's next reply.",
   loading: "Loading Quick Note…",
   projectLabel: "Quick Note for",
   textLabel: "Quick Note",
   textHint: `One line, up to ${NOTE_MAX_LENGTH} characters. Line breaks become spaces.`,
   save: "Save Quick Note",
   saving: "Saving the Quick Note…",
-  saved: (projectName: string): string => `Saved to ${projectName}'s memory.`,
+  saved: (projectName: string): string => `Saved to ${projectName}'s Journal.`,
   empty: "Write something to save. An empty Quick Note can't be saved.",
-  tooLong: `A Quick Note can be at most ${NOTE_MAX_LENGTH} characters. Shorten it, or put the rest in the quest's memory.`,
+  tooLong: `A Quick Note can be at most ${NOTE_MAX_LENGTH} characters. Shorten it, or put the rest in the quest's Journal.`,
   noProjects:
-    "Quick Notes go into a quest's memory, and you have no quests yet. Start a quest first.",
+    "Quick Notes go into a quest's Journal, and you have no quests yet. Start a quest first.",
   noProjectsLink: "Go to Quests",
 } as const;
 
 export const PROJECT_NOTES_COPY = {
   heading: "Quick Notes",
   intro:
-    "Your newest Quick Notes in this quest's memory. Deleting one takes it out of the memory; the memory's history keeps every version.",
+    "Your newest Quick Notes in this quest's Journal. Deleting one takes it out of the Journal; the Journal's history keeps every version.",
   none: "No Quick Notes yet.",
   addLink: "Add a Quick Note",
   delete: "Delete",
   deleteLabel: (text: string): string => `Delete the Quick Note "${text}"`,
   deleted: "Quick Note deleted.",
   missing:
-    "Nothing was deleted: the quest's memory no longer holds that Quick Note as it was listed. The list now shows the memory as it is.",
+    "Nothing was deleted: the quest's Journal no longer holds that Quick Note as it was listed. The list now shows the Journal as it is.",
 } as const;

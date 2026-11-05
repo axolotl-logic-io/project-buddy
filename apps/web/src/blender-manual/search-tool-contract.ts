@@ -13,7 +13,7 @@ const BLENDER_MANUAL_LOOKUP_SPELL = "blender-manual-lookup";
 // The line in each lookup tool's description that sends the construct to the
 // spell, or to the user's own version of it, until this chat has cast it.
 // A chat whose searches came before the spell existed has none cast yet.
-const CAST_LOOKUP_SPELL_FIRST = `If you haven't cast the Blender manual lookup spell (\`${BLENDER_MANUAL_LOOKUP_SPELL}\`, or the user's own version of it) in this chat, cast it with \`${CAST_SPELL_TOOL}\` before you look anything up, and follow its instructions.`;
+const CAST_LOOKUP_SPELL_FIRST = `If you haven't cast the Blender manual lookup spell (\`${BLENDER_MANUAL_LOOKUP_SPELL}\`, or the user's own version of it) in this adventure, cast it with \`${CAST_SPELL_TOOL}\` before you look anything up, and follow its instructions.`;
 
 // How many sections one search returns.
 const SECTIONS_PER_SEARCH = 5;
