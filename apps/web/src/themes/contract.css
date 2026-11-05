@@ -213,14 +213,18 @@
   /* The focus ring, declared once: read below, and by a box that shows its
      control's focus instead (src/app/page-roles.css's .field-box). */
   :root {
-    /* The atlas is an illustrated paper object in every theme. Its labels
-       need an opaque paper surface and ink with known contrast, independent
-       of the varying marks in the artwork behind them. */
+    /* The atlas is an illustrated paper object in every theme, and the
+       header's HUD is set in its ink and gold. Its labels need an opaque
+       paper surface and ink with known contrast, independent of the varying
+       marks in the artwork behind them. */
     --atlas-paper: oklch(92% 0.065 85);
     --atlas-ink: oklch(25% 0.04 60);
     --atlas-muted: oklch(40% 0.04 60);
     --atlas-line: oklch(51% 0.06 65);
     --atlas-focus: oklch(38% 0.12 250);
+    /* The quest bar's accent and its Continue: gold, read with ink on it
+       and on ink around it. */
+    --atlas-gold: oklch(78% 0.13 80);
     --atlas-font: Georgia, "Times New Roman", serif;
     --atlas-art: url("/atlas/parchment.webp");
     --focus-outline: 2px solid var(--focus);

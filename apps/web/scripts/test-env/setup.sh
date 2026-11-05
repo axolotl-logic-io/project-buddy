@@ -27,18 +27,19 @@ docker compose --project-name "$SHARED_PROJECT" --file "$COMPOSE_FILE" up --deta
 # loopback-only publication, not just the container's name or running state.
 # The repository owns startup to disable the connection-attempt limiter. Compare
 # its complete inline command too; an old/default startup must be replaced.
+# Compare the TIME_WAIT port reuse that compose.test-db.yml explains, too.
 containers="$(docker container ls --all --format '{{.Names}}')"
 if grep -Fxq -- "$LANE_PROXY" <<< "$containers"; then
   startup="$(node -e 'console.log(JSON.stringify([["/bin/bash"], ["-c", process.argv[1]]]))' "$PROXY_STARTUP")"
-  configuration="$(docker inspect --format '{{.Config.Image}}|{{.State.Running}}|{{.HostConfig.NetworkMode}}|{{range .Config.Env}}{{if eq (index (split . "=") 0) "PG_CONNECTION_STRING"}}{{.}}{{end}}{{end}}|{{json .HostConfig.PortBindings}}|{{len .NetworkSettings.Networks}}|[{{json .Config.Entrypoint}},{{json .Config.Cmd}}]' "$LANE_PROXY")"
+  configuration="$(docker inspect --format '{{.Config.Image}}|{{.State.Running}}|{{.HostConfig.NetworkMode}}|{{range .Config.Env}}{{if eq (index (split . "=") 0) "PG_CONNECTION_STRING"}}{{.}}{{end}}{{end}}|{{json .HostConfig.PortBindings}}|{{len .NetworkSettings.Networks}}|{{json .HostConfig.Sysctls}}|[{{json .Config.Entrypoint}},{{json .Config.Cmd}}]' "$LANE_PROXY")"
   # Docker's JSON formatter escapes HTML characters; compare canonical JSON,
   # not its spelling of shell redirections and ampersands in the startup script.
   configuration="$(node -e '
     const fields = process.argv[1].split("|");
-    const prefix = fields.splice(0, 6).join("|");
+    const prefix = fields.splice(0, 7).join("|");
     console.log(prefix + "|" + JSON.stringify(JSON.parse(fields.join("|"))));
   ' "$configuration")"
-  expected="$PROXY_IMAGE|true|$SHARED_NETWORK|PG_CONNECTION_STRING=$PROXY_CONNECTION|{\"4444/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"$LANE_PROXY_PORT\"}]}|1|$startup"
+  expected="$PROXY_IMAGE|true|$SHARED_NETWORK|PG_CONNECTION_STRING=$PROXY_CONNECTION|{\"4444/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"$LANE_PROXY_PORT\"}]}|1|$PROXY_SYSCTLS_JSON|$startup"
   if [[ "$configuration" != "$expected" ]]; then
     docker rm --force "$LANE_PROXY"
     containers="$(printf '%s\n' "$containers" | grep -Fxv -- "$LANE_PROXY" || true)"
@@ -46,7 +47,7 @@ if grep -Fxq -- "$LANE_PROXY" <<< "$containers"; then
 fi
 if ! grep -Fxq -- "$LANE_PROXY" <<< "$containers"; then
   docker run --detach --name "$LANE_PROXY" --network "$SHARED_NETWORK" \
-    --publish "127.0.0.1:$LANE_PROXY_PORT:4444" \
+    --publish "127.0.0.1:$LANE_PROXY_PORT:4444" --sysctl "$PROXY_SYSCTL" \
     --env "PG_CONNECTION_STRING=$PROXY_CONNECTION" --entrypoint /bin/bash \
     "$PROXY_IMAGE" -c "$PROXY_STARTUP"
 fi

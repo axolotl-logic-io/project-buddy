@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
@@ -67,25 +68,42 @@ function AccountLinks(): JSX.Element {
 }
 
 // Reads the session for the header slot and supplies the signed-in menu
-// and its shortcuts, or the public menu for a visitor.
-async function SignedInLinks(): Promise<JSX.Element> {
+// and its shortcuts, or the public menu for a visitor. place names the map's
+// place the page belongs to, if any, beside the site's name.
+async function SignedInLinks({
+  place,
+}: {
+  readonly place?: string | undefined;
+} = {}): Promise<JSX.Element> {
   if ((await currentUser()) === undefined) {
     return <SiteMenu links={null} />;
   }
-  return <SiteMenu links={<AccountLinks />} shortcuts={true} />;
+  return (
+    <>
+      {place !== undefined && <p className="hud-place">{place}</p>}
+      <SiteMenu links={<AccountLinks />} shortcuts={true} />
+    </>
+  );
 }
 
 // Every page has a menu, including public pages and the not-found page.
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
+// The site's header, set as a game's HUD: an ink bar with a gold rim, whose
+// title, behind a compass, leads back to the map. On the home page, the map
+// itself, the bar steps aside and leaves its buttons on the map
+// (page-roles.css).
 function SiteHeader({
   links = VISITOR_MENU,
 }: {
   readonly links?: ReactNode;
 }): JSX.Element {
   return (
-    <header className="site-header flex items-center gap-2 border-line border-b bg-surface px-4 py-2 shadow-control sm:px-6">
-      <Link className="header-title mr-auto" href={HOME_PATH}>
+    <header className="site-header">
+      <Link className="header-title hud-title" href={HOME_PATH}>
+        <span className="hud-medallion">
+          <Icon name="compass" />
+        </span>
         {SITE_COPY.name}
       </Link>
       {links}
