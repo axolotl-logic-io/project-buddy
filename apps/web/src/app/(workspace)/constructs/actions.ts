@@ -8,7 +8,6 @@ import { CONSTRUCT_DEFINITION } from "@/constructs/construct-definition.ts";
 import {
   cloneConstruct,
   createConstruct,
-  deleteConstruct,
   getOwnConstruct,
   updateConstruct,
 } from "@/constructs/construct-store.ts";
@@ -17,6 +16,7 @@ import {
   starterConstructDefinition,
 } from "@/constructs/default-prompt.ts";
 import { isConstructId } from "@/constructs/index.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 
 const CLONE_CONSTRUCT_FORM = z.object({ sourceId: z.string() });
@@ -123,13 +123,14 @@ export async function editBuiltInConstructAction(
   return constructPage(clone.id);
 }
 
-export async function deleteConstructAction(
+export async function retireConstructAction(
   formData: FormData,
 ): Promise<never> {
   const user = await requireUser();
   const form = CONSTRUCT_FORM.safeParse(Object.fromEntries(formData));
   if (form.success) {
-    await deleteConstruct(user.id, form.data.constructId);
+    await retireDefinition(user.id, "construct", form.data.constructId);
+    revalidatePath("/", "layout");
   }
-  return redirect("/constructs?deleted=1");
+  return redirect("/constructs?retired=1");
 }

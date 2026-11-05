@@ -210,7 +210,7 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
-  deleteActivityAction: vi.fn(),
+  retireActivityAction: vi.fn(),
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
@@ -219,14 +219,14 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
-  deleteSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   resetSpellPromptAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
-  deleteConstructAction: vi.fn(),
+  retireConstructAction: vi.fn(),
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
@@ -369,4 +369,14 @@ vi.mock("@/constructs/interview-construct.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
   setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
+}));
+
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+  listRetiredDefinitions: vi.fn(),
+}));
+
+vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+  restoreDefinitionAction: vi.fn(),
+  deleteRetiredDefinitionAction: vi.fn(),
 }));

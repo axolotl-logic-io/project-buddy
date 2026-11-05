@@ -8,14 +8,15 @@ import { render } from "vitest-browser-react";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import {
-  deleteSpellAction,
   newSpellAction,
+  retireSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
-import { listedPromptIds, readSaleState } from "@/marketplace/listing-store.ts";
+import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell, listSpells } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SPELL_DEFINITION_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import {
   SIGNED_IN_USER,
@@ -52,7 +53,7 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
 // The pages expose these actions; only New spell and Delete are submitted.
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
-  deleteSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   resetSpellPromptAction: vi.fn(),
@@ -67,7 +68,7 @@ function ownRegion(): ReturnType<typeof page.getByRole> {
 // Resolves once the action is submitted. It redirects; here it only says
 // it was submitted.
 function submissionOf(
-  action: typeof newSpellAction | typeof deleteSpellAction,
+  action: typeof newSpellAction | typeof retireSpellAction,
 ): Promise<void> {
   const submitted = Promise.withResolvers<void>();
   vi.mocked(action).mockImplementation(() => {
@@ -138,10 +139,10 @@ test("New spell is the next control after the built-in spells, and Enter writes 
   expect(newSpellAction).toHaveBeenCalledOnce();
 });
 
-test("Delete asks first: Keep it deletes nothing, and confirming deletes the spell", async () => {
+test("Retire submits the spell from its existing card", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-  const submitted = submissionOf(deleteSpellAction);
+  const submitted = submissionOf(retireSpellAction);
   await render(
     inWorkspace(
       await SpellbookPage({
@@ -150,28 +151,16 @@ test("Delete asks first: Keep it deletes nothing, and confirming deletes the spe
       }),
     ),
   );
-  const deleteButton = page.getByRole("button", {
-    name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
-  });
-
-  await deleteButton.click();
-  const dialog = page.getByRole("alertdialog", {
-    name: SPELLBOOK_COPY.deleteTitle,
-  });
-  await expect
-    .element(dialog.getByRole("button", { name: SPELLBOOK_COPY.deleteCancel }))
-    .toHaveFocus();
-  await userEvent.keyboard("{Enter}");
-  await expect.element(dialog).not.toBeInTheDocument();
-  expect(deleteSpellAction).not.toHaveBeenCalled();
-
-  await deleteButton.click();
-  await dialog
-    .getByRole("button", { name: SPELLBOOK_COPY.deleteConfirm })
+  await page
+    .getByRole("button", {
+      name: RETIREMENT_COPY.retireLabel(ASK_ONE_QUESTION_CLONE.name),
+    })
     .click();
-
   await submitted;
-  expect(deleteSpellAction).toHaveBeenCalledOnce();
+  expect(retireSpellAction).toHaveBeenCalledOnce();
+  expect(vi.mocked(retireSpellAction).mock.calls[0]?.[0].get("spellId")).toBe(
+    ASK_ONE_QUESTION_CLONE.id,
+  );
 });
 
 test("her spell's page names each limit, and its fields keep within them", async () => {
@@ -244,29 +233,7 @@ test.each([
     .toBeVisible();
 });
 
-const LISTING_STAYS =
-  /Published listings stay available until you unlist them/u;
-
-test("listed spells warn on list deletion that the listing stays available", async () => {
-  signInAs(SIGNED_IN_USER);
-  vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-  vi.mocked(listedPromptIds).mockResolvedValue(
-    new Set([ASK_ONE_QUESTION_CLONE.id]),
-  );
-  await render(
-    inWorkspace(
-      await SpellbookPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
-  await page
-    .getByRole("button", {
-      name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
-    })
-    .click();
-  await expect
-    .element(page.getByRole("alertdialog").getByText(LISTING_STAYS))
-    .toBeVisible();
-});
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+  listRetiredDefinitions: vi.fn(),
+}));

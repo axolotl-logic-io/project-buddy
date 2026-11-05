@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
@@ -9,6 +9,7 @@ import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
@@ -22,7 +23,7 @@ import {
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInSpellAction, saveSpellAction } from "../actions.ts";
-import { DeleteSpellForm } from "../delete-spell-form.tsx";
+import { RetireSpellForm } from "../retire-spell-form.tsx";
 
 const PROMPT_HEADING_ID = "spell-parts-heading";
 
@@ -124,7 +125,7 @@ function OwnSpellForm({
       {spell.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
-      <DeleteSpellForm sale={sale.kind} name={spell.name} spellId={spell.id} />
+      <RetireSpellForm sale={sale.kind} name={spell.name} spellId={spell.id} />
       <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>
   );
@@ -158,6 +159,10 @@ export default async function SpellPage({
   }
   const spell = await getOwnSpell(user.id, spellId);
   if (spell === undefined) {
+    const retired = await getRetiredDefinition(user.id, spellId);
+    if (retired?.kind === "spell") {
+      redirect(`/retirement/${retired.id}`);
+    }
     notFound();
   }
   const sale = await readSaleState(user.id, {

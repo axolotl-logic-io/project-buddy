@@ -5,6 +5,7 @@ import {
   deleteConstruct,
 } from "@/constructs/construct-store.ts";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { formOf } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
@@ -43,6 +44,7 @@ describe("use_case_set_interview_construct", () => {
     );
     expect(refused).toEqual([{ kind: "invalid" }, { kind: "invalid" }]);
     expect((await interviewConstruct(user.id)).id).toBe(own.id);
+    await retireDefinition(user.id, "construct", own.id);
     await deleteConstruct(user.id, own.id);
     expect((await interviewConstruct(user.id)).id).toBe("vellum");
   });

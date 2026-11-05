@@ -31,13 +31,6 @@ export const ACTIVITIES_COPY = {
   customizeLabel: (name: string): string => `Customize ${name}`,
   tweak: "Tweak",
   tweakLabel: (name: string): string => `Tweak ${name}`,
-  delete: "Delete",
-  deleteLabel: (name: string): string => `Delete ${name}`,
-  deleteTitle: "Delete this activity?",
-  deleteDescription: (name: string): string =>
-    `“${name}” will be removed from your activities. Existing adventures keep their saved instructions.`,
-  deleteConfirm: "Delete activity",
-  deleteCancel: "Keep it",
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;

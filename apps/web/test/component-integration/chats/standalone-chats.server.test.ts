@@ -13,6 +13,7 @@ import {
   updateConstruct,
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -86,6 +87,7 @@ test("snapshots an owned construct and refuses another user's construct", async 
   const [started] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${started?.id}`);
   await updateConstruct(user.id, own.id, { name: "Changed" });
+  await retireDefinition(user.id, "construct", own.id);
   await deleteConstruct(user.id, own.id);
   expect((await listStandaloneChats(user.id))[0]?.construct).toEqual({
     name: own.name,

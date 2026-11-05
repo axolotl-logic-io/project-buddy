@@ -31,13 +31,6 @@ export const SPELLBOOK_COPY = {
   tweakLabel: (name: string): string => `Tweak ${name}`,
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
-  delete: "Delete",
-  deleteLabel: (name: string): string => `Delete ${name}`,
-  deleteTitle: "Delete this spell?",
-  deleteDescription: (name: string): string =>
-    `“${name}” will be gone from your Spellbook, and your construct won't cast it again. Adventures that already cast it keep what it said.`,
-  deleteConfirm: "Delete spell",
-  deleteCancel: "Keep it",
 } as const;
 
 // The text of a spell's page: its prompt as named parts, editable for a
