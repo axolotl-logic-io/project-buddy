@@ -3,9 +3,13 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
-import { startPageHref } from "@/activities/start-page.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import {
+  type NewChatChoices,
+  newChatChoices,
+} from "@/chats/new-chat-choices.ts";
 import { DeletionFeedback } from "@/components/deletion-feedback.tsx";
+import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -27,32 +31,16 @@ interface ListedActivity {
   readonly description?: string;
 }
 
-// The link to the activity's start page.
-function StartLink({
-  activity,
-}: {
-  readonly activity: ListedActivity;
-}): JSX.Element {
-  return (
-    <Button asChild={true} variant="quiet">
-      <Link
-        aria-label={ACTIVITIES_COPY.startLabel(activity.name)}
-        href={startPageHref(activity.id)}
-      >
-        {ACTIVITIES_COPY.start}
-      </Link>
-    </Button>
-  );
-}
-
 // An activity as a card: its name, which links to its page, what it is, if
 // it says, then its actions.
 function ActivityCard({
   activity,
   actions,
+  choices,
 }: {
   readonly activity: ListedActivity;
   readonly actions: JSX.Element;
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
     <li className="card flex flex-col gap-2">
@@ -66,19 +54,33 @@ function ActivityCard({
         <p className="text-muted text-sm">{activity.description}</p>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <StartLink activity={activity} />
+        <NewChatDialog
+          {...choices}
+          fixedActivity={true}
+          selectedActivityId={activity.id}
+          trigger={
+            <Button
+              aria-label={ACTIVITIES_COPY.startLabel(activity.name)}
+              variant="quiet"
+            >
+              {ACTIVITIES_COPY.start}
+            </Button>
+          }
+        />
         {actions}
       </div>
     </li>
   );
 }
 
-// The built-in activities as cards, each with its start page and a button
+// The built-in activities as cards, each with its New chat dialog and a button
 // that customizes it: makes a clone of her own and opens it to edit.
 function BuiltInActivityCards({
   activities,
+  choices,
 }: {
   readonly activities: readonly ListedActivity[];
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -97,6 +99,7 @@ function BuiltInActivityCards({
             </form>
           }
           activity={activity}
+          choices={choices}
           key={activity.id}
         />
       ))}
@@ -104,13 +107,15 @@ function BuiltInActivityCards({
   );
 }
 
-// Her own activities as cards, each with its start page, a link that tweaks
+// Her own activities as cards, each with its New chat dialog, a link that tweaks
 // it in place and a button that clones it; or, if she has none, a line that
 // says so.
 function OwnActivityCards({
   activities,
+  choices,
 }: {
   readonly activities: readonly ListedActivity[];
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   if (activities.length === 0) {
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
@@ -142,6 +147,7 @@ function OwnActivityCards({
             </>
           }
           activity={activity}
+          choices={choices}
           key={activity.id}
         />
       ))}
@@ -159,7 +165,10 @@ export default async function ActivitiesPage({
 }: PageProps<"/activities">): Promise<JSX.Element> {
   const { deleted } = await searchParams;
   const user = await requireUser();
-  const own = await listOwnActivities(user.id);
+  const [own, choices] = await Promise.all([
+    listOwnActivities(user.id),
+    newChatChoices(user.id),
+  ]);
   return (
     <>
       <DeletionFeedback completed={deleted === "1"} />
@@ -175,7 +184,7 @@ export default async function ActivitiesPage({
         <h2 className="section-heading" id={BUILT_IN_HEADING_ID}>
           {ACTIVITIES_COPY.builtInHeading}
         </h2>
-        <BuiltInActivityCards activities={listActivities()} />
+        <BuiltInActivityCards activities={listActivities()} choices={choices} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -188,7 +197,7 @@ export default async function ActivitiesPage({
             </Button>
           </form>
         </div>
-        <OwnActivityCards activities={own} />
+        <OwnActivityCards activities={own} choices={choices} />
       </section>
     </>
   );
