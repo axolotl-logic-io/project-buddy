@@ -91,3 +91,11 @@ The user customizes a built-in construct from its page: she can't change it, so 
 - **Outcome:** the site makes a construct of hers named as the built-in one with " (clone)" after, as customizing from the Constructs page does, and opens its page to edit the original Markdown source in one textarea. The built-in construct is unchanged.
 - **Next:**
   - `use_case_edit_construct`: change the copy.
+
+## use_case_view_character_profile
+
+The user meets the construct saved in an adventure.
+
+- **Prerequisites:** an open adventure.
+- **Steps:** open the portrait and name control in the adventure header.
+- **Outcome:** a named profile shows the saved character's artwork, temperament, approach to quests and a representative sample line. Own or legacy characters without public personality copy show useful generic copy and initials when no art is available. Private conversational instructions and Visual descriptions never appear. The profile uses the adventure snapshot, so source edits do not change it. Opening it makes no model call. Keyboard focus stays inside the profile; Escape and Close return focus to its trigger. The profile fits a 320px phone, scrolls when needed and leaves the composer usable after closing.
