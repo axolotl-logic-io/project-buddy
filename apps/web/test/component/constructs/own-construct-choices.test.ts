@@ -16,7 +16,7 @@ vi.mock("@/constructs/construct-store.ts", () => ({
 
 test("creation choices retain saved artwork without sending private conversational instructions", async () => {
   const id = userConstructIdFixture();
-  const visual = getConstruct("vellum").definition.visual;
+  const { visual } = getConstruct("vellum").definition;
   dependencies.requireUser.mockResolvedValue({ id: "acting user" });
   dependencies.listConstructs.mockResolvedValue([
     {

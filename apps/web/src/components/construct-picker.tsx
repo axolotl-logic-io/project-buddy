@@ -50,13 +50,15 @@ function ConstructPicker({
 }): JSX.Element {
   const choices: readonly ConstructChoice[] = [
     ...BUILT_IN_CHOICES,
-    ...userConstructs.map(({ id, name, visual }) => ({
-      id,
-      name,
-      destination: { kind: "construct", id },
-      description: NEW_CHAT_COPY.ownConstructDescription,
-      definition: { prompt: "", visual },
-    })),
+    ...userConstructs.map(
+      ({ id, name, visual }): ConstructChoice => ({
+        id,
+        name,
+        destination: { kind: "construct", id },
+        description: NEW_CHAT_COPY.ownConstructDescription,
+        definition: { prompt: "", visual },
+      }),
+    ),
   ];
   const count = choices.length;
   const [index, setIndex] = useState(() =>
