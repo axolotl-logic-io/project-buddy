@@ -12,7 +12,10 @@ import {
   newChatChoices,
 } from "@/chats/new-chat-choices.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { ActivityQuestEntry } from "@/components/quest-library.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { interviewConstruct } from "@/constructs/interview-construct.ts";
+import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import {
   cloneActivityAction,
@@ -42,7 +45,7 @@ function ActivityCard({
 }: {
   readonly activity: ListedActivity;
   readonly actions: JSX.Element;
-  readonly choices: NewChatChoices;
+  readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   return (
     <li className="card flex flex-col gap-2">
@@ -63,6 +66,7 @@ function ActivityCard({
         <p className="text-muted text-sm">{activity.description}</p>
       )}
       <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      <ActivityQuestEntry activityId={activity.id} choices={choices} />
     </li>
   );
 }
@@ -74,7 +78,7 @@ function BuiltInActivityCards({
   choices,
 }: {
   readonly activities: readonly ListedActivity[];
-  readonly choices: NewChatChoices;
+  readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -109,7 +113,7 @@ function OwnActivityCards({
   choices,
 }: {
   readonly activities: readonly ListedActivity[];
-  readonly choices: NewChatChoices;
+  readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   if (activities.length === 0) {
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
@@ -155,10 +159,12 @@ function OwnActivityCards({
 
 async function ActivityLists(): Promise<JSX.Element> {
   const user = await requireUser();
-  const [own, choices] = await Promise.all([
+  const [own, chatChoices, preferred] = await Promise.all([
     listOwnActivities(user.id),
     newChatChoices(user.id),
+    interviewConstruct(user.id),
   ]);
+  const choices = { ...chatChoices, preferredConstructId: preferred.id };
   return (
     <>
       <section
