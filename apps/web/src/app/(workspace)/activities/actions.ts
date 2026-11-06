@@ -83,7 +83,7 @@ async function saveActivityAction(formData: FormData): Promise<never> {
   if (saved === undefined) {
     notFound();
   }
-  return activityPage(saved.id);
+  return redirect(`/activities/${saved.id}?saved=1`);
 }
 
 async function resetActivityPromptAction(formData: FormData): Promise<void> {

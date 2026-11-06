@@ -75,7 +75,7 @@ test("an unchanged clone is stored in the earlier build's text, so that build kn
     throw new Error("The built-in ones could not be cloned");
   }
 
-  expect(await storedParts(vellum.id)).toEqual({
+  expect(await storedParts(vellum.id)).toMatchObject({
     voice: EARLIER_VELLUM_PROMPT,
     habits: "",
   });
@@ -91,7 +91,12 @@ test("an unchanged clone is stored in the earlier build's text, so that build kn
   expect(parseConstructDefinition(await storedParts(vellum.id))?.prompt).toBe(
     EARLIER_VELLUM_PROMPT,
   );
-  expect(vellum.definition).toEqual(getConstruct("vellum").definition);
+  expect(vellum.definition.prompt).toBe(
+    getConstruct("vellum").definition.prompt,
+  );
+  expect(vellum.definition.visual).toEqual(
+    getConstruct("vellum").definition.visual,
+  );
   expect(interview.definition).toEqual(getActivity("interview").definition);
 });
 
@@ -148,7 +153,10 @@ test("a copy the earlier build wrote reads as today's built-in one, can't be lis
     throw new Error("The earlier copies were not found");
   }
 
-  expect(vellum.definition).toEqual(getConstruct("vellum").definition);
+  expect(vellum.definition.prompt).toBe(
+    getConstruct("vellum").definition.prompt,
+  );
+  expect(vellum.definition.visual).toBeUndefined();
   expect(interview.definition).toEqual(getActivity("interview").definition);
   expect(blender?.definition).toEqual(
     getSpell("blender-manual-lookup").definition,
@@ -222,14 +230,23 @@ test("an edited copy put back to a built-in one's text is stored in the earlier 
   }
 
   await updateConstruct(owner, clone.id, {
-    definition: { prompt: `${clone.definition.prompt}\n- Extra.` },
+    definition: {
+      ...clone.definition,
+      prompt: `${clone.definition.prompt}\n- Extra.`,
+    },
   });
   await updateConstruct(owner, clone.id, {
-    definition: getConstruct("vellum").definition,
+    definition: {
+      ...clone.definition,
+      prompt: getConstruct("vellum").definition.prompt,
+    },
   });
 
-  expect(await storedParts(clone.id)).toEqual({
+  expect(await storedParts(clone.id)).toMatchObject({
     voice: EARLIER_VELLUM_PROMPT,
     habits: "",
   });
+  expect(parseConstructDefinition(await storedParts(clone.id))?.visual).toEqual(
+    clone.definition.visual,
+  );
 });

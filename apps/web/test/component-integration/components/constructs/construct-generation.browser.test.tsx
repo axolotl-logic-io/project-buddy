@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
 import type {
   VisualGenerationQuote,
@@ -419,4 +420,77 @@ test("an inaccessible construct is distinct from a missing claim and cannot be r
   expect(
     fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
   ).toHaveLength(1);
+});
+
+test("unavailable artwork does not block repeated text saves or retain an unstarted paid request", async () => {
+  const fetcher = service(
+    quote({ available: false, result: outcome("not-found") }),
+    outcome("unavailable"),
+  );
+  localStorage.setItem(
+    `draft:visual:unavailable:${construct.id}`,
+    JSON.stringify({
+      constructId: construct.id,
+      requestId: PENDING_ID,
+      description: "A brass guide",
+    }),
+  );
+  const submitted: FormData[] = [];
+  function save(form: FormData): void {
+    submitted.push(form);
+  }
+  await render(
+    <ConstructEditor
+      construct={construct}
+      viewer="unavailable"
+      action={save}
+      kind="construct"
+      idName="constructId"
+      promptId={construct.id}
+      savedAt="revision"
+      name={construct.name}
+      heading="Prompt"
+      defaultPrompt={undefined}
+      texts={[
+        {
+          name: "prompt",
+          text: construct.definition.prompt,
+          label: "Instructions",
+          help: "Instructions",
+          maxLength: 20_000,
+        },
+        {
+          name: "visualDescription",
+          text: "A brass guide",
+          label: "Visual description",
+          help: "Appearance",
+          maxLength: 4000,
+        },
+      ]}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeEnabled();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Captain Quill");
+  await button(VISUAL_COPY.saveAndGenerate).click();
+  await expect.poll(() => submitted.length).toBe(1);
+  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeEnabled();
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Captain Quill II");
+  await button(VISUAL_COPY.saveAndGenerate).click();
+  await expect.poll(() => submitted.length).toBe(2);
+  expect(submitted.map((form) => form.get("name"))).toEqual([
+    "Captain Quill",
+    "Captain Quill II",
+  ]);
+  expect(submitted.every((form) => !form.has("visualRequestId"))).toBe(true);
+  expect(
+    localStorage.getItem(`draft:visual:unavailable:${construct.id}`),
+  ).toBeNull();
+  await expect.element(button(VISUAL_COPY.resume)).not.toBeInTheDocument();
+  expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
+    true,
+  );
 });

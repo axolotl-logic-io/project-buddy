@@ -17,6 +17,7 @@ import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
@@ -147,8 +148,10 @@ export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
 export default async function ActivityPage({
   params,
+  searchParams,
 }: PageProps<"/activities/[activityId]">): Promise<JSX.Element> {
   const { activityId } = await params;
+  const { saved } = await searchParams;
   const user = await requireUser();
   const options = await workshopOptions(user.id);
   if (isActivityId(activityId)) {
@@ -193,6 +196,7 @@ export default async function ActivityPage({
         openingRequest: activity.definition.openingRequest,
       }}
     >
+      <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnActivityForm viewer={user.id} activity={activity} sale={sale} />
     </Workshop>
   );

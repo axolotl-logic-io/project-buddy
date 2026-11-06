@@ -32,12 +32,11 @@ export type CreateProjectState =
   | { readonly kind: "idle" }
   | { readonly kind: "invalid"; readonly message: string }
   | {
-      readonly kind: "invalidName" | "claudeUnavailable";
+      readonly kind: "invalidName" | "claudeUnavailable" | "outOfGold";
       readonly message: string;
       readonly name: string;
       readonly motivation: string;
-    }
-  | { readonly kind: "outOfGold"; readonly message: string };
+    };
 
 // Starts the quest with the account's interview construct and supplied motivation.
 // Opening failures save nothing; a storage failure reaches the error boundary.
@@ -74,7 +73,12 @@ export async function createProjectAction(
     };
   }
   if (started.kind === "outOfGold") {
-    return { kind: "outOfGold", message: userMessage("out-of-gold") };
+    return {
+      kind: "outOfGold",
+      message: userMessage("out-of-gold"),
+      name: form.data.name,
+      motivation: form.data.motivation,
+    };
   }
   return redirect(`/chats/${started.chat.id}`);
 }

@@ -22,7 +22,7 @@ export const CONSTRUCTS_COPY = {
   ownHeading: "Your constructs",
   noOwn:
     "No constructs of your own yet. Customize one above, or choose New construct to write one from scratch.",
-  newConstruct: "New construct",
+  newConstruct: "Write new construct",
   // The name of a construct written from scratch, until the user renames it.
   newConstructName: "New construct",
   customize: "Customize",

@@ -310,7 +310,7 @@ The user asks the construct about something that has nothing to do with Blender.
 - **Steps:**
   - She asks about something else, such as a recipe.
   - The construct answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
-- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Her next Blender question is answered as usual, with its manual links.
+- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to consult the Journal or advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. Relevant quest information still follows the Journal rules. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
 

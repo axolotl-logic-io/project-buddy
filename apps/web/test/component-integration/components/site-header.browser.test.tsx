@@ -79,6 +79,8 @@ const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
   { name: "an iPhone 15", viewport: IPHONE_15_VIEWPORT },
   { name: "the narrowest phone", viewport: NARROWEST_VIEWPORT },
+  { name: "a small tablet", viewport: { width: 544, height: 720 } },
+  { name: "a tablet", viewport: { width: 800, height: 720 } },
   { name: "a laptop", viewport: LAPTOP_VIEWPORT },
 ];
 
@@ -148,6 +150,20 @@ describe("use_case_use_on_phone", () => {
             titleBox.bottom > buttonBox.top && buttonBox.bottom > titleBox.top,
             "the site's name and the menu's button share one row",
           ).toBe(true);
+          const brandText = [...title.element().childNodes].find(
+            (node) =>
+              node.nodeType === Node.TEXT_NODE &&
+              node.textContent?.trim() !== "",
+          );
+          if (brandText === undefined) {
+            throw new Error("The brand text is missing");
+          }
+          const brandRange = document.createRange();
+          brandRange.selectNodeContents(brandText);
+          expect(
+            brandRange.getClientRects().length,
+            "brand remains on one text line",
+          ).toBe(1);
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
           const noteBox = noteLink().element().getBoundingClientRect();
@@ -156,6 +172,12 @@ describe("use_case_use_on_phone", () => {
             "quick capture's link shares the menu button's row",
           ).toBe(true);
           expect(noteBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+          expect(noteBox.height, "Quick Note stays a single-row control").toBe(
+            buttonBox.height,
+          );
+          expect(noteBox.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+          expect(titleBox.right).toBeLessThanOrEqual(noteBox.left);
+          expect(noteBox.right).toBeLessThanOrEqual(buttonBox.left);
           expect(
             document.documentElement.scrollWidth,
             "no sideways scroll",

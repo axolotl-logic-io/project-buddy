@@ -1,6 +1,6 @@
 # Construct visuals
 
-Issue [#735](https://github.com/axolotl-logic-io/project-buddy/issues/735) establishes the shared contract for generation, Workshop, adventures and construct selection. Screen integrations and generated-asset delivery are later work in epic #734.
+Issue [#735](https://github.com/axolotl-logic-io/project-buddy/issues/735) establishes the shared contract for generation, Workshop, adventures and construct selection. Screen integrations and generated-asset delivery are implemented through epic #734; [Images](images.md) describes generation and operations.
 
 ## Metadata and identity
 
@@ -12,7 +12,7 @@ A built-in reference is `{ kind: "built-in", artwork: "lumen-v1" }` or `vellum-v
 
 `resolveConstructVisual(construct, role)` accepts a name and definition and returns `asset`, `frame`, `initials` and `description`. It never infers artwork from names, prompt matching or ids. Own constructs can carry the default built-in id in adventure compatibility paths. Missing metadata, old own snapshots and custom constructs use initials. Actual built-ins carry explicit metadata, as do new clones of them. Old snapshots with no metadata retain their fallback; snapshots are not backfilled from today's source construct.
 
-`constructVisualSource(asset, destination?)` returns the versioned repository path for built-in assets. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure" | "listing", id: UUID }`, validated by `VISUAL_DESTINATION`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery service must authorize that destination on every request; the path alone grants no access. Until the service exists, failed image delivery shows initials. Do not bypass this with a gallery URL or a source-owner endpoint.
+`constructVisualSource(asset, destination?)` returns the versioned repository path for built-in assets. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure" | "listing", id: UUID }`, validated by `VISUAL_DESTINATION`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery service must authorize that destination on every request; the path alone grants no access. Failed image delivery shows initials. Do not bypass this with a gallery URL or a source-owner endpoint.
 
 The built-in `description` values are the user-supplied texts, stored verbatim in `src/constructs/lumen.ts` and `vellum.ts`. Generation must use those values as its canonical visual descriptions. Role framing is separate metadata and must preserve character identity and the reference artwork.
 
@@ -48,7 +48,7 @@ Snapshots copy the visual description, immutable references and framing into the
 
 Visual metadata may include `sourceFingerprint`, a SHA-256 digest of the prompt and visual description used to generate the artwork. The service uses it to identify outdated art without copying private prompt text into visual metadata.
 
-The service ticket must implement the following before enabling generated rendering. This PR reserves the metadata format, but adds no upload, generation, database store or HTTP endpoint.
+The implemented service follows these requirements. `src/constructs/visual-generation.ts` owns generation; `visual-asset-store.ts` owns immutable bytes and grants, and the resource-scoped API routes authorize delivery.
 
 1. Generate through the swappable image provider and gold accounting, with one canonical image by default. Validate/decode raster bytes, enforce size limits and persist immutable bytes before attaching metadata. Never persist provider URLs, SVG or user-supplied remote URLs as an asset reference.
 2. An owner-scoped attachment operation takes the acting user first and validates their access to the destination construct and every generated reference, including a working variant. Parsing metadata establishes shape, not authorization. Never accept an arbitrary asset UUID as proof of ownership. The generation service must attach through this operation, not generic untrusted definition writes.
@@ -57,11 +57,11 @@ The service ticket must implement the following before enabling generated render
 5. Extend `constructVisualSource` and the primitives together with an explicit authorized destination context. Return same-origin resource-scoped paths; recheck access on every request. Use private cache policy, no shared optimizer cache and no persistent signed URL in JSON. Do not enable generated images until real-database tests cover owner/member/outsider isolation and revoked access.
 6. Deleting a source releases only its grant. Retirement retains grants. Existing snapshots, listings, clones and bought copies retain their grants. Garbage-collect bytes only after the last reference/grant is gone; retries and deletes are idempotent. Adventure image-gallery cascades must not delete construct artwork. Deleting or unlisting a listing must not invalidate bought copies. A failed generation or attachment leaves no partial metadata; reclaim unattached bytes separately.
 
-The generation service owns byte storage, grants, delivery authorization and collection. This foundation owns the metadata and resolution contract. Downstream UI owners use the exported primitives and do not add parallel role models. Adding generated delivery will require additive, normally generated migrations and transaction coverage for all grant-creation paths above.
+The generation service owns byte storage, grants, delivery authorization and collection. The shared metadata module owns the metadata and resolution contract. Downstream UI owners use the exported primitives and do not add parallel role models. Generated delivery uses additive migrations and transaction coverage for the grant-creation paths above.
 
 ## Artwork source
 
-`apps/web/public/constructs/lumen-v1.png` and `vellum-v1.png` are the unmodified reference PNGs supplied by the requesting repository owner for #735 on 2026-11-05. No new art was generated for this PR. No independent artist or license information accompanied the files; do not invent attribution. Runtime uses committed paths, never local attachment paths. Keep these versioned files immutable; new art receives a new versioned path.
+`apps/web/public/constructs/lumen-v1.png` and `vellum-v1.png` are the unmodified reference PNGs supplied by the requesting repository owner for #735 on 2026-11-05. No new art was generated for #735. No independent artist or license information accompanied the files; do not invent attribution. Runtime uses committed paths, never local attachment paths. Keep these versioned files immutable; new art receives a new versioned path.
 
 ## Discovery and character profiles
 
@@ -69,4 +69,4 @@ The construct picker pairs saved artwork with a visible name, personality copy a
 
 `components/constructs/adventure-character-header.tsx` exports `AdventureCharacterHeader`. The caller supplies the adventure's `construct` snapshot and optional `destination: VisualDestination` from the shared service contract. Adventures pass `{ kind: "adventure", id: chat.id }`; own picker and list portraits pass their construct destination. The component forwards it to both shared art primitives. The control opens a keyboard-accessible, scrollable profile and returns focus when closed. The adventure header uses `compact={true}` to place the portrait beside the existing named heading without another row. Its accessible button name still identifies the construct.
 
-Public built-in personality copy is selected through explicit built-in canonical artwork metadata. Names and source ids never infer identity. Own snapshots without that metadata use generic public copy; neither private prompt text nor Visual description instructions are shown. Selection and profile opening make no model calls.
+Public built-in personality copy requires explicit built-in canonical artwork metadata and unchanged built-in conversational instructions. Changed instructions and picker choices without conversational text use generic own-construct copy. Names and source ids never infer identity. Own snapshots without that metadata use generic public copy; neither private prompt text nor Visual description instructions are shown. Selection and profile opening make no model calls.

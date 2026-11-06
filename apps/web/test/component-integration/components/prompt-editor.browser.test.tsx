@@ -5,6 +5,7 @@
 // are still there when she comes back to the page, until she saves or
 // discards them. The pages' Server Actions are mocked; the server tests
 // cover what Save stores.
+import type { JSX } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -28,6 +29,7 @@ import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACTIVITY_DEFINITION_COPY } from "@/ui/copy/activities.ts";
+import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 import { CONSTRUCT_DEFINITION_COPY } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { SPELL_DEFINITION_COPY } from "@/ui/copy/spells.ts";
@@ -38,6 +40,11 @@ import {
 } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
+  setViewport,
+} from "../viewports-test-kit.ts";
 
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
@@ -94,7 +101,8 @@ const LUMEN_CLONE: OwnConstruct = {
 
 const CONSTRUCT_PROMPT: string = CONSTRUCT_DEFINITION_COPY.prompt.label;
 
-afterEach(() => {
+afterEach(async () => {
+  await setViewport(LAPTOP_VIEWPORT);
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });
@@ -379,7 +387,7 @@ test("Visual description survives recovery, prompt reset and discard, and Save s
   await expect.element(field("Visual description")).toHaveValue(original);
   await field("Visual description").fill(edited);
   const submission = saved(saveConstructAction);
-  await button(PROMPT_COPY.save).click();
+  await button(VISUAL_COPY.saveAndGenerate).click();
   expect((await submission).get("visualDescription")).toBe(edited);
 });
 
@@ -417,9 +425,10 @@ test("new saved artwork does not discard a browser draft on reload", async () =>
 
 const TEST_RESERVATION = 12;
 
-test.each([PROMPT_COPY.save, "Generate Images"])(
+test.each([VISUAL_COPY.saveAndGenerate, "Generate Images"])(
   "%s saves the edited Vellum description and shows generation loading",
   async (label) => {
+    await setViewport(NARROWEST_VIEWPORT);
     const edited = "A silver fox with a blue cloak, replacing the brass guide";
     vi.stubGlobal(
       "fetch",
@@ -460,6 +469,17 @@ test.each([PROMPT_COPY.save, "Generate Images"])(
     });
     await field("Visual description").fill(edited);
     await expect.element(button("Generate Images")).toBeEnabled();
+    const saveButton = button(VISUAL_COPY.saveAndGenerate);
+    await expect
+      .element(saveButton)
+      .toHaveAccessibleDescription(
+        `${VISUAL_COPY.saveConsequence} ${VISUAL_COPY.reservation(TEST_RESERVATION)}`,
+      );
+    const hintId = saveButton.element().getAttribute("aria-describedby");
+    const hint = document.querySelector(`#${CSS.escape(hintId ?? "")}`);
+    expect(hint?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      saveButton.element().getBoundingClientRect().top,
+    );
     const submission = saved(saveConstructAction);
     await button(label).click();
     const form = await submission;
@@ -471,7 +491,35 @@ test.each([PROMPT_COPY.save, "Generate Images"])(
     await expect
       .element(page.getByText("Generating images…", { exact: true }))
       .toBeVisible();
-    await expect.element(button(PROMPT_COPY.save)).toBeDisabled();
+    await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
     await expect.element(button("Generate Images")).toBeDisabled();
+  },
+);
+
+test.each(["activity", "spell"] as const)(
+  "a saved %s shows visible announced confirmation and saved fields",
+  async (kind) => {
+    signInAs(SIGNED_IN_USER);
+    vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+    vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
+    vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
+    let view: JSX.Element;
+    if (kind === "activity") {
+      view = await ActivityPage({
+        params: Promise.resolve({ activityId: BRAINSTORMING_CLONE.id }),
+        searchParams: Promise.resolve({ saved: "1" }),
+      });
+    } else {
+      view = await SpellPage({
+        params: Promise.resolve({ spellId: ASK_ONE_QUESTION_CLONE.id }),
+        searchParams: Promise.resolve({ saved: "1" }),
+      });
+    }
+    await render(inWorkspace(view));
+    await expect
+      .element(page.getByRole("status").filter({ hasText: PROMPT_COPY.saved }))
+      .toBeVisible();
+    await expect.element(field("Name")).not.toHaveValue("");
+    await expect.element(button(PROMPT_COPY.discard)).not.toBeInTheDocument();
   },
 );

@@ -1,4 +1,5 @@
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import { getConstruct } from "@/constructs/index.ts";
 
 const CONSTRUCT_DISCOVERY_COPY = {
   openProfile: (name: string): string => `About ${name}`,
@@ -37,10 +38,16 @@ function constructPersonality(
 ): typeof CONSTRUCT_DISCOVERY_COPY.own {
   const asset = construct.definition.visual?.canonical;
   if (asset?.kind === "built-in") {
-    if (asset.artwork === "vellum-v1") {
+    if (
+      asset.artwork === "vellum-v1" &&
+      construct.definition.prompt === getConstruct("vellum").definition.prompt
+    ) {
       return CONSTRUCT_DISCOVERY_COPY.vellum;
     }
-    if (asset.artwork === "lumen-v1") {
+    if (
+      asset.artwork === "lumen-v1" &&
+      construct.definition.prompt === getConstruct("lumen").definition.prompt
+    ) {
       return CONSTRUCT_DISCOVERY_COPY.lumen;
     }
   }
