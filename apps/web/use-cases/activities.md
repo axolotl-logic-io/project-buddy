@@ -2,10 +2,11 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-An activity sets the scene an adventure plays out. The site has three built-in activities:
+An activity sets the scene an adventure plays out. The site has four built-in activities:
 
 - **Open adventure:** no set scene. The construct follows her lead.
 - **Brainstorming:** the construct helps her explore an idea, question her assumptions and make decisions.
+- **Find something to make:** the construct helps the user discover a small achievable creative project and supports uncertainty and challenges while they make it. No idea or inspiration source is required.
 - **Project Breakdown:** the construct helps her split a goal into milestones and the next small steps.
 
 Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Write new activity” to distinguish it from an own definition named “New activity”.
@@ -22,6 +23,7 @@ The user starts an adventure in the activity she wants.
   - Another time, she chooses Project Breakdown and selects a new or existing quest.
 - **Outcome:** the adventure opens in Brainstorming, with the construct's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Every activity offers no quest, an existing quest or a new quest. A new quest keeps the chosen activity and construct. Closing the modal creates nothing and returns focus to the activity title.
 - **Variations:**
+  - Choose Find something to make with no quest, an existing quest or a new quest. The chosen construct follows its discovery instructions. An existing quest retains its Journal; no extra quest is created. Without a quest there is no Journal or quest progress.
   - With no activity chosen, as from the Adventures page's "New adventure" dialog, the adventure starts in the open adventure.
 - **Next:**
   - `use_case_construct_changes_activity`: the construct moves the adventure into another activity.

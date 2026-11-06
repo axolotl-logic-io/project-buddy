@@ -758,6 +758,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the discovery activity's page",
+    render: workspacePage(noData, () => activityPage("find-something-to-make")),
+  },
+  {
     name: "a built-in activity's page",
     render: workspacePage(noData, () => activityPage("brainstorming")),
   },

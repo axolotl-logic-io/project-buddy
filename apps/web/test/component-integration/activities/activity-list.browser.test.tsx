@@ -134,6 +134,11 @@ test("New activity is the next control after the built-in activities, and Enter 
 
 test.each([
   {
+    id: "find-something-to-make",
+    name: "Find something to make",
+    project: NEW_CHAT_COPY.noProject,
+  },
+  {
     id: "brainstorming",
     name: "Brainstorming",
     project: NEW_CHAT_COPY.noProject,
