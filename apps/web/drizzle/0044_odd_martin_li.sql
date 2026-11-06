@@ -1,0 +1,1 @@
+ALTER TABLE "buddies" ADD COLUMN "previous_visual" jsonb;

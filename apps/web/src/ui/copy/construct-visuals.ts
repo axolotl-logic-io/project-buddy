@@ -1,4 +1,8 @@
 const VISUAL_COPY = {
+  restore: "Restore previous artwork",
+  restoreHint:
+    "Restore the previous artwork and its Visual description without spending gold. Save or discard text edits first. Existing adventures and Marketplace copies keep their artwork.",
+  restored: "Previous artwork and Visual description restored. No gold spent.",
   heading: "Visuals",
   description: "Visual description",
   descriptionHelp:

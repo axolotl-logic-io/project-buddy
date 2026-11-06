@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
 import { createChat } from "@/chats/new-chat-store.ts";
@@ -10,6 +10,7 @@ import {
   updateConstruct,
 } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
+import { restoreConstructVisual } from "@/constructs/restore-visual.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
 import {
@@ -18,7 +19,10 @@ import {
 } from "@/constructs/visual-generation.ts";
 import type { VisualGenerationResult } from "@/constructs/visual-generation-contract.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
-import { constructAssets } from "@/db/tables/construct-visuals.ts";
+import {
+  constructAssetGrants,
+  constructAssets,
+} from "@/db/tables/construct-visuals.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
 import { IMAGE_RESERVATION_MICRO_USD } from "@/images/image-provider.ts";
@@ -537,6 +541,13 @@ describe("use_case_generate_construct_visual", () => {
     ).toBeDefined();
     await retireDefinition(user.id, "construct", clone.id);
     await deleteConstruct(user.id, clone.id);
+    // The source retains one previous generation for recovery. Replacing
+    // again releases that final grant while retaining the more recent art.
+    await generateConstructVisual(
+      user.id,
+      { ...request, requestId: crypto.randomUUID() },
+      provider,
+    );
     expect(
       await getDb()
         .select({ id: constructAssets.id })
@@ -702,4 +713,140 @@ test("legacy hashes use owned generation descriptions; copied legacy art with no
     freshnessUnknown: false,
   });
   expect(provider.generate).toHaveBeenCalledTimes(1);
+});
+
+test("replaced artwork can be restored once with its matching description and no charge", async () => {
+  const { user, construct, provider, request } = await setup();
+  const first = await generateConstructVisual(user.id, request, provider);
+  const project = await testData(user).project();
+  const snapshot = await createChat(user.id, {
+    project,
+    construct: {
+      id: DEFAULT_CONSTRUCT_ID,
+      name: construct.name,
+      definition: { ...construct.definition, visual: first.visual },
+    },
+  });
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: "A silver owl.",
+    prompt: "Speak briefly.",
+  });
+  const second = await generateConstructVisual(
+    user.id,
+    {
+      ...request,
+      requestId: crypto.randomUUID(),
+      description: "A silver owl.",
+    },
+    provider,
+  );
+  const outsider = await testUser();
+  expect(await restoreConstructVisual(outsider.id, construct.id)).toBe(false);
+  const before = await goldSpent(user);
+  expect((await readVisualGeneration(user.id, construct.id))?.canRestore).toBe(
+    true,
+  );
+  expect(await restoreConstructVisual(user.id, construct.id)).toBe(true);
+  expect(await restoreConstructVisual(user.id, construct.id)).toBe(false);
+  expect(await goldSpent(user)).toBe(before);
+  expect(provider.generate).toHaveBeenCalledTimes(2);
+  const restored = await getOwnConstruct(user.id, construct.id);
+  expect(restored?.definition.visual).toEqual(first.visual);
+  expect(restored?.definition.prompt).toBe("Speak briefly.");
+  expect((await readVisualGeneration(user.id, construct.id))?.outdated).toBe(
+    false,
+  );
+  expect(
+    await getVisualAsset(
+      user.id,
+      { kind: "construct", id: construct.id },
+      assetId(first),
+    ),
+  ).toBeDefined();
+  expect(
+    await getVisualAsset(
+      user.id,
+      { kind: "construct", id: construct.id },
+      assetId(second),
+    ),
+  ).toBeUndefined();
+  expect(
+    await getVisualAsset(
+      user.id,
+      { kind: "adventure", id: snapshot.id },
+      assetId(first),
+    ),
+  ).toBeDefined();
+});
+
+test("a recovery entry whose bytes were released by an older build is unavailable", async () => {
+  const { user, construct, provider, request } = await setup();
+  const first = await generateConstructVisual(user.id, request, provider);
+  const second = await generateConstructVisual(
+    user.id,
+    { ...request, requestId: crypto.randomUUID() },
+    provider,
+  );
+  await getDb()
+    .delete(constructAssetGrants)
+    .where(
+      and(
+        eq(constructAssetGrants.constructId, construct.id),
+        eq(constructAssetGrants.assetId, assetId(first)),
+      ),
+    );
+  expect((await readVisualGeneration(user.id, construct.id))?.canRestore).toBe(
+    false,
+  );
+  expect(await restoreConstructVisual(user.id, construct.id)).toBe(false);
+  expect(
+    (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+  ).toEqual(second.visual);
+});
+
+test("recovery on a bought copy restores its original image identity without changing seller or listing snapshots", async () => {
+  const { user, construct, provider, request } = await setup();
+  const first = await generateConstructVisual(user.id, request, provider);
+  const listing = await publishListing(
+    user.id,
+    { kind: "construct", promptId: construct.id },
+    { description: "Owl art", price: 0 },
+  );
+  if (listing.kind !== "published") {
+    throw new Error("No listing");
+  }
+  const buyer = await testUser();
+  const bought = await buyListing(buyer.id, {
+    listingId: listing.id,
+    price: 0,
+  });
+  if (bought.kind !== "bought") {
+    throw new Error("No bought copy");
+  }
+  await editConstructMetadata(buyer.id, bought.copy.id, {
+    visualDescription: "A silver owl.",
+  });
+  await generateConstructVisual(
+    buyer.id,
+    {
+      constructId: bought.copy.id,
+      requestId: crypto.randomUUID(),
+      description: "A silver owl.",
+    },
+    provider,
+  );
+  expect(await restoreConstructVisual(buyer.id, bought.copy.id)).toBe(true);
+  expect(
+    (await getOwnConstruct(buyer.id, bought.copy.id))?.definition.visual,
+  ).toEqual(first.visual);
+  expect(
+    (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+  ).toEqual(first.visual);
+  expect(
+    await getVisualAsset(
+      buyer.id,
+      { kind: "listing", id: listing.id },
+      assetId(first),
+    ),
+  ).toBeDefined();
 });

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { JSX } from "react";
+import { QuestTransferForm } from "@/components/chat/quest-transfer-form.tsx";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -21,6 +22,8 @@ export function CreateProjectPart({
   }
   const result = output.data;
   switch (result.status) {
+    case "proposed":
+      return <QuestTransferForm proposal={result} />;
     case "created":
       return (
         <div className="card flex flex-col gap-2 text-sm">

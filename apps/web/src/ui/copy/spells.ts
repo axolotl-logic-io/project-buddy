@@ -26,9 +26,10 @@ export const SPELLBOOK_COPY = {
   // The name of a spell written from scratch, until the user renames it.
   newSpellName: "New spell",
   customize: "Customize",
-  customizeLabel: (name: string): string => `Customize ${name}`,
-  tweak: "Tweak",
-  tweakLabel: (name: string): string => `Tweak ${name}`,
+  customizeLabel: (name: string): string =>
+    `Customize ${name}: make your own copy`,
+  tweak: "Edit",
+  tweakLabel: (name: string): string => `Edit your ${name}`,
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;

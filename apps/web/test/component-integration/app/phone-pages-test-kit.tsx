@@ -4,6 +4,7 @@
 // PHONE_PAGES. The test file mocks the stores and actions these pages read,
 // and current-user.ts with current-user-test-kit.ts, so each entry sets the
 // stores' answers through vi.mocked and signs in or out.
+
 import type { JSX } from "react";
 import { vi } from "vitest";
 import { page } from "vitest/browser";
@@ -86,6 +87,7 @@ import {
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
+import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -744,7 +746,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
-          name: "Brainstorming",
+          name: ACTIVITIES_COPY.startLabel("Brainstorming"),
           exact: true,
         })
         .click();

@@ -35,6 +35,7 @@ export const ownPrompts = pgTable(
     kind: text("kind").notNull().default(storedPromptKind("construct")),
     name: text("name").notNull(),
     parts: jsonb("parts").notNull(),
+    previousVisual: jsonb("previous_visual"),
     clonedFrom: text("cloned_from"),
     boughtFrom: uuid("bought_from"),
     retiredAt: timestamp("retired_at", { withTimezone: true }),

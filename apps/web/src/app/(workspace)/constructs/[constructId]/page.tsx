@@ -29,7 +29,7 @@ import {
   CONSTRUCTS_COPY,
 } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import { pageTitle } from "@/ui/copy/site.ts";
 import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInConstructAction, saveConstructAction } from "../actions.ts";
 import { RetireConstructForm } from "../retire-construct-form.tsx";
@@ -47,7 +47,7 @@ function ConstructHeading({
     <>
       <BackLink href="/constructs">{CONSTRUCT_COPY.constructsLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h2 className="section-heading">{name}</h2>
+        <h1 className="page-heading wrap-anywhere">{name}</h1>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -170,7 +170,19 @@ function OwnConstructForm({
   );
 }
 
-export const metadata: Metadata = { title: WORKSHOP_COPY.title };
+export async function generateMetadata({
+  params,
+}: PageProps<"/constructs/[constructId]">): Promise<Metadata> {
+  const { constructId } = await params;
+  const user = await requireUser();
+  let name: string | undefined;
+  if (isConstructId(constructId)) {
+    ({ name } = getConstruct(constructId));
+  } else {
+    name = (await getOwnConstruct(user.id, constructId))?.name;
+  }
+  return { title: pageTitle(name ?? "Construct") };
+}
 
 export default async function ConstructPage({
   params,

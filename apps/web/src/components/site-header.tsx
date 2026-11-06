@@ -31,13 +31,10 @@ function AccountLinks(): JSX.Element {
       </p>
       <ul aria-labelledby={PLACES_LABEL_ID} className="flex flex-col">
         <li>
-          <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/gallery">{GENERATION_COPY.heading}</MenuLink>
-        </li>
-        <li>
           <MenuLink href="/projects">{PROJECTS_COPY.headerLink}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
         </li>
         <li>
           <MenuLink href="/constructs">{CONSTRUCTS_COPY.headerLink}</MenuLink>
@@ -53,6 +50,9 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <MenuLink href="/retirement">{RETIREMENT_COPY.heading}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/gallery">{GENERATION_COPY.heading}</MenuLink>
         </li>
         <li>
           <MenuLink href="/marketplace">{MARKETPLACE_COPY.headerLink}</MenuLink>

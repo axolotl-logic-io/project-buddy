@@ -61,7 +61,11 @@ function chooseModel(
     model: unwrappedModel(claudeModelId, mockScript),
     middleware: [
       userFirst(NEUTRAL_KICKOFF),
-      spendMeter({ owner: grant.owner, modelId: claudeModelId }),
+      spendMeter({
+        owner: grant.owner,
+        modelId: claudeModelId,
+        usage: grant.usage,
+      }),
     ],
   });
 }

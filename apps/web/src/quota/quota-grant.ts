@@ -4,13 +4,16 @@
 // quota.ts, whose checkGold grants a call, and quota-test-kit.ts, which
 // stands in for that check in unit tests, may import grantQuota;
 // quota-grant.test.ts holds every other module to that.
+
 import type { UserId } from "@/ids.ts";
+import type { UsageRecorder } from "@/quota/usage-recorder.ts";
 
 const QUOTA_GRANT: unique symbol = Symbol("QuotaGrant");
 
 // The grant of owner's model calls, charged to owner.
 interface QuotaGrant {
   readonly owner: UserId;
+  readonly usage?: UsageRecorder;
   readonly [QUOTA_GRANT]: true;
 }
 

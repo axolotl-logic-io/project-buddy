@@ -3,6 +3,8 @@ import { pageTitle } from "@/ui/copy/site.ts";
 const HOME_COPY = {
   title: pageTitle("Home"),
   heading: "Your projects await",
+  purpose:
+    "Project Buddy helps you turn ideas into next steps with an AI construct. Start a quest with a goal you want to work on.",
   introduction: "Don't know where to start?",
   activitiesLink: "Try an Activity",
   placesLabel: "Places",

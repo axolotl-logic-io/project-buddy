@@ -25,10 +25,12 @@ export const CONSTRUCTS_COPY = {
   newConstruct: "Write new construct",
   // The name of a construct written from scratch, until the user renames it.
   newConstructName: "New construct",
+  startLabel: (name: string): string => `Start an adventure with ${name}`,
   customize: "Customize",
-  customizeLabel: (name: string): string => `Customize ${name}`,
-  tweak: "Tweak",
-  tweakLabel: (name: string): string => `Tweak ${name}`,
+  customizeLabel: (name: string): string =>
+    `Customize ${name}: make your own copy`,
+  tweak: "Edit",
+  tweakLabel: (name: string): string => `Edit your ${name}`,
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;

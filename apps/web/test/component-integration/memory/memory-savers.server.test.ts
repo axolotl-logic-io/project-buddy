@@ -13,6 +13,7 @@ import {
   editMemory,
   readMemory,
   readMemoryHistory,
+  restoreMemoryVersion,
   saveMemory,
 } from "@/memory/memory-store.ts";
 import { teamProject } from "../projects/team-project-test-kit.ts";
@@ -89,4 +90,40 @@ describe("use_case_view_memory", () => {
     ]);
     expect(history[0]?.text).toContain("Next step: shade the shell.");
   });
+});
+
+test("future member restores record their source version and authorship without changing earlier history", async () => {
+  const { owner, member, project } = await teamProject();
+  const before = await readMemoryHistory(owner.id, project.id);
+  const [newest] = before;
+  const earlier = before.at(-1);
+  if (newest === undefined || earlier === undefined) {
+    throw new Error("Missing Journal history");
+  }
+  expect(
+    await restoreMemoryVersion(member.id, {
+      projectId: project.id,
+      version: earlier.version,
+      basedOn: newest.version,
+      author: "user",
+    }),
+  ).toMatchObject({ kind: "saved" });
+  const history = await readMemoryHistory(owner.id, project.id);
+  expect(history[0]).toMatchObject({
+    restoredFromVersion: earlier.version,
+    author: "user",
+    savedBy: { kind: "person", name: member.email },
+  });
+  expect(history.slice(1)).toEqual(before);
+  expect((await readMemoryHistory(member.id, project.id))[0]?.savedBy).toEqual({
+    kind: "viewer",
+  });
+  expect(
+    await restoreMemoryVersion(owner.id, {
+      projectId: project.id,
+      version: earlier.version,
+      basedOn: newest.version,
+      author: "user",
+    }),
+  ).toMatchObject({ kind: "outdated" });
 });

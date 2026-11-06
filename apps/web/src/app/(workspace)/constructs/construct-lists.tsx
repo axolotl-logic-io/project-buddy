@@ -63,7 +63,7 @@ function ConstructCard({
             selectedActivityId={DEFAULT_ACTIVITY_ID}
             trigger={
               <button className="card-title text-left text-link" type="button">
-                {construct.name}
+                {CONSTRUCTS_COPY.startLabel(construct.name)}
               </button>
             }
           />

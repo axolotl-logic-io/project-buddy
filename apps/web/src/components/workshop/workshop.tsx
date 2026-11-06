@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   type ChangeEvent,
   type JSX,
@@ -242,12 +244,14 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   return (
     <section className="workshop" aria-label={WORKSHOP_COPY.heading}>
       <header className="flex flex-col gap-2">
-        <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
+        <Link className="text-link" href="/workshop">
+          {WORKSHOP_COPY.heading}
+        </Link>
         <p className="text-muted">{WORKSHOP_COPY.intro}</p>
       </header>
       <div className="workshop-columns">
         <div className="flex min-w-0 flex-col gap-4">
-          <h2 className="section-heading">{WORKSHOP_COPY.edit}</h2>
+          <p className="section-heading">{WORKSHOP_COPY.edit}</p>
           <PromptDraftContext value={reportDraft}>
             {children}
           </PromptDraftContext>
