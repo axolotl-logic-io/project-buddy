@@ -9,7 +9,7 @@ import {
   parseActivityDefinition,
   storedActivityPrompt,
 } from "@/activities/activity-definition.ts";
-import { getActivity, listActivities } from "@/activities/index.ts";
+import { getActivity } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import type { ConstructDefinition } from "@/constructs/construct.ts";
 import {
@@ -86,12 +86,12 @@ test("the earlier Vellum fixture is the authentic one: Buddy in its heading, con
   );
 });
 
-test("the recorded earlier texts are the earlier build's, for every built-in one today", () => {
+test("the recorded texts preserve the built-ins available before discovery was added", () => {
   expect(new Set(Object.keys(EARLIER_BUILT_INS.constructs))).toEqual(
     new Set(listConstructs().map((construct) => construct.id)),
   );
   expect(new Set(Object.keys(EARLIER_BUILT_INS.activities))).toEqual(
-    new Set([...listActivities().map((activity) => activity.id), "interview"]),
+    new Set(["open-chat", "interview", "brainstorming", "project-breakdown"]),
   );
   expect(new Set(Object.keys(EARLIER_BUILT_INS.spells))).toEqual(
     new Set(listSpells().map((spell) => spell.id)),
@@ -221,4 +221,17 @@ test("an edited copy is stored and read exactly as written, in either wording, a
     editedEarlierActivity,
   );
   expect(matchingBuiltInActivity(editedEarlierActivity)).toBeUndefined();
+});
+
+test("a discovery copy round-trips without a fabricated earlier definition and keeps its opening", () => {
+  const discovery = getActivity("find-something-to-make").definition;
+  expect(writeActivity(discovery)).toEqual(storedActivityPrompt(discovery));
+  const read = readActivity(writeActivity(discovery));
+  expect(read).toEqual(discovery);
+  expect(matchingBuiltInActivity(read ?? discovery)?.id).toBe(
+    "find-something-to-make",
+  );
+  expect(
+    preparedOpening(getConstruct("vellum").definition, read ?? discovery),
+  ).toBeTruthy();
 });
