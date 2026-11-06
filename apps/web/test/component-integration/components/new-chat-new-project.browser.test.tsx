@@ -101,6 +101,12 @@ describe("use_case_new_project_from_new_chat", () => {
     actions.startChatAction.mockReturnValue(promise);
     await openForm();
     await projectField().selectOptions(NEW_CHAT_COPY.newProject);
+    await page
+      .getByRole("button", { name: NEW_CHAT_COPY.nextConstruct })
+      .click();
+    await expect
+      .element(page.getByRole("button", { name: NEW_CHAT_COPY.nextConstruct }))
+      .toBeVisible();
     await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
 
     await userEvent.type(nameField(), "Garden shed");
@@ -115,7 +121,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
     expect(sent?.get("activityId")).toBe(DEFAULT_ACTIVITY_ID);
-    expect(sent?.get("constructId")).toBe("vellum");
+    expect(sent?.get("constructId")).toBe("lumen");
     resolve({ kind: "idle" });
   });
 
@@ -205,4 +211,26 @@ test("finished quests stay selectable with explicit status labels", async () => 
   await expect.element(projectField()).toHaveValue(PROJECT.id);
   await projectField().selectOptions("Garden (Abandoned)");
   await expect.element(projectField()).not.toHaveValue(PROJECT.id);
+});
+
+test("fixed activity and construct are named before starting an adventure", async () => {
+  await render(
+    <NewChatDialog
+      activities={await activityChoices()}
+      projects={[]}
+      selectedActivityId="brainstorming"
+      fixedActivity={true}
+      fixedConstructId="lumen"
+      userConstructs={[]}
+    />,
+  );
+  await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
+  const dialog = page.getByRole("dialog");
+  await expect
+    .element(dialog.getByText("Activity: Brainstorming", { exact: true }))
+    .toBeVisible();
+  await expect
+    .element(dialog.getByText("Construct: Lumen", { exact: true }))
+    .toBeVisible();
+  expect(actions.startChatAction).not.toHaveBeenCalled();
 });

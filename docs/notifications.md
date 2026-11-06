@@ -9,7 +9,7 @@ The web app manifest, `apps/web/src/app/manifest.ts`, makes the site installable
 - **Android:** Chrome offers **Install app** in its menu, or a prompt of its own.
 - **iPhone and iPad:** Safari offers **Add to Home Screen** in the Share menu. The root layout's metadata gives Safari the Home Screen icon and title.
 
-The colours a phone shows outside the pages, behind the splash screen and in the browser's bar, are the default theme's backgrounds, light and dark. They live in `apps/web/src/ui/web-app.ts` as `rgb()` values. `web-app.browser.test.tsx` checks that they match the theme as the browser paints it, so a change to Gravy Falls' backgrounds needs a change there too.
+The colours a phone shows outside the pages, behind the splash screen and in the browser's bar, are the default theme's backgrounds, light and dark. They live in `apps/web/src/ui/web-app.ts` as `rgb()` values. `web-app.browser.test.tsx` checks that they match the theme as the browser paints it, so a change to the parchment theme's backgrounds needs a change there too.
 
 The proxy lets the manifest, the service worker and the icons through without a session, because browsers fetch them without the session cookie. It also lets the service worker's route, `/api/push-subscription`, through without one, because that route checks its own proof ([Renewed subscriptions](#renewed-subscriptions)).
 

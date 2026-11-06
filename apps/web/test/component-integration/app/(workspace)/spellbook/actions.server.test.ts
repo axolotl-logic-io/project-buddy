@@ -125,7 +125,7 @@ describe("use_case_customize_spell", () => {
     };
     await expectRedirect(
       () => saveSpellAction(spellForm(copy.id, "Render plan", edited)),
-      `/spellbook/${copy.id}`,
+      `/spellbook/${copy.id}?saved=1`,
     );
     expect(await stored(user, copy.id)).toMatchObject({
       name: "Render plan",
@@ -184,7 +184,7 @@ describe("use_case_customize_spell", () => {
     const name = "n".repeat(SPELL_NAME_MAX);
     await expectRedirect(
       () => saveSpellAction(spellForm(copy.id, name, longest)),
-      `/spellbook/${copy.id}`,
+      `/spellbook/${copy.id}?saved=1`,
     );
     expect(await stored(user, copy.id)).toMatchObject({
       name,
@@ -211,7 +211,7 @@ describe("use_case_customize_spell", () => {
 
     await expectRedirect(
       () => saveSpellAction(spellForm(clone.id, clone.name, clone.definition)),
-      `/spellbook/${clone.id}`,
+      `/spellbook/${clone.id}?saved=1`,
     );
     expect(clone.name.length).toBeLessThanOrEqual(SPELL_NAME_MAX);
     expect(clone.name.endsWith(" (clone)")).toBe(true);
@@ -281,7 +281,7 @@ describe("use_case_new_spell", () => {
     };
     await expectRedirect(
       () => saveSpellAction(spellForm(spell.id, "Picnic plan", parts)),
-      `/spellbook/${spell.id}`,
+      `/spellbook/${spell.id}?saved=1`,
     );
 
     const chat = await createStandaloneChat(user.id);

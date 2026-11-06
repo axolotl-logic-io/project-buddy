@@ -43,6 +43,7 @@ import {
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 const INITIAL_RESERVATIONS = 3;
+const LEGACY_DIGEST_LENGTH = 64;
 const COST = 10_000;
 const DESCRIPTION = "A friendly brass owl with a round face and blue wings.";
 const DEFINITION = {
@@ -217,14 +218,21 @@ describe("use_case_generate_construct_visual", () => {
       await editConstructMetadata(user.id, construct.id, {
         name: "Owl",
         prompt: "Speak brightly.",
-        visualDescription: DESCRIPTION,
+        visualDescription: "A blue owl with a silver face.",
       }),
-    ).toBe("saved");
+    ).toMatchObject({ kind: "saved" });
+    expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+      pendingRequestId: next.requestId,
+      pendingDescription: DESCRIPTION,
+    });
     event.resolve(await image());
     expect((await pending).status).toBe("stale");
     expect(
       (await getOwnConstruct(user.id, construct.id))?.definition.visual,
-    ).toEqual(first.visual);
+    ).toEqual({
+      ...first.visual,
+      description: "A blue owl with a silver face.",
+    });
     expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
       outdated: true,
     });
@@ -236,7 +244,7 @@ describe("use_case_generate_construct_visual", () => {
         prompt: "x",
         visualDescription: "",
       }),
-    ).toBe("description-required");
+    ).toEqual({ kind: "description-required" });
   });
   test("failure and invalid bytes retain old assets and conservative reservation; unavailable and unsaved calls charge nothing", async () => {
     const { user, construct, provider, request } = await setup();
@@ -466,7 +474,7 @@ describe("use_case_generate_construct_visual", () => {
       ),
     ).toBeUndefined();
   });
-  test("partial metadata saves preserve live-build matching and reference conditioning", async () => {
+  test("partial metadata saves preserve live-build matching while generation sends only the exact description", async () => {
     const user = await testUser();
     const builtIn = getConstruct("lumen");
     const copy = await cloneConstruct(user.id, "lumen");
@@ -477,7 +485,7 @@ describe("use_case_generate_construct_visual", () => {
       await editConstructMetadata(user.id, copy.id, {
         prompt: builtIn.definition.prompt,
       }),
-    ).toBe("saved");
+    ).toMatchObject({ kind: "saved" });
     const saved = await getOwnConstruct(user.id, copy.id);
     expect(saved?.definition).toEqual(builtIn.definition);
     expect(
@@ -502,7 +510,7 @@ describe("use_case_generate_construct_visual", () => {
     );
     expect(generated.status).toBe("generated");
     const [call] = referenceProvider.generate.mock.calls;
-    expect(call?.length).toBe(2);
+    expect(call).toEqual([builtIn.definition.visual?.description]);
     await editConstructMetadata(user.id, copy.id, { name: "Lumen 2" });
     expect(
       (await getOwnConstruct(user.id, copy.id))?.definition.visual,
@@ -563,4 +571,135 @@ describe("use_case_generate_construct_visual", () => {
       ),
     ).toBeDefined();
   });
+});
+
+test("text edits during generation are preserved and do not stale a valid description-only result", async () => {
+  const { user, construct, request } = await setup();
+  const response = Promise.withResolvers<GeneratedImage>();
+  const started = Promise.withResolvers<void>();
+  const generate = vi.fn<ImageProvider["generate"]>(() => {
+    started.resolve();
+    return response.promise;
+  });
+  const pending = generateConstructVisual(user.id, request, { generate });
+  await started.promise;
+  await editConstructMetadata(user.id, construct.id, {
+    name: "A new private name",
+    prompt: "A new private voice",
+    visualDescription: DESCRIPTION,
+  });
+  expect(
+    await readVisualGeneration(user.id, construct.id, request.requestId),
+  ).toMatchObject({
+    pendingRequestId: request.requestId,
+    result: { status: "pending" },
+  });
+  response.resolve(await image());
+  const generated = await pending;
+  expect(generated.status).toBe("generated");
+  expect(generate.mock.calls).toEqual([[DESCRIPTION]]);
+  expect(await getOwnConstruct(user.id, construct.id)).toMatchObject({
+    name: "A new private name",
+    definition: { prompt: "A new private voice", visual: generated.visual },
+  });
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    outdated: false,
+    freshnessUnknown: false,
+  });
+  await editConstructMetadata(user.id, construct.id, {
+    prompt: "Another voice",
+    name: "Another name",
+  });
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    outdated: false,
+  });
+  expect(await generateConstructVisual(user.id, request, { generate })).toEqual(
+    generated,
+  );
+  expect(generate).toHaveBeenCalledTimes(1);
+  expect(await goldSpent(user)).toBe(COST);
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: "A blue fox",
+  });
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    outdated: true,
+  });
+});
+
+test.each(["retire", "delete"] as const)(
+  "%s during pending generation rejects attachment and settles the paid result once",
+  async (change) => {
+    const { user, construct, request } = await setup();
+    const response = Promise.withResolvers<GeneratedImage>();
+    const started = Promise.withResolvers<void>();
+    const generate = vi.fn<ImageProvider["generate"]>(() => {
+      started.resolve();
+      return response.promise;
+    });
+    const pending = generateConstructVisual(user.id, request, { generate });
+    await started.promise;
+    await retireDefinition(user.id, "construct", construct.id);
+    if (change === "delete") {
+      await deleteConstruct(user.id, construct.id);
+    }
+    response.resolve(await image());
+    expect((await pending).status).toBe("stale");
+    expect(await readVisualGeneration(user.id, construct.id)).toBeUndefined();
+    expect(await goldSpent(user)).toBe(COST);
+    expect(generate).toHaveBeenCalledTimes(1);
+  },
+);
+
+test("legacy hashes use owned generation descriptions; copied legacy art with no owned record reports unknown freshness without rewriting history", async () => {
+  const { user, construct, request, provider } = await setup();
+  const generated = await generateConstructVisual(user.id, request, provider);
+  if (generated.visual === undefined) {
+    throw new Error("No generated visual");
+  }
+  const legacy = {
+    ...generated.visual,
+    sourceFingerprintVersion: undefined,
+    sourceFingerprint: "a".repeat(LEGACY_DIGEST_LENGTH),
+  };
+  await updateConstruct(user.id, construct.id, {
+    definition: { prompt: "Different voice", visual: legacy },
+  });
+  const before = await getOwnConstruct(user.id, construct.id);
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    outdated: false,
+    freshnessUnknown: false,
+  });
+  expect(await getOwnConstruct(user.id, construct.id)).toEqual(before);
+  expect(await goldSpent(user)).toBe(COST);
+  const buyer = await testUser();
+  const listing = await publishListing(
+    user.id,
+    { kind: "construct", promptId: construct.id },
+    { description: "Legacy owl", price: 0 },
+  );
+  if (listing.kind !== "published") {
+    throw new Error("No listing");
+  }
+  const bought = await buyListing(buyer.id, {
+    listingId: listing.id,
+    price: 0,
+  });
+  if (bought.kind !== "bought") {
+    throw new Error("No bought copy");
+  }
+  await editConstructMetadata(buyer.id, bought.copy.id, {
+    prompt: "Buyer's new voice",
+  });
+  expect(await readVisualGeneration(buyer.id, bought.copy.id)).toMatchObject({
+    outdated: false,
+    freshnessUnknown: true,
+  });
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: "Different appearance",
+  });
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    outdated: true,
+    freshnessUnknown: false,
+  });
+  expect(provider.generate).toHaveBeenCalledTimes(1);
 });

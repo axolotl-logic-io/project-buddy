@@ -10,6 +10,7 @@ import {
   readCheckInFrequency,
   saveCheckInFrequency,
 } from "@/check-ins/check-in-store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import {
   STATUS_APPROVAL_ID,
@@ -19,10 +20,12 @@ import {
 import {
   answerStatusApproval,
   changeQuestStatus,
+  readLatestStatusApproval,
   readStatusApproval,
   requestQuestStatus,
 } from "@/projects/quest-status-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
+import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import {
   QUEST_STATUS_OUTPUT,
   QUEST_STATUS_TOOL,
@@ -336,3 +339,58 @@ describe("use_case_restore_quest", () => {
     },
   );
 });
+
+test.each(["pending", "declined", "approved", "outdated"] as const)(
+  "reply context supplies the live %s proposal only to its requesting owner",
+  async (decision) => {
+    const team = await teamProject();
+    const stranger = await testUser();
+    const proposal = required(
+      await requestQuestStatus(
+        team.owner.id,
+        team.chat.id,
+        team.project.id,
+        "abandoned",
+      ),
+    );
+    if (decision === "approved" || decision === "declined") {
+      await answerStatusApproval(
+        team.owner.id,
+        proposal.id,
+        decision === "approved",
+      );
+    }
+    if (decision === "outdated") {
+      await changeQuestStatus(team.owner.id, {
+        projectId: team.project.id,
+        fromStatus: "active",
+        toStatus: "completed",
+        revision: 0,
+      });
+    }
+    const before = await getProject(team.owner.id, team.project.id);
+    const [latest, member, foreign] = await Promise.all([
+      readLatestStatusApproval(team.owner.id, team.chat.id),
+      readLatestStatusApproval(team.member.id, team.chat.id),
+      readLatestStatusApproval(stranger.id, team.chat.id),
+    ]);
+    expect(latest).toMatchObject({ id: proposal.id, decision });
+    expect(member).toBeUndefined();
+    expect(foreign).toBeUndefined();
+    const prompt = (
+      await buildReplyInstructions({
+        actingUser: team.owner.id,
+        chat: team.chat,
+        construct: getConstruct("vellum"),
+      })
+    )
+      .map(({ content }) => content)
+      .join("\n");
+    expect(prompt).toContain(`decision: ${decision}`);
+    expect(prompt).toContain(
+      "This live decision supersedes the original tool result",
+    );
+    expect(prompt).toContain("create a fresh proposal");
+    expect(await getProject(team.owner.id, team.project.id)).toEqual(before);
+  },
+);

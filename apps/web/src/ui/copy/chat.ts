@@ -9,6 +9,8 @@ function listNamePrefix(name: string): string {
 }
 
 export const NEW_CHAT_COPY = {
+  fixedChoice: (label: string, name: string | undefined): string =>
+    `${label}: ${name ?? ""}`,
   revisitInterviewHint:
     "Discuss this quest’s goals and next step using its Journal. Existing Journal content is kept.",
   title: pageTitle("New adventure"),

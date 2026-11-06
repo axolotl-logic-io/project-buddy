@@ -18,7 +18,7 @@ An invited recipient sets up their account with one confirmation.
 
 - **Prerequisites:** `use_case_admin_invites`, for an address without an account.
 - **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
-- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching the new adventure page. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
+- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching Home. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
 - **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
@@ -35,12 +35,12 @@ The user signs in with a link the site emails her, on this device or another.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:**
-  - On the sign-in page she enters her email address. The page asks only for that, with a link to the sign-up page.
+  - On the sign-in page she enters her email address. The page asks only for that, with guidance to open the setup link in her invitation email and an Invitation help link.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.
-  - The site signs her in and shows the new adventure page.
-- **Outcome:** she is on the new adventure page, where she can start an adventure, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
+  - The site signs her in and shows Home.
+- **Outcome:** she is on Home, where she can choose a destination or start an adventure, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): see what she has been working on.
   - [`use_case_new_project`](projects.md#use_case_new_project): start learning something new.
@@ -149,7 +149,7 @@ The user has spent all her gold.
   - She sends another message.
   - Instead of a reply, the adventure says "You're out of gold."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. Out-of-gold messages link to the Marketplace to earn gold by selling own constructs, activities and spells. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New quest keeps the entered name and motivation after refusal. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. Out-of-gold messages link to the Marketplace to earn gold by selling own constructs, activities and spells. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her gold.
 

@@ -49,11 +49,15 @@ function ConstructVisualGeneration({
   formId,
   draftDescription,
   saving = false,
+  generating = saving,
   onBlockedChange,
+  onQuoteChange,
 }: {
+  readonly onQuoteChange?: (quote: VisualGenerationQuote) => void;
   readonly formId?: string;
   readonly draftDescription?: string;
   readonly saving?: boolean;
+  readonly generating?: boolean;
   readonly onBlockedChange?: (blocked: boolean) => void;
   readonly construct: OwnConstruct;
   readonly viewer: string;
@@ -94,11 +98,23 @@ function ConstructVisualGeneration({
       unresolved?: VisualGenerationRequest,
     ): void => {
       setQuote(next);
+      onQuoteChange?.(next);
       setUnknown(false);
       const missingClaim =
         unresolved !== undefined && next.result?.status === "not-found";
-      setUnclaimed(missingClaim);
-      if (missingClaim) {
+      setUnclaimed(missingClaim && next.available);
+      if (missingClaim && !next.available) {
+        apply({
+          status: "unavailable",
+          reservationGold: next.reservationGold,
+          roles: {
+            avatar: "failed",
+            portrait: "failed",
+            opening: "failed",
+            working: "failed",
+          },
+        });
+      } else if (missingClaim) {
         setRequest(unresolved);
         setResult(undefined);
       } else if (next.result !== undefined) {
@@ -108,16 +124,19 @@ function ConstructVisualGeneration({
         let recovered: VisualGenerationRequest = {
           constructId: construct.id,
           requestId: next.pendingRequestId,
-          description,
+          description: next.pendingDescription ?? description,
         };
-        if (unresolved?.requestId === next.pendingRequestId) {
+        if (
+          unresolved?.requestId === next.pendingRequestId &&
+          next.pendingDescription === undefined
+        ) {
           recovered = unresolved;
         }
         setRequest(recovered);
         keepLocalDraft(requestKey, recovered);
       }
     },
-    [construct.id, description, requestKey, apply],
+    [construct.id, description, requestKey, apply, onQuoteChange],
   );
   const read = useCallback(
     async (unresolved?: VisualGenerationRequest): Promise<void> => {
@@ -167,10 +186,6 @@ function ConstructVisualGeneration({
   }, [read, request]);
   const generate = useCallback(async (): Promise<void> => {
     if (formId !== undefined && request === undefined) {
-      const form = document.querySelector(`#${CSS.escape(formId)}`);
-      if (form instanceof HTMLFormElement) {
-        form.requestSubmit();
-      }
       return;
     }
     if (
@@ -239,6 +254,12 @@ function ConstructVisualGeneration({
     apply,
     read,
   ]);
+  let submitForm: string | undefined;
+  let submitType: "submit" | "button" = "button";
+  if (formId !== undefined && request === undefined) {
+    submitForm = formId;
+    submitType = "submit";
+  }
   let label = VISUAL_COPY.generate;
   if (
     result !== undefined &&
@@ -279,12 +300,19 @@ function ConstructVisualGeneration({
       )}
       {quote?.available === false && <p>{VISUAL_COPY.states.unavailable}</p>}
       {quote?.outdated === true && <p>{VISUAL_COPY.outdated}</p>}
+      {quote?.freshnessUnknown === true && (
+        <p>{VISUAL_COPY.freshnessUnknown}</p>
+      )}
       <p className="field-hint" id={hintId}>
         {saveHint}
       </p>
       <div className="flex flex-wrap gap-3">
         <Button
           aria-describedby={hintId}
+          form={submitForm}
+          type={submitType}
+          name="generateImages"
+          value="true"
           disabled={
             busy ||
             saving === true ||
@@ -304,7 +332,7 @@ function ConstructVisualGeneration({
           </Button>
         )}
       </div>
-      {(saving === true || busy || result?.status === "pending") && (
+      {(generating === true || busy || result?.status === "pending") && (
         <div role="status" className="flex items-center gap-3">
           <span className="construct-generation-spinner" aria-hidden="true" />
           {VISUAL_COPY.generating}

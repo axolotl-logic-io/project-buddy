@@ -142,7 +142,7 @@ describe("use_case_customize_activity", () => {
     };
     await expectRedirect(
       () => saveActivityAction(activityForm(copy.id, "Wild ideas", edited)),
-      `/activities/${copy.id}`,
+      `/activities/${copy.id}?saved=1`,
     );
     expect(await stored(user, copy.id)).toMatchObject({
       name: "Wild ideas",
@@ -242,7 +242,7 @@ describe("use_case_new_activity", () => {
     await expectRedirect(
       () =>
         saveActivityAction(activityForm(activity.id, activity.name, edited)),
-      `/activities/${activity.id}`,
+      `/activities/${activity.id}?saved=1`,
     );
     expect((await stored(user, activity.id)).definition).toEqual(edited);
     await resetPrompt(activity.id);
@@ -267,7 +267,7 @@ describe("use_case_new_activity", () => {
     };
     await expectRedirect(
       () => saveActivityAction(activityForm(activity.id, "Picnic", parts)),
-      `/activities/${activity.id}`,
+      `/activities/${activity.id}?saved=1`,
     );
 
     const started = await startIn(user, activity.id);
