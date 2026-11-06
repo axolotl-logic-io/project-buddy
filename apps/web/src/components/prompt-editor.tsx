@@ -109,8 +109,14 @@ function PromptEditor({
   defaultPrompt,
   viewer,
   heading,
+  formId,
+  saving = false,
+  disabled = false,
 }: {
-  readonly action: (formData: FormData) => Promise<never>;
+  readonly formId?: string;
+  readonly saving?: boolean;
+  readonly disabled?: boolean;
+  readonly action: (formData: FormData) => void | Promise<void>;
   readonly kind: PromptKind;
   readonly idName: string;
   readonly promptId: string;
@@ -280,6 +286,8 @@ function PromptEditor({
   return (
     <form
       action={action}
+      id={formId}
+      aria-busy={saving}
       className="flex flex-col gap-4"
       noValidate={true}
       onSubmit={submit}
@@ -326,7 +334,9 @@ function PromptEditor({
         );
       })}
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit">{PROMPT_COPY.save}</Button>
+        <Button disabled={saving === true || disabled === true} type="submit">
+          {PROMPT_COPY.save}
+        </Button>
         {defaultPrompt !== undefined && (
           <Button onClick={reset} variant="quiet">
             {PROMPT_COPY.resetPrompt}

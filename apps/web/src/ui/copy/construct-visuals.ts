@@ -5,6 +5,7 @@ const VISUAL_COPY = {
     "Describe the construct’s appearance and identity. This is separate from its conversational prompt. At most 4,000 characters; placeholders stay literal.",
   requiredDescription: "Keep a Visual description for this construct’s images.",
   generate: "Generate Images",
+  generating: "Generating images…",
   resume: "Resume original request",
   unclaimed:
     "The original request has not started. Resume it using its saved description. This can reserve gold once.",
@@ -13,7 +14,7 @@ const VISUAL_COPY = {
   saveFirst: "Save your changes before generating images.",
   needsDescription: "Save a Visual description before generating images.",
   explanation:
-    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Existing images stay until a replacement succeeds.",
+    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save or Generate Images saves your edits and generates replacements, spending gold. Existing images stay until a replacement succeeds.",
   roles: {
     avatar: "Avatar",
     portrait: "Portrait",

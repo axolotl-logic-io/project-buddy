@@ -31,12 +31,12 @@ The user generates artwork for a saved own construct and keeps it in the places 
 
 - **Prerequisites:** a signed-in account, a saved own construct with a Visual description, an available image provider and enough gold for the displayed reservation.
 - **Steps:**
-  - Open the construct's Workshop, save any edits, review the gold reservation and choose Generate Images.
+  - Open the construct's Workshop, edit the Visual description, review the gold reservation and choose Save or Generate Images. Both save the current edits and generate replacements with visible loading feedback.
   - Use the resulting artwork in a new adventure, a clone, or a Marketplace listing and its bought copies.
   - Reopen the Workshop after a lost response to check whether the request finished before trying again.
 - **Outcome:** one paid generation supplies avatar, portrait, opening and working appearances. Repeating the same request never charges twice. Existing copies and adventures keep their artwork when the source changes or is deleted. Construct artwork creates no adventure and does not appear in Image gallery.
 - **Variations:**
-  - Built-ins offer Customize before generation. Unsaved edits require saving first. Unavailable generation or insufficient gold makes no paid request.
+  - Built-ins offer Customize before generation. Generate Images saves unsaved edits before generation. Unavailable generation or insufficient gold makes no paid request.
   - If the source changes during generation, the result does not replace its prior artwork. Later prompt or description edits keep saved artwork and mark it outdated.
   - An uncertain billed failure keeps the gold reservation and existing artwork. Checking status spends no gold and starts no generation. A confirmed failure requires an explicit retry that may spend gold; unresolved requests follow the recovery choices in [`use_case_generate_construct_images`](constructs.md#use_case_generate_construct_images).
   - A quest's owner and current members can see artwork saved in its adventures. Removed members lose access immediately. Buyers keep their copies' artwork after unlisting; browsing never gives access to the seller's private source.
