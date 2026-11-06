@@ -55,7 +55,7 @@ The user starts a quest from the new-adventure form, on the new adventure page o
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses any activity and construct, then "New quest". Changing the activity keeps "New quest" selected; changing the quest keeps the activity and construct.
-  - She chooses Start adventure. A dialog asks for the new quest's name and optional motivation. The construct picker is hidden for a new quest. Cancel closes it and leaves the form as it was.
+  - She chooses Start adventure. A dialog asks for the new quest's name and optional motivation. The form keeps its selected construct for a new quest; the Settings preference does not replace this choice. Cancel closes the name dialog and leaves the form as it was.
   - She types a name and chooses Start quest.
 - **Outcome:** the site creates the quest and opens its first adventure, in the selected activity and construct. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no quest is made. If Claude is unavailable, the form keeps her choices and the name and motivation she typed.
 - **Next:**

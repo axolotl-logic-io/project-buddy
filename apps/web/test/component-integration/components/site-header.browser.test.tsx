@@ -30,6 +30,7 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -70,6 +71,7 @@ const PLACES = [
   CONSTRUCTS_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
+  WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
   MARKETPLACE_COPY.headerLink,
 ] as const;

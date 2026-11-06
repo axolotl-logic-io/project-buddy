@@ -22,9 +22,20 @@ function GeneratedImagePart({
   }
   const result = output.data;
   if (result.status !== "generated") {
+    let status: string = GENERATION_COPY[result.status];
+    if (
+      result.status === "outOfGold" &&
+      result.requiredGold !== undefined &&
+      result.availableGold !== undefined
+    ) {
+      status = GENERATION_COPY.reservationRefused(
+        result.requiredGold,
+        result.availableGold,
+      );
+    }
     return (
       <>
-        <p role="status">{GENERATION_COPY[result.status]}</p>
+        <p role="status">{status}</p>
         {result.status === "outOfGold" && (
           <p>
             <EarnGoldLink />
@@ -44,7 +55,7 @@ function GeneratedImagePart({
       >
         <Image
           unoptimized={true}
-          alt={result.prompt}
+          alt=""
           className="chat-image"
           src={generatedImageUrl(result.id)}
           width={1024}

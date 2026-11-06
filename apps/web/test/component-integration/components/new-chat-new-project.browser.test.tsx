@@ -101,6 +101,12 @@ describe("use_case_new_project_from_new_chat", () => {
     actions.startChatAction.mockReturnValue(promise);
     await openForm();
     await projectField().selectOptions(NEW_CHAT_COPY.newProject);
+    await page
+      .getByRole("button", { name: NEW_CHAT_COPY.nextConstruct })
+      .click();
+    await expect
+      .element(page.getByRole("button", { name: NEW_CHAT_COPY.nextConstruct }))
+      .toBeVisible();
     await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
 
     await userEvent.type(nameField(), "Garden shed");
@@ -115,7 +121,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
     expect(sent?.get("activityId")).toBe(DEFAULT_ACTIVITY_ID);
-    expect(sent?.get("constructId")).toBe("vellum");
+    expect(sent?.get("constructId")).toBe("lumen");
     resolve({ kind: "idle" });
   });
 
