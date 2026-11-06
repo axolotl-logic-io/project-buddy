@@ -656,18 +656,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     ),
   },
   {
-    name: "the atlas destination list",
-    render: workspacePage(
-      () => {
-        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
-      },
-      () => HomePage(),
-    ),
-    open: async (): Promise<void> => {
-      await page.getByRole("button", { name: "List", exact: true }).click();
-    },
-  },
-  {
     name: "the new-chat form",
     render: workspacePage(
       () => {

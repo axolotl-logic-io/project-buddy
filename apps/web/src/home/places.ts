@@ -14,18 +14,12 @@ interface AtlasPlace {
   readonly name: string;
   readonly description: string;
   readonly icon: ComponentProps<typeof Icon>["name"];
-  // Where its marker sits on the artwork, in percent of the map's width
-  // and height. The trails read it; page-roles.css places the marker at the
-  // same point (places.test.ts checks they agree).
-  readonly at: { readonly x: number; readonly y: number };
 }
 
-// One set of destinations for the map and its reading-order list. Position
-// is decoration; it never changes the order reached with the keyboard.
+// Destinations share one reading and keyboard order at every screen size.
 const ATLAS_PLACES: readonly AtlasPlace[] = [
   {
     id: "quests",
-    at: { x: 36, y: 32 },
     href: "/projects",
     name: PROJECTS_COPY.heading,
     description: HOME_COPY.quests,
@@ -33,7 +27,6 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "chats",
-    at: { x: 52, y: 48 },
     href: "/chat",
     name: CHAT_COPY.headerLink,
     description: HOME_COPY.chats,
@@ -41,7 +34,6 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "constructs",
-    at: { x: 17, y: 47 },
     href: "/constructs",
     name: CONSTRUCTS_COPY.heading,
     description: HOME_COPY.constructs,
@@ -49,7 +41,6 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "activities",
-    at: { x: 78, y: 43 },
     href: "/activities",
     name: ACTIVITIES_COPY.heading,
     description: HOME_COPY.activities,
@@ -57,7 +48,6 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "workshop",
-    at: { x: 53, y: 68 },
     href: "/workshop",
     name: WORKSHOP_COPY.heading,
     description: HOME_COPY.workshop,
@@ -65,25 +55,11 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "marketplace",
-    at: { x: 58, y: 24 },
     href: "/marketplace",
     name: MARKETPLACE_COPY.heading,
     description: HOME_COPY.marketplace,
     icon: "market",
   },
-];
-
-// The dotted trails drawn between places on the map, as pairs of place ids.
-// Trails connect the central valley to the highlands, sheltered foothills
-// and open ground. They are decorative; every place is always available.
-const ATLAS_TRAILS: readonly (readonly [string, string])[] = [
-  ["marketplace", "chats"],
-  ["quests", "chats"],
-  ["chats", "activities"],
-  ["chats", "workshop"],
-  ["workshop", "activities"],
-  ["quests", "constructs"],
-  ["constructs", "chats"],
 ];
 
 // Pages a place holds under another first path segment than its own link's.
@@ -100,4 +76,4 @@ function placeOf(path: readonly string[]): AtlasPlace | undefined {
   return ATLAS_PLACES.find((place) => place.href === href);
 }
 
-export { ATLAS_PLACES, ATLAS_TRAILS, placeOf };
+export { ATLAS_PLACES, placeOf };
