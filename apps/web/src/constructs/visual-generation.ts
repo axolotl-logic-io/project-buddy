@@ -3,18 +3,23 @@ import sharp from "sharp";
 import { z } from "zod";
 import {
   constructGenerationOwnedBy,
+  constructGenerationVisualOpenTo,
   ownPromptOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import {
   parseConstructDefinition,
   storedConstructPrompt,
 } from "@/constructs/construct-definition.ts";
+import { listConstructs } from "@/constructs/index.ts";
 import {
   CONSTRUCT_VISUAL,
   type ConstructVisual,
   normalizeVisualDescription,
 } from "@/constructs/visual.ts";
-import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
+import {
+  grantVisualAssets,
+  previousVisualAvailable,
+} from "@/constructs/visual-asset-store.ts";
 import {
   VISUAL_GENERATION_REQUEST,
   type VisualGenerationQuote,
@@ -23,7 +28,7 @@ import {
   type VisualGenerationStatus,
   type VisualRoleState,
 } from "@/constructs/visual-generation-contract.ts";
-import { getDb, inTransaction } from "@/db/client.ts";
+import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import {
   constructAssetGrants,
   constructAssets,
@@ -172,6 +177,40 @@ async function claim(
     };
   });
 }
+// Read the immutable generation identity, rather than today's edited description.
+async function recoverableVisual(
+  owner: UserId,
+  tx: Transaction,
+  visual: ConstructVisual | undefined,
+): Promise<ConstructVisual | null> {
+  const canonical = visual?.canonical;
+  if (canonical === undefined) {
+    return null;
+  }
+  if (canonical.kind === "built-in") {
+    return (
+      listConstructs().find((construct) => {
+        const asset = construct.definition.visual?.canonical;
+        return (
+          asset?.kind === "built-in" && asset.artwork === canonical.artwork
+        );
+      })?.definition.visual ?? null
+    );
+  }
+  const [original] = await tx
+    .select({ visual: constructGenerations.visual })
+    .from(constructGenerations)
+    .where(
+      and(
+        constructGenerationVisualOpenTo(owner),
+        eq(constructGenerations.status, "generated"),
+        sql`${constructGenerations.visual}->'canonical'->>'assetId' = ${canonical.assetId}`,
+      ),
+    )
+    .limit(1);
+  return CONSTRUCT_VISUAL.safeParse(original?.visual).data ?? visual ?? null;
+}
+
 async function complete(
   owner: UserId,
   id: string,
@@ -255,6 +294,7 @@ async function complete(
         .update(ownPrompts)
         .set({
           parts: storedConstructPrompt({ ...definition, visual }),
+          previousVisual: await recoverableVisual(owner, tx, definition.visual),
           updatedAt: sql`now()`,
         })
         .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, source.id)));
@@ -389,6 +429,11 @@ async function readVisualGeneration(
     available: imageProvider() !== undefined,
     outdated,
     freshnessUnknown,
+    canRestore: await previousVisualAvailable(
+      owner,
+      constructId,
+      source.previousVisual,
+    ),
   };
   if (generation === undefined && requestId !== undefined) {
     quote.result = result("not-found");

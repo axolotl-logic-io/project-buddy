@@ -105,6 +105,8 @@ The user generates images for an own construct in the Workshop.
 - **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Only changed descriptions mark newly generated art outdated. Name and prompt edits do not stale artwork or discard a valid pending completion. The provider receives exactly the normalized description, without conversational text, name, reference bytes or extra creative instructions. Legacy artwork without an accessible generation-description record shows unknown freshness rather than a prompt-based stale warning.
 - **Variations:** unavailable generation, lack of gold, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. If the service confirms that the original request never started, the user can explicitly resume the same UUID and payload; an inaccessible construct cannot be resumed. Retry after a confirmed terminal failure uses a new UUID and may spend gold. Built-ins offer Customize instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
 
+After a successful replacement, Restore previous artwork restores one previous image identity and its saved Visual description without a model call or gold charge. Save or discard other edits first. Missing previous artwork offers no restore. A further successful generation replaces the recovery slot. Adventure, listing and bought-copy snapshots remain immutable; cleanup releases bytes only after their final grant is gone.
+
 ## use_case_view_character_profile
 
 The user meets the construct saved in an adventure.

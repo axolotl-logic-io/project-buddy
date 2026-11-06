@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { currentUser } from "@/auth/current-user.ts";
 import { type FlagId, hiddenFromSwitched } from "@/flags/flags.ts";
 import { writeHiddenFlagsCookie } from "@/flags/seed-hidden-flags.ts";
@@ -11,9 +12,11 @@ export async function refreshPreferencesAction(): Promise<
 > {
   const user = await currentUser();
   if (user === undefined) {
+    refresh();
     return undefined;
   }
   const hidden = hiddenFromSwitched(user.hiddenExtras);
   await writeHiddenFlagsCookie(hidden);
+  refresh();
   return hidden;
 }

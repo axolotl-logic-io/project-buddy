@@ -82,6 +82,15 @@ async function openPage(construct: OwnConstruct): Promise<void> {
 
 test("her copy of a built-in construct resets to that construct's prompt, by name", async () => {
   await openPage(ownConstruct({ clonedFrom: "lumen", boughtFrom: undefined }));
+  await expect
+    .element(
+      page.getByRole("heading", {
+        level: 1,
+        name: "Garden planner",
+        exact: true,
+      }),
+    )
+    .toBeVisible();
 
   await expect
     .element(

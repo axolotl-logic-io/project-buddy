@@ -43,7 +43,17 @@ import type { ChatRequest } from "@/replies/chat-protocol.ts";
 import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
 import { replyModel } from "@/replies/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
+import {
+  completeReplyAccounting,
+  replyUsageRecorder,
+} from "@/replies/reply-accounting.ts";
 import { endReply, releaseClaim } from "@/replies/reply-end.ts";
+import {
+  beginReplyRun,
+  cancellationRequested,
+  finishReplyRun,
+  watchReplyCancellation,
+} from "@/replies/reply-runs.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import {
   type ChatToolCalls,
@@ -51,6 +61,7 @@ import {
   chatTools,
   streamChatToolCalls,
 } from "@/replies/tools/index.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // How many model calls one reply may make, besides the answer-now call; each
 // tool round takes one.
@@ -77,6 +88,7 @@ interface ReplyCalls extends AccessibleChat {
   readonly model: LanguageModelV4;
   readonly instructions: SystemModelMessage[];
   failed: boolean;
+  readonly cancellation: ReturnType<typeof watchReplyCancellation>;
 }
 
 type ModelCallSteps = ChatToolStep[];
@@ -90,11 +102,20 @@ function streamModelCalls(
   return streamChatToolCalls(calls, {
     model,
     instructions,
+    abortSignal: calls.cancellation.signal,
+    prepareStep: async (): Promise<undefined> => {
+      await calls.cancellation.check();
+      return undefined;
+    },
+    onToolExecutionStart: calls.cancellation.check,
     messages,
     stopWhen: isStepCount(stepLimit),
     providerOptions: PROMPT_CACHE_BREAKPOINT,
     // Every model error, before or during the stream, arrives here once.
     onError: ({ error }: { error: unknown }): void => {
+      if (calls.cancellation.signal.aborted) {
+        return;
+      }
       calls.failed = true;
       toAppError(error, "chat reply");
     },
@@ -140,6 +161,10 @@ async function writeReply(
   const steps = await writeModelCalls(calls, writer, reply, {
     continuesReply: false,
   });
+  if (calls.cancellation.signal.aborted) {
+    writer.setOutcome({ status: "aborted" });
+    return;
+  }
   const answerNow = steps !== undefined && endsWithoutText(steps);
   let answerSteps: ModelCallSteps | undefined = [];
   if (answerNow) {
@@ -194,64 +219,156 @@ async function streamAndSaveReply(
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
-  const named = withAuthorNames(history);
-  const calls: ReplyCalls = {
-    actingUser,
-    chat,
-    answeredId: answered.id,
-    model: replyModel(grant),
-    instructions: await buildReplyInstructions({
+  const runId = await beginReplyRun(actingUser, chat.id, answered.id);
+  const cancellation = watchReplyCancellation(actingUser, runId);
+  const accountedGrant: QuotaGrant = {
+    ...grant,
+    usage: replyUsageRecorder(actingUser, runId),
+  };
+  function accountingFinished(): Promise<void> {
+    return completeReplyAccounting(actingUser, runId).catch(
+      (error: unknown): void => {
+        toAppError(error, "finish reply accounting");
+      },
+    );
+  }
+  try {
+    const named = withAuthorNames(history);
+    const calls: ReplyCalls = {
       actingUser,
       chat,
-      construct,
-      severalAuthors: named.severalAuthors,
-    }),
-    failed: false,
-  };
-  const messages = await convertToModelMessages(
-    await hydrateImages(actingUser, chat.id, named.messages),
-    {
-      tools: chatTools(chat.project?.id),
-    },
-  );
-  const stream = createUIMessageStream({
-    originalMessages: history,
-    // The stream reports each error chunk's text back here as a new Error,
-    // which isn't a failure to log: execute catches every failure itself.
-    onError: (): string => "",
-    execute: async ({
-      writer,
-    }: {
-      writer: UIMessageStreamWriterWithOutcome;
-    }): Promise<void> => {
-      try {
-        await writeReply(calls, writer, messages);
-      } catch (error) {
-        writer.write({ type: "error", errorText: errorCaseOf(error) });
-        writer.setOutcome({ status: "failed", error });
-      }
-    },
-    onEnd: (
-      ended: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
-    ): Promise<void> =>
-      endReply(
-        { actingUser, chat, grant, answeredId: answered.id, history },
-        ended,
-      ),
-  });
-  return createUIMessageStreamResponse({
-    stream,
-    consumeSseStream: ({ stream: saved }: { stream: ReadableStream }): void => {
-      after(
-        consumeStream({
-          stream: saved,
-          onError: (error: unknown): void => {
-            toAppError(error, "save chat reply");
-          },
-        }),
-      );
-    },
-  });
+      cancellation,
+      answeredId: answered.id,
+      model: replyModel(accountedGrant),
+      instructions: await buildReplyInstructions({
+        actingUser,
+        chat,
+        construct,
+        severalAuthors: named.severalAuthors,
+      }),
+      failed: false,
+    };
+    const messages = await convertToModelMessages(
+      await hydrateImages(actingUser, chat.id, named.messages),
+      {
+        tools: chatTools(chat.project?.id),
+      },
+    );
+    const stream = createUIMessageStream({
+      originalMessages: history,
+      // The stream reports each error chunk's text back here as a new Error,
+      // which isn't a failure to log: execute catches every failure itself.
+      onError: (): string => "",
+      execute: async ({
+        writer,
+      }: {
+        writer: UIMessageStreamWriterWithOutcome;
+      }): Promise<void> => {
+        try {
+          await writeReply(calls, writer, messages);
+        } catch (error) {
+          if (cancellation.signal.aborted) {
+            writer.setOutcome({ status: "aborted" });
+            return;
+          }
+          writer.write({ type: "error", errorText: errorCaseOf(error) });
+          writer.setOutcome({ status: "failed", error });
+        }
+      },
+      onEnd: async (
+        ended: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
+      ): Promise<void> => {
+        try {
+          const cancelled =
+            ended.outcome.status !== "completed" &&
+            (await cancellationRequested(actingUser, runId));
+          if (cancelled) {
+            const partial: UIMessage = {
+              ...ended.responseMessage,
+              parts: ended.responseMessage.parts.filter((part) => {
+                if (part.type === "text") {
+                  return true;
+                }
+                return (
+                  "state" in part &&
+                  (part.state === "output-available" ||
+                    part.state === "output-error")
+                );
+              }),
+            };
+            partial.parts.push({
+              type: "text",
+              text: CHAT_COPY.cancelledReply,
+            });
+            await endReply(
+              {
+                actingUser,
+                chat,
+                grant: accountedGrant,
+                accountingFinished,
+                answeredId: answered.id,
+                history,
+                cancelled: true,
+              },
+              {
+                ...ended,
+                responseMessage: partial,
+                outcome: { status: "completed" },
+              },
+            );
+            await releaseClaim(actingUser, chat, answered.id);
+            await finishReplyRun(actingUser, runId, "cancelled");
+          } else {
+            const saved = await endReply(
+              {
+                actingUser,
+                chat,
+                grant: accountedGrant,
+                accountingFinished,
+                answeredId: answered.id,
+                history,
+              },
+              ended,
+            );
+            let status: "completed" | "failed" = "failed";
+            if (ended.outcome.status === "completed" && saved) {
+              status = "completed";
+            }
+            await finishReplyRun(actingUser, runId, status);
+          }
+        } catch (error) {
+          await releaseClaim(actingUser, chat, answered.id);
+          await accountingFinished();
+          await finishReplyRun(actingUser, runId, "failed");
+          throw error;
+        } finally {
+          cancellation.close();
+        }
+      },
+    });
+    return createUIMessageStreamResponse({
+      stream,
+      consumeSseStream: ({
+        stream: saved,
+      }: {
+        stream: ReadableStream;
+      }): void => {
+        after(
+          consumeStream({
+            stream: saved,
+            onError: (error: unknown): void => {
+              toAppError(error, "save chat reply");
+            },
+          }),
+        );
+      },
+    });
+  } catch (error) {
+    cancellation.close();
+    await accountingFinished();
+    await finishReplyRun(actingUser, runId, "failed");
+    throw error;
+  }
 }
 
 // Saves the user's message in the acting user's chat, streams the construct's reply

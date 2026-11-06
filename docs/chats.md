@@ -44,7 +44,7 @@ construct unchanged.
 
 A standalone conversation has no Journal and no [progress timeline](progress-timeline.md), so it
 can't record milestones. Its construct can search and cite the Blender manual, change
-the adventure's activity, and create a quest when the user asks; that does not
+the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
 move the standalone conversation into the quest. The new quest's
 first adventure opens in Project Breakdown through the link the adventure shows.
 
@@ -379,3 +379,9 @@ status and the message's busy state remain available independently of motion.
 under `use_case_construct_presence`.
 
 Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.
+
+## Reply control and gold
+
+Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
+
+The composer shows the acting user's gold balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.

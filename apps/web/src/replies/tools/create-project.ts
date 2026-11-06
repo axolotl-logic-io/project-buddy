@@ -4,8 +4,7 @@
 // question. It checks the acting user's gold itself rather than reusing the
 // reply's grant, so a reply that spent the last gold creates no project.
 import { tool } from "ai";
-import { startProject } from "@/chats/start-chat.ts";
-import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import { proposeQuestTransfer } from "@/chats/quest-transfer.ts";
 import {
   CHAT_TOOL_CONTEXT,
   type ChatToolContext,
@@ -18,34 +17,11 @@ import {
   type CreateProjectOutput,
 } from "@/replies/tools/create-project-contract.ts";
 
-async function createProject(
-  { name }: CreateProjectInput,
+function createProject(
+  input: CreateProjectInput,
   { context }: { context: ChatToolContext },
 ): Promise<CreateProjectOutput> {
-  // The chat's construct is saved under the default construct's id, as New Project
-  // saves one of the user's own.
-  const started = await startProject(context.actingUser, name, {
-    id: DEFAULT_CONSTRUCT_ID,
-    name: context.construct.name,
-    definition: context.construct.definition,
-  });
-  switch (started.kind) {
-    case "started":
-      return {
-        status: "created",
-        projectId: started.chat.project.id,
-        name,
-        interviewChatId: started.chat.id,
-      };
-    case "claudeUnavailable":
-      return { status: "claudeUnavailable" };
-    case "outOfGold":
-      return { status: "outOfGold" };
-    default: {
-      const unknownResult: never = started;
-      return unknownResult;
-    }
-  }
+  return proposeQuestTransfer(context, input);
 }
 
 // Described by its default; tools/index.ts gives each request the

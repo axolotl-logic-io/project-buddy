@@ -20,7 +20,7 @@ The user finds images their construct previously generated.
 - **Prerequisites:** the user is signed in.
 - **Steps:**
   - The user opens Image gallery from the site menu.
-  - The gallery shows their generated images, newest first, with their prompts and links to the source adventures. Older images are available through a link.
+  - The gallery shows their generated images, newest first, with their prompts, recorded generation dates in the browser’s time zone, and links to the source adventures. Older images are available through a link.
   - The user views an image at full size, downloads it, or returns to its source adventure.
 - **Outcome:** only the user's own images appear. The gallery and adventure image controls work with a keyboard and on phone screens. An empty gallery explains how to create the first image. Failed and interrupted generations retain context without showing broken image previews.
 - **Deletion:** images belong to their source adventure. Deleting the adventure, its quest, or the account cascades to image bytes and generation metadata. There is no separate image-delete control. Deletion never refunds model spending. Downloaded copies remain outside the site.

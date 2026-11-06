@@ -18,6 +18,7 @@ import {
 } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
+import { Button } from "@/components/ui/button.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -27,7 +28,28 @@ import {
   chatFailureCase,
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
+import type { ReplyCost } from "@/replies/reply-accounting.ts";
+import { replyGoldAction } from "@/replies/reply-gold-action.ts";
+import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+
+function pairedReplyCosts(
+  messages: readonly UIMessage[],
+  charged: readonly ReplyCost[] | undefined,
+): Map<string, ReplyCost | undefined> {
+  const costs = new Map<string, ReplyCost | undefined>();
+  const byMessage = new Map(charged?.map((cost) => [cost.messageId, cost]));
+  let answeredId: string | undefined;
+  for (const message of messages) {
+    if (message.role === "user") {
+      answeredId = message.id;
+    }
+    if (message.role === "assistant" && answeredId !== undefined) {
+      costs.set(message.id, byMessage.get(answeredId));
+    }
+  }
+  return costs;
+}
 
 // A chat whose every user message is the viewer's own.
 const CLAIM_REFRESH_MS = 2000;
@@ -122,11 +144,20 @@ export function ChatView({
   authorNames?: ReadonlyMap<string, string>;
 }): JSX.Element {
   const router = useRouter();
+  const [gold, setGold] =
+    useState<Awaited<ReturnType<typeof replyGoldAction>>>();
+  const [stopStatus, setStopStatus] = useState("");
+  const [stopping, setStopping] = useState(false);
   const [refusal, setRefusal] = useState<Error | undefined>(undefined);
   const chat = useChat({
     id: chatId,
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
+    onFinish: (): void => {
+      setStopping(false);
+      setStopStatus("");
+      router.refresh();
+    },
     onError: (error: Error): void => {
       const errorCase = chatFailureCase(error);
       if (errorCase === "already-answered") {
@@ -155,6 +186,70 @@ export function ChatView({
       chat.clearError();
     }
   }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
+  useEffect(() => {
+    if (chat.status !== "ready" && chat.status !== "error") {
+      return;
+    }
+    let current = true;
+    replyGoldAction(
+      chatId,
+      chat.messages
+        .filter((message) => message.role === "user")
+        .map((message) => message.id),
+    )
+      .then((next) => {
+        if (current && next?.viewer === viewer) {
+          setGold(next);
+        }
+      })
+      .catch(() => {
+        if (current) {
+          setGold(undefined);
+        }
+      });
+    return (): void => {
+      current = false;
+    };
+  }, [chat.status, chatId, viewer, chat.messages]);
+  const costsPending =
+    gold?.costs.some((cost) => cost.state === "pending") === true;
+  useEffect(() => {
+    if (!costsPending || chat.status !== "ready") {
+      return;
+    }
+    let current = true;
+    let loading = false;
+    const timer = globalThis.setInterval(() => {
+      if (loading) {
+        return;
+      }
+      loading = true;
+      replyGoldAction(
+        chatId,
+        chat.messages
+          .filter((message) => message.role === "user")
+          .map((message) => message.id),
+      )
+        .then((next) => {
+          if (current && next?.viewer === viewer) {
+            setGold(next);
+          }
+        })
+        .catch(() => {
+          if (current) {
+            setGold(undefined);
+          }
+        })
+        .finally(() => {
+          loading = false;
+        });
+    }, CLAIM_REFRESH_MS);
+    return (): void => {
+      current = false;
+      globalThis.clearInterval(timer);
+    };
+  }, [costsPending, chat.status, chatId, chat.messages, viewer]);
+  const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
   const reattach = useComposerDraft(runtime, { viewer, chatId });
@@ -178,6 +273,30 @@ export function ChatView({
     );
     return (): void => globalThis.clearInterval(refresh);
   }, [replyingElsewhere, router]);
+  const stop = useCallback(async (): Promise<void> => {
+    const message = [...chat.messages]
+      .reverse()
+      .find((entry) => entry.role === "user");
+    if (message === undefined) {
+      return;
+    }
+    setStopping(true);
+    setStopStatus(CHAT_COPY.stopping);
+    try {
+      const status = await stopReplyAction({ chatId, messageId: message.id });
+      if (status === "completed") {
+        setStopStatus(CHAT_COPY.stopCompleted);
+        setStopping(false);
+      } else if (status !== "active") {
+        setStopping(false);
+        setStopStatus(CHAT_COPY.stopFailed);
+      }
+      router.refresh();
+    } catch {
+      setStopping(false);
+      setStopStatus(CHAT_COPY.stopFailed);
+    }
+  }, [chat.messages, chatId, router]);
   let openingMessageId: string | undefined;
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
@@ -197,7 +316,17 @@ export function ChatView({
           {CHAT_COPY.replyingElsewhere(constructName)}
         </p>
       )}
+      {(chat.status === "streaming" ||
+        chat.status === "submitted" ||
+        replyingElsewhere) && (
+        <Button onClick={stop} disabled={stopping} variant="secondary">
+          {CHAT_COPY.stop}
+        </Button>
+      )}
+      {stopStatus !== "" && <p role="status">{stopStatus}</p>}
       <ChatThread
+        goldBalance={gold?.balance}
+        replyCosts={replyCosts}
         chatId={chatId}
         error={shownError}
         replyStopped={replyStopped}

@@ -13,6 +13,8 @@ import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
+import { restoreVisualAction } from "@/constructs/restore-visual-action.ts";
+import type { ConstructVisual } from "@/constructs/visual.ts";
 import {
   VISUAL_GENERATION_QUOTE,
   VISUAL_GENERATION_REQUEST,
@@ -63,10 +65,24 @@ function ConstructVisualGeneration({
   readonly viewer: string;
   readonly changed: boolean;
 }): JSX.Element {
+  const [restored, setRestored] = useState(false);
   const requestKey = `visual:${viewer}:${construct.id}`;
   const [quote, setQuote] = useState<VisualGenerationQuote>();
   const [result, setResult] = useState<VisualGenerationResult>();
-  const [visual, setVisual] = useState(construct.definition.visual);
+  const [visualResult, setVisualResult] = useState<
+    | {
+        readonly source: ConstructVisual | undefined;
+        readonly visual: ConstructVisual;
+      }
+    | undefined
+  >(undefined);
+  let { visual } = construct.definition;
+  if (
+    visualResult !== undefined &&
+    visualResult.source === construct.definition.visual
+  ) {
+    ({ visual } = visualResult);
+  }
   const [request, setRequest] = useState<VisualGenerationRequest>();
   const [busy, setBusy] = useState<boolean>(false);
   const [unclaimed, setUnclaimed] = useState<boolean>(false);
@@ -82,14 +98,17 @@ function ConstructVisualGeneration({
     (next: VisualGenerationResult): void => {
       setResult(next);
       if (next.status === "generated" && next.visual !== undefined) {
-        setVisual(next.visual);
+        setVisualResult({
+          source: construct.definition.visual,
+          visual: next.visual,
+        });
       }
       if (next.status !== "pending") {
         keepLocalDraft(requestKey, undefined);
         setRequest(undefined);
       }
     },
-    [requestKey],
+    [requestKey, construct.definition.visual],
   );
   // Reads never start paid work. Recovery also works when browser storage was lost.
   const acceptQuote = useCallback(
@@ -201,6 +220,7 @@ function ConstructVisualGeneration({
     setBusy(true);
     setUnknown(false);
     setUnclaimed(false);
+    setRestored(false);
     const next = request ?? {
       constructId: construct.id,
       requestId: crypto.randomUUID(),
@@ -254,6 +274,38 @@ function ConstructVisualGeneration({
     apply,
     read,
   ]);
+  const restore = useCallback(async (): Promise<void> => {
+    if (
+      lockedRef.current ||
+      changed ||
+      saving === true ||
+      request !== undefined
+    ) {
+      return;
+    }
+    lockedRef.current = true;
+    setBusy(true);
+    try {
+      const success = await restoreVisualAction(construct.id);
+      setRestored(success);
+      if (success) {
+        setQuote((previous) => {
+          if (previous === undefined) {
+            return previous;
+          }
+          return { ...previous, canRestore: false };
+        });
+      }
+      if (!success) {
+        await read();
+      }
+    } catch {
+      setUnknown(true);
+    } finally {
+      lockedRef.current = false;
+      setBusy(false);
+    }
+  }, [changed, saving, request, construct.id, read]);
   let submitForm: string | undefined;
   let submitType: "submit" | "button" = "button";
   if (formId !== undefined && request === undefined) {
@@ -338,7 +390,22 @@ function ConstructVisualGeneration({
           {VISUAL_COPY.generating}
         </div>
       )}
+      {quote?.canRestore === true && (
+        <div className="flex flex-col gap-2">
+          <p className="field-hint">{VISUAL_COPY.restoreHint}</p>
+          <Button
+            onClick={restore}
+            disabled={
+              busy || changed || saving === true || request !== undefined
+            }
+            variant="secondary"
+          >
+            {VISUAL_COPY.restore}
+          </Button>
+        </div>
+      )}
       <FormStatus>{status}</FormStatus>
+      <FormStatus>{restored === true && VISUAL_COPY.restored}</FormStatus>
       <ConstructVisualPreview
         construct={{
           name: construct.name,
