@@ -174,33 +174,47 @@ test("gold failures preserve the test message for retry", async () => {
     .toHaveValue(WORKSHOP_COPY.examples[0].message);
 });
 
-test("starting a new test cancels the request already in flight", async () => {
-  let signal: AbortSignal | null | undefined;
-  vi.stubGlobal(
-    "fetch",
-    vi.fn((_url: string, init: RequestInit): Promise<Response> => {
-      ({ signal } = init);
-      return new Promise((_resolve, reject) => {
-        signal?.addEventListener(
-          "abort",
-          () => {
-            reject(new DOMException("Cancelled", "AbortError"));
-          },
-          { once: true },
-        );
-      });
-    }),
-  );
-  await show();
-  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
-  await expect.element(page.getByText(WORKSHOP_COPY.pending)).toBeVisible();
-  await page.getByRole("button", { name: WORKSHOP_COPY.fresh }).click();
-  expect(signal?.aborted).toBe(true);
-  await expect
-    .element(page.getByRole("button", { name: WORKSHOP_COPY.send }))
-    .toBeEnabled();
-  await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
-});
+test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
+  "%s stops waiting and announces the possible spend",
+  async (label) => {
+    let signal: AbortSignal | null | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init: RequestInit): Promise<Response> => {
+        ({ signal } = init);
+        return new Promise((_resolve, reject) => {
+          signal?.addEventListener(
+            "abort",
+            () => {
+              reject(new DOMException("Cancelled", "AbortError"));
+            },
+            { once: true },
+          );
+        });
+      }),
+    );
+    await show();
+    await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+    await expect.element(page.getByText(WORKSHOP_COPY.pending)).toBeVisible();
+    await expect
+      .element(page.getByText(WORKSHOP_COPY.cancelHint))
+      .toBeVisible();
+    await page.getByRole("button", { name: label, exact: true }).click();
+    expect(signal?.aborted).toBe(true);
+    await expect
+      .element(
+        page.getByRole("status").filter({ hasText: WORKSHOP_COPY.cancelled }),
+      )
+      .toBeVisible();
+    await expect
+      .element(message())
+      .toHaveValue(WORKSHOP_COPY.examples[0].message);
+    await expect
+      .element(page.getByRole("button", { name: WORKSHOP_COPY.send }))
+      .toBeEnabled();
+    await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
+  },
+);
 
 test("reset, undo and discard update the draft tested by the Workshop", async () => {
   installReply();
