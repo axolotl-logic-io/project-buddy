@@ -661,3 +661,14 @@ test("text-only Save during pending work preserves its original UUID and payload
     description,
   });
 });
+
+vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+  startPremadeQuestAction: vi.fn(),
+}));
+vi.mock("@/projects/quest-creation-choices.ts", () => ({
+  questCreationChoices: vi.fn(),
+}));
+vi.mock("@/chats/new-chat-choices.ts", () => ({ newChatChoices: vi.fn() }));
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(),
+}));
