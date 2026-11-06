@@ -417,89 +417,61 @@ test("new saved artwork does not discard a browser draft on reload", async () =>
 
 const TEST_RESERVATION = 12;
 
-test("generation completion preserves edits made while the request runs", async () => {
-  const response = Promise.withResolvers<Response>();
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>((_input, init) => {
-      if (init?.method === "POST") {
-        return response.promise;
-      }
-      return Promise.resolve(
-        Response.json({
+test.each([PROMPT_COPY.save, "Generate Images"])(
+  "%s saves the edited Vellum description and shows generation loading",
+  async (label) => {
+    const edited = "A silver fox with a blue cloak, replacing the brass guide";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>((input) => {
+        const url = String(input);
+        const quote = {
           reservationGold: TEST_RESERVATION,
           available: true,
           outdated: false,
-        }),
-      );
-    }),
-  );
-  await openConstruct({
-    ...LUMEN_CLONE,
-    definition: {
-      ...LUMEN_CLONE.definition,
-      visual: { version: 1, description: "A warm light" },
-    },
-  });
-  await expect.element(button("Generate Images")).toBeEnabled();
-  await button("Generate Images").click();
-  await field(CONSTRUCT_PROMPT).fill("Keep this new conversational draft");
-  response.resolve(
-    Response.json({
-      status: "generated",
-      reservationGold: TEST_RESERVATION,
-      roles: {
-        avatar: "generated",
-        portrait: "generated",
-        opening: "generated",
-        working: "generated",
-      },
-      visual: { version: 1, description: "A warm light" },
-    }),
-  );
-  await expect
-    .element(
-      page.getByText(
-        "Your new images are ready. Existing adventures keep their images.",
-      ),
-    )
-    .toBeVisible();
-  await expect
-    .element(field(CONSTRUCT_PROMPT))
-    .toHaveValue("Keep this new conversational draft");
-  expect(saveConstructAction).not.toHaveBeenCalled();
-});
-
-test("Generate Images requires saved name, prompt and description without silently saving", async () => {
-  const fetcher = vi.fn<typeof fetch>(() =>
-    Promise.resolve(
-      Response.json({
-        reservationGold: TEST_RESERVATION,
-        available: true,
-        outdated: false,
+        };
+        if (url.includes("requestId=")) {
+          return Promise.resolve(
+            Response.json({
+              ...quote,
+              result: {
+                status: "generated",
+                reservationGold: TEST_RESERVATION,
+                roles: {
+                  avatar: "generated",
+                  portrait: "generated",
+                  opening: "generated",
+                  working: "generated",
+                },
+                visual: { version: 1, description: edited },
+              },
+            }),
+          );
+        }
+        return Promise.resolve(Response.json(quote));
       }),
-    ),
-  );
-  vi.stubGlobal("fetch", fetcher);
-  await openConstruct({
-    ...LUMEN_CLONE,
-    definition: {
-      ...LUMEN_CLONE.definition,
-      visual: { version: 1, description: "A warm light" },
-    },
-  });
-  await expect.element(button("Generate Images")).toBeEnabled();
-  await field(PROMPT_COPY.nameLabel).fill("Changed name");
-  await expect.element(button("Generate Images")).toBeDisabled();
-  await button(PROMPT_COPY.discard).click();
-  await expect.element(button("Generate Images")).toBeEnabled();
-  await field(CONSTRUCT_PROMPT).fill("A new prompt");
-  await expect.element(button("Generate Images")).toBeDisabled();
-  await button(PROMPT_COPY.discard).click();
-  await field("Visual description").fill("A new look");
-  await expect.element(button("Generate Images")).toBeDisabled();
-  expect(saveConstructAction).not.toHaveBeenCalled();
-  expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
-    true,
-  );
-});
+    );
+    await openConstruct({
+      ...VELLUM_CLONE,
+      definition: {
+        ...VELLUM_CLONE.definition,
+        visual: { version: 1, description: "A brass guide" },
+      },
+    });
+    await field("Visual description").fill(edited);
+    await expect.element(button("Generate Images")).toBeEnabled();
+    const submission = saved(saveConstructAction);
+    await button(label).click();
+    const form = await submission;
+    expect(form.get("visualDescription")).toBe(edited);
+    expect(form.get("visualRequestId")).toEqual(expect.any(String));
+    expect(Object.values(localStorage).join(" ")).toContain(
+      String(form.get("visualRequestId")),
+    );
+    await expect
+      .element(page.getByText("Generating images…", { exact: true }))
+      .toBeVisible();
+    await expect.element(button(PROMPT_COPY.save)).toBeDisabled();
+    await expect.element(button("Generate Images")).toBeDisabled();
+  },
+);
