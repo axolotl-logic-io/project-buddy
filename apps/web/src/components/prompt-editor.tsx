@@ -113,9 +113,11 @@ function PromptEditor({
   formId,
   saveLabel = PROMPT_COPY.save,
   saveHint,
+  onSubmitCapture,
   saving = false,
   disabled = false,
 }: {
+  readonly onSubmitCapture?: (event: SubmitEvent<HTMLFormElement>) => void;
   readonly saveLabel?: string;
   readonly saveHint?: string | undefined;
   readonly formId?: string;
@@ -297,6 +299,7 @@ function PromptEditor({
       className="flex flex-col gap-4"
       noValidate={true}
       onSubmit={submit}
+      onSubmitCapture={onSubmitCapture}
     >
       <input name={idName} type="hidden" value={promptId} />
       <div className="panel">

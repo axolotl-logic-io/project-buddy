@@ -20,11 +20,13 @@ import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import { saveConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import { saveSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
+import { readLocalDraft } from "@/components/local-draft.ts";
 import {
   getOwnConstruct,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { VISUAL_GENERATION_REQUEST } from "@/constructs/visual-generation-contract.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
@@ -523,3 +525,139 @@ test.each(["activity", "spell"] as const)(
     await expect.element(button(PROMPT_COPY.discard)).not.toBeInTheDocument();
   },
 );
+
+test("Save is text-only for unchanged appearance or a description edited then restored; explicit Generate remains intentional", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(() =>
+      Promise.resolve(
+        Response.json({
+          reservationGold: TEST_RESERVATION,
+          available: true,
+          outdated: false,
+        }),
+      ),
+    ),
+  );
+  const original = "A brass guide";
+  await openConstruct({
+    ...VELLUM_CLONE,
+    definition: {
+      ...VELLUM_CLONE.definition,
+      visual: { version: 1, description: original },
+    },
+  });
+  await expect
+    .element(button(PROMPT_COPY.save))
+    .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
+  await field("Visual description").fill("A silver fox");
+  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeVisible();
+  await field("Visual description").fill(`  ${original}  `);
+  await expect
+    .element(button(PROMPT_COPY.save))
+    .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
+  await field(CONSTRUCT_PROMPT).fill("Private new voice");
+  const submission = saved(saveConstructAction);
+  await button(PROMPT_COPY.save).click();
+  const data = await submission;
+  expect(data.has("visualDescription")).toBe(false);
+  expect(data.has("visualRequestId")).toBe(false);
+  expect(data.has("generateImages")).toBe(false);
+  await expect
+    .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
+    .not.toBeInTheDocument();
+  await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+});
+
+test("Generate Images with unchanged appearance submits an explicit paid intention and durable UUID", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(() =>
+      Promise.resolve(
+        Response.json({
+          reservationGold: TEST_RESERVATION,
+          available: true,
+          outdated: false,
+        }),
+      ),
+    ),
+  );
+  await openConstruct({
+    ...VELLUM_CLONE,
+    definition: {
+      ...VELLUM_CLONE.definition,
+      visual: { version: 1, description: "A brass guide" },
+    },
+  });
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  const submission = saved(saveConstructAction);
+  await button(VISUAL_COPY.generate).click();
+  const data = await submission;
+  expect(data.get("generateImages")).toBe("true");
+  expect(data.get("visualDescription")).toBe("A brass guide");
+  expect(data.get("visualRequestId")).toEqual(expect.any(String));
+  await expect
+    .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
+    .toBeVisible();
+});
+
+const PENDING_VISUAL_REQUEST = "3bb055fe-90cc-49fd-b5c5-8f9a9382c507";
+
+test("text-only Save during pending work preserves its original UUID and payload while appearance-changing Save stays blocked", async () => {
+  const description = "A brass guide";
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(() =>
+      Promise.resolve(
+        Response.json({
+          reservationGold: TEST_RESERVATION,
+          available: true,
+          outdated: false,
+          pendingRequestId: PENDING_VISUAL_REQUEST,
+          pendingDescription: description,
+          result: {
+            status: "pending",
+            reservationGold: TEST_RESERVATION,
+            roles: {
+              avatar: "pending",
+              portrait: "pending",
+              opening: "pending",
+              working: "pending",
+            },
+          },
+        }),
+      ),
+    ),
+  );
+  await openConstruct({
+    ...VELLUM_CLONE,
+    definition: {
+      ...VELLUM_CLONE.definition,
+      visual: { version: 1, description },
+    },
+  });
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.pending, { exact: true }))
+    .toBeVisible();
+  await field("Visual description").fill("Different appearance");
+  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
+  await field("Visual description").fill(description);
+  await field(CONSTRUCT_PROMPT).fill("New instructions during generation");
+  await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
+  const submission = saved(saveConstructAction);
+  await button(PROMPT_COPY.save).click();
+  const data = await submission;
+  expect(data.has("visualDescription")).toBe(false);
+  expect(data.has("visualRequestId")).toBe(false);
+  expect(data.has("generateImages")).toBe(false);
+  expect(
+    readLocalDraft(
+      `visual:${SIGNED_IN_USER.id}:${VELLUM_CLONE.id}`,
+      VISUAL_GENERATION_REQUEST,
+    ),
+  ).toEqual({
+    constructId: VELLUM_CLONE.id,
+    requestId: PENDING_VISUAL_REQUEST,
+    description,
+  });
+});

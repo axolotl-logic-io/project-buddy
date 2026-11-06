@@ -16,11 +16,17 @@ const VISUAL_FRAME = z.object({
 });
 const VISUAL_ROLE = z.enum(["avatar", "portrait", "opening", "working"]);
 const DESCRIPTION_MAX = 4000;
+const DESCRIPTION_LINE_BREAK = /\r\n?/gu;
+
+function normalizeVisualDescription(description: string): string {
+  return description.replace(DESCRIPTION_LINE_BREAK, "\n").trim();
+}
 const FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/u;
 const CONSTRUCT_VISUAL = z.object({
   version: z.literal(1),
   description: z.string().trim().min(1).max(DESCRIPTION_MAX),
   sourceFingerprint: z.string().regex(FINGERPRINT_PATTERN).optional(),
+  sourceFingerprintVersion: z.literal(2).optional(),
   canonical: VISUAL_ASSET.optional(),
   working: VISUAL_ASSET.optional(),
   frames: z
@@ -107,6 +113,7 @@ export type {
 export {
   CONSTRUCT_VISUAL,
   constructVisualSource,
+  normalizeVisualDescription,
   resolveConstructVisual,
   VISUAL_ASSET,
   VISUAL_DESTINATION,

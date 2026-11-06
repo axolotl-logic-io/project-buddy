@@ -3,11 +3,14 @@ import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
+import { readLocalDraft } from "@/components/local-draft.ts";
 import type {
   VisualGenerationQuote,
   VisualGenerationResult,
 } from "@/constructs/visual-generation-contract.ts";
+import { VISUAL_GENERATION_REQUEST } from "@/constructs/visual-generation-contract.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
+import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { VELLUM_CLONE } from "../../app/phone-pages-fixtures.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
 import {
@@ -469,17 +472,17 @@ test("unavailable artwork does not block repeated text saves or retain an unstar
       ]}
     />,
   );
-  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeEnabled();
+  await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
   await page
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Captain Quill");
-  await button(VISUAL_COPY.saveAndGenerate).click();
+  await button(PROMPT_COPY.save).click();
   await expect.poll(() => submitted.length).toBe(1);
-  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeEnabled();
+  await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
   await page
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Captain Quill II");
-  await button(VISUAL_COPY.saveAndGenerate).click();
+  await button(PROMPT_COPY.save).click();
   await expect.poll(() => submitted.length).toBe(2);
   expect(submitted.map((form) => form.get("name"))).toEqual([
     "Captain Quill",
@@ -490,6 +493,42 @@ test("unavailable artwork does not block repeated text saves or retain an unstar
     localStorage.getItem(`draft:visual:unavailable:${construct.id}`),
   ).toBeNull();
   await expect.element(button(VISUAL_COPY.resume)).not.toBeInTheDocument();
+  expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
+    true,
+  );
+});
+
+test("reload recovers the durable pending description even if another tab changed the saved appearance", async () => {
+  const original = "The original requested appearance";
+  const fetcher = service(
+    quote({
+      pendingRequestId: PENDING_ID,
+      pendingDescription: original,
+      result: outcome("pending"),
+    }),
+    outcome("pending"),
+  );
+  await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="recovered"
+      changed={false}
+    />,
+  );
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.pending))
+    .toBeVisible();
+  expect(
+    readLocalDraft(
+      `visual:recovered:${construct.id}`,
+      VISUAL_GENERATION_REQUEST,
+    ),
+  ).toEqual({
+    constructId: construct.id,
+    requestId: PENDING_ID,
+    description: original,
+  });
+  await button(VISUAL_COPY.check).click();
   expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
     true,
   );
