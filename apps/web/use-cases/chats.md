@@ -85,11 +85,11 @@ The user asks the construct in an adventure to turn the idea they talked through
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - She asks the construct for a new quest, with a name for it. The construct creates it, in Project Breakdown with its opening: the construct's prepared one, or, for a construct of her own that she has edited, one it writes, which takes a few seconds.
-  - Under the reply, the adventure says the quest was created, with its name, and links to the quest's first adventure.
-  - She follows the link.
-  - Another time, she asks for a quest while Claude is unavailable, or once she is out of gold.
-- **Outcome:** the quest is first in her quests list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first adventure, in Project Breakdown, with the same construct, which already holds the construct's first question. A name longer than 80 characters fails the construct's call, which tells the construct the limit so it can suggest a shorter name, and no quest is saved. While Claude is unavailable, the adventure says so under the reply, and no quest is saved. Out of gold, her message is refused with the out-of-gold message, as in any adventure ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no quest is saved; a reply that spends the last of her gold as it runs creates none either.
+  - Ask the construct to turn the idea into a named quest.
+  - Review and edit the proposed summary and optional motivation, then confirm creation.
+  - Follow the link to its first adventure in Project Breakdown.
+- **Outcome:** the confirmed summary and motivation become the first Journal version and inform the opening, using the source adventure's selected construct. The standalone source stays intact. Full transcripts are not copied and planned steps do not become completed milestones. The quest, opening, Journal and confirmation result save together. Repeating confirmation returns the same quest; concurrent confirmations create only one.
+- **Variations:** invalid names fail before creation. An unavailable opening, insufficient gold or storage failure saves no quest, preserves the summary draft and allows an explicit retry. The construct's proposal alone creates nothing and spends no opening gold. A user who removes everything from the summary and motivation starts with an empty Journal and the ordinary opening.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
 
@@ -118,6 +118,7 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Variations:**
   - Following a link away from Home restores the destination's header and content column without a refresh. Returning to Home restores the map layout, including with browser back and forward.
   - Before the first quest, Start a quest opens Project Breakdown with a new quest selected.
+  - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
   - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
   - A signed-out visitor is sent to sign in before any recent work is read.
 
@@ -506,3 +507,12 @@ The user recognizes the adventure's construct while reading and waiting for repl
   - They send a message, then finish, stop or encounter an error during the reply.
   - They revisit the adventure on a narrow phone or with reduced motion enabled.
 - **Outcome:** each construct message has a circular portrait beside its visible name; user messages have none. The first saved message has a larger opening illustration only if it is a construct message. Later turns and refreshes add no illustrations or generation calls. Artwork comes from the saved snapshot, never a name or id guess; missing artwork shows initials. Lumen gently glows and Vellum has a subtle working motion only during thinking or writing. Finished, stopped and failed replies settle. Reduced motion keeps artwork static, with readable thinking/writing text and busy state. The conversation fits at 320px without indenting reply text for portraits.
+
+## use_case_stop_reply
+
+The user stops a reply that is still running.
+
+- **Prerequisites:** signed in, with current access to the adventure.
+- **Steps:** choose Stop reply and wait for the server to confirm it.
+- **Outcome:** the server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Gold charged for use is not refunded.
+- **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

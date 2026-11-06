@@ -41,6 +41,7 @@ import {
   getConstruct,
   snapshotOf,
 } from "@/constructs/index.ts";
+import type { Transaction } from "@/db/client.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
@@ -181,7 +182,9 @@ async function startProject(
   {
     motivation = "",
     activity = builtInActivity("project-breakdown"),
+    transaction,
   }: {
+    readonly transaction?: Transaction;
     readonly motivation?: string;
     readonly activity?: ChatActivity;
   } = {},
@@ -207,12 +210,17 @@ async function startProject(
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
-  const chat = await createProjectWithChat(owner, name, {
-    construct,
-    activity,
-    opening,
-    motivation,
-  });
+  const chat = await createProjectWithChat(
+    owner,
+    name,
+    {
+      construct,
+      activity,
+      opening,
+      motivation,
+    },
+    transaction,
+  );
   return { kind: "started", chat };
 }
 

@@ -58,8 +58,11 @@ The user takes back a change to the quest's Journal by restoring an earlier vers
   - She looks at the earlier versions of the Journal.
   - She picks the version from before the change and restores it.
 - **Outcome:** the Journal shows that earlier version's text again. A confirmation remains visible after the history updates; a later restore attempt replaces that feedback, including when it is refused as outdated. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
+- **Provenance:** future restores label the new version “Restored from version N”. Earlier history remains unchanged with unknown provenance; matching text never implies a historic restore. Owner and member attribution and conflict checks remain in effect.
 - **Next:**
   - `use_case_view_memory`: check the result.
+
+Future restores label the new version “Restored from version N”. Earlier history remains unchanged with unknown provenance; matching text never implies a historic restore. Owner and member attribution and conflict checks remain in effect.
 
 ## use_case_memory_edit_conflict
 

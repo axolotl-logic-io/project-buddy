@@ -110,7 +110,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           builtIn.getByRole("button", {
-            name: construct.name,
+            name: CONSTRUCTS_COPY.startLabel(construct.name),
             exact: true,
           }),
         )
@@ -134,7 +134,11 @@ test("use_case_view_constructs", async () => {
       .elements()
       .filter((button) => button.hasAttribute("aria-haspopup"))
       .map((button) => button.textContent),
-  ).toEqual(OWN_CONSTRUCTS.map((construct) => construct.name));
+  ).toEqual(
+    OWN_CONSTRUCTS.map((construct) =>
+      CONSTRUCTS_COPY.startLabel(construct.name),
+    ),
+  );
 
   expect(
     own
@@ -147,7 +151,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           own.getByRole("button", {
-            name: construct.name,
+            name: CONSTRUCTS_COPY.startLabel(construct.name),
             exact: true,
           }),
         )
@@ -250,7 +254,7 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
       ),
     );
     const trigger = page.getByRole("button", {
-      name: construct.name,
+      name: CONSTRUCTS_COPY.startLabel(construct.name),
       exact: true,
     });
     await trigger.click();
@@ -298,7 +302,10 @@ test("writing a new construct is distinct from starting with an own construct na
     ),
   );
   const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
-  const start = own.getByRole("button", { name: "New construct", exact: true });
+  const start = own.getByRole("button", {
+    name: CONSTRUCTS_COPY.startLabel("New construct"),
+    exact: true,
+  });
   const write = own.getByRole("button", {
     name: CONSTRUCTS_COPY.newConstruct,
     exact: true,

@@ -1,6 +1,6 @@
 // Gold, the one balance a user's model calls spend, and what it is worth:
-// the rate between gold and model spend lives here and nowhere else. Users
-// only ever see whole gold, never dollars or the rate. It reads no storage
+// the rate between gold and model spend lives here and nowhere else. Balances show whole gold; reply costs retain fractional gold so small
+// charges never look free. Users never see dollars or the rate. It reads no storage
 // and imports nothing, so the server and the browser can both use it.
 
 // 1 gold is $0.01 of model spend: 10,000 millionths of a US dollar

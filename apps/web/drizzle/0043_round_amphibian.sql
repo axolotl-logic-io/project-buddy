@@ -1,0 +1,1 @@
+ALTER TABLE "memory_versions" ADD COLUMN "restored_from_version" integer;

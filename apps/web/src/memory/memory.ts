@@ -60,6 +60,7 @@ type MemorySaver =
 // construct's versions, and on a person's version saved before savers were
 // recorded or whose account is gone.
 interface MemoryVersion extends Memory {
+  readonly restoredFromVersion?: MemoryVersionNumber | undefined;
   readonly author: MemoryAuthor;
   readonly savedBy: MemorySaver | undefined;
   readonly createdAt: Date;

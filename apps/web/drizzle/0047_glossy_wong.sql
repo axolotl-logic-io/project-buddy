@@ -1,0 +1,1 @@
+ALTER TABLE "quest_transfers" ADD COLUMN "completed" boolean DEFAULT false NOT NULL;

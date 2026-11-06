@@ -22,7 +22,7 @@ import {
 import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
 import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
-import { inTransaction } from "@/db/client.ts";
+import { inTransaction, type Transaction } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -225,59 +225,64 @@ export function createProjectWithChat(
     readonly opening: NewMessage;
     readonly motivation?: string;
   },
+  transaction?: Transaction,
 ): Promise<ProjectChat> {
-  return withAppErrors("createProjectWithChat", () =>
-    inTransaction(async (db) => {
-      const projectId = randomId(parseProjectId);
-      const id = randomId(parseChatId);
-      const initialMemory = [chat.motivation].flatMap((text) => {
-        if (text === undefined || text === "") {
-          return [];
-        }
-        return [
-          {
-            projectId,
-            version: 1,
-            text,
-            author: "user",
-            userId: owner,
-          },
-        ];
-      });
-      await db
-        .insert(projects)
-        .values({ id: projectId, userId: owner, name: projectName });
-      const created = await db
-        .insert(chats)
-        .values({
-          id,
-          projectId,
-          constructId: chat.construct.id,
-          constructName: chat.construct.name,
-          constructParts: storedConstructPrompt(chat.construct.definition),
-        })
-        .returning();
-      await db.insert(messages).values({
-        id: chat.opening.id,
-        chatId: id,
-        role: chat.opening.role,
-        parts: chat.opening.parts,
-      });
-      await db
-        .insert(activitySessions)
-        .select(newSession(owner, id, chat.activity, undefined));
-      if (initialMemory.length > 0) {
-        await db.insert(memoryVersions).values(initialMemory);
+  async function save(db: Transaction): Promise<ProjectChat> {
+    const projectId = randomId(parseProjectId);
+    const id = randomId(parseChatId);
+    const initialMemory = [chat.motivation].flatMap((text) => {
+      if (text === undefined || text === "") {
+        return [];
       }
-      await grantVisualAssets(
-        owner,
-        db,
-        { kind: "adventure", id },
-        { parts: chat.construct.definition },
-      );
-      return insertedProjectChat(created, { id: projectId, name: projectName });
-    }),
-  );
+      return [
+        {
+          projectId,
+          version: 1,
+          text,
+          author: "user",
+          userId: owner,
+        },
+      ];
+    });
+    await db
+      .insert(projects)
+      .values({ id: projectId, userId: owner, name: projectName });
+    const created = await db
+      .insert(chats)
+      .values({
+        id,
+        projectId,
+        constructId: chat.construct.id,
+        constructName: chat.construct.name,
+        constructParts: storedConstructPrompt(chat.construct.definition),
+      })
+      .returning();
+    await db.insert(messages).values({
+      id: chat.opening.id,
+      chatId: id,
+      role: chat.opening.role,
+      parts: chat.opening.parts,
+    });
+    await db
+      .insert(activitySessions)
+      .select(newSession(owner, id, chat.activity, undefined));
+    if (initialMemory.length > 0) {
+      await db.insert(memoryVersions).values(initialMemory);
+    }
+    await grantVisualAssets(
+      owner,
+      db,
+      { kind: "adventure", id },
+      { parts: chat.construct.definition },
+    );
+    return insertedProjectChat(created, { id: projectId, name: projectName });
+  }
+  return withAppErrors("createProjectWithChat", () => {
+    if (transaction !== undefined) {
+      return save(transaction);
+    }
+    return inTransaction(save);
+  });
 }
 
 export type { NewChat, NewChatConstruct };

@@ -18,6 +18,8 @@ import { withoutProviderBookkeeping } from "@/replies/provider-bookkeeping.ts";
 // is made from, the id of the message it answers, and the conversation it
 // answers, which naming reads.
 interface EndedReply {
+  readonly cancelled?: boolean;
+  readonly accountingFinished?: () => Promise<void>;
   readonly actingUser: UserId;
   readonly chat: Chat;
   readonly grant: QuotaGrant;
@@ -47,25 +49,50 @@ async function releaseClaim(
 // The stream stays open until this resolves, so naming, which never
 // rejects, isn't awaited.
 async function endReply(
-  { actingUser, chat, grant, answeredId, history }: EndedReply,
+  {
+    actingUser,
+    chat,
+    grant,
+    answeredId,
+    history,
+    cancelled,
+    accountingFinished,
+  }: EndedReply,
   {
     responseMessage,
     outcome,
   }: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
-): Promise<void> {
+): Promise<boolean> {
   if (outcome.status !== "completed") {
     await releaseClaim(actingUser, chat, answeredId);
-    return;
+    await accountingFinished?.();
+    return false;
   }
   try {
     const savedReply = withoutActivityInstructions(
       withoutProviderBookkeeping(responseMessage),
     );
     await saveReply(actingUser, chat.id, savedReply, answeredId);
-    after(() => nameChatIfDue(grant, chat.id, [...history, savedReply]));
+    if (cancelled === true) {
+      await accountingFinished?.();
+    } else {
+      after(async (): Promise<void> => {
+        try {
+          await nameChatIfDue(grant, chat.id, [...history, savedReply]);
+        } finally {
+          await accountingFinished?.();
+        }
+      });
+    }
+    return true;
   } catch (error) {
     toAppError(error, "save chat reply");
     await releaseClaim(actingUser, chat, answeredId);
+    if (cancelled === true) {
+      throw error;
+    }
+    await accountingFinished?.();
+    return false;
   }
 }
 

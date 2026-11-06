@@ -72,6 +72,20 @@ export const STANDALONE_CHATS_COPY = {
 } as const;
 
 export const CHAT_COPY = {
+  balance: (gold: number): string => `Gold balance: ${gold}`,
+  balanceUnknown: "Gold balance unavailable",
+  costPending:
+    "Reply cost pending, including any image and automatic adventure name.",
+  costUnknown: "Reply cost unavailable; this does not mean zero gold.",
+  replyCost: (gold: number): string =>
+    `Reply cost: ${gold} gold (including retries, images and any automatic adventure name).`,
+  stop: "Stop reply",
+  stopping: "Stop requested. Waiting for the server…",
+  stopFailed:
+    "The server could not confirm Stop. The reply may still be running. Try again or reload.",
+  stopCompleted: "The reply finished before Stop took effect.",
+  cancelledReply:
+    "Reply stopped at your request. Tool effects already started may remain or finish. Gold charged for use is not refunded.",
   reattach:
     "Images from your unsent message were not kept. Attach them again before sending.",
   replyingElsewhere: (name: string): string =>
@@ -124,6 +138,15 @@ export const CAST_SPELL_COPY = {
 
 // The project the construct created from a chat, or why it created none.
 export const CREATE_PROJECT_COPY = {
+  review: (name: string): string => `Create quest: ${name}`,
+  summary: "Summary for the new Journal",
+  motivation: "Motivation (optional)",
+  summaryHint:
+    "Review and edit what to carry into the new quest. Only this confirmed summary and motivation enter its Journal. The source adventure stays here; planned steps are not completed milestones.",
+  confirm: "Confirm summary and create quest",
+  creating: "Creating your quest…",
+  creationFailed:
+    "The quest could not be confirmed. Your edits are kept; try again. Repeating confirmation will not create another quest.",
   created: (name: string): string => `Created the quest “${name}”`,
   openInterview: "Open its first adventure",
   claudeUnavailable:

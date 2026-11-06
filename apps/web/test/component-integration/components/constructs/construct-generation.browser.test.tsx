@@ -4,6 +4,7 @@ import { render } from "vitest-browser-react";
 import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
 import { readLocalDraft } from "@/components/local-draft.ts";
+import { restoreVisualAction } from "@/constructs/restore-visual-action.ts";
 import type {
   VisualGenerationQuote,
   VisualGenerationResult,
@@ -532,4 +533,55 @@ test("reload recovers the durable pending description even if another tab change
   expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
     true,
   );
+});
+
+test("restoring previous artwork is explicit, free of generation requests, and blocked by unsaved edits", async () => {
+  const fetcher = service(quote({ canRestore: true }), outcome("generated"));
+  vi.mocked(restoreVisualAction).mockResolvedValue(true);
+  const screen = await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="viewer"
+      changed={true}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.restore)).toBeDisabled();
+  await screen.rerender(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="viewer"
+      changed={false}
+    />,
+  );
+  await button(VISUAL_COPY.restore).click();
+  await expect.element(page.getByText(VISUAL_COPY.restored)).toBeVisible();
+  expect(restoreVisualAction).toHaveBeenCalledWith(construct.id);
+  // A restore can change bytes without changing the description or editor key.
+  await screen.rerender(
+    <ConstructVisualGeneration
+      construct={{
+        ...construct,
+        definition: {
+          ...construct.definition,
+          visual: {
+            ...construct.definition.visual,
+            canonical: { kind: "built-in", artwork: "lumen-v1" },
+          },
+        },
+      }}
+      viewer="viewer"
+      changed={false}
+    />,
+  );
+  const previews = page.getByRole("img").elements();
+  expect(previews.length).toBeGreaterThan(0);
+  expect(
+    previews.every((image) =>
+      image.querySelector("img")?.getAttribute("src")?.includes("lumen-v1.png"),
+    ),
+  ).toBe(true);
+
+  expect(
+    fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toEqual([]);
 });

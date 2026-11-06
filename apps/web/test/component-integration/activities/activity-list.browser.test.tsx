@@ -168,7 +168,7 @@ test.each([
       ),
     );
     const trigger = page.getByRole("button", {
-      name: activity.name,
+      name: ACTIVITIES_COPY.startLabel(activity.name),
       exact: true,
     });
     await trigger.click();
