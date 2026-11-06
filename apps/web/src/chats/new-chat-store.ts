@@ -224,13 +224,14 @@ export function createProjectWithChat(
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
     readonly motivation?: string;
+    readonly journal?: string;
   },
   transaction?: Transaction,
 ): Promise<ProjectChat> {
   async function save(db: Transaction): Promise<ProjectChat> {
     const projectId = randomId(parseProjectId);
     const id = randomId(parseChatId);
-    const initialMemory = [chat.motivation].flatMap((text) => {
+    const initialMemory = [chat.journal ?? chat.motivation].flatMap((text) => {
       if (text === undefined || text === "") {
         return [];
       }

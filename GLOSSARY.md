@@ -672,3 +672,9 @@ remain compatibility names in this release. The Open adventure activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
 Quick Note paragraphs and historical migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.
+
+### Premade quest
+
+An editable starting point from the Quest library: a name, description, starting Journal and suggested first activity. Starting it creates an ordinary quest and its first adventure. Planned milestones remain Journal plans until real achievements are recorded. Browsing creates nothing.
+
+- **UI:** “Premade quests”, “Explore quest”.
