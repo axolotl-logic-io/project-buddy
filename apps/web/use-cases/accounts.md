@@ -118,9 +118,12 @@ The user checks how much gold she has left.
   - It shows her gold balance.
   - She sends a message in an adventure, then opens her account page again.
 - **Outcome:** the account page shows her gold in whole gold, rounded down, such as "Gold: 87"; a new account shows "Gold: 100". After her message and its reply, the balance has fallen. A balance below 0 shows as 0. The page names no dollars and no reset day: gold never resets. The page also offers Sign out and Sign out everywhere. The gold balance is an extra: with it switched off in Settings ([`use_case_hide_extras`](appearance.md#use_case_hide_extras)), the account page shows no balance, and the buttons are still there.
+- **Adventure replies:** the acting user's balance appears near the composer. After each reply, its actual fractional gold cost includes retries, images and any automatic adventure name. Pending or unknown accounting is labeled explicitly, never shown as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies without accounting records show an unavailable cost; no history is invented.
 - **Next:**
   - `use_case_out_of_gold`: she spends the last of her gold.
   - `use_case_sign_out`: she is done for the day.
+
+The composer shows the acting user’s balance. Actual fractional reply costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
 
 ## use_case_set_name
 
@@ -162,8 +165,11 @@ The user's choice of which extras to hide follows her to every browser she signs
   - In Settings, she switches off working notes.
   - She signs in on another browser or device, and opens an adventure that holds a working note.
 - **Outcome:** in the other browser, working notes are off from the adventure's first appearance, and Settings shows the switch off. Her choice is saved to her account, not only to the browser, and another user's Settings are unchanged by it. The theme and mode stay a choice of each browser ([`use_case_choose_theme`](appearance.md#use_case_choose_theme)).
+- **Variations:** already-signed-in browsers refresh account extras on navigation and return to the visible tab. The refreshed extras apply to the interface and Settings switches together. Local switches made during a slow refresh are kept. Appearance remains browser-local; no polling is required.
 - **Next:**
   - [`use_case_hide_extras`](appearance.md#use_case_hide_extras): switch them back on.
+
+Already-signed-in browsers refresh account extras on navigation and return to the visible tab. Refreshed extras apply to the interface and Settings switches together. A local switch made during a slow refresh is kept. Appearance remains browser-local; no polling is required.
 
 ## use_case_sign_out
 
@@ -191,5 +197,3 @@ The user signs out of every browser and device at once, for example after signin
 - **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and an adventure left open there says she has been signed out when she next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs her in, even within its 30 minutes. If she cancels instead of confirming, nothing changes and she stays signed in everywhere. A new link signs her in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where she wants to be.
-
-Already-signed-in browsers refresh account extras on navigation and return to the visible tab. The refreshed extras apply to the interface and its Settings switches together. Appearance remains browser-local. No polling is required.

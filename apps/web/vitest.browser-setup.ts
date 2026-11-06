@@ -63,3 +63,21 @@ beforeEach(({ onTestFailed }) => {
     }
   });
 });
+
+vi.mock("@/constructs/restore-visual-action.ts", () => ({
+  restoreVisualAction: vi.fn(),
+}));
+vi.mock("@/replies/stop-reply-action.ts", () => ({
+  stopReplyAction: vi.fn(),
+}));
+vi.mock("@/replies/reply-gold-action.ts", () => ({
+  replyGoldAction: vi.fn(() => Promise.resolve(undefined)),
+}));
+vi.mock("@/chats/quest-transfer-action.ts", () => ({
+  confirmQuestTransferAction: vi.fn(),
+  readQuestTransferAction: vi.fn(() => Promise.resolve(undefined)),
+}));
+
+vi.mock("@/accounts/refresh-preferences-action.ts", () => ({
+  refreshPreferencesAction: vi.fn(() => Promise.resolve(undefined)),
+}));

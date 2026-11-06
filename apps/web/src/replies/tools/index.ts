@@ -179,6 +179,9 @@ interface ChatToolsReply {
 
 // The streamText settings that the model calls of a reply share.
 interface ChatToolCallSettings {
+  readonly abortSignal?: AbortSignal;
+  readonly prepareStep?: () => Promise<undefined>;
+  readonly onToolExecutionStart?: () => Promise<void>;
   readonly model: LanguageModelV4;
   readonly instructions: SystemModelMessage[];
   readonly messages: ModelMessage[];

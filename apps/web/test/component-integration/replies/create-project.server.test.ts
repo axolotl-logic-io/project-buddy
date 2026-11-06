@@ -7,13 +7,14 @@ import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
-import { getActivity } from "@/activities/index.ts";
-import { preparedOpening } from "@/activities/prepared-openings.ts";
+import { confirmQuestTransfer } from "@/chats/quest-transfer.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
 import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { ChatId } from "@/ids.ts";
+import { readMemory } from "@/memory/memory-store.ts";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
 import { mockConstructModel } from "@/replies/mock-model.ts";
@@ -159,6 +160,24 @@ describe("use_case_project_from_standalone_chat", () => {
       await sendInStandaloneChat(chatId, createCommand(PROJECT_NAME)),
     ).toBe(HTTP_STATUS.ok);
 
+    expect(await listProjects(user.id)).toEqual([]);
+    const [proposal] = await savedOutputs(user, chatId);
+    if (proposal?.status !== "proposed") {
+      throw new Error("No summary offered");
+    }
+    const confirmation = {
+      id: proposal.proposalId,
+      summary: "Next step: shape the fox. Planned: shade its ears.",
+      motivation: "A present for a friend.",
+    };
+    const [confirmed, replayed] = await Promise.all([
+      confirmQuestTransfer(user.id, confirmation),
+      confirmQuestTransfer(user.id, confirmation),
+    ]);
+    expect(replayed).toEqual(confirmed);
+    expect(await confirmQuestTransfer(user.id, confirmation)).toEqual(
+      confirmed,
+    );
     const [project] = await listProjects(user.id);
     expect(project?.name).toBe(PROJECT_NAME);
     if (project === undefined) {
@@ -178,20 +197,13 @@ describe("use_case_project_from_standalone_chat", () => {
     );
     const opening = await listMessages(user.id, interview.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
-    expect(textsOf(opening)).toEqual([
-      preparedOpening(
-        getConstruct(DEFAULT_CONSTRUCT_ID).definition,
-        getActivity("project-breakdown").definition,
-      ),
-    ]);
-    expect(await savedOutputs(user, chatId)).toEqual([
-      {
-        status: "created",
-        projectId: project.id,
-        name: PROJECT_NAME,
-        interviewChatId: interview.id,
-      },
-    ]);
+    expect(textsOf(opening).join("\n")).toContain(confirmation.summary);
+    expect(textsOf(opening).join("\n")).toContain(confirmation.motivation);
+    expect((await readMemory(user.id, project.id)).text).toBe(
+      `${confirmation.summary}\n\n## Motivation\n${confirmation.motivation}`,
+    );
+    expect(await listProjects(user.id)).toHaveLength(1);
+    expect(await savedOutputs(user, chatId)).toEqual([proposal]);
   });
 
   test("saves no project when Claude can't open its interview in a construct with no prepared opening", async () => {
@@ -201,9 +213,21 @@ describe("use_case_project_from_standalone_chat", () => {
       await sendInStandaloneChat(chatId, createCommand(UNAVAILABLE_NAME)),
     ).toBe(HTTP_STATUS.ok);
 
-    expect(await savedOutputs(user, chatId)).toEqual([
-      { status: "claudeUnavailable" },
-    ]);
+    const [proposal] = await savedOutputs(user, chatId);
+    if (proposal?.status !== "proposed") {
+      throw new Error("No summary offered");
+    }
+    const confirmation = {
+      id: proposal.proposalId,
+      summary: "Keep this idea.",
+      motivation: "",
+    };
+    expect(await confirmQuestTransfer(user.id, confirmation)).toEqual({
+      status: "claudeUnavailable",
+    });
+    expect(await confirmQuestTransfer(user.id, confirmation)).toEqual({
+      status: "claudeUnavailable",
+    });
     expect(await listProjects(user.id)).toEqual([]);
   });
 
@@ -238,14 +262,56 @@ describe("use_case_project_from_standalone_chat", () => {
   });
 
   test("saves no project once she is out of gold", async () => {
-    const { user } = await signedInWithStandaloneChat();
+    const { user, chatId } = await signedInWithStandaloneChat();
+    await sendInStandaloneChat(chatId, createCommand(PROJECT_NAME));
+    const [proposal] = await savedOutputs(user, chatId);
+    if (proposal?.status !== "proposed") {
+      throw new Error("No summary offered");
+    }
     await spendAllGold(user);
-
-    const {
-      outputs: [output],
-    } = await callToolDirectly(user);
-
-    expect(CREATE_PROJECT_OUTPUT.parse(output).status).toBe("outOfGold");
+    expect(
+      await confirmQuestTransfer(user.id, {
+        id: proposal.proposalId,
+        summary: "Next step: shape the fox.",
+        motivation: "",
+      }),
+    ).toEqual({ status: "outOfGold" });
     expect(await listProjects(user.id)).toEqual([]);
   });
+});
+
+test("confirmed context preserves the selected construct and source, excludes unconfirmed private text, and records no completed milestone", async () => {
+  const user = await testUser();
+  const outsider = await testUser();
+  await signIn(user);
+  const chat = await createStandaloneChat(user.id, getConstruct("lumen"));
+  const summary = "Plan: shape a fox, then shade it.";
+  await sendInStandaloneChat(
+    chat.id,
+    `/mock-tool ${CREATE_PROJECT_TOOL} ${JSON.stringify({ name: PROJECT_NAME, summary, motivation: "A gift." })}`,
+  );
+  const [proposal] = await savedOutputs(user, chat.id);
+  if (proposal?.status !== "proposed") {
+    throw new Error("Missing proposal");
+  }
+  const source = await listMessages(user.id, chat.id);
+  const confirmed = {
+    id: proposal.proposalId,
+    summary: "Plan: sketch the fox first.",
+    motivation: "For a friend.",
+  };
+  await expect(
+    confirmQuestTransfer(outsider.id, confirmed),
+  ).rejects.toMatchObject({ errorCase: "not-found" });
+  const result = await confirmQuestTransfer(user.id, confirmed);
+  if (result.status !== "created") {
+    throw new Error("Missing quest");
+  }
+  const [target] = await listChats(user.id, result.projectId);
+  expect(target?.construct).toEqual(chat.construct);
+  expect((await readMemory(user.id, result.projectId)).text).toBe(
+    `${confirmed.summary}\n\n## Motivation\n${confirmed.motivation}`,
+  );
+  expect(await listMilestones(user.id, result.projectId)).toEqual([]);
+  expect(await listMessages(user.id, chat.id)).toEqual(source);
 });

@@ -39,6 +39,7 @@ const VISUAL_GENERATION_RESULT = z.object({
 const VISUAL_GENERATION_QUOTE = z.object({
   reservationGold: z.number().nonnegative(),
   available: z.boolean(),
+  canRestore: z.boolean().optional(),
   outdated: z.boolean(),
   freshnessUnknown: z.boolean().optional(),
   pendingRequestId: z.uuid().optional(),

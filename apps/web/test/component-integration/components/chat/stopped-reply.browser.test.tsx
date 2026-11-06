@@ -10,6 +10,7 @@ import { render } from "vitest-browser-react";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
+import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
@@ -157,4 +158,70 @@ describe("use_case_reply_fails", () => {
       page.getByRole("button", { name: IMAGE_COPY.retry }).elements(),
     ).toHaveLength(0);
   });
+});
+
+test("Stop waits for the server and a failed request leaves the stream running", async () => {
+  let output: ReadableStreamDefaultController<UIMessageChunk> | undefined;
+  const fetcher = vi.fn<typeof fetch>(() =>
+    Promise.resolve(
+      createUIMessageStreamResponse({
+        stream: new ReadableStream<UIMessageChunk>({
+          start(
+            controller: ReadableStreamDefaultController<UIMessageChunk>,
+          ): void {
+            output = controller;
+            controller.enqueue({ type: "start", messageId: "running-reply" });
+            controller.enqueue({ type: "text-start", id: "text" });
+            controller.enqueue({
+              type: "text-delta",
+              id: "text",
+              delta: REPLY,
+            });
+          },
+        }),
+      }),
+    ),
+  );
+  vi.stubGlobal("fetch", fetcher);
+  const chatId = chatIdFixture();
+  try {
+    await render(
+      <ChatView
+        viewer={userIdFixture()}
+        constructName="Vellum"
+        chatId={chatId}
+        initialMessages={[STOPPED]}
+        stoppedReplyId={STOPPED.id}
+      />,
+    );
+    await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
+    await expect.element(page.getByText(REPLY)).toBeVisible();
+    vi.mocked(stopReplyAction).mockRejectedValueOnce(new Error("Unavailable"));
+    await page.getByRole("button", { name: CHAT_COPY.stop }).click();
+    await expect.element(page.getByText(CHAT_COPY.stopFailed)).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: CHAT_COPY.stop }))
+      .toBeEnabled();
+    const acknowledged =
+      Promise.withResolvers<Awaited<ReturnType<typeof stopReplyAction>>>();
+    vi.mocked(stopReplyAction).mockReturnValueOnce(acknowledged.promise);
+    await page.getByRole("button", { name: CHAT_COPY.stop }).click();
+    await expect.element(page.getByText(CHAT_COPY.stopping)).toBeVisible();
+    await expect
+      .element(page.getByText(CHAT_COPY.cancelledReply))
+      .not.toBeInTheDocument();
+    expect(stopReplyAction).toHaveBeenLastCalledWith({
+      chatId,
+      messageId: STOPPED.id,
+    });
+    acknowledged.resolve("active");
+    output?.enqueue({ type: "abort" });
+    output?.close();
+    output = undefined;
+    await expect
+      .element(page.getByRole("button", { name: CHAT_COPY.stop }))
+      .not.toBeInTheDocument();
+  } finally {
+    output?.close();
+  }
 });

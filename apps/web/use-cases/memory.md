@@ -58,8 +58,11 @@ The user takes back a change to the quest's Journal by restoring an earlier vers
   - She looks at the earlier versions of the Journal.
   - She picks the version from before the change and restores it.
 - **Outcome:** the Journal shows that earlier version's text again. A confirmation remains visible after the history updates; a later restore attempt replaces that feedback, including when it is refused as outdated. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
+- **Provenance:** future restores label the new version “Restored from version N”. Earlier history remains unchanged with unknown provenance; matching text never implies a historic restore. Owner and member attribution and conflict checks remain in effect.
 - **Next:**
   - `use_case_view_memory`: check the result.
+
+Future restores label the new version “Restored from version N”. Earlier history remains unchanged with unknown provenance; matching text never implies a historic restore. Owner and member attribution and conflict checks remain in effect.
 
 ## use_case_memory_edit_conflict
 
@@ -117,5 +120,3 @@ The user deletes a Quick Note she no longer needs.
 - **Outcome:** the Quick Note is gone from the quest's Quick Notes and from its Journal, and the rest of the Journal is as it was. The Journal's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the quest's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
 - **Next:**
   - `use_case_quick_note`: write a better one.
-
-Future restores record “Restored from version N” on the new version. Earlier history keeps unknown provenance; no source version is inferred from matching text.

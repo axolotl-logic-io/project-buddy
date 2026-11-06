@@ -48,7 +48,10 @@ import {
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
-import { constructGenerations } from "@/db/tables/construct-visuals.ts";
+import {
+  constructAssetGrants,
+  constructGenerations,
+} from "@/db/tables/construct-visuals.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
@@ -60,6 +63,9 @@ import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
+import { questTransfers } from "@/db/tables/quest-transfers.ts";
+import { replyRuns } from "@/db/tables/reply-runs.ts";
+import { replyUsage } from "@/db/tables/reply-usage.ts";
 import { users } from "@/db/tables/users.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 
@@ -289,6 +295,48 @@ function purchaseOfListingSoldBy(seller: UserId): SQL {
   );
 }
 
+// An owned destination grants access to the image identity metadata, including
+// a bought copy's original description, but never another payer's costs.
+function constructGenerationVisualOpenTo(user: UserId): SQL {
+  return exists(
+    new QueryBuilder()
+      .select({ id: constructAssetGrants.id })
+      .from(constructAssetGrants)
+      .innerJoin(
+        ownPrompts,
+        eq(ownPrompts.id, constructAssetGrants.constructId),
+      )
+      .where(
+        and(
+          ownPromptOwnedBy(user),
+          sql`${constructGenerations.visual}->'canonical'->>'assetId' = ${constructAssetGrants.assetId}::text`,
+        ),
+      ),
+  );
+}
+
+function questTransferOwnedBy(user: UserId): SQL {
+  return sql`(${eq(questTransfers.userId, user)} and ${inArray(questTransfers.sourceChatId, new QueryBuilder().select({ id: chats.id }).from(chats).where(chatOpenTo(user)))})`;
+}
+
+function replyUsageOwnedBy(user: UserId): SQL {
+  return eq(replyUsage.userId, user);
+}
+
+function replyRunOpenTo(user: UserId): SQL {
+  return inArray(
+    replyRuns.chatId,
+    new QueryBuilder()
+      .select({ id: chats.id })
+      .from(chats)
+      .where(chatOpenTo(user)),
+  );
+}
+
+function replyRunOwnedBy(user: UserId): SQL {
+  return and(replyRunOpenTo(user), eq(replyRuns.userId, user)) ?? sql`false`;
+}
+
 function accountOwnedBy(owner: UserId): SQL {
   return eq(users.id, owner);
 }
@@ -299,6 +347,7 @@ export {
   chatOpenTo,
   chatUnreadOwnedBy,
   constructGenerationOwnedBy,
+  constructGenerationVisualOpenTo,
   generationOpenTo,
   generationOwnedBy,
   goldBalanceOwnedBy,
@@ -325,5 +374,9 @@ export {
   purchaseMadeBy,
   purchaseOfListingSoldBy,
   pushSubscriptionOwnedBy,
+  questTransferOwnedBy,
+  replyRunOpenTo,
+  replyRunOwnedBy,
+  replyUsageOwnedBy,
   sellerOfListing,
 };
