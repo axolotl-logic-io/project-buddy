@@ -191,3 +191,5 @@ The user signs out of every browser and device at once, for example after signin
 - **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and an adventure left open there says she has been signed out when she next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs her in, even within its 30 minutes. If she cancels instead of confirming, nothing changes and she stays signed in everywhere. A new link signs her in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where she wants to be.
+
+Already-signed-in browsers refresh account extras on navigation and return to the visible tab. The refreshed extras apply to the interface and its Settings switches together. Appearance remains browser-local. No polling is required.

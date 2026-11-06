@@ -377,3 +377,5 @@ portrait. Reduced motion keeps portraits static. Readable thinking/writing
 status and the message's busy state remain available independently of motion.
 `construct-presence.browser.test.tsx` covers this behavior with fake streams
 under `use_case_construct_presence`.
+
+Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.

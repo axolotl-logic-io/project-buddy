@@ -63,6 +63,9 @@ describe("image gallery", () => {
       .element(page.getByRole("link", { name: GENERATION_COPY.source }))
       .toHaveAttribute("href", `/chats/${CHAT}`);
     await expect.element(page.getByText(GENERATION_COPY.context)).toBeVisible();
+    expect(document.querySelector("time")?.dateTime).toBe(
+      new Date(0).toISOString(),
+    );
   });
 
   test("explains how to create the first image", async () => {

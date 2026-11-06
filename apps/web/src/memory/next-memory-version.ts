@@ -49,6 +49,13 @@ function savedBy({ owner, author }: NextMemoryVersion): SQL {
   return sql`${owner}::uuid`;
 }
 
+function restoreSource(next: NextMemoryVersion): SQL {
+  if (next.text.kind === "copy") {
+    return sql`${next.text.version}::integer`;
+  }
+  return sql`null::integer`;
+}
+
 function versionColumns(
   next: NextMemoryVersion,
   text: SQL | AnyPgColumn,
@@ -60,6 +67,7 @@ function versionColumns(
     version: sql`${basedOn}::integer + 1`,
     text,
     author: sql`${storedMemoryAuthor(author)}::text`,
+    restoredFromVersion: restoreSource(next),
     userId: savedBy(next),
     createdAt: sql`now()`,
   };

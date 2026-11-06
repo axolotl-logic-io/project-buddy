@@ -65,14 +65,14 @@ const BUTTON_HEIGHT_PX = 44;
 
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
-  CHAT_COPY.headerLink,
-  GENERATION_COPY.heading,
   PROJECTS_COPY.headerLink,
+  CHAT_COPY.headerLink,
   CONSTRUCTS_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
+  GENERATION_COPY.heading,
   MARKETPLACE_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
