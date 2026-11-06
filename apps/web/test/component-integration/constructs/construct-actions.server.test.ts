@@ -32,6 +32,7 @@ import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
+import { type ImageProvider, imageProvider } from "@/images/image-provider.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { EARLIER_VELLUM_PROMPT } from "../../support/earlier-built-in-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -42,6 +43,12 @@ import {
   expectRedirect,
 } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
+
+vi.mock("@/images/image-provider.ts", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/images/image-provider.ts")>();
+  return { ...actual, imageProvider: vi.fn(actual.imageProvider) };
+});
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
@@ -452,5 +459,43 @@ test("save and reset retain paid art even when a source lookup returns an older 
     ).toBeDefined();
   } finally {
     read.mockRestore();
+  }
+});
+
+test("saving an edited Vellum description regenerates artwork from the saved appearance", async () => {
+  const user = await signedInUser();
+  const construct = await cloneOf(user, "vellum");
+  const description =
+    "A silver fox with a blue cloak instead of a brass cartographer.";
+  const bytes = await sharp({
+    create: { width: 32, height: 32, channels: 3, background: "white" },
+  })
+    .png()
+    .toBuffer();
+  const generate = vi.fn<ImageProvider["generate"]>().mockResolvedValue({
+    bytes,
+    mediaType: "image/png",
+    costMicroUsd: GENERATED_COST,
+  });
+  const provider = vi.mocked(imageProvider).mockReturnValueOnce({ generate });
+  try {
+    const data = constructForm(
+      construct.id,
+      construct.name,
+      construct.definition,
+    );
+    data.set("visualDescription", description);
+    data.set("visualRequestId", crypto.randomUUID());
+    await expectRedirect(
+      () => saveConstructAction(data),
+      `/constructs/${construct.id}`,
+    );
+    const updated = await stored(user, construct.id);
+    expect(updated.definition.visual?.description).toBe(description);
+    expect(updated.definition.visual?.canonical?.kind).toBe("generated");
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(generate.mock.calls[0]?.[0]).toContain(description);
+  } finally {
+    provider.mockRestore();
   }
 });

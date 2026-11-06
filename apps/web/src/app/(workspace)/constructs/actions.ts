@@ -16,6 +16,7 @@ import {
 } from "@/constructs/default-prompt.ts";
 import { isConstructId } from "@/constructs/index.ts";
 import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
+import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 
@@ -30,6 +31,7 @@ const VISUAL_DESCRIPTION_MAX = 4000;
 const SAVE_CONSTRUCT_FORM = z.object({
   constructId: z.string(),
   name: z.string().trim().min(1),
+  visualRequestId: z.uuid().optional(),
   visualDescription: z.string().trim().max(VISUAL_DESCRIPTION_MAX).optional(),
 });
 
@@ -87,6 +89,14 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
   });
   if (saved !== "saved") {
     notFound();
+  }
+  const description = form.data.visualDescription;
+  if (description !== undefined && description !== "") {
+    await generateConstructVisual(user.id, {
+      constructId,
+      requestId: form.data.visualRequestId ?? crypto.randomUUID(),
+      description,
+    });
   }
   return constructPage(constructId);
 }
