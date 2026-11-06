@@ -46,7 +46,15 @@ function ConstructVisualGeneration({
   construct,
   viewer,
   changed,
+  formId,
+  draftDescription,
+  saving = false,
+  onBlockedChange,
 }: {
+  readonly formId?: string;
+  readonly draftDescription?: string;
+  readonly saving?: boolean;
+  readonly onBlockedChange?: (blocked: boolean) => void;
   readonly construct: OwnConstruct;
   readonly viewer: string;
   readonly changed: boolean;
@@ -59,9 +67,13 @@ function ConstructVisualGeneration({
   const [busy, setBusy] = useState<boolean>(false);
   const [unclaimed, setUnclaimed] = useState<boolean>(false);
   const [unknown, setUnknown] = useState<boolean>(false);
+  useEffect(() => {
+    onBlockedChange?.(busy || request !== undefined);
+  }, [busy, request, onBlockedChange]);
   const lockedRef = useRef<boolean>(false);
   const hintId = useId();
   const description = construct.definition.visual?.description ?? "";
+  const needsDescription = (draftDescription ?? description).trim() === "";
   const apply = useCallback(
     (next: VisualGenerationResult): void => {
       setResult(next);
@@ -117,6 +129,9 @@ function ConstructVisualGeneration({
     [acceptQuote, construct.id],
   );
   useEffect(() => {
+    if (saving === true) {
+      return;
+    }
     let active = true;
     const kept = readLocalDraft(requestKey, VISUAL_GENERATION_REQUEST);
     readQuote(construct.id, kept?.requestId)
@@ -134,7 +149,7 @@ function ConstructVisualGeneration({
     return (): void => {
       active = false;
     };
-  }, [acceptQuote, construct.id, requestKey]);
+  }, [acceptQuote, construct.id, requestKey, saving]);
   const check = useCallback(async (): Promise<void> => {
     if (lockedRef.current) {
       return;
@@ -151,6 +166,13 @@ function ConstructVisualGeneration({
     }
   }, [read, request]);
   const generate = useCallback(async (): Promise<void> => {
+    if (formId !== undefined && request === undefined) {
+      const form = document.querySelector(`#${CSS.escape(formId)}`);
+      if (form instanceof HTMLFormElement) {
+        form.requestSubmit();
+      }
+      return;
+    }
     if (
       lockedRef.current ||
       changed ||
@@ -206,6 +228,7 @@ function ConstructVisualGeneration({
       setBusy(false);
     }
   }, [
+    formId,
     changed,
     request,
     unclaimed,
@@ -238,13 +261,14 @@ function ConstructVisualGeneration({
     status = VISUAL_COPY.unknown;
   }
   let saveHint = "";
-  if (changed) {
+  if (changed && formId === undefined) {
     saveHint = VISUAL_COPY.saveFirst;
-  } else if (description === "") {
+  } else if (needsDescription) {
     saveHint = VISUAL_COPY.needsDescription;
   }
   return (
     <section
+      aria-busy={busy || saving === true || result?.status === "pending"}
       className="flex min-w-0 flex-col gap-4"
       aria-label={VISUAL_COPY.heading}
     >
@@ -263,10 +287,11 @@ function ConstructVisualGeneration({
           aria-describedby={hintId}
           disabled={
             busy ||
-            changed ||
+            saving === true ||
+            (changed && formId === undefined) ||
             (request !== undefined && !unclaimed) ||
             quote?.available !== true ||
-            description === "" ||
+            needsDescription ||
             unknown
           }
           onClick={generate}
@@ -279,6 +304,12 @@ function ConstructVisualGeneration({
           </Button>
         )}
       </div>
+      {(saving === true || busy || result?.status === "pending") && (
+        <div role="status" className="flex items-center gap-3">
+          <span className="construct-generation-spinner" aria-hidden="true" />
+          {VISUAL_COPY.generating}
+        </div>
+      )}
       <FormStatus>{status}</FormStatus>
       <ConstructVisualPreview
         construct={{
