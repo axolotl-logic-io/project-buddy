@@ -4,12 +4,13 @@ import { createActivity } from "@/activities/activity-store.ts";
 import { startPremadeQuestAction } from "@/app/(workspace)/projects/premade-actions.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
-import { readMemory } from "@/memory/memory-store.ts";
+import { readMemory, saveMemory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { PREMADE_QUESTS } from "@/projects/premade-quests.ts";
 import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { formOf } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
@@ -60,6 +61,24 @@ describe("use_case_start_premade_quest", () => {
       expect(await getProject(stranger.id, saved.id)).toBeUndefined();
       expect(await getChat(stranger.id, chat.id)).toBeUndefined();
       expect((await readMemory(stranger.id, saved.id)).text).toBe("");
+      const memory = await readMemory(user.id, saved.id);
+      await saveMemory(stranger.id, {
+        projectId: saved.id,
+        basedOn: memory.version,
+        text: "Foreign edit",
+        author: "user",
+      });
+      expect(await readMemory(user.id, saved.id)).toEqual(memory);
+      const edited = await saveMemory(user.id, {
+        projectId: saved.id,
+        basedOn: memory.version,
+        text: "A new direction",
+        author: "user",
+      });
+      expect(edited.kind).toBe("saved");
+      expect((await readMemory(user.id, saved.id)).text).toBe(
+        "A new direction",
+      );
     },
   );
 
@@ -98,13 +117,16 @@ describe("use_case_start_premade_quest", () => {
     expect((await currentActivity(user.id, chat)).id).toBe(activity.id);
   });
 
-  test.each(["name", "construct", "activity", "opening"])(
+  test.each(["name", "construct", "activity", "opening", "gold"])(
     "%s refusal saves nothing",
     async (failure) => {
       const [user, stranger] = await Promise.all([testUser(), testUser()]);
       const construct = await testData(user).editedConstruct();
       const foreign = await testData(stranger).editedConstruct();
       await signIn(user);
+      if (failure === "gold") {
+        await spendAllGold(user);
+      }
       const details = {
         name: "My idea",
         journal: "My plan",
@@ -112,7 +134,10 @@ describe("use_case_start_premade_quest", () => {
         activityId: "brainstorming",
         constructId: construct.id,
       };
-      let changes: Record<string, string> = { name: " " };
+      let changes: Record<string, string> = {};
+      if (failure === "name") {
+        changes = { name: " " };
+      }
       if (failure === "construct") {
         changes = { constructId: foreign.id };
       }
@@ -129,6 +154,9 @@ describe("use_case_start_premade_quest", () => {
       let expected = "invalid";
       if (failure === "opening") {
         expected = "claudeUnavailable";
+      }
+      if (failure === "gold") {
+        expected = "outOfGold";
       }
       expect(result.kind).toBe(expected);
       expect(await listProjects(user.id)).toEqual([]);
