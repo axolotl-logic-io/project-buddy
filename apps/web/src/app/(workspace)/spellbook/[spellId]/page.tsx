@@ -7,6 +7,7 @@ import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
@@ -15,12 +16,12 @@ import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, type OwnSpell } from "@/spells/spell-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { pageTitle } from "@/ui/copy/site.ts";
 import {
   SPELL_COPY,
   SPELL_DEFINITION_COPY,
   SPELLBOOK_COPY,
 } from "@/ui/copy/spells.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInSpellAction, saveSpellAction } from "../actions.ts";
 import { RetireSpellForm } from "../retire-spell-form.tsx";
@@ -38,7 +39,7 @@ function SpellHeading({
     <>
       <BackLink href="/spellbook">{SPELL_COPY.spellbookLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h2 className="section-heading wrap-anywhere">{name}</h2>
+        <h1 className="page-heading wrap-anywhere">{name}</h1>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -131,12 +132,26 @@ function OwnSpellForm({
   );
 }
 
-export const metadata: Metadata = { title: WORKSHOP_COPY.title };
+export async function generateMetadata({
+  params,
+}: PageProps<"/spellbook/[spellId]">): Promise<Metadata> {
+  const { spellId } = await params;
+  const user = await requireUser();
+  let name: string | undefined;
+  if (isSpellId(spellId)) {
+    ({ name } = getSpell(spellId));
+  } else {
+    name = (await getOwnSpell(user.id, spellId))?.name;
+  }
+  return { title: pageTitle(name ?? "Spell") };
+}
 
 export default async function SpellPage({
   params,
+  searchParams,
 }: PageProps<"/spellbook/[spellId]">): Promise<JSX.Element> {
   const { spellId } = await params;
+  const { saved } = await searchParams;
   const user = await requireUser();
   const options = await workshopOptions(user.id);
   if (isSpellId(spellId)) {
@@ -181,6 +196,7 @@ export default async function SpellPage({
         openingRequest: "",
       }}
     >
+      <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnSpellForm viewer={user.id} spell={spell} sale={sale} />
     </Workshop>
   );

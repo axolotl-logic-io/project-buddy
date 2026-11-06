@@ -25,11 +25,18 @@ export function ChatError({
       <span>{userMessage(errorCase)}</span>
       {errorCase !== "out-of-gold" &&
         errorCase !== "signed-out" &&
+        errorCase !== "request-too-large" &&
+        errorCase !== "not-found" &&
         onRetry !== undefined && (
           <Button onClick={onRetry} variant="secondary">
             {IMAGE_COPY.retry}
           </Button>
         )}
+      {errorCase === "request-too-large" && (
+        <Link className="text-link" href="/chat">
+          {IMAGE_COPY.newAdventure}
+        </Link>
+      )}
       {errorCase === "out-of-gold" && <EarnGoldLink />}
       {errorCase === "signed-out" && (
         <>

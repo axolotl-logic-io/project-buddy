@@ -10,5 +10,10 @@ export const metadata: Metadata = { title: HOME_COPY.title };
 export default async function HomePage(): Promise<JSX.Element> {
   const user = await requireUser();
   const today = await readToday(user.id);
-  return <HomeAtlas latestQuest={today.projects[0]} />;
+  return (
+    <HomeAtlas
+      latestQuest={today.projects[0]}
+      firstVisit={today.projects.length === 0 && today.chats.length === 0}
+    />
+  );
 }

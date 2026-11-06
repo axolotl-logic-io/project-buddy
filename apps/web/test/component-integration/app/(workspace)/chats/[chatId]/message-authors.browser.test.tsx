@@ -144,7 +144,7 @@ describe("use_case_chat_with_several_people", () => {
     expect(messageTexts()).toStrictEqual([
       "AlexThe flipper loops are fixed.",
       `${CHAT_COPY.you}Nice. Can we look at the shell next?`,
-      `${FOX_CHAT.construct.name}Great work, Alex.`,
+      `${FOX_CHAT.construct.name}Great work, Alex.${CHAT_COPY.costUnknown}`,
     ]);
   });
 
@@ -158,7 +158,7 @@ describe("use_case_chat_with_several_people", () => {
     await expect.element(page.getByText("Great work.")).toBeInTheDocument();
     expect(messageTexts()).toStrictEqual([
       `${CHAT_COPY.you}The flipper loops are fixed.`,
-      `${FOX_CHAT.construct.name}Great work.`,
+      `${FOX_CHAT.construct.name}Great work.${CHAT_COPY.costUnknown}`,
     ]);
   });
 

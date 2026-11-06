@@ -22,15 +22,16 @@ export const ACTIVITIES_COPY = {
   ownHeading: "Your activities",
   noOwn:
     "No activities of your own yet. Customize one above, or choose New activity to write one from scratch.",
-  newActivity: "New activity",
+  newActivity: "Write new activity",
   // The name of an activity written from scratch, until the user renames it.
   newActivityName: "New activity",
   start: "Start",
   startLabel: (name: string): string => `Start an adventure in ${name}`,
   customize: "Customize",
-  customizeLabel: (name: string): string => `Customize ${name}`,
-  tweak: "Tweak",
-  tweakLabel: (name: string): string => `Tweak ${name}`,
+  customizeLabel: (name: string): string =>
+    `Customize ${name}: make your own copy`,
+  tweak: "Edit",
+  tweakLabel: (name: string): string => `Edit your ${name}`,
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;

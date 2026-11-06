@@ -98,6 +98,11 @@ describe("use_case_undo_memory_change", () => {
       [earlier.version, "construct"],
     ]);
     expect(history[0]?.text).toBe(earlier.text);
+    expect(history[0]?.restoredFromVersion).toBe(earlier.version);
+    expect(history.slice(1).map((entry) => entry.restoredFromVersion)).toEqual([
+      undefined,
+      undefined,
+    ]);
     expect(history[1]?.text).toBe(newest.text);
   });
 });

@@ -10,4 +10,8 @@ function useRouter(): { refresh: () => void } {
   return { refresh };
 }
 
-export { refresh, useRouter };
+function usePathname(): string {
+  return "/";
+}
+
+export { refresh, usePathname, useRouter };

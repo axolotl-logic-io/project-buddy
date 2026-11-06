@@ -15,6 +15,7 @@ import type {
   SharedV4ProviderMetadata,
 } from "@ai-sdk/provider";
 import { logModelCallSpend } from "@/errors/error-log.ts";
+import { toAppError } from "@/errors/to-app-error.ts";
 import { chargeGold } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
 import {
@@ -26,6 +27,7 @@ import {
   type ClaudeModelId,
   callCost,
 } from "@/quota/prices.ts";
+import type { UsageRecorder } from "@/quota/usage-recorder.ts";
 
 // Claude's tokens are about four characters of English each, so a stream
 // that stops without its usage is charged its output at that rate.
@@ -196,14 +198,19 @@ function meteredStream(
 function spendMeter({
   owner,
   modelId,
+  usage,
 }: {
   owner: UserId;
   modelId: ClaudeModelId;
+  usage?: UsageRecorder | undefined;
 }): LanguageModelV4Middleware {
   // Takes the call's cost from owner's gold and logs it. A cost that can't
   // be stored, even after the store's retries, is logged (gold-store.ts)
   // and lost rather than failing a reply Claude has written.
-  function chargeFor(kind: "stream" | "generate"): Charge {
+  function chargeFor(
+    kind: "stream" | "generate",
+    record: ((cost: number | undefined) => Promise<void>) | undefined,
+  ): Charge {
     return async (
       finished: boolean,
       { tokens, cacheCreationReported }: MeteredTokens,
@@ -217,9 +224,16 @@ function spendMeter({
         tokens,
         microUsd,
       });
-      await chargeGold(owner, microUsd).catch(() => {
-        // Logged as database-query-failed where it failed.
-      });
+      try {
+        if (record === undefined) {
+          await chargeGold(owner, microUsd);
+        } else {
+          await record(microUsd);
+        }
+      } catch (error) {
+        // A durable pending operation stays unknown after an ambiguous write.
+        toAppError(error, "record reply charge");
+      }
     };
   }
 
@@ -230,8 +244,15 @@ function spendMeter({
     }: {
       doGenerate: () => PromiseLike<LanguageModelV4GenerateResult>;
     }): Promise<LanguageModelV4GenerateResult> {
-      const result = await doGenerate();
-      await chargeFor("generate")(
+      const record = await usage?.begin();
+      let result: LanguageModelV4GenerateResult;
+      try {
+        result = await doGenerate();
+      } catch (error) {
+        await record?.(undefined);
+        throw error;
+      }
+      await chargeFor("generate", record)(
         true,
         finishedCallTokens(result.usage, result.providerMetadata),
       );
@@ -242,8 +263,19 @@ function spendMeter({
     }: {
       doStream: () => PromiseLike<LanguageModelV4StreamResult>;
     }): Promise<LanguageModelV4StreamResult> {
-      const { stream, ...rest } = await doStream();
-      return { stream: meteredStream(stream, chargeFor("stream")), ...rest };
+      const record = await usage?.begin();
+      let result: LanguageModelV4StreamResult;
+      try {
+        result = await doStream();
+      } catch (error) {
+        await record?.(undefined);
+        throw error;
+      }
+      const { stream, ...rest } = result;
+      return {
+        stream: meteredStream(stream, chargeFor("stream", record)),
+        ...rest,
+      };
     },
   };
 }

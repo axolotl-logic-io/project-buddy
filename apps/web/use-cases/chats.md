@@ -9,7 +9,7 @@ The user starts an adventure in a quest with the construct she wants.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). At least one quest exists ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
   - She opens the new adventure page or the Adventures page's "New adventure" dialog, which show the same form, or the "New adventure" dialog on a quest's page.
-  - She picks the quest, an activity, and a construct: Vellum, Lumen or one of her own. The open adventure and Vellum are already chosen unless she picks others. A quest's page shows its New adventure button with the form closed, even after a reload. Its dialog, named "New adventure", has no quest field: it offers only the activity and the construct, and starts the adventure in that quest, in whichever activity she chooses, Project Breakdown included. The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it without starting an adventure and puts focus back on the button.
+  - She picks the quest, an activity, and a construct: Vellum, Lumen or one of her own. The open adventure and Vellum are already chosen unless she picks others. A quest's page shows its New adventure button with the form closed, even after a reload. Its dialog, named "New adventure", has no quest field: it offers only the activity and the construct, and starts the adventure in that quest, in whichever activity she chooses, Project Breakdown included. The dialog takes the keyboard's focus and keeps focused controls visible when its content scrolls, including forward and backward focus wrapping; Escape, or its close button, closes it without starting an adventure and puts focus back on the button.
   - The site starts the adventure and opens it. With a built-in construct and activity it starts at once, with the construct's prepared opening (`use_case_prepared_opening`). With a construct or activity of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the adventure shows the quest's name and the construct's name. Before she writes anything, it holds one message from the construct, in the construct's voice: its prepared opening, which in the open adventure asks what she would like to work on. An opening the construct writes follows the activity's opening request: in the open adventure, a brief synopsis of what the quest's Journal holds, if it holds anything, then one question: what to work on, such as the next milestone. The adventure follows its chosen activity and saves useful information in the Journal, even when it is empty. Active quest and standalone adventures show no Activity dropdown or its label, progress or errors. Its heading reads "New adventure" until it has a name. It is first in the quest's list of adventures, with that construct. It keeps that construct for its whole life. The construct already knows the quest's Journal (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Variations:**
@@ -85,11 +85,11 @@ The user asks the construct in an adventure to turn the idea they talked through
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - She asks the construct for a new quest, with a name for it. The construct creates it, in Project Breakdown with its opening: the construct's prepared one, or, for a construct of her own that she has edited, one it writes, which takes a few seconds.
-  - Under the reply, the adventure says the quest was created, with its name, and links to the quest's first adventure.
-  - She follows the link.
-  - Another time, she asks for a quest while Claude is unavailable, or once she is out of gold.
-- **Outcome:** the quest is first in her quests list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first adventure, in Project Breakdown, with the same construct, which already holds the construct's first question. A name longer than 80 characters fails the construct's call, which tells the construct the limit so it can suggest a shorter name, and no quest is saved. While Claude is unavailable, the adventure says so under the reply, and no quest is saved. Out of gold, her message is refused with the out-of-gold message, as in any adventure ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no quest is saved; a reply that spends the last of her gold as it runs creates none either.
+  - Ask the construct to turn the idea into a named quest.
+  - Review and edit the proposed summary and optional motivation, then confirm creation.
+  - Follow the link to its first adventure in Project Breakdown.
+- **Outcome:** the confirmed summary and motivation become the first Journal version and inform the opening, using the source adventure's selected construct. The standalone source stays intact. Full transcripts are not copied and planned steps do not become completed milestones. The quest, opening, Journal and confirmation result save together. Repeating confirmation returns the same quest; concurrent confirmations create only one.
+- **Variations:** invalid names fail before creation. An unavailable opening, insufficient gold or storage failure saves no quest, preserves the summary draft and allows an explicit retry. The construct's proposal alone creates nothing and spends no opening gold. A user who removes everything from the summary and motivation starts with an empty Journal and the ordinary opening.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
 
@@ -118,6 +118,7 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Variations:**
   - Following a link away from Home restores the destination's header and content column without a refresh. Returning to Home restores the map layout, including with browser back and forward.
   - Before the first quest, Start a quest opens Project Breakdown with a new quest selected.
+  - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
   - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
   - A signed-out visitor is sent to sign in before any recent work is read.
 
@@ -310,7 +311,7 @@ The user asks the construct about something that has nothing to do with Blender.
 - **Steps:**
   - She asks about something else, such as a recipe.
   - The construct answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
-- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Her next Blender question is answered as usual, with its manual links.
+- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to consult the Journal or advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. Relevant quest information still follows the Journal rules. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
 
@@ -336,7 +337,7 @@ The quest's construct checks in on her, on the schedule she chose.
 - **Steps:**
   - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. A check-in opening has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -384,7 +385,7 @@ The user wants a different voice for the same quest.
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She starts a new adventure in the same quest and picks a different construct.
-  - The new construct already knows the quest's goals and progress from its Journal: the adventure opens with its synopsis of them.
+  - The new construct already knows the quest's goals and progress from its Journal: the adventure uses its prepared opening when the construct and activity have one; otherwise the generated opening gives a synopsis of the Journal.
 - **Outcome:** the quest lists the new adventure with the new construct, and the earlier adventures with their own constructs. Each earlier adventure still shows its original construct when opened. Asked what comes next, the new construct names the same milestone that the quest's Journal gives.
 - **Next:**
   - `use_case_ask_blender_question`: hear the new construct explain something.
@@ -506,3 +507,12 @@ The user recognizes the adventure's construct while reading and waiting for repl
   - They send a message, then finish, stop or encounter an error during the reply.
   - They revisit the adventure on a narrow phone or with reduced motion enabled.
 - **Outcome:** each construct message has a circular portrait beside its visible name; user messages have none. The first saved message has a larger opening illustration only if it is a construct message. Later turns and refreshes add no illustrations or generation calls. Artwork comes from the saved snapshot, never a name or id guess; missing artwork shows initials. Lumen gently glows and Vellum has a subtle working motion only during thinking or writing. Finished, stopped and failed replies settle. Reduced motion keeps artwork static, with readable thinking/writing text and busy state. The conversation fits at 320px without indenting reply text for portraits.
+
+## use_case_stop_reply
+
+The user stops a reply that is still running.
+
+- **Prerequisites:** signed in, with current access to the adventure.
+- **Steps:** choose Stop reply and wait for the server to confirm it.
+- **Outcome:** the server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Gold charged for use is not refunded.
+- **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

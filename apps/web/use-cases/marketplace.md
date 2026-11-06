@@ -33,9 +33,16 @@ The user gets their own copy of another user's listing, paying its price in gold
 - **Prerequisites:** `use_case_browse_marketplace`.
 - **Steps:**
   - On a listing's page, they buy it for its price, or get it for free.
-- **Outcome:** their gold goes down by the price and the seller's goes up by it, and the site opens their own copy, named as the listing, where they see its prompt and metadata. The copy is their own editable construct, activity or spell: they can choose it in adventures, tweak, rename, clone and delete it, and it can't be sold. With less gold than the price, nothing changes and the page says how much they need and how much they have, with a link to earning gold in the Marketplace. If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. Buying twice at once charges once. Once they have a copy, the listing's page links to it instead of offering it again; after they delete it, buying again charges again. They can't buy their own listing.
+- **Outcome:** their gold goes down by the price and the seller's goes up by it. The site opens their own copy, named as the listing, where they see its prompt and metadata. They can choose it in adventures, tweak, rename, clone and retire it; it cannot be sold. Buying twice at once charges once. The listing links to an existing copy instead of offering it again.
+- **Variations:**
+  - Retiring preserves the copy. The listing opens its read-only Retirement page without charging again; Restore makes that same copy available for no gold. Only after retiring can they choose Delete forever and confirm permanent deletion. Deletion gives no refund; buying again afterwards charges again.
+  - With less gold than the price, nothing changes. The page says how much they need and have, with a link to earning gold in the Marketplace.
+  - If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. They cannot buy their own listing.
 - **Next:**
   - [`use_case_customize_construct`](constructs.md#use_case_customize_construct): make their copy their own.
+  - [`use_case_retire_definitions`](retirement.md#use_case_retire_definitions): put the copy aside.
+  - [`use_case_restore_retired_definition`](retirement.md#use_case_restore_retired_definition): use a retired copy again without buying it.
+  - [`use_case_delete_retired_definition`](retirement.md#use_case_delete_retired_definition): permanently remove a retired copy.
 
 ## use_case_manage_listings
 
@@ -46,6 +53,9 @@ The seller sees how their listings do, updates one, and unlists one.
   - On the Marketplace page, under Your listings, they see each of their listings.
   - They change the prompt the listing came from, then update the listing from its page, with a new description or price.
   - They unlist a listing.
-- **Outcome:** each of their listings shows whether it is listed, how many users bought it, counting one who got it again once, and the gold it earned. Listing one again after unlisting it puts it back at the top of the Marketplace, with its last description and price filled in to sell. Until they update a listing, changes to its prompt don't reach it; updating republishes the prompt's current name, prompt and metadata, with the new terms. An unlisted listing can't be bought and isn't shown to anyone else; its buyers keep their copies. Deleting the prompt doesn't unlist the listing: its page tells them, and offers only unlisting. Another user can't update or unlist their listings.
+- **Outcome:** each listing shows whether it is listed, how many users bought it, counting a user who bought it again only once, and the gold it earned. Relisting puts it back at the top of the Marketplace, with its last description and price filled in. Source edits reach a listing only when the seller updates it, republishing its current name, prompt and metadata with the new terms. An unlisted listing cannot be bought and is hidden from others; buyers keep their copies. Another user cannot update or unlist their listings.
+- **Variations:**
+  - Retiring the source keeps its listing available to buyers. The seller must restore the source before updating or listing it again.
+  - Deleting the source forever does not unlist the listing. Its page explains that the source is gone and offers only unlisting.
 - **Next:**
   - `use_case_browse_marketplace`: see their listing as others do.

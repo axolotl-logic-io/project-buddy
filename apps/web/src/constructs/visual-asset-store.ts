@@ -8,10 +8,11 @@ import {
 } from "@/accounts/owner-scope.ts";
 import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
+  CONSTRUCT_VISUAL,
   VISUAL_DESTINATION,
   type VisualDestination,
 } from "@/constructs/visual.ts";
-import { getDb, type Transaction } from "@/db/client.ts";
+import { type Database, getDb, type Transaction } from "@/db/client.ts";
 import {
   constructAssetGrants,
   constructAssets,
@@ -158,11 +159,57 @@ async function grantVisualAssets(
       )
       .onConflictDoNothing();
   }
+  const retainedIds = [...ids];
+  if (destination.kind === "construct") {
+    const [source] = await tx
+      .select({ previous: ownPrompts.previousVisual })
+      .from(ownPrompts)
+      .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, destination.id)));
+    const previous = CONSTRUCT_VISUAL.safeParse(source?.previous).data;
+    retainedIds.push(...visualAssetIds({ prompt: "", visual: previous }));
+  }
   const predicates = [destinationGrant(destination)];
-  if (ids.length > 0) {
-    predicates.push(notInArray(constructAssetGrants.assetId, ids));
+  if (retainedIds.length > 0) {
+    predicates.push(notInArray(constructAssetGrants.assetId, retainedIds));
   }
   await tx.delete(constructAssetGrants).where(and(...predicates));
+}
+
+// A recovery entry is usable only while its own destination still holds the
+// bytes. An older build may have released those grants during rollback.
+async function previousVisualAvailable(
+  owner: UserId,
+  constructId: string,
+  stored: unknown,
+  db: Database | Transaction = getDb(),
+): Promise<boolean> {
+  const previous = CONSTRUCT_VISUAL.safeParse(stored).data;
+  if (
+    previous === undefined ||
+    (previous.canonical === undefined && previous.working === undefined)
+  ) {
+    return false;
+  }
+  const ids = visualAssetIds({ prompt: "", visual: previous });
+  if (ids.length === 0) {
+    return true;
+  }
+  const granted = await db
+    .select({ id: constructAssets.id })
+    .from(constructAssetGrants)
+    .innerJoin(
+      constructAssets,
+      eq(constructAssets.id, constructAssetGrants.assetId),
+    )
+    .innerJoin(ownPrompts, eq(ownPrompts.id, constructAssetGrants.constructId))
+    .where(
+      and(
+        ownPromptOwnedBy(owner),
+        eq(constructAssetGrants.constructId, constructId),
+        inArray(constructAssets.id, ids),
+      ),
+    );
+  return ids.every((id) => granted.some((asset) => asset.id === id));
 }
 
 async function getVisualAsset(
@@ -228,4 +275,10 @@ async function getVisualAsset(
   return { mediaType: asset.mediaType, data: asset.data };
 }
 
-export { destinationGrant, getVisualAsset, grantVisualAssets, visualAssetIds };
+export {
+  destinationGrant,
+  getVisualAsset,
+  grantVisualAssets,
+  previousVisualAvailable,
+  visualAssetIds,
+};

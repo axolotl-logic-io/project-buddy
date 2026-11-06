@@ -95,8 +95,10 @@ function AtlasTrails(): JSX.Element {
 // remain in the first HTML, and reflow into large rows on narrow screens.
 function HomeAtlas({
   latestQuest,
+  firstVisit = false,
 }: {
   readonly latestQuest: TodayProject | undefined;
+  readonly firstVisit?: boolean;
 }): JSX.Element {
   const placesId = useId();
   const atlasRef = useRef<HTMLDivElement>(null);
@@ -121,6 +123,9 @@ function HomeAtlas({
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
+          {firstVisit === true && (
+            <p className="atlas-introduction">{HOME_COPY.purpose}</p>
+          )}
           <p className="atlas-introduction">
             {HOME_COPY.introduction}{" "}
             <Link className="atlas-inline-link" href="/activities">

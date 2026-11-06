@@ -14,6 +14,7 @@ import {
   type StatusActionState,
   type StatusApproval,
 } from "@/projects/quest-status.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -250,4 +251,17 @@ describe("quest status on phones", () => {
       });
     }
   }
+});
+
+test("no quests gives first-quest guidance while an empty status tab keeps filter guidance", async () => {
+  const screen = await render(<QuestStatusTabs projects={[]} />);
+  await expect.element(page.getByText(PROJECTS_COPY.none)).toBeVisible();
+  await screen.unmount();
+  await render(
+    <QuestStatusTabs projects={[FOX_PROJECT]} initialStatus="completed" />,
+  );
+  await expect.element(page.getByText(QUEST_STATUS_COPY.empty)).toBeVisible();
+  await expect
+    .element(page.getByText(PROJECTS_COPY.none))
+    .not.toBeInTheDocument();
 });

@@ -16,6 +16,7 @@ import {
 } from "@/constructs/default-prompt.ts";
 import { isConstructId } from "@/constructs/index.ts";
 import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
+import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 
@@ -30,6 +31,8 @@ const VISUAL_DESCRIPTION_MAX = 4000;
 const SAVE_CONSTRUCT_FORM = z.object({
   constructId: z.string(),
   name: z.string().trim().min(1),
+  visualRequestId: z.uuid().optional(),
+  generateImages: z.literal("true").optional(),
   visualDescription: z.string().trim().max(VISUAL_DESCRIPTION_MAX).optional(),
 });
 
@@ -85,10 +88,22 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
     prompt: parts.data.prompt,
     visualDescription: form.data.visualDescription,
   });
-  if (saved !== "saved") {
+  if (saved.kind !== "saved") {
     notFound();
   }
-  return constructPage(constructId);
+  const { description } = saved;
+  if (
+    (saved.visualChanged || form.data.generateImages === "true") &&
+    description !== undefined &&
+    description !== ""
+  ) {
+    await generateConstructVisual(user.id, {
+      constructId,
+      requestId: form.data.visualRequestId ?? crypto.randomUUID(),
+      description,
+    });
+  }
+  return redirect(`/constructs/${constructId}?saved=1`);
 }
 
 export async function resetConstructPromptAction(
@@ -107,7 +122,7 @@ export async function resetConstructPromptAction(
   const reset = await editConstructMetadata(user.id, construct.id, {
     prompt: constructResetPrompt(construct.clonedFrom).prompt,
   });
-  if (reset !== "saved") {
+  if (reset.kind !== "saved") {
     notFound();
   }
   revalidatePath(`/constructs/${construct.id}`);

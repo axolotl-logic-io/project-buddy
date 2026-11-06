@@ -9,6 +9,7 @@ import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
+import type { ReplyCost } from "@/replies/reply-accounting.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure or a reply that stopped before it was
@@ -20,6 +21,8 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // viewer's own.
 export function ChatThread({
   construct,
+  goldBalance,
+  replyCosts,
   chatId,
   openingMessageId,
   authorNames,
@@ -27,6 +30,8 @@ export function ChatThread({
   replyStopped,
   onRetry,
 }: {
+  goldBalance?: number | undefined;
+  replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
   construct: ConstructSnapshot;
   chatId: ChatId;
   openingMessageId?: string | undefined;
@@ -50,9 +55,18 @@ export function ChatThread({
         activityAllowed={error === undefined && replyStopped !== true}
         authorName={authorNames.get(message.id)}
         role={message.role}
+        cost={replyCosts?.get(message.id)}
       />
     ),
-    [construct, chatId, openingMessageId, error, replyStopped, authorNames],
+    [
+      construct,
+      chatId,
+      openingMessageId,
+      error,
+      replyStopped,
+      authorNames,
+      replyCosts,
+    ],
   );
 
   return (
@@ -80,6 +94,10 @@ export function ChatThread({
           />
         )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
+          <p className="text-muted text-xs">
+            {goldBalance === undefined && CHAT_COPY.balanceUnknown}
+            {goldBalance !== undefined && CHAT_COPY.balance(goldBalance)}
+          </p>
           <ChatComposer inputRef={inputRef} />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>

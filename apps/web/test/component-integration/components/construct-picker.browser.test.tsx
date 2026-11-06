@@ -129,6 +129,6 @@ test("own choices use their saved art without guessing from their name", async (
   );
   await expect.element(page.getByText("Lumen", { exact: true })).toBeVisible();
   await expect
-    .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.sample))
+    .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.own.sample))
     .toBeVisible();
 });

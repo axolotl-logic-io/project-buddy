@@ -44,7 +44,7 @@ construct unchanged.
 
 A standalone conversation has no Journal and no [progress timeline](progress-timeline.md), so it
 can't record milestones. Its construct can search and cite the Blender manual, change
-the adventure's activity, and create a quest when the user asks; that does not
+the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
 move the standalone conversation into the quest. The new quest's
 first adventure opens in Project Breakdown through the link the adventure shows.
 
@@ -348,7 +348,7 @@ When an unsent message included images, returning to the adventure shows a remin
 
 New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **New quest construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the adventure.
 
-New adventure and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the construct picker is hidden for a new quest. Other adventures retain their construct picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference used by the dedicated New quest form. Quests created by a construct from an existing adventure keep that adventure's construct.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
@@ -377,3 +377,11 @@ portrait. Reduced motion keeps portraits static. Readable thinking/writing
 status and the message's busy state remain available independently of motion.
 `construct-presence.browser.test.tsx` covers this behavior with fake streams
 under `use_case_construct_presence`.
+
+Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.
+
+## Reply control and gold
+
+Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
+
+The composer shows the acting user's gold balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.

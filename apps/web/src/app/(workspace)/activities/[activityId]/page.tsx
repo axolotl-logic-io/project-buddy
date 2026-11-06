@@ -17,6 +17,7 @@ import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
@@ -26,7 +27,7 @@ import {
   ACTIVITY_DEFINITION_COPY,
 } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import { pageTitle } from "@/ui/copy/site.ts";
 import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInActivityAction, saveActivityAction } from "../actions.ts";
 import { RetireActivityForm } from "../retire-activity-form.tsx";
@@ -44,7 +45,7 @@ function ActivityHeading({
     <>
       <BackLink href="/activities">{ACTIVITY_COPY.activitiesLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h2 className="section-heading">{name}</h2>
+        <h1 className="page-heading wrap-anywhere">{name}</h1>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -143,12 +144,26 @@ function OwnActivityForm({
   );
 }
 
-export const metadata: Metadata = { title: WORKSHOP_COPY.title };
+export async function generateMetadata({
+  params,
+}: PageProps<"/activities/[activityId]">): Promise<Metadata> {
+  const { activityId } = await params;
+  const user = await requireUser();
+  let name: string | undefined;
+  if (isActivityId(activityId)) {
+    ({ name } = getActivity(activityId));
+  } else {
+    name = (await getOwnActivity(user.id, activityId))?.name;
+  }
+  return { title: pageTitle(name ?? "Activity") };
+}
 
 export default async function ActivityPage({
   params,
+  searchParams,
 }: PageProps<"/activities/[activityId]">): Promise<JSX.Element> {
   const { activityId } = await params;
+  const { saved } = await searchParams;
   const user = await requireUser();
   const options = await workshopOptions(user.id);
   if (isActivityId(activityId)) {
@@ -193,6 +208,7 @@ export default async function ActivityPage({
         openingRequest: activity.definition.openingRequest,
       }}
     >
+      <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnActivityForm viewer={user.id} activity={activity} sale={sale} />
     </Workshop>
   );

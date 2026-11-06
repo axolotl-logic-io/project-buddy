@@ -5,7 +5,7 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock model.
+- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude against it. Automated tests use mocks; paid manual checking requires explicit authorization and an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock model.
 - When `VERCEL_ENV=production`, the app refuses `CONSTRUCT_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `CONSTRUCT_MODEL` unset or set it to `claude` in production. The earlier name, `BUDDY_MODEL`, is still read when `CONSTRUCT_MODEL` is unset, so an environment set before the rename keeps working; rename it there when convenient. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
@@ -94,7 +94,7 @@ Each release's smoke test should record `cacheRead` and `cacheWrite` for an edit
 
 ## Image generation
 
-Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Generation is unavailable when the key is missing; text chat still works. Do not test with paid model calls or the shared database. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.
+Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Generation is unavailable when the key is missing; text chat still works. Automated tests use fake providers and never the shared database. Explicitly authorized paid manual checks use an isolated local database and separate provider-only credentials. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.
 
 ## Chat image attachments
 

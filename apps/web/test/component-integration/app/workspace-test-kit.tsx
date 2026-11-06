@@ -1,5 +1,12 @@
 import type { JSX } from "react";
+import { vi } from "vitest";
+
 import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
+
+vi.mock(
+  "@/components/refresh-preferences.tsx",
+  () => import("./refresh-preferences-test-kit.ts"),
+);
 
 function inWorkspace(content: JSX.Element): JSX.Element {
   return (

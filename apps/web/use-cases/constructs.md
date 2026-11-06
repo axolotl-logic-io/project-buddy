@@ -10,7 +10,7 @@ The user looks over the Constructs page: the built-in constructs, and her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She goes to the Constructs, by the header's Constructs link on any signed-in page, or by an old link to the Constructs page.
+  - She goes to the Constructs, by the menu's Constructs link on any signed-in page, or by an old link to the Constructs page.
   - The site explains that her constructs are constructs, then lists the built-in constructs, then hers.
 - **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Constructs or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens the New adventure modal with that construct fixed and no construct picker. The user chooses an activity and no quest or an existing quest, then starts the adventure. Closing the modal creates nothing and returns focus to the construct's name. A new quest keeps the selected construct and activity. Another user's constructs are never listed.
 - **Next:**
@@ -41,11 +41,11 @@ The user writes a construct of her own from scratch, without starting from one s
 
 - **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - In the Constructs page, she chooses New construct. The site makes a new construct of hers and opens its page to edit.
+  - In the Constructs page, she chooses Write new construct. The site makes a new construct of hers and opens its page to edit.
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts an adventure with the construct.
   - Back in the Constructs, she clones it.
-- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing New construct again makes another construct named "New construct". Another user never sees it.
+- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing Write new construct again makes another construct named "New construct". Another user never sees it.
 - **Next:**
   - `use_case_edit_construct`: change it again.
   - `use_case_view_constructs`: look over the Constructs page again.
@@ -54,11 +54,11 @@ The user writes a construct of her own from scratch, without starting from one s
 
 The user changes one of her constructs: its name and prompt.
 
-- **Prerequisites:** `use_case_customize_construct` or `use_case_new_construct`.
+- **Prerequisites:** an own construct, made through `use_case_customize_construct` or `use_case_new_construct`.
 - **Steps:**
   - She opens her construct's page from the Constructs page.
   - The page shows its name and one prompt editor. Voice describes how it talks, and habits describe how it works with her; they can be headings in the prompt.
-  - She edits the name, prompt and separate Visual description, and saves. Leaving and returning restores unsaved description changes; Discard changes restores the saved fields.
+  - She edits the name, prompt and separate Visual description, and saves. Leaving and returning restores unsaved field changes in the same browser; Discard changes restores the saved fields. A blank name is refused beside the field and keeps the draft. A saved Visual description with artwork cannot be cleared.
   - She saves a prompt that says `{{name}}`, then adventures in the construct.
 - **Outcome:** the page shows the construct with her changes, and the Constructs lists it by its new name. Adventures started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her adventure's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's Journal, are the same for every construct, and no construct changes them.
 - **Variations:**
@@ -98,12 +98,14 @@ The user generates images for an own construct in the Workshop.
 
 - **Prerequisites:** `use_case_edit_construct`.
 - **Steps:**
-  - The user saves a Visual description. Unsaved name, prompt or description edits disable Generate Images with a save-first explanation.
-  - The page shows the current gold reservation and whether generation is available.
-  - The user chooses Generate Images. Avatar, portrait, opening and working previews show each role’s state.
+  - The user edits a Visual description. Save stores current edits and generates replacement images only when that normalized description differs from the saved one. Generate Images intentionally regenerates from the current description even when unchanged.
+  - The Save and generate images action explains the paid replacement and current gold reservation before submission, including at 320 px and through its accessible description. When the description is unchanged, edited then restored, or absent, the action is Save and requests no generation; name and prompt edits preserve artwork and spend no generation gold. The Visuals section also shows whether generation is available.
+  - While generation runs, a spinner and accessible loading status are visible; repeated generation and description-changing saves are disabled, while text-only saves remain available without replacing the unresolved UUID. Avatar, portrait, opening and working previews show each role’s state.
   - While a request is pending, the user can check its status or reload without starting another paid request.
-- **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Changed descriptions or prompts mark saved generated art outdated.
+- **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Only changed descriptions mark newly generated art outdated. Name and prompt edits do not stale artwork or discard a valid pending completion. The provider receives exactly the normalized description, without conversational text, name, reference bytes or extra creative instructions. Legacy artwork without an accessible generation-description record shows unknown freshness rather than a prompt-based stale warning.
 - **Variations:** unavailable generation, lack of gold, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. If the service confirms that the original request never started, the user can explicitly resume the same UUID and payload; an inaccessible construct cannot be resumed. Retry after a confirmed terminal failure uses a new UUID and may spend gold. Built-ins offer Customize instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
+
+After a successful replacement, Restore previous artwork restores one previous image identity and its saved Visual description without a model call or gold charge. Save or discard other edits first. Missing previous artwork offers no restore. A further successful generation replaces the recovery slot. Adventure, listing and bought-copy snapshots remain immutable; cleanup releases bytes only after their final grant is gone.
 
 ## use_case_view_character_profile
 

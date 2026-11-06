@@ -9,7 +9,13 @@ import { getDb, inTransaction } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { adjustGold, lockGold, reserveGold } from "@/gold/gold-store.ts";
+import { goldOfMicroUsd, wholeGold } from "@/gold/gold.ts";
+import {
+  adjustGold,
+  lockGold,
+  readGoldBalance,
+  reserveGold,
+} from "@/gold/gold-store.ts";
 import { CHAT_ID, type UserId } from "@/ids.ts";
 import type { GenerationClaim, GenerationRequest } from "@/images/generate.ts";
 import {
@@ -67,10 +73,15 @@ async function claimGeneration(
         }
         return { status: row.status };
       }
+      const available = await readGoldBalance(request.owner, tx);
       if (
         !(await reserveGold(request.owner, IMAGE_RESERVATION_MICRO_USD, tx))
       ) {
-        return { status: "outOfGold" };
+        return {
+          status: "outOfGold",
+          requiredGold: goldOfMicroUsd(IMAGE_RESERVATION_MICRO_USD),
+          availableGold: wholeGold(available),
+        };
       }
       const [created] = await tx
         .insert(imageGenerations)

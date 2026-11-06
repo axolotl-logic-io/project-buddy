@@ -27,7 +27,7 @@ The user starts a quest for something she wants to make or learn.
 - **Steps:**
   - She chooses New quest on her quests page and gives the quest a name. She can also give her motivation: why she wants to complete it. There is no construct picker; Settings chooses the new quest construct, with Vellum as the default.
   - The site creates the quest and opens its first adventure, in Project Breakdown. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
-- **Outcome:** the quest is first in her quests list, under the name she gave it. Its first adventure is listed in the quest with Vellum, and the adventure shows Vellum's name. The adventure already holds the construct's first question, in Vellum's voice, before she has written anything.
+- **Outcome:** the quest is first in her quests list, under the name she gave it. Its first adventure is listed with the New quest construct saved in Settings, or Vellum by default, and shows that construct's name. The adventure already holds its opening in the chosen construct's voice before she has written anything.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans from the adventure.
   - `use_case_new_project_without_name`: she forgets to name it.
@@ -55,7 +55,7 @@ The user starts a quest from the new-adventure form, on the new adventure page o
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses any activity and construct, then "New quest". Changing the activity keeps "New quest" selected; changing the quest keeps the activity and construct.
-  - She chooses Start adventure. A dialog asks for the new quest's name and optional motivation. The construct picker is hidden for a new quest. Cancel closes it and leaves the form as it was.
+  - She chooses Start adventure. A dialog asks for the new quest's name and optional motivation. The form keeps its selected construct for a new quest; the Settings preference does not replace this choice. Cancel closes the name dialog and leaves the form as it was.
   - She types a name and chooses Start quest.
 - **Outcome:** the site creates the quest and opens its first adventure, in the selected activity and construct. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no quest is made. If Claude is unavailable, the form keeps her choices and the name and motivation she typed.
 - **Next:**
@@ -90,7 +90,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 This legacy case applies only to preserved Quest interview adventures. New quests can start in any activity. In an existing interview adventure, the construct interviews the user while the Journal doesn't yet hold her goal, what she already knows, what the result is for and a path of milestones.
 
-- **Prerequisites:** `use_case_new_project`.
+- **Prerequisites:** a preserved Quest interview adventure from before new quests switched to Project Breakdown.
 - **Steps:**
   - In the interview adventure, the construct asks about three things, one question at a time: her goal (what she wants to make or learn), what she already knows about it, and what the result is for.
   - She answers in her own words, and the construct asks a follow-up question where something is unclear.
@@ -107,7 +107,7 @@ This legacy case applies only to preserved Quest interview adventures. New quest
 
 The user picks up a preserved interview adventure she left partway. New adventures do not offer Quest interview.
 
-- **Prerequisites:** `use_case_new_project`, then she answers some of the construct's questions, and the construct saves each answer (`use_case_project_interview`), and she leaves the interview adventure before the interview is done.
+- **Prerequisites:** a preserved Quest interview adventure, then she answers some of the construct's questions, and the construct saves each answer (`use_case_project_interview`), and she leaves the interview adventure before the interview is done.
 - **Steps:**
   - She opens the quest ([`use_case_open_project`](#use_case_open_project)) and follows its link to the quest's interview.
   - The interview adventure opens as she left it, with everything she and the construct said.

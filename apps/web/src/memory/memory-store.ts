@@ -79,6 +79,7 @@ const MEMORY_ROW = z.object({
 // A version as the history reads it, with the person who saved it.
 const MEMORY_VERSION_ROW = MEMORY_ROW.extend({
   author: STORED_MEMORY_AUTHOR,
+  restoredFromVersion: MEMORY_VERSION_NUMBER.nullable(),
   createdAt: z.date(),
   saverId: z.string().nullable(),
   saverName: z.string().nullable(),
@@ -145,6 +146,7 @@ function toMemoryVersions(
         text,
         author,
         savedBy: saverOf(viewer, parsed.data),
+        restoredFromVersion: parsed.data.restoredFromVersion ?? undefined,
         createdAt,
       },
     ];
@@ -209,6 +211,7 @@ function readMemoryHistory(
           version: memoryVersions.version,
           text: memoryVersions.text,
           author: memoryVersions.author,
+          restoredFromVersion: memoryVersions.restoredFromVersion,
           createdAt: memoryVersions.createdAt,
           saverId: memoryVersions.userId,
           saverName: users.name,
