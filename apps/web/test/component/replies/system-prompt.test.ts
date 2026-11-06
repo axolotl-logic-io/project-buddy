@@ -103,3 +103,11 @@ test("unrelated requests take precedence in a quest Brainstorming adventure with
   expect(prompt).toContain("Next step: Assemble the roof.");
   expect(prompt).toContain("# Activity: Brainstorming");
 });
+
+test("shared instructions prohibit assumed pronouns and free-reply claims", () => {
+  const prompt = contents(CONTEXT).join("\n");
+  expect(prompt).toContain(
+    "Do not infer a person’s gender or pronouns from their name",
+  );
+  expect(prompt).toContain("further replies are not free");
+});

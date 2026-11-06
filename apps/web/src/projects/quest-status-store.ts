@@ -1,4 +1,4 @@
-import { and, eq, exists, sql } from "drizzle-orm";
+import { and, desc, eq, exists, sql } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { chats, projects } from "@/db/tables/projects-and-chats.ts";
@@ -8,6 +8,7 @@ import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import {
   type QuestStatus,
   STATUS_APPROVAL,
+  STATUS_APPROVAL_ID,
   type StatusApproval,
   type StatusApprovalId,
   type StatusChange,
@@ -152,6 +153,36 @@ async function readStatusApproval(
   return STATUS_APPROVAL.parse({ ...row.approval, name: row.name, decision });
 }
 
+// The requesting owner's latest card in this adventure, with its live decision.
+// Members and foreign users cannot read proposal context through this path.
+async function readLatestStatusApproval(
+  user: UserId,
+  chatId: ChatId,
+): Promise<StatusApproval | undefined> {
+  const [row] = await withAppErrors("read latest status approval", () =>
+    getDb()
+      .select({ id: questStatusApprovals.id })
+      .from(questStatusApprovals)
+      .innerJoin(projects, eq(questStatusApprovals.projectId, projects.id))
+      .where(
+        and(
+          projectOwnedBy(user),
+          eq(questStatusApprovals.userId, user),
+          eq(questStatusApprovals.chatId, chatId),
+        ),
+      )
+      .orderBy(
+        desc(questStatusApprovals.createdAt),
+        desc(questStatusApprovals.id),
+      )
+      .limit(1),
+  );
+  if (row === undefined) {
+    return undefined;
+  }
+  return readStatusApproval(user, STATUS_APPROVAL_ID.parse(row.id));
+}
+
 // Approval is a separate authenticated user action, with no model-supplied
 // status or consent flag. It consumes the exact saved proposal once.
 function answerStatusApproval(
@@ -230,6 +261,7 @@ function answerStatusApproval(
 export {
   answerStatusApproval,
   changeQuestStatus,
+  readLatestStatusApproval,
   readStatusApproval,
   requestQuestStatus,
 };

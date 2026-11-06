@@ -336,7 +336,7 @@ The quest's construct checks in on her, on the schedule she chose.
 - **Steps:**
   - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. A check-in opening has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -384,7 +384,7 @@ The user wants a different voice for the same quest.
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She starts a new adventure in the same quest and picks a different construct.
-  - The new construct already knows the quest's goals and progress from its Journal: the adventure opens with its synopsis of them.
+  - The new construct already knows the quest's goals and progress from its Journal: the adventure uses its prepared opening when the construct and activity have one; otherwise the generated opening gives a synopsis of the Journal.
 - **Outcome:** the quest lists the new adventure with the new construct, and the earlier adventures with their own constructs. Each earlier adventure still shows its original construct when opened. Asked what comes next, the new construct names the same milestone that the quest's Journal gives.
 - **Next:**
   - `use_case_ask_blender_question`: hear the new construct explain something.

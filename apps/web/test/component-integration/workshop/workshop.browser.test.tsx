@@ -5,6 +5,7 @@ import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { userMessage } from "@/errors/app-error.ts";
+import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -168,7 +169,16 @@ test("gold failures preserve the test message for retry", async () => {
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
   await expect
     .element(page.getByRole("alert"))
-    .toHaveTextContent(userMessage("out-of-gold"));
+    .toHaveTextContent(
+      `${userMessage("out-of-gold")} ${MARKETPLACE_COPY.earnGold}`,
+    );
+  await expect
+    .element(
+      page
+        .getByRole("alert")
+        .getByRole("link", { name: MARKETPLACE_COPY.earnGold }),
+    )
+    .toHaveAttribute("href", "/marketplace#your-listings");
   await expect
     .element(message())
     .toHaveValue(WORKSHOP_COPY.examples[0].message);

@@ -43,6 +43,7 @@ vi.mock("@/images/image-provider.ts", async (original) => ({
 
 const PROMPT = "A blue bird in a forest";
 const PNG = Buffer.from(pngBytes());
+const SPENT_BELOW_IMAGE_RESERVATION = 800_000;
 const COST = 8000;
 // The starting 100 gold, in micro-USD.
 const STARTING_BALANCE = 1_000_000;
@@ -247,4 +248,32 @@ describe("generated images", () => {
       rows.length,
     );
   });
+});
+
+test("an image reservation refusal reports the acting user's 20 gold against the 25 required without spending or calling the provider", async () => {
+  const { user, chat } = await setup();
+  await spendGold(user, SPENT_BELOW_IMAGE_RESERVATION);
+  const generate = vi.fn().mockResolvedValue(FAKE_IMAGE);
+  const result = await generateForChat(
+    {
+      owner: user.id,
+      chatId: chat.id,
+      requestId: crypto.randomUUID(),
+      prompt: PROMPT,
+    },
+    {
+      provider: { generate },
+      claim: claimGeneration,
+      complete: completeGeneration,
+      fail: failGeneration,
+    },
+  );
+  expect(result).toEqual({
+    status: "outOfGold",
+    requiredGold: 25,
+    availableGold: 20,
+  });
+  expect(generate).not.toHaveBeenCalled();
+  expect(await goldSpent(user)).toBe(SPENT_BELOW_IMAGE_RESERVATION);
+  expect(await listGeneratedImages(user.id)).toEqual([]);
 });

@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import {
   type PromptDraft,
@@ -56,6 +57,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   const [run, setRun] = useState<TestRun>();
   const [pending, setPending] = useState<boolean>(false);
   const [cancelled, setCancelled] = useState<boolean>(false);
+  const [outOfGold, setOutOfGold] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const controllerRef = useRef<AbortController | undefined>(undefined);
   const versionRef = useRef(0);
@@ -150,6 +152,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
       controllerRef.current = abort;
       setPending(true);
       setCancelled(false);
+      setOutOfGold(false);
       setError(undefined);
       try {
         const response = await fetch("/api/workshop", {
@@ -168,7 +171,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
           }),
         });
         if (!response.ok) {
-          throw new Error(userMessage(readAppErrorCase(await response.text())));
+          const errorCase = readAppErrorCase(await response.text());
+          setOutOfGold(errorCase === "out-of-gold");
+          throw new Error(userMessage(errorCase));
         }
         const parsed = WORKSHOP_RESULT.safeParse(await response.json());
         if (!parsed.success) {
@@ -355,7 +360,12 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
           {pending === true && (
             <p className="text-muted text-sm">{WORKSHOP_COPY.cancelHint}</p>
           )}
-          {error !== undefined && <Alert>{error}</Alert>}
+          {error !== undefined && (
+            <Alert>
+              {error}
+              {outOfGold === true && <EarnGoldLink />}
+            </Alert>
+          )}
           <TextAreaField
             label={WORKSHOP_COPY.message}
             value={message}

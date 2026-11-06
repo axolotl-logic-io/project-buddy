@@ -35,7 +35,7 @@ The user signs in with a link the site emails her, on this device or another.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:**
-  - On the sign-in page she enters her email address. The page asks only for that, with a link to the sign-up page.
+  - On the sign-in page she enters her email address. The page asks only for that, with guidance to open the setup link in her invitation email and an Invitation help link.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.

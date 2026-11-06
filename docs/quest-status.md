@@ -15,3 +15,5 @@ Only an authenticated action by the requesting quest owner can approve the saved
 ## Migration
 
 Migration 0039 adds defaulted status and revision columns to quests and a separate approval table. Existing quests become Active. It is additive and works alongside the earlier build. During the interval when the earlier build is live, that build does not expose status controls.
+
+Reply instructions include the requesting owner’s latest proposal decision in that adventure, read from storage. Pending, declined, approved and outdated states supersede the original tool output; terminal cards cannot be confirmed again. Reading this context changes no status and gives no approval. Other users receive no owner-only proposal context.

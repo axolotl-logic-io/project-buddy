@@ -5,7 +5,7 @@ import type {
   PendingAttachment,
 } from "@assistant-ui/react";
 import { z } from "zod";
-import { AppError, readAppErrorCase, userMessage } from "@/errors/app-error.ts";
+import { AppError, readAppErrorCase } from "@/errors/app-error.ts";
 import type { ChatId } from "@/ids.ts";
 import {
   IMAGE_FILE_PART,
@@ -14,6 +14,8 @@ import {
   MAX_MESSAGE_IMAGES,
 } from "@/images/image-contract.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
+
+const BYTES_PER_MIB = 1_048_576;
 
 // Uploads before send: a failed upload stays in the composer, alongside its
 // text, with a removable error. A complete upload is a private reference.
@@ -35,17 +37,25 @@ function imageAttachmentAdapter(chatId: ChatId): AttachmentAdapter {
         file,
         status: { type: "requires-action", reason: "composer-send" },
       };
-      if (
-        pending.size >= MAX_MESSAGE_IMAGES ||
-        file.size > MAX_IMAGE_BYTES ||
-        !IMAGE_MEDIA_TYPE.safeParse(file.type).success
-      ) {
+      let validationMessage: string | undefined;
+      if (pending.size >= MAX_MESSAGE_IMAGES) {
+        validationMessage = IMAGE_COPY.tooMany(MAX_MESSAGE_IMAGES);
+      } else if (file.size > MAX_IMAGE_BYTES) {
+        validationMessage = IMAGE_COPY.tooLarge(
+          file.name,
+          file.size / BYTES_PER_MIB,
+          MAX_IMAGE_BYTES / BYTES_PER_MIB,
+        );
+      } else if (!IMAGE_MEDIA_TYPE.safeParse(file.type).success) {
+        validationMessage = IMAGE_COPY.unsupportedType(file.name);
+      }
+      if (validationMessage !== undefined) {
         yield {
           ...attachment,
           status: {
             type: "incomplete",
             reason: "error",
-            message: userMessage("invalid-image"),
+            message: validationMessage,
           },
         };
         return;
@@ -88,6 +98,9 @@ function imageAttachmentAdapter(chatId: ChatId): AttachmentAdapter {
         let message = IMAGE_COPY.uploadFailed;
         if (error instanceof AppError) {
           ({ message } = error);
+          if (error.errorCase === "invalid-image") {
+            message = IMAGE_COPY.invalidContents;
+          }
         }
         yield {
           ...attachment,

@@ -11,7 +11,7 @@ The user asks their construct to create an image in a standalone or quest advent
   - The adventure announces that generation is working, then shows the image, its prompt, a full-image link and a download link.
   - The user reloads the adventure and downloads the saved result.
 - **Outcome:** the result persists in the adventure and gallery. The quest owner and current team members can read its bytes and metadata through the adventure. Users without adventure access cannot. The generation sets aside 25 gold of the acting user's balance before calling the provider, then replaces the reservation with the reported cost. Text adventures spend the same balance.
-- **Variations:** missing credentials make generation unavailable without charging. Too little gold refuses generation before the provider call, saying so. Provider or storage failures show a useful error; uncertain billing retains the reservation. Reopening the adventure does not generate or charge again. An interrupted request does not restart automatically.
+- **Variations:** missing credentials make generation unavailable without charging. Too little gold refuses generation before the provider call, showing the required reservation and the whole gold available for that request. This does not imply a zero balance or free replies. Provider or storage failures show a useful error; uncertain billing retains the reservation. Reopening the adventure does not generate or charge again. An interrupted request does not restart automatically.
 
 ## use_case_image_gallery
 
