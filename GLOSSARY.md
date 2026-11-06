@@ -157,6 +157,12 @@ The construct chooses from the acting user's built-in and own activities.
 - **UI:** "Activity", "Activities".
 - **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
 
+### Find something to make
+
+A built-in activity for discovering a small achievable creative project, even when the user has no idea or inspiration source yet. It supports uncertainty and challenges as the user makes their project. It works in a standalone adventure or a quest adventure. Its stable id is `find-something-to-make`.
+
+- **UI:** "Find something to make".
+
 ### Start page
 
 The page where the user starts an adventure with an activity and chooses its construct.
