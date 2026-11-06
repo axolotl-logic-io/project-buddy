@@ -59,3 +59,20 @@ export const PROJECT_MEMBERS_COPY = {
   leaveConfirm: "Leave quest",
   leaveCancel: "Stay",
 } as const;
+
+export const QUEST_LIBRARY_COPY = {
+  heading: "Premade quests",
+  intro:
+    "Bring your own idea, or find a place to begin. Each starting point is yours to change.",
+  explore: "Explore quest",
+  exploreLabel: (name: string): string => `Explore quest: ${name}`,
+  journalLabel: "Starting Journal",
+  journalHint:
+    "Edit this starting plan here or change the Journal later. Possible milestones are plans, not completed progress.",
+  activityLabel: "First activity",
+  start: "Start quest",
+  activityIntro:
+    "Want to keep working on what you discover? Start a quest with this activity and return as your idea takes shape.",
+  invalid:
+    "Check the starting details and choose an available activity and construct.",
+} as const;

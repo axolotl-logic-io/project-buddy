@@ -26,6 +26,12 @@ const PREPARED_OPENINGS: Readonly<
     lumen:
       "Ooh, sparks! The best ideas catch from other ideas. What idea or plan shall we light up first?",
   },
+  "find-something-to-make": {
+    vellum:
+      "A blank page need not come with a plan. We can sketch a small possibility together, and adjust it as we go. Would you rather begin with things you enjoy or with what you have available?",
+    lumen:
+      "No spark yet? That’s all right; we can try a little experiment and see what glows. Would you rather explore things you enjoy or start with what you have available?",
+  },
   "project-breakdown": {
     vellum:
       "A far landmark is reached one road at a time. Which goal shall we chart into steps?",

@@ -298,3 +298,28 @@ The user gives the reason for wanting to complete a quest.
   - The user enters a quest name and optional motivation in either quest creation form.
   - They start the quest.
 - **Outcome:** the chosen construct receives the name and motivation and writes an opening that acknowledges the reason and follows the selected activity. Motivation is saved as the user's first Journal version, shared with later quest adventures. If the opening fails, nothing is saved and the form keeps the name and motivation. A blank motivation keeps the name-only flow and prepared opening when available.
+
+## use_case_browse_premade_quests
+
+The user explores starting points without creating anything.
+
+- **Prerequisites:** signed in on Quests.
+- **Steps:** browse the four offerings, open a preview, inspect its starting Journal and first activity, then close it.
+- **Outcome:** existing quests and New quest remain available. No quest, adventure or model call is made.
+
+## use_case_start_premade_quest
+
+The user makes a starting point their own.
+
+- **Prerequisites:** signed in, with gold available.
+- **Steps:** preview a premade quest; edit its name, Journal, motivation, activity and construct; choose Start quest.
+- **Outcome:** the ordinary quest and first adventure are saved together and the adventure opens. The preview defaults to the preferred New quest construct. Start without inspiration defaults to Find something to make. Confirmed Journal text and motivation are saved as the first user Journal version. Planned milestones do not become timeline progress. The quest belongs to the acting user and uses ordinary Journal, adventure, status and membership controls.
+- **Variations:** invalid input, an unavailable choice or a failed opening saves nothing. The form keeps every edit for correction or retry and prevents submission while pending.
+
+## use_case_activity_premade_quest_entry
+
+The user discovers the associated quest while browsing Find something to make.
+
+- **Prerequisites:** signed in on Activities or the built-in activity's page.
+- **Steps:** choose Explore quest for Start without inspiration.
+- **Outcome:** an editable preview opens before anything is created. The activity's ordinary adventure start remains available without requiring a quest.

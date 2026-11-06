@@ -116,12 +116,17 @@ test("New activity is the next control after the built-in activities, and Enter 
       }),
     ),
   );
-  const lastBuiltIn = listActivities().at(-1)?.name ?? "";
+  const lastBuiltIn = listActivities().at(-1);
+  let lastControl = page.getByRole("button", {
+    name: ACTIVITIES_COPY.customizeLabel(lastBuiltIn?.name ?? ""),
+  });
+  if (lastBuiltIn?.id === "find-something-to-make") {
+    lastControl = page.getByRole("button", {
+      name: "Explore quest: Start without inspiration",
+    });
+  }
 
-  page
-    .getByRole("button", { name: ACTIVITIES_COPY.customizeLabel(lastBuiltIn) })
-    .element()
-    .focus();
+  lastControl.element().focus();
   await tabForward();
   await expect
     .element(page.getByRole("button", { name: ACTIVITIES_COPY.newActivity }))
@@ -133,6 +138,11 @@ test("New activity is the next control after the built-in activities, and Enter 
 });
 
 test.each([
+  {
+    id: "find-something-to-make",
+    name: "Find something to make",
+    project: NEW_CHAT_COPY.noProject,
+  },
   {
     id: "brainstorming",
     name: "Brainstorming",
@@ -209,3 +219,10 @@ test.each([
     expect(sent.get("projectId")).toBe(PROJECT.id);
   },
 );
+
+vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+  startPremadeQuestAction: vi.fn(),
+}));
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));
