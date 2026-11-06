@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Premade quests](premade-quests.md): the Quest library, editable starting Journals and ordinary quest creation.
+
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
 
 - [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.

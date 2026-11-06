@@ -5,6 +5,7 @@ export const ACTIVITY_IDS = [
   "interview",
   "brainstorming",
   "project-breakdown",
+  "find-something-to-make",
 ] as const;
 
 export type ActivityId = (typeof ACTIVITY_IDS)[number];
