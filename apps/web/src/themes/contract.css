@@ -221,8 +221,8 @@
      control's focus instead (src/app/page-roles.css's .field-box). */
   :root {
     /* The atlas is an illustrated paper object in every theme, and the
-       header's HUD is set in its ink and gold. Its labels need an opaque
-       paper surface and ink with known contrast, independent of the varying
+       header's HUD is set in its ink and gold. Its panels need strongly tinted
+       paper and ink with known contrast, independent of the varying
        marks in the artwork behind them. */
     --atlas-paper: oklch(92% 0.065 85);
     --atlas-ink: oklch(25% 0.04 60);
@@ -234,6 +234,13 @@
     --atlas-gold: oklch(78% 0.13 80);
     --atlas-font: Georgia, "Times New Roman", serif;
     --atlas-art: url("/atlas/parchment.webp");
+    --atlas-frost-opacity: 94%;
+    --atlas-frost: color-mix(
+      in srgb,
+      var(--atlas-paper) var(--atlas-frost-opacity),
+      transparent
+    );
+    --atlas-blur: blur(1rem);
     --focus-outline: 2px solid var(--focus);
     --focus-offset: 2px;
   }

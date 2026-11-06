@@ -453,27 +453,28 @@
     }
   }
 
-  /* On the home page the map is the HUD: the bar steps aside, leaving its
-     buttons over the paper, and, on the map, in the map's top-left
-     corner. The site's name and the shortcuts, which only lead to the map's
-     own places, step aside with it. */
+  /* Home keeps its controls in the same frosted paper as the atlas.
+     The dialog itself retains the user's appearance and no blur, so its
+     fixed positioning stays relative to the viewport. */
   .site-header:has(~ main .atlas:not([data-inactive])) {
-    @apply border-0 shadow-none;
+    @apply z-10 mx-4 mt-4 rounded-box border p-2 shadow-control sm:p-3;
     background: var(--atlas-paper);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-line);
   }
 
-  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title,
+  .site-header:has(~ main .atlas:not([data-inactive])) > :not(.site-menu) {
+    --focus-outline: 3px solid var(--atlas-focus);
+  }
+
+  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title {
+    @apply mr-auto;
+    font-family: var(--atlas-font);
+  }
+
+  .site-header:has(~ main .atlas:not([data-inactive])) .hud-medallion,
   .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
     display: none;
-  }
-
-  @media (min-width: 48rem) {
-    .site-header:has(~ main .atlas[data-view="map"]:not([data-inactive])) {
-      @apply absolute top-0 left-0 z-20 p-4;
-      /* Sized by its buttons, which a size container can't be. */
-      container-type: normal;
-      background: transparent;
-    }
   }
 
   .site-menu {
@@ -559,31 +560,47 @@
 }
 
 @layer roles {
-  /* Home fills the page under the header, edge to edge, so the map is the
-     page rather than a card on it. */
+  /* The artwork belongs behind the entire Home page, including its header.
+     Hidden cached Home pages must never dress the page currently on screen. */
+  body:has(.atlas:not([data-inactive])) {
+    background-color: var(--atlas-paper);
+    background-image: var(--atlas-art);
+    background-size: cover;
+    background-position: center;
+    @supports (background-attachment: scroll) {
+      background-attachment: scroll;
+    }
+  }
+
   .page-column:has(> .atlas:not([data-inactive])) {
     @apply max-w-none gap-0 p-0;
   }
 
-  /* The atlas is its own size container: --atlas-gutter centres its rows
-     in the same column width as other pages, while the map spans it all. */
   .atlas {
-    @apply flex flex-1 flex-col;
+    @apply flex flex-1 flex-col gap-4 pb-4;
     container-type: inline-size;
-    background: var(--atlas-paper);
     color: var(--atlas-ink);
-    --atlas-gutter: max(1rem, calc((100cqi - 48rem) / 2));
+    --atlas-gutter: max(--spacing(4), calc((100cqi - 48rem) / 2));
     --focus-outline: 3px solid var(--atlas-focus);
     --focus-offset: 3px;
   }
 
   .atlas-intro {
-    @apply flex flex-wrap items-center justify-between gap-4 py-5;
+    @apply pt-4;
     padding-inline: var(--atlas-gutter);
   }
 
+  .atlas-title,
+  .atlas-destination,
+  .atlas-continue,
+  .atlas-footer {
+    @apply rounded-box border shadow-control;
+    background: var(--atlas-paper);
+    border-color: var(--atlas-line);
+  }
+
   .atlas-title {
-    @apply min-w-0;
+    @apply min-w-0 p-4 text-center sm:p-6;
   }
 
   .atlas-heading {
@@ -598,63 +615,71 @@
   }
 
   .atlas-inline-link {
-    @apply underline underline-offset-4;
+    @apply font-semibold underline underline-offset-4;
     color: var(--atlas-ink);
   }
 
-  .atlas-views {
-    @apply flex shrink-0 gap-1 rounded-full border-2 p-1;
+  .atlas-world {
+    padding-inline: var(--atlas-gutter);
+  }
+
+  .atlas-places-heading {
+    @apply mb-2 w-fit rounded-control border px-2 py-1 font-bold text-xs uppercase tracking-wider;
+    background: var(--atlas-paper);
+    border-color: var(--atlas-line);
+  }
+
+  .atlas-places {
+    @apply grid grid-cols-2 gap-3;
+  }
+
+  .atlas-place {
+    @apply min-w-0;
+  }
+
+  .atlas-destination {
+    @apply flex h-full min-w-0 flex-col items-center justify-center gap-2 p-3 text-center;
+    min-block-size: calc(var(--target-size) * 2);
+  }
+
+  .atlas-destination:hover {
+    background: var(--atlas-paper);
     border-color: var(--atlas-ink);
-    background: var(--atlas-paper);
   }
 
-  .atlas-view {
-    @apply rounded-full px-4 text-sm;
-    min-block-size: var(--target-size);
+  .atlas-marker .icon > svg {
+    @apply size-6;
   }
 
-  .atlas-view[aria-pressed="true"] {
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
+  .atlas-label {
+    @apply max-w-full break-words font-semibold;
+    font-family: var(--atlas-font);
+    overflow-wrap: anywhere;
   }
 
-  /* The quest bar: the latest quest and its next step, set like a game's
-     objective tracker in ink, with a gold Continue. */
+  .atlas-description {
+    @apply sr-only;
+    color: var(--atlas-muted);
+  }
+
+  /* Both the document order and visual order put the real current quest
+     after all six destinations, including before the first quest. */
   .atlas-continue {
-    @apply mb-4 flex flex-wrap items-center gap-3 rounded-box border-2 p-3 shadow-raised;
+    @apply flex flex-wrap items-center gap-3 p-4;
     margin-inline: var(--atlas-gutter);
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
-    --focus-outline: 3px solid var(--atlas-gold);
   }
 
-  .atlas-medallion {
-    @apply flex shrink-0 items-center justify-center rounded-full border-2;
-    inline-size: var(--target-size);
-    block-size: var(--target-size);
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-gold);
-  }
-
-  .atlas-medallion .icon > svg {
-    @apply size-5;
-  }
-
-  /* Wide enough for a name and its next step; narrower, Continue wraps to
-     a full-width row of its own. */
   .atlas-quest {
     @apply min-w-0 flex-[1_1_12rem];
   }
 
   .atlas-hud-label {
     @apply font-bold text-xs uppercase tracking-wider;
-    color: var(--atlas-gold);
+    color: var(--atlas-muted);
   }
 
   .atlas-quest-name {
-    @apply inline-flex max-w-full items-center break-words font-semibold underline underline-offset-4;
+    @apply inline-flex max-w-full items-center break-words font-semibold text-section-heading underline underline-offset-4;
     min-block-size: var(--target-size);
     overflow-wrap: anywhere;
     font-family: var(--atlas-font);
@@ -662,97 +687,31 @@
 
   .atlas-next-step {
     @apply line-clamp-2 break-words text-sm;
+    color: var(--atlas-muted);
     overflow-wrap: anywhere;
   }
 
   .atlas-continue-link,
   .atlas-start {
-    @apply flex shrink-0 items-center justify-center gap-2 rounded-control border-2 px-4 font-bold text-sm;
+    @apply flex shrink-0 items-center justify-center gap-2 rounded-control border px-4 font-bold text-sm;
     min-block-size: var(--target-size);
-    background: var(--atlas-gold);
-    color: var(--atlas-ink);
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
     border-color: var(--atlas-ink);
-    box-shadow: 0 3px 0 var(--atlas-ink);
   }
 
   .atlas-continue-link {
-    @apply grow-0 max-sm:grow;
+    @apply max-sm:grow;
   }
 
   .atlas-start {
-    @apply mb-4 w-fit max-w-full;
+    @apply w-fit max-w-full;
     margin-inline: var(--atlas-gutter);
   }
 
-  .atlas-world {
-    @apply relative isolate border-y;
-    border-color: var(--atlas-line);
-  }
-
-  .atlas-world::before {
-    @apply pointer-events-none absolute inset-x-0 top-0;
-    z-index: -1;
-    content: "";
-    block-size: calc(var(--target-size) * 4);
-    background-image:
-      linear-gradient(to bottom, transparent 60%, var(--atlas-paper)),
-      var(--atlas-art);
-    background-size: cover;
-    background-position: center;
-  }
-
-  .atlas-trails {
-    display: none;
-  }
-
-  .atlas-places {
-    @apply flex flex-col pb-3;
-    padding-inline: var(--atlas-gutter);
-    padding-block-start: calc(var(--target-size) * 4);
-  }
-
-  .atlas-place {
-    min-inline-size: 0;
-  }
-
-  .atlas-destination {
-    @apply grid items-center gap-x-4 gap-y-1 border-b py-4;
-    grid-template-columns: var(--target-size) minmax(0, 1fr);
-    min-block-size: var(--target-size);
-    border-color: var(--atlas-line);
-    background: var(--atlas-paper);
-  }
-
-  .atlas-marker {
-    @apply row-span-2 flex items-center justify-center border;
-    inline-size: calc(var(--target-size) * 0.75);
-    block-size: calc(var(--target-size) * 0.75);
-    transform: rotate(45deg);
-    border-color: var(--atlas-line);
-    background: var(--atlas-paper);
-    justify-self: center;
-  }
-
-  .atlas-marker .icon {
-    transform: rotate(-45deg);
-  }
-
-  .atlas-marker .icon > svg {
-    @apply size-5;
-  }
-
-  .atlas-label {
-    @apply break-words font-semibold;
-  }
-
-  .atlas-description {
-    @apply text-sm;
-    color: var(--atlas-muted);
-  }
-
   .atlas-footer {
-    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2;
-    padding-inline: var(--atlas-gutter);
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2;
+    margin-inline: var(--atlas-gutter);
   }
 
   .atlas-personal-links {
@@ -770,229 +729,69 @@
     font-family: var(--atlas-font);
   }
 
-  .atlas[data-view="list"] .atlas-world::before {
-    display: none;
-  }
-
-  .atlas[data-view="list"] .atlas-places {
-    @apply pt-0;
-  }
-
-  /* The overworld: the map fills the space under the header, the heading
-     hangs on it as a banner, and the quest bar floats along its lower edge.
-     Every row shares one grid cell column, so reading order stays intro,
-     quest, places, footer whatever the layout. */
-  @media (min-width: 48rem) {
-    .atlas[data-view="map"] {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto minmax(0, 1fr) auto auto;
-      min-block-size: calc(var(--target-size) * 15);
+  /* Opaque paper is the fallback. Tint, as well as blur, protects contrast
+     from every mark in the artwork; the text itself is never filtered. */
+  @supports (backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0)) {
+    .atlas-title,
+    .atlas-destination,
+    .atlas-continue,
+    .atlas-footer {
+      background: var(--atlas-frost);
+      -webkit-backdrop-filter: var(--atlas-blur);
+      backdrop-filter: var(--atlas-blur);
     }
 
-    .atlas[data-view="map"] .atlas-intro {
-      @apply relative z-10 grid items-start p-4;
-      grid-row: 1;
-      grid-column: 1;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      grid-template-areas: ". title views";
-    }
-
-    .atlas[data-view="map"] .atlas-title {
-      @apply flex flex-col items-center gap-3;
-      grid-area: title;
-    }
-
-    .atlas[data-view="map"] .atlas-heading {
-      @apply relative border-2 px-8 py-2 text-center text-section-heading;
-      background: var(--atlas-paper);
-      border-color: var(--atlas-ink);
-      box-shadow: 0 4px 0 var(--atlas-line);
-    }
-
-    /* The banner's ribbon ends. */
-    .atlas[data-view="map"] .atlas-heading::before,
-    .atlas[data-view="map"] .atlas-heading::after {
-      @apply absolute border-2;
-      content: "";
-      z-index: -1;
-      inset-block: 0.5rem -0.5rem;
-      inline-size: 1.25rem;
-      background: var(--atlas-line);
-      border-color: var(--atlas-ink);
-    }
-
-    .atlas[data-view="map"] .atlas-heading::before {
-      inset-inline-start: -1rem;
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 45% 50%);
-    }
-
-    .atlas[data-view="map"] .atlas-heading::after {
-      inset-inline-end: -1rem;
-      clip-path: polygon(0 0, 100% 0, 55% 50%, 100% 100%, 0 100%);
-    }
-
-    .atlas[data-view="map"] .atlas-introduction {
-      @apply m-0 rounded-control border px-3 py-1;
-      background: var(--atlas-paper);
-      border-color: var(--atlas-line);
-      color: var(--atlas-ink);
-    }
-
-    .atlas[data-view="map"] .atlas-views {
-      @apply justify-self-end;
-      grid-area: views;
-    }
-
-    .atlas[data-view="map"] .atlas-continue,
-    .atlas[data-view="map"] .atlas-start {
-      @apply relative z-10 m-4 justify-self-center;
-      grid-row: 3;
-      grid-column: 1;
-      inline-size: min(100% - 2rem, 56rem);
-    }
-
-    .atlas[data-view="map"] .atlas-start {
-      inline-size: auto;
-    }
-
-    .atlas[data-view="map"] .atlas-world {
-      @apply border-0 border-b;
-      grid-row: 1 / 4;
-      grid-column: 1;
-    }
-
-    .atlas[data-view="map"] .atlas-world::before {
-      @apply inset-0 h-auto;
-      background-image: var(--atlas-art);
-      background-size: 100% 100%;
-    }
-
-    /* Fade the artwork's edges into the paper around it. */
-    .atlas[data-view="map"] .atlas-world::after {
-      @apply pointer-events-none absolute inset-0;
-      z-index: -1;
-      content: "";
-      box-shadow: inset 0 0 4rem 1.5rem var(--atlas-paper);
-    }
-
-    .atlas[data-view="map"] .atlas-trails {
-      @apply pointer-events-none absolute inset-0 block size-full;
-      fill: none;
-      stroke: var(--atlas-ink);
-      stroke-width: 2px;
-      stroke-dasharray: 2 6;
-      stroke-linecap: round;
-      opacity: 0.6;
-    }
-
-    .atlas[data-view="map"] .atlas-footer {
-      grid-row: 4;
-    }
-
-    .atlas[data-view="map"] .atlas-places {
-      @apply p-0;
-    }
-
-    /* Each marker's centre sits at its place's point in src/home/places.ts,
-       where the trails between them start and end. */
-    .atlas[data-view="map"] .atlas-place {
-      @apply absolute;
-      inline-size: 25%;
-      transform: translate(-50%, calc(-0.5rem - var(--target-size) * 0.4));
-    }
-
-    .atlas[data-view="map"] .atlas-place[data-place="quests"] {
-      inset-inline-start: 36%;
-      inset-block-start: 32%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="chats"] {
-      inset-inline-start: 52%;
-      inset-block-start: 48%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="constructs"] {
-      inset-inline-start: 17%;
-      inset-block-start: 47%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="activities"] {
-      inset-inline-start: 78%;
-      inset-block-start: 43%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="workshop"] {
-      inset-inline-start: 53%;
-      inset-block-start: 68%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="marketplace"] {
-      inset-inline-start: 58%;
-      inset-block-start: 24%;
-    }
-
-    .atlas[data-view="map"] .atlas-destination {
-      @apply flex flex-col gap-3 border-0 p-2;
+    /* Avoid a filter on the header: it would contain the fixed menu.
+       Its pseudo-element blurs only the paper behind the header's controls. */
+    .site-header:has(~ main .atlas:not([data-inactive])) {
+      @apply relative isolate;
       background: transparent;
     }
 
-    .atlas[data-view="map"] .atlas-destination:focus-visible {
-      background: var(--atlas-paper);
-    }
-
-    .atlas[data-view="map"] .atlas-marker {
-      @apply border-2;
-      inline-size: calc(var(--target-size) * 0.8);
-      block-size: calc(var(--target-size) * 0.8);
-      border-color: var(--atlas-ink);
-      box-shadow: 3px 3px 0 var(--atlas-line);
-    }
-
-    /* With a quest under way, Quests is where you are. */
-    .atlas[data-view="map"]:has(.atlas-continue)
-      .atlas-place[data-place="quests"]
-      .atlas-marker {
-      background: var(--atlas-ink);
-      color: var(--atlas-paper);
-      box-shadow:
-        0 0 0 0.25rem color-mix(in oklch, var(--atlas-ink) 25%, transparent),
-        0 0 0 0.6rem color-mix(in oklch, var(--atlas-ink) 10%, transparent);
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .atlas[data-view="map"]:has(.atlas-continue)
-        .atlas-place[data-place="quests"]
-        .atlas-marker {
-        animation: atlas-here 1.8s ease-in-out infinite;
-      }
-    }
-
-    .atlas[data-view="map"] .atlas-label {
-      @apply rounded-control border-2 px-2 py-0.5 text-center font-bold text-sm;
-      background: var(--atlas-paper);
-      border-color: var(--atlas-ink);
-      box-shadow: 2px 2px 0 var(--atlas-line);
-      font-family: var(--atlas-font);
-    }
-
-    .atlas[data-view="map"] .atlas-description {
-      @apply sr-only;
-    }
-
-    .atlas[data-view="list"] .atlas-places {
-      @apply grid grid-cols-2 gap-x-5;
+    .site-header:has(~ main .atlas:not([data-inactive]))::before {
+      @apply pointer-events-none absolute inset-0 rounded-box;
+      z-index: -1;
+      content: "";
+      background: var(--atlas-frost);
+      -webkit-backdrop-filter: var(--atlas-blur);
+      backdrop-filter: var(--atlas-blur);
     }
   }
 
-  @keyframes atlas-here {
-    50% {
-      box-shadow:
-        0 0 0 0.4rem color-mix(in oklch, var(--atlas-ink) 30%, transparent),
-        0 0 0 0.9rem color-mix(in oklch, var(--atlas-ink) 6%, transparent);
+  @container (min-width: 48rem) {
+    .atlas-intro {
+      @apply pt-6;
+    }
+
+    .atlas-places {
+      @apply grid-cols-3;
+    }
+
+    .atlas-destination {
+      @apply p-4;
+      min-block-size: calc(var(--target-size) * 3);
+    }
+
+    .atlas-description {
+      @apply not-sr-only text-sm;
     }
   }
 
   @media (forced-colors: active) {
-    .atlas-world::before,
-    .atlas-world::after,
-    .atlas-trails {
-      display: none;
+    body:has(.atlas:not([data-inactive])) {
+      background-image: none;
+    }
+
+    .atlas-title,
+    .atlas-destination,
+    .atlas-continue,
+    .atlas-footer,
+    .site-header:has(~ main .atlas:not([data-inactive]))::before {
+      @supports (backdrop-filter: blur(0)) or
+        (-webkit-backdrop-filter: blur(0)) {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
     }
   }
 }
