@@ -17,7 +17,7 @@ import {
 } from "@/components/prompt-draft-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
-import { Alert } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
@@ -55,6 +55,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   );
   const [run, setRun] = useState<TestRun>();
   const [pending, setPending] = useState<boolean>(false);
+  const [cancelled, setCancelled] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const controllerRef = useRef<AbortController | undefined>(undefined);
   const versionRef = useRef(0);
@@ -102,8 +103,12 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
     [],
   );
   const cancel = useCallback((): void => {
-    controllerRef.current?.abort();
+    if (controllerRef.current === undefined) {
+      return;
+    }
+    controllerRef.current.abort();
     controllerRef.current = undefined;
+    setCancelled(true);
     setPending(false);
   }, []);
   useEffect(
@@ -113,7 +118,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
     [],
   );
   const fresh = useCallback((): void => {
+    const wasPending = controllerRef.current !== undefined;
     cancel();
+    setCancelled(wasPending);
     setRun(undefined);
     setError(undefined);
   }, [cancel]);
@@ -142,6 +149,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
       const abort = new AbortController();
       controllerRef.current = abort;
       setPending(true);
+      setCancelled(false);
       setError(undefined);
       try {
         const response = await fetch("/api/workshop", {
@@ -219,6 +227,12 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   let sendLabel: string = WORKSHOP_COPY.send;
   if (run !== undefined && !stale) {
     sendLabel = WORKSHOP_COPY.followUp;
+  }
+  let status = "";
+  if (pending) {
+    status = WORKSHOP_COPY.pending;
+  } else if (cancelled) {
+    status = WORKSHOP_COPY.cancelled;
   }
   return (
     <section className="workshop" aria-label={WORKSHOP_COPY.heading}>
@@ -337,7 +351,10 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
               );
             })}
           </div>
-          {pending === true && <p role="status">{WORKSHOP_COPY.pending}</p>}
+          <FormStatus>{status}</FormStatus>
+          {pending === true && (
+            <p className="text-muted text-sm">{WORKSHOP_COPY.cancelHint}</p>
+          )}
           {error !== undefined && <Alert>{error}</Alert>}
           <TextAreaField
             label={WORKSHOP_COPY.message}
