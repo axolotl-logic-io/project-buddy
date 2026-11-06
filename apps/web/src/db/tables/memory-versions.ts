@@ -36,6 +36,7 @@ export const memoryVersions = pgTable(
     version: integer("version").notNull(),
     text: text("text").notNull(),
     author: text("author").notNull(),
+    restoredFromVersion: integer("restored_from_version"),
     userId: uuid("user_id").references(() => users.id, {
       onDelete: "set null",
     }),

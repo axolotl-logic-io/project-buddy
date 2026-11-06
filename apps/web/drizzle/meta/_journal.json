@@ -302,6 +302,13 @@
       "when": 1793908586583,
       "tag": "0042_construct_asset_collection",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793994834193,
+      "tag": "0043_round_amphibian",
+      "breakpoints": true
     }
   ]
 }

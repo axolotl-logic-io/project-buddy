@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
+import { LocalTime } from "@/components/local-time.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import {
   GALLERY_PAGE_SIZE,
@@ -58,6 +59,7 @@ async function GalleryPage({
                 <p role="status">{GENERATION_COPY[image.status]}</p>
               </>
             )}
+            <LocalTime dateTime={image.createdAt} detail="minute" />
             <Link className="text-link" href={`/chats/${image.chatId}`}>
               {GENERATION_COPY.source}
             </Link>

@@ -61,6 +61,11 @@ export function MemoryHistory({
               />
             </p>
           </div>
+          {entry.restoredFromVersion !== undefined && (
+            <p className="text-muted text-sm">
+              {MEMORY_COPY.restoredFrom(entry.restoredFromVersion)}
+            </p>
+          )}
           <details className="group text-sm">
             <summary className="button-quiet cursor-pointer list-none">
               <Icon

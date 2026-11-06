@@ -94,6 +94,7 @@ describe("use_case_home_atlas", () => {
     await expect
       .element(page.getByRole("link", { name: HOME_COPY.activitiesLink }))
       .toHaveAttribute("href", "/activities");
+    await expect.element(page.getByText(HOME_COPY.purpose)).toBeVisible();
     const startLink = page
       .getByRole("link", { name: HOME_COPY.newQuest })
       .element();

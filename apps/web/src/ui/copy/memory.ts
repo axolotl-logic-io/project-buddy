@@ -3,6 +3,7 @@
 import { pageTitle } from "@/ui/copy/site.ts";
 
 export const MEMORY_COPY = {
+  restoredFrom: (version: number): string => `Restored from version ${version}`,
   draftHint: "Unsaved edits stay in this browser until saved or discarded.",
   title: pageTitle("Journal"),
   link: "Quest Journal",

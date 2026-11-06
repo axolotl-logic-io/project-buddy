@@ -117,3 +117,5 @@ The user deletes a Quick Note she no longer needs.
 - **Outcome:** the Quick Note is gone from the quest's Quick Notes and from its Journal, and the rest of the Journal is as it was. The Journal's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the quest's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
 - **Next:**
   - `use_case_quick_note`: write a better one.
+
+Future restores record “Restored from version N” on the new version. Earlier history keeps unknown provenance; no source version is inferred from matching text.
