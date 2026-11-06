@@ -34,7 +34,12 @@ import {
 } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
-import { type ConstructId, DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import {
+  type ConstructId,
+  DEFAULT_CONSTRUCT_ID,
+  getConstruct,
+  isConstructId,
+} from "@/constructs/index.ts";
 import type { OwnPromptId, ProjectId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import type { QuestStatus } from "@/projects/quest-status.ts";
@@ -207,8 +212,33 @@ export function NewChatForm({
     selection.projectId === NEW_PROJECT && naming === false,
     formAction,
   );
+  let fixedConstructName = userConstructs.find(
+    (construct) => construct.id === fixedConstructId,
+  )?.name;
+  if (fixedConstructId !== undefined && isConstructId(fixedConstructId)) {
+    fixedConstructName = getConstruct(fixedConstructId).name;
+  }
+  const fixedActivityName = activities.find(
+    (activity) => activity.id === selectedActivityId,
+  )?.name;
   return (
     <form className="flex flex-col gap-5" id={formId} onSubmit={onSubmit}>
+      {fixedActivity === true && (
+        <p>
+          {NEW_CHAT_COPY.fixedChoice(
+            NEW_CHAT_COPY.activityLabel,
+            fixedActivityName,
+          )}
+        </p>
+      )}
+      {fixedConstructId !== undefined && (
+        <p>
+          {NEW_CHAT_COPY.fixedChoice(
+            NEW_CHAT_COPY.constructLabel,
+            fixedConstructName,
+          )}
+        </p>
+      )}
       {fixedActivity === true && (
         <input name="activityId" type="hidden" value={selection.activityId} />
       )}

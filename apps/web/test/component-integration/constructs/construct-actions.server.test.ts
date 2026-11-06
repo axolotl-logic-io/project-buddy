@@ -18,6 +18,7 @@ import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   cloneConstruct,
+  createConstruct,
   getOwnConstruct,
   listConstructs as listOwnConstructs,
   type OwnConstruct,
@@ -32,9 +33,15 @@ import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
+import {
+  type GeneratedImage,
+  type ImageProvider,
+  imageProvider,
+} from "@/images/image-provider.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { EARLIER_VELLUM_PROMPT } from "../../support/earlier-built-in-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { constructPrompt } from "../test-database/chat-test-kit.ts";
 import {
@@ -43,10 +50,28 @@ import {
 } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
+vi.mock("@/images/image-provider.ts", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/images/image-provider.ts")>();
+  return { ...actual, imageProvider: vi.fn(actual.imageProvider) };
+});
+
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const LUMEN: ConstructDefinition = getConstruct("lumen").definition;
 const GENERATED_COST = 10_000;
+
+async function testArtwork(): Promise<GeneratedImage> {
+  return {
+    bytes: await sharp({
+      create: { width: 32, height: 32, channels: 3, background: "white" },
+    })
+      .png()
+      .toBuffer(),
+    mediaType: "image/png",
+    costMicroUsd: GENERATED_COST,
+  };
+}
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -192,7 +217,7 @@ describe("use_case_new_construct", () => {
 
     await expectRedirect(
       () => saveConstructAction(constructForm(construct.id, "Pal", parts)),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
     expect(await chosenConstruct(user.id, construct.id)).toEqual({
       id: construct.id,
@@ -229,7 +254,7 @@ describe("use_case_edit_construct", () => {
         saveConstructAction(
           constructForm(construct.id, " Lumen, edited ", { ...LUMEN, prompt }),
         ),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
 
     expect(await stored(user, construct.id)).toMatchObject({
@@ -252,7 +277,7 @@ describe("use_case_edit_construct", () => {
         saveConstructAction(
           constructForm(construct.id, construct.name, { ...LUMEN, prompt }),
         ),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
     const saved = await stored(user, construct.id);
     expect(saved.definition.prompt).toBe(prompt);
@@ -345,7 +370,7 @@ test("saving a Visual description retains trusted art, ignores submitted assets 
   );
   await expectRedirect(
     () => saveConstructAction(data),
-    `/constructs/${construct.id}`,
+    `/constructs/${construct.id}?saved=1`,
   );
   const expected = {
     ...LUMEN.visual,
@@ -373,7 +398,7 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
       saveConstructAction(
         constructForm(construct.id, construct.name, construct.definition),
       ),
-    `/constructs/${construct.id}`,
+    `/constructs/${construct.id}?saved=1`,
   );
   const [saved] = await getDb()
     .select({ parts: ownPrompts.parts })
@@ -390,7 +415,7 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
           prompt: "Edited",
         }),
       ),
-    `/constructs/${construct.id}`,
+    `/constructs/${construct.id}?saved=1`,
   );
   await resetPrompt(construct.id);
   const [reset] = await getDb()
@@ -439,7 +464,7 @@ test("save and reset retain paid art even when a source lookup returns an older 
         saveConstructAction(
           constructForm(stale.id, stale.name, stale.definition),
         ),
-      `/constructs/${stale.id}`,
+      `/constructs/${stale.id}?saved=1`,
     );
     const reset = form({ constructId: stale.id });
     await resetConstructPromptAction(reset);
@@ -452,5 +477,166 @@ test("save and reset retain paid art even when a source lookup returns an older 
     ).toBeDefined();
   } finally {
     read.mockRestore();
+  }
+});
+
+test("saving an edited Vellum description regenerates artwork from the saved appearance", async () => {
+  const user = await signedInUser();
+  const construct = await cloneOf(user, "vellum");
+  const description =
+    "A silver fox with a blue cloak instead of a brass cartographer.";
+  const bytes = await sharp({
+    create: { width: 32, height: 32, channels: 3, background: "white" },
+  })
+    .png()
+    .toBuffer();
+  const generate = vi.fn<ImageProvider["generate"]>().mockResolvedValue({
+    bytes,
+    mediaType: "image/png",
+    costMicroUsd: GENERATED_COST,
+  });
+  const provider = vi.mocked(imageProvider).mockReturnValueOnce({ generate });
+  try {
+    const data = constructForm(
+      construct.id,
+      construct.name,
+      construct.definition,
+    );
+    data.set("visualDescription", description);
+    data.set("visualRequestId", crypto.randomUUID());
+    await expectRedirect(
+      () => saveConstructAction(data),
+      `/constructs/${construct.id}?saved=1`,
+    );
+    const updated = await stored(user, construct.id);
+    expect(updated.definition.visual?.description).toBe(description);
+    expect(updated.definition.visual?.canonical?.kind).toBe("generated");
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(generate.mock.calls).toEqual([[description]]);
+  } finally {
+    provider.mockRestore();
+  }
+});
+
+test.each(["prompt", "name", "unchanged", "normalized"] as const)(
+  "a %s-only Save retains paid artwork without requesting or charging generation",
+  async (change) => {
+    const user = await signedInUser();
+    const copy = await cloneOf(user, "vellum");
+    const description = copy.definition.visual?.description ?? "";
+    const generate = vi.fn<ImageProvider["generate"]>(testArtwork);
+    const first = await generateConstructVisual(
+      user.id,
+      { constructId: copy.id, requestId: crypto.randomUUID(), description },
+      { generate },
+    );
+    const before = await goldSpent(user);
+    generate.mockClear();
+    const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
+    try {
+      let { name } = copy;
+      let { prompt } = copy.definition;
+      let editedDescription = description;
+      if (change === "prompt") {
+        prompt = "New conversational instructions.";
+      }
+      if (change === "name") {
+        name = "Captain Quill";
+      }
+      if (change === "normalized") {
+        editedDescription = `  ${description}\r\n`;
+      }
+      const data = constructForm(copy.id, name, { prompt });
+      data.set("visualDescription", editedDescription);
+      await expectRedirect(
+        () => saveConstructAction(data),
+        `/constructs/${copy.id}?saved=1`,
+      );
+      expect(generate).not.toHaveBeenCalled();
+      expect(await goldSpent(user)).toBe(before);
+      expect(await stored(user, copy.id)).toMatchObject({
+        name,
+        definition: { prompt, visual: first.visual },
+      });
+    } finally {
+      provider.mockRestore();
+    }
+  },
+);
+
+test("adding a description generates once; unchanged Save is free and explicit Generate intentionally regenerates with replay protection", async () => {
+  const user = await signedInUser();
+  const copy = await createConstruct(user.id, {
+    name: "Private name",
+    definition: { prompt: "Private voice and habits." },
+  });
+  const description = "A silver fox.\nBlue cloak.";
+  const generate = vi.fn<ImageProvider["generate"]>(testArtwork);
+  const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
+  try {
+    const data = constructForm(copy.id, copy.name, copy.definition);
+    data.set("visualDescription", "  A silver fox.\r\nBlue cloak.  ");
+    data.set("visualRequestId", crypto.randomUUID());
+    await expectRedirect(
+      () => saveConstructAction(data),
+      `/constructs/${copy.id}?saved=1`,
+    );
+    const first = (await stored(user, copy.id)).definition.visual;
+    expect(first?.description).toBe(description);
+    expect(generate.mock.calls).toEqual([[description]]);
+    const firstCost = await goldSpent(user);
+    await expectRedirect(
+      () => saveConstructAction(data),
+      `/constructs/${copy.id}?saved=1`,
+    );
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(await goldSpent(user)).toBe(firstCost);
+    expect((await stored(user, copy.id)).definition.visual).toEqual(first);
+    data.set("generateImages", "true");
+    data.set("visualRequestId", crypto.randomUUID());
+    await expectRedirect(
+      () => saveConstructAction(data),
+      `/constructs/${copy.id}?saved=1`,
+    );
+    const replacement = (await stored(user, copy.id)).definition.visual;
+    expect(replacement?.canonical).not.toEqual(first?.canonical);
+    expect(generate.mock.calls).toEqual([[description], [description]]);
+    const replacementCost = await goldSpent(user);
+    await expectRedirect(
+      () => saveConstructAction(data),
+      `/constructs/${copy.id}?saved=1`,
+    );
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(await goldSpent(user)).toBe(replacementCost);
+  } finally {
+    provider.mockRestore();
+  }
+});
+
+test("concurrent Saves of the same changed description generate and spend only once", async () => {
+  const user = await signedInUser();
+  const copy = await cloneOf(user, "vellum");
+  const description = "A silver fox in a blue cloak";
+  const generate = vi.fn<ImageProvider["generate"]>(testArtwork);
+  const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
+  try {
+    const forms = Array.from({ length: 2 }, () => {
+      const data = constructForm(copy.id, copy.name, copy.definition);
+      data.set("visualDescription", description);
+      data.set("visualRequestId", crypto.randomUUID());
+      return data;
+    });
+    await Promise.all(
+      forms.map((data) =>
+        expectRedirect(
+          () => saveConstructAction(data),
+          `/constructs/${copy.id}?saved=1`,
+        ),
+      ),
+    );
+    expect(generate.mock.calls).toEqual([[description]]);
+    expect(await goldSpent(user)).toBe(GENERATED_COST);
+  } finally {
+    provider.mockRestore();
   }
 });

@@ -18,7 +18,7 @@ An invited recipient sets up their account with one confirmation.
 
 - **Prerequisites:** `use_case_admin_invites`, for an address without an account.
 - **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
-- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching the new adventure page. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
+- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching Home. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
 - **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
@@ -35,12 +35,12 @@ The user signs in with a link the site emails her, on this device or another.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:**
-  - On the sign-in page she enters her email address. The page asks only for that, with a link to the sign-up page.
+  - On the sign-in page she enters her email address. The page asks only for that, with guidance to open the setup link in her invitation email and an Invitation help link.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.
-  - The site signs her in and shows the new adventure page.
-- **Outcome:** she is on the new adventure page, where she can start an adventure, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
+  - The site signs her in and shows Home.
+- **Outcome:** she is on Home, where she can choose a destination or start an adventure, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): see what she has been working on.
   - [`use_case_new_project`](projects.md#use_case_new_project): start learning something new.
@@ -103,7 +103,7 @@ Two users each see only their own quests, adventures, Journal, constructs and go
   - Both users spend gold.
 - **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure, Journal and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. Restoring the first user's Journal answers as for a quest that never existed, shows none of its text and saves nothing. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's gold pays only for their own calls.
 - **Variations:**
-  - Each user can have many standalone (standalone) adventures, in no quest: each one she starts, however many at once, is a new adventure of her own. The first user's standalone adventure, and its messages, are not found to her, exactly as an unknown adventure is, and take none of her writes: its address says it cannot be found, and a message sent to it through the adventure API is refused as not found. A standalone adventure is never among a quest's adventures, and goes when its account is deleted.
+  - Each user can have many standalone adventures, in no quest: each one she starts, however many at once, is a new adventure of her own. The first user's standalone adventure, and its messages, are not found to her, exactly as an unknown adventure is, and take none of her writes: its address says it cannot be found, and a message sent to it through the adventure API is refused as not found. A standalone adventure is never among a quest's adventures, and goes when its account is deleted.
   - A team quest the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other quests do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
@@ -118,9 +118,12 @@ The user checks how much gold she has left.
   - It shows her gold balance.
   - She sends a message in an adventure, then opens her account page again.
 - **Outcome:** the account page shows her gold in whole gold, rounded down, such as "Gold: 87"; a new account shows "Gold: 100". After her message and its reply, the balance has fallen. A balance below 0 shows as 0. The page names no dollars and no reset day: gold never resets. The page also offers Sign out and Sign out everywhere. The gold balance is an extra: with it switched off in Settings ([`use_case_hide_extras`](appearance.md#use_case_hide_extras)), the account page shows no balance, and the buttons are still there.
+- **Adventure replies:** the acting user's balance appears near the composer. After each reply, its actual fractional gold cost includes retries, images and any automatic adventure name. Pending or unknown accounting is labeled explicitly, never shown as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies without accounting records show an unavailable cost; no history is invented.
 - **Next:**
   - `use_case_out_of_gold`: she spends the last of her gold.
   - `use_case_sign_out`: she is done for the day.
+
+The composer shows the acting user’s balance. Actual fractional reply costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
 
 ## use_case_set_name
 
@@ -149,7 +152,7 @@ The user has spent all her gold.
   - She sends another message.
   - Instead of a reply, the adventure says "You're out of gold."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New quest keeps the entered name and motivation after refusal. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. Out-of-gold messages link to the Marketplace to earn gold by selling own constructs, activities and spells. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her gold.
 
@@ -162,8 +165,11 @@ The user's choice of which extras to hide follows her to every browser she signs
   - In Settings, she switches off working notes.
   - She signs in on another browser or device, and opens an adventure that holds a working note.
 - **Outcome:** in the other browser, working notes are off from the adventure's first appearance, and Settings shows the switch off. Her choice is saved to her account, not only to the browser, and another user's Settings are unchanged by it. The theme and mode stay a choice of each browser ([`use_case_choose_theme`](appearance.md#use_case_choose_theme)).
+- **Variations:** already-signed-in browsers refresh account extras on navigation and return to the visible tab. The refreshed extras apply to the interface and Settings switches together. Local switches made during a slow refresh are kept. Appearance remains browser-local; no polling is required.
 - **Next:**
   - [`use_case_hide_extras`](appearance.md#use_case_hide_extras): switch them back on.
+
+Already-signed-in browsers refresh account extras on navigation and return to the visible tab. Refreshed extras apply to the interface and Settings switches together. A local switch made during a slow refresh is kept. Appearance remains browser-local; no polling is required.
 
 ## use_case_sign_out
 

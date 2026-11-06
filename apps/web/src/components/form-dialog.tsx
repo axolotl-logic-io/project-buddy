@@ -1,9 +1,22 @@
 "use client";
 
 import { Dialog } from "radix-ui";
-import type { JSX, ReactNode } from "react";
+import type { FocusEvent, JSX, ReactNode } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+
+// Radix wraps focus with preventScroll. Reveal controls inside this panel
+// without moving focus or changing the browser's selection in a field.
+function revealFocusedControl(event: FocusEvent<HTMLDivElement>): void {
+  const { target, currentTarget } = event;
+  if (target instanceof HTMLElement && currentTarget.contains(target)) {
+    target.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+      behavior: "instant",
+    });
+  }
+}
 
 // A supplied trigger, or a button named title, and its modal dialog with a form
 // for making something new. The dialog is named by its heading, also
@@ -35,7 +48,11 @@ export function FormDialog({
       <Dialog.Trigger asChild={true}>{triggerButton}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content aria-describedby={undefined} className="dialog-panel">
+        <Dialog.Content
+          aria-describedby={undefined}
+          className="dialog-panel"
+          onFocusCapture={revealFocusedControl}
+        >
           <div className="flex items-center justify-between gap-3">
             <Dialog.Title className="section-heading">{title}</Dialog.Title>
             <Dialog.Close asChild={true}>

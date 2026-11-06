@@ -7,8 +7,8 @@
 // files or the cases name is a case, and so is each slug that titles a Vitest
 // test; each e2e test is titled by a slug or sits in a group titled by one;
 // that slug is one of the auth cases in auth-cases.ts,
-// each of them a case; and each relative link in these files leads to a file and
-// a heading that exist. In
+// each of them a case; every area appears in the index; and each relative link
+// in these files leads to a file and a heading that exist. In
 // Vitest files only the titles are checked: a Vitest test may have a plain title,
 // and other text there may name any slug.
 import { describe, expect, test } from "vitest";
@@ -216,6 +216,21 @@ describe("the auth cases", () => {
 });
 
 describe("the use case files", () => {
+  test("include every area in the index", () => {
+    const index = (CASE_FILES["./README.md"] ?? "").split("## Areas")[1] ?? "";
+    const indexed = new Set(
+      [...index.matchAll(RELATIVE_LINK)].map((link) => {
+        const { file } = link.groups ?? {};
+        return file;
+      }),
+    );
+    const missing = Object.keys(CASE_FILES).filter(
+      (path) => path !== "./README.md" && !indexed.has(path.slice(2)),
+    );
+
+    expect(missing).toStrictEqual([]);
+  });
+
   test("are the only slugs the e2e files and the cases name", () => {
     const named = [...Object.values(E2E_FILES), ...Object.values(CASE_FILES)]
       .flatMap((text) => text.match(SLUG) ?? [])

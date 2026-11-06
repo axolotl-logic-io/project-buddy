@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   type ChangeEvent,
   type JSX,
@@ -10,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import {
   type PromptDraft,
@@ -17,7 +20,7 @@ import {
 } from "@/components/prompt-draft-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
-import { Alert } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
@@ -55,6 +58,8 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   );
   const [run, setRun] = useState<TestRun>();
   const [pending, setPending] = useState<boolean>(false);
+  const [cancelled, setCancelled] = useState<boolean>(false);
+  const [outOfGold, setOutOfGold] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const controllerRef = useRef<AbortController | undefined>(undefined);
   const versionRef = useRef(0);
@@ -102,8 +107,12 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
     [],
   );
   const cancel = useCallback((): void => {
-    controllerRef.current?.abort();
+    if (controllerRef.current === undefined) {
+      return;
+    }
+    controllerRef.current.abort();
     controllerRef.current = undefined;
+    setCancelled(true);
     setPending(false);
   }, []);
   useEffect(
@@ -113,7 +122,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
     [],
   );
   const fresh = useCallback((): void => {
+    const wasPending = controllerRef.current !== undefined;
     cancel();
+    setCancelled(wasPending);
     setRun(undefined);
     setError(undefined);
   }, [cancel]);
@@ -142,6 +153,8 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
       const abort = new AbortController();
       controllerRef.current = abort;
       setPending(true);
+      setCancelled(false);
+      setOutOfGold(false);
       setError(undefined);
       try {
         const response = await fetch("/api/workshop", {
@@ -160,7 +173,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
           }),
         });
         if (!response.ok) {
-          throw new Error(userMessage(readAppErrorCase(await response.text())));
+          const errorCase = readAppErrorCase(await response.text());
+          setOutOfGold(errorCase === "out-of-gold");
+          throw new Error(userMessage(errorCase));
         }
         const parsed = WORKSHOP_RESULT.safeParse(await response.json());
         if (!parsed.success) {
@@ -220,15 +235,23 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   if (run !== undefined && !stale) {
     sendLabel = WORKSHOP_COPY.followUp;
   }
+  let status = "";
+  if (pending) {
+    status = WORKSHOP_COPY.pending;
+  } else if (cancelled) {
+    status = WORKSHOP_COPY.cancelled;
+  }
   return (
     <section className="workshop" aria-label={WORKSHOP_COPY.heading}>
       <header className="flex flex-col gap-2">
-        <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
+        <Link className="text-link" href="/workshop">
+          {WORKSHOP_COPY.heading}
+        </Link>
         <p className="text-muted">{WORKSHOP_COPY.intro}</p>
       </header>
       <div className="workshop-columns">
         <div className="flex min-w-0 flex-col gap-4">
-          <h2 className="section-heading">{WORKSHOP_COPY.edit}</h2>
+          <p className="section-heading">{WORKSHOP_COPY.edit}</p>
           <PromptDraftContext value={reportDraft}>
             {children}
           </PromptDraftContext>
@@ -337,8 +360,16 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
               );
             })}
           </div>
-          {pending === true && <p role="status">{WORKSHOP_COPY.pending}</p>}
-          {error !== undefined && <Alert>{error}</Alert>}
+          <FormStatus>{status}</FormStatus>
+          {pending === true && (
+            <p className="text-muted text-sm">{WORKSHOP_COPY.cancelHint}</p>
+          )}
+          {error !== undefined && (
+            <Alert>
+              {error}
+              {outOfGold === true && <EarnGoldLink />}
+            </Alert>
+          )}
           <TextAreaField
             label={WORKSHOP_COPY.message}
             value={message}

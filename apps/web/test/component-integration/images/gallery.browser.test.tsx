@@ -22,6 +22,8 @@ vi.mock("@/images/generation-store.ts", () => ({
 
 const ID = GENERATION_ID.parse("baaf1045-0bcb-4f49-b600-18cfeb6936f4");
 const CHAT = CHAT_ID.parse("a5a6ab4b-5f2b-4f1f-8614-76e24198577b");
+const IMAGE_RESERVATION_GOLD = 25;
+const AVAILABLE_GOLD = 20;
 const PROMPT = "A blue bird above a forest";
 
 beforeEach(() => {
@@ -44,9 +46,16 @@ describe("image gallery", () => {
     await expect
       .element(page.getByRole("heading", { name: GENERATION_COPY.heading }))
       .toBeVisible();
+    const image = page
+      .getByRole("link", { name: GENERATION_COPY.view })
+      .element()
+      .querySelector("img");
+    await expect.element(image).toHaveAttribute("src", generatedImageUrl(ID));
+    await expect.element(image).toHaveAttribute("alt", "");
+    await expect.element(page.getByText(PROMPT, { exact: true })).toBeVisible();
     await expect
       .element(page.getByRole("img", { name: PROMPT }))
-      .toHaveAttribute("src", generatedImageUrl(ID));
+      .not.toBeInTheDocument();
     await expect
       .element(page.getByRole("link", { name: GENERATION_COPY.download }))
       .toHaveAttribute("href", generatedImageUrl(ID, true));
@@ -54,6 +63,9 @@ describe("image gallery", () => {
       .element(page.getByRole("link", { name: GENERATION_COPY.source }))
       .toHaveAttribute("href", `/chats/${CHAT}`);
     await expect.element(page.getByText(GENERATION_COPY.context)).toBeVisible();
+    expect(document.querySelector("time")?.dateTime).toBe(
+      new Date(0).toISOString(),
+    );
   });
 
   test("explains how to create the first image", async () => {
@@ -79,4 +91,29 @@ describe("image gallery", () => {
       await expect.element(page.getByRole("img")).not.toBeInTheDocument();
     },
   );
+});
+
+test("insufficient image-reservation gold explains the amounts without claiming the balance is zero", async () => {
+  await render(
+    <GeneratedImagePart
+      part={{
+        result: {
+          status: "outOfGold",
+          requiredGold: IMAGE_RESERVATION_GOLD,
+          availableGold: AVAILABLE_GOLD,
+        },
+      }}
+    />,
+  );
+  await expect
+    .element(page.getByRole("status"))
+    .toHaveTextContent(
+      GENERATION_COPY.reservationRefused(
+        IMAGE_RESERVATION_GOLD,
+        AVAILABLE_GOLD,
+      ),
+    );
+  await expect
+    .element(page.getByRole("link"))
+    .toHaveAttribute("href", "/marketplace#your-listings");
 });

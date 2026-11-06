@@ -10,6 +10,7 @@ import {
   type QuestStatus,
 } from "@/projects/quest-status.ts";
 import type { Project } from "@/projects/store.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 function selectStatus(
@@ -29,6 +30,10 @@ function QuestStatusTabs({
   readonly projects: Project[];
   readonly initialStatus?: QuestStatus;
 }): JSX.Element {
+  let emptyMessage: string = QUEST_STATUS_COPY.empty;
+  if (projects.length === 0) {
+    emptyMessage = PROJECTS_COPY.none;
+  }
   const [status, setStatus] = useState(initialStatus);
   const onValueChange = selectStatus.bind(null, setStatus);
   return (
@@ -56,7 +61,7 @@ function QuestStatusTabs({
           <Tabs.Content key={choice} value={choice}>
             <ProjectList
               projects={projects.filter((project) => project.status === choice)}
-              emptyMessage={QUEST_STATUS_COPY.empty}
+              emptyMessage={emptyMessage}
             />
           </Tabs.Content>
         ))}

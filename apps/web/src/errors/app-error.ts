@@ -31,7 +31,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "out-of-credits":
     "The construct is unavailable right now. Please try again later.",
   "invalid-api-key":
-    "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
+    "The construct is unavailable right now. Please try again later.",
   "rate-limited":
     "Too many requests to Claude right now. Wait a minute, then try again.",
   overloaded: "Claude is overloaded right now. Try again in a few minutes.",
@@ -40,14 +40,14 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "invalid-image":
     "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
   "invalid-request":
-    "Claude rejected the request. Try again, and check the server logs if it keeps failing.",
+    "The construct could not answer this request. Try again, or start a new adventure if it keeps failing.",
   "model-server-error":
     "Claude's service had an internal error. Try again in a few minutes.",
   "model-unreachable": "The site couldn't reach Claude. Try again in a moment.",
   "database-unreachable":
     "The database can't be reached right now. Try again in a few minutes.",
   "database-query-failed":
-    "The database rejected a request. Check the server logs for details.",
+    "Your changes could not be saved. Please try again later.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
     "That quest or adventure can't be found. The link may be wrong, or it may have been deleted.",
@@ -58,8 +58,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
     "You're out of gold. The construct can't reply, generate images or start new adventures and quests without it.",
-  unknown:
-    "Something went wrong. Try again, and check the server logs if it keeps failing.",
+  unknown: "Something went wrong. Please try again later.",
 };
 
 // The case that text from the server names: a response body, a stream's

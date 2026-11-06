@@ -124,3 +124,25 @@ test("a later refused restore replaces an earlier success message", async () => 
     .element(page.getByText(MEMORY_COPY.restored(1)))
     .not.toBeInTheDocument();
 });
+
+test("only a recorded restore shows source provenance in Journal history", async () => {
+  const [newest] = HISTORY;
+  if (newest === undefined) {
+    throw new Error("Missing history");
+  }
+  await render(
+    <MemoryHistory
+      history={[
+        { ...newest, restoredFromVersion: MEMORY_VERSION_NUMBER.parse(1) },
+        ...HISTORY.slice(1),
+      ]}
+      projectId={FOX_PROJECT.id}
+    />,
+  );
+  await expect
+    .element(page.getByText(MEMORY_COPY.restoredFrom(1)))
+    .toBeVisible();
+  expect(page.getByText(MEMORY_COPY.restoredFrom(1)).elements()).toHaveLength(
+    1,
+  );
+});

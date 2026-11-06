@@ -7,6 +7,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
@@ -109,8 +110,20 @@ function PromptEditor({
   defaultPrompt,
   viewer,
   heading,
+  formId,
+  saveLabel = PROMPT_COPY.save,
+  saveHint,
+  onSubmitCapture,
+  saving = false,
+  disabled = false,
 }: {
-  readonly action: (formData: FormData) => Promise<never>;
+  readonly onSubmitCapture?: (event: SubmitEvent<HTMLFormElement>) => void;
+  readonly saveLabel?: string;
+  readonly saveHint?: string | undefined;
+  readonly formId?: string;
+  readonly saving?: boolean;
+  readonly disabled?: boolean;
+  readonly action: (formData: FormData) => void | Promise<void>;
   readonly kind: PromptKind;
   readonly idName: string;
   readonly promptId: string;
@@ -122,6 +135,7 @@ function PromptEditor({
   readonly viewer: string;
   readonly heading: string;
 }): JSX.Element {
+  const saveHintId = useId();
   const reportDraft = useContext(PromptDraftContext);
   const draftKey = `prompt:${viewer}:${storedPromptKind(kind)}:${promptId}`;
   const [saved] = useState<PromptDraft>(() => ({
@@ -280,9 +294,12 @@ function PromptEditor({
   return (
     <form
       action={action}
+      id={formId}
+      aria-busy={saving}
       className="flex flex-col gap-4"
       noValidate={true}
       onSubmit={submit}
+      onSubmitCapture={onSubmitCapture}
     >
       <input name={idName} type="hidden" value={promptId} />
       <div className="panel">
@@ -325,8 +342,15 @@ function PromptEditor({
           />
         );
       })}
+      {saveHint !== undefined && <p id={saveHintId}>{saveHint}</p>}
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit">{PROMPT_COPY.save}</Button>
+        <Button
+          aria-describedby={(saveHint !== undefined && saveHintId) || undefined}
+          disabled={saving === true || disabled === true}
+          type="submit"
+        >
+          {saveLabel}
+        </Button>
         {defaultPrompt !== undefined && (
           <Button onClick={reset} variant="quiet">
             {PROMPT_COPY.resetPrompt}

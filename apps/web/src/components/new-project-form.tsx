@@ -27,7 +27,11 @@ export function NewProjectForm(): JSX.Element {
   }
   let name = "";
   let motivation = "";
-  if (state.kind === "claudeUnavailable" || state.kind === "invalidName") {
+  if (
+    state.kind === "claudeUnavailable" ||
+    state.kind === "invalidName" ||
+    state.kind === "outOfGold"
+  ) {
     ({ name, motivation } = state);
   }
   let nameError: string | undefined;

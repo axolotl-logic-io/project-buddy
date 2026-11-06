@@ -8,6 +8,8 @@ An activity sets the scene an adventure plays out. The site has three built-in a
 - **Brainstorming:** the construct helps her explore an idea, question her assumptions and make decisions.
 - **Project Breakdown:** the construct helps her split a goal into milestones and the next small steps.
 
+Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Write new activity” to distinguish it from an own definition named “New activity”.
+
 ## use_case_start_chat_in_activity
 
 The user starts an adventure in the activity she wants.
@@ -60,10 +62,10 @@ The user writes an activity of her own from scratch, without starting from one s
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - On Activities, she chooses New activity. The site makes a new activity of hers and opens its page to edit.
+  - On Activities, she chooses Write new activity. The site makes a new activity of hers and opens its page to edit.
   - She names it, writes its instructions and opening request, and saves.
   - She resets its prompt, then starts an adventure in the activity.
   - In another adventure, the construct moves the adventure into it.
-- **Outcome:** the new activity is named "New activity" and starts with the open adventure's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start an adventure in it, and the construct can move an adventure into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
+- **Outcome:** the new activity is named "New activity" and starts with the open adventure's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start an adventure in it, and the construct can move an adventure into it. Choosing Write new activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start an adventure in it.

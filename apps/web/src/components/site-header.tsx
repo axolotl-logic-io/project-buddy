@@ -15,6 +15,7 @@ import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 // The ids of the menu's two groups' names. The header is on every page
 // once, so they are unique.
@@ -30,13 +31,10 @@ function AccountLinks(): JSX.Element {
       </p>
       <ul aria-labelledby={PLACES_LABEL_ID} className="flex flex-col">
         <li>
-          <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/gallery">{GENERATION_COPY.heading}</MenuLink>
-        </li>
-        <li>
           <MenuLink href="/projects">{PROJECTS_COPY.headerLink}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
         </li>
         <li>
           <MenuLink href="/constructs">{CONSTRUCTS_COPY.headerLink}</MenuLink>
@@ -48,7 +46,13 @@ function AccountLinks(): JSX.Element {
           <MenuLink href="/spellbook">{SPELLBOOK_COPY.headerLink}</MenuLink>
         </li>
         <li>
+          <MenuLink href="/workshop">{WORKSHOP_COPY.heading}</MenuLink>
+        </li>
+        <li>
           <MenuLink href="/retirement">{RETIREMENT_COPY.heading}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/gallery">{GENERATION_COPY.heading}</MenuLink>
         </li>
         <li>
           <MenuLink href="/marketplace">{MARKETPLACE_COPY.headerLink}</MenuLink>

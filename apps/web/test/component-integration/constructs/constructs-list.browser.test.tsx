@@ -110,7 +110,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           builtIn.getByRole("button", {
-            name: construct.name,
+            name: CONSTRUCTS_COPY.startLabel(construct.name),
             exact: true,
           }),
         )
@@ -134,7 +134,11 @@ test("use_case_view_constructs", async () => {
       .elements()
       .filter((button) => button.hasAttribute("aria-haspopup"))
       .map((button) => button.textContent),
-  ).toEqual(OWN_CONSTRUCTS.map((construct) => construct.name));
+  ).toEqual(
+    OWN_CONSTRUCTS.map((construct) =>
+      CONSTRUCTS_COPY.startLabel(construct.name),
+    ),
+  );
 
   expect(
     own
@@ -147,7 +151,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           own.getByRole("button", {
-            name: construct.name,
+            name: CONSTRUCTS_COPY.startLabel(construct.name),
             exact: true,
           }),
         )
@@ -250,7 +254,7 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
       ),
     );
     const trigger = page.getByRole("button", {
-      name: construct.name,
+      name: CONSTRUCTS_COPY.startLabel(construct.name),
       exact: true,
     });
     await trigger.click();
@@ -283,3 +287,32 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
     expect(sent.get("projectId")).toBe(PROJECT.id);
   },
 );
+
+test("writing a new construct is distinct from starting with an own construct named New construct", async () => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(listConstructs).mockResolvedValue([
+    { ...VELLUM_CLONE, name: "New construct" },
+  ]);
+  await render(
+    inWorkspace(
+      await ConstructsPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
+  const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
+  const start = own.getByRole("button", {
+    name: CONSTRUCTS_COPY.startLabel("New construct"),
+    exact: true,
+  });
+  const write = own.getByRole("button", {
+    name: CONSTRUCTS_COPY.newConstruct,
+    exact: true,
+  });
+  await expect.element(start).toBeVisible();
+  await expect.element(write).toBeVisible();
+  expect(start.element().getAttribute("aria-haspopup")).toBe("dialog");
+  expect(write.element()).toHaveAttribute("type", "submit");
+  expect(write.element().textContent).not.toBe(start.element().textContent);
+});

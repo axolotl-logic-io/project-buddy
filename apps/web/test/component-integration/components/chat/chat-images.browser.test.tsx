@@ -4,6 +4,7 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import { userMessage } from "@/errors/app-error.ts";
+import { MAX_MESSAGE_IMAGES } from "@/images/image-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
@@ -154,7 +155,7 @@ describe("use_case_chat_images", () => {
     await page.getByRole("button", { name: IMAGE_COPY.remove }).click();
     paste(new File(["<svg/>"], "drawing.svg", { type: "image/svg+xml" }));
     await expect
-      .element(page.getByText(userMessage("invalid-image")))
+      .element(page.getByText(IMAGE_COPY.unsupportedType("drawing.svg")))
       .toBeVisible();
     await expect.element(box).toHaveValue("What is this?");
   });
@@ -193,7 +194,7 @@ describe("use_case_chat_images", () => {
       imageFile(),
     ]);
     await expect
-      .element(page.getByText(userMessage("invalid-image")))
+      .element(page.getByText(IMAGE_COPY.tooMany(MAX_MESSAGE_IMAGES)))
       .toBeVisible();
     await expect
       .element(page.getByRole("button", { name: CHAT_COPY.send }))
@@ -253,4 +254,62 @@ describe("use_case_chat_images", () => {
       .element(page.getByRole("button", { name: IMAGE_COPY.remove }))
       .toBeVisible();
   });
+});
+
+const OVERSIZE_BYTES = 3_145_728;
+const OVERSIZE_MIB = 3;
+const LIMIT_MIB = 2;
+
+test("a known oversized image names the failed limit, retains the draft and remains removable", async () => {
+  const fetcher = vi.fn<typeof fetch>();
+  vi.stubGlobal("fetch", fetcher);
+  await render(
+    <ChatView
+      viewer={userIdFixture()}
+      chatId={chatIdFixture()}
+      initialMessages={[]}
+      constructName="Vellum"
+    />,
+  );
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  await box.fill("Keep my question");
+  paste(
+    new File([new Uint8Array(OVERSIZE_BYTES)], "big.png", {
+      type: "image/png",
+    }),
+  );
+  await expect
+    .element(page.getByRole("alert"))
+    .toHaveTextContent(IMAGE_COPY.tooLarge("big.png", OVERSIZE_MIB, LIMIT_MIB));
+  await expect.element(box).toHaveValue("Keep my question");
+  expect(fetcher).not.toHaveBeenCalled();
+  await page.getByRole("button", { name: IMAGE_COPY.remove }).click();
+  await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
+});
+
+test("rejected upload bytes give a data-specific error while preserving text and removal", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response("invalid-image", { status: 400 })),
+    ),
+  );
+  await render(
+    <ChatView
+      viewer={userIdFixture()}
+      chatId={chatIdFixture()}
+      initialMessages={[]}
+      constructName="Vellum"
+    />,
+  );
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  await box.fill("Keep this too");
+  paste(imageFile());
+  await expect
+    .element(page.getByRole("alert"))
+    .toHaveTextContent(IMAGE_COPY.invalidContents);
+  await expect.element(box).toHaveValue("Keep this too");
+  await expect
+    .element(page.getByRole("button", { name: IMAGE_COPY.remove }))
+    .toBeEnabled();
 });
