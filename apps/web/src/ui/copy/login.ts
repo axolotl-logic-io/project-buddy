@@ -12,8 +12,9 @@ export const LOGIN_COPY = {
   needsEmail: "Enter your email address, such as name@example.com.",
   checkEmail:
     "Check your email. If this address has an account, a sign-in link is on its way. It works for 30 minutes.",
-  signUpPrompt: "Invited, and new here?",
-  signUpLink: "Sign up",
+  signUpPrompt:
+    "Invited and new here? Open the setup link in your invitation email.",
+  signUpLink: "Invitation help",
 } as const;
 
 export const LINK_PAGE_COPY = {

@@ -22,7 +22,7 @@ export const ACTIVITIES_COPY = {
   ownHeading: "Your activities",
   noOwn:
     "No activities of your own yet. Customize one above, or choose New activity to write one from scratch.",
-  newActivity: "New activity",
+  newActivity: "Write new activity",
   // The name of an activity written from scratch, until the user renames it.
   newActivityName: "New activity",
   start: "Start",

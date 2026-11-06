@@ -348,7 +348,7 @@ When an unsent message included images, returning to the adventure shows a remin
 
 New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **New quest construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the adventure.
 
-New adventure and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the construct picker is hidden for a new quest. Other adventures retain their construct picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference used by the dedicated New quest form. Quests created by a construct from an existing adventure keep that adventure's construct.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 

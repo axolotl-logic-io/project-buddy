@@ -89,7 +89,7 @@ function SiteMenu({
       )}
       {shortcuts === true && (
         <Button asChild={true} variant="secondary">
-          <Link href="/capture">
+          <Link className="header-quick-note" href="/capture">
             <Icon name="note" />
             <span>{QUICK_CAPTURE_COPY.headerLink}</span>
           </Link>

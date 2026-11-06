@@ -143,8 +143,11 @@ async function grantStartingGold(owner: UserId): Promise<void> {
   );
 }
 
-async function selectBalance(owner: UserId): Promise<number | undefined> {
-  const [row] = await getDb()
+async function selectBalance(
+  owner: UserId,
+  db: Database | Transaction,
+): Promise<number | undefined> {
+  const [row] = await db
     .select({ microUsd: goldBalances.microUsd })
     .from(goldBalances)
     .where(goldBalanceOwnedBy(owner));
@@ -154,14 +157,17 @@ async function selectBalance(owner: UserId): Promise<number | undefined> {
 // Owner's gold, in micro-USD (gold.ts), which may be slightly below 0. An
 // account with no balance yet is given its starting grant first; one that
 // no longer exists has none.
-async function readGoldBalance(owner: UserId): Promise<number> {
+async function readGoldBalance(
+  owner: UserId,
+  db: Database | Transaction = getDb(),
+): Promise<number> {
   return await withAppErrors("readGoldBalance", async () => {
-    const balance = await selectBalance(owner);
+    const balance = await selectBalance(owner, db);
     if (balance !== undefined) {
       return balance;
     }
-    await grantMissingStartingGold(getDb(), [owner]);
-    return (await selectBalance(owner)) ?? 0;
+    await grantMissingStartingGold(db, [owner]);
+    return (await selectBalance(owner, db)) ?? 0;
   });
 }
 

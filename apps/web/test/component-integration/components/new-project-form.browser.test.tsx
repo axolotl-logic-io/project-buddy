@@ -108,3 +108,25 @@ describe("use_case_new_project_name_too_long", () => {
     await expect.element(nameField).toHaveValue(name);
   });
 });
+
+test("an out-of-gold refusal preserves the quest name and motivation", async () => {
+  actions.createProjectAction.mockImplementation(async (_previous, form) => ({
+    kind: "outOfGold",
+    message: "You're out of gold.",
+    name: String(form.get("name")),
+    motivation: String(form.get("motivation")),
+  }));
+  await render(<NewProjectForm />);
+  const name = page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel });
+  const motivation = page.getByRole("textbox", {
+    name: PROJECTS_COPY.motivationLabel,
+  });
+  await name.fill("Birdhouse");
+  await motivation.fill("A gift for a friend");
+  await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
+  await expect
+    .element(page.getByText("You're out of gold.", { exact: true }))
+    .toBeVisible();
+  await expect.element(name).toHaveValue("Birdhouse");
+  await expect.element(motivation).toHaveValue("A gift for a friend");
+});

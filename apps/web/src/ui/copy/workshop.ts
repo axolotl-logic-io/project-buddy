@@ -38,6 +38,10 @@ const WORKSHOP_COPY = {
   opening: "Test opening request",
   fresh: "New test",
   cancel: "Cancel test",
+  cancelHint:
+    "Cancel test stops waiting. Model use already incurred may still spend gold.",
+  cancelled:
+    "Stopped waiting for this test. Model use already incurred may still spend gold.",
   pending: "Your construct is trying the draft…",
   empty: "Your test conversation will appear here.",
   stale:

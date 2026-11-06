@@ -22,12 +22,13 @@ import { currentActivity } from "@/activities/activity-sessions.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
+import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import type { QuestStatus } from "@/projects/quest-status.ts";
+import type { QuestStatus, StatusApproval } from "@/projects/quest-status.ts";
+import { readLatestStatusApproval } from "@/projects/quest-status-store.ts";
 import { getProject } from "@/projects/store.ts";
 import {
   GLOBAL_PROMPT_SECTIONS,
@@ -74,6 +75,7 @@ interface ReplyPromptContext {
 // prompt, so every section sees the same version.
 interface PromptProject {
   readonly status?: QuestStatus | undefined;
+  readonly latestApproval?: StatusApproval | undefined;
   readonly name: string;
   readonly memory: Memory;
   readonly milestones: readonly Milestone[];
@@ -168,6 +170,13 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
     }
     return `Current quest status: ${project.status}. This current status takes precedence over older proposal cards in the adventure.`;
   },
+  ({ project }: ReplyPromptContext): string => {
+    const approval = project?.latestApproval;
+    if (approval === undefined) {
+      return "";
+    }
+    return `Latest status proposal in this adventure: ${approval.fromStatus} to ${approval.toStatus}; decision: ${approval.decision}. This live decision supersedes the original tool result. Only pending cards have confirmation buttons. A declined, approved or outdated card cannot be confirmed again. If the user requests a change after that decision, create a fresh proposal; do not claim an old card is still waiting. This context never authorizes a status change.`;
+  },
   severalAuthorsSection,
   memoryPromptSection,
   milestonesPromptSection,
@@ -241,14 +250,23 @@ async function readPromptProject(
 }
 
 // The chat's project as its prompt reads it; undefined in a standalone chat.
-function promptProject(
+async function promptProject(
   actingUser: UserId,
-  chat: Pick<Chat, "project">,
+  chat: Pick<Chat, "project"> & { readonly id?: ChatId },
 ): Promise<PromptProject | undefined> {
   if (chat.project === undefined) {
-    return Promise.resolve(undefined);
+    return undefined;
   }
-  return readPromptProject(actingUser, chat.project);
+  let approval: Promise<StatusApproval | undefined> =
+    Promise.resolve(undefined);
+  if (chat.id !== undefined) {
+    approval = readLatestStatusApproval(actingUser, chat.id);
+  }
+  const [project, latestApproval] = await Promise.all([
+    readPromptProject(actingUser, chat.project),
+    approval,
+  ]);
+  return { ...project, latestApproval };
 }
 
 // The system messages for one chat turn, with the acting user's name, activities and

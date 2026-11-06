@@ -5,6 +5,7 @@
 const CHECK_IN_KICKOFF = [
   "I haven't worked on this quest for a while, and you are checking in on me.",
   "Write a short message, two or three sentences, in your voice: remind me where I left off, from the quest's Journal, and suggest one small next step I could take in about ten minutes.",
+  "This opening has no lookup tools. Suggest a task at a high level, without Blender steps, commands, menu paths, settings or shortcuts; leave technical guidance for a reply where the manual can be searched.",
   "Ask at most one question. Don't list the whole Journal back to me.",
 ].join(" ");
 

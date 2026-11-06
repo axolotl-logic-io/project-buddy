@@ -16,6 +16,8 @@ const GENERATION_COPY = {
   working: "Generating your image… This can take up to two minutes.",
   pending:
     "Generation was started. If it was interrupted, it will not restart automatically. Check the source adventure before asking again.",
+  reservationRefused: (required: number, available: number): string =>
+    `Images reserve ${required} gold; ${available} gold was available for this request. Replies still spend gold.`,
   outOfGold: "You don't have enough gold left to generate an image.",
   quotaUsedUp: "You don't have enough gold left to generate an image.",
   unavailable:

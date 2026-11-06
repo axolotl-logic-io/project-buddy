@@ -5,8 +5,8 @@
 // with the open chat, no project and Vellum chosen, and closes with Escape
 // or its close button, giving focus back to the button. Opening and closing
 // it sends nothing.
-import { afterEach, describe, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+import { commands, type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
@@ -16,6 +16,12 @@ import { getConstruct } from "@/constructs/index.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { activityChoices } from "../activities/activity-choices-test-kit.ts";
+import {
+  installThemeFonts,
+  loadFonts,
+} from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
+import { LAPTOP_VIEWPORT, setViewport } from "../viewports-test-kit.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
 
 const actions = vi.hoisted(() => ({
@@ -54,7 +60,12 @@ function focusInDialog(): boolean {
   return dialog().element().contains(document.activeElement);
 }
 
-afterEach(() => {
+beforeAll(() => {
+  installThemeFonts();
+});
+
+afterEach(async () => {
+  await setViewport(LAPTOP_VIEWPORT);
   vi.clearAllMocks();
 });
 
@@ -131,4 +142,76 @@ describe("use_case_standalone_chat", () => {
     await expect.element(newChatButton()).toHaveFocus();
     expect(actions.startChatAction).not.toHaveBeenCalled();
   });
+});
+
+// Visibility includes the panel's clipping area: toBeVisible alone does not.
+function fullyInView(control: Locator): boolean {
+  const panel = dialog().element();
+  const panelBox = panel.getBoundingClientRect();
+  const controlBox = control.element().getBoundingClientRect();
+  return (
+    controlBox.top >= panelBox.top + panel.clientTop &&
+    controlBox.bottom <= panelBox.top + panel.clientTop + panel.clientHeight &&
+    controlBox.top >= 0 &&
+    controlBox.bottom <= window.innerHeight
+  );
+}
+
+test("a quest adventure dialog reveals wrapped keyboard focus on a narrow phone", async () => {
+  applyTheme("parchment");
+  await commands.reduceMotion();
+  await setViewport({ width: 320, height: 740 });
+  await render(
+    <NewChatDialog
+      activities={await activityChoices()}
+      projectId={PROJECT.id}
+      selectedActivityId={DEFAULT_ACTIVITY_ID}
+      userConstructs={[]}
+    />,
+  );
+  await loadFonts();
+  await newChatButton().click();
+  const close = dialog().getByRole("button", {
+    name: NEW_CHAT_COPY.closeDialog,
+  });
+  const start = dialog().getByRole("button", {
+    name: NEW_CHAT_COPY.start,
+    exact: true,
+  });
+  await expect.element(close).toHaveFocus();
+  const panel = dialog().element();
+  expect(panel.scrollHeight).toBeGreaterThan(panel.clientHeight);
+  expect(panel.scrollTop).toBe(0);
+
+  await userEvent.tab({ shift: true });
+  await expect.element(start).toHaveFocus();
+  expect(
+    fullyInView(start),
+    "the wrapped Start adventure is inside the visible panel",
+  ).toBe(true);
+
+  await userEvent.keyboard("{Tab}");
+  await expect.element(close).toHaveFocus();
+  expect(fullyInView(close), "forward wrap reveals Close again").toBe(true);
+  const scrollBeforeField = panel.scrollTop;
+  await tabForward();
+  const activity = dialog().getByRole("combobox", {
+    name: NEW_CHAT_COPY.activityLabel,
+  });
+  await expect.element(activity).toHaveFocus();
+  expect(fullyInView(activity), "normal field navigation remains visible").toBe(
+    true,
+  );
+  expect(
+    panel.scrollTop,
+    "a field already in view needs no additional scrolling",
+  ).toBe(scrollBeforeField);
+  await expect
+    .element(activity)
+    .toHaveDisplayValue(getActivity(DEFAULT_ACTIVITY_ID).name);
+
+  await userEvent.keyboard("{Escape}");
+  await expect.element(dialog()).not.toBeInTheDocument();
+  await expect.element(newChatButton()).toHaveFocus();
+  expect(actions.startChatAction).not.toHaveBeenCalled();
 });
