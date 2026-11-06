@@ -61,34 +61,33 @@ from the northern relief study and restyled as sepia ink engraving on aged
 paper. It is a decorative CSS background, with no map labels baked into the
 image. There is no compass bar or region caption.
 
-The destinations follow the original terrain:
+Home has one responsive control panel, with no Map/List switch. The map
+fills the background behind the heading, places, current quest and footer.
+Quests, Adventures, Constructs, Activities, Workshop and Marketplace appear
+in that reading and keyboard order, in two columns on phones and three on
+wide screens. The map has no geographic markers, trails or separate phone
+overview. It needs no panning, zooming, hovering or animation.
 
-- Quests sits in the northern highlands, suggesting a journey toward a goal.
-- Adventures is central in the river valley, where the other trails meet.
-- Constructs sits in the sheltered western foothills, near Quests and Adventures.
-- Activities occupies the broad eastern basin, with room to explore.
-- Workshop sits farther down the river, where water can support making.
-- Marketplace sits upstream on the northern approach to the central valley.
+`src/home/places.ts` names the six destinations once. Each is a normal link
+to an existing page. Descriptions show on wide screens and remain accessible
+to assistive technology on phones. Spellbook and Image gallery remain
+available from the menu; spells are also available in Workshop. The
+Spellbook pages belong to Workshop in the header.
 
-The dotted trails express connections between places. Their positions carry
-no prerequisites: every destination is open from the start. The artwork and
-markers share the same coordinate space so resizing keeps them aligned.
+Strongly tinted parchment panels blur the terrain behind the title,
+destination buttons, current quest and footer. Ink and muted text have known
+contrast even over the darkest marks in the artwork. Browsers without
+backdrop blur use opaque paper. Forced-colors mode removes the artwork and
+blur. The atlas uses the same paper material in both appearance modes.
 
-Spellbook and Image gallery have no map markers or destination rows. Both
-remain available from the menu; spells are also available in Workshop.
-The Spellbook pages belong to Workshop in the header. Settings sits beside Account in the bottom bar, outside both
-Map and List views.
-
-`src/home/places.ts` names the six destinations once for the map and its
-List view. Each is a normal link to an existing page, in the same reading and
-keyboard order. On narrow screens the landscape becomes a compact overview
-above destination rows. There is no required panning, zooming or animation.
-Opaque paper labels and the atlas material's semantic tokens keep text and
-focus readable independently of the artwork and the user's theme.
+The Home header keeps the site's name, Quick Note and Menu on parchment.
+Other pages keep their ink HUD. Leaving a cached Home page restores the
+usual page background, header and content column without a refresh.
 
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
-With no quest, it offers Start a quest, leading to a new quest in Project Breakdown.
+The quest sits below all six destinations. With no quest, the same position
+offers Start a quest, leading to a new quest in Project Breakdown.
 The existing site header keeps Quick Note and Menu available; Settings and
 Account also appear below the map. Home reads no new data source, creates
 nothing and makes no model call.
