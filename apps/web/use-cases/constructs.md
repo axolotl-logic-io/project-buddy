@@ -41,11 +41,11 @@ The user writes a construct of her own from scratch, without starting from one s
 
 - **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - In the Constructs page, she chooses New construct. The site makes a new construct of hers and opens its page to edit.
+  - In the Constructs page, she chooses Write new construct. The site makes a new construct of hers and opens its page to edit.
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts an adventure with the construct.
   - Back in the Constructs, she clones it.
-- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing New construct again makes another construct named "New construct". Another user never sees it.
+- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing Write new construct again makes another construct named "New construct". Another user never sees it.
 - **Next:**
   - `use_case_edit_construct`: change it again.
   - `use_case_view_constructs`: look over the Constructs page again.
@@ -99,7 +99,7 @@ The user generates images for an own construct in the Workshop.
 - **Prerequisites:** `use_case_edit_construct`.
 - **Steps:**
   - The user edits a Visual description. Save or Generate Images saves the current edits and generates replacement images from that description.
-  - The page shows the current gold reservation and whether generation is available.
+  - The Save and generate images action explains the paid replacement and current gold reservation before submission, including at 320 px and through its accessible description. With no Visual description, the action is Save and requests no generation. The Visuals section also shows whether generation is available.
   - While generation runs, a spinner and accessible loading status are visible, and Save and Generate Images are disabled. Avatar, portrait, opening and working previews show each role’s state.
   - While a request is pending, the user can check its status or reload without starting another paid request.
 - **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Changed descriptions or prompts mark saved generated art outdated.

@@ -98,7 +98,7 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
       description,
     });
   }
-  return constructPage(constructId);
+  return redirect(`/constructs/${constructId}?saved=1`);
 }
 
 export async function resetConstructPromptAction(

@@ -28,7 +28,7 @@ Images belong to their source adventure. Database cascades delete image bytes an
 
 ## Validation
 
-Tests use fake generation providers and the guarded local test database. Never use the shared database or a real paid model to test generation. The server suite covers tool calls, persistence, delivery, gold reservation under concurrency, replay and owner isolation. Browser tests cover progress, errors, gallery links and phone layout.
+Tests use fake generation providers and the guarded local test database. Never use the shared database to test generation. Automated tests always use fake providers. A person may explicitly authorize paid manual checking in an isolated local database; keep provider credentials separate from shared-database configuration and clean up local fixtures. The server suite covers tool calls, persistence, delivery, gold reservation under concurrency, replay and owner isolation. Browser tests cover progress, errors, gallery links and phone layout.
 
 ## Provider references
 

@@ -31,7 +31,7 @@ The user generates artwork for a saved own construct and keeps it in the places 
 
 - **Prerequisites:** a signed-in account, a saved own construct with a Visual description, an available image provider and enough gold for the displayed reservation.
 - **Steps:**
-  - Open the construct's Workshop, edit the Visual description, review the gold reservation and choose Save or Generate Images. Both save the current edits and generate replacements with visible loading feedback.
+  - Open the construct's Workshop, edit the Visual description, review the gold reservation beside Save and generate images and choose that action or Generate Images. Both save the current edits and generate replacements with visible loading feedback.
   - Use the resulting artwork in a new adventure, a clone, or a Marketplace listing and its bought copies.
   - Reopen the Workshop after a lost response to check whether the request finished before trying again.
 - **Outcome:** one paid generation supplies avatar, portrait, opening and working appearances. Repeating the same request never charges twice. Existing copies and adventures keep their artwork when the source changes or is deleted. Construct artwork creates no adventure and does not appear in Image gallery.

@@ -86,7 +86,7 @@ async function saveSpellAction(formData: FormData): Promise<never> {
   if (saved === undefined) {
     notFound();
   }
-  return spellPage(saved.id);
+  return redirect(`/spellbook/${saved.id}?saved=1`);
 }
 
 async function resetSpellPromptAction(formData: FormData): Promise<void> {

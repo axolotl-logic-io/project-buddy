@@ -8,6 +8,7 @@ import { ConstructVisualPreview } from "@/components/constructs/construct-visual
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import {
   getOwnConstruct,
@@ -173,8 +174,10 @@ export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
 export default async function ConstructPage({
   params,
+  searchParams,
 }: PageProps<"/constructs/[constructId]">): Promise<JSX.Element> {
   const { constructId } = await params;
+  const { saved } = await searchParams;
   const user = await requireUser();
   const options = await workshopOptions(user.id);
   if (isConstructId(constructId)) {
@@ -219,6 +222,7 @@ export default async function ConstructPage({
         openingRequest: "",
       }}
     >
+      <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnConstructForm viewer={user.id} construct={construct} sale={sale} />
     </Workshop>
   );

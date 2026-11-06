@@ -22,7 +22,7 @@ export const SPELLBOOK_COPY = {
   ownHeading: "Your spells",
   noOwn:
     "No spells of your own yet. Customize one above, or choose New spell to write one from scratch.",
-  newSpell: "New spell",
+  newSpell: "Write new spell",
   // The name of a spell written from scratch, until the user renames it.
   newSpellName: "New spell",
   customize: "Customize",

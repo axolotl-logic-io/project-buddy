@@ -206,3 +206,25 @@ test("finished quests stay selectable with explicit status labels", async () => 
   await projectField().selectOptions("Garden (Abandoned)");
   await expect.element(projectField()).not.toHaveValue(PROJECT.id);
 });
+
+test("fixed activity and construct are named before starting an adventure", async () => {
+  await render(
+    <NewChatDialog
+      activities={await activityChoices()}
+      projects={[]}
+      selectedActivityId="brainstorming"
+      fixedActivity={true}
+      fixedConstructId="lumen"
+      userConstructs={[]}
+    />,
+  );
+  await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
+  const dialog = page.getByRole("dialog");
+  await expect
+    .element(dialog.getByText("Activity: Brainstorming", { exact: true }))
+    .toBeVisible();
+  await expect
+    .element(dialog.getByText("Construct: Lumen", { exact: true }))
+    .toBeVisible();
+  expect(actions.startChatAction).not.toHaveBeenCalled();
+});

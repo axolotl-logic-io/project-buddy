@@ -50,7 +50,9 @@ function ConstructVisualGeneration({
   draftDescription,
   saving = false,
   onBlockedChange,
+  onQuoteChange,
 }: {
+  readonly onQuoteChange?: (quote: VisualGenerationQuote) => void;
   readonly formId?: string;
   readonly draftDescription?: string;
   readonly saving?: boolean;
@@ -94,11 +96,23 @@ function ConstructVisualGeneration({
       unresolved?: VisualGenerationRequest,
     ): void => {
       setQuote(next);
+      onQuoteChange?.(next);
       setUnknown(false);
       const missingClaim =
         unresolved !== undefined && next.result?.status === "not-found";
-      setUnclaimed(missingClaim);
-      if (missingClaim) {
+      setUnclaimed(missingClaim && next.available);
+      if (missingClaim && !next.available) {
+        apply({
+          status: "unavailable",
+          reservationGold: next.reservationGold,
+          roles: {
+            avatar: "failed",
+            portrait: "failed",
+            opening: "failed",
+            working: "failed",
+          },
+        });
+      } else if (missingClaim) {
         setRequest(unresolved);
         setResult(undefined);
       } else if (next.result !== undefined) {
@@ -117,7 +131,7 @@ function ConstructVisualGeneration({
         keepLocalDraft(requestKey, recovered);
       }
     },
-    [construct.id, description, requestKey, apply],
+    [construct.id, description, requestKey, apply, onQuoteChange],
   );
   const read = useCallback(
     async (unresolved?: VisualGenerationRequest): Promise<void> => {

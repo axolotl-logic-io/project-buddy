@@ -18,6 +18,10 @@ import {
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 
+import type { VisualGenerationQuote } from "@/constructs/visual-generation-contract.ts";
+import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
+import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+
 const LINE_BREAK = /\r\n?/gu;
 
 function ConstructEditor({
@@ -28,11 +32,16 @@ function ConstructEditor({
 }): JSX.Element {
   const { action, viewer } = editor;
   const formId = useId();
+  const [quote, setQuote] = useState<VisualGenerationQuote>();
   const [generationBlocked, setGenerationBlocked] = useState(false);
   const [, save, saving] = useActionState(
     async (_previous: null, form: FormData): Promise<null> => {
       const description = form.get("visualDescription");
-      if (typeof description === "string" && description.trim() !== "") {
+      if (
+        quote?.available !== false &&
+        typeof description === "string" &&
+        description.trim() !== ""
+      ) {
         const request = {
           constructId: construct.id,
           requestId: crypto.randomUUID(),
@@ -66,12 +75,25 @@ function ConstructEditor({
     },
     [report, construct],
   );
+  let saveLabel: string = PROMPT_COPY.save;
+  let saveHint: string | undefined;
+  if (draftDescription.trim() !== "") {
+    saveLabel = VISUAL_COPY.saveAndGenerate;
+    saveHint = VISUAL_COPY.saveConsequence;
+    if (quote === undefined) {
+      saveHint += ` ${VISUAL_COPY.reservationUnknown}`;
+    } else {
+      saveHint += ` ${VISUAL_COPY.reservation(quote.reservationGold)}`;
+    }
+  }
   return (
     <>
       <PromptDraftContext value={reportDraft}>
         <PromptEditor
           {...editor}
           action={save}
+          saveLabel={saveLabel}
+          saveHint={saveHint}
           formId={formId}
           saving={saving}
           disabled={generationBlocked}
@@ -81,6 +103,7 @@ function ConstructEditor({
         construct={construct}
         viewer={viewer}
         onBlockedChange={setGenerationBlocked}
+        onQuoteChange={setQuote}
         changed={changed}
         draftDescription={draftDescription}
         formId={formId}

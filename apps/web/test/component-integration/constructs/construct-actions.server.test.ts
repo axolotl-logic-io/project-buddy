@@ -199,7 +199,7 @@ describe("use_case_new_construct", () => {
 
     await expectRedirect(
       () => saveConstructAction(constructForm(construct.id, "Pal", parts)),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
     expect(await chosenConstruct(user.id, construct.id)).toEqual({
       id: construct.id,
@@ -236,7 +236,7 @@ describe("use_case_edit_construct", () => {
         saveConstructAction(
           constructForm(construct.id, " Lumen, edited ", { ...LUMEN, prompt }),
         ),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
 
     expect(await stored(user, construct.id)).toMatchObject({
@@ -259,7 +259,7 @@ describe("use_case_edit_construct", () => {
         saveConstructAction(
           constructForm(construct.id, construct.name, { ...LUMEN, prompt }),
         ),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
     const saved = await stored(user, construct.id);
     expect(saved.definition.prompt).toBe(prompt);
@@ -352,7 +352,7 @@ test("saving a Visual description retains trusted art, ignores submitted assets 
   );
   await expectRedirect(
     () => saveConstructAction(data),
-    `/constructs/${construct.id}`,
+    `/constructs/${construct.id}?saved=1`,
   );
   const expected = {
     ...LUMEN.visual,
@@ -380,7 +380,7 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
       saveConstructAction(
         constructForm(construct.id, construct.name, construct.definition),
       ),
-    `/constructs/${construct.id}`,
+    `/constructs/${construct.id}?saved=1`,
   );
   const [saved] = await getDb()
     .select({ parts: ownPrompts.parts })
@@ -397,7 +397,7 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
           prompt: "Edited",
         }),
       ),
-    `/constructs/${construct.id}`,
+    `/constructs/${construct.id}?saved=1`,
   );
   await resetPrompt(construct.id);
   const [reset] = await getDb()
@@ -446,7 +446,7 @@ test("save and reset retain paid art even when a source lookup returns an older 
         saveConstructAction(
           constructForm(stale.id, stale.name, stale.definition),
         ),
-      `/constructs/${stale.id}`,
+      `/constructs/${stale.id}?saved=1`,
     );
     const reset = form({ constructId: stale.id });
     await resetConstructPromptAction(reset);
@@ -488,7 +488,7 @@ test("saving an edited Vellum description regenerates artwork from the saved app
     data.set("visualRequestId", crypto.randomUUID());
     await expectRedirect(
       () => saveConstructAction(data),
-      `/constructs/${construct.id}`,
+      `/constructs/${construct.id}?saved=1`,
     );
     const updated = await stored(user, construct.id);
     expect(updated.definition.visual?.description).toBe(description);
