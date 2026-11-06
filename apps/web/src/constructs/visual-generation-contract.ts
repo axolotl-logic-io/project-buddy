@@ -1,12 +1,18 @@
 import { z } from "zod";
-import { CONSTRUCT_VISUAL } from "@/constructs/visual.ts";
+import {
+  CONSTRUCT_VISUAL,
+  normalizeVisualDescription,
+} from "@/constructs/visual.ts";
 
 const DESCRIPTION_MAX = 4000;
 const VISUAL_GENERATION_REQUEST = z
   .object({
     constructId: z.uuid(),
     requestId: z.uuid(),
-    description: z.string().min(1).max(DESCRIPTION_MAX),
+    description: z
+      .string()
+      .transform(normalizeVisualDescription)
+      .pipe(z.string().min(1).max(DESCRIPTION_MAX)),
   })
   .strict();
 const VISUAL_GENERATION_STATUS = z.enum([
@@ -34,7 +40,9 @@ const VISUAL_GENERATION_QUOTE = z.object({
   reservationGold: z.number().nonnegative(),
   available: z.boolean(),
   outdated: z.boolean(),
+  freshnessUnknown: z.boolean().optional(),
   pendingRequestId: z.uuid().optional(),
+  pendingDescription: z.string().optional(),
   result: VISUAL_GENERATION_RESULT.optional(),
 });
 type VisualGenerationRequest = z.infer<typeof VISUAL_GENERATION_REQUEST>;
