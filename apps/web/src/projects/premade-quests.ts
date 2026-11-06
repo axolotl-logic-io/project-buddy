@@ -1,9 +1,11 @@
+import type { ActivityId } from "@/activities/activity.ts";
+
 // Starting points only: saved quests retain no connection to this catalog.
 interface PremadeQuest {
   readonly id: string;
   readonly name: string;
   readonly description: string;
-  readonly activityId: string;
+  readonly activityId: ActivityId;
   readonly journal: string;
 }
 
