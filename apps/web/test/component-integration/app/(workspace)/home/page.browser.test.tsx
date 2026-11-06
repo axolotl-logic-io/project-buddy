@@ -1,6 +1,6 @@
 import React, { type JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
@@ -17,8 +17,14 @@ import {
   signOut,
 } from "../../../auth/current-user-test-kit.ts";
 import { tabForward } from "../../../components/keyboard-test-kit.ts";
+import { openMenu } from "../../../components/site-menu-test-kit.ts";
 import { applyTheme } from "../../../themes/theme-test-kit.ts";
-import { LAPTOP_VIEWPORT, setViewport } from "../../../viewports-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
+  PHONE_VIEWPORT,
+  setViewport,
+} from "../../../viewports-test-kit.ts";
 import { inSiteFrame } from "../../site-frame-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 import { FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
@@ -29,6 +35,8 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../auth/current-user-test-kit.ts"),
 );
+
+const TOUCH_TARGET_PX = 44;
 
 const LATEST: TodayProject = {
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
@@ -125,27 +133,111 @@ describe("use_case_home_atlas", () => {
       .not.toBeInTheDocument();
   });
 
-  test("changes presentation from the keyboard without changing destinations", async () => {
-    await render(inWorkspace(<HomeAtlas latestQuest={undefined} />));
-    const map = page.getByRole("button", { name: HOME_COPY.map, exact: true });
-    const list = page.getByRole("button", {
-      name: HOME_COPY.list,
-      exact: true,
+  test.each(
+    [
+      { viewport: NARROWEST_VIEWPORT, columns: 2 },
+      { viewport: PHONE_VIEWPORT, columns: 2 },
+      { viewport: LAPTOP_VIEWPORT, columns: 3 },
+    ].flatMap((layout) =>
+      ["light", "dark"].map((mode) => ({ ...layout, mode })),
+    ),
+  )(
+    "fits $columns columns at $viewport.width px in $mode mode with the quest below",
+    async ({ viewport, columns, mode }) => {
+      applyTheme("parchment", mode);
+      await setViewport(viewport);
+      await render(inWorkspace(<HomeAtlas latestQuest={LATEST} />));
+      expect(destinationLinks()).toEqual(DESTINATIONS);
+      const places = page.getByRole("navigation", {
+        name: HOME_COPY.placesLabel,
+      });
+      const boxes = places
+        .getByRole("link")
+        .all()
+        .map((link) => link.element().getBoundingClientRect());
+      const first = boxes.at(0);
+      expect(first).toBeDefined();
+      for (const box of boxes) {
+        expect(box.left).toBeGreaterThanOrEqual(0);
+        expect(box.right).toBeLessThanOrEqual(viewport.width);
+        expect(box.width).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+        expect(box.height).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+      }
+      expect(boxes.slice(0, columns).map((box) => box.top)).toEqual(
+        Array.from({ length: columns }, () => first?.top),
+      );
+      for (const box of boxes.slice(columns)) {
+        expect(box.top).toBeGreaterThan(first?.top ?? 0);
+      }
+      const quest = page.getByRole("complementary", {
+        name: HOME_COPY.continueLabel(LATEST.project.name),
+      });
+      expect(
+        quest.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(places.element().getBoundingClientRect().bottom);
+      await expect
+        .element(page.getByRole("button", { name: "Map", exact: true }))
+        .not.toBeInTheDocument();
+      await expect
+        .element(page.getByRole("button", { name: "List", exact: true }))
+        .not.toBeInTheDocument();
+      await expect
+        .element(places.getByRole("link", { name: "Quests", exact: true }))
+        .toHaveAccessibleDescription(HOME_COPY.quests);
+    },
+  );
+
+  test("reaches all destinations before the current quest from the keyboard", async () => {
+    await render(inWorkspace(<HomeAtlas latestQuest={LATEST} />));
+    page
+      .getByRole("link", { name: HOME_COPY.activitiesLink })
+      .element()
+      .focus();
+    const places = page.getByRole("navigation", {
+      name: HOME_COPY.placesLabel,
     });
-    map.element().focus();
+    await DESTINATIONS.reduce(async (previous, { name }) => {
+      await previous;
+      await tabForward();
+      await expect
+        .element(places.getByRole("link", { name, exact: true }))
+        .toHaveFocus();
+    }, Promise.resolve());
     await tabForward();
-    await expect.element(list).toHaveFocus();
-    await userEvent.keyboard("{Enter}");
-    await expect.element(list).toHaveAttribute("aria-pressed", "true");
-    await expect.element(map).toHaveAttribute("aria-pressed", "false");
-    expect(destinationLinks()).toEqual(DESTINATIONS);
-    await expect.element(page.getByText(HOME_COPY.quests)).toBeVisible();
-    await map.click();
-    await expect.element(map).toHaveAttribute("aria-pressed", "true");
-    expect(destinationLinks()).toEqual(DESTINATIONS);
+    await expect
+      .element(
+        page.getByRole("link", { name: LATEST.project.name, exact: true }),
+      )
+      .toHaveFocus();
+    await tabForward();
+    await expect
+      .element(
+        page.getByRole("link", {
+          name: HOME_COPY.continueLabel(LATEST.project.name),
+          exact: true,
+        }),
+      )
+      .toHaveFocus();
   });
 
-  test("leaves the header's bar off the map but keeps its buttons", async () => {
+  test("offers Start a quest after the places before the first quest", async () => {
+    await render(inWorkspace(<HomeAtlas latestQuest={undefined} />));
+    const places = page.getByRole("navigation", {
+      name: HOME_COPY.placesLabel,
+    });
+    places
+      .getByRole("link", { name: "Marketplace", exact: true })
+      .element()
+      .focus();
+    await tabForward();
+    const start = page.getByRole("link", { name: HOME_COPY.newQuest });
+    await expect.element(start).toHaveFocus();
+    expect(start.element().getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      places.element().getBoundingClientRect().bottom,
+    );
+  });
+
+  test("keeps the site name, Quick Note and menu over the map", async () => {
     await setViewport(LAPTOP_VIEWPORT);
     await render(
       await inSiteFrame(
@@ -165,12 +257,32 @@ describe("use_case_home_atlas", () => {
       .toBeVisible();
     await expect
       .element(header.getByRole("link", { name: SITE_COPY.name }))
-      .not.toBeInTheDocument();
+      .toBeVisible();
     await expect
       .element(
         header.getByRole("navigation", { name: SITE_MENU_COPY.placesLabel }),
       )
       .not.toBeInTheDocument();
+  });
+
+  test("opens the Home menu against the viewport rather than the frosted header", async () => {
+    await setViewport(PHONE_VIEWPORT);
+    await render(
+      await inSiteFrame(
+        <div className="page-column">
+          <HomeAtlas latestQuest={undefined} />
+        </div>,
+      ),
+    );
+    await openMenu();
+    const menu = page.getByRole("dialog", { name: SITE_MENU_COPY.title });
+    await expect.element(menu).toBeVisible();
+    const box = menu.element().getBoundingClientRect();
+    expect(box.top).toBe(0);
+    expect(box.right).toBe(PHONE_VIEWPORT.width);
+    expect(box.height).toBe(PHONE_VIEWPORT.height);
+    await menu.getByRole("button", { name: SITE_MENU_COPY.close }).click();
+    await expect.element(menu).not.toBeInTheDocument();
   });
 
   test("names the place a page belongs to in every other page's HUD", async () => {
@@ -192,6 +304,7 @@ describe("use_case_home_atlas", () => {
   test("restores the page column and header when leaving a cached map", async () => {
     await setViewport(LAPTOP_VIEWPORT);
     const screen = await render(await cachedPages(true));
+    const homeBackground = getComputedStyle(document.body).backgroundImage;
     const title = page
       .getByRole("banner")
       .getByRole("link", { name: SITE_COPY.name });
@@ -203,6 +316,9 @@ describe("use_case_home_atlas", () => {
     await screen.rerender(await cachedPages(false));
     await expect.element(title).toBeVisible();
     await expect.element(capture).toBeVisible();
+    expect(getComputedStyle(document.body).backgroundImage).not.toBe(
+      homeBackground,
+    );
     const headingBox = capture.element().getBoundingClientRect();
     const headerBox = page
       .getByRole("banner")
@@ -216,7 +332,10 @@ describe("use_case_home_atlas", () => {
     await expect
       .element(page.getByRole("heading", { name: HOME_COPY.heading }))
       .toBeVisible();
-    await expect.element(title).not.toBeInTheDocument();
+    await expect.element(title).toBeVisible();
+    expect(getComputedStyle(document.body).backgroundImage).toBe(
+      homeBackground,
+    );
 
     await screen.rerender(await cachedPages(false));
     await expect.element(title).toBeVisible();
