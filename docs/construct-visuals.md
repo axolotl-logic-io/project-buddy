@@ -76,3 +76,11 @@ Public built-in personality copy requires explicit built-in canonical artwork me
 Successful replacement retains one previous image identity on the own construct. Restore previous artwork restores that image and its saved Visual description, preserving current name and prompt. It uses existing bytes, makes no model call, and charges no gold. The editor requires other changes to be saved or discarded first. Pending generation blocks restoration. A new successful generation replaces the recovery slot.
 
 Generated identity metadata comes from the recorded generation when available, including artwork legitimately held through a bought copy. Unknown legacy freshness remains unknown. Missing artwork never gets a fabricated recovery entry. Existing adventures, listings and bought copies keep their snapshots. Recovery retains the old asset grant; discarding the slot or deleting the definition releases it through the existing final-grant cleanup.
+
+## Image delivery sizes
+
+The shared renderer uses compressed WebP derivatives at 64, 128, 256, 512 and 1024 pixels. Its image loader advertises responsive sources, with `sizes` based on the displayed square width divided by the frame size. This accounts for face crops and device pixel density. Callers can set `displayWidth` to their layout's maximum CSS pixel width (default 264); avatars pass their own size, the picker passes 132 and adventure openings pass 224.
+
+Built-in derivatives are committed beside the immutable reference PNGs. To regenerate them, run `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/resize-construct-artwork.ts` from `apps/web/`. The reference loader continues to use the original PNGs for generation.
+
+Generated sources use the same bounded widths through a `width` query parameter on the destination-scoped endpoint. Delivery checks the signed-in user's current access before resizing to WebP and keeps `private, no-store`; it does not use the shared Next.js image optimizer. Omitting `width` retains original-byte delivery for existing callers. Invalid widths are rejected. Resizing never enlarges a smaller source.

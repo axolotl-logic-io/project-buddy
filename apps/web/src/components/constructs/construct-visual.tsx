@@ -10,6 +10,7 @@ import {
   constructVisualSource,
   resolveConstructVisual,
 } from "@/constructs/visual.ts";
+import { visualImageLoader } from "@/constructs/visual-delivery.ts";
 
 const PERCENT = 100;
 const CENTER = 50;
@@ -23,6 +24,7 @@ function ConstructIllustration({
   visualRole,
   decorative,
   destination,
+  displayWidth = 264,
 }: ConstructIllustrationProps): JSX.Element {
   const visual = resolveConstructVisual(construct, visualRole);
   const src = constructVisualSource(visual.asset, destination);
@@ -47,7 +49,8 @@ function ConstructIllustration({
         width={1024}
         height={1024}
         style={style}
-        unoptimized={true}
+        loader={visualImageLoader}
+        sizes={`${Math.ceil(displayWidth / size)}px`}
         key={src}
         onError={hideFailedImage}
       />
@@ -79,6 +82,7 @@ function ConstructAvatar({
         construct={construct}
         destination={destination}
         visualRole="avatar"
+        displayWidth={size}
         decorative={decorative}
       />
     </span>
