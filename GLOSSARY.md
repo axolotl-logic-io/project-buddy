@@ -157,6 +157,12 @@ The construct chooses from the acting user's built-in and own activities.
 - **UI:** "Activity", "Activities".
 - **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
 
+### Find something to make
+
+A built-in activity for discovering a small achievable creative project, even when the user has no idea or inspiration source yet. It supports uncertainty and challenges as the user makes their project. It works in a standalone adventure or a quest adventure. Its stable id is `find-something-to-make`.
+
+- **UI:** "Find something to make".
+
 ### Start page
 
 The page where the user starts an adventure with an activity and chooses its construct.
@@ -672,3 +678,9 @@ remain compatibility names in this release. The Open adventure activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
 Quick Note paragraphs and historical migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.
+
+### Premade quest
+
+An editable starting point from the Quest library: a name, description, starting Journal and suggested first activity. Starting it creates an ordinary quest and its first adventure. Planned milestones remain Journal plans until real achievements are recorded. Browsing creates nothing.
+
+- **UI:** “Premade quests”, “Explore quest”.

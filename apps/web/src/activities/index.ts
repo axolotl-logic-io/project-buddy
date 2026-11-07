@@ -5,6 +5,7 @@ import {
   type ActivitySnapshot,
 } from "@/activities/activity.ts";
 import { brainstorming } from "@/activities/brainstorming.ts";
+import { findSomethingToMake } from "@/activities/find-something-to-make.ts";
 import {
   interview,
   isInterviewOpeningRequest,
@@ -19,6 +20,7 @@ const activitiesById: Readonly<Record<ActivityId, Activity>> = {
   interview,
   brainstorming,
   "project-breakdown": projectBreakdown,
+  "find-something-to-make": findSomethingToMake,
 };
 
 export type {
