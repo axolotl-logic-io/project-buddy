@@ -5,6 +5,8 @@ interface ConstructIllustrationProps {
   readonly construct: ConstructSnapshot;
   readonly destination?: VisualDestination | undefined;
   readonly visualRole: VisualRole;
+  /** Maximum displayed square width in CSS pixels, before frame zoom. */
+  readonly displayWidth?: number;
   /** Omit for a named image; true hides art adjacent to the construct's name. */
   readonly decorative?: boolean | undefined;
 }

@@ -63,8 +63,20 @@ test("committed artwork loads and an image failure reveals initials", async () =
   if (image === null) {
     throw new Error("Artwork is missing");
   }
+  if (!(image.complete && image.naturalWidth > 0)) {
+    await new Promise<void>((resolve, reject) => {
+      image.addEventListener("load", () => resolve(), { once: true });
+      image.addEventListener(
+        "error",
+        () => reject(new Error("Artwork failed to load")),
+        { once: true },
+      );
+    });
+  }
   await image.decode();
-  expect(image.naturalWidth).toBe(ARTWORK_WIDTH);
+  expect(image.naturalWidth).toBeGreaterThan(0);
+  expect(image.naturalWidth).toBeLessThan(ARTWORK_WIDTH);
+  expect(image.currentSrc).toContain(".webp");
   image.dispatchEvent(new Event("error"));
   expect(image.hidden).toBe(true);
   await expect.element(page.getByText("L", { exact: true })).toBeVisible();

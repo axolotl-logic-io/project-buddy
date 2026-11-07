@@ -360,11 +360,12 @@
     // node:fs/promises and node:path. Only src/email/send-email.ts imports
     // the first.
     {
-      // The visual reference loader reads only its allowlisted committed artwork.
+      // The visual reference loader and derivative tests read committed artwork.
       "includes": [
         "src/email/outbox.ts",
         "test/support/email/outbox-files.ts",
-        "src/constructs/visual-reference.ts"
+        "src/constructs/visual-reference.ts",
+        "test/component-integration/constructs/visual-delivery.test.ts"
       ],
       "linter": {
         "rules": {
