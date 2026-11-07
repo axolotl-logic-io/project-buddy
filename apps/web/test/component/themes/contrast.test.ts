@@ -3,7 +3,7 @@
 // from the CSS itself: contract.css names the colour tokens, and each
 // theme's file gives every one a light and a dark value. contract.test.ts
 // checks that each mode shows the values for that mode.
-import { displayable, parse, wcagContrast } from "culori";
+import { converter, displayable, parse, wcagContrast } from "culori";
 import { describe, expect, test } from "vitest";
 import { THEME_IDS } from "@/themes/themes.ts";
 import {
@@ -24,6 +24,7 @@ const MODES = ["light", "dark"] as const;
 
 // WCAG AA: body text, and large text or the boundary of a control.
 const TEXT_CONTRAST = 4.5;
+const PERCENT_SCALE = 100;
 const BOUNDARY_CONTRAST = 3;
 
 const TEXT_SURFACES = ["background", "surface", "field"];
@@ -84,7 +85,8 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
 });
 
 // The illustrated atlas keeps a paper-and-ink palette across theme modes.
-// Read the tokens the page actually uses, including its opaque labels.
+// Check opaque fallback paper and tinted paper over the darkest and lightest
+// possible artwork, so readability never depends on blur support.
 describe("the atlas material", () => {
   const values = contractTokens();
   const paper = values.get("atlas-paper") ?? "";
@@ -99,7 +101,41 @@ describe("the atlas material", () => {
     );
   });
 
-  // The quest bar is ink, with a gold accent, label and Continue button.
+  const rgb = converter("rgb");
+  const paperColor = rgb(paper);
+  const opacity =
+    Number.parseFloat(values.get("atlas-frost-opacity") ?? "") / PERCENT_SCALE;
+  const artworkExtremes = [0, 1];
+  test.each(artworkExtremes)(
+    "keeps text and focus readable over artwork at %s brightness",
+    (brightness) => {
+      if (paperColor === undefined) {
+        throw new Error("Atlas paper must be a valid colour");
+      }
+      expect(opacity).toBeGreaterThan(0);
+      expect(opacity).toBeLessThanOrEqual(1);
+      const background = {
+        mode: "rgb",
+        r: paperColor.r * opacity + brightness * (1 - opacity),
+        g: paperColor.g * opacity + brightness * (1 - opacity),
+        b: paperColor.b * opacity + brightness * (1 - opacity),
+      } satisfies Parameters<typeof wcagContrast>[1];
+      for (const token of ["atlas-ink", "atlas-muted"]) {
+        expect(
+          wcagContrast(values.get(token) ?? "", background),
+          token,
+        ).toBeGreaterThanOrEqual(TEXT_CONTRAST);
+      }
+      for (const token of ["atlas-line", "atlas-focus"]) {
+        expect(
+          wcagContrast(values.get(token) ?? "", background),
+          token,
+        ).toBeGreaterThanOrEqual(BOUNDARY_CONTRAST);
+      }
+    },
+  );
+
+  // Ink Continue buttons and the HUD retain their known contrast.
   test.each([
     { front: "atlas-paper", back: "atlas-ink", minimum: TEXT_CONTRAST },
     { front: "atlas-gold", back: "atlas-ink", minimum: TEXT_CONTRAST },

@@ -1,16 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import {
-  type JSX,
-  useCallback,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type JSX, useId, useLayoutEffect, useRef } from "react";
 import { Icon } from "@/components/ui/icon.tsx";
-import { ATLAS_PLACES, ATLAS_TRAILS } from "@/home/places.ts";
+import { ATLAS_PLACES } from "@/home/places.ts";
 import type { TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
@@ -35,9 +28,6 @@ function ContinueQuest({
       aria-label={HOME_COPY.continueLabel(quest.project.name)}
       className="atlas-continue"
     >
-      <span className="atlas-medallion">
-        <Icon name="shield" />
-      </span>
       <div className="atlas-quest">
         <p className="atlas-hud-label">{HOME_COPY.currentQuest}</p>
         <Link
@@ -64,35 +54,8 @@ function ContinueQuest({
   );
 }
 
-const PLACE_AT = new Map(ATLAS_PLACES.map((place) => [place.id, place.at]));
-
-function trail([from, to]: readonly [string, string]): string[] {
-  const start = PLACE_AT.get(from);
-  const end = PLACE_AT.get(to);
-  if (start === undefined || end === undefined) {
-    return [];
-  }
-  return [`M${start.x} ${start.y}L${end.x} ${end.y}`];
-}
-
-// The dotted paths between markers, drawn in the same percent space as the
-// markers so they meet at any map size.
-function AtlasTrails(): JSX.Element {
-  const path = ATLAS_TRAILS.flatMap(trail).join("");
-  return (
-    <svg
-      aria-hidden="true"
-      className="atlas-trails"
-      preserveAspectRatio="none"
-      viewBox="0 0 100 100"
-    >
-      <path d={path} vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
-
-// The artwork has no interactive surface. Ordinary links carry navigation,
-// remain in the first HTML, and reflow into large rows on narrow screens.
+// The map is decoration; ordinary links provide the same navigation and
+// keyboard order in the two-column phone and three-column wide layouts.
 function HomeAtlas({
   latestQuest,
   firstVisit = false,
@@ -111,15 +74,8 @@ function HomeAtlas({
       atlas?.setAttribute("data-inactive", "");
     };
   }, []);
-  const [view, setView] = useState<"map" | "list">("map");
-  const showMap = useCallback((): void => {
-    setView("map");
-  }, []);
-  const showList = useCallback((): void => {
-    setView("list");
-  }, []);
   return (
-    <div className="atlas" data-view={view} ref={atlasRef}>
+    <div className="atlas" ref={atlasRef}>
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
@@ -133,32 +89,12 @@ function HomeAtlas({
             </Link>
           </p>
         </div>
-        <fieldset className="atlas-views">
-          <legend className="sr-only">{HOME_COPY.viewLabel}</legend>
-          <button
-            aria-pressed={view === "map"}
-            className="atlas-view"
-            onClick={showMap}
-            type="button"
-          >
-            {HOME_COPY.map}
-          </button>
-          <button
-            aria-pressed={view === "list"}
-            className="atlas-view"
-            onClick={showList}
-            type="button"
-          >
-            {HOME_COPY.list}
-          </button>
-        </fieldset>
       </div>
-      <ContinueQuest quest={latestQuest} />
       <nav aria-label={HOME_COPY.placesLabel} className="atlas-world">
-        <AtlasTrails />
+        <h2 className="atlas-places-heading">{HOME_COPY.placesLabel}</h2>
         <ul className="atlas-places">
           {ATLAS_PLACES.map((place) => (
-            <li className="atlas-place" data-place={place.id} key={place.href}>
+            <li className="atlas-place" key={place.href}>
               <Link
                 aria-label={place.name}
                 aria-describedby={`${placesId}-${place.id}`}
@@ -180,6 +116,7 @@ function HomeAtlas({
           ))}
         </ul>
       </nav>
+      <ContinueQuest quest={latestQuest} />
       <footer className="atlas-footer">
         <div className="atlas-personal-links">
           <Link href="/account">{HOME_COPY.account}</Link>
