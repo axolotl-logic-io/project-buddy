@@ -200,6 +200,7 @@ function ChatMessage({
               construct={construct}
               destination={destination}
               visualRole="opening"
+              displayWidth={224}
             />
           </div>
         )}

@@ -98,7 +98,7 @@ test("quote/status is read only and generated delivery is private with revocable
   const result = await generateConstructVisual(user.id, request, {
     generate: async () => ({
       bytes: await sharp({
-        create: { width: 32, height: 32, channels: 3, background: "white" },
+        create: { width: 256, height: 256, channels: 3, background: "white" },
       })
         .png()
         .toBuffer(),
@@ -115,8 +115,17 @@ test("quote/status is read only and generated delivery is private with revocable
   expect(response.headers.get("cache-control")).toBe("private, no-store");
   expect(response.headers.get("content-type")).toBe("image/webp");
   expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+  const resized = await deliverVisualAsset("construct", construct.id, id, "64");
+  expect(resized.headers.get("cache-control")).toBe("private, no-store");
+  expect(resized.headers.get("content-type")).toBe("image/webp");
+  expect(
+    await sharp(Buffer.from(await resized.arrayBuffer())).metadata(),
+  ).toMatchObject({ width: 64, height: 64 });
+  expect(
+    (await deliverVisualAsset("construct", construct.id, id, "999999")).status,
+  ).toBe(HTTP_STATUS.badRequest);
   vi.mocked(currentUser).mockResolvedValue(await testUser());
-  expect((await deliverVisualAsset("construct", construct.id, id)).status).toBe(
-    HTTP_STATUS.notFound,
-  );
+  expect(
+    (await deliverVisualAsset("construct", construct.id, id, "64")).status,
+  ).toBe(HTTP_STATUS.notFound);
 });

@@ -97,6 +97,7 @@ function ConstructPicker({
                 destination={chosen.destination}
                 construct={chosen}
                 visualRole="portrait"
+                displayWidth={132}
                 decorative={true}
               />
             </div>
