@@ -7,6 +7,7 @@ import HomeLoading from "@/app/(workspace)/home/loading.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
+import { HomeFrame } from "@/components/ui/page-frame.tsx";
 import type { Today, TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
@@ -424,9 +425,9 @@ describe("use_case_home_atlas", () => {
     await setViewport(LAPTOP_VIEWPORT);
     const screen = await render(
       await inSiteFrame(
-        <div className="page-column">
+        <HomeFrame>
           <HomeLoading />
-        </div>,
+        </HomeFrame>,
       ),
     );
     const headerBox = page
@@ -438,16 +439,16 @@ describe("use_case_home_atlas", () => {
     const { x, y, width } = main.getBoundingClientRect();
     await screen.rerender(
       await inSiteFrame(
-        <div className="page-column">
+        <HomeFrame>
           <HomeAtlas latestQuest={undefined} />
-        </div>,
+        </HomeFrame>,
       ),
     );
     expect(
       page.getByRole("banner").element().getBoundingClientRect().toJSON(),
     ).toEqual(headerBox);
     expect(main.getBoundingClientRect()).toMatchObject({ x, y, width });
-    // Content height and the inner column differ between loading and Home (#795).
+    // Route layouts keep the column width before the atlas data arrives.
   });
 
   test.each(["light", "dark"])(

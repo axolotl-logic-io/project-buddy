@@ -10,10 +10,8 @@ function EditorLoading({ label }: { readonly label: string }): JSX.Element {
         <p className="text-muted">{WORKSHOP_COPY.intro}</p>
       </header>
       <div className="page-slot">
-        <div className="page-slot">
-          <p className="section-heading">{WORKSHOP_COPY.edit}</p>
-          <LoadingSkeleton label={label} shapes={["heading", "panel"]} />
-        </div>
+        <p className="section-heading">{WORKSHOP_COPY.edit}</p>
+        <LoadingSkeleton label={label} shapes={["heading", "panel"]} />
       </div>
     </div>
   );
