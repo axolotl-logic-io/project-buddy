@@ -26,6 +26,11 @@ import { tabForward } from "../../../components/keyboard-test-kit.ts";
 import { ASK_ONE_QUESTION_CLONE } from "../../phone-pages-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
+vi.mock(
+  "next/navigation",
+  () => import("../../../components/router-test-kit.ts"),
+);
+
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],

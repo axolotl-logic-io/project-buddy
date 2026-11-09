@@ -81,3 +81,30 @@ vi.mock("@/chats/quest-transfer-action.ts", () => ({
 vi.mock("@/accounts/refresh-preferences-action.ts", () => ({
   refreshPreferencesAction: vi.fn(() => Promise.resolve(undefined)),
 }));
+
+// The header reads its balance on the server. Keep component fixtures out of
+// Postgres and server logging/payment imports; tests needing a balance set it.
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn(() =>
+    Promise.reject(new Error("Mock the balance reader in this test")),
+  ),
+}));
+
+// Read-only collection fixtures still import their creation controls. Their
+// Server Actions stay RPC boundaries; action tests provide result-specific mocks.
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(() => {
+    throw new Error("Mock the adventure creation action in this test");
+  }),
+}));
+vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+  startPremadeQuestAction: vi.fn(() => {
+    throw new Error("Mock the premade quest action in this test");
+  }),
+}));
+
+// Direct workspace-layout fixtures use the same unavailable purchase catalog
+// as the workspace kit, without importing server configuration or logging.
+vi.mock("@/batteries/catalog.ts", () => ({
+  availableBatteryCatalog: vi.fn(() => []),
+}));
