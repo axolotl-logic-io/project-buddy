@@ -24,7 +24,7 @@ Tests use the latest draft without requiring a save. A follow-up keeps the test'
 
 Construct tests choose an activity; activity tests choose a construct and can test the opening request. Spell tests choose both and either let the construct select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as adventures. Real tests spend the acting user's batteries.
 
-Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save adventures, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating quests, editing the Journal, recording milestones and generating images are unavailable. The test area explains these limits before use. Cancel stops waiting for the test; any model use already incurred can still cost batteries.
+Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save adventures, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating quests, editing the Journal, recording milestones and generating images are unavailable. The visible summary says only spell casting is available; expand Test limits for the unavailable actions. Temporary-test information remains visible. Cancel stops waiting for the test; any model use already incurred can still cost batteries.
 
 ## Construct images
 

@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { afterEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { keepLocalDraft } from "@/components/local-draft.ts";
@@ -17,6 +17,7 @@ import {
 } from "@/workshop/protocol.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { refresh } from "../components/router-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   NARROWEST_VIEWPORT,
@@ -46,6 +47,7 @@ const OPTIONS = {
   ],
 };
 const LONG_REPLY_PARAGRAPHS = 100;
+const MINIMUM_EDITING_HEIGHT = 44;
 const requests: WorkshopRequest[] = [];
 const saveAction = vi.fn<(data: FormData) => Promise<never>>();
 
@@ -89,24 +91,39 @@ async function show(
       (field.name === "whenToUse" && draft.kind === "spell") ||
       (field.name === "openingRequest" && draft.kind === "activity"),
   ),
+  pinned = false,
 ): Promise<void> {
   await render(
-    inWorkspace(
-      <Workshop initial={draft} options={OPTIONS}>
-        <PromptEditor
-          action={saveAction}
-          defaultPrompt="Default instructions."
-          heading="Prompt"
-          idName="constructId"
-          kind={draft.kind}
-          name={draft.name}
-          promptId={draft.id}
-          savedAt="2026-11-04T00:00:00.000Z"
-          viewer="workshop-test"
-          texts={texts}
+    <>
+      {pinned === true && (
+        <SiteHeader
+          links={
+            <Breadcrumbs
+              items={[
+                { label: "Workshop", href: "/workshop" },
+                { label: DRAFT.name },
+              ]}
+            />
+          }
         />
-      </Workshop>,
-    ),
+      )}
+      {inWorkspace(
+        <Workshop initial={draft} options={OPTIONS}>
+          <PromptEditor
+            action={saveAction}
+            defaultPrompt="Default instructions."
+            heading="Prompt"
+            idName="constructId"
+            kind={draft.kind}
+            name={draft.name}
+            promptId={draft.id}
+            savedAt="2026-11-04T00:00:00.000Z"
+            viewer="workshop-test"
+            texts={texts}
+          />
+        </Workshop>,
+      )}
+    </>,
   );
   await openTests();
 }
@@ -121,6 +138,10 @@ async function closeTests(): Promise<void> {
 function message(): ReturnType<typeof page.getByRole> {
   return page.getByRole("textbox", { name: WORKSHOP_COPY.message });
 }
+beforeEach(() => {
+  applyTheme("parchment");
+});
+
 afterEach(async () => {
   await setViewport(LAPTOP_VIEWPORT);
   vi.unstubAllGlobals();
@@ -164,13 +185,43 @@ test("test cases and companion changes start a new conversation", async () => {
   await show();
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
   await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
-  await page
-    .getByRole("combobox", { name: WORKSHOP_COPY.cases })
-    .selectOptions(WORKSHOP_COPY.examples[1].message);
+  await message().fill("Unsent follow-up");
+  const firstExample = page.getByRole("button", {
+    name: WORKSHOP_COPY.examples[0].name,
+    exact: true,
+  });
+  firstExample.element().focus();
+  await userEvent.keyboard("{ArrowDown}");
+  await userEvent.keyboard("{ArrowUp}");
+  await expect.element(message()).toHaveValue("Unsent follow-up");
+  await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+  await userEvent.tab();
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: WORKSHOP_COPY.examples[1].name,
+        exact: true,
+      }),
+    )
+    .toHaveFocus();
+  await userEvent.keyboard("{Enter}");
   await expect
     .element(message())
     .toHaveValue(WORKSHOP_COPY.examples[1].message);
   await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
+  await userEvent.tab();
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: WORKSHOP_COPY.examples[2].name,
+        exact: true,
+      }),
+    )
+    .toHaveFocus();
+  await userEvent.keyboard(" ");
+  await expect
+    .element(message())
+    .toHaveValue(WORKSHOP_COPY.examples[2].message);
   await page
     .getByRole("combobox", { name: WORKSHOP_COPY.activity })
     .selectOptions("brainstorming");
@@ -455,53 +506,58 @@ test("saving reveals and focuses an invalid field in another section", async () 
   expect(saveAction).not.toHaveBeenCalled();
 });
 
-test("the drawer stays above a keyboard that resizes only the visual viewport", async () => {
-  const keyboardHeight = 420;
-  await setViewport(PHONE_VIEWPORT);
-  const viewport = Object.assign(new EventTarget(), {
-    height: PHONE_VIEWPORT.height,
-    offsetTop: 0,
-  });
-  vi.stubGlobal("visualViewport", viewport);
-  const reply = Promise.withResolvers<Response>();
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(() => reply.promise),
-  );
-  await show();
-  viewport.height = keyboardHeight;
-  viewport.dispatchEvent(new Event("resize"));
-  await expect
-    .poll(() => message().element().getBoundingClientRect().bottom)
-    .toBeLessThanOrEqual(keyboardHeight);
-  await expect
-    .poll(
-      () =>
-        page
-          .getByRole("button", { name: WORKSHOP_COPY.send })
-          .element()
-          .getBoundingClientRect().bottom,
-    )
-    .toBeLessThanOrEqual(keyboardHeight);
-  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
-  await expect
-    .element(page.getByText(WORKSHOP_COPY.pending))
-    .toBeInTheDocument();
-  await expect
-    .element(page.getByRole("button", { name: WORKSHOP_COPY.cancel }))
-    .toBeInViewport({ ratio: 1 });
-  await closeTests();
-  await openTests();
-  await expect
-    .poll(() => message().element().getBoundingClientRect().bottom)
-    .toBeLessThanOrEqual(keyboardHeight);
-  reply.resolve(Response.json({ text: "Try a prototype.", casts: [] }));
-  await expect.element(page.getByText("Try a prototype.")).toBeInTheDocument();
-  await message().fill("Help me choose the prototype.");
-  await expect
-    .element(page.getByRole("button", { name: WORKSHOP_COPY.followUp }))
-    .toBeEnabled();
-});
+test.each([PHONE_VIEWPORT, NARROWEST_VIEWPORT])(
+  "the drawer stays above a visual-only keyboard at $width px",
+  async (screen) => {
+    const keyboardHeight = 420;
+    await setViewport(screen);
+    const viewport = Object.assign(new EventTarget(), {
+      height: screen.height,
+      offsetTop: 0,
+    });
+    vi.stubGlobal("visualViewport", viewport);
+    const reply = Promise.withResolvers<Response>();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => reply.promise),
+    );
+    await show();
+    viewport.height = keyboardHeight;
+    viewport.dispatchEvent(new Event("resize"));
+    await expect
+      .poll(() => message().element().getBoundingClientRect().bottom)
+      .toBeLessThanOrEqual(keyboardHeight);
+    await expect
+      .poll(
+        () =>
+          page
+            .getByRole("button", { name: WORKSHOP_COPY.send })
+            .element()
+            .getBoundingClientRect().bottom,
+      )
+      .toBeLessThanOrEqual(keyboardHeight);
+    await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+    await expect
+      .element(page.getByText(WORKSHOP_COPY.pending))
+      .toBeInTheDocument();
+    await expect
+      .element(page.getByRole("button", { name: WORKSHOP_COPY.cancel }))
+      .toBeInViewport({ ratio: 1 });
+    await closeTests();
+    await openTests();
+    await expect
+      .poll(() => message().element().getBoundingClientRect().bottom)
+      .toBeLessThanOrEqual(keyboardHeight);
+    reply.resolve(Response.json({ text: "Try a prototype.", casts: [] }));
+    await expect
+      .element(page.getByText("Try a prototype."))
+      .toBeInTheDocument();
+    await message().fill("Help me choose the prototype.");
+    await expect
+      .element(page.getByRole("button", { name: WORKSHOP_COPY.followUp }))
+      .toBeEnabled();
+  },
+);
 test.each(["construct", "activity", "spell"] as const)(
   "%s tests current kind-specific edits without saving",
   async (kind) => {
@@ -591,4 +647,180 @@ test("the test drawer action stays below pinned breadcrumbs while scrolling", as
   await expect
     .element(page.getByRole("dialog", { name: WORKSHOP_COPY.test }))
     .toBeVisible();
+});
+
+test.each([
+  { width: 844, height: 390 },
+  { width: 320, height: 180 },
+])(
+  "short editor viewport leaves focused text unobstructed at $width by $height",
+  async (viewport) => {
+    await setViewport(viewport);
+    await show(DRAFT, undefined, true);
+    await closeTests();
+    const prompt = page.getByRole("textbox", { name: "Prompt", exact: true });
+    prompt.element().scrollIntoView({ block: "center" });
+    prompt.element().focus();
+    await userEvent.keyboard("Edited ");
+    await expect.element(prompt).toHaveFocus();
+    const rect = prompt.element().getBoundingClientRect();
+    const toolbar = page
+      .getByRole("button", { name: WORKSHOP_COPY.test, exact: true })
+      .element()
+      .closest("header");
+    const save = page
+      .getByRole("button", { name: PROMPT_COPY.save, exact: true })
+      .element();
+    const toolbarRect = toolbar?.getBoundingClientRect();
+    const saveRect = save.getBoundingClientRect();
+    const breadcrumbsBottom = page
+      .getByRole("navigation", { name: "Breadcrumbs" })
+      .element()
+      .getBoundingClientRect().bottom;
+    const visibleTop = Math.max(
+      0,
+      rect.top,
+      toolbarRect?.bottom ?? 0,
+      breadcrumbsBottom,
+    );
+    const visibleBottom = Math.min(
+      window.innerHeight,
+      rect.bottom,
+      saveRect.top,
+    );
+    expect(visibleBottom - visibleTop).toBeGreaterThanOrEqual(
+      MINIMUM_EDITING_HEIGHT,
+    );
+    await expect
+      .poll(() =>
+        document.elementFromPoint(
+          rect.left + rect.width / 2,
+          (visibleTop + visibleBottom) / 2,
+        ),
+      )
+      .toBe(prompt.element());
+  },
+);
+
+test("failed follow-ups and pending controls remain visible after a long conversation", async () => {
+  await setViewport(PHONE_VIEWPORT);
+  const followUp = Promise.withResolvers<Response>();
+  const retry = Promise.withResolvers<Response>();
+  const fetchReply = vi
+    .fn<() => Promise<Response>>()
+    .mockResolvedValueOnce(
+      Response.json({
+        text: "Long conversation.\n\n".repeat(LONG_REPLY_PARAGRAPHS),
+        casts: [],
+      }),
+    )
+    .mockImplementationOnce(() => followUp.promise)
+    .mockImplementation(() => retry.promise);
+  vi.stubGlobal("fetch", fetchReply);
+  await show();
+  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.element(message()).toHaveValue("");
+  await message().fill("Keep my failed follow-up");
+  await userEvent.tab();
+  await userEvent.keyboard("{Enter}");
+  await expect
+    .element(page.getByText(WORKSHOP_COPY.pending))
+    .toBeInViewport({ ratio: 1 });
+  await expect
+    .element(page.getByText(WORKSHOP_COPY.cancelHint))
+    .toBeInViewport({ ratio: 1 });
+  const cancel = page.getByRole("button", {
+    name: WORKSHOP_COPY.cancel,
+    exact: true,
+  });
+  await expect.element(cancel).toBeInViewport({ ratio: 1 });
+  cancel.element().focus();
+  await expect.element(cancel).toHaveFocus();
+  followUp.resolve(new Response("out-of-gold", { status: 429 }));
+  await expect
+    .element(page.getByRole("alert"))
+    .toHaveTextContent(
+      `${userMessage("out-of-gold")} ${BATTERY_PURCHASES_COPY.unavailable}`,
+    );
+  await expect.element(page.getByRole("alert")).toBeInViewport({ ratio: 1 });
+  await expect.element(message()).toHaveValue("Keep my failed follow-up");
+  expect(refresh).toHaveBeenCalledTimes(2);
+  expect(fetchReply).toHaveBeenCalledTimes(2);
+  await message().click();
+  await userEvent.tab();
+  await userEvent.keyboard("{Enter}");
+  await expect
+    .element(page.getByText(WORKSHOP_COPY.pending))
+    .toBeInViewport({ ratio: 1 });
+  cancel.element().focus();
+  await userEvent.keyboard("{Enter}");
+  await expect
+    .element(page.getByText(WORKSHOP_COPY.cancelled))
+    .toBeInViewport({ ratio: 1 });
+  await expect.element(message()).toHaveValue("Keep my failed follow-up");
+  retry.resolve(
+    Response.json({ text: "Discard this late follow-up", casts: [] }),
+  );
+  await expect
+    .poll(() => refresh.mock.calls.length)
+    .toBe(fetchReply.mock.calls.length);
+  await expect
+    .element(page.getByText("Discard this late follow-up"))
+    .not.toBeInTheDocument();
+});
+
+test("name-first validation marks hidden errors and reset reveals only the prompt", async () => {
+  await show(DRAFT, EDITOR_SECTIONS);
+  await closeTests();
+  await page.getByRole("textbox", { name: "Name", exact: true }).fill("");
+  await page
+    .getByRole("button", { name: "Visual description", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Visual description", exact: true })
+    .fill("");
+  await page.getByRole("button", { name: "Instructions", exact: true }).click();
+  await page
+    .getByRole("button", { name: PROMPT_COPY.save, exact: true })
+    .click();
+  await expect
+    .element(page.getByRole("textbox", { name: "Name", exact: true }))
+    .toHaveFocus();
+  const errorSection = page.getByRole("button", {
+    name: `Visual description${PROMPT_COPY.sectionError}`,
+    exact: true,
+  });
+  await expect.element(errorSection).toBeVisible();
+  await errorSection.click();
+  await expect
+    .element(
+      page
+        .getByRole("alert")
+        .filter({ hasText: "Describe the construct’s appearance." }),
+    )
+    .toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Visual description", exact: true })
+    .fill("Keep this appearance.");
+  await expect
+    .element(
+      page.getByRole("button", { name: "Visual description", exact: true }),
+    )
+    .toBeVisible();
+  await page.getByRole("button", { name: PROMPT_COPY.resetPrompt }).click();
+  await expect
+    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .toHaveFocus();
+  await expect
+    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .toHaveValue("Default instructions.");
+  await page
+    .getByRole("button", { name: "Visual description", exact: true })
+    .click();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: "Visual description", exact: true }),
+    )
+    .toHaveValue("Keep this appearance.");
+  expect(saveAction).not.toHaveBeenCalled();
 });

@@ -249,6 +249,8 @@ function PromptEditor({
       beforeReset: recovery,
     });
     setNotice("reset");
+    setSelectedField(RESET_TEXT);
+    setFocusField(RESET_TEXT);
   }, [change, draft, defaultPrompt, beforeReset, draftKey, savedAt]);
   const undoReset = useCallback((): void => {
     if (beforeReset === undefined) {
@@ -339,18 +341,26 @@ function PromptEditor({
       <h2 className="section-heading prompt-editor-heading">{heading}</h2>
       {focused && (
         <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
-          {texts.map(({ name: field, label }) => (
-            <Button
-              key={field}
-              variant="quiet"
-              aria-pressed={selectedField === field}
-              aria-controls={`${sectionsId}-${field}`}
-              value={field}
-              onClick={selectField}
-            >
-              {label}
-            </Button>
-          ))}
+          {texts.map(({ name: field, label }) => {
+            const { [field]: error } = textErrors;
+            return (
+              <Button
+                key={field}
+                variant="quiet"
+                aria-pressed={selectedField === field}
+                aria-controls={`${sectionsId}-${field}`}
+                value={field}
+                onClick={selectField}
+              >
+                {label}
+                {error !== undefined && (
+                  <span className="text-danger">
+                    {PROMPT_COPY.sectionError}
+                  </span>
+                )}
+              </Button>
+            );
+          })}
         </nav>
       )}
       {texts.map(({ name: field, label, help, maxLength, literal }) => {
