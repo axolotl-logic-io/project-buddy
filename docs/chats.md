@@ -365,6 +365,76 @@ The composer also moves above a keyboard that shrinks only the visual viewport.
 The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
 cover these behaviors under `use_case_follow_latest_messages`.
 
+### Scroll ownership and alternatives
+
+`useChatScroll` owns automatic document movement. The adventure uses the
+page's scroll area so the pinned header, sticky composer and message jump
+clearance share one coordinate system. assistant-ui's automatic viewport
+scrolling and its initialization, run-start and thread-switch jumps stay
+disabled. Opening a mounted adventure and explicitly sending start following;
+reply completion and focus do not.
+
+Upward wheel, touch movement or document navigation keys suspend following
+before the browser emits a scroll event. An actual upward document movement
+away from the bottom also suspends following, including scrollbar dragging.
+A shorter document can clamp the scroll position upward while still at the
+bottom; this keeps following enabled for subsequent growth. Content growth cannot
+resume it. A downward arrival at the bottom or sending resumes it. Scrollbar
+input and message links can resume following after composer focus too. Upward input at
+the top of a short adventure leaves following enabled because there is no
+earlier content to navigate to.
+
+Input that starts after a keyboard resize invalidates that resize's pending reading
+position restoration. Input still awaiting its document scroll also prevents
+restoration, including when it arrives before the resize. Focus blocks automatic
+resumption independently: it does not invalidate the reading position or bypass
+the resize scroll guard. Resizing alone never grants permission to follow.
+All controller movements are instant. While reading, ordinary content layout
+and anchoring belong to the browser; the controller restores the document
+position only for keyboard/viewport changes without newer navigation.
+
+The alternatives considered for #771 were:
+
+- **assistant-ui's supported viewport:** the installed 0.15.27 implementation
+  handles input intent, content resize and message anchoring, but scrolls its
+  own element. Enabling it on the current unbounded viewport cannot follow
+  the document. It would require the bounded container change below.
+- **A bounded conversation container:** isolates scroll ownership and could
+  use assistant-ui's controller. It also changes the page layout, sticky
+  composer, keyboard sizing and document jump targets. Retaining document
+  scrolling avoids that broader change; the tradeoff is maintaining the small
+  document controller and its browser interaction coverage.
+- **Browser behavior alone:** anchoring helps retain earlier content, but
+  cannot provide the required follow-on-stream and send behavior. Keep native
+  scrolling and anchoring, with explicit permission for automatic bottom moves.
+
+### Regression evidence and limits
+
+The original #565 implementation (PR #569) inferred reading intent from a
+later document scroll event. Its resize restoration could ignore intervening
+scroll events. Commit `f21c93c6` fixed Firefox 149's fractional visual viewport
+wheel offsets by comparing whole-pixel keyboard insets. That addresses the
+reported jitter sequence, but does not establish intent before document scroll.
+The old tests explicitly awaited that scroll event before incoming content;
+the Firefox test covered only unchanged-inset jitter.
+
+The #771 tests deliver upward input and delayed content growth in the same
+turn as a queued viewport resize, before any document scroll event. They also
+exercise content shrink followed by growth, focused-composer keyboard resizing
+with controlled browser focus scroll, native browser wheel and PageUp navigation,
+stream growth, send and return-to-bottom, and keyboard sizing in Chromium and
+WebKit. Controlled touch
+and visual viewport events isolate ordering without sleeps. Native wheel tests
+assert no downward pull while the gesture may still be moving upward; exact
+reading-position invariance is asserted with controlled settled navigation.
+WebKit can emit scrollend between native wheel segments, so scrollend alone
+does not prove that the gesture is finished. The wheel command moves the pointer
+within the visible iframe without a locator hover that could scroll the list.
+These reproduce a failure mode of the previous controller; the new report's exact device and
+timing remain unknown. Firefox's fractional-offset sequence is covered through
+controlled viewport events, not a Firefox browser run. Headless viewport tests
+do not validate a real phone keyboard or touch momentum on physical devices.
+
 ## Adventure image attachments
 
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the adventure and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.

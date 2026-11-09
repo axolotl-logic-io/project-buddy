@@ -477,9 +477,9 @@ The user follows the latest messages without repeatedly scrolling down.
 - **Steps:**
   - The user opens an existing adventure. It opens at the latest message.
   - The user sends a message. The latest message comes into view.
-  - While at the bottom, the user follows new messages and streamed reply content automatically.
-  - The user scrolls up to read earlier messages. Incoming content preserves their reading position.
-  - The user returns to the bottom or sends another message. Automatic scrolling resumes.
+  - While at the bottom, the user follows new messages and streamed reply content automatically. Content shrinking (such as a shorter draft or a dismissed error) keeps following enabled when the browser clamps the position to the new bottom.
+  - The user scrolls up with wheel, touch or document navigation keys to read earlier messages. Following pauses as the input begins, even when content or viewport updates arrive before its scroll event. Streamed text, delayed images and tool results, and reply completion preserve the reading position.
+  - The user returns to the bottom or sends another message. Automatic scrolling resumes. Focusing the composer or opening, closing or resizing the phone keyboard preserves the earlier reading position and does not resume it.
 - **Outcome:** the adventure follows the latest content only while the user wants to follow it. On phones, the composer stays above the keyboard and following adapts to the available space. Scroll movements are instant, including when reduced motion is requested.
 
 For image requests, see [`use_case_generate_image`](images.md#use_case_generate_image) and [`use_case_image_gallery`](images.md#use_case_image_gallery).
