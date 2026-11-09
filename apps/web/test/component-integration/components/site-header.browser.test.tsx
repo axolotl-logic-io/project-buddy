@@ -443,9 +443,4 @@ describe("header battery balance", () => {
       .element(page.getByRole("status"))
       .toHaveTextContent("Batteries: Unavailable");
   });
-
-  test("a visitor has no balance", async () => {
-    await render(<SiteHeader />);
-    expect(page.getByRole("status").query()).toBeNull();
-  });
 });

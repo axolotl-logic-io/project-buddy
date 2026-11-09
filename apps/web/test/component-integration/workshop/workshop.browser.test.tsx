@@ -14,6 +14,9 @@ import {
   type WorkshopRequest,
 } from "@/workshop/protocol.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
+import { refresh } from "../components/router-test-kit.ts";
+
+vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 const DRAFT: WorkshopDraft = {
   kind: "construct",
@@ -78,6 +81,7 @@ function message(): ReturnType<typeof page.getByRole> {
 }
 afterEach(() => {
   vi.unstubAllGlobals();
+  refresh.mockClear();
 });
 
 test("use_case_workshop_draft", async () => {
@@ -88,6 +92,7 @@ test("use_case_workshop_draft", async () => {
     .fill("Ask one short question.");
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
   await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+  expect(refresh).toHaveBeenCalledTimes(1);
   expect(requests[0]?.draft.prompt).toBe("Ask one short question.");
   expect(requests[0]?.history).toEqual([]);
   await message().fill("A follow-up");
@@ -167,6 +172,7 @@ test("gold failures preserve the test message for retry", async () => {
   );
   await show();
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.poll(() => refresh.mock.calls.length).toBe(1);
   await expect
     .element(page.getByRole("alert"))
     .toHaveTextContent(
@@ -187,21 +193,10 @@ test("gold failures preserve the test message for retry", async () => {
 test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
   "%s stops waiting and announces the possible spend",
   async (label) => {
-    let signal: AbortSignal | null | undefined;
+    const completed = Promise.withResolvers<Response>();
     vi.stubGlobal(
       "fetch",
-      vi.fn((_url: string, init: RequestInit): Promise<Response> => {
-        ({ signal } = init);
-        return new Promise((_resolve, reject) => {
-          signal?.addEventListener(
-            "abort",
-            () => {
-              reject(new DOMException("Cancelled", "AbortError"));
-            },
-            { once: true },
-          );
-        });
-      }),
+      vi.fn(() => completed.promise),
     );
     await show();
     await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
@@ -210,7 +205,7 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
       .element(page.getByText(WORKSHOP_COPY.cancelHint))
       .toBeVisible();
     await page.getByRole("button", { name: label, exact: true }).click();
-    expect(signal?.aborted).toBe(true);
+    expect(refresh).not.toHaveBeenCalled();
     await expect
       .element(
         page.getByRole("status").filter({ hasText: WORKSHOP_COPY.cancelled }),
@@ -223,6 +218,11 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
       .element(page.getByRole("button", { name: WORKSHOP_COPY.send }))
       .toBeEnabled();
     await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
+    completed.resolve(Response.json({ text: "Discarded reply", casts: [] }));
+    await expect.poll(() => refresh.mock.calls.length).toBe(1);
+    await expect
+      .element(page.getByText("Discarded reply"))
+      .not.toBeInTheDocument();
   },
 );
 

@@ -144,6 +144,7 @@ export function ChatView({
   authorNames?: ReadonlyMap<string, string>;
 }): JSX.Element {
   const router = useRouter();
+  const replyCompletedRef = useRef(false);
   const [gold, setGold] =
     useState<Awaited<ReturnType<typeof replyGoldAction>>>();
   const [stopStatus, setStopStatus] = useState("");
@@ -154,11 +155,13 @@ export function ChatView({
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
     onFinish: (): void => {
+      replyCompletedRef.current = true;
       setStopping(false);
       setStopStatus("");
       router.refresh();
     },
     onError: (error: Error): void => {
+      replyCompletedRef.current = true;
       const errorCase = chatFailureCase(error);
       if (errorCase === "already-answered") {
         router.refresh();
@@ -252,8 +255,14 @@ export function ChatView({
   const headerBalanceRef = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (gold !== undefined && headerBalanceRef.current !== gold.balance) {
+      const previous = headerBalanceRef.current;
       headerBalanceRef.current = gold.balance;
-      router.refresh();
+      // An idle first read seeds the baseline. A reply may finish before
+      // that read arrives, in which case its accounting still needs a refresh.
+      if (previous !== undefined || replyCompletedRef.current) {
+        router.refresh();
+      }
+      replyCompletedRef.current = false;
     }
   }, [gold, router]);
   const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
