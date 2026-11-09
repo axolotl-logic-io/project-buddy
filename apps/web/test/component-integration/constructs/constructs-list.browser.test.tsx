@@ -10,8 +10,10 @@ import {
   listConstructs,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
+import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import {
   projectIdFixture,
   userConstructIdFixture,
@@ -19,7 +21,6 @@ import {
 import { VELLUM_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
-import { tabForward } from "../components/keyboard-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -84,10 +85,8 @@ test("use_case_view_constructs", async () => {
       }),
     ),
   );
-  const builtIn = page.getByRole("region", {
-    name: CONSTRUCTS_COPY.builtInHeading,
-  });
-  const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
+  const builtIn = page.getByRole("tabpanel", { name: "Built-in", exact: true });
+  const own = page.getByRole("tabpanel", { name: "Yours", exact: true });
 
   await expect
     .element(
@@ -98,10 +97,7 @@ test("use_case_view_constructs", async () => {
     )
     .toBeVisible();
   await expect.element(page.getByText(CONSTRUCTS_COPY.intro)).toBeVisible();
-  expect(page.getByRole("region").elements()).toEqual([
-    builtIn.element(),
-    own.element(),
-  ]);
+  expect(page.getByRole("tabpanel").elements()).toEqual([builtIn.element()]);
   expect(builtIn.getByRole("listitem").elements()).toHaveLength(
     BUILT_INS.length,
   );
@@ -125,6 +121,7 @@ test("use_case_view_constructs", async () => {
         .toBeEnabled();
     }),
   );
+  await page.getByRole("tab", { name: "Yours", exact: true }).click();
   expect(own.getByRole("listitem").elements()).toHaveLength(
     OWN_CONSTRUCTS.length,
   );
@@ -176,7 +173,7 @@ test("use_case_view_constructs", async () => {
     .element(own.getByText(CONSTRUCTS_COPY.noOwn))
     .not.toBeInTheDocument();
   await expect
-    .element(own.getByRole("button", { name: "Craft construct" }))
+    .element(page.getByRole("button", { name: "Craft construct" }))
     .toBeEnabled();
 
   vi.mocked(listConstructs).mockResolvedValue([]);
@@ -190,15 +187,16 @@ test("use_case_view_constructs", async () => {
   );
   await expect.element(own.getByText(CONSTRUCTS_COPY.noOwn)).toBeVisible();
   await expect
-    .element(own.getByRole("button", { name: "Craft construct" }))
+    .element(page.getByRole("button", { name: "Craft construct" }))
     .toBeEnabled();
   expect(own.getByRole("listitem").elements()).toEqual([]);
+  await page.getByRole("tab", { name: "Built-in", exact: true }).click();
   expect(builtIn.getByRole("listitem").elements()).toHaveLength(
     BUILT_INS.length,
   );
 });
 
-test("Craft construct is the next control after the built-in constructs, and Enter crafts one", async () => {
+test("the header Craft construct action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
@@ -215,13 +213,10 @@ test("Craft construct is the next control after the built-in constructs, and Ent
       }),
     ),
   );
-  const lastBuiltIn = BUILT_INS.at(-1)?.name ?? "";
-
   page
-    .getByRole("button", { name: CONSTRUCTS_COPY.customizeLabel(lastBuiltIn) })
+    .getByRole("button", { name: "Craft construct", exact: true })
     .element()
     .focus();
-  await tabForward();
   await expect
     .element(page.getByRole("button", { name: "Craft construct" }))
     .toHaveFocus();
@@ -251,6 +246,9 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
         }),
       ),
     );
+    if (OWN_CONSTRUCTS.some((own) => own.id === construct.id)) {
+      await page.getByRole("tab", { name: "Yours", exact: true }).click();
+    }
     const trigger = page.getByRole("button", {
       name: `Adventure with ${construct.name}`,
       exact: true,
@@ -302,12 +300,13 @@ test("crafting a construct is distinct from starting with an own construct named
       }),
     ),
   );
-  const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
+  await page.getByRole("tab", { name: "Yours", exact: true }).click();
+  const own = page.getByRole("tabpanel", { name: "Yours", exact: true });
   const start = own.getByRole("button", {
     name: CONSTRUCTS_COPY.startLabel("New construct"),
     exact: true,
   });
-  const craft = own.getByRole("button", {
+  const craft = page.getByRole("button", {
     name: "Craft construct",
     exact: true,
   });
@@ -316,4 +315,47 @@ test("crafting a construct is distinct from starting with an own construct named
   expect(start.element().getAttribute("aria-haspopup")).toBe("dialog");
   expect(craft.element()).toHaveAttribute("type", "submit");
   expect(craft.element().textContent).not.toBe(start.element().textContent);
+});
+
+test("the Retired tab shows only constructs and keeps their restore action", async () => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(listConstructs).mockResolvedValue([]);
+  vi.mocked(listRetiredDefinitions).mockResolvedValueOnce([
+    {
+      id: VELLUM_CLONE.id,
+      kind: "construct",
+      name: "Retired guide",
+      retiredAt: new Date(0),
+      boughtFrom: null,
+    },
+    {
+      id: userConstructIdFixture(),
+      kind: "spell",
+      name: "Retired spell",
+      retiredAt: new Date(0),
+      boughtFrom: null,
+    },
+  ]);
+  await render(
+    inWorkspace(
+      await ConstructsPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
+  await page.getByRole("tab", { name: "Retired", exact: true }).click();
+  await expect
+    .element(page.getByRole("heading", { name: "Retired guide" }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("heading", { name: "Retired spell" }))
+    .not.toBeInTheDocument();
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: RETIREMENT_COPY.restoreLabel("Retired guide"),
+      }),
+    )
+    .toBeVisible();
 });

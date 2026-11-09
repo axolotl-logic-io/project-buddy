@@ -158,3 +158,19 @@ export function createProject(
     return project;
   });
 }
+
+// Only the owner can rename a quest. Unknown or inaccessible ids change nothing.
+export function renameProject(
+  owner: UserId,
+  id: ProjectId,
+  name: ProjectName,
+): Promise<boolean> {
+  return withAppErrors("renameProject", async () => {
+    const changed = await getDb()
+      .update(projects)
+      .set({ name })
+      .where(and(eq(projects.id, id), projectOwnedBy(owner)))
+      .returning({ id: projects.id });
+    return changed.length > 0;
+  });
+}

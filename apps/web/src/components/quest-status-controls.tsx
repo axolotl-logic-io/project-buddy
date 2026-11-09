@@ -1,6 +1,5 @@
 "use client";
 
-import { DropdownMenu } from "radix-ui";
 import {
   createContext,
   type JSX,
@@ -14,6 +13,7 @@ import {
 import { changeQuestStatusAction } from "@/app/(workspace)/projects/status-actions.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import {
   QUEST_STATUSES,
   type StatusActionState,
@@ -98,15 +98,6 @@ function UndoControl({
   );
 }
 
-// Submit while the portalled item is still attached. Closing the menu
-// otherwise removes its button before the browser's default form action.
-function submitStatusItem(event: Event): void {
-  const control = event.currentTarget;
-  if (control instanceof HTMLButtonElement && !control.disabled) {
-    control.form?.requestSubmit(control);
-  }
-}
-
 function StatusControls({
   project,
   restoreOnly = false,
@@ -137,42 +128,24 @@ function StatusControls({
     );
   } else {
     control = (
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger asChild={true}>
-          <Button variant="secondary" aria-disabled={pending}>
-            {QUEST_STATUS_COPY.menu}
-          </Button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Portal>
-          <DropdownMenu.Content
-            className="quest-actions-menu"
-            sideOffset={4}
-            align="end"
-          >
-            {QUEST_STATUSES.filter((status) => status !== project.status).map(
-              (status) => (
-                <DropdownMenu.Item
-                  disabled={pending}
-                  key={status}
-                  asChild={true}
-                  onSelect={submitStatusItem}
-                >
-                  <button
-                    className="menu-link w-full"
-                    type="submit"
-                    form={`quest-status-${project.id}`}
-                    name="toStatus"
-                    value={status}
-                    disabled={pending}
-                  >
-                    {QUEST_STATUS_COPY.actions[status]}
-                  </button>
-                </DropdownMenu.Item>
-              ),
-            )}
-          </DropdownMenu.Content>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
+      <div className="quest-status-actions">
+        {QUEST_STATUSES.filter((status) => status !== project.status).map(
+          (status) => (
+            <Button
+              key={status}
+              type="submit"
+              name="toStatus"
+              value={status}
+              variant="quiet"
+              className={`quest-status-${status}`}
+              disabled={pending}
+            >
+              {status === "completed" && <Icon name="check" />}
+              {QUEST_STATUS_COPY.actions[status]}
+            </Button>
+          ),
+        )}
+      </div>
     );
   }
   return (

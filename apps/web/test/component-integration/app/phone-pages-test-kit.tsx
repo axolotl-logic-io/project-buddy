@@ -93,7 +93,7 @@ import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import {
   SIGNED_IN_USER,
@@ -353,48 +353,60 @@ const allChatsPage = workspacePage(
 );
 
 // A project's page, its owner's view of a team project.
-const projectPage = workspacePage(
-  () => {
-    vi.mocked(getProject).mockResolvedValue({
-      ...FOX_TEAM_PROJECT,
-      name: LONG_PROJECT_NAME,
-    });
-    vi.mocked(listProjectMembers).mockResolvedValue([
-      { ...FOX_OWNER, id: SIGNED_IN_USER.id },
-      { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
-    ]);
-    vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
-    vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listOwnActivities).mockResolvedValue([]);
-    vi.mocked(listConstructs).mockResolvedValue([]);
-    vi.mocked(readRecentNotes).mockResolvedValue([
-      { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-    ]);
-  },
-  async () => (
-    <ProjectLayout params={PROJECT_PARAMS}>
-      {
-        await ProjectPage({
-          params: PROJECT_PARAMS,
-          searchParams: NO_PARAMS,
-        })
-      }
-    </ProjectLayout>
-  ),
-);
+function projectPageFor(section = "adventures"): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(getProject).mockResolvedValue({
+        ...FOX_TEAM_PROJECT,
+        name: LONG_PROJECT_NAME,
+      });
+      vi.mocked(listProjectMembers).mockResolvedValue([
+        { ...FOX_OWNER, id: SIGNED_IN_USER.id },
+        { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
+      ]);
+      vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+      vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
+      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+      vi.mocked(listOwnActivities).mockResolvedValue([]);
+      vi.mocked(listConstructs).mockResolvedValue([]);
+      vi.mocked(readRecentNotes).mockResolvedValue([
+        { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+      ]);
+    },
+    async () => (
+      <ProjectLayout params={PROJECT_PARAMS}>
+        {
+          await ProjectPage({
+            params: PROJECT_PARAMS,
+            searchParams: Promise.resolve({ section }),
+          })
+        }
+      </ProjectLayout>
+    ),
+  );
+}
+
+const projectPage = projectPageFor();
 
 // A project's memory page, with a history of versions.
-const memoryPage = workspacePage(
-  () => {
-    vi.mocked(getProject).mockResolvedValue({
-      ...FOX_PROJECT,
-      name: LONG_PROJECT_NAME,
-    });
-    vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
-  },
-  () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
-);
+function memoryPageFor(section = "journal"): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(getProject).mockResolvedValue({
+        ...FOX_PROJECT,
+        name: LONG_PROJECT_NAME,
+      });
+      vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
+    },
+    () =>
+      MemoryPage({
+        params: PROJECT_PARAMS,
+        searchParams: Promise.resolve({ section }),
+      }),
+  );
+}
+
+const memoryPage = memoryPageFor();
 
 const activitiesPage = workspacePage(
   () => {
@@ -425,6 +437,41 @@ function workshopPage(
         params: Promise.resolve({}),
         searchParams: Promise.resolve({ kind }),
       }),
+  );
+}
+
+function tabVariants(subject: string, labels: readonly string[]): PhonePage[] {
+  return labels.map((label) => ({
+    name: `${subject} · ${label}`,
+    render: (): Promise<JSX.Element> => {
+      const fixture = PHONE_PAGES.find(
+        (candidate) => candidate.name === subject,
+      );
+      if (fixture === undefined) {
+        throw new Error(`Unknown phone page: ${subject}`);
+      }
+      return fixture.render();
+    },
+    open: async (): Promise<void> => {
+      await page.getByRole("tab", { name: label, exact: true }).click();
+    },
+  }));
+}
+
+function marketplacePageFor(view?: string): () => Promise<JSX.Element> {
+  const query: { view?: string } = {};
+  if (view !== undefined) {
+    query.view = view;
+  }
+  return workspacePage(
+    () => {
+      vi.mocked(listListings).mockResolvedValue([
+        CONSTRUCT_LISTING,
+        SPELL_LISTING,
+      ]);
+      vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
+    },
+    () => MarketplacePage({ searchParams: Promise.resolve(query) }),
   );
 }
 
@@ -530,9 +577,21 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
+    name: "the premade quests tab",
+    render: projectsPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("tab", { name: "Premade quests", exact: true })
+        .click();
+    },
+  },
+  {
     name: "the premade quest preview",
     render: projectsPage,
     open: async (): Promise<void> => {
+      await page
+        .getByRole("tab", { name: "Premade quests", exact: true })
+        .click();
       await page
         .getByRole("button", {
           name: "Explore quest: Start without inspiration",
@@ -576,6 +635,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
         page
           .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
           .element(),
+      );
+    },
+  },
+  {
+    name: "a quest with its title editor open",
+    render: projectPage,
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: PROJECT_COPY.rename }).click();
+      await vi.waitFor(() =>
+        page.getByRole("textbox", { name: PROJECT_COPY.titleLabel }).element(),
       );
     },
   },
@@ -729,7 +798,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Settings page",
-    render: workspacePage(noData, () => SettingsPage()),
+    render: workspacePage(
+      () => {
+        vi.mocked(listConstructs).mockResolvedValue([]);
+      },
+      () => SettingsPage(),
+    ),
   },
   {
     name: "the constructs page",
@@ -840,16 +914,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Marketplace",
-    render: workspacePage(
-      () => {
-        vi.mocked(listListings).mockResolvedValue([
-          CONSTRUCT_LISTING,
-          SPELL_LISTING,
-        ]);
-        vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
-      },
-      () => MarketplacePage({ searchParams: Promise.resolve({}) }),
-    ),
+    render: marketplacePageFor(),
   },
   { name: "a listing's page", render: listingPage(CONSTRUCT_LISTING_TO_BUY) },
   {
@@ -899,9 +964,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => {
         vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
       },
-      async () => (
-        <AccountLayout params={NO_PARAMS}>{await AccountPage()}</AccountLayout>
-      ),
+      async () =>
+        AccountLayout({ params: NO_PARAMS, children: await AccountPage() }),
     ),
   },
   {
@@ -937,6 +1001,24 @@ const PHONE_PAGES: readonly PhonePage[] = [
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
     }, chatPage),
   },
+  ...tabVariants("the Settings page", ["Appearance", "Extras"]),
+  ...tabVariants("the constructs page", ["Yours", "Retired"]),
+  ...tabVariants("the activities page", ["Yours", "Retired"]),
+  ...tabVariants("the Spellbook", ["Yours", "Retired"]),
+  ...tabVariants("the account page", ["Batteries", "Security"]),
+  ...tabVariants("quick capture", ["Preview"]),
+  ...tabVariants("the all-chats list with a long project name", [
+    "Quest adventures",
+    "Standalone",
+  ]),
+  { name: "a quest's Progress", render: projectPageFor("progress") },
+  { name: "a quest's Quick Notes", render: projectPageFor("notes") },
+  {
+    name: "a quest's members and check-ins",
+    render: projectPageFor("members"),
+  },
+  { name: "a quest's Journal versions", render: memoryPageFor("versions") },
+  { name: "your Marketplace listings", render: marketplacePageFor("yours") },
 ];
 
 const PHONE_ORB_BALANCE = 100;

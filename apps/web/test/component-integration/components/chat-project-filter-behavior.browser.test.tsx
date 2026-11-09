@@ -159,3 +159,22 @@ test("a removed quest choice falls back to All without hiding its adventures", a
   await select.selectOptions(SECOND_ID);
   expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
 });
+
+test("workspace views retain the quest filter while Standalone shows conversations without a quest", async () => {
+  await render(
+    <ChatProjectFilter workspace={true} projects={PROJECTS} chats={CHATS} />,
+  );
+  const filter = page.getByRole("combobox", {
+    name: STANDALONE_CHATS_COPY.projectFilterLabel,
+  });
+  await filter.selectOptions(SECOND_ID);
+  await page
+    .getByRole("tab", { name: "Quest adventures", exact: true })
+    .click();
+  expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
+  await page.getByRole("tab", { name: "Standalone", exact: true }).click();
+  expect(links()).toEqual([`/chats/${STANDALONE_CHAT.id}`]);
+  await page.getByRole("tab", { name: "All adventures", exact: true }).click();
+  await expect.element(filter).toHaveValue(SECOND_ID);
+  expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
+});

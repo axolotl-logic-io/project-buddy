@@ -12,7 +12,7 @@ import {
   retireSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
-import { getSpell, listSpells } from "@/spells/index.ts";
+import { getSpell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
@@ -22,7 +22,6 @@ import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../auth/current-user-test-kit.ts";
-import { tabForward } from "../../../components/keyboard-test-kit.ts";
 import { ASK_ONE_QUESTION_CLONE } from "../../phone-pages-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
@@ -67,7 +66,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
 
 // Her spells, under their heading.
 function ownRegion(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("region", { name: SPELLBOOK_COPY.ownHeading });
+  return page.getByRole("tabpanel", { name: "Yours", exact: true });
 }
 
 // Resolves once the action is submitted. It redirects; here it only says
@@ -96,9 +95,10 @@ test("her spells offer Craft spell, with or without spells of her own", async ()
   );
 
   await expect
-    .element(ownRegion().getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Craft spell" }))
     .toBeEnabled();
 
+  await page.getByRole("tab", { name: "Yours", exact: true }).click();
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   await screen.rerender(
     inWorkspace(
@@ -112,11 +112,11 @@ test("her spells offer Craft spell, with or without spells of her own", async ()
     .element(ownRegion().getByText(SPELLBOOK_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(ownRegion().getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Craft spell" }))
     .toBeEnabled();
 });
 
-test("Craft spell is the next control after the built-in spells, and Enter crafts one", async () => {
+test("the header Craft spell action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
@@ -128,13 +128,10 @@ test("Craft spell is the next control after the built-in spells, and Enter craft
       }),
     ),
   );
-  const lastBuiltIn = listSpells().at(-1)?.name ?? "";
-
   page
-    .getByRole("button", { name: SPELLBOOK_COPY.customizeLabel(lastBuiltIn) })
+    .getByRole("button", { name: "Craft spell", exact: true })
     .element()
     .focus();
-  await tabForward();
   await expect
     .element(page.getByRole("button", { name: "Craft spell" }))
     .toHaveFocus();
@@ -156,6 +153,7 @@ test("Retire submits the spell from its existing card", async () => {
       }),
     ),
   );
+  await page.getByRole("tab", { name: "Yours", exact: true }).click();
   await page
     .getByRole("button", {
       name: RETIREMENT_COPY.retireLabel(ASK_ONE_QUESTION_CLONE.name),
@@ -240,5 +238,5 @@ test.each([
 
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
-  listRetiredDefinitions: vi.fn(),
+  listRetiredDefinitions: vi.fn(() => Promise.resolve([])),
 }));

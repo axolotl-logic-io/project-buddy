@@ -12,6 +12,134 @@
    disabled looks), and every role ships in the stylesheet whether or not a
    page uses it. globals.css imports this file into the components layer. */
 @layer roles {
+  .quests-index {
+    @apply min-w-0 rounded-box border border-line bg-surface;
+  }
+
+  .quests-index-heading {
+    @apply flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6;
+  }
+
+  .quests-index-invitations {
+    @apply px-4 sm:px-6;
+  }
+
+  .quests-index-invitations:has(section) {
+    @apply pb-4;
+  }
+
+  .quests-index-tablist {
+    @apply grid grid-cols-2 border-line border-y px-4 sm:flex sm:flex-wrap sm:gap-x-4 sm:px-6;
+  }
+
+  .quests-index-premade {
+    @apply sm:ml-auto;
+  }
+
+  .quests-index-count {
+    @apply text-muted text-xs;
+  }
+
+  .quests-index-content {
+    @apply min-w-0 p-4 sm:px-6;
+  }
+
+  .quests-index-content > .text-muted {
+    @apply py-6;
+  }
+
+  .quests-index-footer {
+    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 py-2 text-muted text-sm sm:px-6;
+  }
+
+  .quests-index-list {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .quests-index-row {
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-4 last:border-b-0;
+  }
+
+  .quests-index-restore {
+    @apply relative z-10 col-start-2 col-end-4 justify-self-start;
+  }
+
+  .quests-index-mark {
+    min-inline-size: var(--target-size);
+    min-block-size: var(--target-size);
+    @apply flex shrink-0 items-center justify-center rounded-control border border-line text-primary;
+  }
+
+  .quests-index-link {
+    overflow-wrap: anywhere;
+    @apply hover:text-primary after:absolute after:inset-0;
+  }
+
+  .quests-index-link:focus-visible::after {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .quest-workspace {
+    @apply min-w-0 rounded-box border border-line bg-surface;
+  }
+
+  .quest-workspace-heading {
+    @apply flex flex-wrap items-start justify-between gap-4 p-4 sm:p-6;
+  }
+
+  .quest-workspace-heading > :first-child {
+    flex: 1 1 20rem;
+  }
+
+  .quest-workspace-status {
+    @apply mt-2 text-muted text-sm;
+  }
+
+  .quest-workspace-rail {
+    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 sm:px-6;
+  }
+
+  .quest-workspace-nav {
+    @apply flex min-w-0 flex-wrap gap-x-4;
+  }
+
+  .quest-workspace-tab {
+    min-block-size: var(--target-size);
+    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-muted;
+  }
+
+  .quest-workspace-tab[aria-current="page"],
+  .quest-workspace-tab[data-state="active"] {
+    @apply border-primary text-foreground;
+  }
+
+  .quests-index-tablist .quest-workspace-tab {
+    @apply justify-center sm:justify-start;
+  }
+
+  .quest-status-actions {
+    @apply flex flex-wrap items-center gap-2 py-2;
+  }
+
+  .quest-status-completed {
+    @apply border border-line px-3;
+  }
+
+  .quest-status-abandoned {
+    @apply text-danger;
+  }
+
+  .quest-title-edit {
+    min-inline-size: var(--target-size);
+    @apply shrink-0 justify-center;
+  }
+
+  .quest-title-input {
+    min-block-size: var(--target-size);
+    @apply w-full min-w-0 font-heading text-page-heading;
+  }
+
   .construct-generation-spinner {
     @apply inline-block size-5 shrink-0 rounded-full border border-line;
     border-block-start-color: var(--primary);
@@ -649,12 +777,6 @@
     overflow: hidden;
   }
 
-  /* The name of a group in the menu, such as its links' groups or the
-     theme's choices. */
-  .quest-actions-menu {
-    @apply z-50 max-w-[calc(100vw-2rem)] rounded-box border border-line bg-surface p-2 text-foreground shadow-raised;
-  }
-
   .menu-label {
     @apply px-2 pt-2 pb-1 font-heading text-muted text-xs;
     letter-spacing: var(--menu-label-tracking);
@@ -970,5 +1092,99 @@
   .construct-avatar[data-avatar-size="40"] {
     inline-size: 40px;
     block-size: 40px;
+  }
+  .page-workspace {
+    @apply min-w-0 rounded-box border border-line bg-surface;
+  }
+
+  .page-workspace-heading {
+    @apply flex min-w-0 flex-wrap items-start justify-between gap-4 p-4 sm:p-6;
+  }
+
+  .page-workspace-heading > :first-child {
+    flex: 1 1 16rem;
+  }
+
+  .workspace-intro {
+    @apply mt-2 text-muted text-sm;
+  }
+
+  .workspace-rail {
+    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
+  }
+
+  .workspace-tablist {
+    @apply flex min-w-0 flex-wrap gap-x-4;
+  }
+
+  .workspace-tab {
+    min-inline-size: var(--target-size);
+    min-block-size: var(--target-size);
+    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-left text-muted text-sm;
+  }
+
+  .workspace-tab[data-state="active"],
+  .workspace-tab[aria-current="page"] {
+    @apply border-primary text-foreground;
+  }
+
+  .workspace-content {
+    @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
+  }
+
+  .workspace-content[hidden] {
+    display: none;
+  }
+
+  .workspace-content > .panel,
+  .workspace-content > form.panel {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .workspace-rows > ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-rows > ul > .card {
+    @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
+  }
+
+  .workspace-catalog-action {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .workspace-reader {
+    @apply grid min-w-0 gap-6 p-4 sm:p-6;
+    @media (width >= 48rem) {
+      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    }
+  }
+
+  .workspace-chapters {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  .workspace-reading {
+    @apply flex min-w-0 flex-col gap-6;
+  }
+
+  .workspace-reading > section {
+    scroll-margin-block-start: var(--site-header-height);
+  }
+  .adventure-workspace-nav {
+    @apply -mt-8 border-line border-b;
+  }
+  .appearance-settings .menu-modes {
+    @apply mx-0 grid-cols-1 gap-2 overflow-visible border-0;
+  }
+
+  .appearance-settings .menu-mode {
+    @apply justify-start gap-3 rounded-control border border-line px-3;
+  }
+
+  .appearance-setting-input {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply shrink-0;
   }
 }

@@ -12,11 +12,16 @@ import {
   newChatChoices,
 } from "@/chats/new-chat-choices.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { ActivityQuestEntry } from "@/components/quest-library.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
+import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
+import { RetirementList } from "../retirement/retirement-list.tsx";
 import {
   cloneActivityAction,
   editBuiltInActivityAction,
@@ -157,7 +162,11 @@ function OwnActivityCards({
   );
 }
 
-async function ActivityLists(): Promise<JSX.Element> {
+async function ActivityLists({
+  workspace = false,
+}: {
+  readonly workspace?: boolean;
+} = {}): Promise<JSX.Element> {
   const user = await requireUser();
   const [own, chatChoices, preferred] = await Promise.all([
     listOwnActivities(user.id),
@@ -165,6 +174,60 @@ async function ActivityLists(): Promise<JSX.Element> {
     interviewConstruct(user.id),
   ]);
   const choices = { ...chatChoices, preferredConstructId: preferred.id };
+  if (workspace === true) {
+    const retired = await listRetiredDefinitions(user.id);
+    return (
+      <PageWorkspace
+        title={ACTIVITIES_COPY.heading}
+        intro={ACTIVITIES_COPY.intro}
+        action={
+          <form action={newActivityAction}>
+            <Button type="submit">{ACTIVITIES_COPY.newActivity}</Button>
+          </form>
+        }
+      >
+        <WorkspaceTabs
+          label={ACTIVITIES_COPY.heading}
+          sections={[
+            {
+              id: "built-in",
+              label: WORKSPACES_COPY.builtIn,
+              content: (
+                <div className="workspace-rows">
+                  <BuiltInActivityCards
+                    activities={listActivities()}
+                    choices={choices}
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "yours",
+              label: WORKSPACES_COPY.yours,
+              content: (
+                <div className="workspace-rows">
+                  <OwnActivityCards activities={own} choices={choices} />
+                </div>
+              ),
+            },
+            {
+              id: "retired",
+              label: WORKSPACES_COPY.retired,
+              content: (
+                <div className="flex flex-col gap-4">
+                  <RetirementList
+                    definitions={retired.filter(
+                      (definition) => definition.kind === "activity",
+                    )}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
+      </PageWorkspace>
+    );
+  }
   return (
     <>
       <section
