@@ -1,0 +1,5 @@
+import {spawn} from 'node:child_process';
+process.loadEnvFile('.env.test');
+const child=spawn(process.execPath,['--import','/tmp/pb-773-current/db-instrument.mjs','../../node_modules/next/dist/bin/next','start','--port','36447'],{stdio:'inherit',env:process.env});
+process.on('SIGTERM',()=>child.kill('SIGTERM'));
+child.on('exit',code=>process.exit(code??1));

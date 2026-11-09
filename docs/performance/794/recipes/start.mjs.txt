@@ -1,0 +1,7 @@
+import {spawn} from 'node:child_process';
+import {openSync} from 'node:fs';
+process.loadEnvFile('apps/web/.env.test');
+const [variant,port,dir]=process.argv.slice(2);
+const fd=openSync(`/tmp/pb-794/${variant}-server.log`,'a',0o600);
+const child=spawn(process.execPath,['--import','/tmp/pb-794/db-instrument.mjs',process.cwd()+'/node_modules/next/dist/bin/next','start',dir,'--port',port],{stdio:['ignore',fd,fd],env:{...process.env,PERF_SERVER_SPANS:'local'}});
+process.on('SIGTERM',()=>child.kill('SIGTERM'));child.on('exit',c=>process.exit(c??1));

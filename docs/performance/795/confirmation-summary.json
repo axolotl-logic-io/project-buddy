@@ -1,0 +1,17 @@
+{
+  "observations": 320,
+  "captureFailures": 0,
+  "afterDirectObservations": 80,
+  "afterTransitionObservations": 80,
+  "allAfterBudgetObservationsWithinLimits": 160,
+  "afterInitialSessionWindowClsMaximum": 0.0013598660329517502,
+  "afterTransitionAllShiftMaximum": 0,
+  "afterDirectAllShiftMaximum": 0.04671467204831025,
+  "sampledQuietWindowsAtLeast500ms": 320,
+  "minimumSampledFinalQuietMs": 1350.4000005722046,
+  "startedUtc": "2026-11-09T13:17:29.372000+00:00",
+  "lastPassCompletedUtc": "2026-11-09T13:36:15.643420+00:00",
+  "controllerWallSeconds": 1126.27,
+  "timingScope": "Includes server/browser lifecycle and capture serialization; excludes queue, snapshot preparation, reducer and validator.",
+  "scope": "Controlled local synthetic light-theme cohort; no field percentile or permanent stability claim."
+}

@@ -1,0 +1,77 @@
+{
+  "beforeSource": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+  "afterSource": "737c914fa8e5f87a198430552c8dddb86d5b9d60",
+  "beforeBuildId": "5ZJdzqfe5kTwOioEMjRk9",
+  "afterBuildId": "Ab_dyq8SMB34B7XgLvl6P",
+  "browser": "Chrome for Testing 156.0.8078.4",
+  "puppeteerCore": "24.12.1",
+  "screenshots": "synthetic Home only; cold direct full window and client after visible atlas plus two rendering frames",
+  "screenshotCorrection": [
+    {
+      "artifact": "before/desktop/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 5
+    },
+    {
+      "artifact": "before/phone/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 9
+    }
+  ],
+  "targetSamplesPerCell": 10,
+  "productionAccess": false,
+  "collectionEnabled": false,
+  "unmeasuredPrototypes": [
+    {
+      "source": "a29dbe28d8166f7be3fd5badf607bb2c0a5f4306",
+      "buildId": "xR2nTsTB7mLLjTF_Hs8bb"
+    },
+    {
+      "source": "fb065b53f8f323bad4ad8fb3a974dcccb23c853a",
+      "buildId": "aM1QP6WCmmfquaij_gwVK"
+    }
+  ],
+  "status": "provisional cohort stopped after completed pass at parent request",
+  "sourcePreparation": "shared-menu-state-v1",
+  "sameDocumentRequiredForClientNavigation": true,
+  "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
+  "node": "24.6.0",
+  "cohortProtocol": "geometry-commit-probe-v2",
+  "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/",
+  "recipeSha256": {
+    "capture.mjs": "2b852a2e90ddf2f242b56a69dbb7f67407119c4f023d74d6c5bad74f32339408",
+    "observe.mjs": "0c7fa3d31c0147d71d78c3b3ef6e251ea1df96034be0d708e832cdb8a41cf39c",
+    "start.mjs": "0f1004db590dae3db88fe3cafccd18003e1fede3335a466f4e7382f11c04287d",
+    "cohort.mjs": "d27ab35c24353f7039125da362b4ffe5110f7d4e63f9950b336bbd7fdb89ba35"
+  },
+  "observations": 48,
+  "captureFailures": 0,
+  "completedPasses": [
+    {
+      "variant": "before",
+      "sample": 1,
+      "observations": 16
+    },
+    {
+      "variant": "after",
+      "sample": 1,
+      "observations": 16
+    },
+    {
+      "variant": "after",
+      "sample": 2,
+      "observations": 16
+    }
+  ],
+  "candidateAcceptanceSatisfied": false,
+  "clientHomePixelReview": {
+    "reviewedAllFrames": true,
+    "frameCounts": {
+      "beforeDesktop": 2,
+      "beforePhone": 4,
+      "afterDesktop": 17,
+      "afterPhone": 21
+    },
+    "total": 44,
+    "sourcePagePixelsFound": false,
+    "promptsIdentifiersOrSessionsFound": false
+  }
+}

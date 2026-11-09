@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/bestieboots/.t3/worktrees/project-buddy/issues-795-performance
+pb795_before=70f0fc09a9d07ec3ffeafd7af8465a19c5bf324c
+pb795_candidate=$(git rev-parse HEAD)
+git diff --quiet -- apps/web
+git diff --cached --quiet -- apps/web
+git diff --quiet "$pb795_before" "$pb795_candidate" -- package.json package-lock.json
+python - "$pb795_before" "$pb795_candidate" <<'PY'
+import json,pathlib,sys
+pathlib.Path('/tmp/pb-795/post808-build-state.json').write_text(json.dumps({'phase':'baseline source restore','beforeSource':sys.argv[1],'afterSource':sys.argv[2],'restored':False},indent=2)+'\n')
+PY
+trap 'git restore --source="$pb795_candidate" --worktree -- apps/web' EXIT
+# Only this isolated worktree changes; the baseline app tree must match the
+# merged dependency exactly. Ignored local test environment stays in place.
+git restore --source="$pb795_before" --worktree -- apps/web
+git diff --quiet "$pb795_before" -- apps/web
+(cd apps/web && node --input-type=module -e 'process.loadEnvFile(".env.test");const {checkTestEnvironment}=await import("./scripts/test-db/test-database.ts");checkTestEnvironment();const {spawnSync}=await import("node:child_process");process.exit(spawnSync("npm",["run","build"],{env:process.env,stdio:"inherit"}).status??1)') > /tmp/pb-795/post808-before-build.log 2>&1
+cp -a apps/web/.next /tmp/pb-795/post808-before-next
+git restore --source="$pb795_candidate" --worktree -- apps/web
+git diff --quiet "$pb795_candidate" -- apps/web
+trap - EXIT
+(cd apps/web && node --input-type=module -e 'process.loadEnvFile(".env.test");const {checkTestEnvironment}=await import("./scripts/test-db/test-database.ts");checkTestEnvironment();const {spawnSync}=await import("node:child_process");process.exit(spawnSync("npm",["run","build"],{env:process.env,stdio:"inherit"}).status??1)') > /tmp/pb-795/post808-after-build.log 2>&1
+cp -a apps/web/.next /tmp/pb-795/post808-after-next
+(cd apps/web && npm run check:build-fonts) > /tmp/pb-795/post808-fonts.log 2>&1
+python - "$pb795_before" "$pb795_candidate" <<'PY'
+import json,pathlib,sys
+base=pathlib.Path('/tmp/pb-795')
+metadata={'beforeSource':sys.argv[1],'afterSource':sys.argv[2],'beforeAppTreeVerified':True,'afterAppTreeVerified':True,'rootPackageInputsIdentical':True,'restored':True,'phase':'matched builds complete','beforeBuildId':(base/'post808-before-next/BUILD_ID').read_text().strip(),'afterBuildId':(base/'post808-after-next/BUILD_ID').read_text().strip()}
+(base/'post808-build-state.json').write_text(json.dumps(metadata,indent=2)+'\n')
+config={'mode':'final','before':{'source':sys.argv[1],'buildId':metadata['beforeBuildId'],'snapshot':str(base/'post808-before-next')},'after':{'source':sys.argv[2],'buildId':metadata['afterBuildId'],'snapshot':str(base/'post808-after-next')}}
+(base/'final-pair-config.json').write_text(json.dumps(config,indent=2)+'\n')
+print(json.dumps(metadata))
+PY

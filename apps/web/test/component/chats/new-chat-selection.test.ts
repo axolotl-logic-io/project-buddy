@@ -31,7 +31,7 @@ describe("activity and quest choices are independent", () => {
       );
     },
   );
-  test("older interview links choose Project Breakdown", () => {
+  test("older interview links choose Break Down a Project", () => {
     expect(
       initialSelection({ activityId: "interview", projectId: "" }),
     ).toEqual({ activityId: "project-breakdown", projectId: NEW_PROJECT });

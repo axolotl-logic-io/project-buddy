@@ -25,6 +25,7 @@ import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { UserId } from "@/ids.ts";
 import { publishListing } from "@/marketplace/listing-store.ts";
+import { NAMED_SHEET_BUILT_INS } from "@/prompts/named-sheet-built-ins.ts";
 import { getSpell } from "@/spells/index.ts";
 import { cloneSpell, getOwnSpell } from "@/spells/spell-store.ts";
 import {
@@ -249,4 +250,65 @@ test("an edited copy put back to a built-in one's text is stored in the earlier 
   expect(parseConstructDefinition(await storedParts(clone.id))?.visual).toEqual(
     clone.definition.visual,
   );
+});
+
+test("an unchanged named-heading copy reads as today's built-in one, can't be listed and keeps its prepared openings", async () => {
+  const namedConstruct = Object.entries(NAMED_SHEET_BUILT_INS.constructs).find(
+    ([id]) => id === "vellum",
+  )?.[1];
+  const namedActivity = Object.entries(NAMED_SHEET_BUILT_INS.activities).find(
+    ([id]) => id === "interview",
+  )?.[1];
+  const namedSpell = Object.entries(NAMED_SHEET_BUILT_INS.spells).find(
+    ([id]) => id === "blender-manual-lookup",
+  )?.[1];
+  if (
+    namedConstruct === undefined ||
+    namedActivity === undefined ||
+    namedSpell === undefined
+  ) {
+    throw new Error("The named built-in definitions were not recorded");
+  }
+  const { id: owner } = await testUser();
+  const vellumId = await earlierRow(owner, "buddy", "vellum", {
+    voice: namedConstruct.prompt,
+    habits: "",
+  });
+  const interviewId = await earlierRow(owner, "activity", "interview", {
+    instructions: namedActivity.prompt,
+    openingKickoff: namedActivity.openingRequest,
+  });
+  const blenderId = await earlierRow(owner, "spell", "blender-manual-lookup", {
+    whenToUse: namedSpell.whenToUse,
+    instructions: namedSpell.prompt,
+  });
+
+  const vellum = await getOwnConstruct(owner, vellumId);
+  const interview = await getOwnActivity(owner, interviewId);
+  const blender = await getOwnSpell(owner, blenderId);
+  if (vellum === undefined || interview === undefined) {
+    throw new Error("The earlier copies were not found");
+  }
+
+  expect(vellum.definition.prompt).toBe(
+    getConstruct("vellum").definition.prompt,
+  );
+  expect(vellum.definition.visual).toBeUndefined();
+  expect(interview.definition).toEqual(getActivity("interview").definition);
+  expect(blender?.definition).toEqual(
+    getSpell("blender-manual-lookup").definition,
+  );
+  expect(
+    await publishListing(
+      owner,
+      { kind: "construct", promptId: vellumId },
+      TERMS,
+    ),
+  ).toEqual({ kind: "built-in" });
+  expect(
+    await publishListing(owner, { kind: "spell", promptId: blenderId }, TERMS),
+  ).toEqual({ kind: "built-in" });
+  expect(
+    preparedOpening(vellum.definition, interview.definition),
+  ).toBeDefined();
 });

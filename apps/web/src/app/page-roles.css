@@ -40,16 +40,139 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
-  .page-column:has(.workshop) {
+  .workspace-frame {
+    @apply flex w-full flex-1 flex-col;
+  }
+
+  .page-frame-editor {
     @apply max-w-6xl;
+  }
+
+  .page-frame-home {
+    @apply max-w-none gap-0 p-0;
+  }
+
+  .page-title-row {
+    min-block-size: var(--target-size);
+    @apply flex flex-wrap items-center justify-between gap-4;
+  }
+
+  .page-slot {
+    min-block-size: calc(var(--target-size) * 3);
+    @apply flex min-w-0 flex-col gap-4;
   }
 
   .workshop {
     @apply flex min-w-0 flex-col gap-6;
   }
 
-  .workshop-columns {
-    @apply grid min-w-0 grid-cols-1 items-start gap-6 md:grid-cols-2;
+  .workshop-toolbar {
+    @apply sticky z-10 flex flex-wrap items-center gap-3 border-line border-b bg-background py-3;
+    inset-block-start: var(--site-header-height);
+  }
+
+  .workshop-drawer {
+    @apply fixed right-0 z-50 flex w-full max-w-xl flex-col overflow-hidden border-line border-l bg-surface text-foreground shadow-raised;
+    --workshop-visible-height: 100dvh;
+    --workshop-visible-top: 0px;
+    block-size: var(--workshop-visible-height);
+    inset-block-start: var(--workshop-visible-top);
+  }
+
+  .workshop-drawer-header {
+    @apply flex shrink-0 flex-wrap items-center justify-between gap-2 border-line border-b p-4;
+  }
+
+  .workshop-test-content {
+    @apply flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4;
+    overscroll-behavior: contain;
+  }
+
+  .workshop-test-settings {
+    @apply rounded-control border border-line p-3;
+  }
+
+  .workshop-test-settings > summary {
+    @apply cursor-pointer;
+    min-block-size: var(--target-size);
+  }
+
+  .workshop-feedback {
+    @apply flex shrink-0 flex-col gap-2 overflow-y-auto px-4;
+    max-block-size: calc(var(--workshop-visible-height) * 0.3);
+  }
+
+  .workshop-composer {
+    @apply flex shrink-0 flex-col gap-2 overflow-y-auto border-line border-t bg-surface p-4;
+    max-block-size: calc(var(--workshop-visible-height) * 0.55);
+    padding-block-end: max(
+      calc(var(--space-unit) * 4),
+      env(safe-area-inset-bottom)
+    );
+  }
+
+  .prompt-editor {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .prompt-editor-actions {
+    @apply flex flex-col gap-3;
+  }
+
+  .prompt-editor[data-focus="true"] {
+    @apply grid gap-4;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prompt-editor-nav {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .prompt-editor-nav button {
+    @apply text-left;
+  }
+
+  .prompt-editor-nav [aria-pressed="true"] {
+    @apply bg-primary text-on-primary;
+  }
+
+  .prompt-editor[data-focus="true"] .prompt-editor-field textarea {
+    block-size: 40dvh;
+  }
+
+  .prompt-editor[data-focus="true"] .prompt-editor-actions {
+    @apply sticky bottom-0 z-10 border-line border-t bg-background py-3;
+  }
+
+  /* Short windows need editing space more than pinned form controls. */
+  @media (max-height: 32rem) {
+    .workshop-toolbar,
+    .prompt-editor[data-focus="true"] .prompt-editor-actions {
+      position: static;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .prompt-editor[data-focus="true"] {
+      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    }
+
+    .prompt-editor-name,
+    .prompt-editor-heading,
+    .prompt-editor-actions {
+      grid-column: 1 / -1;
+    }
+
+    .prompt-editor-nav {
+      @apply flex-col items-stretch self-start;
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .prompt-editor[data-focus="true"] .prompt-editor-field {
+      grid-column: 2;
+      grid-row: 3;
+    }
   }
 
   /* The headings take their sizes from the theme (src/themes/contract.css).
@@ -196,15 +319,23 @@
     @apply font-medium text-danger text-sm;
   }
 
-  /* The box that sets such a message apart from what surrounds it, such as
-     a failed reply in the chat. */
-  .error-box {
-    @apply rounded-box border border-danger bg-surface px-4 py-3;
+  /* Shared page feedback and static state. Words carry purpose and severity;
+     an opaque surface, outline and spacing group it without colour alone. */
+  .notice {
+    @apply min-w-0 rounded-box border border-line bg-surface px-4 py-3 text-foreground text-sm;
+    overflow-wrap: anywhere;
   }
 
-  /* A message saying what a form did, such as "Saved.". */
-  .status-text {
-    @apply text-muted text-sm;
+  .notice.error-text {
+    @apply border-danger text-danger;
+  }
+
+  .notice:empty {
+    @apply border-0 p-0;
+  }
+
+  .notice a {
+    @apply inline-flex min-h-(--target-size) max-w-full items-center underline underline-offset-4;
   }
 
   /* A raised surface that groups a page's part, such as a form. */
@@ -279,26 +410,22 @@
 
   /* Compact navigation above the title and construct. Keep touch targets full
      size while giving the conversation more room, including on phones. */
+  html {
+    --site-header-height: 0px;
+    scroll-padding-top: var(--site-header-height);
+  }
+
+  html:has(.header-breadcrumbs) {
+    --site-header-height: 52px;
+  }
+
   .chat-header {
-    @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
+    inset-block-start: var(--site-header-height);
+    @apply sticky z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
   }
 
   .memory-text p {
     @apply whitespace-pre-line;
-  }
-
-  .chat-header .back-link {
-    overflow-wrap: anywhere;
-    min-inline-size: 0;
-    @apply max-w-full;
-  }
-
-  .chat-header .back-link > span {
-    @apply truncate;
-  }
-
-  .chat-header .back-link > .icon {
-    @apply shrink-0;
   }
 
   .chat-heading {
@@ -332,8 +459,8 @@
   html:has(.chat-header) {
     --chat-header-name-lines: 1;
     scroll-padding-top: calc(
+      var(--site-header-height) +
       --spacing(2) +
-      var(--target-size) +
       max(
         var(--target-size),
         var(--chat-header-name-lines) *
@@ -357,39 +484,84 @@
      <dialog> is hidden by the browser's own display: none, so the panel is
      a flex column only while open. The page under it doesn't scroll. Each
      theme dresses it through the menu tokens (src/themes/themes.ts). */
-  /* The header is a game's HUD in every theme, in the atlas's ink and gold:
+  /* The header is a game's HUD in every theme, with an independent ink and gold palette:
      the site's name behind a compass medallion, the place the page belongs
-     to, the shortcuts in gold, and the buttons as ink tiles with a gold rim,
+     to, and the buttons as ink tiles with a gold rim,
      Quick Note in gold. The menu's panel inside it keeps the theme's own
      look, so only the header's own children are dressed. */
   .site-header {
-    @apply flex items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
+    @apply relative z-20 flex flex-wrap items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
+    background: var(--hud-ink);
+    color: var(--hud-paper);
+    border-color: var(--hud-gold);
+  }
+
+  .header-breadcrumbs {
+    flex-basis: 100%;
+    min-inline-size: 0;
+    order: 1;
+  }
+
+  .header-breadcrumbs ol {
+    @apply flex min-w-0 items-center gap-1;
+  }
+
+  .header-breadcrumbs li {
+    @apply flex min-w-0 items-center gap-1;
+    flex: 0 1 auto;
+  }
+
+  .header-breadcrumbs li:not(:first-child) {
+    min-inline-size: calc(var(--target-size) + 1rem);
+  }
+
+  .header-breadcrumbs li:first-child {
+    flex-shrink: 0;
+  }
+
+  .header-breadcrumbs li:has([aria-current]) {
+    flex-shrink: 2;
+  }
+
+  .header-breadcrumbs a,
+  .header-breadcrumbs [aria-current] {
+    @apply flex min-w-0 min-h-(--target-size) items-center;
+  }
+
+  .header-breadcrumbs a {
+    @apply min-w-(--target-size) max-w-full underline underline-offset-4;
+  }
+
+  .header-breadcrumbs a > span,
+  .header-breadcrumbs [aria-current] {
+    @apply truncate;
+  }
+
+  .breadcrumb-separator {
+    @apply shrink-0;
   }
 
   .site-header > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-gold);
+    --focus-outline: 3px solid var(--hud-gold);
   }
 
   .hud-title {
-    @apply inline-flex shrink-0 items-center gap-2 whitespace-nowrap;
+    @apply inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
 
   .hud-medallion {
     @apply flex shrink-0 items-center justify-center rounded-full border-2;
     inline-size: calc(var(--target-size) * 0.75);
     block-size: calc(var(--target-size) * 0.75);
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-gold);
+    background: var(--hud-paper);
+    color: var(--hud-ink);
+    border-color: var(--hud-gold);
   }
 
   .hud-place {
     @apply hidden border-l-2 pl-3 font-semibold;
-    border-color: var(--atlas-line);
+    border-color: var(--hud-line);
     font-family: var(--atlas-font);
   }
 
@@ -399,17 +571,25 @@
   }
 
   .site-header > .button-secondary {
+    flex-shrink: 0;
     @apply rounded-control border-2 shadow-none;
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
-    box-shadow: 0 3px 0 var(--atlas-line);
+    background: var(--hud-ink);
+    color: var(--hud-paper);
+    border-color: var(--hud-gold);
+    box-shadow: 0 3px 0 var(--hud-line);
   }
 
   .site-header > a.button-secondary {
-    background: var(--atlas-gold);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-paper);
+    background: var(--hud-gold);
+    color: var(--hud-ink);
+    border-color: var(--hud-paper);
+  }
+
+  .header-balance {
+    @apply flex shrink-0 flex-col items-center text-sm font-semibold;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    max-inline-size: 7rem;
   }
 
   .header-quick-note {
@@ -417,6 +597,14 @@
   }
 
   @media (width < 32rem) {
+    .hud-medallion {
+      display: none;
+    }
+
+    .site-header:has(.header-balance) .hud-title {
+      @apply min-h-(--target-size) text-sm;
+    }
+
     .header-quick-note {
       min-inline-size: var(--target-size);
       padding-inline: 0;
@@ -427,54 +615,25 @@
     }
   }
 
-  .site-shortcuts {
-    @apply mr-2 hidden items-center gap-2;
-  }
-
-  .site-shortcut {
-    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
-    color: var(--atlas-gold);
-    text-decoration-thickness: calc(var(--line-width) * 2);
-  }
-
-  .site-shortcut:hover {
-    color: var(--atlas-paper);
-  }
-
-  @container (min-width: 48rem) {
-    .site-shortcuts {
-      display: flex;
-    }
-  }
-
   @container (min-width: 40rem) {
     .hud-place {
       display: block;
     }
   }
 
-  /* Home keeps its controls in the same frosted paper as the atlas.
-     The dialog itself retains the user's appearance and no blur, so its
-     fixed positioning stays relative to the viewport. */
-  .site-header:has(~ main .atlas:not([data-inactive])) {
-    @apply z-10 mx-4 mt-4 rounded-box border p-2 shadow-control sm:p-3;
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-line);
+  .site-header:has(.header-breadcrumbs) {
+    @apply pb-1;
+    --header-controls-height: 60px;
+    position: sticky;
+    inset-block-start: calc(-1 * var(--header-controls-height));
   }
 
-  .site-header:has(~ main .atlas:not([data-inactive])) > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-focus);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title {
-    @apply mr-auto;
-    font-family: var(--atlas-font);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) .hud-medallion,
-  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
+  .site-header:has(.header-breadcrumbs) > .hud-place {
     display: none;
+  }
+
+  .site-header:has(.header-breadcrumbs) > .hud-title {
+    margin-inline-end: auto;
   }
 
   .site-menu {
@@ -560,7 +719,7 @@
 }
 
 @layer roles {
-  /* The artwork belongs behind the entire Home page, including its header.
+  /* The artwork belongs behind Home content below the shared header.
      Hidden cached Home pages must never dress the page currently on screen. */
   body:has(.atlas:not([data-inactive])) {
     background-color: var(--atlas-paper);
@@ -570,10 +729,6 @@
     @supports (background-attachment: scroll) {
       background-attachment: scroll;
     }
-  }
-
-  .page-column:has(> .atlas:not([data-inactive])) {
-    @apply max-w-none gap-0 p-0;
   }
 
   .atlas {
@@ -740,22 +895,6 @@
       -webkit-backdrop-filter: var(--atlas-blur);
       backdrop-filter: var(--atlas-blur);
     }
-
-    /* Avoid a filter on the header: it would contain the fixed menu.
-       Its pseudo-element blurs only the paper behind the header's controls. */
-    .site-header:has(~ main .atlas:not([data-inactive])) {
-      @apply relative isolate;
-      background: transparent;
-    }
-
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
-      @apply pointer-events-none absolute inset-0 rounded-box;
-      z-index: -1;
-      content: "";
-      background: var(--atlas-frost);
-      -webkit-backdrop-filter: var(--atlas-blur);
-      backdrop-filter: var(--atlas-blur);
-    }
   }
 
   @container (min-width: 48rem) {
@@ -785,8 +924,7 @@
     .atlas-title,
     .atlas-destination,
     .atlas-continue,
-    .atlas-footer,
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
+    .atlas-footer {
       @supports (backdrop-filter: blur(0)) or
         (-webkit-backdrop-filter: blur(0)) {
         -webkit-backdrop-filter: none;

@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
+import { cache } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
@@ -36,13 +37,10 @@ function SpellHeading({
   readonly intro: string;
 }): JSX.Element {
   return (
-    <>
-      <BackLink href="/spellbook">{SPELL_COPY.spellbookLink}</BackLink>
-      <div className="flex flex-col gap-2">
-        <h1 className="page-heading wrap-anywhere">{name}</h1>
-        <p className="text-muted">{intro}</p>
-      </div>
-    </>
+    <div className="flex flex-col gap-2">
+      <h1 className="page-heading wrap-anywhere">{name}</h1>
+      <p className="text-muted">{intro}</p>
+    </div>
   );
 }
 
@@ -132,6 +130,9 @@ function OwnSpellForm({
   );
 }
 
+// Shared only within one React server request; acting user remains part of the key.
+const readOwnDefinition = cache(getOwnSpell);
+
 export async function generateMetadata({
   params,
 }: PageProps<"/spellbook/[spellId]">): Promise<Metadata> {
@@ -141,7 +142,11 @@ export async function generateMetadata({
   if (isSpellId(spellId)) {
     ({ name } = getSpell(spellId));
   } else {
-    name = (await getOwnSpell(user.id, spellId))?.name;
+    name = (
+      await measureServerOperation("spell-metadata", () =>
+        readOwnDefinition(user.id, spellId),
+      )
+    )?.name;
   }
   return { title: pageTitle(name ?? "Spell") };
 }
@@ -153,8 +158,8 @@ export default async function SpellPage({
   const { spellId } = await params;
   const { saved } = await searchParams;
   const user = await requireUser();
-  const options = await workshopOptions(user.id);
   if (isSpellId(spellId)) {
+    const options = await workshopOptions(user.id);
     const spell = getSpell(spellId);
     return (
       <Workshop
@@ -172,7 +177,12 @@ export default async function SpellPage({
       </Workshop>
     );
   }
-  const spell = await getOwnSpell(user.id, spellId);
+  const [spell, options] = await Promise.all([
+    measureServerOperation("spell-data", () =>
+      readOwnDefinition(user.id, spellId),
+    ),
+    workshopOptions(user.id),
+  ]);
   if (spell === undefined) {
     const retired = await getRetiredDefinition(user.id, spellId);
     if (retired?.kind === "spell") {

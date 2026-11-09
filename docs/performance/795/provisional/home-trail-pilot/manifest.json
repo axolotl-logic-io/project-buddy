@@ -1,0 +1,85 @@
+{
+  "beforeSource": "07038f4134bdb7de8adfe46fb820022b736f6283",
+  "afterSource": "e6d2ab1e7fa2dbd8cfef5f541a5d0795eb4947e7",
+  "beforeBuildId": "nZtNbQzEfJ9A7y64XAnmf",
+  "afterBuildId": "HFCEhaMGgdEoEL1HBJT7i",
+  "browser": "Chrome for Testing 156.0.8078.4",
+  "puppeteerCore": "24.12.1",
+  "screenshots": "Home only; direct full window, client after identical visible primary criterion plus two rendering frames",
+  "screenshotCorrection": [
+    {
+      "artifact": "before/desktop/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 5
+    },
+    {
+      "artifact": "before/phone/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 9
+    }
+  ],
+  "targetSamplesPerCell": 3,
+  "productionAccess": false,
+  "collectionEnabled": false,
+  "unmeasuredPrototypes": [
+    {
+      "source": "a29dbe28d8166f7be3fd5badf607bb2c0a5f4306",
+      "buildId": "xR2nTsTB7mLLjTF_Hs8bb"
+    },
+    {
+      "source": "fb065b53f8f323bad4ad8fb3a974dcccb23c853a",
+      "buildId": "aM1QP6WCmmfquaij_gwVK"
+    },
+    {
+      "source": "07038f4134bdb7de8adfe46fb820022b736f6283",
+      "buildId": "nZtNbQzEfJ9A7y64XAnmf"
+    }
+  ],
+  "status": "pilot completed and privacy-reviewed; final post-Workshop confirmation pending",
+  "sourcePreparation": "visible-shared-menu-state-v2",
+  "sameDocumentRequiredForClientNavigation": true,
+  "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
+  "node": "24.6.0",
+  "cohortProtocol": "geometry-commit-probe-v3",
+  "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/",
+  "recipeSha256": {
+    "capture.mjs": "5f5a32b5a4c782c5851bf459c79d9add613d7b5dc3f69b735993cb6949164434",
+    "observe.mjs": "67073ac3287b2bf78133225eb55f03f0b2ee343cd8ea5115204af5fccc6a6637",
+    "start.mjs": "0f1004db590dae3db88fe3cafccd18003e1fede3335a466f4e7382f11c04287d",
+    "cohort.mjs": "4a08925c19893da2cd66ab91d0a9a4063e122527163a0ac218ed6986fcb9ed37",
+    "prepare-pair.py": "f4fe83d974ea98acd3e15068d68c60e872498470d9d6efce1eb35acfbe8d1cec"
+  },
+  "candidateAcceptanceSatisfied": false,
+  "provisionalCohorts": [
+    {
+      "directory": "provisional/v2-737c914f",
+      "afterSource": "737c914fa8e5f87a198430552c8dddb86d5b9d60",
+      "afterBuildId": "Ab_dyq8SMB34B7XgLvl6P",
+      "observations": 48,
+      "captureFailures": 0,
+      "completedBeforeSamples": [
+        1
+      ],
+      "completedAfterSamples": [
+        1,
+        2
+      ]
+    }
+  ],
+  "checkpointIdentity": {
+    "source": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+    "buildId": "5ZJdzqfe5kTwOioEMjRk9",
+    "protocol": "geometry-commit-probe-v1"
+  },
+  "targetObservations": 24,
+  "scope": "Home/Quests client-only footprint pilot",
+  "manualScreenshotReview": {
+    "reviewedFrames": 13,
+    "framesByArtifact": {
+      "before/desktop/client-navigation/home.trace.json.gz": 2,
+      "before/phone/client-navigation/home.trace.json.gz": 4,
+      "after/desktop/client-navigation/home.trace.json.gz": 2,
+      "after/phone/client-navigation/home.trace.json.gz": 5
+    },
+    "method": "Parent inspected every retained frame on lossless local contact sheets.",
+    "scope": "Synthetic Home UI only; no source-route pixels, prompts, domain identifiers or session data observed."
+  }
+}

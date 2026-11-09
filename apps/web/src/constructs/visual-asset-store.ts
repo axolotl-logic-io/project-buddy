@@ -1,14 +1,26 @@
-import { and, eq, inArray, isNull, notInArray, type SQL } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  notInArray,
+  type SQL,
+} from "drizzle-orm";
 import { z } from "zod";
 import {
   chatOpenTo,
+  constructGenerationOwnedBy,
   listingOpenTo,
   listingSoldBy,
   ownPromptOwnedBy,
 } from "@/accounts/owner-scope.ts";
+import type { ConstructDefinition } from "@/constructs/construct.ts";
 import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   CONSTRUCT_VISUAL,
+  type ConstructVisual,
+  normalizeVisualDescription,
   VISUAL_DESTINATION,
   type VisualDestination,
 } from "@/constructs/visual.ts";
@@ -16,12 +28,50 @@ import { type Database, getDb, type Transaction } from "@/db/client.ts";
 import {
   constructAssetGrants,
   constructAssets,
+  constructGenerations,
 } from "@/db/tables/construct-visuals.ts";
 import { listings } from "@/db/tables/listings.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { UserId } from "@/ids.ts";
+
+// Only the latest successful, still-granted draft for this saved appearance is recoverable.
+async function latestDraftVisual(
+  owner: UserId,
+  id: string,
+  definition: ConstructDefinition,
+  db: Database | Transaction = getDb(),
+): Promise<ConstructVisual | undefined> {
+  const [row] = await db
+    .select()
+    .from(constructGenerations)
+    .where(
+      and(
+        constructGenerationOwnedBy(owner),
+        eq(constructGenerations.constructId, id),
+        eq(constructGenerations.status, "generated"),
+      ),
+    )
+    .orderBy(desc(constructGenerations.createdAt))
+    .limit(1);
+  const visual = CONSTRUCT_VISUAL.safeParse(row?.visual).data;
+  if (
+    row === undefined ||
+    visual?.canonical?.kind !== "generated" ||
+    normalizeVisualDescription(
+      parseConstructDefinition(row.sourceParts)?.visual?.description ?? "",
+    ) !== normalizeVisualDescription(definition.visual?.description ?? "") ||
+    (definition.visual?.canonical?.kind === "generated" &&
+      visual.canonical.assetId === definition.visual.canonical.assetId)
+  ) {
+    return undefined;
+  }
+  if (!(await previousVisualAvailable(owner, id, visual, db))) {
+    return undefined;
+  }
+  return visual;
+}
 
 function visualAssetIds(parts: unknown): string[] {
   const visual = parseConstructDefinition(parts)?.visual;
@@ -49,7 +99,11 @@ async function grantVisualAssets(
   owner: UserId,
   tx: Transaction,
   destination: VisualDestination,
-  input: { readonly parts: unknown; readonly boughtFrom?: string },
+  input: {
+    readonly parts: unknown;
+    readonly boughtFrom?: string;
+    readonly retainDraft?: boolean;
+  },
 ): Promise<void> {
   let snapshot: { parts: unknown } | undefined;
   if (destination.kind === "construct") {
@@ -167,6 +221,16 @@ async function grantVisualAssets(
       .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, destination.id)));
     const previous = CONSTRUCT_VISUAL.safeParse(source?.previous).data;
     retainedIds.push(...visualAssetIds({ prompt: "", visual: previous }));
+    const definition = parseConstructDefinition(snapshot.parts);
+    if (definition !== undefined && input.retainDraft !== false) {
+      const draft = await latestDraftVisual(
+        owner,
+        destination.id,
+        definition,
+        tx,
+      );
+      retainedIds.push(...visualAssetIds({ prompt: "", visual: draft }));
+    }
   }
   const predicates = [destinationGrant(destination)];
   if (retainedIds.length > 0) {
@@ -269,6 +333,19 @@ async function getVisualAsset(
       .innerJoin(listings, eq(listings.id, constructAssetGrants.listingId))
       .where(and(...predicates, listingOpenTo(owner)));
   }
+  if (
+    asset !== undefined &&
+    destination.kind === "construct" &&
+    !visualAssetIds(asset.parts).includes(assetId)
+  ) {
+    const definition = parseConstructDefinition(asset.parts);
+    if (definition !== undefined) {
+      const visual = await latestDraftVisual(owner, destination.id, definition);
+      if (visualAssetIds({ prompt: "", visual }).includes(assetId)) {
+        return { mediaType: asset.mediaType, data: asset.data };
+      }
+    }
+  }
   if (asset === undefined || !visualAssetIds(asset.parts).includes(assetId)) {
     return undefined;
   }
@@ -279,6 +356,7 @@ export {
   destinationGrant,
   getVisualAsset,
   grantVisualAssets,
+  latestDraftVisual,
   previousVisualAvailable,
   visualAssetIds,
 };

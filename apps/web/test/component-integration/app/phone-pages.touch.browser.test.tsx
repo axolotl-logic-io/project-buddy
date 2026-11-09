@@ -30,7 +30,7 @@ import type {
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
-import type { readGoldBalance } from "@/gold/gold-store.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
   getListing,
   listListings,
@@ -44,7 +44,7 @@ import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readToday } from "@/today/today-store.ts";
+import type { readHomeSummary, readToday } from "@/today/today-store.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -64,13 +64,14 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
+import { GOLD_BALANCE } from "./phone-pages-fixtures.ts";
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open adventure" }],
+    activities: [{ id: "open-chat", name: "Chat" }],
   }),
 }));
 
@@ -109,6 +110,7 @@ vi.mock("@/chats/all-chats.ts", () => ({
 }));
 vi.mock("@/today/today-store.ts", () => ({
   readToday: vi.fn<typeof readToday>(),
+  readHomeSummary: vi.fn<typeof readHomeSummary>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
@@ -313,6 +315,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
   for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }

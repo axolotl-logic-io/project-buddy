@@ -14,6 +14,31 @@ const SET_VALUE = z.string().trim().min(1);
 // The highest valid port.
 const HIGHEST_PORT = 65_535;
 const PORT_NUMBER = z.coerce.number().int().positive().max(HIGHEST_PORT);
+const WORKTREE_DATABASE = /^\/pb_wt_[a-z0-9_]+$/u;
+
+// Local audit spans are off unless explicitly selected. Refuse hosted runs
+// and shared databases, even when somebody copies the opt-in setting there.
+function readServerSpans(): boolean {
+  const mode = readIfSet("PERF_SERVER_SPANS");
+  if (mode === undefined) {
+    return false;
+  }
+  if (mode !== "local") {
+    throw new Error('PERF_SERVER_SPANS must be unset or "local".');
+  }
+  const database = new URL(readDatabaseUrl());
+  if (
+    readIfSet("VERCEL_ENV") !== undefined ||
+    readIfSet("VERCEL") !== undefined ||
+    (database.hostname !== "localhost" && database.hostname !== "127.0.0.1") ||
+    !WORKTREE_DATABASE.test(database.pathname)
+  ) {
+    throw new Error(
+      "Server spans require an isolated local worktree database.",
+    );
+  }
+  return true;
+}
 
 // The variable's trimmed value, or undefined when it is unset or blank.
 function readIfSet(name: string): string | undefined {
@@ -244,10 +269,41 @@ function readEndToEndPort(): number {
   return parsed.data;
 }
 
+// Test-only until pricing, tax and refund policy have been approved. Live
+// keys and production deployments fail closed rather than charging money.
+function readBatteryPayments():
+  | { key: string; webhookSecret: string; catalog: string; origin: string }
+  | undefined {
+  const key = readIfSet("STRIPE_TEST_SECRET_KEY");
+  if (key === undefined) {
+    return undefined;
+  }
+  if (!key.startsWith("sk_test_") || readIfSet("VERCEL_ENV") === "production") {
+    throw new Error(
+      "Battery purchases require Stripe test mode outside production.",
+    );
+  }
+  // Preview and development normally share the production Neon database.
+  // Test money must never create spendable grants there.
+  const databaseHost = new URL(readDatabaseUrl()).hostname;
+  if (databaseHost !== "localhost" && databaseHost !== "127.0.0.1") {
+    throw new Error(
+      "Battery test purchases require an isolated local database.",
+    );
+  }
+  return {
+    key,
+    webhookSecret: readRequired("STRIPE_TEST_WEBHOOK_SECRET"),
+    catalog: readRequired("BATTERY_TEST_CATALOG"),
+    origin: z.url().parse(readRequired("STRIPE_TEST_RETURN_ORIGIN")),
+  };
+}
+
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
+  readBatteryPayments,
   readConstructModel,
   readCronSecretIfSet,
   readDatabaseUrl,
@@ -260,6 +316,7 @@ export {
   readProductionOrigin,
   readPushEndpoints,
   readResendApiKey,
+  readServerSpans,
   readSessionSecret,
   readTestDatabaseUrl,
   readVapidKeysIfSet,

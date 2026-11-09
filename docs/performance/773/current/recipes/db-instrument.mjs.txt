@@ -1,0 +1,14 @@
+// Assessment-only preload: no SQL, arguments, credentials or response bodies are logged.
+import {appendFileSync,readFileSync} from 'node:fs';
+const database = new URL(process.env.DATABASE_URL);
+if(!['localhost','127.0.0.1'].includes(database.hostname)||!database.pathname.startsWith('/pb_wt_'))throw new Error('Only isolated local audit DB allowed');
+const original=globalThis.fetch;
+globalThis.fetch=async function(input,init){
+ const url=new URL(typeof input==='string'?input:input.url??input.href);
+ if(url.hostname!==database.hostname||url.port!==database.port||url.pathname!=='/sql')return original(input,init);
+ const start=Date.now();const delayMs=JSON.parse(readFileSync('/tmp/pb-773-current/db-delay.json','utf8')).delayMs;
+ if(delayMs>0)await new Promise(r=>setTimeout(r,delayMs));
+ const response=await original(input,init);const body=await response.clone().arrayBuffer();
+ appendFileSync('/tmp/pb-773-current/db-spans.jsonl',JSON.stringify({operation:'db.http',start,durationMs:Date.now()-start,delayMs,status:response.status,responseBytes:body.byteLength})+'\n');
+ return response;
+};

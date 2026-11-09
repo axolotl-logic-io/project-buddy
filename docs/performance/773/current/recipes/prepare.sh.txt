@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/bestieboots/.t3/worktrees/project-buddy/issues-773-unattended/apps/web
+npm run test-env:init
+npm run test-db:reset
+cp /tmp/pb-773-current/seed.mts audit-seed.mts
+trap 'rm -f audit-seed.mts' EXIT
+node --env-file=.env.test ../../node_modules/tsx/dist/cli.mjs audit-seed.mts
+rm audit-seed.mts
+node -e 'process.loadEnvFile(".env.test"); const {spawnSync}=require("node:child_process"); process.exit(spawnSync("npm",["run","build"],{env:process.env,stdio:"inherit"}).status ?? 1)'
+node -e 'process.loadEnvFile(".env.test"); const {spawnSync}=require("node:child_process"); process.exit(spawnSync("npm",["run","check:build-fonts"],{env:process.env,stdio:"inherit"}).status ?? 1)'

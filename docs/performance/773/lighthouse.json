@@ -1,0 +1,1370 @@
+[
+  {
+    "version": "12.8.2",
+    "requested": "http://localhost:36447/home",
+    "final": "http://localhost:36447/home",
+    "mode": "navigation",
+    "warnings": [],
+    "settings": {
+      "output": "json",
+      "maxWaitForFcp": 30000,
+      "maxWaitForLoad": 45000,
+      "pauseAfterFcpMs": 1000,
+      "pauseAfterLoadMs": 1000,
+      "networkQuietThresholdMs": 1000,
+      "cpuQuietThresholdMs": 1000,
+      "formFactor": "mobile",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "throttlingMethod": "simulate",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": false
+      },
+      "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+      "auditMode": false,
+      "gatherMode": false,
+      "clearStorageTypes": [
+        "file_systems",
+        "shader_cache",
+        "service_workers",
+        "cache_storage"
+      ],
+      "disableStorageReset": true,
+      "debugNavigation": false,
+      "channel": "node",
+      "usePassiveGathering": false,
+      "disableFullPageScreenshot": false,
+      "skipAboutBlank": false,
+      "blankPage": "about:blank",
+      "ignoreStatusCode": false,
+      "locale": "en-US",
+      "blockedUrlPatterns": null,
+      "additionalTraceCategories": null,
+      "extraHeaders": null,
+      "precomputedLanternData": null,
+      "onlyAudits": null,
+      "onlyCategories": null,
+      "skipAudits": null
+    },
+    "audits": {
+      "is-on-https": {
+        "score": 1
+      },
+      "redirects-http": {
+        "score": null
+      },
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 625.1041514587403,
+        "unit": "millisecond",
+        "display": "0.6 s"
+      },
+      "largest-contentful-paint": {
+        "score": 1,
+        "value": 910.6991514587403,
+        "unit": "millisecond",
+        "display": "0.9 s"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 625.1041514587403,
+        "unit": "millisecond",
+        "display": "0.6 s"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "max-potential-fid": {
+        "score": 1,
+        "value": 46,
+        "unit": "millisecond",
+        "display": "50 ms"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0.02490886998784933,
+        "unit": "unitless",
+        "display": "0.025"
+      },
+      "errors-in-console": {
+        "score": 1
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.632,
+        "unit": "millisecond",
+        "display": "Root document took 0 ms"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 910.6991514587403,
+        "unit": "millisecond",
+        "display": "0.9 s"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1,
+        "display": "1 chain found"
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "image-aspect-ratio": {
+        "score": 1
+      },
+      "image-size-responsive": {
+        "score": 1
+      },
+      "deprecations": {
+        "score": 1
+      },
+      "third-party-cookies": {
+        "score": 1
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 620.8320000000016,
+        "unit": "millisecond",
+        "display": "0.6 s"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 214.07600000000025,
+        "unit": "millisecond",
+        "display": "0.2 s"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.015,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0.595,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 911,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": null
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": 1,
+        "display": "1 layout shift found"
+      },
+      "long-tasks": {
+        "score": null
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "valid-source-maps": {
+        "score": 0
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "csp-xss": {
+        "score": 1
+      },
+      "has-hsts": {
+        "score": 1
+      },
+      "origin-isolation": {
+        "score": 1
+      },
+      "clickjacking-mitigation": {
+        "score": 1
+      },
+      "trusted-types-xss": {
+        "score": 1
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "accesskeys": {
+        "score": null
+      },
+      "aria-allowed-attr": {
+        "score": 1
+      },
+      "aria-allowed-role": {
+        "score": 1
+      },
+      "aria-command-name": {
+        "score": null
+      },
+      "aria-conditional-attr": {
+        "score": 1
+      },
+      "aria-deprecated-role": {
+        "score": 1
+      },
+      "aria-dialog-name": {
+        "score": null
+      },
+      "aria-hidden-body": {
+        "score": 1
+      },
+      "aria-hidden-focus": {
+        "score": 1
+      },
+      "aria-input-field-name": {
+        "score": null
+      },
+      "aria-meter-name": {
+        "score": null
+      },
+      "aria-progressbar-name": {
+        "score": null
+      },
+      "aria-prohibited-attr": {
+        "score": 1
+      },
+      "aria-required-attr": {
+        "score": 1
+      },
+      "aria-required-children": {
+        "score": null
+      },
+      "aria-required-parent": {
+        "score": null
+      },
+      "aria-roles": {
+        "score": 1
+      },
+      "aria-text": {
+        "score": null
+      },
+      "aria-toggle-field-name": {
+        "score": null
+      },
+      "aria-tooltip-name": {
+        "score": null
+      },
+      "aria-treeitem-name": {
+        "score": null
+      },
+      "aria-valid-attr-value": {
+        "score": 1
+      },
+      "aria-valid-attr": {
+        "score": 1
+      },
+      "button-name": {
+        "score": 1
+      },
+      "bypass": {
+        "score": null
+      },
+      "color-contrast": {
+        "score": 1
+      },
+      "definition-list": {
+        "score": null
+      },
+      "dlitem": {
+        "score": null
+      },
+      "document-title": {
+        "score": 1
+      },
+      "duplicate-id-aria": {
+        "score": null
+      },
+      "empty-heading": {
+        "score": null
+      },
+      "form-field-multiple-labels": {
+        "score": null
+      },
+      "frame-title": {
+        "score": null
+      },
+      "heading-order": {
+        "score": 1
+      },
+      "html-has-lang": {
+        "score": 1
+      },
+      "html-lang-valid": {
+        "score": 1
+      },
+      "html-xml-lang-mismatch": {
+        "score": null
+      },
+      "identical-links-same-purpose": {
+        "score": null
+      },
+      "image-alt": {
+        "score": null
+      },
+      "image-redundant-alt": {
+        "score": null
+      },
+      "input-button-name": {
+        "score": null
+      },
+      "input-image-alt": {
+        "score": null
+      },
+      "label-content-name-mismatch": {
+        "score": 1
+      },
+      "label": {
+        "score": null
+      },
+      "landmark-one-main": {
+        "score": null
+      },
+      "link-name": {
+        "score": 1
+      },
+      "link-in-text-block": {
+        "score": 1
+      },
+      "list": {
+        "score": 1
+      },
+      "listitem": {
+        "score": 1
+      },
+      "meta-refresh": {
+        "score": null
+      },
+      "meta-viewport": {
+        "score": 1
+      },
+      "object-alt": {
+        "score": null
+      },
+      "select-name": {
+        "score": null
+      },
+      "skip-link": {
+        "score": null
+      },
+      "tabindex": {
+        "score": null
+      },
+      "table-duplicate-name": {
+        "score": null
+      },
+      "table-fake-caption": {
+        "score": null
+      },
+      "target-size": {
+        "score": 1
+      },
+      "td-has-header": {
+        "score": null
+      },
+      "td-headers-attr": {
+        "score": null
+      },
+      "th-has-data-cells": {
+        "score": null
+      },
+      "valid-lang": {
+        "score": null
+      },
+      "video-caption": {
+        "score": null
+      },
+      "custom-controls-labels": {
+        "score": null
+      },
+      "custom-controls-roles": {
+        "score": null
+      },
+      "focus-traps": {
+        "score": null
+      },
+      "focusable-controls": {
+        "score": null
+      },
+      "interactive-element-affordance": {
+        "score": null
+      },
+      "logical-tab-order": {
+        "score": null
+      },
+      "managed-focus": {
+        "score": null
+      },
+      "offscreen-content-hidden": {
+        "score": null
+      },
+      "use-landmarks": {
+        "score": null
+      },
+      "visual-order-follows-dom": {
+        "score": null
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte",
+        "display": "0 resources found"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 74054,
+        "unit": "byte",
+        "display": "Total size was 72 KiB"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "doctype": {
+        "score": 1
+      },
+      "charset": {
+        "score": 1
+      },
+      "dom-size": {
+        "score": 1,
+        "value": 152,
+        "unit": "element",
+        "display": "152 elements"
+      },
+      "geolocation-on-start": {
+        "score": 1
+      },
+      "inspector-issues": {
+        "score": 1
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "js-libraries": {
+        "score": null
+      },
+      "notification-on-start": {
+        "score": 1
+      },
+      "paste-preventing-inputs": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "meta-description": {
+        "score": 1
+      },
+      "http-status-code": {
+        "score": 1
+      },
+      "font-size": {
+        "score": 1,
+        "display": "100% legible text"
+      },
+      "link-text": {
+        "score": 1
+      },
+      "crawlable-anchors": {
+        "score": 1
+      },
+      "is-crawlable": {
+        "score": 1
+      },
+      "robots-txt": {
+        "score": null
+      },
+      "hreflang": {
+        "score": 1
+      },
+      "canonical": {
+        "score": null
+      },
+      "structured-data": {
+        "score": null
+      },
+      "bf-cache": {
+        "score": 0,
+        "display": "2 failure reasons"
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5,
+        "display": "Est savings of 14 KiB"
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "version": "12.8.2",
+    "requested": "http://localhost:36447/chats/:id",
+    "final": "http://localhost:36447/chats/:id",
+    "mode": "navigation",
+    "warnings": [],
+    "settings": {
+      "output": "json",
+      "maxWaitForFcp": 30000,
+      "maxWaitForLoad": 45000,
+      "pauseAfterFcpMs": 1000,
+      "pauseAfterLoadMs": 1000,
+      "networkQuietThresholdMs": 1000,
+      "cpuQuietThresholdMs": 1000,
+      "formFactor": "mobile",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "throttlingMethod": "simulate",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": false
+      },
+      "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+      "auditMode": false,
+      "gatherMode": false,
+      "clearStorageTypes": [
+        "file_systems",
+        "shader_cache",
+        "service_workers",
+        "cache_storage"
+      ],
+      "disableStorageReset": true,
+      "debugNavigation": false,
+      "channel": "node",
+      "usePassiveGathering": false,
+      "disableFullPageScreenshot": false,
+      "skipAboutBlank": false,
+      "blankPage": "about:blank",
+      "ignoreStatusCode": false,
+      "locale": "en-US",
+      "blockedUrlPatterns": null,
+      "additionalTraceCategories": null,
+      "extraHeaders": null,
+      "precomputedLanternData": null,
+      "onlyAudits": null,
+      "onlyCategories": null,
+      "skipAudits": null
+    },
+    "audits": {
+      "is-on-https": {
+        "score": 1
+      },
+      "redirects-http": {
+        "score": null
+      },
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 760.2437014587402,
+        "unit": "millisecond",
+        "display": "0.8 s"
+      },
+      "largest-contentful-paint": {
+        "score": 0.99,
+        "value": 1652.2036500000004,
+        "unit": "millisecond",
+        "display": "1.7 s"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 1194.1719411074523,
+        "unit": "millisecond",
+        "display": "1.2 s"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 0.63,
+        "value": 447.9908485412601,
+        "unit": "millisecond",
+        "display": "450 ms"
+      },
+      "max-potential-fid": {
+        "score": 0.39,
+        "value": 285.0000000000001,
+        "unit": "millisecond",
+        "display": "290 ms"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless",
+        "display": "0"
+      },
+      "errors-in-console": {
+        "score": 1
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.1769999999999996,
+        "unit": "millisecond",
+        "display": "Root document took 0 ms"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 1756.4456450000005,
+        "unit": "millisecond",
+        "display": "1.8 s"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1,
+        "display": "1 chain found"
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "image-aspect-ratio": {
+        "score": 1
+      },
+      "image-size-responsive": {
+        "score": 1
+      },
+      "deprecations": {
+        "score": 1
+      },
+      "third-party-cookies": {
+        "score": 1
+      },
+      "mainthread-work-breakdown": {
+        "score": 0,
+        "value": 6327.783999999506,
+        "unit": "millisecond",
+        "display": "6.3 s"
+      },
+      "bootup-time": {
+        "score": 0,
+        "value": 5349.5199999998795,
+        "unit": "millisecond",
+        "display": "5.3 s"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.012450000000000001,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0.73455,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 1756,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": 1,
+        "display": "1,650 ms"
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1,
+        "display": "10 long tasks found"
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "valid-source-maps": {
+        "score": 0
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "csp-xss": {
+        "score": 1
+      },
+      "has-hsts": {
+        "score": 1
+      },
+      "origin-isolation": {
+        "score": 1
+      },
+      "clickjacking-mitigation": {
+        "score": 1
+      },
+      "trusted-types-xss": {
+        "score": 1
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "accesskeys": {
+        "score": null
+      },
+      "aria-allowed-attr": {
+        "score": 1
+      },
+      "aria-allowed-role": {
+        "score": 1
+      },
+      "aria-command-name": {
+        "score": null
+      },
+      "aria-conditional-attr": {
+        "score": 1
+      },
+      "aria-deprecated-role": {
+        "score": 1
+      },
+      "aria-dialog-name": {
+        "score": null
+      },
+      "aria-hidden-body": {
+        "score": 1
+      },
+      "aria-hidden-focus": {
+        "score": 1
+      },
+      "aria-input-field-name": {
+        "score": null
+      },
+      "aria-meter-name": {
+        "score": null
+      },
+      "aria-progressbar-name": {
+        "score": null
+      },
+      "aria-prohibited-attr": {
+        "score": 1
+      },
+      "aria-required-attr": {
+        "score": 1
+      },
+      "aria-required-children": {
+        "score": null
+      },
+      "aria-required-parent": {
+        "score": null
+      },
+      "aria-roles": {
+        "score": 1
+      },
+      "aria-text": {
+        "score": null
+      },
+      "aria-toggle-field-name": {
+        "score": null
+      },
+      "aria-tooltip-name": {
+        "score": null
+      },
+      "aria-treeitem-name": {
+        "score": null
+      },
+      "aria-valid-attr-value": {
+        "score": 1
+      },
+      "aria-valid-attr": {
+        "score": 1
+      },
+      "button-name": {
+        "score": 1
+      },
+      "bypass": {
+        "score": null
+      },
+      "color-contrast": {
+        "score": 1
+      },
+      "definition-list": {
+        "score": null
+      },
+      "dlitem": {
+        "score": null
+      },
+      "document-title": {
+        "score": 1
+      },
+      "duplicate-id-aria": {
+        "score": null
+      },
+      "empty-heading": {
+        "score": null
+      },
+      "form-field-multiple-labels": {
+        "score": null
+      },
+      "frame-title": {
+        "score": null
+      },
+      "heading-order": {
+        "score": 1
+      },
+      "html-has-lang": {
+        "score": 1
+      },
+      "html-lang-valid": {
+        "score": 1
+      },
+      "html-xml-lang-mismatch": {
+        "score": null
+      },
+      "identical-links-same-purpose": {
+        "score": null
+      },
+      "image-alt": {
+        "score": null
+      },
+      "image-redundant-alt": {
+        "score": null
+      },
+      "input-button-name": {
+        "score": null
+      },
+      "input-image-alt": {
+        "score": null
+      },
+      "label-content-name-mismatch": {
+        "score": 1
+      },
+      "label": {
+        "score": 1
+      },
+      "landmark-one-main": {
+        "score": null
+      },
+      "link-name": {
+        "score": 1
+      },
+      "link-in-text-block": {
+        "score": null
+      },
+      "list": {
+        "score": 1
+      },
+      "listitem": {
+        "score": 1
+      },
+      "meta-refresh": {
+        "score": null
+      },
+      "meta-viewport": {
+        "score": 1
+      },
+      "object-alt": {
+        "score": null
+      },
+      "select-name": {
+        "score": null
+      },
+      "skip-link": {
+        "score": null
+      },
+      "tabindex": {
+        "score": null
+      },
+      "table-duplicate-name": {
+        "score": null
+      },
+      "table-fake-caption": {
+        "score": null
+      },
+      "target-size": {
+        "score": 1
+      },
+      "td-has-header": {
+        "score": null
+      },
+      "td-headers-attr": {
+        "score": null
+      },
+      "th-has-data-cells": {
+        "score": null
+      },
+      "valid-lang": {
+        "score": null
+      },
+      "video-caption": {
+        "score": null
+      },
+      "custom-controls-labels": {
+        "score": null
+      },
+      "custom-controls-roles": {
+        "score": null
+      },
+      "focus-traps": {
+        "score": null
+      },
+      "focusable-controls": {
+        "score": null
+      },
+      "interactive-element-affordance": {
+        "score": null
+      },
+      "logical-tab-order": {
+        "score": null
+      },
+      "managed-focus": {
+        "score": null
+      },
+      "offscreen-content-hidden": {
+        "score": null
+      },
+      "use-landmarks": {
+        "score": null
+      },
+      "visual-order-follows-dom": {
+        "score": null
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte",
+        "display": "0 resources found"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 73416,
+        "unit": "byte",
+        "display": "Total size was 72 KiB"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "doctype": {
+        "score": 1
+      },
+      "charset": {
+        "score": 1
+      },
+      "dom-size": {
+        "score": 0.5,
+        "value": 1825,
+        "unit": "element",
+        "display": "1,825 elements"
+      },
+      "geolocation-on-start": {
+        "score": 1
+      },
+      "inspector-issues": {
+        "score": 1
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "js-libraries": {
+        "score": null
+      },
+      "notification-on-start": {
+        "score": 1
+      },
+      "paste-preventing-inputs": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "meta-description": {
+        "score": 1
+      },
+      "http-status-code": {
+        "score": 1
+      },
+      "font-size": {
+        "score": 1,
+        "display": "100% legible text"
+      },
+      "link-text": {
+        "score": 1
+      },
+      "crawlable-anchors": {
+        "score": 1
+      },
+      "is-crawlable": {
+        "score": 1
+      },
+      "robots-txt": {
+        "score": null
+      },
+      "hreflang": {
+        "score": 1
+      },
+      "canonical": {
+        "score": null
+      },
+      "structured-data": {
+        "score": null
+      },
+      "bf-cache": {
+        "score": 0,
+        "display": "2 failure reasons"
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 0.5,
+        "display": "Est savings of 14 KiB"
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5,
+        "display": "Est savings of 14 KiB"
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  }
+]

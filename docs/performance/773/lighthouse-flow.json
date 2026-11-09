@@ -1,0 +1,307 @@
+[
+  {
+    "name": "Timespan report (localhost/projects)",
+    "source": "/home",
+    "destination": "/projects",
+    "authenticated": true,
+    "version": "12.8.2",
+    "final": "http://localhost:36447/projects",
+    "mode": "timespan",
+    "warnings": [],
+    "settings": {
+      "output": "json",
+      "maxWaitForFcp": 30000,
+      "maxWaitForLoad": 45000,
+      "pauseAfterFcpMs": 5250,
+      "pauseAfterLoadMs": 5250,
+      "networkQuietThresholdMs": 5250,
+      "cpuQuietThresholdMs": 5250,
+      "formFactor": "mobile",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "throttlingMethod": "devtools",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": false
+      },
+      "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+      "auditMode": false,
+      "gatherMode": false,
+      "clearStorageTypes": [
+        "file_systems",
+        "shader_cache",
+        "service_workers",
+        "cache_storage"
+      ],
+      "disableStorageReset": false,
+      "debugNavigation": false,
+      "channel": "node",
+      "usePassiveGathering": true,
+      "disableFullPageScreenshot": false,
+      "skipAboutBlank": false,
+      "blankPage": "about:blank",
+      "ignoreStatusCode": false,
+      "locale": "en-US",
+      "blockedUrlPatterns": null,
+      "additionalTraceCategories": null,
+      "extraHeaders": null,
+      "precomputedLanternData": null,
+      "onlyAudits": null,
+      "onlyCategories": null,
+      "skipAudits": null
+    },
+    "audits": {
+      "is-on-https": {
+        "score": 1
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0.02490886998784933,
+        "unit": "unitless",
+        "display": "0.025"
+      },
+      "interaction-to-next-paint": {
+        "score": 1,
+        "value": 31.106,
+        "unit": "millisecond",
+        "display": "30 ms"
+      },
+      "errors-in-console": {
+        "score": 1
+      },
+      "user-timings": {
+        "score": null
+      },
+      "image-aspect-ratio": {
+        "score": 1
+      },
+      "image-size-responsive": {
+        "score": 1
+      },
+      "deprecations": {
+        "score": 1
+      },
+      "third-party-cookies": {
+        "score": 1
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 809.1369999999862,
+        "unit": "millisecond",
+        "display": "0.8 s"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 623.8579999999879,
+        "unit": "millisecond",
+        "display": "0.6 s"
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.04575,
+        "unit": "millisecond",
+        "display": "0 ms"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 574.6622500000001,
+        "unit": "millisecond",
+        "display": "570 ms"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": 1,
+        "display": "1 layout shift found"
+      },
+      "long-tasks": {
+        "score": null
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "valid-source-maps": {
+        "score": 1
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte",
+        "display": "0 resources found"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 28995,
+        "unit": "byte",
+        "display": "Total size was 28 KiB"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "unused-javascript": {
+        "score": 0.5,
+        "value": 100,
+        "unit": "millisecond",
+        "display": "Est savings of 20 KiB"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "legacy-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond",
+        "display": ""
+      },
+      "inspector-issues": {
+        "score": 1
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "work-during-interaction": {
+        "score": 1,
+        "display": "30 ms spent on event 'pointerdown'"
+      },
+      "bf-cache": {
+        "score": 1
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": null
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 1
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 1
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  }
+]

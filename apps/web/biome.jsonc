@@ -10,6 +10,47 @@
     "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
   },
   "overrides": [
+    // Server audit attribution needs Node's async context across parallel
+    // database work. This is the only platform boundary for that context.
+    {
+      "includes": ["src/performance/query-counter.ts"],
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
+    },
+    // The deterministic Stripe gateway runs one loopback HTTP server per file.
+    {
+      "includes": [
+        "test/component-integration/batteries/checkout.server.test.ts"
+      ],
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
+    },
+
+    // Stripe's wire fields are snake_case. Keep the documented names at
+    // the provider boundary and in its payment fixtures.
+    {
+      "includes": [
+        "src/batteries/purchases.ts",
+        "test/component-integration/batteries/purchases.server.test.ts",
+        "test/component-integration/batteries/checkout.server.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "has_more|unit_amount|adaptive_pricing|automatic_tax|payment_status|amount_total|client_reference_id|payment_intent|allowed_payment_method_types|line_items|success_url|cancel_url|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
     // The overrides below are the only exceptions to the policy. Each covers a
     // pattern that the framework or tool documents as the way to use it, and
     // names the exact files that need it.
@@ -360,11 +401,12 @@
     // node:fs/promises and node:path. Only src/email/send-email.ts imports
     // the first.
     {
-      // The visual reference loader reads only its allowlisted committed artwork.
+      // The visual reference loader and derivative tests read committed artwork.
       "includes": [
         "src/email/outbox.ts",
         "test/support/email/outbox-files.ts",
-        "src/constructs/visual-reference.ts"
+        "src/constructs/visual-reference.ts",
+        "test/component-integration/constructs/visual-delivery.test.ts"
       ],
       "linter": {
         "rules": {

@@ -29,6 +29,8 @@ import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
+import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
+import LibraryPage from "@/app/(workspace)/library/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
 import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
 import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
@@ -86,10 +88,10 @@ import {
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
-import { readToday } from "@/today/today-store.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
+import { readHomeSummary, readToday } from "@/today/today-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { LIBRARY_COPY } from "@/ui/copy/library.ts";
+import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -298,16 +300,14 @@ function projectsPageOf(
       vi.mocked(listConstructs).mockResolvedValue([...ownConstructs]);
       vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
     },
-    async () => (
-      <ProjectListLayout params={NO_PARAMS}>
-        {
-          await ProjectsPage({
-            params: Promise.resolve({}),
-            searchParams: Promise.resolve({}),
-          })
-        }
-      </ProjectListLayout>
-    ),
+    async () =>
+      ProjectListLayout({
+        params: NO_PARAMS,
+        children: await ProjectsPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+      }),
   );
 }
 
@@ -430,6 +430,24 @@ function workshopPage(
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
+    name: "Library",
+    render: workspacePage(
+      () => {
+        /* Reading needs no store fixtures. */
+      },
+      () => LibraryPage(),
+    ),
+  },
+  ...LIBRARY_COPY.books.map((book) => ({
+    name: `Library: ${book.title}`,
+    render: workspacePage(
+      () => {
+        /* Reading needs no store fixtures. */
+      },
+      () => BookPage({ params: Promise.resolve({ book: book.id }) }),
+    ),
+  })),
+  {
     name: "Retirement",
     render: workspacePage(
       () => {
@@ -532,7 +550,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project invitation's page", render: projectInvitationPage },
   {
-    name: "the projects list's New project dialog",
+    name: "the projects list's Start Quest dialog",
     render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
@@ -541,7 +559,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+          .getByRole("textbox", { name: PROJECTS_COPY.whyLabel })
           .element(),
       );
     },
@@ -632,7 +650,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the atlas before the first quest",
     render: workspacePage(
       () => {
-        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+        vi.mocked(readHomeSummary).mockResolvedValue({
+          latestQuest: undefined,
+          firstVisit: true,
+        });
       },
       () => HomePage(),
     ),
@@ -641,15 +662,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the atlas with a long quest and next step",
     render: workspacePage(
       () => {
-        vi.mocked(readToday).mockResolvedValue({
-          projects: [
-            {
-              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
-              nextStep: LONG_PROJECT_NAME,
-              latestChat: FOX_CHAT.id,
-            },
-          ],
-          chats: [],
+        vi.mocked(readHomeSummary).mockResolvedValue({
+          latestQuest: {
+            project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+            nextStep: LONG_PROJECT_NAME,
+            latestChat: FOX_CHAT.id,
+          },
+          firstVisit: false,
         });
       },
       () => HomePage(),
@@ -717,6 +736,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
+        vi.mocked(listProjects).mockResolvedValue([]);
+        vi.mocked(listOwnActivities).mockResolvedValue([]);
       },
       () =>
         ConstructsPage({
@@ -749,7 +770,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
-          name: ACTIVITIES_COPY.startLabel("Brainstorming"),
+          name: "Brainstorm",
           exact: true,
         })
         .click();
@@ -795,6 +816,15 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the Workshop's Activities tab", render: workshopPage("activity") },
   { name: "the Workshop's Spells tab", render: workshopPage("spell") },
   {
+    name: "the Workshop test drawer",
+    render: workspacePage(noData, () => spellPage("ask-one-question")),
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", { name: "Try your draft", exact: true })
+        .click();
+    },
+  },
+  {
     name: "a built-in spell's page",
     render: workspacePage(noData, () => spellPage("ask-one-question")),
   },
@@ -838,7 +868,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }),
   },
   {
-    name: "a listing's page, refused for too little gold",
+    name: "a listing's page, refused for too few orbs",
     render: listingPage(CONSTRUCT_LISTING_TO_BUY),
     open: async (): Promise<void> => {
       vi.mocked(buyListingAction).mockResolvedValue({
@@ -847,7 +877,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
           CONSTRUCT_LISTING.price,
           SHORT_GOLD,
         ),
-        earnGold: true,
+        earnGold: false,
       });
       await page
         .getByRole("button", {
@@ -855,7 +885,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
         })
         .click();
       await vi.waitFor(() =>
-        page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }).element(),
+        page
+          .getByText(
+            LISTING_COPY.tooLittleGold(CONSTRUCT_LISTING.price, SHORT_GOLD),
+          )
+          .element(),
       );
     },
   },
@@ -904,6 +938,25 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }, chatPage),
   },
 ];
+
+const PHONE_ORB_BALANCE = 100;
+vi.mock("@/orbs/orb-store.ts", () => ({
+  readOrbsBalance: vi.fn(() => Promise.resolve(PHONE_ORB_BALANCE)),
+}));
+vi.mock("@/marketplace/cutover.ts", () => ({
+  orbPurchasesEnabled: vi.fn(() => Promise.resolve(true)),
+}));
+
+vi.mock("@/batteries/catalog.ts", () => ({
+  availableBatteryCatalog: () => [],
+}));
+vi.mock("@/batteries/purchases.ts", () => ({
+  readBatteryPurchases: async () => [],
+}));
+vi.mock("@/app/(workspace)/account/battery-actions.ts", () => ({
+  buyBatteries: vi.fn(),
+  refreshBatteryPayments: vi.fn(),
+}));
 
 export type { PhonePage };
 export { PHONE_PAGES };
