@@ -15,10 +15,14 @@ const LANGUAGE_NAMES = new Set(
   bundledLanguagesInfo.flatMap(({ id, aliases = [] }) => [id, ...aliases]),
 );
 let engine: Promise<CodeHighlighterPlugin> | undefined;
+let readyEngine: CodeHighlighterPlugin | undefined;
 
 function loadEngine(): Promise<CodeHighlighterPlugin> {
   engine ??= import("@/components/code-highlighting-engine.ts").then(
-    ({ CODE_ENGINE }) => CODE_ENGINE,
+    ({ CODE_ENGINE }) => {
+      readyEngine = CODE_ENGINE;
+      return CODE_ENGINE;
+    },
   );
   return engine;
 }
@@ -33,7 +37,10 @@ function keepPlainCode(): void {
 function highlight(
   options: HighlightOptions,
   callback?: (result: HighlightResult) => void,
-): null {
+): HighlightResult | null {
+  if (readyEngine !== undefined) {
+    return readyEngine.highlight(options, callback);
+  }
   loadEngine()
     .then((loaded) => {
       const result = loaded.highlight(options, callback);
@@ -48,7 +55,7 @@ function highlight(
 const CODE_HIGHLIGHTER: CodeHighlighterPlugin = {
   name: "shiki",
   type: "code-highlighter",
-  getSupportedLanguages: () => LANGUAGES,
+  getSupportedLanguages: () => [...LANGUAGES],
   getThemes: () => [CODE_TOKEN_COLORS, CODE_TOKEN_COLORS],
   supportsLanguage: (language: HighlightOptions["language"]) =>
     LANGUAGE_NAMES.has(language.trim().toLowerCase()),
