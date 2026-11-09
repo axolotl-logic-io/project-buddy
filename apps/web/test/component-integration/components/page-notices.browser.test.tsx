@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
@@ -22,9 +22,12 @@ const REQUIRED = "Enter a name.";
 
 for (const mode of ["light", "dark"]) {
   describe(`page notices in ${mode} mode`, () => {
-    test("retirement feedback has a visible boundary and space at 320 px", async () => {
+    beforeEach(async () => {
       applyTheme("parchment", mode);
       await setViewport(NARROWEST_VIEWPORT);
+    });
+
+    test("retirement feedback has a visible boundary and space at 320 px", async () => {
       await render(<RetirementFeedback completed={true} />);
       const result = page.getByRole("status");
       await expect.element(result).toHaveTextContent(RETIREMENT_COPY.retired);
@@ -41,8 +44,6 @@ for (const mode of ["light", "dark"]) {
     });
 
     test("static warning keeps its link readable and keyboard reachable", async () => {
-      applyTheme("parchment", mode);
-      await setViewport(NARROWEST_VIEWPORT);
       await render(
         <Notice>
           {WARNING}
@@ -63,36 +64,38 @@ for (const mode of ["light", "dark"]) {
         NARROWEST_VIEWPORT.width,
       );
     });
+
+    test("routine feedback keeps its live region mounted without an empty box", async () => {
+      const view = await render(<FormStatus />);
+      const element = page.getByRole("status").element();
+      expect(Number.parseFloat(getComputedStyle(element).paddingTop)).toBe(0);
+      await view.rerender(<FormStatus>{SAVED}</FormStatus>);
+      await expect
+        .element(page.getByRole("status"))
+        .toHaveTextContent("Saved.");
+      expect(page.getByRole("status").element()).toBe(element);
+      expect(
+        Number.parseFloat(getComputedStyle(element).paddingTop),
+      ).toBeGreaterThan(0);
+    });
+
+    test("page errors stand apart while field errors stay beside the field", async () => {
+      await render(
+        <>
+          <Alert>{FAILED}</Alert>
+          <TextField label={NAME} error={REQUIRED} />
+        </>,
+      );
+      const errors = page.getByRole("alert");
+      await expect.element(errors.first()).toHaveTextContent(FAILED);
+      expect(
+        Number.parseFloat(
+          getComputedStyle(errors.first().element()).borderTopWidth,
+        ),
+      ).toBeGreaterThan(0);
+      expect(
+        Number.parseFloat(getComputedStyle(errors.last().element()).paddingTop),
+      ).toBe(0);
+    });
   });
 }
-
-test("routine feedback keeps its live region mounted without an empty box", async () => {
-  const view = await render(<FormStatus />);
-  const element = page.getByRole("status").element();
-  expect(Number.parseFloat(getComputedStyle(element).paddingTop)).toBe(0);
-  await view.rerender(<FormStatus>{SAVED}</FormStatus>);
-  await expect.element(page.getByRole("status")).toHaveTextContent("Saved.");
-  expect(page.getByRole("status").element()).toBe(element);
-  await expect
-    .poll(() => Number.parseFloat(getComputedStyle(element).paddingTop))
-    .toBeGreaterThan(0);
-});
-
-test("page errors stand apart while field errors stay beside the field", async () => {
-  await render(
-    <>
-      <Alert>{FAILED}</Alert>
-      <TextField label={NAME} error={REQUIRED} />
-    </>,
-  );
-  const errors = page.getByRole("alert");
-  await expect.element(errors.first()).toHaveTextContent(FAILED);
-  expect(
-    Number.parseFloat(
-      getComputedStyle(errors.first().element()).borderTopWidth,
-    ),
-  ).toBeGreaterThan(0);
-  expect(
-    Number.parseFloat(getComputedStyle(errors.last().element()).paddingTop),
-  ).toBe(0);
-});

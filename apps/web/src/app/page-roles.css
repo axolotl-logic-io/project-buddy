@@ -196,17 +196,6 @@
     @apply font-medium text-danger text-sm;
   }
 
-  /* The box that sets such a message apart from what surrounds it, such as
-     a failed reply in the chat. */
-  .error-box {
-    @apply rounded-box border border-danger bg-surface px-4 py-3;
-  }
-
-  /* A message saying what a form did, such as "Saved.". */
-  .status-text {
-    @apply text-muted text-sm;
-  }
-
   /* Shared page feedback and static state. Words carry purpose and severity;
      an opaque surface, outline and spacing group it without colour alone. */
   .notice {
@@ -215,7 +204,7 @@
   }
 
   .notice.error-text {
-    @apply text-danger;
+    @apply border-danger text-danger;
   }
 
   .notice:empty {
