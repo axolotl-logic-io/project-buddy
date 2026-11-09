@@ -56,12 +56,12 @@ const WORKSHOP_COPY = {
   longTest: "This test is full. Choose New test to continue.",
 } as const;
 
-// The Workshop's own page: one tab for each kind, where the user writes one
-// from scratch, customizes a built-in one, or tweaks or clones their own.
+// The Workshop's own page: one tab for each kind, where the user crafts one,
+// customizes a built-in one, or tweaks or clones their own.
 const WORKSHOP_PAGE_COPY = {
   homeLink: "Home",
   intro:
-    "Write a construct, activity or spell from scratch, customize a built-in one, or tweak or clone one of your own.",
+    "Craft a construct, activity or spell, customize a built-in one, or tweak or clone one of your own.",
   loading: "Loading the Workshop…",
   kindsLabel: "What to shape",
   kinds: {

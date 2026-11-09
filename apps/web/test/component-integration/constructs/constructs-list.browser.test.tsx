@@ -28,7 +28,7 @@ vi.mock(
 vi.mock("@/constructs/construct-store.ts", () => ({
   listConstructs: vi.fn<typeof listConstructs>(),
 }));
-// Listing exposes these actions; only New construct is submitted, from the
+// Listing exposes these actions; only Craft construct is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   cloneConstructAction: vi.fn(),
@@ -176,7 +176,7 @@ test("use_case_view_constructs", async () => {
     .element(own.getByText(CONSTRUCTS_COPY.noOwn))
     .not.toBeInTheDocument();
   await expect
-    .element(own.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
+    .element(own.getByRole("button", { name: "Craft construct" }))
     .toBeEnabled();
 
   vi.mocked(listConstructs).mockResolvedValue([]);
@@ -190,7 +190,7 @@ test("use_case_view_constructs", async () => {
   );
   await expect.element(own.getByText(CONSTRUCTS_COPY.noOwn)).toBeVisible();
   await expect
-    .element(own.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
+    .element(own.getByRole("button", { name: "Craft construct" }))
     .toBeEnabled();
   expect(own.getByRole("listitem").elements()).toEqual([]);
   expect(builtIn.getByRole("listitem").elements()).toHaveLength(
@@ -198,7 +198,7 @@ test("use_case_view_constructs", async () => {
   );
 });
 
-test("New construct is the next control after the built-in constructs, and Enter writes one", async () => {
+test("Craft construct is the next control after the built-in constructs, and Enter crafts one", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
@@ -223,7 +223,7 @@ test("New construct is the next control after the built-in constructs, and Enter
     .focus();
   await tabForward();
   await expect
-    .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
+    .element(page.getByRole("button", { name: "Craft construct" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
@@ -289,7 +289,7 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
   },
 );
 
-test("writing a new construct is distinct from starting with an own construct named New construct", async () => {
+test("crafting a construct is distinct from starting with an own construct named New construct", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([
     { ...VELLUM_CLONE, name: "New construct" },
@@ -307,13 +307,13 @@ test("writing a new construct is distinct from starting with an own construct na
     name: CONSTRUCTS_COPY.startLabel("New construct"),
     exact: true,
   });
-  const write = own.getByRole("button", {
-    name: CONSTRUCTS_COPY.newConstruct,
+  const craft = own.getByRole("button", {
+    name: "Craft construct",
     exact: true,
   });
   await expect.element(start).toBeVisible();
-  await expect.element(write).toBeVisible();
+  await expect.element(craft).toBeVisible();
   expect(start.element().getAttribute("aria-haspopup")).toBe("dialog");
-  expect(write.element()).toHaveAttribute("type", "submit");
-  expect(write.element().textContent).not.toBe(start.element().textContent);
+  expect(craft.element()).toHaveAttribute("type", "submit");
+  expect(craft.element().textContent).not.toBe(start.element().textContent);
 });
