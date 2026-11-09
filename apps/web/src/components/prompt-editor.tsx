@@ -3,6 +3,7 @@
 import {
   type ChangeEvent,
   type JSX,
+  type MouseEvent,
   type SubmitEvent,
   useCallback,
   useContext,
@@ -136,7 +137,28 @@ function PromptEditor({
   readonly heading: string;
 }): JSX.Element {
   const saveHintId = useId();
+  const sectionsId = useId();
+  const [selectedField, setSelectedField] = useState(texts[0]?.name ?? "");
+  const [focusField, setFocusField] = useState<string | undefined>(undefined);
+  const formRef = useRef<HTMLFormElement>(null);
   const reportDraft = useContext(PromptDraftContext);
+  const focused = reportDraft !== undefined;
+  const selectField = useCallback(
+    (event: MouseEvent<HTMLButtonElement>): void => {
+      setSelectedField(event.currentTarget.value);
+    },
+    [],
+  );
+  useEffect(() => {
+    if (focusField === undefined) {
+      return;
+    }
+    const field = formRef.current?.elements.namedItem(focusField);
+    if (field instanceof HTMLElement) {
+      field.focus();
+    }
+    setFocusField(undefined);
+  }, [focusField]);
   const draftKey = `prompt:${viewer}:${storedPromptKind(kind)}:${promptId}`;
   const [saved] = useState<PromptDraft>(() => ({
     name,
@@ -155,7 +177,6 @@ function PromptEditor({
     Readonly<Record<string, string>>
   >({});
   const nameRef = useRef<HTMLInputElement>(null);
-  const resetTextRef = useRef<HTMLTextAreaElement>(null);
 
   // Shows next, and keeps it in this browser unless it is the saved prompt.
   const change = useCallback(
@@ -228,6 +249,8 @@ function PromptEditor({
       beforeReset: recovery,
     });
     setNotice("reset");
+    setSelectedField(RESET_TEXT);
+    setFocusField(RESET_TEXT);
   }, [change, draft, defaultPrompt, beforeReset, draftKey, savedAt]);
   const undoReset = useCallback((): void => {
     if (beforeReset === undefined) {
@@ -241,7 +264,8 @@ function PromptEditor({
     });
     setBeforeReset(undefined);
     setNotice("none");
-    resetTextRef.current?.focus();
+    setSelectedField(RESET_TEXT);
+    setFocusField(RESET_TEXT);
   }, [beforeReset, change, draft, draftKey, savedAt]);
   const discard = useCallback((): void => {
     change(saved);
@@ -269,12 +293,9 @@ function PromptEditor({
         if (invalidName) {
           nameRef.current?.focus();
         } else {
-          const field = event.currentTarget.elements.namedItem(
-            Object.keys(errors)[0] ?? "",
-          );
-          if (field instanceof HTMLTextAreaElement) {
-            field.focus();
-          }
+          const firstError = Object.keys(errors)[0] ?? "";
+          setSelectedField(firstError);
+          setFocusField(firstError);
         }
       }
     },
@@ -296,13 +317,15 @@ function PromptEditor({
       action={action}
       id={formId}
       aria-busy={saving}
-      className="flex flex-col gap-4"
+      className="prompt-editor"
+      data-focus={focused}
+      ref={formRef}
       noValidate={true}
       onSubmit={submit}
       onSubmitCapture={onSubmitCapture}
     >
       <input name={idName} type="hidden" value={promptId} />
-      <div className="panel">
+      <div className="panel prompt-editor-name">
         <TextField
           error={nameError}
           hint={nameHint}
@@ -315,60 +338,90 @@ function PromptEditor({
           value={draft.name}
         />
       </div>
-      <h2 className="section-heading">{heading}</h2>
+      <h2 className="section-heading prompt-editor-heading">{heading}</h2>
+      {focused && (
+        <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
+          {texts.map(({ name: field, label }) => {
+            const { [field]: error } = textErrors;
+            return (
+              <Button
+                key={field}
+                variant="quiet"
+                aria-pressed={selectedField === field}
+                aria-controls={`${sectionsId}-${field}`}
+                value={field}
+                onClick={selectField}
+              >
+                {label}
+                {error !== undefined && (
+                  <span className="text-danger">
+                    {PROMPT_COPY.sectionError}
+                  </span>
+                )}
+              </Button>
+            );
+          })}
+        </nav>
+      )}
       {texts.map(({ name: field, label, help, maxLength, literal }) => {
         const { [field]: text = "" } = draft.texts;
         const { [field]: error } = textErrors;
-        let ref: typeof resetTextRef | undefined;
-        if (field === RESET_TEXT) {
-          ref = resetTextRef;
-        }
         let hint = PROMPT_COPY.textHint(help, maxLength);
         if (literal === true) {
           hint = help;
         }
         return (
-          <TextAreaField
-            className="min-h-40 font-mono text-sm"
-            error={error}
-            hint={hint}
+          <div
+            className="prompt-editor-field"
             key={field}
-            label={label}
-            maxLength={maxLength}
-            name={field}
-            onChange={changeText}
-            ref={ref}
-            value={text}
-          />
+            id={`${sectionsId}-${field}`}
+            hidden={focused && selectedField !== field}
+          >
+            <TextAreaField
+              className="min-h-40 font-mono text-sm"
+              error={error}
+              hint={hint}
+              key={field}
+              label={label}
+              maxLength={maxLength}
+              name={field}
+              onChange={changeText}
+              value={text}
+            />
+          </div>
         );
       })}
-      {saveHint !== undefined && <p id={saveHintId}>{saveHint}</p>}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          aria-describedby={(saveHint !== undefined && saveHintId) || undefined}
-          disabled={saving === true || disabled === true}
-          type="submit"
-        >
-          {saveLabel}
-        </Button>
-        {defaultPrompt !== undefined && (
-          <Button onClick={reset} variant="quiet">
-            {PROMPT_COPY.resetPrompt}
+      <div className="prompt-editor-actions">
+        {saveHint !== undefined && <p id={saveHintId}>{saveHint}</p>}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            aria-describedby={
+              (saveHint !== undefined && saveHintId) || undefined
+            }
+            disabled={saving === true || disabled === true}
+            type="submit"
+          >
+            {saveLabel}
           </Button>
-        )}
-        {changed && (
-          <Button onClick={discard} variant="quiet">
-            {PROMPT_COPY.discard}
-          </Button>
-        )}
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <FormStatus>{NOTICE_TEXTS[notice]}</FormStatus>
-        {beforeReset !== undefined && (
-          <Button onClick={undoReset} variant="secondary">
-            {PROMPT_COPY.undoReset}
-          </Button>
-        )}
+          {defaultPrompt !== undefined && (
+            <Button onClick={reset} variant="quiet">
+              {PROMPT_COPY.resetPrompt}
+            </Button>
+          )}
+          {changed && (
+            <Button onClick={discard} variant="quiet">
+              {PROMPT_COPY.discard}
+            </Button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <FormStatus>{NOTICE_TEXTS[notice]}</FormStatus>
+          {beforeReset !== undefined && (
+            <Button onClick={undoReset} variant="secondary">
+              {PROMPT_COPY.undoReset}
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   );

@@ -10,6 +10,12 @@
     "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
   },
   "overrides": [
+    // Server audit attribution needs Node's async context across parallel
+    // database work. This is the only platform boundary for that context.
+    {
+      "includes": ["src/performance/query-counter.ts"],
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
+    },
     // The deterministic Stripe gateway runs one loopback HTTP server per file.
     {
       "includes": [

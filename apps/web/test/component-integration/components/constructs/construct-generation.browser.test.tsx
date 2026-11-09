@@ -704,6 +704,7 @@ test("recovered construct edits generate directly and survive a failure without 
   await expect
     .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
     .toHaveValue("Unsaved voice");
+  await button("Visual description").click();
   await expect
     .element(
       page.getByRole("textbox", { name: "Visual description", exact: true }),

@@ -75,7 +75,7 @@ function HomeAtlas({
     };
   }, []);
   return (
-    <div className="atlas" ref={atlasRef}>
+    <div className="atlas" data-inactive="" ref={atlasRef}>
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>

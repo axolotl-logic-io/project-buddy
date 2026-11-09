@@ -67,7 +67,9 @@ describe("header navigation hierarchy", () => {
       { label: "Adventures", href: "/chat" },
       { label: "An idea" },
     ]);
-    expect(await headerBreadcrumbs(USER, ["home"])).toEqual([]);
+    expect(await headerBreadcrumbs(USER, ["home"])).toEqual([
+      { label: "Home" },
+    ]);
   });
 
   test("names an unnamed adventure with the shared fallback", async () => {

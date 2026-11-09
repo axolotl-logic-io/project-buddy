@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { NewProjectDialog } from "@/components/new-project-dialog.tsx";
+import { PageFrame } from "@/components/ui/page-frame.tsx";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -16,10 +17,10 @@ export default async function ProjectListLayout({
   ]);
   const choices = { userConstructs, preferredConstructId: preferred.id };
   return (
-    <>
+    <PageFrame>
       <h1 className="page-heading">{PROJECTS_COPY.heading}</h1>
       <NewProjectDialog choices={choices} />
       {children}
-    </>
+    </PageFrame>
   );
 }

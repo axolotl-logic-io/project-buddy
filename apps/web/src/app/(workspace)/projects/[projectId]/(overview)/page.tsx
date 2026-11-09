@@ -82,7 +82,7 @@ export default async function ProjectPage({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="page-title-row">
         <h1 className="page-heading">{project.name}</h1>
         <Button asChild={true} variant="secondary">
           <Link href={`/projects/${project.id}/memory`}>
@@ -105,11 +105,11 @@ export default async function ProjectPage({
         selectedActivityId={DEFAULT_ACTIVITY_ID}
         userConstructs={userConstructs}
       />
-      <section className="flex flex-col gap-4">
+      <section className="page-slot">
         <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
         <ProgressTimeline milestones={milestones} />
       </section>
-      <section className="flex flex-col gap-4">
+      <section className="page-slot">
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
