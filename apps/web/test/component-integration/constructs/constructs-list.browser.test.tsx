@@ -110,7 +110,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           builtIn.getByRole("button", {
-            name: CONSTRUCTS_COPY.startLabel(construct.name),
+            name: `Adventure with ${construct.name}`,
             exact: true,
           }),
         )
@@ -135,9 +135,7 @@ test("use_case_view_constructs", async () => {
       .filter((button) => button.hasAttribute("aria-haspopup"))
       .map((button) => button.textContent),
   ).toEqual(
-    OWN_CONSTRUCTS.map((construct) =>
-      CONSTRUCTS_COPY.startLabel(construct.name),
-    ),
+    OWN_CONSTRUCTS.map((construct) => `Adventure with ${construct.name}`),
   );
 
   expect(
@@ -151,7 +149,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           own.getByRole("button", {
-            name: CONSTRUCTS_COPY.startLabel(construct.name),
+            name: `Adventure with ${construct.name}`,
             exact: true,
           }),
         )
@@ -254,9 +252,12 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
       ),
     );
     const trigger = page.getByRole("button", {
-      name: CONSTRUCTS_COPY.startLabel(construct.name),
+      name: `Adventure with ${construct.name}`,
       exact: true,
     });
+    await expect
+      .element(trigger)
+      .toHaveTextContent(`Adventure with ${construct.name}`);
     await trigger.click();
     const dialog = page.getByRole("dialog", {
       name: NEW_CHAT_COPY.dialogHeading,
