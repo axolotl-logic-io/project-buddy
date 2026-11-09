@@ -51,6 +51,14 @@ async function reduceMotion(context: BrowserCommandContext): Promise<void> {
   await context.page.emulateMedia({ reducedMotion: "reduce" });
 }
 
+const WHEEL_UP_PIXELS = -400;
+
+// Deliver wheel input through the browser, including its native default scroll.
+async function wheelUp(context: BrowserCommandContext): Promise<void> {
+  await context.iframe.getByRole("list").hover();
+  await context.page.mouse.wheel(0, WHEEL_UP_PIXELS);
+}
+
 // How many test files each browser runs at once, per browser project. Every
 // action a test takes (a click, a hover, a key) waits on the page's frames,
 // and pages that start together starve each other's: with Vitest's default
@@ -122,7 +130,7 @@ function contextBrowserProject(
             provider: playwrightProvider({ contextOptions }),
           },
         ],
-        commands: { emulateColorScheme, reduceMotion },
+        commands: { emulateColorScheme, reduceMotion, wheelUp },
       },
     },
   };
@@ -195,7 +203,7 @@ export default defineConfig({
             headless: true,
             provider: playwrightProvider(),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
-            commands: { emulateColorScheme, reduceMotion },
+            commands: { emulateColorScheme, reduceMotion, wheelUp },
           },
         },
       },

@@ -3,9 +3,11 @@
 // page. A browser test calls them through `commands` from vitest/browser.
 declare module "vitest/browser" {
   interface BrowserCommands {
+    // Native upward wheel input over the rendered list.
+    wheelUp: () => Promise<void>;
+    reduceMotion: () => Promise<void>;
     // Switches the system color scheme the page sees, as
     // prefers-color-scheme reports it.
-    reduceMotion: () => Promise<void>;
     emulateColorScheme: (colorScheme: "light" | "dark") => Promise<void>;
   }
 }
