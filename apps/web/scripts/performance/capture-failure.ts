@@ -33,6 +33,7 @@ const SCHEMA_FIELDS = z.enum([
   "activated",
   "captureProtocol",
 ]);
+const EVENT_PROPERTIES = z.enum(["name", "time", "duration", "interaction"]);
 const KNOWN_ERRORS = new Map([
   ["Expected visible control absent", "control-absent"],
   ["Control readiness not confirmed", "control-unconfirmed"],
@@ -53,6 +54,10 @@ function captureFailure(
       const [field] = issue.path;
       const parsed = SCHEMA_FIELDS.safeParse(field);
       if (parsed.success) {
+        const property = EVENT_PROPERTIES.safeParse(issue.path.at(-1));
+        if (issue.path.length > 1 && property.success) {
+          return [`${parsed.data}.${property.data}`];
+        }
         return [parsed.data];
       }
       return [];

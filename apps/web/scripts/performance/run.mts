@@ -9,8 +9,12 @@ import { parseArgs } from "node:util";
 import { z } from "zod";
 import { readEndToEndPort } from "../../src/env.ts";
 import { checkTestEnvironment } from "../test-db/test-database.ts";
-import type { ReadinessRow } from "./artifacts.ts";
-import type { Fixture } from "./capture.mts";
+import {
+  parseReadinessSelection,
+  type ReadinessRow,
+  type ReadinessSelection,
+} from "./artifacts.ts";
+import type { CaptureOptions, Fixture } from "./capture.mts";
 import { captureMatrix, openBrowser } from "./capture.mts";
 import { captureLighthouse } from "./lighthouse.mts";
 import {
@@ -215,11 +219,17 @@ async function run(): Promise<void> {
       samples: { type: "string" },
       confirmation: { type: "boolean" },
       help: { type: "boolean" },
+      "diagnostic-state": { type: "string" },
+      "diagnostic-profile": { type: "string" },
+      "diagnostic-journey": { type: "string" },
     },
   });
   if (values.help === true) {
     console.info(
       "audit:performance --output /new/absolute/directory --browser /absolute/chrome [--samples 3] [--confirmation]",
+    );
+    console.info(
+      "Focused diagnostic: add --diagnostic-state populated --diagnostic-profile desktop --diagnostic-journey long-adventure; --confirmation selects ten samples. Diagnostics are not full audits.",
     );
     return;
   }
@@ -232,6 +242,19 @@ async function run(): Promise<void> {
   const samples = SAMPLE_COUNT.parse(values.samples ?? defaultSamples);
   if (values.confirmation === true && samples < 10) {
     throw new Error("Confirmation requires at least ten runs per cell");
+  }
+  let selection: ReadinessSelection | undefined;
+  const diagnosticValues: readonly (string | undefined)[] = [
+    values["diagnostic-state"],
+    values["diagnostic-profile"],
+    values["diagnostic-journey"],
+  ];
+  if (diagnosticValues.some((value) => value !== undefined)) {
+    selection = parseReadinessSelection({
+      state: values["diagnostic-state"],
+      profile: values["diagnostic-profile"],
+      name: values["diagnostic-journey"],
+    });
   }
   process.loadEnvFile(".env.test");
   checkTestEnvironment();
@@ -253,12 +276,19 @@ async function run(): Promise<void> {
   const preflight = await openBrowser(browserPath);
   await preflight.close();
   const hostBefore = host();
-  const options = {
+  const options: CaptureOptions = {
     base: `http://localhost:${readEndToEndPort()}`,
     output: resolve(output),
     browserPath,
     samples,
   };
+  if (selection !== undefined) {
+    options.selection = selection;
+  }
+  let scope = "full";
+  if (selection !== undefined) {
+    scope = "diagnostic";
+  }
   let server: ChildProcess | undefined;
   let fixtureCreated = false;
   const cancellation = new AbortController();
@@ -281,6 +311,8 @@ async function run(): Promise<void> {
     const buildId = (await readFile(".next/BUILD_ID", "utf8")).trim();
     const manifest = {
       schemaVersion: 1,
+      scope,
+      selection: selection ?? null,
       captureProtocol: "commit-probe-v4",
       sourceCommit,
       buildId,
@@ -428,14 +460,21 @@ async function run(): Promise<void> {
           2,
         ),
       );
-      stage = "lighthouse";
-      await captureLighthouse(browser, fixture, options);
-      stage = "validation";
-      await validateAuditDirectory(output, samples);
+      if (selection === undefined) {
+        stage = "lighthouse";
+        await captureLighthouse(browser, fixture, options);
+        stage = "validation";
+        await validateAuditDirectory(output, samples);
+      }
       await writeFile(
         `${output}/manifest.json`,
         JSON.stringify(
-          { ...manifest, hostAfter: host(), complete: true },
+          {
+            ...manifest,
+            hostAfter: host(),
+            complete: selection === undefined,
+            diagnosticComplete: selection !== undefined,
+          },
           null,
           2,
         ),
@@ -444,9 +483,15 @@ async function run(): Promise<void> {
       cancellation.signal.removeEventListener("abort", cancelBrowser);
       await browser.close();
     }
-    console.info(
-      `Audit complete: ${output}. Review allowed Home filmstrip before sharing.`,
-    );
+    if (selection === undefined) {
+      console.info(
+        `Audit complete: ${output}. Review allowed Home filmstrip before sharing.`,
+      );
+    } else {
+      console.info(
+        `Diagnostic cohort complete: ${output}. Full audit and Lighthouse were not run.`,
+      );
+    }
   } catch (error) {
     await writeFile(
       `${output}/audit-failure.json`,

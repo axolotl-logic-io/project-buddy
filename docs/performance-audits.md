@@ -59,3 +59,17 @@ Collection remains off. No package observer, endpoint, hosted service or transpo
 Before authorizing a rollout, the web maintainer and privacy reviewer must approve collection purpose, consent/opt-in interface, destination, permitted readers and deletion enforcement. Proposed rollout limits are opt-in sessions only, at most 10% of those sessions, raw reduced records retained for at most seven days, and access limited to maintainers investigating performance. These are proposed bounds, not an active collection policy. Sampling state and session identifiers must not appear in payloads; approval must establish how sampling works without exporting identity. No collection may begin until those decisions and a payload review are recorded.
 
 Field goals remain p75 LCP ≤2.5 s, INP ≤200 ms and CLS ≤0.1. They require separately authorized real-user sampling. Local lab captures cannot establish them. Performance trends warn until variability supports a justified gate; there is no blanket Lighthouse-score gate.
+
+## Focused diagnostics
+
+For a focused confirmation without repeating unrelated routes, run:
+
+```sh
+npm run audit:performance -- --output /absolute/new-diagnostic-directory --browser /absolute/path/to/chrome --confirmation --diagnostic-state populated --diagnostic-profile desktop --diagnostic-journey long-adventure
+```
+
+All three diagnostic flags are required together. This captures ten samples for each cache mode of the selected journey, validates the written gzip observations and a representative trace, and cleans up the isolated fixture/server. The manifest retains `complete: false`, `scope: diagnostic` and a separate `diagnosticComplete` flag. Lighthouse and the full matrix are not run. A diagnostic can finish successfully without being acceptance evidence for the complete audit.
+
+The capture kit's `captureMatrix` and `validateReadinessRows` APIs accept an explicit `{state, profile, name}` selection for isolated local diagnostics. All three values must be supported; inaccessible empty detail pages are rejected. A diagnostic must validate every selected sample and cache mode. Label its artifacts as diagnostic and never merge its rows into a different cohort. The public audit command and compressed-directory validator continue to require the complete matrix by default. Use at least ten selected samples to confirm a measurement correction; this is lab validation, not a field percentile.
+
+Event Timing names follow an explicit list of [standard discrete events](https://w3c.github.io/event-timing/#sec-events-exposed). The capture retains names and numeric timing only, never targets, selectors or input contents. Continuous-event exclusions and the finite observation window remain limits of this diagnostic.
