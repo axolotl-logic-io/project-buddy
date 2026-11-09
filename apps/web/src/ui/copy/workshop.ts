@@ -39,14 +39,14 @@ const WORKSHOP_COPY = {
   fresh: "New test",
   cancel: "Cancel test",
   cancelHint:
-    "Cancel test stops waiting. Model use already incurred may still spend gold.",
+    "Cancel test stops waiting. Model use already incurred may still spend batteries.",
   cancelled:
-    "Stopped waiting for this test. Model use already incurred may still spend gold.",
+    "Stopped waiting for this test. Model use already incurred may still spend batteries.",
   pending: "Your construct is trying the draft…",
   empty: "Your test conversation will appear here.",
   stale:
     "The draft or test settings changed. Your next test starts a fresh conversation.",
-  gold: "Tests use gold, just like adventure replies.",
+  gold: "Tests use batteries, just like adventure replies.",
   limits:
     "Only spell casting is available here. Tests cannot search the Blender manual, change activities, create quests, update Journal, record milestones or generate images. Tests disappear when you leave this page.",
   you: "You",

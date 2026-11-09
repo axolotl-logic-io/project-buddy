@@ -17,7 +17,7 @@ const CREATE_PROJECT_DESCRIPTION = [
   "The app offers an editable summary to confirm, then writes the quest's first message, in Project Breakdown, and the user sees a link to that adventure here. Refer to the quest link without saying above or below: the app chooses its position.",
   `The name has at most ${PROJECT_NAME_MAX_LENGTH} characters; if the user's name is longer, suggest a shorter one.`,
   "A proposed result is awaiting the user's editable summary confirmation; do not say a quest exists yet. The summary must not claim planned milestones are completed.",
-  "If the result says Claude is unavailable or the user is out of gold, no quest was created: tell the user so.",
+  "If the result says Claude is unavailable or the user is out of batteries, no quest was created: tell the user so.",
 ].join(" ");
 
 const TRANSFER_SUMMARY_MAX = 12_000;

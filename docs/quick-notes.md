@@ -6,7 +6,7 @@ A Quick Note is a short line that the user saves to a quest between adventures, 
 
 Every signed-in page has a **Quick Note** link in the header, at every screen width. It opens the Quick Note page at `/capture`, which holds a quest choice and the Quick Note's text. A link with `?projectId=PROJECT_ID` chooses that quest; `PROJECT_ID` is the quest's id. Otherwise the user's newest quest is chosen. A quest's page links to the Quick Note page with the quest chosen.
 
-Saving calls no model, so it spends none of the user's gold. A saved Quick Note clears the text and keeps the quest chosen, ready for the next one. The form refuses an empty Quick Note, or one longer than 1000 characters, with a message beside the text. Other failures, such as a quest that is gone or a database that can't be reached, show a message under the form. In each case the form keeps the typed text.
+Saving calls no model, so it spends none of the user's batteries. A saved Quick Note clears the text and keeps the quest chosen, ready for the next one. The form refuses an empty Quick Note, or one longer than 1000 characters, with a message beside the text. Other failures, such as a quest that is gone or a database that can't be reached, show a message under the form. In each case the form keeps the typed text.
 
 The form's action is the save's Server Action, so a Quick Note saved before the page's script has loaded is posted, never put in the URL. The page comes back with the answer, and with the text and quest of a refused or failed Quick Note. Such a Quick Note is dated with the server's UTC day, since only the script sends the browser's day.
 
