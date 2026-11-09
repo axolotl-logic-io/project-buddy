@@ -113,6 +113,17 @@ describe("use_case_new_project", () => {
 });
 
 describe("use_case_new_project_with_construct", () => {
+  test("legacy named callers without a construct use the saved preference", async () => {
+    const user = await testUser();
+    await signIn(user);
+    await saveInterviewConstruct(user.id, "lumen");
+
+    const chat = await createProject(user, "Saved preference quest");
+
+    expect(chat.construct.name).toBe(getConstruct("lumen").name);
+    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
+  });
+
   test("the first adventure is with the built-in construct she chose", async () => {
     const user = await testUser();
     await signIn(user);

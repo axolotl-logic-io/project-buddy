@@ -69,7 +69,7 @@ The user tries to start a quest without giving it a name.
 - **Steps:**
   - She starts a quest from the new-adventure form and leaves the name empty, or types only spaces.
   - The site asks her for a name.
-- **Outcome:** she is still on her quests page with the name field in front of her, rather than an error page. No new quest appears in her quests list.
+- **Outcome:** the new-adventure form keeps the quest-name dialog open with her choices, rather than showing an error page. No new quest appears in her quests list.
 - **Next:**
   - `use_case_new_project`: give it a name this time.
 

@@ -3,7 +3,9 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { NewProjectDialog } from "@/components/new-project-dialog.tsx";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { userConstructIdFixture } from "../../support/id-fixtures.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
 
 const actions = vi.hoisted(() => ({
@@ -135,4 +137,36 @@ test("Cancel closes without creating a quest", async () => {
   await expect.element(dialog()).not.toBeInTheDocument();
   await expect.element(newProjectButton()).toHaveFocus();
   expect(actions.createProjectAction).not.toHaveBeenCalled();
+});
+
+test("the saved preference and own constructs reach the Start Quest dialog", async () => {
+  const own = { id: userConstructIdFixture(), name: "Pip" };
+  actions.createProjectAction.mockResolvedValue({
+    kind: "invalid",
+    message: "Try again",
+  });
+  await render(
+    <NewProjectDialog
+      choices={{ preferredConstructId: own.id, userConstructs: [own] }}
+    />,
+  );
+  await newProjectButton().click();
+  await expect
+    .element(dialog().getByText(own.name, { exact: true }))
+    .toBeVisible();
+  await dialog()
+    .getByRole("button", { name: PROJECTS_COPY.create, exact: true })
+    .click();
+  await expect
+    .element(dialog().getByText("Try again", { exact: true }))
+    .toBeVisible();
+  const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
+  expect(sent?.get("constructId")).toBe(own.id);
+  // The saved own choice is last; moving forward wraps to the built-in default.
+  await dialog()
+    .getByRole("button", { name: NEW_CHAT_COPY.nextConstruct })
+    .click();
+  await expect
+    .element(dialog().getByText("Vellum", { exact: true }))
+    .toBeVisible();
 });

@@ -1,6 +1,6 @@
 # Premade quests
 
-Quests offers four editable starting points alongside New quest and the existing quest list:
+Quests offers four editable starting points alongside Start Quest and the existing quest list:
 
 - **Start without inspiration** starts with **Find something to make**.
 - **Design an original character** starts with **Brainstorming**.

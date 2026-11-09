@@ -11,7 +11,10 @@ import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 export function NewProjectDialog({
   choices,
 }: {
-  readonly choices?: QuestCreationChoices;
+  readonly choices?: Pick<
+    QuestCreationChoices,
+    "userConstructs" | "preferredConstructId"
+  >;
 }): JSX.Element {
   return (
     <FormDialog

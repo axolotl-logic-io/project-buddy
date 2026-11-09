@@ -82,18 +82,25 @@ function ConstructPicker({
     throw new Error("The construct picker has no constructs");
   }
 
+  let descriptionId: string | undefined;
+  if (hint !== undefined) {
+    descriptionId = hintId;
+  }
+
   return (
     <fieldset
       className="field"
       aria-labelledby={labelId}
-      aria-describedby={hintId}
+      aria-describedby={descriptionId}
     >
       <legend className="field-label" id={labelId}>
         {label}
       </legend>
-      <p className="field-hint" id={hintId}>
-        {hint}
-      </p>
+      {hint !== undefined && (
+        <p className="field-hint" id={hintId}>
+          {hint}
+        </p>
+      )}
       <div className="construct-picker">
         <div className="construct-picker-face">
           <button
