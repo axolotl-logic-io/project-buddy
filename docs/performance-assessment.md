@@ -164,7 +164,7 @@ These tickets do not implement the recommendations as part of this assessment. B
 
 ## Baseline artifacts and validation limits
 
-- [The page-frame follow-up](performance/795/README.md) records #795 implementation and a completed 320-observation matched post-Workshop production-build cohort, with finite-window results, retained history and privacy validation. Its newer source/build numbers remain separate from this assessment; final review and protected merge are tracked there.
+- [The page-frame follow-up](performance/795/README.md) records #795 implementation and a completed 320-observation matched post-Workshop production-build cohort, with finite-window results, retained history and privacy validation. Its newer source/build numbers remain separate from this assessment; its accepted final review and pending protected merge are tracked there.
 
 - [Additional readiness, stabilization and repeated-run evidence](performance/773/current/readiness.md) covers a build containing #767.
 - [Phone startup sequence](performance/773/current/startup.md) separates content, resource completion and control confirmation.
