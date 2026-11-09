@@ -1,4 +1,4 @@
-// The Spellbook's pages in the browser: the list offers New spell among her
+// The Spellbook's pages in the browser: the list offers Craft spell among her
 // own spells, after the built-in ones in keyboard order; Delete asks before
 // it deletes; and her spell's page names each field's limit, keeps typing
 // within it, and names what its reset restores.
@@ -50,7 +50,7 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
-// The pages expose these actions; only New spell and Delete are submitted.
+// The pages expose these actions; only Craft spell and Delete are submitted.
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
   retireSpellAction: vi.fn(),
@@ -207,7 +207,7 @@ test.each([
     source: getSpell("ask-one-question").name,
   },
   {
-    made: "written from scratch",
+    made: "crafted",
     spell: { ...ASK_ONE_QUESTION_CLONE, clonedFrom: undefined },
     source: undefined,
   },
