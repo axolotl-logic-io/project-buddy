@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "d2aa299669ac8acc8a24f14a17632fe9a00e4175",
+  "buildId": "CCfZpkMRy4fnu53gqdQQx",
+  "complete": false,
+  "observations": 41,
+  "failure": {
+    "state": "populated",
+    "profile": "desktop",
+    "name": "long-adventure",
+    "sample": 2,
+    "mode": "client-navigation",
+    "reason": "capture-failed"
+  }
+}

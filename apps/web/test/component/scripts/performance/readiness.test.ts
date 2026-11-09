@@ -6,7 +6,7 @@ import {
 } from "../../../../scripts/performance/artifacts.ts";
 
 const HOME: ReadinessRow = {
-  captureProtocol: "commit-probe-v3",
+  captureProtocol: "commit-probe-v4",
   hostLoad: [0, 0, 0],
   state: "empty",
   profile: "desktop",

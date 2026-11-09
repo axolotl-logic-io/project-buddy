@@ -281,7 +281,7 @@ async function run(): Promise<void> {
     const buildId = (await readFile(".next/BUILD_ID", "utf8")).trim();
     const manifest = {
       schemaVersion: 1,
-      captureProtocol: "commit-probe-v3",
+      captureProtocol: "commit-probe-v4",
       sourceCommit,
       buildId,
       samples,

@@ -16,6 +16,7 @@ import {
   validateReadinessRows,
   validateTrace,
 } from "./artifacts.ts";
+import { type CapturePhase, captureFailure } from "./capture-failure.ts";
 import { initialCls } from "./metrics.ts";
 import { observe, primaryPresent } from "./observe.mts";
 import type { seedAudit } from "./seed.mts";
@@ -323,6 +324,7 @@ async function captureMatrix(
     const { state, profile, name, sample, path, source } = cell;
     const context = await browser.createBrowserContext();
     let activeMode: ReadinessRow["mode"] | null = null;
+    let phase: CapturePhase = "context";
     try {
       const page = await context.newPage();
       await page.emulateMediaFeatures([
@@ -430,6 +432,7 @@ async function captureMatrix(
           await page.evaluate(() => localStorage.clear());
         }
         if (mode === "client-navigation") {
+          phase = "source-navigation";
           const response = await page.goto(options.base + source, {
             waitUntil: "domcontentloaded",
           });
@@ -440,17 +443,38 @@ async function captureMatrix(
           ) {
             throw new Error("Invalid authenticated source");
           }
+          phase = "source-content";
           await page.waitForFunction(
             () =>
               !document.querySelector('[aria-busy="true"]') &&
               document.querySelector("main") !== null,
           );
           // Confirm the source's shared React control before measuring a client link.
+          phase = "source-control";
           await probe(page, "home");
           const sourceDocument = await page.evaluate(
             () => performance.timeOrigin,
           );
-          const anchor = await visible(page, `a[href="${path}"]`);
+          phase = "route-link";
+          const selector = `a[href="${path}"]`;
+          // The shared menu can hydrate before streamed detail links arrive.
+          // Wait for the actual source link, using the existing browser deadline.
+          await page.waitForFunction(
+            (target) =>
+              Array.from(document.querySelectorAll(target)).some((node) => {
+                const style = getComputedStyle(node);
+                const rect = node.getBoundingClientRect();
+                return (
+                  style.visibility !== "hidden" &&
+                  style.visibility !== "collapse" &&
+                  rect.width > 0 &&
+                  rect.height > 0
+                );
+              }),
+            {},
+            selector,
+          );
+          const anchor = await visible(page, selector);
           activated = {
             region: "route-link",
             rect: await anchor.evaluate((element) => {
@@ -464,6 +488,7 @@ async function captureMatrix(
             }),
           };
           await page.evaluate(observe, true);
+          phase = "transition-navigation";
           await anchor.click();
           await page.waitForFunction(
             (target) => location.pathname === target,
@@ -477,6 +502,7 @@ async function captureMatrix(
             throw new Error("Client link performed a document navigation");
           }
         } else {
+          phase = "document-navigation";
           const committed = new Promise<void>((resolveCommit, rejectCommit) => {
             const deadline = setTimeout(() => {
               page.off("framenavigated", onFrame);
@@ -502,11 +528,14 @@ async function captureMatrix(
         if (page.url() !== options.base + path) {
           throw new Error("Intended authenticated destination not reached");
         }
+        phase = "primary-content";
         await page.waitForFunction(primaryPresent, {}, name);
         await page.evaluate(() => {
           globalThis.audit.primary = performance.now();
         });
+        phase = "control-probe";
         const control = await probe(page, name);
+        phase = "observation";
         const remaining = await page.evaluate((time) => {
           const MinimumWindowMs = 5000;
           const PostControlMs = 2000;
@@ -526,6 +555,7 @@ async function captureMatrix(
             throw new Error("Non-2xx destination");
           }
         }
+        phase = "read-result";
         const data = await page.evaluate(() => {
           globalThis.stopAudit?.();
           const nav = performance
@@ -613,7 +643,7 @@ async function captureMatrix(
         }
         const row = {
           ...data,
-          captureProtocol: "commit-probe-v3",
+          captureProtocol: "commit-probe-v4",
           hostLoad,
           state,
           profile,
@@ -632,9 +662,12 @@ async function captureMatrix(
           ),
         };
         // Parse each result through the same final allowlist, without accepting an incomplete matrix.
+        phase = "validate-result";
         rows.push(parseReadinessRow(row));
+        phase = "persist-result";
         await writeGzip(options.output, "readiness.json.gz", rows);
         if (tracing) {
+          phase = "trace";
           await sanitizedTrace(page, options.output, `${name}.trace.json.gz`);
         }
         await captureMode(modeIndex + 1);
@@ -651,6 +684,7 @@ async function captureMatrix(
             sample,
             mode: activeMode,
             reason: "capture-failed",
+            diagnostic: captureFailure(error, phase),
           },
           null,
           2,
