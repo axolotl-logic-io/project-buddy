@@ -237,35 +237,63 @@ describe("use_case_home_atlas", () => {
     );
   });
 
-  test("keeps the site name, Quick Note and menu over the map", async () => {
-    await setViewport(LAPTOP_VIEWPORT);
-    await render(
-      await inSiteFrame(
-        <div className="page-column">
-          <HomeAtlas latestQuest={undefined} />
-        </div>,
-      ),
-    );
-    const header = page.getByRole("banner");
-    await expect
-      .element(header.getByRole("button", { name: SITE_MENU_COPY.title }))
-      .toBeVisible();
-    await expect
-      .element(
-        header.getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink }),
-      )
-      .toBeVisible();
-    await expect
-      .element(header.getByRole("link", { name: SITE_COPY.name }))
-      .toBeVisible();
-    await expect
-      .element(
-        header.getByRole("navigation", { name: SITE_MENU_COPY.placesLabel }),
-      )
-      .not.toBeInTheDocument();
-  });
+  test.each(["light", "dark"])(
+    "keeps the shared header above Home at 320 px in %s mode",
+    async (mode) => {
+      applyTheme("parchment", mode);
+      await setViewport(NARROWEST_VIEWPORT);
+      await render(
+        await inSiteFrame(
+          <div className="page-column">
+            <HomeAtlas latestQuest={undefined} />
+          </div>,
+        ),
+      );
+      const header = page.getByRole("banner");
+      await expect
+        .element(header.getByRole("button", { name: SITE_MENU_COPY.title }))
+        .toBeVisible();
+      await expect
+        .element(
+          header.getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink }),
+        )
+        .toBeVisible();
+      await expect
+        .element(header.getByRole("link", { name: SITE_COPY.name }))
+        .toBeVisible();
+      await expect
+        .element(
+          header.getByRole("navigation", { name: SITE_MENU_COPY.placesLabel }),
+        )
+        .not.toBeInTheDocument();
+      const title = header.getByRole("link", { name: SITE_COPY.name });
+      expect(title.element()).toHaveAttribute("href", "/home");
+      const headerBox = header.element().getBoundingClientRect();
+      const headingBox = page
+        .getByRole("heading", { name: HOME_COPY.heading })
+        .element()
+        .getBoundingClientRect();
+      expect(headerBox.left).toBe(0);
+      expect(headerBox.width).toBe(NARROWEST_VIEWPORT.width);
+      expect(headingBox.top).toBeGreaterThanOrEqual(headerBox.bottom);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+      title.element().focus();
+      await tabForward();
+      await expect
+        .element(
+          header.getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink }),
+        )
+        .toHaveFocus();
+      await tabForward();
+      await expect
+        .element(header.getByRole("button", { name: SITE_MENU_COPY.title }))
+        .toHaveFocus();
+    },
+  );
 
-  test("opens the Home menu against the viewport rather than the frosted header", async () => {
+  test("opens the Home menu against the viewport", async () => {
     await setViewport(PHONE_VIEWPORT);
     await render(
       await inSiteFrame(
@@ -305,6 +333,10 @@ describe("use_case_home_atlas", () => {
     await setViewport(LAPTOP_VIEWPORT);
     const screen = await render(await cachedPages(true));
     const homeBackground = getComputedStyle(document.body).backgroundImage;
+    const header = page.getByRole("banner").element();
+    const headerBoxOnHome = header.getBoundingClientRect().toJSON();
+    const headerBackground = getComputedStyle(header).backgroundColor;
+    const headerBorder = getComputedStyle(header).borderBottom;
     const title = page
       .getByRole("banner")
       .getByRole("link", { name: SITE_COPY.name });
@@ -316,6 +348,9 @@ describe("use_case_home_atlas", () => {
     await screen.rerender(await cachedPages(false));
     await expect.element(title).toBeVisible();
     await expect.element(capture).toBeVisible();
+    expect(header.getBoundingClientRect().toJSON()).toEqual(headerBoxOnHome);
+    expect(getComputedStyle(header).backgroundColor).toBe(headerBackground);
+    expect(getComputedStyle(header).borderBottom).toBe(headerBorder);
     expect(getComputedStyle(document.body).backgroundImage).not.toBe(
       homeBackground,
     );

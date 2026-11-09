@@ -86,9 +86,11 @@ contrast even over the darkest marks in the artwork. Browsers without
 backdrop blur use opaque paper. Forced-colors mode removes the artwork and
 blur. The atlas uses the same paper material in both appearance modes.
 
-The Home header keeps the site's name, Quick Note and Menu on parchment.
-Other pages keep their ink HUD. Leaving a cached Home page restores the
-usual page background, header and content column without a refresh.
+Home uses the shared site header above its content, with the site's name,
+Quick Note and Menu. Quests and Adventures remain in the menu and Home's
+destinations, without shortcuts beside Quick Note on any page.
+Leaving a cached Home page restores the usual page background and content
+column without a refresh; the shared header keeps its styling.
 
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
