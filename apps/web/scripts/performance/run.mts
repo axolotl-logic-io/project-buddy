@@ -1,12 +1,11 @@
 // Opt-in command platform boundary. It owns child processes and local output.
 import { type ChildProcess, spawn } from "node:child_process";
 import { once } from "node:events";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { cpus, hostname, loadavg, totalmem } from "node:os";
-import { resolve } from "node:path";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cpus, hostname, loadavg, tmpdir, totalmem } from "node:os";
+import { join, resolve } from "node:path";
 import process from "node:process";
 import { parseArgs } from "node:util";
-import { tsImport } from "tsx/esm/api";
 import { z } from "zod";
 import { readEndToEndPort } from "../../src/env.ts";
 import { checkTestEnvironment } from "../test-db/test-database.ts";
@@ -178,31 +177,35 @@ function byteBuckets(
     destinationOnly: measure(destination),
   };
 }
-// Keep the browser callbacks native: tsx adds name helpers that cannot cross
-// Puppeteer's serialization boundary. Only the test kit needs tsconfig aliases.
+// Isolate the alias-aware fixture loader from native browser callbacks and
+// native TypeScript modules already loaded by this process. Credentials cross
+// the boundary only through an owned private file, removed before returning.
 async function seedFixture(): Promise<Fixture> {
-  const module: unknown = await tsImport("./seed.mts", import.meta.url);
-  if (
-    typeof module !== "object" ||
-    module === null ||
-    !("seedAudit" in module) ||
-    typeof module.seedAudit !== "function"
-  ) {
-    throw new Error("Audit fixture module unavailable");
+  const directory = await mkdtemp(join(tmpdir(), "pb-audit-fixture-"));
+  const filename = join(directory, "fixture.json");
+  try {
+    await command(process.execPath, [
+      "--import",
+      "tsx",
+      "scripts/performance/seed-command.mts",
+      filename,
+    ]);
+    const input: unknown = JSON.parse(await readFile(filename, "utf8"));
+    return z
+      .strictObject({
+        empty: z.string().min(1),
+        populated: z.string().min(1),
+        details: z.string().min(1),
+        project: z.uuid(),
+        chat: z.uuid(),
+        construct: z.uuid(),
+        emptyProject: z.uuid(),
+        emptyChat: z.uuid(),
+      })
+      .parse(input);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
-  const input: unknown = await module.seedAudit();
-  return z
-    .strictObject({
-      empty: z.string().min(1),
-      populated: z.string().min(1),
-      details: z.string().min(1),
-      project: z.uuid(),
-      chat: z.uuid(),
-      construct: z.uuid(),
-      emptyProject: z.uuid(),
-      emptyChat: z.uuid(),
-    })
-    .parse(input);
 }
 async function run(): Promise<void> {
   const { values } = parseArgs({
