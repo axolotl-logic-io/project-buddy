@@ -2,6 +2,8 @@
 
 Issue [#773](https://github.com/axolotl-logic-io/project-buddy/issues/773) asks why page loads feel slow, arrive in pieces and jump. This assessment records a local production-build investigation and a prioritized design plan. It changes no product behavior or production instrumentation. The capture covers 78 accessible journey/state/profile/mode cells, one observation each. The baseline is exploratory lab evidence; it does not establish real-user performance or prove every reported symptom has one cause.
 
+The [#796 renderer follow-up](performance/796/README.md) records a separate matched production-build experiment on the post-#806 lineage. Its cold editor gains, navigation tradeoff and unresolved adventure budgets are tied to the sources named there; they are not measurements of the current release head.
+
 ## Final integration reconciliation
 
 The PR reconciles integration at `1810793539c72b9703ec9a63275bda6a0dabd79f`, after the other issue assignments merged. The evidence remains tied to the two measured revisions below. Later Batteries/orb, header-balance, breadcrumb, scrolling, editor and Library changes are included in the merge source but were not measured by this assessment. Do not treat either recorded baseline as a performance result for the final PR or current integration head. Source-level observations describe their recorded revision; implementation follow-ups must reproduce relevant findings on the then-current source before changing it.
