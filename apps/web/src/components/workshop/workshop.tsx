@@ -341,7 +341,6 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
                     onChange={selectCase}
                     value=""
                     hint={WORKSHOP_COPY.caseHint}
-                    disabled={pending}
                   >
                     <option value="" disabled={true}>
                       {WORKSHOP_COPY.chooseCase}
