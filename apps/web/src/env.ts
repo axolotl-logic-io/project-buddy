@@ -244,10 +244,41 @@ function readEndToEndPort(): number {
   return parsed.data;
 }
 
+// Test-only until pricing, tax and refund policy have been approved. Live
+// keys and production deployments fail closed rather than charging money.
+function readBatteryPayments():
+  | { key: string; webhookSecret: string; catalog: string; origin: string }
+  | undefined {
+  const key = readIfSet("STRIPE_TEST_SECRET_KEY");
+  if (key === undefined) {
+    return undefined;
+  }
+  if (!key.startsWith("sk_test_") || readIfSet("VERCEL_ENV") === "production") {
+    throw new Error(
+      "Battery purchases require Stripe test mode outside production.",
+    );
+  }
+  // Preview and development normally share the production Neon database.
+  // Test money must never create spendable grants there.
+  const databaseHost = new URL(readDatabaseUrl()).hostname;
+  if (databaseHost !== "localhost" && databaseHost !== "127.0.0.1") {
+    throw new Error(
+      "Battery test purchases require an isolated local database.",
+    );
+  }
+  return {
+    key,
+    webhookSecret: readRequired("STRIPE_TEST_WEBHOOK_SECRET"),
+    catalog: readRequired("BATTERY_TEST_CATALOG"),
+    origin: z.url().parse(readRequired("STRIPE_TEST_RETURN_ORIGIN")),
+  };
+}
+
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
+  readBatteryPayments,
   readConstructModel,
   readCronSecretIfSet,
   readDatabaseUrl,

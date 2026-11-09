@@ -1,11 +1,10 @@
-import type { JSX, ReactNode } from "react";
+import type { JSX, ReactNode, Ref } from "react";
 import { Icon } from "@/components/ui/icon.tsx";
 
 // What went wrong, such as with a form, one of its fields or a chat's reply.
 // It is an alert, so a screen reader reads it as soon as it appears. A field
-// names it by id in aria-describedby (see field.tsx). Boxed, it stands apart
-// from what surrounds it, as in the chat's thread; otherwise it sits in line
-// under what it is about.
+// names it by id in aria-describedby (see field.tsx) and keeps it inline.
+// Page errors use the shared notice box, with an icon as well as error text.
 function Alert({
   id,
   boxed,
@@ -15,9 +14,9 @@ function Alert({
   readonly boxed?: boolean;
   readonly children: ReactNode;
 }): JSX.Element {
-  let look = "error-text";
-  if (boxed === true) {
-    look = "error-text error-box";
+  let look = "notice error-text";
+  if (id !== undefined && boxed !== true) {
+    look = "error-text";
   }
   return (
     <p className={`${look} icon-line`} id={id} role="alert">
@@ -27,18 +26,33 @@ function Alert({
   );
 }
 
-// What a form did, such as "Saved.", or nothing yet. It is always on the
-// page, empty until there is news, so a screen reader announces each change.
-function FormStatus({
+// Page state is static by default. Callers opt into an announcement only for
+// feedback, and can retain focus when the control that submitted it disappears.
+function Notice({
   children,
+  role,
+  ref,
+  tabIndex,
 }: {
   readonly children?: ReactNode;
+  readonly role?: "status" | "alert";
+  readonly ref?: Ref<HTMLParagraphElement>;
+  readonly tabIndex?: number;
 }): JSX.Element {
   return (
-    <p className="status-text" role="status">
+    <p className="notice" role={role} ref={ref} tabIndex={tabIndex}>
       {children}
     </p>
   );
 }
 
-export { Alert, FormStatus };
+// Keep the live region mounted while empty; only visible feedback gets a box.
+function FormStatus({
+  children,
+}: {
+  readonly children?: ReactNode;
+}): JSX.Element {
+  return <Notice role="status">{children}</Notice>;
+}
+
+export { Alert, FormStatus, Notice };

@@ -1,14 +1,19 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
+import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { HeaderSize } from "@/components/header-size.tsx";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { wholeGold } from "@/gold/gold.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -17,6 +22,60 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+
+// Parents remain full-size keyboard targets. The final item names the current
+// page; long names are visually shortened without shortening accessible names.
+function Breadcrumbs({
+  items,
+}: {
+  readonly items: readonly Breadcrumb[];
+}): JSX.Element | null {
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <nav aria-label={SITE_COPY.breadcrumbs} className="header-breadcrumbs">
+      <ol>
+        {items.map((item, index) => (
+          <li key={item.href ?? "current"}>
+            {index > 0 && (
+              <span aria-hidden="true" className="breadcrumb-separator">
+                {SITE_COPY.breadcrumbSeparator}
+              </span>
+            )}
+            {item.href !== undefined && (
+              <Link href={item.href} title={item.label}>
+                <span>{item.label}</span>
+              </Link>
+            )}
+            {item.href === undefined && (
+              <span aria-current="page" title={item.label}>
+                {item.label}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+// Uses Account's rounding; absence means unavailable, never an empty account.
+function HeaderBalance({
+  microUsd,
+}: {
+  readonly microUsd: number | undefined;
+}): JSX.Element {
+  let amount: string = HEADER_BALANCE_COPY.unavailable;
+  if (microUsd !== undefined) {
+    amount = String(wholeGold(microUsd));
+  }
+  return (
+    <p className="header-balance" role="status">
+      <span>{HEADER_BALANCE_COPY.label}</span> <span>{amount}</span>
+    </p>
+  );
+}
 
 // The ids of the menu's two groups' names. The header is on every page
 // once, so they are unique.
@@ -84,16 +143,22 @@ function AccountLinks(): JSX.Element {
 // place the page belongs to, if any, beside the site's name.
 async function SignedInLinks({
   place,
+  breadcrumbs,
 }: {
   readonly place?: string | undefined;
+  readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
-  if ((await currentUser()) === undefined) {
+  const user = await currentUser();
+  if (user === undefined) {
     return <SiteMenu links={null} />;
   }
+  const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
       {place !== undefined && <p className="hud-place">{place}</p>}
+      <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} shortcuts={true} />
+      {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
     </>
   );
 }
@@ -102,8 +167,8 @@ async function SignedInLinks({
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim, whose
-// title, behind a compass, leads back to Home. Home uses a frosted paper
-// bar over the map while other pages keep the ink HUD (page-roles.css).
+// title, behind a compass, leads back to Home. The controls scroll away;
+// pages with breadcrumbs keep only that navigation row pinned.
 function SiteHeader({
   links = VISITOR_MENU,
 }: {
@@ -111,6 +176,7 @@ function SiteHeader({
 }): JSX.Element {
   return (
     <header className="site-header">
+      <HeaderSize />
       <Link className="header-title hud-title" href={HOME_PATH}>
         <span className="hud-medallion">
           <Icon name="compass" />
@@ -122,4 +188,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, SignedInLinks, SiteHeader };
+export { AccountLinks, Breadcrumbs, HeaderBalance, SignedInLinks, SiteHeader };

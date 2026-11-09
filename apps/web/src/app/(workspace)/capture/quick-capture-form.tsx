@@ -88,6 +88,10 @@ export function QuickCaptureForm({
     });
   }, [key, projectId, projects, draftKey]);
   const textRef = useRef<HTMLTextAreaElement>(null);
+  if (!projects.some((project) => project.id === chosen)) {
+    setChosen(projectId);
+    setDraft(readLocalDraft(draftKey(projectId), z.string()) ?? "");
+  }
 
   if (state !== shownState) {
     setShownState(state);
