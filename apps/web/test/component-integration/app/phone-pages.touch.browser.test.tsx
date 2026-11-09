@@ -30,7 +30,7 @@ import type {
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
-import type { readGoldBalance } from "@/gold/gold-store.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
   getListing,
   listListings,
@@ -64,13 +64,14 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
+import { GOLD_BALANCE } from "./phone-pages-fixtures.ts";
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open adventure" }],
+    activities: [{ id: "open-chat", name: "Chat" }],
   }),
 }));
 
@@ -313,6 +314,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
   for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }

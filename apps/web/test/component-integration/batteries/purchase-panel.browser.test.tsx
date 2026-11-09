@@ -70,20 +70,10 @@ test("out of batteries links to Account purchase guidance", async () => {
     .toHaveAttribute("href", "/account#buy-batteries");
 });
 
-test("disabled purchases preserve legacy earning guidance", async () => {
+test("disabled purchases explain availability without a purchase or earning link", async () => {
   await render(<EarnGoldLink />);
   await expect
-    .element(page.getByRole("link"))
-    .toHaveAttribute("href", "/marketplace#your-listings");
-});
-
-test("Marketplace shortages retain earning guidance even with test Checkout", async () => {
-  await render(
-    <BatteryPurchasesAvailable available={true}>
-      <EarnGoldLink marketplace={true} />
-    </BatteryPurchasesAvailable>,
-  );
-  await expect
-    .element(page.getByRole("link"))
-    .toHaveAttribute("href", "/marketplace#your-listings");
+    .element(page.getByText(BATTERY_PURCHASES_COPY.unavailable))
+    .toBeVisible();
+  await expect.element(page.getByRole("link")).not.toBeInTheDocument();
 });

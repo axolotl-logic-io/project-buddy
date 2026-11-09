@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { createContext, type JSX, type ReactNode, useContext } from "react";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 
 // The server supplies only availability, never payment configuration.
 const BatteryPurchasesContext = createContext(false);
@@ -22,25 +21,23 @@ function BatteryPurchasesAvailable({
   );
 }
 
-// Compatibility name. Until #779's operator cutover, sales still earn the
-// shared balance. Marketplace buyers always need Marketplace guidance.
-function EarnGoldLink({
-  marketplace = false,
-}: {
-  readonly marketplace?: boolean;
-}): JSX.Element {
+// Compatibility name: Marketplace sales never fund model use after the
+// orb migration, regardless of its activation gate.
+function EarnGoldLink(): JSX.Element {
   const available = useContext(BatteryPurchasesContext);
-  let href = "/marketplace#your-listings";
-  let label: string = MARKETPLACE_COPY.earnGold;
-  if (available === true && marketplace !== true) {
-    href = "/account#buy-batteries";
-    label = BATTERY_PURCHASES_COPY.heading;
+  if (available !== true) {
+    return (
+      <>
+        {" "}
+        <span>{BATTERY_PURCHASES_COPY.unavailable}</span>
+      </>
+    );
   }
   return (
     <>
       {" "}
-      <Link className="text-link" href={href}>
-        {label}
+      <Link className="text-link" href="/account#buy-batteries">
+        {BATTERY_PURCHASES_COPY.heading}
       </Link>
     </>
   );
