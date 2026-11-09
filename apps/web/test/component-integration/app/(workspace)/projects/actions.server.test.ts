@@ -42,7 +42,7 @@ async function createProject(
   const form = new FormData();
   form.set("name", name);
   if (constructId !== undefined) {
-    await saveInterviewConstruct(user.id, constructId);
+    form.set("constructId", constructId);
   }
   const creating = createProjectAction(IDLE, form);
   await Promise.allSettled([creating]);
@@ -206,7 +206,7 @@ describe("use_case_new_project_name_too_long", () => {
 });
 
 describe("use_case_new_project_motivation", () => {
-  test("keeps motivation in shared memory and uses the setting rather than submitted construct ids", async () => {
+  test("keeps motivation in shared memory and uses the selected construct rather than the preference", async () => {
     const user = await testUser();
     await signIn(user);
     await saveInterviewConstruct(user.id, "lumen");
@@ -229,7 +229,7 @@ describe("use_case_new_project_motivation", () => {
       throw new Error("No chat was made");
     }
     await expectRedirect(() => creating, `/chats/${chat.id}`);
-    expect(chat.construct.name).toBe("Lumen");
+    expect(chat.construct.name).toBe("Vellum");
     expect((await readMemory(user.id, project.id)).text).toBe(motivation);
     expect(await readMemoryHistory(user.id, project.id)).toMatchObject([
       { author: "user", text: motivation },
@@ -239,6 +239,45 @@ describe("use_case_new_project_motivation", () => {
     ).toContain(motivation);
     expect(await constructPrompt(chat.id)).toContain(motivation);
     await saveInterviewConstruct(user.id, "vellum");
-    expect((await getChat(user.id, chat.id))?.construct.name).toBe("Lumen");
+    expect((await getChat(user.id, chat.id))?.construct.name).toBe("Vellum");
+  });
+});
+
+describe("use_case_start_quest_two_fields", () => {
+  test("omitting a name creates a valid quest in the default activity with the selected construct", async () => {
+    const user = await testUser();
+    await signIn(user);
+    const creating = createProjectAction(
+      IDLE,
+      formOf({ constructId: "lumen", motivation: "" }),
+    );
+    await Promise.allSettled([creating]);
+    const [project] = await listProjects(user.id);
+    if (project === undefined) {
+      throw new Error("No quest was made");
+    }
+    const [chat] = await listChats(user.id, project.id);
+    if (chat === undefined) {
+      throw new Error("No adventure was made");
+    }
+    await expectRedirect(() => creating, `/chats/${chat.id}`);
+    expect(project.name).toBe(PROJECTS_COPY.defaultName);
+    expect(chat.construct.name).toBe("Lumen");
+    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
+    const later = await testData(user).chat(project, "vellum");
+    expect(later.construct.name).toBe("Vellum");
+  });
+  test("another user's construct cannot start a quest", async () => {
+    const user = await testUser();
+    const other = await testUser();
+    const own = await cloneConstruct(other.id, "lumen");
+    if (own === undefined) {
+      throw new Error("No construct was cloned");
+    }
+    await signIn(user);
+    expect(
+      await createProjectAction(IDLE, formOf({ constructId: own.id })),
+    ).toMatchObject({ kind: "invalid" });
+    expect(await listProjects(user.id)).toEqual([]);
   });
 });

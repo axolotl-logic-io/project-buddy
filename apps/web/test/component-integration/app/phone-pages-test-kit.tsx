@@ -298,16 +298,14 @@ function projectsPageOf(
       vi.mocked(listConstructs).mockResolvedValue([...ownConstructs]);
       vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
     },
-    async () => (
-      <ProjectListLayout params={NO_PARAMS}>
-        {
-          await ProjectsPage({
-            params: Promise.resolve({}),
-            searchParams: Promise.resolve({}),
-          })
-        }
-      </ProjectListLayout>
-    ),
+    async () =>
+      ProjectListLayout({
+        params: NO_PARAMS,
+        children: await ProjectsPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+      }),
   );
 }
 
@@ -532,7 +530,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project invitation's page", render: projectInvitationPage },
   {
-    name: "the projects list's New project dialog",
+    name: "the projects list's Start Quest dialog",
     render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
@@ -541,7 +539,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+          .getByRole("textbox", { name: PROJECTS_COPY.whyLabel })
           .element(),
       );
     },
