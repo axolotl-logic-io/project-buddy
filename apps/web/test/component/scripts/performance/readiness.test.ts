@@ -199,3 +199,25 @@ test("network attribution keeps only coarse initiators and numeric request facts
     ).toThrow();
   }
 });
+
+test("v5 observations must name their state content check and cannot mix with v4", () => {
+  const unchecked: ReadinessRow = {
+    ...HOME,
+    captureProtocol: "commit-probe-v5",
+  };
+  expect(() => validateReadinessRows([unchecked], SAMPLES)).toThrow(
+    "State content check missing",
+  );
+  expect(() =>
+    validateReadinessRows([{ ...HOME, contentCheck: "fixture-link" }], SAMPLES),
+  ).toThrow("State content check missing");
+  expect(() =>
+    validateReadinessRows(
+      [HOME, { ...unchecked, contentCheck: "no-owned-entities", sample: 2 }],
+      SAMPLES,
+    ),
+  ).toThrow("Mixed capture protocols");
+  expect(() =>
+    parseReadinessRow({ ...unchecked, contentCheck: "message text" }),
+  ).toThrow();
+});

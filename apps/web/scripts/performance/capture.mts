@@ -21,7 +21,12 @@ import {
 } from "./artifacts.ts";
 import { type CapturePhase, captureFailure } from "./capture-failure.ts";
 import { initialCls } from "./metrics.ts";
-import { observe, primaryPresent } from "./observe.mts";
+import {
+  observe,
+  primaryPresent,
+  type StateContent,
+  statePresent,
+} from "./observe.mts";
 import type { seedAudit } from "./seed.mts";
 
 const CONTROL_DEADLINE_MS = 15_000;
@@ -77,6 +82,46 @@ function supports(
     );
   }
   return true;
+}
+// The content each state must show once observed: the fixture's own entity,
+// the exact history size, or no owned entities for an empty account.
+function stateContent(
+  state: ReadinessRow["state"],
+  name: ReadinessRow["name"],
+  fixture: Fixture,
+): StateContent {
+  if (name === "long-adventure") {
+    let count = fixture.counts.messages;
+    if (state === "empty-detail") {
+      count = fixture.counts.emptyDetailMessages;
+    }
+    return { check: "message-count", label: "Conversation", count };
+  }
+  if (name === "editor") {
+    return {
+      check: "edited-prompt",
+      ending: fixture.counts.editedPromptEnding,
+    };
+  }
+  if (name === "activities") {
+    return { check: "listed-activities" };
+  }
+  if (state === "empty") {
+    return { check: "no-owned-entities" };
+  }
+  if (name === "quest" && state === "empty-detail") {
+    return { check: "fixture-link", href: `/chats/${fixture.emptyChat}` };
+  }
+  if (name === "quest" || name === "adventures") {
+    return { check: "fixture-link", href: `/chats/${fixture.chat}` };
+  }
+  if (name === "workshop") {
+    return {
+      check: "fixture-link",
+      href: `/constructs/${fixture.construct}`,
+    };
+  }
+  return { check: "fixture-link", href: `/projects/${fixture.project}` };
 }
 function route(path: string): string {
   return path.split("?")[0]?.replace(UUID, ":id") ?? "/other";
@@ -617,6 +662,16 @@ async function captureMatrix(
         await page.evaluate(() => {
           globalThis.audit.primary = performance.now();
         });
+        const content = stateContent(state, name, fixture);
+        // The editor probe replaces the prompt's text, so its saved content is
+        // read before the probe; other states are read after the observation
+        // window, outside every measured interval.
+        if (name === "editor") {
+          phase = "state-content";
+          if ((await page.evaluate(statePresent, content)) !== true) {
+            throw new Error("State content not observed");
+          }
+        }
         phase = "control-probe";
         const control = await probe(page, name);
         phase = "observation";
@@ -676,6 +731,14 @@ async function captureMatrix(
             resources,
           };
         });
+        phase = "state-content";
+        if (
+          name !== "editor" &&
+          (await page.evaluate(statePresent, content)) !== true
+        ) {
+          throw new Error("State content not observed");
+        }
+        phase = "read-result";
         const documentTimeOrigin = await page.evaluate(
           () => performance.timeOrigin,
         );
@@ -746,7 +809,8 @@ async function captureMatrix(
         }
         const row = {
           ...data,
-          captureProtocol: "commit-probe-v4",
+          captureProtocol: "commit-probe-v5",
+          contentCheck: content.check,
           hostLoad,
           state,
           profile,
@@ -838,6 +902,7 @@ export {
   probe,
   route,
   safeResource,
+  stateContent,
   visible,
   writeGzip,
 };

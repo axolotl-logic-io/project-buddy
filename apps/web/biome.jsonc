@@ -34,7 +34,8 @@
         "scripts/performance/lighthouse.mts",
         "scripts/performance/validate.mts",
         "scripts/performance/validate-output.mts",
-        "test/component-integration/scripts/performance/compressed.test.mts"
+        "test/component-integration/scripts/performance/compressed.test.mts",
+        "test/component-integration/scripts/performance/audit-directory.test.ts"
       ],
       "linter": {
         "rules": {

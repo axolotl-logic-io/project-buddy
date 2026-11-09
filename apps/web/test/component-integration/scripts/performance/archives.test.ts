@@ -7,7 +7,10 @@ import {
   validateTrace,
 } from "../../../../scripts/performance/artifacts.ts";
 
-import { validateAuditDirectory } from "../../../../scripts/performance/validate-output.mts";
+import {
+  validateAuditDirectory,
+  validateCompressedCohort,
+} from "../../../../scripts/performance/validate-output.mts";
 
 const ARCHIVE = new URL(
   "../../../../../../docs/performance/773/",
@@ -112,11 +115,19 @@ test("validates the committed focused gzip without treating it as a full audit",
 });
 
 const FULL_SAMPLE_COUNT = 3;
+const FULL_ROW_COUNT = 270;
 const HOME_FRAME_COUNT = 14;
 
-test("validates the committed complete gzip cohort and binds manual filmstrip review", async () => {
+test("keeps the pre-fix gzip cohort and its filmstrip review, but not as a verified audit", async () => {
   const directory = new URL("../797/full/", ARCHIVE);
-  await validateAuditDirectory(directory.pathname, FULL_SAMPLE_COUNT);
+  await expect(
+    validateCompressedCohort(directory.pathname, FULL_SAMPLE_COUNT),
+  ).resolves.toHaveLength(FULL_ROW_COUNT);
+  // Its Lighthouse navigations ran in another tab than the content check and
+  // its manifest predates the strict schema, so it is not a verified audit.
+  await expect(
+    validateAuditDirectory(directory.pathname, FULL_SAMPLE_COUNT),
+  ).rejects.toThrow();
   const [home, review, manifest] = await Promise.all([
     readFile(new URL("home.trace.json.gz", directory)),
     readFile(new URL("filmstrip-review.json", directory), "utf8"),

@@ -12,6 +12,7 @@ type CapturePhase =
   | "primary-content"
   | "control-probe"
   | "observation"
+  | "state-content"
   | "read-result"
   | "validate-result"
   | "persist-result"
@@ -33,6 +34,7 @@ const SCHEMA_FIELDS = z.enum([
   "origin",
   "activated",
   "captureProtocol",
+  "contentCheck",
 ]);
 const EVENT_PROPERTIES = z.enum(["name", "time", "duration", "interaction"]);
 const KNOWN_ERRORS = new Map([
@@ -42,6 +44,7 @@ const KNOWN_ERRORS = new Map([
   ["Invalid authenticated source", "source-invalid"],
   ["Intended authenticated destination not reached", "destination-invalid"],
   ["Non-2xx destination", "destination-status"],
+  ["State content not observed", "content-absent"],
 ]);
 
 // Preserve actionable failure categories without serializing exceptions,

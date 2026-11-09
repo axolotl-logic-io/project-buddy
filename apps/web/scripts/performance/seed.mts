@@ -9,6 +9,10 @@ import { testUser } from "../../test/support/test-database/user-test-kit.ts";
 import { checkTestEnvironment } from "../test-db/test-database.ts";
 
 const PARAGRAPH_REPEATS = 20;
+const EXCHANGES = 100;
+// Each exchange saves the user's message and the construct's reply.
+const MESSAGES_PER_EXCHANGE = 2;
+const EDITED_PROMPT_ENDING = "Edited.";
 
 async function seedAudit(): Promise<{
   empty: string;
@@ -19,6 +23,14 @@ async function seedAudit(): Promise<{
   construct: string;
   emptyProject: string;
   emptyChat: string;
+  counts: {
+    accounts: number;
+    quests: number;
+    messages: number;
+    ownConstructs: number;
+    emptyDetailMessages: number;
+    editedPromptEnding: string;
+  };
 }> {
   checkTestEnvironment();
   const empty = await testUser();
@@ -29,7 +41,7 @@ async function seedAudit(): Promise<{
   await kit.exchanges(
     chat,
     Array.from(
-      { length: 100 },
+      { length: EXCHANGES },
       (_, index): Exchange => ({
         message: `Synthetic question ${index}.`,
         reply: [
@@ -46,6 +58,9 @@ async function seedAudit(): Promise<{
     ),
   );
   const construct = await kit.editedConstruct();
+  if (!construct.definition.prompt.endsWith(EDITED_PROMPT_ENDING)) {
+    throw new Error("The edited construct lacks its edit marker");
+  }
   const details = await testUser();
   const detailKit = testData(details);
   const emptyProject = await detailKit.project("Synthetic empty quest");
@@ -60,6 +75,14 @@ async function seedAudit(): Promise<{
     construct: construct.id,
     emptyProject: emptyProject.id,
     emptyChat: emptyChat.id,
+    counts: {
+      accounts: [empty, populated, details].length,
+      quests: [project, emptyProject].length,
+      messages: EXCHANGES * MESSAGES_PER_EXCHANGE,
+      ownConstructs: 1,
+      emptyDetailMessages: 0,
+      editedPromptEnding: EDITED_PROMPT_ENDING,
+    },
   };
 }
 

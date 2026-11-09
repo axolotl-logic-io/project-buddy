@@ -1,21 +1,28 @@
 import { writeFile } from "node:fs/promises";
 import lighthouse, { startFlow } from "lighthouse";
-import type Result from "lighthouse/types/lhr/lhr.js";
+import {
+  screenEmulationMetrics,
+  userAgents,
+} from "lighthouse/core/config/constants.js";
 import type LighthousePuppeteer from "lighthouse/types/puppeteer.js";
-import { type Browser, Page } from "puppeteer-core";
+import { type Browser, type Frame, Page } from "puppeteer-core";
 import { z } from "zod";
 import {
   type CaptureOptions,
   type Fixture,
   probe,
   route,
+  stateContent,
   visible,
 } from "./capture.mts";
-import { primaryPresent } from "./observe.mts";
+import { verifiedNavigation, verifiedTimespan } from "./lighthouse-evidence.ts";
+import { primaryPresent, statePresent } from "./observe.mts";
 
-// Lighthouse 12 bundles Puppeteer 22 while the matrix pins Puppeteer 24.
-// Both expose the same CDP Page contract; their private TypeScript brands differ.
-// Validate the actual Page instance at this single third-party adapter boundary.
+// Lighthouse 12.8.2 nests its own puppeteer-core (24.43.1) while the matrix
+// pins 24.12.1 at the root; the manifest records both installed versions.
+// Their Page classes share the CDP contract but carry different private
+// TypeScript brands. Validate the actual Page instance at this single
+// third-party adapter boundary, and hand Lighthouse that same page.
 const LIGHTHOUSE_PAGE = z.custom<LighthousePuppeteer.Page>(
   (input) =>
     input instanceof Page &&
@@ -23,34 +30,6 @@ const LIGHTHOUSE_PAGE = z.custom<LighthousePuppeteer.Page>(
     typeof input.url() === "string",
 );
 
-function reduce(report: Result): Readonly<Record<string, unknown>> {
-  if (
-    report.runtimeError !== undefined ||
-    report.runWarnings.length > 0 ||
-    Object.values(report.audits).some(
-      (audit) => audit.scoreDisplayMode === "error",
-    )
-  ) {
-    throw new Error("Lighthouse audit failed or warned");
-  }
-  return {
-    version: report.lighthouseVersion,
-    mode: report.gatherMode,
-    throttlingMethod: report.configSettings.throttlingMethod,
-    formFactor: report.configSettings.formFactor,
-    throttling: report.configSettings.throttling,
-    audits: Object.fromEntries(
-      Object.entries(report.audits).map(([key, audit]) => [
-        key,
-        {
-          score: audit.score,
-          value: audit.numericValue,
-          unit: audit.numericUnit,
-        },
-      ]),
-    ),
-  };
-}
 async function authenticated(
   page: Page,
   base: string,
@@ -64,6 +43,9 @@ async function authenticated(
     throw new Error("Invalid Lighthouse authenticated destination");
   }
   await page.waitForFunction(primaryPresent, {}, name);
+}
+function viewport(): string {
+  return `${innerWidth}x${innerHeight}@${devicePixelRatio}`;
 }
 async function captureLighthouse(
   browser: Browser,
@@ -82,37 +64,76 @@ async function captureLighthouse(
       httpOnly: true,
       sameSite: "Lax",
     });
-    const port = Number(new URL(browser.wsEndpoint()).port);
+    // The timespan's emulation is Lighthouse's own mobile profile, applied
+    // before any source page loads so the measured interval never resizes.
+    const metrics = screenEmulationMetrics.mobile;
+    await page.setViewport({
+      width: metrics.width,
+      height: metrics.height,
+      deviceScaleFactor: metrics.deviceScaleFactor,
+      isMobile: metrics.mobile,
+      hasTouch: metrics.mobile,
+    });
+    await page.setUserAgent(userAgents.mobile);
     const navigationReports: unknown[] = [];
     const flowReports: unknown[] = [];
     async function navigation(
       sample: number,
-      name: string,
+      name: "home" | "long-adventure",
       path: string,
     ): Promise<void> {
+      const url = options.base + path;
       await authenticated(page, options.base, path, name);
-      const result = await lighthouse(options.base + path, {
-        port,
-        disableStorageReset: true,
-        output: "json",
-        logLevel: "silent",
-        onlyCategories: ["performance"],
-      });
-      if (
-        result === undefined ||
-        result.lhr.finalDisplayedUrl !== options.base + path ||
-        result.lhr.requestedUrl !== options.base + path
-      ) {
-        throw new Error("Lighthouse redirected or failed");
+      const sourceTimeOrigin = await page.evaluate(
+        () => performance.timeOrigin,
+      );
+      const mainFrameUrls: string[] = [];
+      function committed(frame: Frame): void {
+        if (frame === page.mainFrame()) {
+          mainFrameUrls.push(frame.url());
+        }
       }
-      await page.waitForFunction(primaryPresent, {}, name);
-      navigationReports.push({
-        sample,
-        path: route(path),
-        authenticated: true,
-        cache: "authenticated warm assets; storage reset disabled",
-        ...reduce(result.lhr),
-      });
+      const content = stateContent("populated", name, fixture);
+      page.on("framenavigated", committed);
+      let result: Awaited<ReturnType<typeof lighthouse>>;
+      let auditedNavigations = 0;
+      try {
+        result = await lighthouse(
+          url,
+          {
+            disableStorageReset: true,
+            output: "json",
+            logLevel: "silent",
+            onlyCategories: ["performance"],
+          },
+          undefined,
+          auditPage,
+        );
+        auditedNavigations = mainFrameUrls.length;
+        // The audited document must show its content; any later navigation
+        // would make this check describe a different document.
+        await page.waitForFunction(primaryPresent, {}, name);
+        await page.waitForFunction(statePresent, {}, content);
+      } finally {
+        page.off("framenavigated", committed);
+      }
+      navigationReports.push(
+        verifiedNavigation(
+          result?.lhr,
+          {
+            url,
+            sourceTimeOrigin,
+            auditedTimeOrigin: await page.evaluate(
+              () => performance.timeOrigin,
+            ),
+            mainFrameUrls,
+            navigationsAfterAudit: mainFrameUrls.length - auditedNavigations,
+            pageUrl: page.url(),
+            content: await page.evaluate(statePresent, content),
+          },
+          { sample, path: route(path), content: content.check },
+        ),
+      );
       await writeFile(
         `${options.output}/lighthouse.json`,
         JSON.stringify(navigationReports, null, 2),
@@ -126,35 +147,45 @@ async function captureLighthouse(
       await navigation(sample, "long-adventure", `/chats/${fixture.chat}`);
       await authenticated(page, options.base, "/home", "home");
       await probe(page, "home");
-      const sourceDocument = await page.evaluate(() => performance.timeOrigin);
+      const sourceTimeOrigin = await page.evaluate(
+        () => performance.timeOrigin,
+      );
       const session = await auditPage.createCDPSession();
       await session.send("Runtime.enable");
       await session.detach();
       const flow = await startFlow(auditPage, {
         name: "Authenticated Home to Quests",
       });
+      const viewportBeforeTimespan = await page.evaluate(viewport);
       await flow.startTimespan();
+      const viewportInTimespan = await page.evaluate(viewport);
       await (await visible(page, 'a[href="/projects"]')).click();
       await page.waitForFunction(() => location.pathname === "/projects");
       await page.waitForFunction(primaryPresent, {}, "quests");
-      if (
-        page.url() !== `${options.base}/projects` ||
-        (await page.evaluate(() => performance.timeOrigin)) !== sourceDocument
-      ) {
-        throw new Error("Lighthouse flow redirected");
-      }
+      const content = stateContent("populated", "quests", fixture);
+      const witness = {
+        url: `${options.base}/projects`,
+        viewportBeforeTimespan,
+        viewportInTimespan,
+        sourceTimeOrigin,
+        destinationTimeOrigin: await page.evaluate(
+          () => performance.timeOrigin,
+        ),
+        pageUrl: page.url(),
+        content: await page.evaluate(statePresent, content),
+      };
       await flow.endTimespan();
       const result = await flow.createFlowResult();
+      if (result.steps.length !== 1) {
+        throw new Error("Lighthouse flow has an unexpected step count");
+      }
       flowReports.push(
-        ...result.steps.map((step) => ({
-          sample,
-          source: "/home",
-          destination: "/projects",
-          authenticated: true,
-          scope:
-            "Source Home document can contribute lifetime metrics; flow CLS is not an independent transition metric",
-          ...reduce(step.lhr),
-        })),
+        ...result.steps.map((step) =>
+          verifiedTimespan(step.lhr, witness, {
+            sample,
+            content: content.check,
+          }),
+        ),
       );
       await writeFile(
         `${options.output}/lighthouse-flow.json`,
@@ -166,7 +197,7 @@ async function captureLighthouse(
   } catch (error) {
     await writeFile(
       `${options.output}/lighthouse-failure.json`,
-      JSON.stringify({ reason: "audit-failed-or-redirected", complete: false }),
+      JSON.stringify({ reason: "audit-failed-or-unverified", complete: false }),
     );
     throw new Error("Lighthouse failed; partial reports retained", {
       cause: error,
