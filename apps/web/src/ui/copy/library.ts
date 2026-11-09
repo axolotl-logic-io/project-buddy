@@ -130,7 +130,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Choose a companion under Test activity in the Workshop. Test “I have one sunny shelf. What should I do first?” Check whether Moss offers a concrete, manageable experiment. Then test an unrelated request to ensure the voice does not force every answer back to gardening.",
+            "Choose Try your draft to open the drawer, then choose a companion under Test activity. Test “I have one sunny shelf. What should I do first?” Check whether Moss offers a concrete, manageable experiment. Then test an unrelated request to ensure the voice does not force every answer back to gardening.",
             "Change one habit at a time and start a fresh test. Follow-ups keep the test version; editing the draft or companion marks results out of date and the next test starts fresh. Save when the behavior is useful, then start a new adventure to use the saved construct.",
             "Tests use real model calls and Batteries, but save no adventure or quest changes. They cannot prove Journal edits, manual searches, image generation or other unavailable tools work. A pleasant greeting alone does not demonstrate reliable technical help. Generate Images is a separate paid action: it uses the current draft Visual description without saving the name, Prompt or description. Generated draft art can be previewed and recovered. Save attaches matching draft art without another charge; a changed saved description with no matching draft art can request replacement artwork.",
           ],
@@ -178,7 +178,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Choose Test construct and Test activity in Workshop. First choose Let the construct decide and ask “Should I plant basil or mint on my sunny shelf?” Look for the spell cast and then assess the comparison. Also test a request that should not need it, such as “Say hello.”",
+            "Choose Try your draft to open the drawer, then choose Test construct and Test activity. First choose Let the construct decide and ask “Should I plant basil or mint on my sunny shelf?” Look for the spell cast and then assess the comparison. Also test a request that should not need it, such as “Say hello.”",
             "Choose Cast before replying to load the draft before the reply when you want to isolate the Spell Sheet. A good forced reply proves nothing about automatic selection. If forced behavior is good but automatic casting fails, refine the when-to-use guidance and try a fresh test.",
             "Follow-ups retain loaded spell ids and the test conversation, but resolve those ids against the current draft or accessible source on each request. Unlike adventure casts, Workshop does not preserve old cast instruction text. Tests have only spell casting, not real quest tools or manual search. Review behavior across several realistic requests; one successful example cannot guarantee future selection or compliance.",
           ],
@@ -226,7 +226,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Choose Test construct and use Test opening request in Workshop. Then send “I have ten minutes and a sunny shelf.” Check that the reply helps define a small experiment. Follow up with an unrelated question and check that the activity does not prevent a useful answer.",
+            "Choose Try your draft to open the drawer, then choose Test construct and use Test opening request. Then send “I have ten minutes and a sunny shelf.” Check that the reply helps define a small experiment. Follow up with an unrelated question and check that the activity does not prevent a useful answer.",
             "Built-in construct/activity combinations, and unchanged copies, may have a prepared opening. It is displayed without a model call. Special quest motivation and interview kickoffs always generate an opening, even for built-in combinations. Modified combinations normally generate an opening from the opening request and assembled context. Workshop opening tests exercise generation, not prepared-opening selection.",
             "Test a fresh conversation after editing. Workshop has no real quest Journal and cannot switch activities or save milestones. Use the model context book to understand these limits before interpreting a test as evidence for a real quest workflow.",
           ],
