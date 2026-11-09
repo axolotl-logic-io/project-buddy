@@ -7,7 +7,9 @@ A spell is a set of instructions the construct loads only when it needs them. Ea
 - **Ask one question at a time:** the construct interviews her step by step, one short question per message.
 - **Blender manual lookup:** the construct looks up Blender facts in the Blender manual and cites the sections it read (see [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question)).
 
-Successful saves in an own spell’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Write new spell” to distinguish it from an own definition named “New spell”.
+Successful saves in an own spell’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Craft spell” to distinguish it from an own definition named “New spell”.
+
+Built-in, starter, customized and reset prompts use `# Spell Sheet`. The separate name identifies the definition; renaming leaves the sheet heading alone. Edited instructions and existing adventure snapshots keep their text.
 
 ## use_case_construct_casts_spell
 
@@ -38,17 +40,17 @@ The user makes a spell of her own from a built-in one, and changes it.
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.
-  - `use_case_new_spell`: write a spell of her own from scratch.
+  - `use_case_new_spell`: craft a spell of her own.
 
 ## use_case_new_spell
 
-The user writes a spell of her own from scratch.
+The user crafts a spell of her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - On the Spellbook, she chooses Write new spell. The site makes a new spell of hers and opens its page to edit.
+  - On the Spellbook, she chooses Craft spell. The site makes a new spell of hers and opens its page to edit.
   - She names it, writes its when-to-use line and instructions, and saves.
   - She chooses Reset instructions; Undo reset restores the previous draft, and Save keeps the reset. She then has the construct cast the spell in an adventure.
-- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and retire it, and the construct lists and casts it. Choosing Write new spell again makes another spell named "New spell". Another user never sees it.
+- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and retire it, and the construct lists and casts it. Choosing Craft spell again makes another spell named "New spell". Another user never sees it.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.

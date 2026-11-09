@@ -13,6 +13,7 @@ import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
@@ -96,7 +97,7 @@ export default async function ProjectPage({
         <QuestStatusControls project={project} />
       </div>
       {project.status !== "active" && (
-        <p className="panel">{QUEST_STATUS_COPY.effects}</p>
+        <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
       <NewChatDialog
         activities={activities}
@@ -112,7 +113,11 @@ export default async function ProjectPage({
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
-      <ProjectNotes notes={notes} projectId={project.id} />
+      <ProjectNotes
+        notes={notes}
+        projectId={project.id}
+        status={project.status}
+      />
       <ProjectMembers
         members={members}
         projectId={project.id}

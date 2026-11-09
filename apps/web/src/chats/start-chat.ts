@@ -181,11 +181,13 @@ async function startProject(
   construct: NewChatConstruct,
   {
     motivation = "",
+    journal = "",
     activity = builtInActivity("project-breakdown"),
     transaction,
   }: {
     readonly transaction?: Transaction;
     readonly motivation?: string;
+    readonly journal?: string;
     readonly activity?: ChatActivity;
   } = {},
 ): Promise<StartChatResult<ProjectChat>> {
@@ -193,13 +195,16 @@ async function startProject(
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
+  const initialJournal = [journal, motivation]
+    .filter((text) => text !== "")
+    .join("\n\n");
   let memory = EMPTY_MEMORY;
   let kickoff: string | undefined;
   if (motivation !== "") {
     kickoff = motivatedOpeningRequest(activity.definition.openingRequest);
   }
-  if (motivation !== "") {
-    memory = { text: motivation, version: MEMORY_VERSION_NUMBER.parse(1) };
+  if (initialJournal !== "") {
+    memory = { text: initialJournal, version: MEMORY_VERSION_NUMBER.parse(1) };
   }
   const opening = await openingFor(
     owner,
@@ -217,7 +222,7 @@ async function startProject(
       construct,
       activity,
       opening,
-      motivation,
+      journal: initialJournal,
     },
     transaction,
   );

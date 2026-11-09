@@ -51,7 +51,7 @@ import {
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open adventure" }],
+    activities: [{ id: "open-chat", name: "Chat" }],
   }),
 }));
 
@@ -182,7 +182,7 @@ describe("use_case_reset_construct_part", () => {
     expect(form.get("prompt")).toBe(getConstruct("lumen").definition.prompt);
   });
 
-  test("the prompt of a construct cloned from one of her own, or written from scratch, resets to Vellum's", async () => {
+  test("the prompt of a construct cloned from one of her own, or crafted, resets to Vellum's", async () => {
     await openConstruct({
       ...LUMEN_CLONE,
       clonedFrom: VELLUM_CLONE.id,
@@ -677,3 +677,14 @@ test("text-only Save during pending work preserves its original UUID and payload
     description,
   });
 });
+
+vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+  startPremadeQuestAction: vi.fn(),
+}));
+vi.mock("@/projects/quest-creation-choices.ts", () => ({
+  questCreationChoices: vi.fn(),
+}));
+vi.mock("@/chats/new-chat-choices.ts", () => ({ newChatChoices: vi.fn() }));
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(),
+}));

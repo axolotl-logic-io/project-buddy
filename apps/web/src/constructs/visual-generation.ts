@@ -18,6 +18,7 @@ import {
 } from "@/constructs/visual.ts";
 import {
   grantVisualAssets,
+  latestDraftVisual,
   previousVisualAvailable,
 } from "@/constructs/visual-asset-store.ts";
 import {
@@ -98,6 +99,7 @@ async function claim(
   owner: UserId,
   request: VisualGenerationRequest,
   available: boolean,
+  options: { readonly saved: boolean; readonly regenerate: boolean },
 ): Promise<VisualGenerationResult | { id: string; description: string }> {
   return await inTransaction(async (tx) => {
     await lockGold(owner, tx);
@@ -134,10 +136,20 @@ async function claim(
       return result("not-found");
     }
     if (
+      options.saved &&
       normalizeVisualDescription(definition.visual?.description ?? "") !==
-      normalizeVisualDescription(request.description)
+        request.description
     ) {
       return result("stale");
+    }
+    if (
+      options.saved &&
+      !options.regenerate &&
+      definition.visual?.sourceFingerprintVersion === 2 &&
+      definition.visual.sourceFingerprint ===
+        (await visualFingerprint(request.description))
+    ) {
+      return result("generated", definition.visual);
     }
     const [pending] = await tx
       .select()
@@ -266,13 +278,17 @@ async function complete(
       )
       .for("update");
     const definition = parseConstructDefinition(source?.parts);
+    let parts = source?.parts;
     let visual: ConstructVisual | undefined;
     let status: "generated" | "stale" = "stale";
     if (
       source !== undefined &&
       definition !== undefined &&
       normalizeVisualDescription(definition.visual?.description ?? "") ===
-        normalizeVisualDescription(generation.description)
+        normalizeVisualDescription(
+          parseConstructDefinition(generation.sourceParts)?.visual
+            ?.description ?? "",
+        )
     ) {
       const [asset] = await tx
         .insert(constructAssets)
@@ -290,20 +306,25 @@ async function complete(
         canonical: { kind: "generated", assetId },
         frames: { avatar: { x: 0.5, y: 0.5, size: 0.5 } },
       };
-      await tx
-        .update(ownPrompts)
-        .set({
-          parts: storedConstructPrompt({ ...definition, visual }),
-          previousVisual: await recoverableVisual(owner, tx, definition.visual),
-          updatedAt: sql`now()`,
-        })
-        .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, source.id)));
-      await grantVisualAssets(
-        owner,
-        tx,
-        { kind: "construct", id: source.id },
-        { parts: { ...definition, visual } },
-      );
+      // Unsaved artwork has its own compatible snapshot; Save alone changes text.
+      if (
+        normalizeVisualDescription(definition.visual?.description ?? "") ===
+        generation.description
+      ) {
+        parts = storedConstructPrompt({ ...definition, visual });
+        await tx
+          .update(ownPrompts)
+          .set({
+            parts,
+            previousVisual: await recoverableVisual(
+              owner,
+              tx,
+              definition.visual,
+            ),
+            updatedAt: sql`now()`,
+          })
+          .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, source.id)));
+      }
       status = "generated";
     }
     await tx
@@ -312,6 +333,14 @@ async function complete(
       .where(
         and(constructGenerationOwnedBy(owner), eq(constructGenerations.id, id)),
       );
+    if (status === "generated" && source !== undefined) {
+      await grantVisualAssets(
+        owner,
+        tx,
+        { kind: "construct", id: source.id },
+        { parts },
+      );
+    }
     await adjustGold(owner, IMAGE_RESERVATION_MICRO_USD - cost, tx);
     return result(status, visual);
   });
@@ -320,9 +349,13 @@ async function generateConstructVisual(
   owner: UserId,
   input: VisualGenerationRequest,
   provider: ImageProvider | undefined = imageProvider(),
+  options: { readonly saved: boolean; readonly regenerate: boolean } = {
+    saved: false,
+    regenerate: false,
+  },
 ): Promise<VisualGenerationResult> {
   const request = VISUAL_GENERATION_REQUEST.parse(input);
-  const claimed = await claim(owner, request, provider !== undefined);
+  const claimed = await claim(owner, request, provider !== undefined, options);
   if ("status" in claimed) {
     return claimed;
   }
@@ -393,10 +426,25 @@ async function readVisualGeneration(
     .where(and(...predicates))
     .orderBy(desc(constructGenerations.createdAt))
     .limit(1);
-  const { visual } = definition;
+  const draftVisual = await latestDraftVisual(owner, constructId, definition);
+  const visual = draftVisual ?? definition.visual;
+  let artworkDescription: string | undefined;
   let outdated = false;
   let freshnessUnknown = false;
   if (visual?.canonical?.kind === "generated") {
+    const [original] = await getDb()
+      .select({ description: constructGenerations.description })
+      .from(constructGenerations)
+      .where(
+        and(
+          constructGenerationVisualOpenTo(owner),
+          eq(constructGenerations.status, "generated"),
+          sql`${constructGenerations.visual}->'canonical'->>'assetId' = ${visual.canonical.assetId}`,
+        ),
+      )
+      .limit(1);
+    artworkDescription = original?.description;
+
     if (visual.sourceFingerprintVersion === 2) {
       outdated =
         visual.sourceFingerprint !==
@@ -404,7 +452,7 @@ async function readVisualGeneration(
     } else {
       // Old hashes included conversational text. Use an owned immutable
       // generation record's description when available, never today's voice.
-      const [original] = await getDb()
+      const [legacyOriginal] = await getDb()
         .select({ description: constructGenerations.description })
         .from(constructGenerations)
         .where(
@@ -415,16 +463,18 @@ async function readVisualGeneration(
           ),
         )
         .limit(1);
-      if (original === undefined) {
+      if (legacyOriginal === undefined) {
         freshnessUnknown = true;
       } else {
         outdated =
-          normalizeVisualDescription(original.description) !==
+          normalizeVisualDescription(legacyOriginal.description) !==
           normalizeVisualDescription(visual.description);
       }
     }
   }
   const quote: VisualGenerationQuote = {
+    artworkDescription,
+    draftVisual,
     reservationGold: RESERVATION_GOLD,
     available: imageProvider() !== undefined,
     outdated,

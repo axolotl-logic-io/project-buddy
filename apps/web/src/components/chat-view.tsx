@@ -19,6 +19,7 @@ import {
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -144,6 +145,7 @@ export function ChatView({
   authorNames?: ReadonlyMap<string, string>;
 }): JSX.Element {
   const router = useRouter();
+  const replyCompletedRef = useRef(false);
   const [gold, setGold] =
     useState<Awaited<ReturnType<typeof replyGoldAction>>>();
   const [stopStatus, setStopStatus] = useState("");
@@ -154,11 +156,13 @@ export function ChatView({
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
     onFinish: (): void => {
+      replyCompletedRef.current = true;
       setStopping(false);
       setStopStatus("");
       router.refresh();
     },
     onError: (error: Error): void => {
+      replyCompletedRef.current = true;
       const errorCase = chatFailureCase(error);
       if (errorCase === "already-answered") {
         router.refresh();
@@ -249,6 +253,19 @@ export function ChatView({
       globalThis.clearInterval(timer);
     };
   }, [costsPending, chat.status, chatId, chat.messages, viewer]);
+  const headerBalanceRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (gold !== undefined && headerBalanceRef.current !== gold.balance) {
+      const previous = headerBalanceRef.current;
+      headerBalanceRef.current = gold.balance;
+      // An idle first read seeds the baseline. A reply may finish before
+      // that read arrives, in which case its accounting still needs a refresh.
+      if (previous !== undefined || replyCompletedRef.current) {
+        router.refresh();
+      }
+      replyCompletedRef.current = false;
+    }
+  }, [gold, router]);
   const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
@@ -310,11 +327,11 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      {reattach && <p role="status">{CHAT_COPY.reattach}</p>}
+      {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}
       {replyingElsewhere === true && (
-        <p role="status" className="text-muted">
+        <Notice role="status">
           {CHAT_COPY.replyingElsewhere(constructName)}
-        </p>
+        </Notice>
       )}
       {(chat.status === "streaming" ||
         chat.status === "submitted" ||
@@ -323,7 +340,7 @@ export function ChatView({
           {CHAT_COPY.stop}
         </Button>
       )}
-      {stopStatus !== "" && <p role="status">{stopStatus}</p>}
+      {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
       <ChatThread
         goldBalance={gold?.balance}
         replyCosts={replyCosts}

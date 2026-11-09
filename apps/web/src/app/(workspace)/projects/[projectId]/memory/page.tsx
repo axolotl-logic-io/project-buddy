@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { Markdown } from "@/components/markdown.tsx";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
@@ -27,7 +26,6 @@ export default async function MemoryPage({
 
   return (
     <>
-      <BackLink href={`/projects/${project.id}`}>{project.name}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{MEMORY_COPY.heading}</h1>
         <p className="text-muted">{MEMORY_COPY.intro}</p>

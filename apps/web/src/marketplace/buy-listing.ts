@@ -1,12 +1,12 @@
 // Buying a Marketplace listing (listing-store.ts): the buyer pays its price
-// in gold to its seller and gets their own copy of its prompt, an ordinary
+// in orbs to its seller and gets their own copy of its prompt, an ordinary
 // own prompt named as the listing, which remembers the listing it was
-// bought from. A free listing moves no gold.
+// bought from. A free listing moves no orbs.
 //
 // A purchase is one transaction: the payment, the purchase and the copy
 // are all saved, or none is. It charges the price the buyer was shown, or
 // nothing if the seller has changed it since. The payment names the
-// purchase as its reference, so the transfer moves its gold at most once.
+// purchase as its reference, so the transfer moves its orbs at most once.
 // A buyer holds at most one copy of a listing, so a double submit or a race
 // charges once; once they delete their copy, buying it again charges again.
 // Each buyer may try to buy PURCHASES_PER_HOUR times an hour.
@@ -20,9 +20,9 @@ import {
 import { countPurchase } from "@/accounts/rate-limits.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
+import { marketplaceCutover } from "@/db/tables/orbs.ts";
 import { users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { transferGold } from "@/gold/gold-store.ts";
 import {
   type ListingId,
   type OwnPromptId,
@@ -31,6 +31,8 @@ import {
   USER_ID,
   type UserId,
 } from "@/ids.ts";
+import { LISTING_PRICE_MAX } from "@/marketplace/listing.ts";
+import { transferOrbs } from "@/orbs/orb-store.ts";
 import { saveBoughtCopy } from "@/prompts/own-prompt-kinds.ts";
 import { type PromptKind, STORED_PROMPT_KIND } from "@/prompts/prompt.ts";
 
@@ -41,27 +43,28 @@ interface BoughtCopy {
 }
 
 // A purchase as the buyer asks for it: the listing, by id, and the price
-// in whole gold they were shown.
+// in whole orbs they were shown.
 interface BuyRequest {
   readonly listingId: string;
   readonly price: number;
+  readonly currency?: "orbs";
 }
 
 // What buying did: bought the listing, giving the buyer's new copy; found
 // the buyer already holds a copy, giving it; or refused, moving nothing,
 // because the seller has changed the price from the one shown (giving the
-// price now), the buyer has less gold than the price (their balance in
-// whole gold) or has tried to buy too often this hour; or found no listing
+// price now), the buyer has less orbs than the price (their balance in
+// whole orbs) or has tried to buy too often this hour; or found no listing
 // the buyer may buy: one that is malformed, unknown, unlisted or their own.
 type BuyOutcome =
   | { readonly kind: "bought" | "held"; readonly copy: BoughtCopy }
   | { readonly kind: "price-changed"; readonly price: number }
   | {
-      readonly kind: "too-little-gold";
+      readonly kind: "too-little-orbs";
       readonly price: number;
-      readonly gold: number;
+      readonly orbs: number;
     }
-  | { readonly kind: "limited" | "not-found" };
+  | { readonly kind: "limited" | "not-found" | "paused" };
 
 const NOT_FOUND: BuyOutcome = { kind: "not-found" };
 
@@ -112,18 +115,32 @@ async function heldCopy(
 // The purchase, within its transaction. The listing stays locked until the
 // transaction ends, so it can't be unlisted, or its seller deleted, while
 // it is bought. The seller's account is locked first, before the listing
-// and their gold, so deleting it waits for the purchase, or the purchase
+// and their orbs, so deleting it waits for the purchase, or the purchase
 // for the deletion, rather than each holding what the other needs.
 async function purchase(
   transaction: Transaction,
   buyer: UserId,
   { listing, shown }: { readonly listing: ListingId; readonly shown: number },
 ): Promise<BuyOutcome> {
+  const [cutover] = await transaction
+    .select()
+    .from(marketplaceCutover)
+    .where(eq(marketplaceCutover.id, 1))
+    .for("share");
+  if (cutover?.enabled !== true) {
+    return { kind: "paused" };
+  }
   const [seller] = await transaction
     .select({ id: users.id })
     .from(users)
     .innerJoin(listings, sellerOfListing())
-    .where(and(eq(listings.id, listing), listingBuyableBy(buyer)))
+    .where(
+      and(
+        eq(listings.id, listing),
+        listingBuyableBy(buyer),
+        eq(listings.currency, "orbs"),
+      ),
+    )
     .for("key share", { of: users });
   if (seller === undefined) {
     return NOT_FOUND;
@@ -137,7 +154,13 @@ async function purchase(
       price: listings.price,
     })
     .from(listings)
-    .where(and(eq(listings.id, listing), listingBuyableBy(buyer)))
+    .where(
+      and(
+        eq(listings.id, listing),
+        listingBuyableBy(buyer),
+        eq(listings.currency, "orbs"),
+      ),
+    )
     .for("share");
   const buyable = BUYABLE_ROW.safeParse(row);
   if (!buyable.success) {
@@ -160,7 +183,13 @@ async function purchase(
   }
   const [bought] = await transaction
     .insert(purchases)
-    .values({ listingId: listing, buyerId: buyer, price, copyId })
+    .values({
+      listingId: listing,
+      buyerId: buyer,
+      price,
+      copyId,
+      currency: "orbs",
+    })
     .onConflictDoNothing({
       target: [purchases.listingId, purchases.buyerId],
       where: isNotNull(purchases.copyId),
@@ -170,22 +199,22 @@ async function purchase(
     throw new Refusal(await heldCopy(transaction, buyer, listing, kind));
   }
   if (price > 0) {
-    const paid = await transferGold(
+    const paid = await transferOrbs(
       buyer,
       {
         payee: sellerId,
-        gold: price,
+        orbs: price,
         reason: "marketplace-sale",
         referenceId: bought.id,
       },
       transaction,
     );
     switch (paid.kind) {
-      case "notEnoughGold":
-        throw new Refusal({ kind: "too-little-gold", price, gold: paid.gold });
+      case "notEnoughOrbs":
+        throw new Refusal({ kind: "too-little-orbs", price, orbs: paid.orbs });
       case "noPayee":
         throw new Refusal(NOT_FOUND);
-      // The purchase's gold has moved, by this transfer or by one already
+      // The purchase's orbs has moved, by this transfer or by one already
       // made with its id, which charges nothing more.
       case "moved":
       case "alreadyMoved":
@@ -204,7 +233,13 @@ async function buyListing(
   request: BuyRequest,
 ): Promise<BuyOutcome> {
   const listing = parseListingId(request.listingId);
-  if (listing === undefined) {
+  if (
+    listing === undefined ||
+    request.currency !== "orbs" ||
+    !Number.isSafeInteger(request.price) ||
+    request.price < 0 ||
+    request.price > LISTING_PRICE_MAX
+  ) {
     return NOT_FOUND;
   }
   if (!(await countPurchase(buyer, new Date(Date.now())))) {

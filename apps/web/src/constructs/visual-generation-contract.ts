@@ -37,6 +37,8 @@ const VISUAL_GENERATION_RESULT = z.object({
   visual: CONSTRUCT_VISUAL.optional(),
 });
 const VISUAL_GENERATION_QUOTE = z.object({
+  artworkDescription: z.string().optional(),
+  draftVisual: CONSTRUCT_VISUAL.optional(),
   reservationGold: z.number().nonnegative(),
   available: z.boolean(),
   canRestore: z.boolean().optional(),

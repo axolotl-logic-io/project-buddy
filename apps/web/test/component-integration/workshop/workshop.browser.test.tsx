@@ -6,7 +6,7 @@ import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -15,12 +15,15 @@ import {
   type WorkshopRequest,
 } from "@/workshop/protocol.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
+import { refresh } from "../components/router-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
+
+vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 const DRAFT: WorkshopDraft = {
   kind: "construct",
@@ -33,8 +36,8 @@ const DRAFT: WorkshopDraft = {
 const OPTIONS = {
   constructs: [{ id: "vellum", name: "Vellum" }],
   activities: [
-    { id: "open-chat", name: "Open adventure" },
-    { id: "brainstorming", name: "Brainstorming" },
+    { id: "open-chat", name: "Chat" },
+    { id: "brainstorming", name: "Brainstorm" },
   ],
 };
 const LONG_REPLY_PARAGRAPHS = 100;
@@ -63,7 +66,24 @@ async function show(
       label: "Prompt",
       help: "Instructions to test.",
     },
-  ],
+    {
+      name: "whenToUse",
+      text: draft.whenToUse,
+      label: "When to use",
+      help: "Selection",
+    },
+    {
+      name: "openingRequest",
+      text: draft.openingRequest,
+      label: "Opening request",
+      help: "Opening",
+    },
+  ].filter(
+    (field) =>
+      field.name === "prompt" ||
+      (field.name === "whenToUse" && draft.kind === "spell") ||
+      (field.name === "openingRequest" && draft.kind === "activity"),
+  ),
 ): Promise<void> {
   await render(
     inWorkspace(
@@ -100,6 +120,8 @@ afterEach(async () => {
   await setViewport(LAPTOP_VIEWPORT);
   vi.unstubAllGlobals();
   saveAction.mockReset();
+  refresh.mockClear();
+  localStorage.clear();
 });
 
 test("use_case_workshop_draft", async () => {
@@ -112,6 +134,7 @@ test("use_case_workshop_draft", async () => {
   await openTests();
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
   await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+  expect(refresh).toHaveBeenCalledTimes(1);
   expect(requests[0]?.draft.prompt).toBe("Ask one short question.");
   expect(requests[0]?.history).toEqual([]);
   await message().fill("A follow-up");
@@ -193,18 +216,15 @@ test("gold failures preserve the test message for retry", async () => {
   );
   await show();
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.poll(() => refresh.mock.calls.length).toBe(1);
   await expect
     .element(page.getByRole("alert"))
     .toHaveTextContent(
-      `${userMessage("out-of-gold")} ${MARKETPLACE_COPY.earnGold}`,
+      `${userMessage("out-of-gold")} ${BATTERY_PURCHASES_COPY.unavailable}`,
     );
   await expect
-    .element(
-      page
-        .getByRole("alert")
-        .getByRole("link", { name: MARKETPLACE_COPY.earnGold }),
-    )
-    .toHaveAttribute("href", "/marketplace#your-listings");
+    .element(page.getByRole("alert").getByRole("link"))
+    .not.toBeInTheDocument();
   await expect
     .element(message())
     .toHaveValue(WORKSHOP_COPY.examples[0].message);
@@ -213,21 +233,10 @@ test("gold failures preserve the test message for retry", async () => {
 test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
   "%s stops waiting and announces the possible spend",
   async (label) => {
-    let signal: AbortSignal | null | undefined;
+    const completed = Promise.withResolvers<Response>();
     vi.stubGlobal(
       "fetch",
-      vi.fn((_url: string, init: RequestInit): Promise<Response> => {
-        ({ signal } = init);
-        return new Promise((_resolve, reject) => {
-          signal?.addEventListener(
-            "abort",
-            () => {
-              reject(new DOMException("Cancelled", "AbortError"));
-            },
-            { once: true },
-          );
-        });
-      }),
+      vi.fn(() => completed.promise),
     );
     await show();
     await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
@@ -240,7 +249,7 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
     await openTests();
     await expect.element(page.getByText(WORKSHOP_COPY.pending)).toBeVisible();
     await page.getByRole("button", { name: label, exact: true }).click();
-    expect(signal?.aborted).toBe(true);
+    expect(refresh).not.toHaveBeenCalled();
     await expect
       .element(
         page.getByRole("status").filter({ hasText: WORKSHOP_COPY.cancelled }),
@@ -253,6 +262,11 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
       .element(page.getByRole("button", { name: WORKSHOP_COPY.send }))
       .toBeEnabled();
     await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
+    completed.resolve(Response.json({ text: "Discarded reply", casts: [] }));
+    await expect.poll(() => refresh.mock.calls.length).toBe(1);
+    await expect
+      .element(page.getByText("Discarded reply"))
+      .not.toBeInTheDocument();
   },
 );
 
@@ -480,3 +494,50 @@ test("the drawer stays above a keyboard that resizes only the visual viewport", 
     .element(page.getByRole("button", { name: WORKSHOP_COPY.followUp }))
     .toBeEnabled();
 });
+test.each(["construct", "activity", "spell"] as const)(
+  "%s tests current kind-specific edits without saving",
+  async (kind) => {
+    installReply();
+    await show({ ...DRAFT, kind });
+    await closeTests();
+    await page
+      .getByRole("textbox", { name: "Name", exact: true })
+      .fill("Unsaved name");
+    await page
+      .getByRole("textbox", { name: "Prompt", exact: true })
+      .fill("Unsaved prompt");
+    if (kind === "spell") {
+      await page
+        .getByRole("button", { name: "When to use", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "When to use", exact: true })
+        .fill("Unsaved selection");
+    }
+    if (kind === "activity") {
+      await page
+        .getByRole("button", { name: "Opening request", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Opening request", exact: true })
+        .fill("Unsaved opening");
+    }
+    await openTests();
+    await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+    await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+    expect(requests.at(-1)?.draft).toMatchObject({
+      kind,
+      name: "Unsaved name",
+      prompt: "Unsaved prompt",
+    });
+    const expected: Partial<WorkshopDraft> = {};
+    if (kind === "spell") {
+      expected.whenToUse = "Unsaved selection";
+    }
+    if (kind === "activity") {
+      expected.openingRequest = "Unsaved opening";
+    }
+    expect(requests.at(-1)?.draft).toMatchObject(expected);
+    expect(saveAction).not.toHaveBeenCalled();
+  },
+);

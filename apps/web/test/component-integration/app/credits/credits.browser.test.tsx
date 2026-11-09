@@ -100,6 +100,16 @@ describe("use_case_see_manual_credit", () => {
           "https://creativecommons.org/licenses/by-sa/4.0/",
         );
       await expect.element(license).toHaveAttribute("rel", "license");
+      await expect
+        .element(page.getByRole("link", { name: CREDITS_COPY.iconLibrary }))
+        .toHaveAttribute("href", "https://lucide.dev");
+      const iconLicense = page.getByRole("link", {
+        name: CREDITS_COPY.iconLicense,
+      });
+      await expect
+        .element(iconLicense)
+        .toHaveAttribute("href", "/licenses/lucide.txt");
+      await expect.element(iconLicense).toHaveAttribute("rel", "license");
       page.getByRole("link", { name: CREDITS_COPY.manual }).element().focus();
       await tabForward();
       await expect.element(license).toHaveFocus();
