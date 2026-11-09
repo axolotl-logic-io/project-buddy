@@ -5,6 +5,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { RetirementActions } from "../retirement-actions.tsx";
@@ -34,7 +35,7 @@ async function RetiredDefinitionPage({
         <p className="text-muted">{RETIREMENT_COPY.bought}</p>
       )}
       {definition.kind === "construct" && (
-        <p className="text-muted">{RETIREMENT_COPY.fallback}</p>
+        <Notice>{RETIREMENT_COPY.fallback}</Notice>
       )}
       <h2 className="section-heading">{RETIREMENT_COPY.instructions}</h2>
       {definition.texts.map((field) => (

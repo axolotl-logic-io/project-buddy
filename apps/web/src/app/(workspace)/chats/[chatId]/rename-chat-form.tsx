@@ -97,7 +97,7 @@ function NameEditor({
           <Icon name="close" />
         </Button>
       </div>
-      <div id={errorId}>{error !== undefined && <Alert>{error}</Alert>}</div>
+      {error !== undefined && <Alert id={errorId}>{error}</Alert>}
     </form>
   );
 }

@@ -220,20 +220,20 @@
   /* The focus ring, declared once: read below, and by a box that shows its
      control's focus instead (src/app/page-roles.css's .field-box). */
   :root {
-    /* The atlas is an illustrated paper object in every theme, and the
-       header's HUD is set in its ink and gold. Its panels need strongly tinted
-       paper and ink with known contrast, independent of the varying
-       marks in the artwork behind them. */
-    --atlas-paper: oklch(92% 0.065 85);
-    --atlas-ink: oklch(25% 0.04 60);
-    --atlas-muted: oklch(40% 0.04 60);
-    --atlas-line: oklch(51% 0.06 65);
-    --atlas-focus: oklch(38% 0.12 250);
-    /* The quest bar's accent and its Continue: gold, read with ink on it
-       and on ink around it. */
-    --atlas-gold: oklch(78% 0.13 80);
+    /* Home's illustrated paper follows the active semantic palette. Panels
+       retain enough opaque paper to keep contrast independent of the art. */
+    --atlas-paper: var(--surface);
+    --atlas-ink: var(--foreground);
+    --atlas-muted: var(--muted);
+    --atlas-line: var(--line);
+    --atlas-focus: var(--focus);
     --atlas-font: Georgia, "Times New Roman", serif;
-    --atlas-art: url("/atlas/parchment.webp");
+    --atlas-art: var(--home-decoration);
+    /* The shared HUD is always ink and gold, independent of Home's paper. */
+    --hud-ink: var(--header-ink);
+    --hud-paper: var(--header-paper);
+    --hud-line: var(--header-line);
+    --hud-gold: var(--header-gold);
     --atlas-frost-opacity: 94%;
     --atlas-frost: color-mix(
       in srgb,

@@ -14,7 +14,7 @@ const WHEN_TO_USE =
   "When the user's question needs Blender facts, such as how to do something in Blender.";
 
 const INSTRUCTIONS: string = [
-  "# Spell: Blender manual lookup",
+  "# Spell Sheet",
   "These instructions hold for every question in this adventure that needs Blender facts. A question about anything else doesn't need the Blender manual tools: answer it as you would any other.",
   `- The Blender Reference Manual for the current release is your only source of Blender facts. Before you give Blender steps, menu paths, keyboard shortcuts or settings, look them up with \`${SEARCH_BLENDER_MANUAL_TOOL}\`. Search as often as you need, with other keywords when the results miss.`,
   "- Take every Blender fact from a section you read in the search results. Never give Blender steps from memory.",

@@ -15,7 +15,7 @@ Paths in the evidence column are relative to `apps/web/test/`. They identify exi
 | Area | Cases | Product contract reviewed | Behavioral evidence and result |
 | --- | ---: | --- | --- |
 | Access | 6 | Signed-out gate, setup links, sessions | `system/` auth specs and session-expiry integrations. Corrected the visitor menu description to include Credits and the three appearance modes. |
-| Accounts | 14 | Admin invitations, sign-in, private data, names, gold, settings | Auth specs and account, auth, gold and owner-isolation integrations. Corrected the index's setup-link expiry; distinguished setup and sign-in links. Added the existing Marketplace route out of gold and Workshop refusal. |
+| Accounts | 14 | Admin invitations, sign-in, private data, names, batteries, settings | Auth specs and account, auth, batteries and owner-isolation integrations. Corrected the index's setup-link expiry; distinguished setup and sign-in links. Added the existing Marketplace route out of gold and Workshop refusal. |
 | Quests | 22 | Creation, motivation, construct choice, legacy interviews, milestones, sharing and invitations | Project, invitation, member and milestone integrations. Corrected the chosen construct in the default creation case and removed new-quest prerequisites from preserved interviews. |
 | Quest status | 3 | Owner actions, saved construct proposals, restore and Undo | Quest-status server and browser integrations. Existing cases describe access, stale approvals, check-ins and status filters. |
 | Adventures | 35 | Home atlas, Today, creation, activities, messages, tools, images, unread state, check-ins and character presence | Home, chat, reply and check-in integrations. Existing cases include the recent atlas, scrolling, image and presence work. Corrected the index smoke list's retired interview behavior. |
@@ -24,7 +24,7 @@ Paths in the evidence column are relative to `apps/web/test/`. They identify exi
 | Constructs | 8 | Discovery, customization, creation, edits, reset, artwork and character profiles | Construct integrations and `component-integration/components/prompt-editor.browser.test.tsx`. Corrected menu navigation and added shared field recovery, blank-name feedback and Visual description constraints. |
 | Activities | 4 | Built-ins, starts, switching, customization and creation | Activity and activity-session integrations. Existing cases preserve separate opening requests and activity snapshots. |
 | Spellbook | 3 | Selection, casting, customization, creation and private instructions | Spell and prompt-editor integrations. Replaced the obsolete reset-confirmation step with draft reset, Undo reset and Save. |
-| Workshop | 2 | Kind tabs, editor, companion choices, draft testing and gold | Workshop page, browser and server integrations, plus shared prompt-editor tests. Added missing editor recovery, test limits, cancel and clearing behavior; expressed cases with prerequisites, steps and outcomes. |
+| Workshop | 2 | Kind tabs, editor, companion choices, draft testing and batteries | Workshop page, browser and server integrations, plus shared prompt-editor tests. Added missing editor recovery, test limits, cancel and clearing behavior; expressed cases with prerequisites, steps and outcomes. |
 | Marketplace | 4 | Listing, browsing, buying, seller controls and retirement | Marketplace integrations and `component-integration/retirement/retirement.server.test.ts`. Added Retire → Delete forever, held retired copies, free restoration and source restoration before republishing. |
 | Retirement | 4 | Retire, read-only view, restore and permanent deletion | Retirement browser/server integrations. Existing cases cover held purchases, retained snapshots and listing independence. |
 | Appearance | 3 | Parchment modes, phone layout and account extras | Theme, phone, menu and flag integrations. Existing cases cover current modes and visibility rules. |
@@ -36,7 +36,7 @@ Paths in the evidence column are relative to `apps/web/test/`. They identify exi
 
 The [use case index](../apps/web/use-cases/README.md) now includes Workshop and Marketplace. The new index guard prevents either area, or a future area file, from being omitted silently. Existing case slugs remain stable and there are no pending cases.
 
-The use case index now describes the current product contract and labels preserved legacy behavior. Its real-Claude smoke list is a list of checks still requiring real-model evidence, rather than a statement that they passed. Setup invitations do not expire; existing-account sign-in links expire after 30 minutes. New quests default to Project Breakdown and use the saved New quest construct preference. Legacy interviews are preserved rather than prerequisites for today's Journal workflows.
+The use case index now describes the current product contract and labels preserved legacy behavior. Its real-Claude smoke list is a list of checks still requiring real-model evidence, rather than a statement that they passed. Setup invitations do not expire; existing-account sign-in links expire after 30 minutes. New quests default to Break Down a Project and use the saved New quest construct preference. Legacy interviews are preserved rather than prerequisites for today's Journal workflows.
 
 ## Remaining limits
 
