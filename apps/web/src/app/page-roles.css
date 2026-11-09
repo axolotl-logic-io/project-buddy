@@ -365,13 +365,13 @@
   .site-header {
     @apply flex items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
+    background: var(--hud-ink);
+    color: var(--hud-paper);
+    border-color: var(--hud-gold);
   }
 
   .site-header > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-gold);
+    --focus-outline: 3px solid var(--hud-gold);
   }
 
   .hud-title {
@@ -382,14 +382,14 @@
     @apply flex shrink-0 items-center justify-center rounded-full border-2;
     inline-size: calc(var(--target-size) * 0.75);
     block-size: calc(var(--target-size) * 0.75);
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-gold);
+    background: var(--hud-paper);
+    color: var(--hud-ink);
+    border-color: var(--hud-gold);
   }
 
   .hud-place {
     @apply hidden border-l-2 pl-3 font-semibold;
-    border-color: var(--atlas-line);
+    border-color: var(--hud-line);
     font-family: var(--atlas-font);
   }
 
@@ -400,16 +400,16 @@
 
   .site-header > .button-secondary {
     @apply rounded-control border-2 shadow-none;
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
-    box-shadow: 0 3px 0 var(--atlas-line);
+    background: var(--hud-ink);
+    color: var(--hud-paper);
+    border-color: var(--hud-gold);
+    box-shadow: 0 3px 0 var(--hud-line);
   }
 
   .site-header > a.button-secondary {
-    background: var(--atlas-gold);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-paper);
+    background: var(--hud-gold);
+    color: var(--hud-ink);
+    border-color: var(--hud-paper);
   }
 
   .header-quick-note {
@@ -433,12 +433,12 @@
 
   .site-shortcut {
     @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
-    color: var(--atlas-gold);
+    color: var(--hud-gold);
     text-decoration-thickness: calc(var(--line-width) * 2);
   }
 
   .site-shortcut:hover {
-    color: var(--atlas-paper);
+    color: var(--hud-paper);
   }
 
   @container (min-width: 48rem) {
