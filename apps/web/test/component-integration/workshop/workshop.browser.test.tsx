@@ -561,7 +561,9 @@ test("the test drawer action stays below pinned breadcrumbs while scrolling", as
       />
       {inWorkspace(
         <Workshop initial={DRAFT} options={OPTIONS}>
-          <div style={{ minHeight: "200dvh" }}>Long editor content</div>
+          <p className="whitespace-pre-wrap">
+            {`${DRAFT.prompt}\n\n`.repeat(LONG_REPLY_PARAGRAPHS)}
+          </p>
         </Workshop>,
       )}
     </>,
