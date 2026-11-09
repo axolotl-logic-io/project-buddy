@@ -166,6 +166,21 @@ describe("use_case_home_atlas", () => {
       const places = page.getByRole("navigation", {
         name: HOME_COPY.placesLabel,
       });
+      await Promise.all(
+        DESTINATIONS.map(async ({ name }) => {
+          const link = places.getByRole("link", { name, exact: true });
+          await expect.element(link).toBeVisible();
+          const icon = link.element().querySelector("svg");
+          expect(icon).not.toBeNull();
+          expect(icon?.getAttribute("aria-hidden")).toBe("true");
+          expect(icon?.getAttribute("focusable")).toBe("false");
+          expect(icon?.getBoundingClientRect().width).toBe(24);
+          expect(icon?.getBoundingClientRect().height).toBe(24);
+          expect(icon && getComputedStyle(icon).stroke).toBe(
+            getComputedStyle(link.element()).color,
+          );
+        }),
+      );
       const boxes = places
         .getByRole("link")
         .all()

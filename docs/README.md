@@ -25,6 +25,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Images](images.md): image generation, gallery, battery accounting and deletion.
 - [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
 
+- [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
+
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and generated-asset ownership.
 
 ## Plans
