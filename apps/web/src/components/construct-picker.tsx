@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useCallback, useState } from "react";
+import { type JSX, useCallback, useId, useState } from "react";
 import { ConstructIllustration } from "@/components/constructs/construct-visual.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
@@ -43,11 +43,15 @@ function ConstructPicker({
   defaultConstructId = DEFAULT_CONSTRUCT_ID,
   userConstructs = NO_USER_CONSTRUCTS,
   label = NEW_CHAT_COPY.constructLabel,
+  hint,
 }: {
   readonly defaultConstructId?: ConstructId | OwnPromptId;
   readonly userConstructs?: readonly OwnConstructChoice[];
   readonly label?: string;
+  readonly hint?: string;
 }): JSX.Element {
+  const labelId = useId();
+  const hintId = useId();
   const choices: readonly ConstructChoice[] = [
     ...BUILT_IN_CHOICES,
     ...userConstructs.map(
@@ -78,9 +82,25 @@ function ConstructPicker({
     throw new Error("The construct picker has no constructs");
   }
 
+  let descriptionId: string | undefined;
+  if (hint !== undefined) {
+    descriptionId = hintId;
+  }
+
   return (
-    <div className="field">
-      <p className="field-label">{label}</p>
+    <fieldset
+      className="field"
+      aria-labelledby={labelId}
+      aria-describedby={descriptionId}
+    >
+      <legend className="field-label" id={labelId}>
+        {label}
+      </legend>
+      {hint !== undefined && (
+        <p className="field-hint" id={hintId}>
+          {hint}
+        </p>
+      )}
       <div className="construct-picker">
         <div className="construct-picker-face">
           <button
@@ -97,6 +117,7 @@ function ConstructPicker({
                 destination={chosen.destination}
                 construct={chosen}
                 visualRole="portrait"
+                displayWidth={132}
                 decorative={true}
               />
             </div>
@@ -123,7 +144,7 @@ function ConstructPicker({
         </div>
       </div>
       <input name="constructId" type="hidden" value={chosen.id} />
-    </div>
+    </fieldset>
   );
 }
 

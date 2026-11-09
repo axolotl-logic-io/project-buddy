@@ -38,7 +38,7 @@
   }
 
   html[data-hide~="pinned-chat-header"]:has([data-extra="pinned-chat-header"]) {
-    scroll-padding-top: 0;
+    scroll-padding-top: var(--site-header-height);
   }
 
   /* The chat's name, before its construct's name in a project's list, so a

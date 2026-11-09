@@ -1,4 +1,4 @@
-// The Spellbook's pages in the browser: the list offers New spell among her
+// The Spellbook's pages in the browser: the list offers Craft spell among her
 // own spells, after the built-in ones in keyboard order; Delete asks before
 // it deletes; and her spell's page names each field's limit, keeps typing
 // within it, and names what its reset restores.
@@ -26,10 +26,15 @@ import { tabForward } from "../../../components/keyboard-test-kit.ts";
 import { ASK_ONE_QUESTION_CLONE } from "../../phone-pages-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
+vi.mock(
+  "next/navigation",
+  () => import("../../../components/router-test-kit.ts"),
+);
+
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open adventure" }],
+    activities: [{ id: "open-chat", name: "Chat" }],
   }),
 }));
 
@@ -50,7 +55,7 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
-// The pages expose these actions; only New spell and Delete are submitted.
+// The pages expose these actions; only Craft spell and Delete are submitted.
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
   retireSpellAction: vi.fn(),
@@ -78,7 +83,7 @@ function submissionOf(
   return submitted.promise;
 }
 
-test("her spells offer New spell, with or without spells of her own", async () => {
+test("her spells offer Craft spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const screen = await render(
@@ -91,7 +96,7 @@ test("her spells offer New spell, with or without spells of her own", async () =
   );
 
   await expect
-    .element(ownRegion().getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+    .element(ownRegion().getByRole("button", { name: "Craft spell" }))
     .toBeEnabled();
 
   vi.mocked(listOwnSpells).mockResolvedValue([]);
@@ -107,11 +112,11 @@ test("her spells offer New spell, with or without spells of her own", async () =
     .element(ownRegion().getByText(SPELLBOOK_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(ownRegion().getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+    .element(ownRegion().getByRole("button", { name: "Craft spell" }))
     .toBeEnabled();
 });
 
-test("New spell is the next control after the built-in spells, and Enter writes one", async () => {
+test("Craft spell is the next control after the built-in spells, and Enter crafts one", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
@@ -131,7 +136,7 @@ test("New spell is the next control after the built-in spells, and Enter writes 
     .focus();
   await tabForward();
   await expect
-    .element(page.getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+    .element(page.getByRole("button", { name: "Craft spell" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
@@ -207,7 +212,7 @@ test.each([
     source: getSpell("ask-one-question").name,
   },
   {
-    made: "written from scratch",
+    made: "crafted",
     spell: { ...ASK_ONE_QUESTION_CLONE, clonedFrom: undefined },
     source: undefined,
   },
