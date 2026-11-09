@@ -8,7 +8,7 @@ Three concepts shape every adventure:
 
 - A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Constructs page](#constructs-page).
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
-- An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as Project Breakdown, brainstorming or an open adventure. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
+- An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as Brainstorm, Chat or Break Down a Project. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
 
 Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
 
@@ -25,7 +25,7 @@ The product: a personal site where constructs help each user with their own ques
 
 ### Workshop
 
-The shared editing and testing experience for constructs, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's gold and do not create saved adventures.
+The shared editing and testing experience for constructs, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's batteries and do not create saved adventures.
 
 - **UI:** "Workshop".
 
@@ -41,7 +41,7 @@ A construct, activity or spell that ships with the site. Built-in ones are read-
 
 ### Own construct, activity or spell
 
-A user's private, editable construct, activity or spell, made by copying another or writing one from scratch. Its prompt can become part of a shared adventure without giving others access to the original.
+A user's private, editable construct, activity or spell, made by copying another or crafting one. Its prompt can become part of a shared adventure without giving others access to the original.
 
 - **UI:** "Your constructs", "Your activities", "Your spells".
 - **Avoid:** "custom construct", "user persona".
@@ -50,14 +50,16 @@ A user's private, editable construct, activity or spell, made by copying another
 
 To **retire** an own construct, activity, or spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new adventure, a new activity entry, or a future spell cast. Existing adventure snapshots and past casts stay intact.
 
-**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging gold. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
+**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging batteries. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
 - **UI:** "Retire", "Retirement", "Restore", "Delete forever", "Keep retired".
 - **Avoid:** "Graveyard", "trash", "archive" for Retirement.
 
-### Customize, write from scratch, tweak, clone, rename
+### Customize, craft, tweak, clone, rename
 
-To **customize** is to make an own copy of a built-in construct, activity or spell. To **write from scratch** is to make one without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+To **customize** is to make an own copy of a built-in construct, activity or spell. To **craft** is to create an own construct, activity or spell without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+
+- **Avoid:** "Write new", "write from scratch" and "New construct/activity/spell" as creation action labels; use "Craft" with the kind where needed.
 
 ### Message
 
@@ -83,7 +85,7 @@ A preserved copy of a construct or activity's name and prompt, kept with an adve
 
 ### Harness
 
-The application machinery around the model: it assembles context, makes model calls, executes tool calls and carries the adventure forward. The harness enforces access and gold rules; a prompt cannot grant access or tools the harness does not allow.
+The application machinery around the model: it assembles context, makes model calls, executes tool calls and carries the adventure forward. The harness enforces access and battery rules; a prompt cannot grant access or tools the harness does not allow.
 
 ### Global prompt
 
@@ -104,7 +106,7 @@ An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice
 
 A construct is not a prompt; it has one. People working together on a [team quest](#team-quest) are its [members](#member).
 
-- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "New construct".
+- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Craft construct".
 - **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
 
 ### Earlier names (compatibility)
@@ -146,13 +148,13 @@ Habits hold the construct's personal style, which carries across every activity.
 
 ### Activity
 
-What the user and construct are doing together in an adventure, such as brainstorming ideas, breaking down a quest, conducting an interview or having an open adventure. An activity has a [prompt](#prompt) that guides the construct. Users can customize built-in activities or write their own.
+What the user and construct are doing together in an adventure, such as brainstorming ideas, breaking down a quest, conducting an interview or chatting. An activity has a [prompt](#prompt) that guides the construct. Users can customize built-in activities or write their own.
 
 An adventure has one [current activity](#current-activity). Its instructions guide the construct. Changing activities keeps the conversation and construct, but changes those instructions.
 
 Each activity has a name, a prompt and an [opening request](#activity-opening). The user can start an adventure with it from the New adventure modal on Activities or its [start page](#start-page). The adventure saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
 
-The construct chooses from the acting user's built-in and own activities.
+The construct chooses from the acting user's built-in and own activities. Start actions use activity names directly. Display name changes do not rename own activities or rewrite saved snapshots. Built-in instruction text and ids stay compatible, including `open-chat` for Chat.
 
 - **UI:** "Activity", "Activities".
 - **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
@@ -173,7 +175,7 @@ The activity an adventure is in now. The user chooses the starting activity; the
 
 ### Activity session
 
-The stretch of an adventure spent in one activity, from the message where the activity started until the next change or the end of the adventure. An adventure with no session is in the open adventure.
+The stretch of an adventure spent in one activity, from the message where the activity started until the next change or the end of the adventure. An adventure with no session is in Chat.
 
 ### Activity opening
 
@@ -187,17 +189,17 @@ An activity that ships with the site.
 
 ### Own activity
 
-A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or writing one from scratch.
+A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or crafting one.
 
-### Project Breakdown
+### Break Down a Project
 
 The built-in activity that helps the user split a goal into milestones and small next steps. It can run with no quest, an existing quest or a new quest. The quest creation form defaults to this activity.
 
-- **UI:** "Project Breakdown".
+- **UI:** "Break Down a Project".
 
 ### Interview (retired)
 
-An earlier built-in activity. Existing adventure snapshots keep its instructions. It is no longer offered for new adventures; older links and activity requests lead to Project Breakdown.
+An earlier built-in activity. Existing adventure snapshots keep its instructions. It is no longer offered for new adventures; older links and activity requests lead to Break Down a Project.
 
 ### New quest construct
 
@@ -205,9 +207,17 @@ The account setting that chooses the construct for the quest creation form. It d
 
 - **UI:** "New quest construct".
 
-### Open adventure
+### Brainstorm
 
-The built-in activity with no set scene. It is the default when the user picks no activity.
+The built-in activity for exploring an idea, questioning assumptions and making decisions.
+
+- **UI:** "Brainstorm".
+
+### Chat
+
+The built-in activity with no set scene. It is the default when the user picks no activity. Chat names the `open-chat` activity; the earlier use of chat for an adventure remains only for compatibility.
+
+- **UI:** "Chat".
 
 ## Spells
 
@@ -215,7 +225,7 @@ The built-in activity with no set scene. It is the default when the user picks n
 
 A user's list of [spells](#spell), built in and their own, and the page that shows it. It is the user's lorebook of spells; use "lorebook" only to explain it.
 
-- **UI:** "Spellbook", "Built-in spells", "Your spells", "New spell".
+- **UI:** "Spellbook", "Built-in spells", "Your spells", "Craft spell".
 - **Avoid:** "skill library", "lorebook" outside explanations.
 
 ### Spell
@@ -254,7 +264,7 @@ To make a spell's instructions available to the construct. A cast preserves the 
 One conversation between the user and one [construct](#construct). Every adventure is either a [quest adventure](#quest-adventure) or a [standalone adventure](#standalone-adventure).
 
 - **UI:** "Adventure", "Adventures", "New adventure".
-- **Earlier name:** "Chat" or "Chats".
+- **Earlier name:** "Chat" or "Chats", retained only for compatibility. The current [Chat](#chat) activity is one activity an adventure can use.
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
 
 ### Quest status
@@ -286,7 +296,7 @@ An opening written ahead of time for a built-in construct in a built-in activity
 
 ### Check-in
 
-A quest adventure the construct starts automatically on a schedule its owner chooses. Its opening draws on the Journal to help the user resume. Check-ins are optional. For who pays for model use, see [gold](#gold).
+A quest adventure the construct starts automatically on a schedule its owner chooses. Its opening draws on the Journal to help the user resume. Check-ins are optional. For who pays for model use, see [batteries](#batteries).
 
 - **UI:** "Check-ins".
 - **Avoid:** "nudge", "reminder", "ping".
@@ -397,7 +407,7 @@ The outcome the user wants to make or learn through a quest.
 
 ### Milestone
 
-A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. Project Breakdown help the user describe planned milestones in the Journal. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
+A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. Break Down a Project helps the user describe planned milestones in the Journal. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
 
 ### Milestone (recorded)
 
@@ -525,7 +535,7 @@ A user's account role: user or admin. The admin role grants only the right to se
 
 The user performing an action now. Their access determines what the action may read or change. In a team quest, the acting user can be the owner or a member; acting does not confer ownership.
 
-The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [gold](#gold).
+The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [batteries](#batteries).
 
 When a [client](#client) acts through a connection, the connection’s user is the acting user. The connection can narrow that user’s permissions, but cannot grant access the user does not have.
 
@@ -533,7 +543,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it. Members share access to its adventures, Journal, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
 
-Ownership and access are distinct: own constructs, activities, spells and gold belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs, activities, spells and batteries belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
@@ -605,7 +615,7 @@ The `login` command starts browser-based authorization for a command utility to 
 
 ### Generated image
 
-An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [gold](#gold). It belongs to its source adventure. An image in a team quest adventure is accessible to the quest's owner and members.
+An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [batteries](#batteries). It belongs to its source adventure. An image in a team quest adventure is accessible to the quest's owner and members.
 
 ### Image gallery
 
@@ -613,27 +623,27 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 ## Usage
 
-### Gold
+### Batteries
 
-The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s gold. A new adventure's generated opening spends the gold of the user starting it. An automatic check-in spends the quest owner's gold.
+Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s batteries. A new adventure's generated opening spends the batteries of the user starting it. An automatic check-in spends the quest owner's batteries.
 
-Gold can also move between users through transfers, such as Marketplace sales. Users see gold rather than provider costs.
+Batteries fund model use. Users see batteries rather than provider costs. Until the planned orb cutover is enabled, the existing gold accounting also backs legacy Marketplace transfers. Separate Marketplace orbs, with no conversion to batteries, are planned under [#779](https://github.com/axolotl-logic-io/project-buddy/issues/779); merging its code alone does not enable the cutover.
 
-- **UI:** "gold", "You're out of gold."
-- **Avoid:** "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
+- **UI:** "Batteries", "1 battery", "100 batteries", "Buy batteries", "You're out of batteries."
+- **Avoid:** "gold" in new model-use copy except compatibility identifiers; "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
 
-### Gold balance
+### Battery balance
 
-How much gold a user has available.
+How many batteries a user has available.
 
-- **UI:** "Gold balance".
+- **UI:** "Batteries balance".
 - **Avoid:** "usage meter" in UI copy and docs.
 
 ### Credit
 
-A model provider account's prepaid balance. Provider credit is separate from each user's gold.
+A model provider account's prepaid balance. Provider credit is separate from each user's batteries.
 
-- **Avoid:** "credits" for gold.
+- **Avoid:** "credits" for batteries.
 
 ## Prompt marketplace
 
@@ -674,7 +684,7 @@ Adventures were previously called chats; the Journal was called quest memory.
 Use Adventure and Journal in new product copy and prompts. The existing
 `chat`/`chats` and `memory` module names, exported identifiers, copy keys,
 route paths, database names, API fields, tool names and prompt boundary tags
-remain compatibility names in this release. The Open adventure activity keeps
+remain compatibility names in this release. The Chat activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
 Quick Note paragraphs and historical migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.

@@ -228,7 +228,7 @@ test("fixed activity and construct are named before starting an adventure", asyn
   await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
   const dialog = page.getByRole("dialog");
   await expect
-    .element(dialog.getByText("Activity: Brainstorming", { exact: true }))
+    .element(dialog.getByText("Activity: Brainstorm", { exact: true }))
     .toBeVisible();
   await expect
     .element(dialog.getByText("Construct: Lumen", { exact: true }))

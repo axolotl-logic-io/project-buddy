@@ -21,9 +21,9 @@ export const SPELLBOOK_COPY = {
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
   noOwn:
-    "No spells of your own yet. Customize one above, or choose New spell to write one from scratch.",
-  newSpell: "Write new spell",
-  // The name of a spell written from scratch, until the user renames it.
+    "No spells of your own yet. Customize one above, or choose Craft spell to make one without copying another.",
+  newSpell: "Craft spell",
+  // The name of a crafted spell, until the user renames it.
   newSpellName: "New spell",
   customize: "Customize",
   customizeLabel: (name: string): string =>
