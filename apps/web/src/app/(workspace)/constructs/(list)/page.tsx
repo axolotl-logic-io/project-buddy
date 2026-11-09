@@ -16,7 +16,6 @@ export default async function ConstructsPage({
   return (
     <>
       <RetirementFeedback completed={retired === "1"} />
-
       <h1 className="page-heading">{CONSTRUCTS_COPY.heading}</h1>
       <p className="text-muted">{CONSTRUCTS_COPY.intro}</p>
       <Link className="back-link" href="/retirement">

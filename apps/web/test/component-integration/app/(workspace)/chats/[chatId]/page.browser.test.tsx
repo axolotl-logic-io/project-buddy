@@ -99,7 +99,7 @@ const EXCHANGES = 3;
 // lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
 const ONE_SCREEN_DOWN_BAND = 64;
 
-// Her question and the mock construct's Markdown reply, EXCHANGES times.
+// The user’s question and the mock construct's Markdown reply, EXCHANGES times.
 function longChat(): ChatMessage[] {
   return Array.from({ length: EXCHANGES }, (_, index): ChatMessage[] => [
     {
@@ -248,6 +248,15 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         .not.toBeInTheDocument();
 
       await scrollToBottom();
+      const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
+      await expect.element(trail).toBeInViewport({ ratio: 1 });
+      const shared = trail.element().closest("header");
+      const controls = chatName.element().closest("header");
+      expect(shared).not.toBeNull();
+      expect(controls).not.toBeNull();
+      await expect
+        .poll(() => controls?.getBoundingClientRect().top)
+        .toBeCloseTo(shared?.getBoundingClientRect().bottom ?? -1, 0);
       // Each wholly on screen, and in reach.
       const targets = [
         backLink,
@@ -269,7 +278,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
       }
       first.scrollIntoView({ block: "start" });
       expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-        chatName.element().getBoundingClientRect().bottom,
+        controls?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
       );
 
       expect(backLink.element()).toHaveAttribute(
@@ -295,6 +304,13 @@ describe("use_case_hide_extras", () => {
     applyHiddenFlags(["pinned-chat-header", ...DEFAULT_HIDDEN_FLAGS]);
     await scrollToBottom();
     await expect.element(title).not.toBeInViewport();
+    const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
+    await expect.element(trail).toBeInViewport({ ratio: 1 });
+    expect(
+      topmostAtCentre(
+        trail.getByRole("link", { name: FOX_CHAT.project.name }).element(),
+      ),
+    ).toBe(true);
     const line = lineOneScreenDown(conversation.element());
     expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
       true,

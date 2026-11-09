@@ -115,8 +115,8 @@ function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
 }
 
-async function renderSignedIn(): Promise<void> {
-  await render(
+function renderSignedIn(): ReturnType<typeof render> {
+  return render(
     <SiteHeader
       links={<SiteMenu links={<AccountLinks />} shortcuts={true} />}
     />,
@@ -232,36 +232,37 @@ describe("use_case_quick_note", () => {
   });
 });
 
-test("Projects and Chats sit beside the menu when there is room", async () => {
-  await setViewport(LAPTOP_VIEWPORT);
-  await renderSignedIn();
-  const places = page.getByRole("navigation", {
-    name: SITE_MENU_COPY.placesLabel,
-  });
-  await expect
-    .element(places.getByRole("link", { name: PROJECTS_COPY.headerLink }))
-    .toBeVisible();
-  await expect
-    .element(places.getByRole("link", { name: CHAT_COPY.headerLink }))
-    .toBeVisible();
-  await setViewport(NARROWEST_VIEWPORT);
-  await expect.poll(() => places.query()).toBeNull();
-  await openMenu();
-  await expect
-    .element(
-      page
-        .getByRole("dialog")
-        .getByRole("link", { name: PROJECTS_COPY.headerLink }),
-    )
-    .toBeVisible();
-  await expect
-    .element(
-      page
-        .getByRole("dialog")
-        .getByRole("link", { name: CHAT_COPY.headerLink }),
-    )
-    .toBeVisible();
-});
+test.each(SCREENS)(
+  "Quests and Adventures are reached through the menu on $name",
+  async (screen) => {
+    await setViewport(screen.viewport);
+    await renderSignedIn();
+    const header = page.getByRole("banner");
+    expect(
+      header.getByRole("link", { name: PROJECTS_COPY.headerLink }).query(),
+    ).toBeNull();
+    expect(
+      header.getByRole("link", { name: CHAT_COPY.headerLink }).query(),
+    ).toBeNull();
+    await expect.element(noteLink()).toBeVisible();
+    await openMenu();
+    await expect
+      .element(
+        page
+          .getByRole("dialog")
+          .getByRole("link", { name: PROJECTS_COPY.headerLink }),
+      )
+      .toHaveAttribute("href", "/projects");
+    await expect
+      .element(
+        page
+          .getByRole("dialog")
+          .getByRole("link", { name: CHAT_COPY.headerLink }),
+      )
+      .toHaveAttribute("href", "/chat");
+    await closeMenu();
+  },
+);
 
 describe("the site menu", () => {
   test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {

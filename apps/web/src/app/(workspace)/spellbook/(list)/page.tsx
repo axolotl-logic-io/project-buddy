@@ -15,7 +15,6 @@ export default async function SpellbookPage({
   return (
     <>
       <RetirementFeedback completed={retired === "1"} />
-
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{SPELLBOOK_COPY.heading}</h1>
         <p className="text-muted">{SPELLBOOK_COPY.intro}</p>

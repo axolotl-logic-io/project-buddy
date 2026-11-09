@@ -3,6 +3,7 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
+import HomeHeaderLinks from "@/app/@header/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type {
   getChat,
@@ -77,11 +78,13 @@ beforeAll(() => {
 
 afterEach(async () => {
   await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
+  window.scrollTo(0, 0);
   vi.clearAllMocks();
 });
 
 const LONG_NAME_REPEATS = 30;
 const CHAT_NAME_REPEATS = 15;
+const SCROLL_CONTENT_HEIGHT = 3000;
 const LONG_PROJECT = "Project".repeat(LONG_NAME_REPEATS);
 const LONG_CONSTRUCT = "Construct".repeat(LONG_NAME_REPEATS);
 const LONG_CHAT = "Chat".repeat(CHAT_NAME_REPEATS);
@@ -115,13 +118,25 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await expect.element(heading).toBeVisible();
         await expect.poll(() => window.innerWidth).toBe(viewport.width);
         await loadFonts();
+        const spacer = document.createElement("div");
+        spacer.style.height = `${SCROLL_CONTENT_HEIGHT}px`;
+        heading.element().closest("header")?.parentElement?.append(spacer);
+        window.scrollTo(0, SCROLL_CONTENT_HEIGHT / 2);
         const header = heading.element().closest("header");
+        const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
+        await expect.element(trail).toBeInViewport({ ratio: 1 });
+        const shared = trail.element().closest("header");
+        expect(shared).not.toBeNull();
+        await expect
+          .poll(() => header?.getBoundingClientRect().top)
+          .toBeCloseTo(shared?.getBoundingClientRect().bottom ?? -1, 0);
         let maximumHeight = MAX_COMPACT_HEADER_HEIGHT;
         if (viewport.width === LAPTOP_VIEWPORT.width) {
           maximumHeight = MAX_WIDE_HEADER_HEIGHT;
         }
         expect(
-          header?.getBoundingClientRect().height ?? Number.POSITIVE_INFINITY,
+          (header?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY) -
+            Math.max(0, shared?.getBoundingClientRect().top ?? 0),
         ).toBeLessThanOrEqual(maximumHeight);
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           viewport.width,
@@ -149,12 +164,14 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await expect.element(character).toBeVisible();
         const artwork = character.element().querySelector("img");
         expect(new URL(artwork?.src ?? "", location.origin).pathname).toBe(
-          "/constructs/lumen-v1.png",
+          "/constructs/lumen-v1-1024.webp",
         );
         await page
           .getByRole("button", { name: "Close character profile" })
           .click();
         await expect.element(profile).toHaveFocus();
+        spacer.remove();
+        window.scrollTo(0, 0);
         store.getChat.mockResolvedValue(STANDALONE_CHAT);
         await screen.rerender(await chatPage());
         await expect
@@ -170,6 +187,20 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           viewport.width,
         );
+        // Exercise matched route entrypoints and retained-header lifecycle.
+        // This harness does not run Next's browser router or history cache.
+        store.getChat.mockResolvedValue(FOX_CHAT);
+        await screen.rerender(await chatPage());
+        await expect
+          .element(page.getByRole("link", { name: FOX_CHAT.project.name }))
+          .toBeVisible();
+        await expect
+          .element(page.getByRole("link", { name: "Adventures", exact: true }))
+          .not.toBeInTheDocument();
+        await screen.rerender(<SiteHeader links={await HomeHeaderLinks()} />);
+        await expect
+          .element(page.getByRole("navigation", { name: "Breadcrumbs" }))
+          .not.toBeInTheDocument();
       });
     }
   }

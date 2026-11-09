@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
 import { parseUserId } from "@/ids.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 
 const stores = vi.hoisted(() => ({
   getChat: vi.fn(),
@@ -50,6 +51,18 @@ describe("header navigation hierarchy", () => {
       { label: "An idea" },
     ]);
     expect(await headerBreadcrumbs(USER, ["home"])).toEqual([]);
+  });
+
+  test("names an unnamed adventure with the shared fallback", async () => {
+    if (USER === undefined) {
+      throw new Error("Invalid fixture user");
+    }
+    stores.getChat.mockResolvedValue({});
+    expect(
+      (await headerBreadcrumbs(USER, ["chats", "unnamed"])).at(-1),
+    ).toEqual({
+      label: CHAT_NAME_COPY.fallback,
+    });
   });
 
   test("keeps the quest parent on its Journal", async () => {
