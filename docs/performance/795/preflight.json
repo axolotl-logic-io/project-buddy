@@ -1,5 +1,5 @@
 {
-  "generatedUtc": "2026-11-09T13:02:50.625389+00:00",
+  "generatedUtc": "2026-11-09T13:59:02.987525+00:00",
   "mode": "legacy privacy/schema preflight",
   "finalCompletenessChecked": false,
   "pilotCompletenessChecked": false,
@@ -18,9 +18,17 @@
       "captureFailures": 0
     }
   },
-  "traceFiles": 16,
-  "screenshotFrames": 106,
+  "traceFiles": 24,
+  "screenshotFrames": 153,
   "framesByArtifact": {
+    "after/desktop/client-navigation/home.trace.json.gz": 2,
+    "after/desktop/cold-direct/home.trace.json.gz": 9,
+    "after/phone/client-navigation/home.trace.json.gz": 4,
+    "after/phone/cold-direct/home.trace.json.gz": 12,
+    "before/desktop/client-navigation/home.trace.json.gz": 2,
+    "before/desktop/cold-direct/home.trace.json.gz": 7,
+    "before/phone/client-navigation/home.trace.json.gz": 4,
+    "before/phone/cold-direct/home.trace.json.gz": 7,
     "checkpoint-traces/before/desktop/client-navigation/home.trace.json.gz": 0,
     "checkpoint-traces/before/desktop/cold-direct/home.trace.json.gz": 8,
     "checkpoint-traces/before/phone/client-navigation/home.trace.json.gz": 0,

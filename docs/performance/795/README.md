@@ -1,132 +1,83 @@
 # Stable page geometry evidence
 
-This directory contains capture checkpoints and a prepared final protocol for #795. It does **not** establish final candidate-budget acceptance. See [the frame rationale](frames.md) for implementation and tradeoffs, and [the manifest](manifest.json) for source/build identities.
+The final matched production-build cohort for [#795](https://github.com/axolotl-logic-io/project-buddy/issues/795) contains **320 observations, ten per variant in each of sixteen cells, with zero capture failures**. All 80 after direct-load observations meet initial session-window CLS ≤0.1; all 80 after client observations meet the separate all-shift transition sum ≤0.05. The largest after initial metric is 0.001360; every after transition sum is zero. These are finite local observations, not field percentiles, INP or a permanent-stability guarantee. Final independent evidence review and protected integration merge remain pending.
 
-## Cohorts and current status
+[Results](results.md) include medians, min–max, IQR, paired differences, retained outliers and inclusive direct-load diagnostics. [The comparison chart](transition-comparison.png) shows transitions only. [Frame ownership](frames.md) explains implementation and tradeoffs. [The manifest](manifest.json), [build record](post808-builds.json), [confirmation summary](confirmation-summary.json) and [validator result](validation.json) identify this cohort. Historical #773 numbers are not reused as post-change measurements.
 
-| Cohort | Source and build | Observations | Interpretation |
-| --- | --- | --- | --- |
-| Initial checkpoint | Before `bb4d213c`, build `5ZJdzqfe5kTwOioEMjRk9` | 17 records: 12 completed, four editor capture failures, one failed editor diagnostic | Flat snapshot topology was wrong; retained separately in `checkpoint.json.gz` and `checkpoint-traces/` |
-| Provisional v2 | Same before; after `737c914fa8e5f87a198430552c8dddb86d5b9d60`, build `Ab_dyq8SMB34B7XgLvl6P` | 48 completed, zero capture failures: before sample 1 and after samples 1–2, 16 cells per pass | Stopped after the active pass for review fixes and protocol corrections; isolated in `provisional/v2-737c914f/` |
-| Fix round | After `07038f4`, build `nZtNbQzEfJ9A7y64XAnmf` | No performance captures | Product checks/build and focused browser evidence belong to the parent; this build is unmeasured here |
-| Final v3 | Awaiting repair, Workshop drawer reconciliation and final paired source/build identities | Not started | Prepared protocol only; no final ten-run result or passing budget claim |
+## Source and build lineage
 
-The initial checkpoint uses `geometry-commit-probe-v1`. The provisional cohort uses v2, with source-menu confirmation and a same-document guard, but its generic readiness/sampler selectors could match cached hidden content. These cohorts are not pooled into final confirmation. The historical #773 builds `242e3a1` and `9a8ab46` remain background evidence, not post-change measurements here.
+| Variant | Exact source | Production build |
+| --- | --- | --- |
+| Before: integration including actual Workshop drawer, shared browser repairs and #794 | `70f0fc09a9d07ec3ffeafd7af8465a19c5bf324c` | `cSP-7V74N3htfQPMQq_cE` |
+| After: same lineage plus #795 frames and current-page Home breadcrumb | `9f44f3c5a8060e11491ffc48489313c5fc8d6b0e` | `noCbIyhyy19Vp_A8gWb4O` |
 
-The parent requested a stop while its one fresh-context implementation round addressed review findings. The active v2 pass closed its browser/server before the controller stopped and released the host lock. That intentional controller stop is not a product or capture failure. Counts remain unequal and insufficient for final confirmation.
+The authorized dependency reconciliation happened once, after PR #808 actually merged. Both variants contain the real full-width editor and initially closed modal test drawer. Neither final variant uses the earlier side-by-side editor. Subsequent commits containing this record change documentation/artifacts only; they do not relabel the measured product source.
 
-## Provisional finding
+Both builds used identical root package inputs and the same guarded local test environment. The before app tree was verified against the integration source, built, and restored with an exit trap before building the verified after tree. [The archived build recipe](recipes/build-post808-pair.sh.txt) records that procedure. Snapshots preserve `apps/web/.next` and root `node_modules`, including runtime-module symlinks. No environment file is copied into a snapshot.
 
-The first pair supports a remaining desktop content-width change, while phone route totals still exceed the candidate transition limit. In both v2 builds, Quests→Home moves main from document Y 112 to Y 60 as the breadcrumb row disappears. That entry alone is approximately 0.05723 on phone, above 0.05. Home→Quests is also above the phone target. These shifts remain included despite recent input; the clicked-link rectangle is separate from affected source rectangles. The v2 frame change therefore does not satisfy that phone transition target.
+## Conditions and windows
 
-The raw records also retain initial-load movement excluded from CLS by the browser’s recent-input flag. For example, provisional after phone Home cold-direct reports initial session-window CLS 0 while its all-shift diagnostic is approximately 0.04671. No route/control click is intentionally performed during a cold-direct observation. A zero initial metric does not mean the page had no visible movement, and the flag alone does not prove human input. No font or emulation cause is claimed from these geometry records alone.
+Only synthetic accounts/data, isolated local test database, mock models and file outbox are used. No production access, live purchase, Marketplace activation or hosted collection occurs. The browser is Chrome for Testing 156.0.8078.4, Puppeteer Core 24.12.1, Node 24.6.0. Theme is light. Desktop is 1440 × 900, scale factor 1, unthrottled. Phone is 390 × 844, mobile/touch, scale factor 1, CPU slowdown 4, latency 150 ms, download 200,000 bytes/s and upload 93,750 bytes/s.
 
-## Shared capture conditions
+Each observation has a fresh browser context. Direct loads are browser-cache cold; client observations warm only their declared source. Warm direct loads are outside this cohort. Sources are Quests → Home, Home → Quests, Quests → synthetic quest, and Workshop → the synthetic user's own-construct editor. Server/database caches are not reset between paired batches. Sample order alternates before/after and after/before. Samples 1–3 are exploration; 4–10 confirmation. No failures or outliers are removed or blindly retried.
 
-Captures use synthetic accounts/data, an isolated guarded local database, mock models and file outbox. No production service is queried or changed. Sessions remain in a private temporary file and are never exported. The browser is Chrome for Testing 156.0.8078.4 with Puppeteer Core 24.12.1 and Node 24.6.0. Each successful v2 record retains its actual browser version.
+Source preparation uses the real visible shared menu, awaiting its open state, Escape closure and collapsed state. All readiness/busy/geometry selectors use `checkVisibility()` so hidden cached routes cannot satisfy them. Unchanged `performance.timeOrigin` proves same-document client navigation; native document fallback fails a client sample. This differs from older #773 main-only source preparation, so those cohorts are not pooled.
 
-Desktop uses 1440 × 900, device scale factor 1 and unthrottled CPU/network. Phone uses 390 × 844, mobile/touch enabled, scale factor 1, CPU slowdown 4, network latency 150 ms, download 200,000 bytes/s and upload 93,750 bytes/s. Both use the light theme. Each observation starts a fresh context. Direct navigation is browser-cache cold; client navigation warms only its declared source. Warm direct loads are outside this cohort. Server/database caches are not reset between paired batches. Each record includes host load averages, free memory and CPU count.
+The observer resets immediately before activating the real visible link, including the automation boundary. Its activated region is derived from the actual ancestor and recorded with a document-coordinate rectangle and separate scroll timeline. The browser's affected source rectangles remain separate. Observation ends after visible primary-content presence +2 seconds; actual end times are retained. Initial-load CLS uses standard session windows and excludes recent input. Transition all-shift sum includes **every** shift, including recent input, and is **not official CLS**. No click-associated shift is excluded as deliberate movement.
 
-Source routes are Quests for Home, Home for Quests, Quests for the synthetic quest, and Workshop for the synthetic user's own-construct editor. Pair order alternates before/after then after/before by sample. The final plan starts with three runs per cell, then confirms to ten per variant/profile/journey/mode cell: 320 observations. No observation is removed because it is an outlier or follows a click.
+Raw source rectangles use viewport coordinates with observer-delivery scroll offsets; derived document coordinates during scrolling are approximate. Sampled regions use document coordinates. Observer-local numeric node instances distinguish column replacement from movement of the same element; neither case removes browser shift entries. A nonzero visible header/main/column must exist. Every observation ends with at least 500 ms quiet in the observed shifts and sampled regions (minimum 1,350.4 ms here). This says nothing about unobserved descendants or future movement.
 
-## Metric windows
+Host one-minute load at starts ranges 0.81–4.21. Capture began 2026-11-09 at 13:17:29.372Z and the last pass completed at 13:36:15.643Z. Controller wall time is 1,126.27 seconds, including server/browser lifecycle and capture serialization, excluding lock queue, snapshot preparation, reducer and validator. Alternation controls one ordering trend, not all host contention.
 
-Initial-load session-window CLS excludes recent input. The reducer initializes the window at the first eligible shift and resets at a one-second gap or five-second window. The validator independently reconstructs this value. Transition all-shift sum includes recent-input shifts and is **not official CLS**. The candidate limits are initial ≤0.1 and transition ≤0.05.
+## Interpretation and remaining movement
 
-A client observer resets immediately before activating the real visible link, after source preparation and safe-region scrolling. The record includes the activated region and its document-coordinate rectangle separately from affected shift sources. Observation continues through observed primary-content presence +2 seconds, with actual end time retained. This is a finite lab window, not a timed correctness assertion or permanent-stability claim. Paint/resource metrics from the source are not relabelled as destination metrics.
+Desktop Home client median falls from 0.25148 to zero, Quests client from 0.21674 to zero, and editor client from 0.09501 to zero. Phone Home and Quests client medians fall from 0.05723 and 0.05256 to zero. Quest client observations are zero in both variants. These improvements belong to this matched pair, not the older #767 header cleanup.
 
-Raw shift-source viewport rectangles and observer-delivery scroll offset remain available. Converted document coordinates during scrolling are approximate because delivery scroll may differ from entry-time scroll. V2 sampled regions use document coordinates, including the normal-flow header. The earlier v1 checkpoint retains header viewport Y and must be read with its scroll timeline. Browser shift scores are unchanged.
+Static route frames remove content-dependent ancestor-width changes. The additional current-page Home breadcrumb uses the existing location-row policy and prevents its insertion/removal from moving main during shared navigation. It deliberately makes Home's initial header taller: 112 px in this fixture versus 64 px before. Its existing pinned location row is 52 px. This spends Home screen space on meaningful location content; it introduces no atlas-dependent header style, fake spacer or new scroll owner.
 
-## Visibility protocol v3
+Phone Home direct-load all-shift movement is **0.04671467 in every before and after sample**. The after browser marks that entry as recent input in all ten samples, while before does so in two. No route/control click is intentionally made in cold-direct observations, and that flag alone proves no deliberate input. Therefore the official metric's apparent improvement is not an actual phone Home movement improvement. Footer/link/text rectangles still move. Responsive/font settlement is plausible, but these records do not establish its cause. The inclusive table preserves it.
 
-V3 extends the [#773 supplemental readiness recipe](../773/current/README.md). Every busy/readiness/menu/column/input candidate passes browser `checkVisibility()`, including CSS visibility and opacity. Source preparation awaits a trusted menu click opening the visible dialog, Escape closing it, and the expanded state becoming false. These states are awaited directly, with no source-readiness sleeps. Destination `performance.timeOrigin` must equal the source value; a full-document fallback fails a client observation.
+Other small phone direct-load text/button movements remain, including two positive paired differences each for Quests and quest initial metrics. They remain within the candidate limits. The desktop editor before cold-load width shift appears once in ten samples; the median zero does not erase that failure. Detailed source inspection and uncertainty notes are in the results. Tied ten-run values and IQRs are descriptive, not confidence intervals or no-regression claims.
 
-Both variants require the same visible primary surface. The activated-region enum comes from the actual shared-header, navigation or main-content ancestor. Sampled regions carry observer-local numeric instance counters; column replacement is labelled separately from movement of one node. These counters are not domain or DOM identifiers and never exclude a browser shift. A nonzero visible header, main and column must exist at completion. Missing header samples cannot pass a geometry invariant vacuously.
+## Filmstrips and privacy
 
-The prepared reducer reports medians, min–max ranges, descriptive IQR widths, paired deltas/ranges and direction counts. These describe measured spread, not confidence bounds or field percentiles. Tied values do not establish no regression. Samples outside a descriptive 1.5-IQR fence remain in every summary and receive source/load notes; a load association alone does not establish a cause. Editor results remain nonfinal until the Workshop drawer change is reconciled.
+[Compressed geometry](geometry.json.gz) contains the complete numerical observations. [Numeric filmstrips](geometry-filmstrips.json.gz) and [32 SVG timelines](geometry-filmstrips/) cover sampled header/main/column/input geometry and source rectangles for each cell/variant. Editor/quest and the earliest client transition remain numeric-only; no editor text or source-page pixels are exported.
 
-## Pixel privacy and filmstrips
+Only the eight declared `before|after/desktop|phone/cold-direct|client-navigation/home.trace.json.gz` paths may contain screenshots. Cold Home pixels cover startup through the observed window. Client Home screenshots begin after the **same visible primary-content criterion in both variants**, plus two rendering frames. They intentionally omit loading/earliest transition pixels; numeric observation still covers the full activation window. Only sample 1 is traced in each cell, identically in both variants.
 
-Only `home.trace.json.gz` in the declared before/after × desktop/phone × cold-direct/client-navigation directories can retain screenshot events. Stream/editor/quest filenames and unknown directories are rejected. Non-screenshot events retain timing/category fields without arguments; screenshot arguments allow only the image plus known numeric compositor metadata. Numeric artifacts use static enums, tags, rectangles, timing values and booleans, without prompts, input text, account/domain identifiers, headers, cookies or sessions.
+The parent inspected every final frame on lossless contact sheets: 47 total (before desktop cold/client 7/2, before phone 7/4, after desktop 9/2, after phone 12/4). Only synthetic Home/blank startup and shared header appear. All 153 retained frames across final and historical cohorts have documented manual review. The validator checks structure, not pixel meaning; capture construction and manual review enforce that scope.
 
-Cold-direct Home pixels cover the document window. Provisional v2 client pixels began after a visible atlas plus two rendering frames. That was asymmetric: the old before fallback has no atlas, while the after fallback does. V3 instead starts client pixels only after the **same visible primary Home link criterion in both builds**, followed by two rendering frames. These delayed pixels intentionally omit loading and earliest transition frames; the numeric observer still covers the complete activation window. Screenshot scope and pixel start remain explicit. Only sample 1 is traced, identically in each paired variant; later numeric samples omit tracing.
-
-All 44 retained v2 client frames were manually inspected: before desktop 2, before phone 4, after desktop 17, after phone 21. They show only synthetic Home/loading UI and shared-header pixels, with no source Quests pixels, prompts, identifiers or sessions. Review counts are in the provisional manifest. Every final client frame must receive the same review. Quest/editor and complete transition filmstrips use numeric region rectangles rather than page pixels, preserving the no-prompts rule. This limits their visual coverage deliberately.
-
-The initial v1 Home transition traces mistakenly began screenshot capture on the Quests source. All 14 screenshot events that could include source pixels were removed: five desktop and nine phone frames. Other events and numeric observations are unchanged. The corrected traces remain under `checkpoint-traces/`; this is a recorded privacy correction, not a performance rerun.
-
-## Snapshot topology correction
-
-Flat temporary snapshots (`before-app/.next`) answered editor HTTP 200 and then terminated before main/textarea content. Four captures and a separate browser diagnostic failed at the unchanged 30-second readiness deadline. An authenticated document-only probe also retained a transport failure. No product fix or passing retry is inferred from these failures.
-
-The compiled Turbopack runtime resolves filesystem modules three directories above `.next`, matching `apps/web/.next`. A flat snapshot changed that project root to `/tmp`. Corrected snapshots preserve `before-app/apps/web/.next` and `after-app/apps/web/.next`, with root `node_modules`, app-level config/public files and the app directory as cwd. Before further capture, document verification returned complete HTTP 200 editor content with main/textarea/title and complete Home content with main/title/atlas. This confirmed the snapshot setup defect without a product change.
+Numeric records allow only static enums, tags, rectangles, timings, booleans and local observer instance counters. No prompts, input text, account/domain identifiers, SQL, headers, cookies or sessions are retained. Non-screenshot trace events have no arguments; screenshot arguments allow only the image and known numeric compositor metadata. The strict compressed validator passes all 21 negative cases, including nested payloads, identifiers, unknown screenshot arguments and unauthorized screenshot paths. It independently recomputes metrics, exact cohort completeness and numeric filmstrips.
 
 ## Validation and reproduction
 
-The [lightweight preflight report](preflight.json) validates the actual compressed v1/v2 artifacts through the same schema/trace functions used by final validation, with `complete=False`. It checks retained failures as well as completed records, strict nested field/type allowlists, source rectangles, independent metric reduction and every compressed trace. Negative copies cover nested payload fields, an unredacted identifier, unauthorized screenshots with and without arguments, the forbidden stream filename and unknown screenshot arguments. It does not synthesize a final cohort or check final completeness.
+At measured after source `9f44f3c5`, fast checks pass 256 tests; focused Chromium/WebKit browser integrations pass 274 cases and phone/touch integrations pass 258, **532 affected cases total**. Both production builds and font guard pass. These are affected checks, not a duplicate full shared baseline. Canonical PR #812 owns the clean 1,232-case full browser baseline already merged into this lineage. Logs remain at `/tmp/pb-795/post808-validation.log` and matched-build logs under `/tmp/pb-795/`.
 
-To repeat that light preflight, copy `recipes/validate.py.txt` to a temporary `.py` file and run `python TEMP_VALIDATOR.py --preflight` from the repository root. Final validation uses the same file without `--preflight` and requires the actual 320-run v3 cohort, matched build identities and exact derived numeric filmstrips. This local recipe supplements the maintained #797 audit tooling; it is not a second shipped audit command.
+This record extends existing #773 capture recipes; #797 owns the maintained audit command/schema. Copy the archived `.txt` recipes into a private temporary directory, adjust absolute worktree/port/database paths, and provision the guarded local environment using existing test/seed kits. Keep the session file private. Build the two exact revisions, preserve snapshot topology, and use [the final pair configuration](recipes/final-pair-config.json.txt). The controller refuses an existing cohort and stops on any capture failure; preserve failures rather than repeating until green.
 
-For new captures, provision the worktree's guarded environment and existing #773 synthetic seed kits. Keep sessions private. Build each supplied revision with that environment, preserving separate snapshots with the original monorepo topology. Correct absolute recipe paths and unique port/database when reproducing elsewhere. Copy archived recipes without `.txt` into a private temporary directory.
-
-Run every expensive build/server/browser/capture stage sequentially under `flock /tmp/project-buddy-unattended-full-suite.lock`, including server lifetime. Follow coordinator reservations before queueing work. The prepared controller stops after a completed pass when requested, stops on capture failure, and refuses to overwrite an existing cohort. No blind retries are permitted. After capture, run the reducer and compressed-artifact validator, stop owned servers/browsers, remove the private session file and reset only the guarded worktree database once the parent no longer needs it. No hosted telemetry or collection endpoint is introduced.
-
-## Parent handoff
-
-The preparation subtask is complete. No helper process or queued expensive stage remains, and the helper made no commits. The parent owns the remaining pilot and final capture. The scripts below are saved both under `/tmp/pb-795/` and as `.txt` recipes here. They use this worktree's private session file and environment, local port 35841, and the already seeded fixture. Never print or commit either private file, and do not reset this database while capturing. If a local server suite reset the database during the hold, reseed through the existing guarded seed kit before either side of a new pair; stale sessions must not be treated as a capture retry.
-
-The ready pilot compares fix source `07038f4134bdb7de8adfe46fb820022b736f6283`, build `nZtNbQzEfJ9A7y64XAnmf`, snapshot `/tmp/pb-795/fix-round-after-next`, with current-page Home breadcrumb source `e6d2ab1e7fa2dbd8cfef5f541a5d0795eb4947e7`, build `HFCEhaMGgdEoEL1HBJT7i`, snapshot `/tmp/pb-795/home-trail-after-next`. Its exact configuration is archived in `recipes/home-trail-pilot-config.json.txt` and already exists at `/tmp/pb-795/home-trail-pilot-config.json`.
-
-From the repository root, the parent can run these stages sequentially when ordinary host locking permits:
+All expensive stages, including the complete server lifetime, run sequentially under `flock /tmp/project-buddy-unattended-full-suite.lock`. The final run held that lock for preparation and the whole paired cohort, then reduced and validated the artifacts. Do not overwrite this completed cohort. For read-only reproduction of validation from the repository root:
 
 ```sh
-flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/prepare-pair.py /tmp/pb-795/home-trail-pilot-config.json
-flock /tmp/project-buddy-unattended-full-suite.lock node /tmp/pb-795/cohort.mjs home-trail-pilot
-flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/summarize.py --pilot
-flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/validate.py --pilot
+cp docs/performance/795/recipes/validate.py.txt /tmp/validate-795.py
+python /tmp/validate-795.py
 ```
 
-This is 24 observations: before/after × desktop/phone × Home/Quests × client navigation × three samples. It excludes direct loads and editors and cannot establish final acceptance. Output is isolated in `provisional/home-trail-pilot/`; working data/stop controls live in `/tmp/pb-795/home-trail-pilot/`. All pilot screenshots still require manual frame-by-frame privacy review and counts in its manifest. Source pixels must be removed and documented if found. The automated validator does not inspect pixel meaning.
+`--preflight` validates retained artifacts without asserting final completeness. Final validation without flags reports 320 completed final records, 24 trace files across all cohorts, 153 screenshot frames and 21 passing negative cases. No hosted telemetry or service is introduced; collection stays off.
 
-`prepare-pair.py` verifies supplied build IDs, preserves original monorepo topology, copies immutable `.next` snapshots, and writes provenance without starting a server. Pilot apps are `/tmp/pb-795/pilot-before-app/apps/web` and `/tmp/pb-795/pilot-after-app/apps/web`. Each project root has a `node_modules` symlink; each app has `package.json`, `next.config.ts` and `public`. `start.mjs` sets cwd to that app and loads only the private worktree `.env.test`. No environment file is copied into a snapshot. Existing temporary snapshots are archived, not deleted. Existing cohort start markers cause refusal rather than overwrite/retry.
+## Retained history and review disposition
 
-For final confirmation, the parent must first complete the actual repair/Workshop merge and its authorized integration dependency sync. Build a matched **integration-with-Workshop-without-#795** before snapshot and **the same lineage plus final #795** after snapshot through the parent's source-restore/build/trap procedure. Do not use the old `bb4d213c` or any provisional build as the final before. Create `/tmp/pb-795/final-pair-config.json` using this shape, replacing every placeholder with the actual full SHA, build ID and preserved `.next` directory:
+[Preparation history](preparation-history.md) preserves the earlier pending-state narrative verbatim, explicitly superseded by this record. Initial checkpoint: 17 records, including four editor timeouts and one failed diagnostic caused by wrong flat snapshot topology; failures are retained, not product defects or erased retries. Fourteen source-inclusive screenshot events were removed and documented. The corrected runtime layout resolves filesystem modules relative to the original monorepo root.
 
-```json
-{
-  "mode": "final",
-  "before": {
-    "source": "INTEGRATION_808_FULL_SHA",
-    "buildId": "MATCHED_BEFORE_BUILD_ID",
-    "snapshot": "/tmp/pb-795/MATCHED_BEFORE_NEXT"
-  },
-  "after": {
-    "source": "FINAL_795_FULL_SHA",
-    "buildId": "MATCHED_AFTER_BUILD_ID",
-    "snapshot": "/tmp/pb-795/MATCHED_AFTER_NEXT"
-  }
-}
-```
+The stopped provisional v2 cohort retains 48 observations, zero failures and unequal counts, before `bb4d213c` versus after `737c914f`. Its old side-by-side editor is not final evidence. The isolated Home location-row pilot retains 24 observations, three pairs across four client cells, reviewed fix `07038f4` versus `e6d2ab1e`. An initial symlink-copy preparation failure started no browser and produced zero observations; it is retained separately. Neither cohort is pooled into the final pair. Earlier `a29dbe28`/`fb065b53` builds are unmeasured prototypes; `07038f4` was measured as the pilot control.
 
-Then run the same stages without the pilot flags:
+Fresh Opus review at `6ee32fc3` requested changes. The one authorized fresh Codex implementation round committed `07038f4`, fixing cached Home decoration, Home error gutters, duplicate quest announcements and real frame tests. Its 249 fast and 390 focused browser cases passed. Parent inspection also corrected/validated the artifact pipeline and phone location-row alternative. Final fresh review must assess this revised product and completed evidence before READY.
 
-```sh
-flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/prepare-pair.py /tmp/pb-795/final-pair-config.json
-flock /tmp/project-buddy-unattended-full-suite.lock node /tmp/pb-795/cohort.mjs
-flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/summarize.py
-flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/validate.py
-```
-
-Final apps are `/tmp/pb-795/before-app/apps/web` and `/tmp/pb-795/after-app/apps/web`, with working data in `/tmp/pb-795/v3/`. The plan is ten alternating samples per cell, 320 observations. Preparation updates `beforeSource`, `afterSource`, both build IDs, recipe hashes, protocol, scope and target count in the corresponding manifest. After validation and manual frame review, the parent must set a truthful capture status and report threshold failures rather than setting acceptance automatically. The script deliberately leaves `candidateAcceptanceSatisfied` false. Preserve all checkpoint/provisional cohorts and their identities.
-
-To stop either controller deliberately, create `stop-after-pass` in that cohort's working directory. It closes the current browser/server normally, writes progress and stops before another pass. A capture failure also stops the controller and must be diagnosed, not retried blindly. For a privacy/schema check of all retained nonfinal artifacts without asserting a final cohort, run `python /tmp/pb-795/validate.py --preflight`.
-
-## Home location-row pilot
-
-The isolated [pilot results](provisional/home-trail-pilot/results.md) compare reviewed fix source `07038f4`, build `nZtNbQzEfJ9A7y64XAnmf`, with location-row source `e6d2ab1e`, build `HFCEhaMGgdEoEL1HBJT7i`. All 24 planned observations completed: three alternating pairs for desktop/phone Home-to-Quests and Quests-to-Home client navigation. No direct-load or editor result is inferred.
-
-The after variant has zero recorded shifts in each of its twelve observations. The control retains the breadcrumb-removal/insertion shifts, including phone totals above the 0.05 candidate limit. This supports the location-row mechanism; three tied samples do not establish population uncertainty, no regression or permanent stability. The final ten-run post-Workshop cohort remains required.
-
-Every retained Home client screenshot was inspected: two before-desktop, four before-phone, two after-desktop and five after-phone frames. Only synthetic Home and header content is visible. The source-page and earliest transition interval remain numeric-only, as declared by the matched primary-content pixel-start protocol.
-
-Preparation failed once before controller/browser startup because Python's default copier dereferenced relative runtime-module symlinks in a flat snapshot. `prepare-pair.py` now preserves symlinks and verifies that runtime links resolve in the copied monorepo layout. The incomplete copy was archived, not served; [the setup record](provisional/home-trail-pilot/preparation-failure.json) claims zero observations. The corrected capture has no failures. The final completeness validator has not run against a final cohort.
+| Review concern | Resolution |
+| --- | --- |
+| B1 hidden/cached Home decoration | Loading renders inactive; HomeAtlas starts inactive and activates only through visible layout effects; hidden first-mount/cache tests |
+| B2 Home error gutters | Real segment error wraps PageError in the ordinary inner frame; 320/390/1440 px retry/gutter tests |
+| B3 duplicate status; T1/T2 weak/missing tests | One labelled quest loading status with decorative shapes; real loading/empty/populated/error frame geometry tests |
+| E1/M6 screenshot validator | Known compositor metadata allowed; Home-only exact path allowlist; all retained traces and negative cases validated |
+| M1/M2/M3 pixels/readiness/nominal regions | Matched visible primary pixel start; visibility-filtered selectors; node replacement and actual activated ancestor recorded; early client pixels intentionally absent |
+| M4 actual drawer dependency | Actual PR #808 integration merged once; both final builds contain the real drawer-loaded editor |
+| M5 uncertainty/outliers | Ten alternating pairs per cell, IQR/ranges/paired directions, retained source/load outlier notes and browser-flag caveat |

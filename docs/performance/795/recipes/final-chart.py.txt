@@ -1,0 +1,27 @@
+# Extends the #773 and #795 pilot matplotlib recipes for the final matched cohort.
+import gzip,json,pathlib,statistics
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+root=pathlib.Path('docs/performance/795')
+rows=json.loads(gzip.decompress((root/'geometry.json.gz').read_bytes()))
+fig,axes=plt.subplots(1,2,figsize=(11,4.4),layout='constrained',sharey=True)
+names=['home','quests','quest','editor'];labels=['Quests → Home','Home → Quests','Quests → quest','Workshop → editor']
+for ax,profile in zip(axes,['desktop','phone']):
+ for variant,offset,color in [('before',-.15,'#526782'),('after',.15,'#15836a')]:
+  values=[];low=[];high=[]
+  for name in names:
+   group=[row['transitionAllShiftSum'] for row in rows if (row['variant'],row['profile'],row['name'],row['mode'])==(variant,profile,name,'client-navigation')]
+   assert len(group)==10
+   m=statistics.median(group);values.append(m);low.append(m-min(group));high.append(max(group)-m)
+  y=[i+offset for i in range(len(names))]
+  ax.barh(y,values,height=.24,color=color,label=variant.capitalize(),xerr=[low,high],error_kw={'capsize':3})
+  ax.scatter(values,y,s=18,color=color,zorder=3)
+  for value,pos in zip(values,y):ax.text(value+(.004 if profile=='desktop' else .001),pos,f'{value:.4f}',va='center',fontsize=8)
+ ax.axvline(.05,color='#ad4a36',linestyle='--',label='Candidate limit 0.05')
+ ax.set_title(profile.capitalize(),loc='left');ax.set_xlim(-.003,.29 if profile=='desktop' else .073)
+ ax.set_yticks(range(4),labels);ax.invert_yaxis();ax.grid(axis='x',alpha=.2);ax.set_axisbelow(True);ax.spines[['top','right','left']].set_visible(False)
+ ax.set_xlabel('All-shift transition sum (not official CLS)')
+axes[1].legend(loc='lower right',frameon=False,fontsize=8)
+fig.suptitle('Matched post-Workshop transitions: ten alternating pairs per cell',x=.02,ha='left')
+fig.savefig(root/'transition-comparison.png',dpi=160)

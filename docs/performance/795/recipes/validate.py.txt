@@ -216,5 +216,9 @@ def main():
   (root/'provisional/home-trail-pilot/validation.json').write_text(json.dumps(report,indent=2)+'\n')
  elif preflight:
   (root/'preflight.json').write_text(json.dumps(report,indent=2)+'\n')
+ else:
+  report['finalRecords']=len(rows)
+  report['finalCaptureFailures']=sum('failure' in row for row in rows)
+  (root/'validation.json').write_text(json.dumps(report,indent=2)+'\n')
  print(json.dumps({'mode':report['mode'],'legacyRecords':sum(value['records'] for value in cohorts.values()),'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'negativeCasesPassed':len(negatives['passed']),'negativeCasesSkipped':len(negatives['skipped']),'finalCompletenessChecked':not(preflight or pilot),'pilotCompletenessChecked':pilot}))
 if __name__=='__main__':main()

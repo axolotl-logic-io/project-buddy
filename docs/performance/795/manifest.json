@@ -1,19 +1,21 @@
 {
-  "beforeSource": null,
-  "afterSource": null,
-  "beforeBuildId": null,
-  "afterBuildId": null,
+  "beforeSource": "70f0fc09a9d07ec3ffeafd7af8465a19c5bf324c",
+  "afterSource": "9f44f3c5a8060e11491ffc48489313c5fc8d6b0e",
+  "beforeBuildId": "cSP-7V74N3htfQPMQq_cE",
+  "afterBuildId": "noCbIyhyy19Vp_A8gWb4O",
   "browser": "Chrome for Testing 156.0.8078.4",
   "puppeteerCore": "24.12.1",
   "screenshots": "Home only; direct full window, client after identical visible primary criterion plus two rendering frames",
   "screenshotCorrection": [
     {
-      "artifact": "before/desktop/client-navigation/home.trace.json.gz",
-      "removedSourceInclusiveFrames": 5
+      "artifact": "checkpoint-traces/before/desktop/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 5,
+      "appliesTo": "original flat-snapshot checkpoint only; not final traces"
     },
     {
-      "artifact": "before/phone/client-navigation/home.trace.json.gz",
-      "removedSourceInclusiveFrames": 9
+      "artifact": "checkpoint-traces/before/phone/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 9,
+      "appliesTo": "original flat-snapshot checkpoint only; not final traces"
     }
   ],
   "targetSamplesPerCell": 10,
@@ -27,13 +29,9 @@
     {
       "source": "fb065b53f8f323bad4ad8fb3a974dcccb23c853a",
       "buildId": "aM1QP6WCmmfquaij_gwVK"
-    },
-    {
-      "source": "07038f4134bdb7de8adfe46fb820022b736f6283",
-      "buildId": "nZtNbQzEfJ9A7y64XAnmf"
     }
   ],
-  "status": "paused for coordinator reservation, repair and Workshop reconciliation, and final paired identities",
+  "status": "320-observation confirmation complete; final evidence review and merge gates pending",
   "sourcePreparation": "visible-shared-menu-state-v2",
   "sameDocumentRequiredForClientNavigation": true,
   "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
@@ -41,10 +39,11 @@
   "cohortProtocol": "geometry-commit-probe-v3",
   "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/",
   "recipeSha256": {
-    "capture.mjs": "4f14bbddd125a621d87bb3a0e476ee4d911ac2f772e611bc64f03abd1014c2c8",
+    "capture.mjs": "5f5a32b5a4c782c5851bf459c79d9add613d7b5dc3f69b735993cb6949164434",
     "observe.mjs": "67073ac3287b2bf78133225eb55f03f0b2ee343cd8ea5115204af5fccc6a6637",
     "start.mjs": "0f1004db590dae3db88fe3cafccd18003e1fede3335a466f4e7382f11c04287d",
-    "cohort.mjs": "dbaf4e485c5aa1c2e90c44a8be18b15987cf57d2d76eca10f50cf8c338a1e8de"
+    "cohort.mjs": "4a08925c19893da2cd66ab91d0a9a4063e122527163a0ac218ed6986fcb9ed37",
+    "prepare-pair.py": "f4fe83d974ea98acd3e15068d68c60e872498470d9d6efce1eb35acfbe8d1cec"
   },
   "candidateAcceptanceSatisfied": false,
   "provisionalCohorts": [
@@ -67,5 +66,27 @@
     "source": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
     "buildId": "5ZJdzqfe5kTwOioEMjRk9",
     "protocol": "geometry-commit-probe-v1"
-  }
+  },
+  "targetObservations": 320,
+  "scope": "post-Workshop matched geometry confirmation",
+  "measuredBudgetsSatisfied": true,
+  "completedObservations": 320,
+  "captureFailures": 0,
+  "manualScreenshotReview": {
+    "finalFramesReviewed": 47,
+    "framesByFinalArtifact": {
+      "before/desktop/cold-direct/home.trace.json.gz": 7,
+      "before/desktop/client-navigation/home.trace.json.gz": 2,
+      "before/phone/cold-direct/home.trace.json.gz": 7,
+      "before/phone/client-navigation/home.trace.json.gz": 4,
+      "after/desktop/cold-direct/home.trace.json.gz": 9,
+      "after/desktop/client-navigation/home.trace.json.gz": 2,
+      "after/phone/cold-direct/home.trace.json.gz": 12,
+      "after/phone/client-navigation/home.trace.json.gz": 4
+    },
+    "method": "Every retained final frame inspected on lossless local contact sheets by the parent.",
+    "result": "Synthetic Home/blank startup and shared header only; no source-page pixels, prompts, domain identifiers or sessions observed.",
+    "otherRetainedFramesReview": "Original checkpoint cold15 and provisional client44 reviewed by capture helper; provisional cold34, pilot13 and final47 reviewed by parent."
+  },
+  "confirmationSummary": "confirmation-summary.json"
 }
