@@ -279,26 +279,18 @@
 
   /* Compact navigation above the title and construct. Keep touch targets full
      size while giving the conversation more room, including on phones. */
+  html {
+    --site-header-height: 0px;
+    scroll-padding-top: var(--site-header-height);
+  }
+
   .chat-header {
-    @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
+    inset-block-start: var(--site-header-height);
+    @apply sticky z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
   }
 
   .memory-text p {
     @apply whitespace-pre-line;
-  }
-
-  .chat-header .back-link {
-    overflow-wrap: anywhere;
-    min-inline-size: 0;
-    @apply max-w-full;
-  }
-
-  .chat-header .back-link > span {
-    @apply truncate;
-  }
-
-  .chat-header .back-link > .icon {
-    @apply shrink-0;
   }
 
   .chat-heading {
@@ -332,8 +324,8 @@
   html:has(.chat-header) {
     --chat-header-name-lines: 1;
     scroll-padding-top: calc(
+      var(--site-header-height) +
       --spacing(2) +
-      var(--target-size) +
       max(
         var(--target-size),
         var(--chat-header-name-lines) *
@@ -363,11 +355,43 @@
      Quick Note in gold. The menu's panel inside it keeps the theme's own
      look, so only the header's own children are dressed. */
   .site-header {
-    @apply flex items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
+    @apply sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
     background: var(--atlas-ink);
     color: var(--atlas-paper);
     border-color: var(--atlas-gold);
+  }
+
+  .header-breadcrumbs {
+    flex-basis: 100%;
+    min-inline-size: 0;
+    order: 1;
+  }
+
+  .header-breadcrumbs ol {
+    @apply flex min-w-0 items-center gap-1;
+  }
+
+  .header-breadcrumbs li {
+    @apply flex min-w-0 flex-1 items-center gap-1;
+  }
+
+  .header-breadcrumbs a,
+  .header-breadcrumbs [aria-current] {
+    @apply flex min-w-0 min-h-(--target-size) items-center;
+  }
+
+  .header-breadcrumbs a {
+    @apply min-w-(--target-size) max-w-full underline underline-offset-4;
+  }
+
+  .header-breadcrumbs a > span,
+  .header-breadcrumbs [aria-current] {
+    @apply truncate;
+  }
+
+  .breadcrumb-separator {
+    @apply shrink-0;
   }
 
   .site-header > :not(.site-menu) {
@@ -451,6 +475,14 @@
     .hud-place {
       display: block;
     }
+  }
+
+  .site-header:has(.header-breadcrumbs) > .hud-place {
+    display: none;
+  }
+
+  .site-header:has(.header-breadcrumbs) > .hud-title {
+    margin-inline-end: auto;
   }
 
   /* Home keeps its controls in the same frosted paper as the atlas.

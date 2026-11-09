@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import HeaderLinks from "@/app/@header/[...path]/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type {
   getChat,
@@ -9,6 +10,7 @@ import type {
   markChatRead,
   readStoppedReply,
 } from "@/chats/store.ts";
+import { SiteHeader } from "@/components/site-header.tsx";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
 import {
@@ -40,6 +42,20 @@ const store = vi.hoisted(() => ({
   readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
+
+vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
+vi.mock("@/constructs/construct-store.ts", () => ({
+  getOwnConstruct: vi.fn(),
+}));
+vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
+vi.mock("@/marketplace/listing-store.ts", () => ({ getListing: vi.fn() }));
+vi.mock("@/projects/project-invitations.ts", () => ({
+  readProjectInvitation: vi.fn(),
+}));
+vi.mock("@/projects/store.ts", () => ({ getProject: vi.fn() }));
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+}));
 
 // ChatView refreshes the page through the App Router.
 vi.mock(
@@ -164,5 +180,17 @@ async function chatPage(): Promise<JSX.Element> {
     params: Promise.resolve({ chatId: FOX_CHAT.id }),
     searchParams: Promise.resolve({}),
   });
-  return inWorkspace(content);
+  return (
+    <>
+      <SiteHeader
+        links={
+          await HeaderLinks({
+            params: Promise.resolve({ path: ["chats", FOX_CHAT.id] }),
+            searchParams: Promise.resolve({}),
+          })
+        }
+      />
+      {inWorkspace(content)}
+    </>
+  );
 }

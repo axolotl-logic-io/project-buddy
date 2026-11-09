@@ -464,8 +464,8 @@ The user is deep in a long adventure and wants to go back to the quest, without 
 - **Prerequisites:** `use_case_reopen_chat`, in an adventure longer than the screen.
 - **Steps:**
   - She scrolls down to the newest message, on a laptop or a phone.
-  - She follows the link back to the quest, above the adventure's name.
-- **Outcome:** wherever she has scrolled, the link back to the quest, the adventure's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header is at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long quest, adventure and construct names fit at 320 CSS pixels without horizontal page overflow. Standalone adventures keep the link back to Adventures. Jumping to a message shows it below the header, not under it.
+  - The user follows the quest link in the shared site header.
+- **Outcome:** wherever she has scrolled, the link back to the quest, the adventure's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header is at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long quest, adventure and construct names fit at 320 CSS pixels without horizontal page overflow. The shared site header contains one accessible breadcrumb trail, including the current adventure and its quest parents. Standalone adventures keep the link back to Adventures. The trail stays on screen even when the pinned adventure controls extra is off. Client navigation and browser back/forward replace the trail with the destination’s trail. Jumping to a message shows it below both headers.
 - **Next:**
   - [`use_case_open_project`](projects.md#use_case_open_project): back on the quest.
 

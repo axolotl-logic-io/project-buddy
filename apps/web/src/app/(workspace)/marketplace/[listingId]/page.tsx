@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { getListing, type ListingView } from "@/marketplace/listing-store.ts";
 import { ownPromptPath } from "@/prompts/own-prompt-paths.ts";
@@ -119,7 +118,6 @@ export default async function ListingPage({
   }
   return (
     <>
-      <BackLink href="/marketplace">{LISTING_COPY.marketplaceLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading wrap-anywhere">{listing.name}</h1>
         <p className="wrap-anywhere text-muted">

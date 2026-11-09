@@ -13,6 +13,7 @@ import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import HeaderLinks from "@/app/@header/[...path]/page.tsx";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
@@ -22,6 +23,7 @@ import type {
   markChatRead,
   readStoppedReply,
 } from "@/chats/store.ts";
+import { SiteHeader } from "@/components/site-header.tsx";
 import {
   applyHiddenFlags,
   DEFAULT_FLAG_ATTRIBUTES,
@@ -61,6 +63,20 @@ const store = vi.hoisted(() => ({
   readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
+
+vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
+vi.mock("@/constructs/construct-store.ts", () => ({
+  getOwnConstruct: vi.fn(),
+}));
+vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
+vi.mock("@/marketplace/listing-store.ts", () => ({ getListing: vi.fn() }));
+vi.mock("@/projects/project-invitations.ts", () => ({
+  readProjectInvitation: vi.fn(),
+}));
+vi.mock("@/projects/store.ts", () => ({ getProject: vi.fn() }));
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+}));
 
 // ChatView refreshes the page through the App Router.
 vi.mock(
@@ -268,7 +284,7 @@ describe("use_case_hide_extras", () => {
   test("the pinned chat header, switched off, scrolls away and leaves nothing behind", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
-    const backLink = page.getByRole("link", { name: FOX_CHAT.project.name });
+    const title = page.getByRole("heading", { level: 1 });
     const conversation = page.getByRole("list", {
       name: CHAT_COPY.conversationLabel,
     });
@@ -278,7 +294,7 @@ describe("use_case_hide_extras", () => {
 
     applyHiddenFlags(["pinned-chat-header", ...DEFAULT_HIDDEN_FLAGS]);
     await scrollToBottom();
-    await expect.element(backLink).not.toBeInViewport();
+    await expect.element(title).not.toBeInViewport();
     const line = lineOneScreenDown(conversation.element());
     expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
       true,
@@ -286,7 +302,7 @@ describe("use_case_hide_extras", () => {
 
     applyHiddenFlags(DEFAULT_HIDDEN_FLAGS);
     await scrollToBottom();
-    await expect.element(backLink).toBeInViewport();
+    await expect.element(title).toBeInViewport();
     expect(lineOneScreenDown(conversation.element())).toBe(line);
     expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
       true,
@@ -299,7 +315,19 @@ async function chatPage(): Promise<JSX.Element> {
     params: Promise.resolve({ chatId: FOX_CHAT.id }),
     searchParams: Promise.resolve({}),
   });
-  return inWorkspace(content);
+  return (
+    <>
+      <SiteHeader
+        links={
+          await HeaderLinks({
+            params: Promise.resolve({ path: ["chats", FOX_CHAT.id] }),
+            searchParams: Promise.resolve({}),
+          })
+        }
+      />
+      {inWorkspace(content)}
+    </>
+  );
 }
 
 const RENAME_PHONES: readonly { viewport: ViewportSize; invalid: string }[] = [
