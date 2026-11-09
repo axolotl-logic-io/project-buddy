@@ -35,7 +35,7 @@ export function BuyForm({
       {state.kind === "refused" && (
         <Alert>
           <span>{state.message}</span>
-          {state.earnGold === true && <EarnGoldLink />}
+          {state.earnGold === true && <EarnGoldLink marketplace={true} />}
         </Alert>
       )}
     </form>

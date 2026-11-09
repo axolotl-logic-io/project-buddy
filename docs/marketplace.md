@@ -43,4 +43,4 @@ A bought copy's instructions are another user's, and the model reads them in eve
 
 ## Out of gold
 
-Every out-of-gold message, in an adventure, the new-adventure and new-quest forms, image generation and a listing's page, ends with a link to the Marketplace: "Earn gold by selling your constructs, activities and spells in the Marketplace" (`src/components/earn-gold-link.tsx`).
+Before the #779 operator cutover, model-use shortages retain Marketplace earning guidance when test Checkout is unavailable. Valid isolated test Checkout instead links model-use shortages to Account. Listing buyer shortages always link to the Marketplace: "Earn gold by selling your constructs, activities and spells in the Marketplace" (`src/components/earn-gold-link.tsx`).

@@ -1,12 +1,16 @@
 # Battery purchases
 
-Account links to **Buy batteries** at `/account#buy-batteries`. Each server-configured offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. This flow never buys or converts Marketplace currency. Before the #779 operator cutover, the existing Marketplace still uses the legacy shared balance; changing that behavior belongs to #779. After the cutover, Marketplace orbs are separate from model-use batteries. Merging code does not enable the cutover. The Library should describe this distinction and label purchases as test-only until launch approval.
+When a valid isolated test catalog is available, Account links to **Buy batteries** at `/account#buy-batteries`. Each server-configured offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. Before cutover, test grants enter the legacy shared balance also used by Marketplace sales and purchases. The flow does not create a separate currency. Before the #779 operator cutover, the existing Marketplace still uses the legacy shared balance; changing that behavior belongs to #779. After the cutover, Marketplace orbs are separate from model-use batteries. Merging code does not enable the cutover. When Checkout is unavailable, model-use shortage links retain the working legacy Marketplace earning guidance. Marketplace buyer shortages always link to selling listings; #779 must update model-use guidance with its effective operator cutover. The Library should describe this distinction and label purchases as test-only until launch approval.
 
 ## Launch status
 
 This implementation accepts test keys only, requires a local database, and refuses purchases on Vercel production. Preview and development normally share the production Neon database; test payments must never credit that database. Live packages, prices, currency, tax treatment and refund terms remain unconfigured. No real charge is needed or authorized. Do not replace test keys with live keys: enabling live purchases requires a separate reviewed change and the policy and adjustment work below.
 
 Stripe test credentials and a configured test catalog were not supplied for this assignment. Automated default tests are deterministic; real Stripe lifecycle validation remains an external credential blocker, not a claimed passing check.
+
+The terminology reconciliation with #782 remains a dependency for the allocated integration update window. Existing Gold identifiers and copy keys remain compatible; this branch does not merge integration during the hold.
+
+The purchase table currently cascades on user deletion. There is no current delete-user flow. Durable audit retention independent of account deletion is required before live enablement.
 
 ## Configure Stripe test mode
 
@@ -39,8 +43,8 @@ The live-enablement change must add an auditable adjustment ledger with unique p
 1. Identify the purchase by its immutable id and retained session/payment/event references. Inspect the purchase and balance through authorized operations; never expose credentials or card data.
 2. Compare it with Stripe test-mode session, payment status, price, amount and currency. A paid session with no fulfillment time needs recovery.
 3. Resend the original Checkout event from Stripe Workbench or Stripe CLI after restoring database access. Use the original configured endpoint and its signing secret. The handler retrieves current Stripe state, so replay works after the catalog changes.
-4. Confirm one fulfilled purchase and one balance increase. A duplicate delivery is safe. A webhook returns non-2xx on storage or provider failure so Stripe can retry; do not acknowledge failures manually.
-5. Investigate mismatched references or unknown purchases rather than granting batteries manually. Check pending rows whose Checkout creation failed before a session reference was saved.
+4. Confirm one fulfilled purchase and one balance increase. A duplicate delivery is safe. A webhook returns 500 on storage or provider failure so Stripe can retry. Unrelated Checkout sessions are acknowledged. Permanent purchase/session/line mismatches are acknowledged without a grant and logged with safe event/purchase references for investigation; corrected payments need explicit replay. Invalid signatures or source environments return 400.
+5. Investigate mismatched references or unknown purchases rather than granting batteries manually. Definite creation rejections and missing Checkout URLs are recorded as failed. Ambiguous connection/server failures stay pending because a payable session might exist. A later verified paid event can recover either state.
 
 ## Migrate and roll back
 

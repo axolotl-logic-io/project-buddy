@@ -2,7 +2,10 @@ import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { BatteryPurchases } from "@/app/(workspace)/account/battery-purchases.tsx";
-import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
+import {
+  BatteryPurchasesAvailable,
+  EarnGoldLink,
+} from "@/components/earn-gold-link.tsx";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 
 vi.mock("@/app/(workspace)/account/battery-actions.ts", () => ({
@@ -57,8 +60,30 @@ test("closed Checkout does not claim a paid purchase failed", async () => {
 });
 
 test("out of batteries links to Account purchase guidance", async () => {
-  await render(<EarnGoldLink />);
+  await render(
+    <BatteryPurchasesAvailable available={true}>
+      <EarnGoldLink />
+    </BatteryPurchasesAvailable>,
+  );
   await expect
     .element(page.getByRole("link", { name: BATTERY_PURCHASES_COPY.heading }))
     .toHaveAttribute("href", "/account#buy-batteries");
+});
+
+test("disabled purchases preserve legacy earning guidance", async () => {
+  await render(<EarnGoldLink />);
+  await expect
+    .element(page.getByRole("link"))
+    .toHaveAttribute("href", "/marketplace#your-listings");
+});
+
+test("Marketplace shortages retain earning guidance even with test Checkout", async () => {
+  await render(
+    <BatteryPurchasesAvailable available={true}>
+      <EarnGoldLink marketplace={true} />
+    </BatteryPurchasesAvailable>,
+  );
+  await expect
+    .element(page.getByRole("link"))
+    .toHaveAttribute("href", "/marketplace#your-listings");
 });

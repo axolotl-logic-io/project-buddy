@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { batteryCatalog } from "@/batteries/catalog.ts";
+import { availableBatteryCatalog } from "@/batteries/catalog.ts";
 import { readBatteryPurchases } from "@/batteries/purchases.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -22,6 +22,8 @@ export default async function AccountPage({
   const { battery } = await searchParams;
   const user = await requireUser();
   const gold = await readGoldBalance(user.id);
+  const catalog = availableBatteryCatalog();
+  const purchases = await readBatteryPurchases(user.id);
   return (
     <>
       {user.role === "admin" && (
@@ -31,11 +33,13 @@ export default async function AccountPage({
       )}
       <NameForm name={user.name} />
       <GoldBalance microUsd={gold} />
-      <BatteryPurchases
-        result={battery}
-        catalog={batteryCatalog()}
-        purchases={await readBatteryPurchases(user.id)}
-      />
+      {(catalog.length > 0 || purchases.length > 0) && (
+        <BatteryPurchases
+          result={battery}
+          catalog={catalog}
+          purchases={purchases}
+        />
+      )}
     </>
   );
 }

@@ -17,7 +17,9 @@ export async function POST(request: Request): Promise<Response> {
     logAppError(
       "unknown",
       "stripe-webhook",
-      new Error("Battery webhook failed; replay required."),
+      new Error(
+        "Battery webhook retryable failure; provider or storage recovery and replay required.",
+      ),
     );
     return new Response(null, { status: HTTP_STATUS.internalServerError });
   }

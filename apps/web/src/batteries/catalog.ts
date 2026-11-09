@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { readBatteryPayments } from "@/env.ts";
+import { logAppError } from "@/errors/error-log.ts";
 
 const MAX_PACKAGE_ID = 80;
 const MAX_BATTERIES = 1_000_000;
@@ -29,5 +30,19 @@ function batteryCatalog(): BatteryPackage[] {
   return CATALOG.parse(JSON.parse(config.catalog));
 }
 
+// Presentation fails closed without exposing environment values or parser input.
+function availableBatteryCatalog(): BatteryPackage[] {
+  try {
+    return batteryCatalog();
+  } catch {
+    logAppError(
+      "unknown",
+      "battery-configuration",
+      new Error("Battery purchase configuration is unavailable."),
+    );
+    return [];
+  }
+}
+
 export type { BatteryPackage };
-export { batteryCatalog };
+export { availableBatteryCatalog, batteryCatalog };
