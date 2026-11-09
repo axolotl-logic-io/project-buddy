@@ -13,6 +13,7 @@ import {
 } from "react";
 import { changeQuestStatusAction } from "@/app/(workspace)/projects/status-actions.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import {
   QUEST_STATUSES,
   type StatusActionState,
@@ -58,9 +59,9 @@ function QuestStatusFeedback({
   return (
     <StatusFeedbackContext.Provider value={publish}>
       {children}
-      <p className="status-text" role="status" tabIndex={-1} ref={resultRef}>
+      <Notice role="status" tabIndex={-1} ref={resultRef}>
         {state.message}
-      </p>
+      </Notice>
       {state.change !== undefined && (
         <UndoStatusChange
           key={`${state.change.projectId}-${state.change.revision}`}
