@@ -110,20 +110,19 @@ Two users each see only their own quests, adventures, Journal, constructs and go
 
 ## use_case_see_gold
 
-The user checks how much gold she has left.
+The user checks how many Batteries they have left.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - She opens her account page from the top of any page.
-  - It shows her gold balance.
-  - She sends a message in an adventure, then opens her account page again.
-- **Outcome:** the account page shows her gold in whole gold, rounded down, such as "Gold: 87"; a new account shows "Gold: 100". After her message and its reply, the balance has fallen. A balance below 0 shows as 0. The page names no dollars and no reset day: gold never resets. The page also offers Sign out and Sign out everywhere. The gold balance is an extra: with it switched off in Settings ([`use_case_hide_extras`](appearance.md#use_case_hide_extras)), the account page shows no balance, and the buttons are still there.
-- **Adventure replies:** the acting user's balance appears near the composer. After each reply, its actual fractional gold cost includes retries, images and any automatic adventure name. Pending or unknown accounting is labeled explicitly, never shown as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies without accounting records show an unavailable cost; no history is invented.
+  - They read their Batteries balance in the shared header, including Home, without opening a menu.
+  - They open Account to see the same balance and its explanation.
+  - They send an adventure message and wait for its reply and accounting to finish.
+- **Outcome:** the header shows the viewing user's own Batteries, including in a team quest. Account and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload. An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
+- **Extras:** hiding the Account balance extra does not hide the compact header balance. Account still offers Sign out and Sign out everywhere.
+- **Adventure replies:** the acting user's balance appears near the composer. Actual fractional reply costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
 - **Next:**
-  - `use_case_out_of_gold`: she spends the last of her gold.
-  - `use_case_sign_out`: she is done for the day.
-
-The composer shows the acting user’s balance. Actual fractional reply costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
+  - `use_case_out_of_gold`: they spend their last Batteries.
+  - `use_case_sign_out`: they are done for the day.
 
 ## use_case_set_name
 

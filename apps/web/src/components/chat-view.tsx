@@ -249,6 +249,13 @@ export function ChatView({
       globalThis.clearInterval(timer);
     };
   }, [costsPending, chat.status, chatId, chat.messages, viewer]);
+  const headerBalanceRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (gold !== undefined && headerBalanceRef.current !== gold.balance) {
+      headerBalanceRef.current = gold.balance;
+      router.refresh();
+    }
+  }, [gold, router]);
   const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });

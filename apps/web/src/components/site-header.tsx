@@ -3,12 +3,15 @@ import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { wholeGold } from "@/gold/gold.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -16,6 +19,23 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+
+// Uses Account's rounding; absence means unavailable, never an empty account.
+function HeaderBalance({
+  microUsd,
+}: {
+  readonly microUsd: number | undefined;
+}): JSX.Element {
+  let amount: string = HEADER_BALANCE_COPY.unavailable;
+  if (microUsd !== undefined) {
+    amount = String(wholeGold(microUsd));
+  }
+  return (
+    <p className="header-balance" role="status">
+      <span>{HEADER_BALANCE_COPY.label}</span> <span>{amount}</span>
+    </p>
+  );
+}
 
 // The ids of the menu's two groups' names. The header is on every page
 // once, so they are unique.
@@ -83,12 +103,15 @@ async function SignedInLinks({
 }: {
   readonly place?: string | undefined;
 } = {}): Promise<JSX.Element> {
-  if ((await currentUser()) === undefined) {
+  const user = await currentUser();
+  if (user === undefined) {
     return <SiteMenu links={null} />;
   }
+  const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
       {place !== undefined && <p className="hud-place">{place}</p>}
+      <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} shortcuts={true} />
     </>
   );
@@ -118,4 +141,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, SignedInLinks, SiteHeader };
+export { AccountLinks, HeaderBalance, SignedInLinks, SiteHeader };

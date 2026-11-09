@@ -12,8 +12,14 @@
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
+import {
+  AccountLinks,
+  HeaderBalance,
+  SignedInLinks,
+  SiteHeader,
+} from "@/components/site-header.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -31,6 +37,11 @@ import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import {
+  SIGNED_IN_USER,
+  signInAs,
+  signOut,
+} from "../auth/current-user-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -51,6 +62,8 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
+
+vi.mock("@/gold/gold-store.ts", () => ({ readGoldBalance: vi.fn() }));
 
 // Saving a theme choice is a round trip to the server, which
 // save-theme-choice-action.server.test.ts covers.
@@ -114,7 +127,12 @@ function stayOnThisPage(event: MouseEvent): void {
 async function renderSignedIn(): Promise<void> {
   await render(
     <SiteHeader
-      links={<SiteMenu links={<AccountLinks />} shortcuts={true} />}
+      links={
+        <>
+          <HeaderBalance microUsd={870_000} />
+          <SiteMenu links={<AccountLinks />} shortcuts={true} />
+        </>
+      }
     />,
   );
 }
@@ -348,5 +366,86 @@ describe("the site menu", () => {
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
+  });
+});
+
+describe("header battery balance", () => {
+  test("signed-in session reads its balance and unavailable reads stay explicit", async () => {
+    signInAs(SIGNED_IN_USER);
+    vi.mocked(readGoldBalance).mockRejectedValueOnce(new Error("Unavailable"));
+    await render(<SiteHeader links={await SignedInLinks()} />);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Batteries: Unavailable");
+  });
+
+  test("signed-out session supplies no balance", async () => {
+    signOut();
+    await render(<SiteHeader links={await SignedInLinks()} />);
+    expect(page.getByRole("status").query()).toBeNull();
+  });
+
+  test.each(["light", "dark"])(
+    "fits Home and shared controls at 320px in %s",
+    async (mode) => {
+      applyTheme("parchment", mode);
+      await setViewport(NARROWEST_VIEWPORT);
+      await render(
+        <>
+          <SiteHeader
+            links={
+              <>
+                <HeaderBalance microUsd={870_000} />
+                <SiteMenu links={<AccountLinks />} shortcuts={true} />
+              </>
+            }
+          />
+          <main>
+            <div className="atlas" />
+          </main>
+        </>,
+      );
+      await expect.element(page.getByRole("status")).toBeVisible();
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+      const balanceBox = page
+        .getByRole("status")
+        .element()
+        .getBoundingClientRect();
+      const menuBox = menuButton().element().getBoundingClientRect();
+      expect(balanceBox.right).toBeLessThanOrEqual(menuBox.left);
+      await userEvent.tab();
+      await expect
+        .element(page.getByRole("link", { name: SITE_COPY.name }))
+        .toHaveFocus();
+    },
+  );
+
+  const Balances = [
+    { microUsd: 0, shown: "0" },
+    { microUsd: 9999, shown: "0" },
+    { microUsd: 870_001, shown: "87" },
+  ];
+  test.each(Balances)(
+    "rounds $microUsd like Account",
+    async ({ microUsd, shown }) => {
+      await render(<HeaderBalance microUsd={microUsd} />);
+      await expect
+        .element(page.getByRole("status"))
+        .toHaveTextContent(`Batteries: ${shown}`);
+    },
+  );
+
+  test("unavailable is distinct from zero", async () => {
+    await render(<HeaderBalance microUsd={undefined} />);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Batteries: Unavailable");
+  });
+
+  test("a visitor has no balance", async () => {
+    await render(<SiteHeader />);
+    expect(page.getByRole("status").query()).toBeNull();
   });
 });

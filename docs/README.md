@@ -4,6 +4,9 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+Signed-in users see their own Batteries balance in the shared header, including Home and team quests. It uses Account’s whole-unit rounding and refreshes after completed model charges and balance transfers. Signed-out visitors see no balance; unavailable balances never appear as zero. The header balance remains visible when the Account balance extra is hidden.
+
+
 - [Premade quests](premade-quests.md): the Quest library, editable starting Journals and ordinary quest creation.
 
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
