@@ -89,3 +89,16 @@ vi.mock("@/gold/gold-store.ts", () => ({
     Promise.reject(new Error("Mock the balance reader in this test")),
   ),
 }));
+
+// Read-only collection fixtures still import their creation controls. Their
+// Server Actions stay RPC boundaries; action tests provide result-specific mocks.
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(() => {
+    throw new Error("Mock the adventure creation action in this test");
+  }),
+}));
+vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+  startPremadeQuestAction: vi.fn(() => {
+    throw new Error("Mock the premade quest action in this test");
+  }),
+}));
