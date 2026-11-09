@@ -311,7 +311,7 @@ The user explores starting points without creating anything.
 
 The user makes a starting point their own.
 
-- **Prerequisites:** signed in, with gold available.
+- **Prerequisites:** signed in, with batteries available.
 - **Steps:** preview a premade quest; edit its name, Journal, motivation, activity and construct; choose Start quest.
 - **Outcome:** the ordinary quest and first adventure are saved together and the adventure opens. The preview defaults to the preferred New quest construct. Start without inspiration defaults to Find something to make. Confirmed Journal text and motivation are saved as the first user Journal version. Planned milestones do not become timeline progress. The quest belongs to the acting user and uses ordinary Journal, adventure, status and membership controls.
 - **Variations:** invalid input, an unavailable choice or a failed opening saves nothing. The form keeps every edit for correction or retry and prevents submission while pending.
