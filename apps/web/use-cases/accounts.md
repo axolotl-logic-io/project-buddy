@@ -152,7 +152,7 @@ The user has spent all her gold.
   - She sends another message.
   - Instead of a reply, the adventure says "You're out of gold."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New quest keeps the entered name and motivation after refusal. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. Out-of-gold messages link to the Marketplace to earn gold by selling own constructs, activities and spells. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New quest keeps the entered name and motivation after refusal. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. Out-of-batteries messages link to Account to buy batteries. This purchase flow never buys or converts Marketplace currency. Marketplace orbs remain subject to their separate cutover. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her gold.
 
@@ -197,3 +197,17 @@ The user signs out of every browser and device at once, for example after signin
 - **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and an adventure left open there says she has been signed out when she next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs her in, even within its 30 minutes. If she cancels instead of confirming, nothing changes and she stays signed in everywhere. A new link signs her in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where she wants to be.
+
+
+## use_case_buy_batteries
+
+The signed-in user buys batteries for model use through Stripe-hosted Checkout.
+
+- **Prerequisites:** a configured test-mode catalog; live purchases are unavailable pending approved pricing, tax and refund terms.
+- **Steps:**
+  - In Account, the user reviews a package's battery amount and price with its currency.
+  - The user continues to Stripe Checkout and pays using Stripe test mode.
+  - Stripe confirms the payment to the site, even if the user closes Checkout.
+  - The user refreshes payment status in Account.
+- **Outcome:** the buyer's balance increases by the configured amount once. Account shows the fulfilled purchase with its price and currency. Browser redirects grant nothing. Marketplace orbs and model-use rates do not change.
+- **Variations:** unpaid, failed and expired sessions grant nothing. Closing Checkout shows a cancellation notice without claiming a payment failed. Duplicate and concurrent events grant once. After a storage failure, replaying the Stripe event completes the same grant safely.

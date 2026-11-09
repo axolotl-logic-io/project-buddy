@@ -1,16 +1,15 @@
 import Link from "next/link";
 import type { JSX } from "react";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 
-// The link every out-of-gold message ends with, to where a user earns gold:
-// selling their own prompts in the Marketplace. It follows the message's
-// text, after a space.
+// Compatibility component name: model-use Batteries come from Account,
+// without buying or converting Marketplace currency.
 export function EarnGoldLink(): JSX.Element {
   return (
     <>
       {" "}
-      <Link className="text-link" href="/marketplace#your-listings">
-        {MARKETPLACE_COPY.earnGold}
+      <Link className="text-link" href="/account#buy-batteries">
+        {BATTERY_PURCHASES_COPY.heading}
       </Link>
     </>
   );
