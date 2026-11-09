@@ -64,6 +64,20 @@ function LibraryReader({ book }: { readonly book: LibraryBook }): JSX.Element {
           {chapter.paragraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
+          {chapter.links.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {chapter.links.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    className="inline-flex min-h-(--target-size) items-center text-link"
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       ))}
       <Link

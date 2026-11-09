@@ -55,6 +55,19 @@ describe("use_case_library", () => {
               page.getByRole("heading", { name: chapter.title, level: 2 }),
             )
             .toHaveAttribute("id", chapter.id);
+          const section = page.getByRole("region", {
+            name: chapter.title,
+            exact: true,
+          });
+          await Promise.all(
+            chapter.links.map((link) =>
+              expect
+                .element(
+                  section.getByRole("link", { name: link.label, exact: true }),
+                )
+                .toHaveAttribute("href", link.href),
+            ),
+          );
         }),
       );
       await expect
