@@ -14,10 +14,10 @@ const ROOT: string = decodeURIComponent(
 );
 // One of the app's own files, as the importer.
 const APP_FILE = `${ROOT}/src/x.tsx`;
-// Installed, but imported only by Node repository guards, so not pre-bundled.
-const UNLISTED_PACKAGE = "culori";
+// This installed entry point is not imported by browser tests or pre-bundled.
+const UNLISTED_PACKAGE = "memfs";
 const MISSING_DEP_ERROR =
-  /"culori", imported by src\/x\.tsx.+vitest\.browser-deps\.mts/u;
+  /"memfs", imported by src\/x\.tsx.+vitest\.browser-deps\.mts/u;
 
 type ViteServer = Awaited<ReturnType<typeof createViteServer>>;
 

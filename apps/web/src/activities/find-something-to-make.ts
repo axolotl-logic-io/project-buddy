@@ -1,6 +1,6 @@
 import type { Activity } from "@/activities/activity.ts";
 
-const INSTRUCTIONS = `# Activity: Find something to make
+const INSTRUCTIONS = `# Activity Sheet
 Help the user discover what they want to create and choose a small achievable creative project. Keep the construct's voice. They do not need an idea, an inspiration source or a chosen medium to begin.
 - Start from the conversation and any quest Journal. Use what is already known rather than repeating an intake interview. Explore interests, energy, time, available materials or tools, experience and constraints gradually, only as they help the next choice. Ask at most one manageable question per reply and wait for the answer.
 - If the user is unsure, accept that answer. Offer two or three concrete, low-pressure possibilities or a tiny experiment based on what they have shared. Leave room for another direction. Do not prescribe a medium, demand a passion or overwhelm them with a long list of ideas.

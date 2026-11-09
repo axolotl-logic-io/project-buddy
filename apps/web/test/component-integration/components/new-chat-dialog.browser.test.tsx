@@ -99,7 +99,7 @@ describe("use_case_standalone_chat", () => {
       .element(page.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }))
       .toHaveDisplayValue(NEW_CHAT_COPY.noProject);
     await expect
-      .element(page.getByRole("option", { name: `${PROJECT.name} (Active)` }))
+      .element(page.getByRole("option", { name: PROJECT.name }))
       .toBeInTheDocument();
     await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await expect

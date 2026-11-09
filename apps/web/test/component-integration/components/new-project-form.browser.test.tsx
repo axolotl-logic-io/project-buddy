@@ -64,7 +64,7 @@ describe("use_case_new_project", () => {
   });
 });
 
-test("out-of-gold refusal keeps Why and the construct and offers a way to earn gold", async () => {
+test("out-of-batteries refusal keeps Why and the construct and the legacy Marketplace link", async () => {
   const message = userMessage("out-of-gold");
   const motivation = "A gift for a friend";
   actions.createProjectAction.mockResolvedValue({

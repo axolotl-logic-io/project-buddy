@@ -21,12 +21,11 @@ export const ACTIVITIES_COPY = {
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
   noOwn:
-    "No activities of your own yet. Customize one above, or choose New activity to write one from scratch.",
-  newActivity: "Write new activity",
-  // The name of an activity written from scratch, until the user renames it.
+    "No activities of your own yet. Customize one above, or choose Craft activity to make one without copying another.",
+  newActivity: "Craft activity",
+  // The name of a crafted activity, until the user renames it.
   newActivityName: "New activity",
   start: "Start",
-  startLabel: (name: string): string => `Start an adventure in ${name}`,
   customize: "Customize",
   customizeLabel: (name: string): string =>
     `Customize ${name}: make your own copy`,
@@ -55,7 +54,7 @@ export const ACTIVITY_DEFINITION_COPY: Readonly<
 > = {
   prompt: {
     label: "Instructions",
-    help: "What your construct does in the activity: the scene it sets for the adventure.",
+    help: "The name identifies the activity; the Activity Sheet contains its instructions: what your construct does and the scene it sets.",
   },
   openingRequest: {
     label: "Opening request",
