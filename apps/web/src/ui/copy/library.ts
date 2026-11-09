@@ -61,7 +61,7 @@ const LIBRARY_COPY: {
           title: "Continue and find your work",
           links: [{ href: "/projects", label: "Find your quests" }],
           paragraphs: [
-            "The header shows where you are, including Home. Its parent links lead back to the containing pages. Open Adventures to find and continue a conversation. Open a quest to find its adventures, Journal and progress timeline. Rename an adventure to make it easier to recognize; a manual name stops automatic renaming.",
+            "The header shows where you are, including Home. Its parent links lead back to the containing pages. Open Adventures to find and continue a conversation. Open a quest to find its adventures, Journal and progress timeline. Adventures and Quest Journal share a workspace header. Owners can use its pencil to edit the quest title and its visible Complete, Abandon or Restore quest actions to change the status. Rename an adventure to make it easier to recognize; a manual name stops automatic renaming.",
             "The Journal holds persistent quest context such as goals, preferences, constraints and agreed plans. The construct is instructed to save useful information there, but you can read and edit it yourself. Check it when a reply seems to misunderstand your goal.",
             "Quick Notes let you capture information without a conversation. They become part of the quest Journal, so later quest adventures can use them. Another adventure’s entire conversation is not automatically supplied: put lasting information in the Journal.",
             "For example, save “The shelf gets sun only in the morning” as a Quick Note. In a later quest adventure, ask for plants that fit that constraint. A standalone adventure has no quest Journal.",
