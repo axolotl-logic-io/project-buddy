@@ -26,7 +26,6 @@ export const ACTIVITIES_COPY = {
   // The name of an activity written from scratch, until the user renames it.
   newActivityName: "New activity",
   start: "Start",
-  startLabel: (name: string): string => name,
   customize: "Customize",
   customizeLabel: (name: string): string =>
     `Customize ${name}: make your own copy`,

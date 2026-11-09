@@ -80,7 +80,7 @@ The Journal changed while the user was editing it.
 
 The user asks the construct what to work on next, and it answers from the quest's Journal.
 
-- **Prerequisites:** a quest Journal holding milestones, saved through `use_case_construct_updates_memory` or `use_case_edit_memory`, and Chat in the same quest. A preserved interview is not required.
+- **Prerequisites:** a quest Journal holding milestones, saved through `use_case_construct_updates_memory` or `use_case_edit_memory`, and an adventure in the same quest. A preserved interview is not required.
 - **Steps:**
   - She asks what she should work on next.
   - The construct answers from the quest's Journal, in the construct's voice.

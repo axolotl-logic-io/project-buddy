@@ -132,7 +132,7 @@ Find something to make (`find-something-to-make`) helps the user discover a smal
 
 Use it without a quest, in an existing quest or with a new quest through the normal adventure form. Vellum and Lumen have prepared openings; edited definitions and new quests with motivation use generated openings. In a quest, the construct uses its existing Journal and the usual tool rules. A standalone adventure has no Journal or quest progress. Suggested milestones remain plans until meaningful work is reported completed.
 
-Every adventure is in one activity at a time: Chat, brainstorming, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
+Every adventure is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
 
 Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Break Down a Project. The quest creation form defaults to Break Down a Project. An adventure records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the

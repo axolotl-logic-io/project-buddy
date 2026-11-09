@@ -213,7 +213,7 @@ The built-in activity for exploring an idea, questioning assumptions and making 
 
 ### Chat
 
-The built-in activity with no set scene. It is the default when the user picks no activity.
+The built-in activity with no set scene. It is the default when the user picks no activity. Chat names the `open-chat` activity; the earlier use of chat for an adventure remains only for compatibility.
 
 - **UI:** "Chat".
 
@@ -262,7 +262,7 @@ To make a spell's instructions available to the construct. A cast preserves the 
 One conversation between the user and one [construct](#construct). Every adventure is either a [quest adventure](#quest-adventure) or a [standalone adventure](#standalone-adventure).
 
 - **UI:** "Adventure", "Adventures", "New adventure".
-- **Earlier name:** "Chat" or "Chats".
+- **Earlier name:** "Chat" or "Chats", retained only for compatibility. The current [Chat](#chat) activity is one activity an adventure can use.
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
 
 ### Quest status
