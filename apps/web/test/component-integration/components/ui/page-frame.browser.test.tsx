@@ -3,15 +3,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import SegmentError from "@/app/(workspace)/constructs/[constructId]/error.tsx";
+import HomeError from "@/app/(workspace)/home/error.tsx";
 import HomeLoading from "@/app/(workspace)/home/loading.tsx";
-import ProjectLoading from "@/app/(workspace)/projects/[projectId]/(overview)/loading.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
 import { EditorLoading } from "@/components/ui/editor-loading.tsx";
-import {
-  EditorFrame,
-  HomeFrame,
-  PageFrame,
-} from "@/components/ui/page-frame.tsx";
+import { EditorFrame, HomeFrame } from "@/components/ui/page-frame.tsx";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
@@ -24,6 +20,7 @@ import {
 
 const COPY = { navigation: "Navigation", heading: "Editor", prompt: "Prompt" };
 const STANDARD_WIDTH = 768;
+const TOUCH_TARGET_PX = 44;
 
 function shell(content: JSX.Element): JSX.Element {
   return (
@@ -87,30 +84,47 @@ describe.each(["light", "dark"])("page frames in %s", (mode) => {
     },
   );
 
-  test.each(["No adventures yet", "Unable to load this quest"])(
-    "keeps the quest frame for %s without fake rows",
-    async (text) => {
-      const screen = await render(
+  test.each([NARROWEST_VIEWPORT, PHONE_VIEWPORT, { width: 1440, height: 900 }])(
+    "keeps Home errors in a padded reading column at $width px",
+    async (viewport) => {
+      await setViewport(viewport);
+      const retry = vi.fn<() => void>();
+      await render(
         shell(
-          <PageFrame>
-            <ProjectLoading />
-          </PageFrame>,
+          <HomeFrame>
+            <HomeError
+              error={new Error("Private server detail")}
+              retry={retry}
+            />
+          </HomeFrame>,
         ),
       );
-      const main = page.getByRole("main").element();
-      const before = main.getBoundingClientRect();
-      await expect.element(page.getByRole("row")).not.toBeInTheDocument();
-
-      await screen.rerender(
-        shell(
-          <PageFrame>
-            <h1>{text}</h1>
-          </PageFrame>,
-        ),
-      );
-      expect(main.getBoundingClientRect().width).toEqual(before.width);
-      expect(main.getBoundingClientRect().x).toEqual(before.x);
-      await expect.element(page.getByRole("status")).not.toBeInTheDocument();
+      const heading = page.getByRole("heading", {
+        name: PROBLEMS_COPY.errorHeading,
+      });
+      const panel = heading.element().parentElement;
+      expect(panel).not.toBeNull();
+      const box = panel?.getBoundingClientRect();
+      expect(box?.left).toBeGreaterThan(0);
+      expect(box?.right).toBeLessThan(viewport.width);
+      expect(box?.width).toBeLessThanOrEqual(STANDARD_WIDTH);
+      const header = page.getByRole("banner").element().getBoundingClientRect();
+      expect(box?.top).toBeGreaterThan(header.bottom);
+      await expect.element(page.getByRole("alert")).toBeVisible();
+      await expect
+        .element(page.getByText("Private server detail"))
+        .not.toBeInTheDocument();
+      const navigation = page.getByRole("link", { name: COPY.navigation });
+      navigation.element().focus();
+      expect(navigation.element()).toHaveFocus();
+      const button = page.getByRole("button", { name: PROBLEMS_COPY.retry });
+      const target = button.element().getBoundingClientRect();
+      expect(target.left).toBeGreaterThan(0);
+      expect(target.right).toBeLessThan(viewport.width);
+      expect(target.height).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+      expect(target.width).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+      await button.click();
+      expect(retry).toHaveBeenCalledOnce();
     },
   );
 
