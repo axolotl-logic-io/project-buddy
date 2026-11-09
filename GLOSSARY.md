@@ -617,7 +617,7 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s gold. A new adventure's generated opening spends the gold of the user starting it. An automatic check-in spends the quest owner's gold.
 
-Gold can also move between users through transfers, such as Marketplace sales. Users see gold rather than provider costs.
+Before the orb migration, Marketplace sales transferred gold between users. Current Marketplace sales use separate orbs and do not fund model use. Users see their model-use balance rather than provider costs.
 
 - **UI:** "gold", "You're out of gold."
 - **Avoid:** "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
@@ -665,7 +665,7 @@ The user who published a listing. Only they update or unlist it. Others see the 
 
 ### Buy
 
-To get one's own copy of someone else's listing: the buyer's orbs moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no orbs ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
+To get one's own copy of someone else's listing: the buyer's orbs move to the seller, all at once with saving the copy, or nothing changes. A free listing moves no orbs ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
 
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.

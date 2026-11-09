@@ -236,6 +236,16 @@ async function listableSource(
   return { name: found.prompt.name, parts: found.prompt.definition };
 }
 
+// Invalid terms never read or change a listing, including an update.
+function validTerms(terms: ListingTerms): boolean {
+  return (
+    Number.isSafeInteger(terms.price) &&
+    terms.price >= 0 &&
+    terms.price <= LISTING_PRICE_MAX &&
+    terms.description.length <= LISTING_DESCRIPTION_MAX_LENGTH
+  );
+}
+
 // Publishes the seller's own prompt that source names as a listing with
 // these terms, and gives its id. A prompt listed before is republished in
 // place, with its current name and parts and these terms, and listed again
@@ -246,12 +256,7 @@ async function publishListing(
   source: ListingSource,
   terms: ListingTerms,
 ): Promise<ListingChangeOutcome> {
-  if (
-    !Number.isSafeInteger(terms.price) ||
-    terms.price < 0 ||
-    terms.price > LISTING_PRICE_MAX ||
-    terms.description.length > LISTING_DESCRIPTION_MAX_LENGTH
-  ) {
+  if (!validTerms(terms)) {
     return { kind: "not-found" };
   }
   const listable = await listableSource(seller, source);
@@ -323,6 +328,9 @@ async function updateListing(
   listingId: string,
   terms: ListingTerms,
 ): Promise<ListingChangeOutcome> {
+  if (!validTerms(terms)) {
+    return { kind: "not-found" };
+  }
   const id = parseListingId(listingId);
   if (id === undefined) {
     return { kind: "not-found" };

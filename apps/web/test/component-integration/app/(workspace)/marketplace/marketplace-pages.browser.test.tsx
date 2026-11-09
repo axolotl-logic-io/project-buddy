@@ -1,8 +1,8 @@
 // The Marketplace's pages in Chromium and WebKit. "use_case_browse_marketplace":
 // listings show their name, kind, seller and price, and their descriptions
 // as plain text, with a kind filter that marks the kind shown; a listing's
-// page says another user wrote it. "use_case_buy_listing": too little gold
-// says how much is needed and links to earning more.
+// page says another user wrote it. "use_case_buy_listing": too few orbs
+// says how many are needed and distinguishes Batteries.
 // "use_case_manage_listings": Your listings counts each listing's sales and
 // names its buttons for it. "use_case_sell_in_marketplace": the sell form
 // on an own prompt's page shows a refusal at its field. What the actions
@@ -44,10 +44,10 @@ import {
 } from "../../../marketplace/marketplace-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
-vi.mock("@/orbs/orb-store.ts", () => {
-  const starting = 100;
-  return { readOrbsBalance: async (): Promise<number> => starting };
-});
+const balance = vi.hoisted(() => ({ orbs: 100 }));
+vi.mock("@/orbs/orb-store.ts", () => ({
+  readOrbsBalance: async (): Promise<number> => balance.orbs,
+}));
 
 const cutover = vi.hoisted(() => ({ enabled: true }));
 vi.mock("@/marketplace/cutover.ts", () => ({
@@ -75,7 +75,7 @@ vi.mock("@/marketplace/listing-store.ts", () => stores);
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const STARTING_ORBS = 100;
 const PRICE = 3;
-const SHORT_GOLD = 2;
+const SHORT_ORBS = 2;
 const PRICE_MAX = 5;
 // The filter's link to constructs alone.
 const CONSTRUCTS_ONLY = new URLSearchParams({ kind: "construct" });
@@ -114,6 +114,7 @@ async function listingPage(
 
 afterEach(() => {
   cutover.enabled = true;
+  balance.orbs = STARTING_ORBS;
   vi.clearAllMocks();
 });
 
@@ -197,7 +198,7 @@ describe("use_case_buy_listing", () => {
   test("too few orbs says how much is needed and distinguishes Batteries", async () => {
     actions.buyListingAction.mockResolvedValue({
       kind: "refused",
-      message: LISTING_COPY.tooLittleGold(PRICE, SHORT_GOLD),
+      message: LISTING_COPY.tooLittleGold(PRICE, SHORT_ORBS),
       earnGold: false,
     });
     await listingPage(CONSTRUCT_LISTING_TO_BUY);
@@ -368,4 +369,62 @@ test("legacy listing requires an explicitly chosen orb price", async () => {
   await expect
     .element(page.getByRole("spinbutton", { name: SELL_COPY.priceLabel }))
     .toHaveValue(null);
+});
+
+test("a one-orb listing and balance offer a one-orb buy and show its refusal", async () => {
+  balance.orbs = 1;
+  actions.buyListingAction.mockResolvedValue({
+    kind: "refused",
+    message: LISTING_COPY.tooLittleGold(1, 0),
+    earnGold: false,
+  });
+  await listingPage({ ...CONSTRUCT_LISTING_TO_BUY, price: 1 });
+  await expect.element(page.getByText("1 orb", { exact: true })).toBeVisible();
+  await expect
+    .element(
+      page.getByText(
+        "Orb balance: 1 orb. Batteries pay for model use separately.",
+      ),
+    )
+    .toBeVisible();
+  await page.getByRole("button", { name: "Buy for 1 orb" }).click();
+  await expect
+    .element(page.getByText("You need 1 orb. You have 0."))
+    .toBeVisible();
+  const [, sent] = actions.buyListingAction.mock.lastCall ?? [];
+  expect(sent?.get("price")).toBe("1");
+});
+
+test("a changed price of one orb is shown without retrying the buy", async () => {
+  actions.buyListingAction.mockResolvedValue({
+    kind: "refused",
+    message: LISTING_COPY.priceChanged(1),
+    earnGold: false,
+  });
+  await listingPage(CONSTRUCT_LISTING_TO_BUY);
+  await page.getByRole("button", { name: "Buy for 3 orbs" }).click();
+  await expect.element(page.getByText("The price is now 1 orb.")).toBeVisible();
+  expect(actions.buyListingAction).toHaveBeenCalledTimes(1);
+});
+
+test("seller summaries show one orb earned and keep unlisted legacy status", async () => {
+  signInAs(SIGNED_IN_USER);
+  stores.listListings.mockResolvedValue([]);
+  stores.listOwnListings.mockResolvedValue([
+    { ...CONSTRUCT_LISTING, listed: true, buyers: 1, goldEarned: 1, price: 1 },
+    { ...SPELL_LISTING, listed: false, legacy: true, buyers: 0, goldEarned: 0 },
+  ]);
+  await render(inWorkspace(await MarketplacePage({ searchParams: NO_PARAMS })));
+  await expect
+    .element(
+      page.getByText(
+        "Construct · Listed: 1 orb · Bought by 1 user · 1 orb earned",
+      ),
+    )
+    .toBeVisible();
+  await expect
+    .element(
+      page.getByText("Spell · Unlisted · Bought by 0 users · 0 orbs earned"),
+    )
+    .toBeVisible();
 });

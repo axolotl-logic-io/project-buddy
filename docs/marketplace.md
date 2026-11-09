@@ -29,8 +29,8 @@ Listings are the one row that every signed-in user may read, through the "listed
 Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at the price the buyer was shown, which the buy form sends. It locks the seller's account and then the listing, so the listing can't be unlisted or its seller deleted meanwhile; saves the buyer's copy, a construct, activity or spell named as the listing with `bought_from` set; records the purchase; and moves the price to the seller with the orbs transfer (`transferOrbs` in `src/orbs/orb-store.ts`), whose ledger keeps a Marketplace sale for the seller and a purchase for the buyer, with the purchase's id. Any refusal rolls back all of it.
 
 - **Price changed:** if the seller changed the price after the page showed it, nothing changes, and the page shows the new price: "The price is now 5 orbs."
-- **Seller deleted meanwhile:** a purchase and the deletion of the seller's account take their locks in the same order, so one waits for the other. Either the purchase completes, with the buyer's copy and the price paid, and the deletion follows; or the deletion completes first, and the purchase finds no listing and changes nothing. No orbs is lost or created either way.
-- **Too little orbs:** nothing changes, and the page says how much orbs the listing needs and how much the buyer has, and distinguishes orbs from Batteries.
+- **Seller deleted meanwhile:** a purchase and the deletion of the seller's account take their locks in the same order, so one waits for the other. Either the purchase completes, with the buyer's copy and the price paid, and the deletion follows; or the deletion completes first, and the purchase finds no listing and changes nothing. No orbs are lost or created either way.
+- **Too few orbs:** nothing changes, and the page says how many orbs the listing needs and how many the buyer has, and distinguishes orbs from Batteries.
 - **Free listings** move no orbs.
 - **Limits:** the copy is saved through its kind's store, so it keeps to the kind's limits, such as the length of a spell's name and instructions. A listing whose copy wouldn't fit can't be bought, and nothing changes.
 - **Once per reference:** the transfer names the purchase's id as its reference, so it moves the purchase's orbs at most once.
@@ -49,7 +49,11 @@ This change is an additive schema expansion. It adds balances, a ledger, currenc
 
 All legacy listings, including free listings and prices above 5, stop accepting new buys. A seller must explicitly publish or update a listing with a newly chosen price from 0 to 5 orbs. The form leaves the legacy price blank. No legacy price is clamped or automatically reinterpreted. Public browsing shows only orb listings; legacy detail pages explain why buying is unavailable. Seller earnings count only orb transactions; historical gold facts remain in the gold ledger and marked purchases.
 
+Issue #781 must land before the integration-to-main release: it replaces the compatibility `earnGold` link with Buy batteries at `/account#buy-batteries`. Until then, that component links the separation explanation to the Marketplace; sales do not fund model use.
+
 The release workflow migrates while the previous build is live. The migration therefore installs a database guard that rejects every new legacy purchase, including stale gold forms, and starts `marketplace_cutover` disabled. Old purchase transactions fail and roll back without charging. The schema's legacy defaults let the previous build continue other reads and writes. The new build also requires an explicit `orbs` marker on buy, publish and update forms. A stale form cannot silently select a different currency.
+
+During the drain, a legacy build can still edit a listing already repriced in orbs. A legacy price at or below 5 can overwrite its orb price; higher prices fail the orb constraint. Sellers must re-check any prices edited during the drain. Activate the gate only after all legacy builds and in-flight requests have drained.
 
 Release sequencing, for operator review before any enablement:
 
@@ -60,3 +64,5 @@ Release sequencing, for operator review before any enablement:
 5. To pause purchases, set that row to false. The gate is locked for the purchase transaction, so the pause waits for transactions already admitted. Keep it false before any code rollback. Never remove the database currency guard or rewrite historical rows to permit a legacy build to charge gold again. Roll forward to restore Marketplace service.
 
 No production action is part of this implementation. Orbs cannot be bought with money, cashed out or exchanged for Batteries.
+
+Validation currently covers the paused database insert guard on an isolated scratch database and the paused UI with browser mocks. The application's paused purchase branch against a real database remains untested. The concurrent Marketplace, retirement and visual-generation server tests enable the shared test gate and leave it enabled; the next database reset restores the disabled migration baseline. They must not toggle it off while other files run. Paused requests currently count toward the hourly purchase limit, retaining the existing rate protection.

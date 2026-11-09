@@ -212,7 +212,7 @@ function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
 }
 
-// A `gold_balances` row of owner's: the gold owner's model calls spend.
+// An orb balance belongs to its user alone.
 function orbBalanceOwnedBy(owner: UserId): SQL {
   return eq(orbBalances.userId, owner);
 }
@@ -223,6 +223,7 @@ function orbLedgerOwnedBy(owner: UserId): SQL {
   return eq(orbLedger.userId, owner);
 }
 
+// A `gold_balances` row of owner's: the gold owner's model calls spend.
 function goldBalanceOwnedBy(owner: UserId): SQL {
   return eq(goldBalances.userId, owner);
 }
