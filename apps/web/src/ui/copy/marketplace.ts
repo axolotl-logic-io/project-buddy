@@ -8,12 +8,19 @@ import {
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
+function orbAmount(orbs: number): string {
+  if (orbs === 1) {
+    return "1 orb";
+  }
+  return `${orbs} orbs`;
+}
+
 // A price as a listing shows it: "Free", or the orbs it costs.
 function price(orbs: number): string {
   if (orbs === 0) {
     return "Free";
   }
-  return `${orbs} orbs`;
+  return orbAmount(orbs);
 }
 
 // A seller as a listing names them: their name, or a stand-in for someone
@@ -55,7 +62,7 @@ export const MARKETPLACE_COPY = {
   paused:
     "Marketplace buys are paused. Orbs are prepared for the planned rollout; sellers can choose new prices, but no one can buy yet. Batteries remain separate.",
   orbBalance: (balance: number): string =>
-    `Orb balance: ${balance} orbs. Batteries pay for model use separately.`,
+    `Orb balance: ${orbAmount(balance)}. Batteries pay for model use separately.`,
   loading: "Loading the Marketplace…",
   intro:
     "Constructs, activities and spells that other users wrote, free or for orbs. To sell one of your own, open its page and choose Sell in the Marketplace.",
@@ -109,14 +116,14 @@ export const YOUR_LISTINGS_COPY = {
     if (listed) {
       state = `Listed: ${price(orbs)}`;
     }
-    if (legacy === true) {
+    if (listed && legacy === true) {
       state = "Needs an orb price";
     }
     let bought = `Bought by ${buyers} users`;
     if (buyers === 1) {
       bought = "Bought by 1 user";
     }
-    return `${KIND_NAMES[kind].one} · ${state} · ${bought} · ${goldEarned} orbs earned`;
+    return `${KIND_NAMES[kind].one} · ${state} · ${bought} · ${orbAmount(goldEarned)} earned`;
   },
   update: "Update listing",
   updateLabel: (name: string): string => `Update the listing of ${name}`,
@@ -141,18 +148,18 @@ export const LISTING_COPY = {
     if (orbs === 0) {
       return "Get for free";
     }
-    return `Buy for ${orbs} orbs`;
+    return `Buy for ${orbAmount(orbs)}`;
   },
   buying: "Getting it…",
   paused: "Marketplace buys are paused for the orb rollout. Try again later.",
   tooLittleGold: (needed: number, orbs: number): string =>
-    `You need ${needed} orbs. You have ${orbs}.`,
+    `You need ${orbAmount(needed)}. You have ${orbs}.`,
   // The seller changed the price after the page showed it; nothing moved.
   priceChanged: (orbs: number): string => {
     if (orbs === 0) {
       return "This listing is now free.";
     }
-    return `The price is now ${orbs} orbs.`;
+    return `The price is now ${orbAmount(orbs)}.`;
   },
   buyLimited: `Limit reached. You can get up to ${PURCHASES_PER_HOUR} listings an hour. Try again later.`,
   held: (kind: PromptKind): string =>

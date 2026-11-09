@@ -35,10 +35,10 @@ The user gets their own copy of another user's listing, paying its price in orbs
 - **Prerequisites:** `use_case_browse_marketplace`.
 - **Steps:**
   - On a listing's page, they buy it for its price, or get it for free.
-- **Outcome:** their orbs goes down by the price and the seller's goes up by it. The site opens their own copy, named as the listing, where they see its prompt and metadata. They can choose it in adventures, tweak, rename, clone and retire it; it cannot be sold. Buying twice at once charges once. The listing links to an existing copy instead of offering it again.
+- **Outcome:** their orb balance goes down by the price and the seller's goes up by it. The site opens their own copy, named as the listing, where they see its prompt and metadata. They can choose it in adventures, tweak, rename, clone and retire it; it cannot be sold. Buying twice at once charges once. The listing links to an existing copy instead of offering it again.
 - **Variations:**
   - Retiring preserves the copy. The listing opens its read-only Retirement page without charging again; Restore makes that same copy available for no orbs. Only after retiring can they choose Delete forever and confirm permanent deletion. Deletion gives no refund; buying again afterwards charges again.
-  - With less orbs than the price, nothing changes. The page says how much they need and have, without suggesting that sales fund model use.
+  - With too few orbs than the price, nothing changes. The page says how much they need and have, without suggesting that sales fund model use.
   - If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. They cannot buy their own listing.
 - **Next:**
   - [`use_case_customize_construct`](constructs.md#use_case_customize_construct): make their copy their own.
