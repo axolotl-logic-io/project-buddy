@@ -1,10 +1,10 @@
 "use client";
 
-import { type MessageRuntimeState, ThreadPrimitive } from "@assistant-ui/react";
-import { type JSX, type ReactNode, useCallback, useRef } from "react";
+import { ThreadPrimitive } from "@assistant-ui/react";
+import { type JSX, useCallback, useRef } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
 import { ChatError } from "@/components/chat/chat-error.tsx";
-import { ChatMessage } from "@/components/chat/chat-message.tsx";
+import { ChatHistory } from "@/components/chat/chat-history.tsx";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
@@ -46,28 +46,6 @@ export function ChatThread({
     onRetry?.();
     inputRef.current?.focus();
   }, [onRetry]);
-  const renderMessage = useCallback(
-    ({ message }: { message: MessageRuntimeState }): ReactNode => (
-      <ChatMessage
-        construct={construct}
-        destination={{ kind: "adventure", id: chatId }}
-        opening={message.id === openingMessageId}
-        activityAllowed={error === undefined && replyStopped !== true}
-        authorName={authorNames.get(message.id)}
-        role={message.role}
-        cost={replyCosts?.get(message.id)}
-      />
-    ),
-    [
-      construct,
-      chatId,
-      openingMessageId,
-      error,
-      replyStopped,
-      authorNames,
-      replyCosts,
-    ],
-  );
 
   return (
     <ThreadPrimitive.Root ref={scrollRef} className="chat-thread flex flex-col">
@@ -82,7 +60,14 @@ export function ChatThread({
           aria-label={CHAT_COPY.conversationLabel}
           className="flex flex-col gap-8"
         >
-          <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>
+          <ChatHistory
+            construct={construct}
+            chatId={chatId}
+            openingMessageId={openingMessageId}
+            authorNames={authorNames}
+            replyCosts={replyCosts}
+            activityAllowed={error === undefined && replyStopped !== true}
+          />
         </ol>
         {error !== undefined && (
           <ChatError error={error} onRetry={onRetry && retry} />
