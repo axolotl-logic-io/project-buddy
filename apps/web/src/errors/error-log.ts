@@ -11,7 +11,7 @@ import {
   databaseErrorDetails,
   describeDatabaseQuery,
 } from "@/errors/neon-errors.ts";
-import type { ServerSpan } from "@/performance/server-spans.ts";
+import type { ServerSpan } from "@/performance/server-span.ts";
 
 type ErrorDetails = Readonly<Record<string, unknown>>;
 

@@ -1,9 +1,7 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { countServerQuery } from "@/performance/query-counter.ts";
-import {
-  measureServerOperation,
-  type ServerSpan,
-} from "@/performance/server-spans.ts";
+import type { ServerSpan } from "@/performance/server-span.ts";
+import { measureServerOperation } from "@/performance/server-spans.ts";
 
 const INNER_START = 3;
 const INNER_END = 8;

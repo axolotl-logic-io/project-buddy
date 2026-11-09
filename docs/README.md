@@ -37,6 +37,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Practices
 
+- [Authenticated performance audits](performance-audits.md): opt-in local capture protocol, artifact privacy and field attribution proposal.
 - [Shared server paths](performance/794/README.md): local operation spans, owner-scoped summaries and controlled production-build comparisons.
 
 - [Signed-in performance assessment](performance-assessment.md): exploratory production-build evidence, validation limits and systemic follow-ups.
