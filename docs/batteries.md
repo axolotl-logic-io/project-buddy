@@ -6,9 +6,9 @@ Replies, generated adventure openings and names, images and Workshop tests spend
 
 ## Marketplace cutover
 
-Before the orb cutover is enabled, the existing gold accounting, now called Batteries for model use, also backs legacy Marketplace transfers. Selling a paid listing can therefore still fund model use. Current help and model guidance must reflect this effective behavior.
+Before the orb migration, the existing gold accounting, now called Batteries for model use, also backed legacy Marketplace transfers. The orb migration pauses all Marketplace buys immediately, including old and free forms. While the gate is disabled, no sales can fund model use. After operator activation, Marketplace transfers use separate orbs and cannot fund model use. Batteries and orbs cannot be converted.
 
-After the planned cutover is enabled, Marketplace transfers will use separate orbs, which cannot fund model use. No conversion between batteries and orbs is planned. [#779](https://github.com/axolotl-logic-io/project-buddy/issues/779) owns Marketplace currency, its copy and the operator steps for the cutover. Merging its code alone does not enable the cutover. This rename authorizes no production enablement. [#781](https://github.com/axolotl-logic-io/project-buddy/issues/781) owns the EarnGoldLink copy and target.
+The [Marketplace cutover plan](marketplace.md#currency-cutover-proposal) documents policy review, migration, old-build drain, history and grant verification, and separate operator activation. Merging code alone does not activate orb buys or authorize production changes. [#781](https://github.com/axolotl-logic-io/project-buddy/issues/781) owns the EarnGoldLink copy and target and must retire legacy earning guidance before release, regardless of Checkout availability or the orb gate.
 
 ## Compatibility boundaries
 
