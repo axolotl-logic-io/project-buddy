@@ -42,7 +42,7 @@ Run from a disposable issue worktree at source commit `242e3a1ac55de980c9eb3b678
    flock /tmp/project-buddy-unattended-full-suite.lock node /tmp/pb-773-tools/controls.mjs
    ```
 
-   Never overlap captures with builds/checks/browser/server suites in this host assignment. The production server may remain idle while waiting. Lighthouse uses its default mobile simulated-throttling configuration, recorded in each report; it is a separate profile from the applied CDP phone matrix and must not be numerically pooled with it.
+   Never overlap captures with builds/checks/browser/server suites in this host assignment. The production server may remain idle while waiting. Lighthouse opens each signed-in target before auditing and uses `disableStorageReset`, so authentication and asset caches are warm. It uses its default mobile simulated-throttling configuration, recorded in each report; it is a separate profile from the applied CDP phone matrix and must not be numerically pooled with it.
 
 8. Stop the production server you started. Remove the private session file. Delete the synthetic accounts or reset only this worktree's database through the guarded reset command. Never attach raw HARs, browser profiles, authentication state or unsanitized traces to GitHub.
 
@@ -61,3 +61,17 @@ A fixed two-second observation delay belongs to the lab capture protocol. It is 
 The first current-Chromium matrix retained 53 valid observations, then the editor's client-navigation setup exceeded Puppeteer's unchanged 30-second `networkidle0` navigation deadline on its Workshop source page. No editor transition result was recorded for that attempt. Network idle is a poor readiness milestone when unrelated prefetches continue; it is not evidence that the editor itself took 30 seconds to render.
 
 `recipes/audit-supplement.mjs.txt` preserves those observations and attempts only missing cells. Its source-page preparation waits for DOM content and the absence of a busy skeleton instead of global network idle. It keeps the original direct-load capture behavior and 30-second deadline. This is a documented capture-protocol correction, not a retry of a failed product assertion. Run it with the same lock after `audit.mjs` if that source-preparation failure occurs. Record failures rather than treating every invocation as a completed matrix.
+
+## Lighthouse flow serializer correction
+
+The current-browser navigation reports completed without warnings. The first timespan completed its capture but the reduced-report serializer assumed `requestedUrl` existed, which is not true of a timespan report. The corrected serializer uses an optional URL; `recipes/flow.mjs.txt` repeats only the Home-to-Quests timespan, not the successful navigation audits. This is a tooling error, not a product performance result. URL absence in a timespan does not waive the explicit signed-in source and destination checks.
+
+The menu probe starts after network idle, so it establishes responsiveness at that later point, not the first instant controls become ready. Viewport-relative rectangles can change because of scroll; correlate `lastGeometry` with the separate scroll timeline instead of treating it as CLS or a proven stable-page milestone. The streaming probe follows the latest content and does not test the user's attempt to read earlier messages.
+
+## Validate the shared artifacts
+
+Copy `recipes/check-artifacts.py.txt` to a temporary `.py` file and run it from the repository root after capture. It checks JSON parsing, scenario uniqueness, authenticated destinations, nonnegative milestones, UUID templating and absence of forbidden payload fields, then creates gzip copies. It also enforces the trace event field allowlist. These are artifact integrity/privacy checks, not product behavior tests or proof that screenshot pixels contain no private content; the synthetic fixture and manual review remain necessary. Only screenshots of synthetic Home/adventure content are retained. Shared artifacts use `baseline.json.gz`; the uncompressed working JSON stays local. The readable table is the review entry point.
+
+The normal production build and `npm run check --workspace apps/web` passed. The fast check reported 40 files and 199 tests passing; no full browser/server/e2e suite was run for this documentation-only change. The captures are opt-in investigations rather than a new correctness suite. Required PR CI also passed the initial draft head; final-head status must be checked separately before merge.
+
+All 78 planned accessible matrix cells were retained. The final authenticated Home-to-Quests timespan completed without warnings. Its applied DevTools-throttling settings differ from the navigation reports' simulated throttling, so interpret each mode separately. The local server was stopped, the private session file removed, and the guarded worktree database reset after capture. The retained screenshot frames were inspected: Home and the synthetic adventure contain no private definition prompt or session credential. Historical screenshot copy reflects the measured build, before Batteries terminology work.

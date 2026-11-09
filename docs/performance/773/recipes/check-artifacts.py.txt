@@ -1,0 +1,18 @@
+import json,gzip,pathlib,re,hashlib
+root=pathlib.Path('docs/performance/773')
+rows=json.loads((root/'baseline.json').read_text())
+assert len({(r['state'],r['profile'],r['name'],r['mode']) for r in rows})==len(rows)
+assert all('/login' not in r['url'] and r['contentMs']>=0 for r in rows)
+for p in root.glob('*.json'):
+ text=p.read_text();json.loads(text)
+ for forbidden in ['SESSION_SECRET','Authorization','Cookie','Synthetic answer','definition.prompt']:
+  assert forbidden not in text,(p,forbidden)
+ if p.name!='failures.json':assert not re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',text),p
+for p in root.glob('*.trace.json'):
+ data=json.loads(p.read_text())
+ for e in data['traceEvents']:
+  assert set(e)<=set(['name','cat','ph','ts','dur','pid','tid','args'])
+  if 'args' in e:assert e['name']=='Screenshot'
+for p in [root/'baseline.json',*root.glob('*.trace.json')]:
+ with gzip.open(str(p)+'.gz','wb') as f:f.write(p.read_bytes())
+print(f'Artifact validation passed for {len(rows)} unique authenticated scenario observations; JSON parses, UUID templates and payload allowlist checked.')

@@ -21,10 +21,18 @@ One observation per state/profile/mode. Milliseconds are rounded; missing values
 | populated | desktop | long-adventure | 528 | 339 | 380 | 3 | 100 | 544 | 0.000 | 137 | 861 |
 | populated | desktop | activities | 120 | 307 | 336 | 3 | 60 | 60 | 0.000 | 0 | 433 |
 | populated | desktop | workshop | 172 | 51 | 340 | 4 | 68 | 68 | 0.000 | 0 | 1210 |
-| populated | desktop | editor | 489 | 388 | missing | 3 | 48 | 508 | 0.101 | 0 | 765 |
+| populated | desktop | editor | 489 | 388 | 118 | 3 | 48 | 508 | 0.101 | 0 | 765 |
+| populated | phone | home | 725 | 474 | 526 | 2 | 772 | 772 | 0.046 | 146 | 338 |
+| populated | phone | quests | 733 | 505 | 586 | 2 | 740 | 740 | 0.002 | 152 | 390 |
+| populated | phone | quest | 735 | 507 | 579 | 2 | 760 | 760 | 0.002 | 155 | 391 |
+| populated | phone | adventures | 741 | 504 | 292 | 2 | 752 | 752 | 0.001 | 155 | 388 |
+| populated | phone | long-adventure | 727 | 520 | 1504 | 3 | 824 | 824 | 0.000 | 83 | 313 |
+| populated | phone | activities | 735 | 502 | 584 | 2 | 748 | 748 | 0.031 | 147 | 390 |
+| populated | phone | workshop | 736 | 535 | 608 | 2 | 752 | 752 | 0.003 | 156 | 385 |
+| populated | phone | editor | 723 | 509 | 917 | 3 | 748 | 748 | 0.002 | 0 | 369 |
 
 TTFB is responseStart minus requestStart from Navigation Timing. LCP is the last buffered candidate in the capture window. CLS uses maximum session windows (1 s gap / 5 s maximum), excluding recent-input entries. Individual interaction shifts remain in the JSON even when excluded from CLS. Resource bytes include background prefetch during the window, omit document bytes and may be zero for memory-cache/cross-origin cases; they are not a critical-route bundle budget. Long-task total is total duration of tasks ≥50 ms, not Lighthouse total blocking time.
 
 Empty-account quest, long-adventure and own-editor cells are intentionally absent: they would be unauthorized/not-found pages. Dedicated empty detail fixtures and editor variants remain outside this exploratory sample.
 
-Captured cells: 53. Expected matrix cells for the defined accessible journeys: 78.
+Captured cells: 78. Expected matrix cells for the defined accessible journeys: 78.
