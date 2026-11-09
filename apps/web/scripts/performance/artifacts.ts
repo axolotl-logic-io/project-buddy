@@ -89,7 +89,7 @@ const RESOURCE = z.strictObject({
 });
 const READINESS = z.strictObject({
   hostLoad: z.tuple([NONNEGATIVE, NONNEGATIVE, NONNEGATIVE]),
-  captureProtocol: z.literal("commit-probe-v3"),
+  captureProtocol: z.literal("commit-probe-v4"),
   state: z.enum(["populated", "empty", "empty-detail"]),
   profile: z.enum(PROFILES),
   name: z.enum(JOURNEYS),
