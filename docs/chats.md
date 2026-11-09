@@ -26,6 +26,8 @@ activity and a construct, built in or the user's own, with the open adventure an
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
 
+Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
+
 A quest's page has its own "New adventure" button (#670, replacing the form
 #536 embedded there), so the quest's adventures lead the page. The form is
 closed when the page opens or reloads. The button opens the same kind of
@@ -388,5 +390,3 @@ Home explains Project Buddy and offers Start a quest when the account has no adv
 Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
 
 The composer shows the acting user's gold balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
-
-Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
