@@ -11,7 +11,8 @@ export function spellResetPrompt(source: string | undefined): ResetPrompt {
   }
   return {
     source: undefined,
-    prompt: "This spell has no instructions yet. Carry on without it.",
+    prompt:
+      "# Spell Sheet\nThis spell has no instructions yet. Carry on without it.",
   };
 }
 export function starterSpellDefinition(): SpellDefinition {

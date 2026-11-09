@@ -43,12 +43,16 @@ export function ListingTermsForm({
   ) => Promise<ListingFormState>;
   readonly words: SubmitWords;
   readonly description: string;
-  readonly price: number;
+  readonly price: number | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(action, IDLE);
   const [descriptionDraft, setDescriptionDraft] = useState(description);
-  const [priceDraft, setPriceDraft] = useState(String(price));
+  let initialPrice = "";
+  if (price !== undefined) {
+    initialPrice = String(price);
+  }
+  const [priceDraft, setPriceDraft] = useState(initialPrice);
   const updateDescription = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       setDescriptionDraft(event.target.value);
@@ -87,6 +91,7 @@ export function ListingTermsForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       {children}
+      <input name="currency" type="hidden" value="orbs" />
       <TextAreaField
         className="min-h-24"
         error={descriptionError}

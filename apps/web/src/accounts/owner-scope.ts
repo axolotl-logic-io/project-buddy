@@ -47,6 +47,7 @@ import {
 } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
+import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import {
   constructAssetGrants,
@@ -58,6 +59,7 @@ import { images } from "@/db/tables/images.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
+import { orbBalances, orbLedger } from "@/db/tables/orbs.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
@@ -211,6 +213,17 @@ function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
 }
 
+// An orb balance belongs to its user alone.
+function orbBalanceOwnedBy(owner: UserId): SQL {
+  return eq(orbBalances.userId, owner);
+}
+function orbBalancesOfTransfer(payer: UserId, payee: UserId): SQL {
+  return inArray(orbBalances.userId, [payer, payee]);
+}
+function orbLedgerOwnedBy(owner: UserId): SQL {
+  return eq(orbLedger.userId, owner);
+}
+
 // A `gold_balances` row of owner's: the gold owner's model calls spend.
 function goldBalanceOwnedBy(owner: UserId): SQL {
   return eq(goldBalances.userId, owner);
@@ -341,9 +354,14 @@ function accountOwnedBy(owner: UserId): SQL {
   return eq(users.id, owner);
 }
 
+function batteryPurchasesOwnedBy(owner: UserId): SQL {
+  return eq(batteryPurchases.userId, owner);
+}
+
 export {
   accountOwnedBy,
   activitySessionOpenTo,
+  batteryPurchasesOwnedBy,
   chatOpenTo,
   chatUnreadOwnedBy,
   constructGenerationOwnedBy,
@@ -363,6 +381,9 @@ export {
   messageOpenTo,
   milestoneOpenTo,
   opensProject,
+  orbBalanceOwnedBy,
+  orbBalancesOfTransfer,
+  orbLedgerOwnedBy,
   ownPromptOwnedBy,
   projectInvitationOwnedBy,
   projectInvitationTo,

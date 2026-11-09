@@ -3,10 +3,8 @@ import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ProjectInvitationAnswer } from "@/components/project-invitation-answer.tsx";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { readProjectInvitation } from "@/projects/project-invitations.ts";
 import { PROJECT_INVITATION_COPY } from "@/ui/copy/project-invitations.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 export const metadata: Metadata = { title: PROJECT_INVITATION_COPY.title };
 
@@ -25,16 +23,13 @@ export default async function ProjectInvitationPage({
   }
   const { question, from, shared } = PROJECT_INVITATION_COPY;
   return (
-    <>
-      <BackLink href="/projects">{PROJECTS_COPY.allProjectsLink}</BackLink>
-      <section className="panel flex flex-col gap-4">
-        <h1 className="page-heading wrap-anywhere">
-          {question(invitation.project.name)}
-        </h1>
-        <p className="wrap-anywhere">{from(invitation.inviter)}</p>
-        <p className="text-muted">{shared}</p>
-        <ProjectInvitationAnswer invitation={invitation} />
-      </section>
-    </>
+    <section className="panel flex flex-col gap-4">
+      <h1 className="page-heading wrap-anywhere">
+        {question(invitation.project.name)}
+      </h1>
+      <p className="wrap-anywhere">{from(invitation.inviter)}</p>
+      <p className="text-muted">{shared}</p>
+      <ProjectInvitationAnswer invitation={invitation} />
+    </section>
   );
 }

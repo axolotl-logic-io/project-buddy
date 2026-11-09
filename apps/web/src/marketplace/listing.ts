@@ -1,12 +1,12 @@
 // A Marketplace listing's terms, which its seller writes: a description,
-// shown as plain text, and a price in whole gold, 0 for a free listing;
+// shown as plain text, and a price in whole orbs, 0 for a free listing;
 // how many listings a page of the Marketplace shows; and the hourly limits
 // on changing listings and buying them.
 // The browser imports this module for the form's limits, so it imports
 // nothing server-only. The listings table's checks hold the same limits.
 
 const LISTING_DESCRIPTION_MAX_LENGTH = 500;
-const LISTING_PRICE_MAX = 10_000;
+const LISTING_PRICE_MAX = 5;
 
 // The most listings one Marketplace page shows.
 const MARKETPLACE_PAGE_SIZE = 30;
@@ -16,10 +16,10 @@ const MARKETPLACE_PAGE_SIZE = 30;
 const LISTING_CHANGES_PER_HOUR = 20;
 const PURCHASES_PER_HOUR = 30;
 
-// Digits alone: a whole number of gold, never negative.
+// Digits alone: a whole number of orbs, never negative.
 const WHOLE_NUMBER = /^\d+$/u;
 
-// A listing's terms: its description, trimmed, and its price in gold.
+// A listing's terms: its description, trimmed, and its price in orbs.
 interface ListingTerms {
   readonly description: string;
   readonly price: number;

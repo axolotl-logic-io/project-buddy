@@ -12,8 +12,15 @@
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
+import {
+  AccountLinks,
+  Breadcrumbs,
+  HeaderBalance,
+  SignedInLinks,
+  SiteHeader,
+} from "@/components/site-header.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -32,6 +39,11 @@ import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import {
+  SIGNED_IN_USER,
+  signInAs,
+  signOut,
+} from "../auth/current-user-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -52,6 +64,8 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
+
+vi.mock("@/gold/gold-store.ts", () => ({ readGoldBalance: vi.fn() }));
 
 // Saving a theme choice is a round trip to the server, which
 // save-theme-choice-action.server.test.ts covers.
@@ -113,10 +127,15 @@ function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
 }
 
-async function renderSignedIn(): Promise<void> {
-  await render(
+function renderSignedIn(): ReturnType<typeof render> {
+  return render(
     <SiteHeader
-      links={<SiteMenu links={<AccountLinks />} shortcuts={true} />}
+      links={
+        <>
+          <HeaderBalance microUsd={870_000} />
+          <SiteMenu links={<AccountLinks />} shortcuts={true} />
+        </>
+      }
     />,
   );
 }
@@ -230,36 +249,37 @@ describe("use_case_quick_note", () => {
   });
 });
 
-test("Projects and Chats sit beside the menu when there is room", async () => {
-  await setViewport(LAPTOP_VIEWPORT);
-  await renderSignedIn();
-  const places = page.getByRole("navigation", {
-    name: SITE_MENU_COPY.placesLabel,
-  });
-  await expect
-    .element(places.getByRole("link", { name: PROJECTS_COPY.headerLink }))
-    .toBeVisible();
-  await expect
-    .element(places.getByRole("link", { name: CHAT_COPY.headerLink }))
-    .toBeVisible();
-  await setViewport(NARROWEST_VIEWPORT);
-  await expect.poll(() => places.query()).toBeNull();
-  await openMenu();
-  await expect
-    .element(
-      page
-        .getByRole("dialog")
-        .getByRole("link", { name: PROJECTS_COPY.headerLink }),
-    )
-    .toBeVisible();
-  await expect
-    .element(
-      page
-        .getByRole("dialog")
-        .getByRole("link", { name: CHAT_COPY.headerLink }),
-    )
-    .toBeVisible();
-});
+test.each(SCREENS)(
+  "Quests and Adventures are reached through the menu on $name",
+  async (screen) => {
+    await setViewport(screen.viewport);
+    await renderSignedIn();
+    const header = page.getByRole("banner");
+    expect(
+      header.getByRole("link", { name: PROJECTS_COPY.headerLink }).query(),
+    ).toBeNull();
+    expect(
+      header.getByRole("link", { name: CHAT_COPY.headerLink }).query(),
+    ).toBeNull();
+    await expect.element(noteLink()).toBeVisible();
+    await openMenu();
+    await expect
+      .element(
+        page
+          .getByRole("dialog")
+          .getByRole("link", { name: PROJECTS_COPY.headerLink }),
+      )
+      .toHaveAttribute("href", "/projects");
+    await expect
+      .element(
+        page
+          .getByRole("dialog")
+          .getByRole("link", { name: CHAT_COPY.headerLink }),
+      )
+      .toHaveAttribute("href", "/chat");
+    await closeMenu();
+  },
+);
 
 describe("the site menu", () => {
   test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
@@ -350,5 +370,157 @@ describe("the site menu", () => {
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
+  });
+});
+
+const LONG_NAME_REPEATS = 20;
+
+describe("breadcrumbs in the shared header", () => {
+  for (const mode of ["light", "dark"]) {
+    test(`long names keep parent targets and controls usable at 320 px in ${mode}`, async () => {
+      applyTheme("parchment", mode);
+      await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
+      const longName = "Long quest and adventure name ".repeat(
+        LONG_NAME_REPEATS,
+      );
+      const screen = await render(
+        <SiteHeader
+          links={
+            <>
+              <SiteMenu links={<AccountLinks />} shortcuts={true} />
+              <HeaderBalance microUsd={870_000} />
+              <Breadcrumbs
+                items={[
+                  { label: "Home", href: "/home" },
+                  { label: "All quests", href: "/projects" },
+                  { label: longName, href: "/projects/quest" },
+                  { label: longName },
+                ]}
+              />
+            </>
+          }
+        />,
+      );
+      await loadFonts();
+      const navigation = page.getByRole("navigation", { name: "Breadcrumbs" });
+      await expect.element(navigation).toBeVisible();
+      expect(navigation.element().closest("header")).not.toBeNull();
+      expect(
+        navigation.element().querySelector('[aria-current="page"]')
+          ?.textContent,
+      ).toBe(longName);
+      const parent = navigation.getByRole("link", { name: longName });
+      parent.element().focus();
+      await expect.element(parent).toHaveFocus();
+      const bounds = parent.element().getBoundingClientRect();
+      expect(bounds.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+      expect(bounds.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+      await expect
+        .element(page.getByRole("button", { name: "Menu", exact: true }))
+        .toBeVisible();
+      await expect
+        .element(page.getByRole("link", { name: "Quick Note", exact: true }))
+        .toBeVisible();
+      await screen.rerender(
+        <SiteHeader
+          links={
+            <Breadcrumbs
+              items={[{ label: "Home", href: "/home" }, { label: "Settings" }]}
+            />
+          }
+        />,
+      );
+      expect(
+        page.getByRole("navigation", { name: "Breadcrumbs" }).elements(),
+      ).toHaveLength(1);
+      await expect
+        .element(page.getByRole("link", { name: longName }))
+        .not.toBeInTheDocument();
+      expect(
+        navigation.element().querySelector('[aria-current="page"]')
+          ?.textContent,
+      ).toBe("Settings");
+      await screen.rerender(<SiteHeader />);
+      await expect.element(navigation).not.toBeInTheDocument();
+    });
+  }
+});
+
+describe("header battery balance", () => {
+  test("signed-in session reads its balance and unavailable reads stay explicit", async () => {
+    signInAs(SIGNED_IN_USER);
+    vi.mocked(readGoldBalance).mockRejectedValueOnce(new Error("Unavailable"));
+    await render(<SiteHeader links={await SignedInLinks()} />);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Batteries: Unavailable");
+  });
+
+  test("signed-out session supplies no balance", async () => {
+    signOut();
+    await render(<SiteHeader links={await SignedInLinks()} />);
+    expect(page.getByRole("status").query()).toBeNull();
+  });
+
+  test.each(["light", "dark"])(
+    "fits Home and shared controls at 320px in %s",
+    async (mode) => {
+      applyTheme("parchment", mode);
+      await setViewport(NARROWEST_VIEWPORT);
+      await render(
+        <>
+          <SiteHeader
+            links={
+              <>
+                <HeaderBalance microUsd={870_000} />
+                <SiteMenu links={<AccountLinks />} shortcuts={true} />
+              </>
+            }
+          />
+          <main>
+            <div className="atlas" />
+          </main>
+        </>,
+      );
+      await expect.element(page.getByRole("status")).toBeVisible();
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+      const balanceBox = page
+        .getByRole("status")
+        .element()
+        .getBoundingClientRect();
+      const menuBox = menuButton().element().getBoundingClientRect();
+      expect(balanceBox.right).toBeLessThanOrEqual(menuBox.left);
+      await userEvent.tab();
+      await expect
+        .element(page.getByRole("link", { name: SITE_COPY.name }))
+        .toHaveFocus();
+    },
+  );
+
+  const Balances = [
+    { microUsd: 0, shown: "0" },
+    { microUsd: 9999, shown: "0" },
+    { microUsd: 870_001, shown: "87" },
+  ];
+  test.each(Balances)(
+    "rounds $microUsd like Account",
+    async ({ microUsd, shown }) => {
+      await render(<HeaderBalance microUsd={microUsd} />);
+      await expect
+        .element(page.getByRole("status"))
+        .toHaveTextContent(`Batteries: ${shown}`);
+    },
+  );
+
+  test("unavailable is distinct from zero", async () => {
+    await render(<HeaderBalance microUsd={undefined} />);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Batteries: Unavailable");
   });
 });
