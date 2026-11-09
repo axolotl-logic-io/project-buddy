@@ -98,8 +98,8 @@ async function SignedInLinks({
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim, whose
-// title, behind a compass, leads back to Home. Home uses a frosted paper
-// bar over the map while other pages keep the ink HUD (page-roles.css).
+// title, behind a compass, leads back to Home. The same bar stays above
+// the content on every page, including Home.
 function SiteHeader({
   links = VISITOR_MENU,
 }: {
