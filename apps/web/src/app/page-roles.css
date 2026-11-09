@@ -196,15 +196,23 @@
     @apply font-medium text-danger text-sm;
   }
 
-  /* The box that sets such a message apart from what surrounds it, such as
-     a failed reply in the chat. */
-  .error-box {
-    @apply rounded-box border border-danger bg-surface px-4 py-3;
+  /* Shared page feedback and static state. Words carry purpose and severity;
+     an opaque surface, outline and spacing group it without colour alone. */
+  .notice {
+    @apply min-w-0 rounded-box border border-line bg-surface px-4 py-3 text-foreground text-sm;
+    overflow-wrap: anywhere;
   }
 
-  /* A message saying what a form did, such as "Saved.". */
-  .status-text {
-    @apply text-muted text-sm;
+  .notice.error-text {
+    @apply border-danger text-danger;
+  }
+
+  .notice:empty {
+    @apply border-0 p-0;
+  }
+
+  .notice a {
+    @apply inline-flex min-h-(--target-size) max-w-full items-center underline underline-offset-4;
   }
 
   /* A raised surface that groups a page's part, such as a form. */
