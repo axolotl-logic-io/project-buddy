@@ -749,7 +749,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
-          name: ACTIVITIES_COPY.startLabel("Brainstorming"),
+          name: ACTIVITIES_COPY.startLabel("Brainstorm"),
           exact: true,
         })
         .click();

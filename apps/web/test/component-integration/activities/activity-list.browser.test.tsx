@@ -4,6 +4,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { OwnActivity } from "@/activities/activity-store.ts";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
@@ -25,6 +26,11 @@ vi.mock(
 vi.mock("@/activities/activity-store.ts", () => ({
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
 }));
+const SAVED_ACTIVITY: OwnActivity = {
+  ...BRAINSTORMING_CLONE,
+  name: "Brainstorming (clone)",
+};
+
 const PROJECT = {
   id: projectIdFixture(),
   name: "Low-poly fox",
@@ -63,7 +69,7 @@ beforeEach(() => {
 test("her activities offer New activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(startChatAction).mockClear();
-  vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+  vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
   const screen = await render(
     inWorkspace(
       await ActivitiesPage({
@@ -138,6 +144,7 @@ test("New activity is the next control after the built-in activities, and Enter 
 });
 
 test.each([
+  { id: "open-chat", name: "Chat", project: NEW_CHAT_COPY.noProject },
   {
     id: "find-something-to-make",
     name: "Find something to make",
@@ -145,17 +152,17 @@ test.each([
   },
   {
     id: "brainstorming",
-    name: "Brainstorming",
+    name: "Brainstorm",
     project: NEW_CHAT_COPY.noProject,
   },
   {
     id: BRAINSTORMING_CLONE.id,
-    name: BRAINSTORMING_CLONE.name,
+    name: SAVED_ACTIVITY.name,
     project: NEW_CHAT_COPY.noProject,
   },
   {
     id: "project-breakdown",
-    name: "Project Breakdown",
+    name: "Break Down a Project",
     project: NEW_CHAT_COPY.noProject,
   },
 ])(
@@ -163,7 +170,7 @@ test.each([
   async (activity) => {
     signInAs(SIGNED_IN_USER);
     vi.mocked(startChatAction).mockClear();
-    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+    vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
     const submitted = Promise.withResolvers<FormData>();
     vi.mocked(startChatAction).mockImplementation((_state, form) => {
       submitted.resolve(form);
@@ -178,7 +185,7 @@ test.each([
       ),
     );
     const trigger = page.getByRole("button", {
-      name: ACTIVITIES_COPY.startLabel(activity.name),
+      name: activity.name,
       exact: true,
     });
     await trigger.click();

@@ -36,7 +36,7 @@ Paths in the evidence column are relative to `apps/web/test/`. They identify exi
 
 The [use case index](../apps/web/use-cases/README.md) now includes Workshop and Marketplace. The new index guard prevents either area, or a future area file, from being omitted silently. Existing case slugs remain stable and there are no pending cases.
 
-The use case index now describes the current product contract and labels preserved legacy behavior. Its real-Claude smoke list is a list of checks still requiring real-model evidence, rather than a statement that they passed. Setup invitations do not expire; existing-account sign-in links expire after 30 minutes. New quests default to Project Breakdown and use the saved New quest construct preference. Legacy interviews are preserved rather than prerequisites for today's Journal workflows.
+The use case index now describes the current product contract and labels preserved legacy behavior. Its real-Claude smoke list is a list of checks still requiring real-model evidence, rather than a statement that they passed. Setup invitations do not expire; existing-account sign-in links expire after 30 minutes. New quests default to Break Down a Project and use the saved New quest construct preference. Legacy interviews are preserved rather than prerequisites for today's Journal workflows.
 
 ## Remaining limits
 

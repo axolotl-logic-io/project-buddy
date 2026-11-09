@@ -51,7 +51,7 @@ import {
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open adventure" }],
+    activities: [{ id: "open-chat", name: "Chat" }],
   }),
 }));
 

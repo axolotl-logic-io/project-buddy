@@ -138,9 +138,13 @@ test.each([
   ["open-chat", EARLIER_OPEN_CHAT],
   ["interview", EARLIER_INTERVIEW],
   ["brainstorming", EARLIER_BRAINSTORMING],
+  ["project-breakdown", EARLIER_BUILT_INS.activities["project-breakdown"]],
 ] as const)(
   "an unchanged copy of the %s activity is written in the earlier build's text, and read back in today's",
   (id, earlier) => {
+    if (earlier === undefined) {
+      throw new Error("Missing earlier activity text");
+    }
     const current = getActivity(id).definition;
     const stored = writeActivity(current);
 

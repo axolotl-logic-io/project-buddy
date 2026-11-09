@@ -111,6 +111,6 @@ After a successful replacement, Restore previous artwork restores one previous i
 
 The user meets the construct saved in an adventure.
 
-- **Prerequisites:** an open adventure.
+- **Prerequisites:** Chat.
 - **Steps:** open the portrait and name control in the adventure header.
 - **Outcome:** a named profile shows the saved character's artwork, temperament, approach to quests and a representative sample line. Own or legacy characters without public personality copy show useful generic copy and initials when no art is available. Private conversational instructions and Visual descriptions never appear. The profile uses the adventure snapshot, so source edits do not change it. Opening it makes no model call. Keyboard focus stays inside the profile; Escape and Close return focus to its trigger. The profile fits a 320px phone, scrolls when needed and leaves the composer usable after closing.
