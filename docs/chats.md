@@ -21,10 +21,12 @@ button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
 new-adventure form. The dialog is named "New adventure", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
 in the construct picker's open list closes only the list. That form, like
-the new adventure page at `/chats/new`, offers a quest or "No quest", an
+the new adventure page at `/chats/new`, offers an accessible Active quest or "No quest", an
 activity and a construct, built in or the user's own, with Chat and Vellum
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
+
+Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
 
 The Constructs page and the Workshop's Constructs tab label each saved-adventure
 action “Adventure with [construct name]”, using the full name in both the visible
@@ -160,7 +162,7 @@ newest first by creation time (descending id breaks ties). Each links to its
 existing conversation. There is no adventure-name search or separate No quest
 filter.
 
-Above the list, **Quest** offers **All** and only the viewer's quests by
+Above the list, **Quest** offers **All** and only accessible Active quests by
 name: their own and the team quests they've joined. The page loads the
 viewer's complete adventure list, even when opened with a
 quest filter. Selecting a quest immediately filters those loaded adventures in
