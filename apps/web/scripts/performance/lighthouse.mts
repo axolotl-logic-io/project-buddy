@@ -96,7 +96,7 @@ async function captureLighthouse(
       const content = stateContent("populated", name, fixture);
       page.on("framenavigated", committed);
       let result: Awaited<ReturnType<typeof lighthouse>>;
-      let auditedNavigations = 0;
+      let auditedTimeOrigin = 0;
       try {
         result = await lighthouse(
           url,
@@ -105,13 +105,16 @@ async function captureLighthouse(
             output: "json",
             logLevel: "silent",
             onlyCategories: ["performance"],
+            // Its gatherer leaves the audited document for another page and
+            // back, so the tab might no longer hold the audited document.
+            skipAudits: ["bf-cache"],
           },
           undefined,
           auditPage,
         );
-        auditedNavigations = mainFrameUrls.length;
-        // The audited document must show its content; any later navigation
-        // would make this check describe a different document.
+        auditedTimeOrigin = await page.evaluate(() => performance.timeOrigin);
+        // The audited document must show its content; a later document
+        // would make this check describe something Lighthouse never saw.
         await page.waitForFunction(primaryPresent, {}, name);
         await page.waitForFunction(statePresent, {}, content);
       } finally {
@@ -123,11 +126,11 @@ async function captureLighthouse(
           {
             url,
             sourceTimeOrigin,
-            auditedTimeOrigin: await page.evaluate(
+            auditedTimeOrigin,
+            checkedTimeOrigin: await page.evaluate(
               () => performance.timeOrigin,
             ),
             mainFrameUrls,
-            navigationsAfterAudit: mainFrameUrls.length - auditedNavigations,
             pageUrl: page.url(),
             content: await page.evaluate(statePresent, content),
           },

@@ -34,7 +34,7 @@ const CONTENT_CHECKS = [
   "fixture-link",
   "message-count",
   "no-owned-entities",
-  "listed-activities",
+  "built-in-activities-only",
   "edited-prompt",
 ] as const;
 const PROFILES = ["desktop", "phone"] as const;

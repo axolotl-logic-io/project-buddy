@@ -104,7 +104,7 @@ function stateContent(
     };
   }
   if (name === "activities") {
-    return { check: "listed-activities" };
+    return { check: "built-in-activities-only" };
   }
   if (state === "empty") {
     return { check: "no-owned-entities" };

@@ -50,8 +50,8 @@ function navigationWitness(url: string): NavigationWitness {
     url,
     sourceTimeOrigin: SOURCE_TIME_ORIGIN,
     auditedTimeOrigin: AUDITED_TIME_ORIGIN,
+    checkedTimeOrigin: AUDITED_TIME_ORIGIN,
     mainFrameUrls: ["about:blank", url],
-    navigationsAfterAudit: 0,
     pageUrl: url,
     content: true,
   };
