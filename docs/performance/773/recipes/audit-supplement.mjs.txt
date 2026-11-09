@@ -1,0 +1,60 @@
+import puppeteer from 'puppeteer-core';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+const session=JSON.parse(await readFile('/tmp/pb-773-session.json','utf8'));
+const output=process.cwd()+'/docs/performance/773';
+await mkdir(output,{recursive:true});
+const browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const base='http://localhost:36447';
+const journeys=[['home','/home','/projects'],['quests','/projects','/home'],['quest',`/projects/${session.project}`,'/projects'],['adventures','/chat','/home'],['long-adventure',`/chats/${session.chat}`,`/projects/${session.project}`],['activities','/activities','/home'],['workshop','/workshop','/home'],['editor',`/constructs/${session.construct}`,'/workshop']];
+const rows=JSON.parse(await readFile(output+"/baseline.json","utf8"));
+function route(url){return url.replace(base,'').replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id').split('?')[0];}
+try{
+for(const state of ['empty','populated']) for(const profile of ['desktop','phone']) for(const [name,path,source] of journeys){
+if(state==='empty'&&['quest','long-adventure','editor'].includes(name)) continue;
+if(rows.some(r=>r.state===state&&r.profile===profile&&r.name===name&&r.mode==='client-navigation'))continue;
+const context=await browser.createBrowserContext();
+const page=await context.newPage();
+await page.setViewport(profile==='phone'?{width:390,height:844,isMobile:true,deviceScaleFactor:1,hasTouch:true}:{width:1440,height:900,deviceScaleFactor:1});
+await page.setCookie({name:'session',value:session[state],url:base,httpOnly:true,sameSite:'Lax'});
+const cdp=await page.createCDPSession();
+await cdp.send('Network.enable');
+await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:profile==='phone'?150:0,downloadThroughput:profile==='phone'?200000:-1,uploadThroughput:profile==='phone'?93750:-1});
+await cdp.send('Emulation.setCPUThrottlingRate',{rate:profile==='phone'?4:1});
+await page.evaluateOnNewDocument(()=>{
+window.audit={shifts:[],longtasks:[],lcp:[]};
+new PerformanceObserver(list=>{for(const e of list.getEntries()) window.audit.lcp.push({time:e.startTime,size:e.size,tag:e.element?.tagName});}).observe({type:"largest-contentful-paint",buffered:true});
+new PerformanceObserver(list=>{for(const e of list.getEntries()) window.audit.shifts.push({value:e.value,recentInput:e.hadRecentInput,time:e.startTime,sources:e.sources?.map(s=>({tag:s.node?.tagName,previous:s.previousRect.toJSON(),current:s.currentRect.toJSON()}))});}).observe({type:'layout-shift',buffered:true});
+new PerformanceObserver(list=>{for(const e of list.getEntries())window.audit.longtasks.push({time:e.startTime,duration:e.duration});}).observe({type:'longtask',buffered:true});
+});
+for(const mode of ['cold-direct','warm-direct','client-navigation']){
+if(rows.some(r=>r.state===state&&r.profile===profile&&r.name===name&&r.mode===mode))continue;
+if(mode==='client-navigation'){await page.goto(base+source,{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!document.querySelector('[aria-busy="true"]')&&document.querySelector('main')?.innerText.length>40);}
+const requests=[];
+const listener=r=>requests.push({path:route(r.url()),type:r.resourceType(),timing:r.response()?.timing()});
+page.on('requestfinished',listener);
+const traceRun=state==='populated'&&profile==='phone'&&mode==='cold-direct';
+if(traceRun)await page.tracing.start({screenshots:name==='home',categories:['devtools.timeline','blink.user_timing','disabled-by-default-devtools.timeline','disabled-by-default-devtools.screenshot']});
+const before=performance.now();
+if(mode==='client-navigation'){
+await page.evaluate(()=>{window.audit.shifts=[];window.audit.longtasks=[];window.audit.start=performance.now();});
+const links=await page.$$(`a[href="${path}"]`);
+let link;for(const candidate of links){if(await candidate.isVisible()){link=candidate;break;}}
+if(!link)throw new Error(`No real link for ${name} from ${source}`);
+await link.click();
+await page.waitForFunction(p=>location.pathname===p,{},path);
+}else await page.goto(base+path,{waitUntil:'domcontentloaded'});
+await page.waitForFunction((journey)=>{if(document.querySelector('[aria-busy="true"]'))return false;if(journey==='home')return !!document.querySelector('main a[href="/projects"]');if(journey==='long-adventure')return !!document.querySelector('textarea');if(journey==='editor')return !!document.querySelector('textarea');return document.querySelector('main')?.innerText.length>40;},{},name);
+const content=performance.now()-before;
+// A fixed observation window is part of the lab protocol, not a pass/fail test wait.
+await new Promise(r=>setTimeout(r,2000));
+if(page.url().includes('/login'))throw new Error('Audit hit sign-in page');
+const metrics=await page.evaluate(()=>({url:location.pathname,nav:performance.getEntriesByType('navigation').map(e=>({ttfb:e.responseStart-e.requestStart,dom:e.domContentLoadedEventEnd,bytes:e.transferSize}))[0],paint:performance.getEntriesByType('paint').map(e=>({name:e.name,time:e.startTime})),...window.audit,resources:performance.getEntriesByType('resource').map(e=>({path:e.name.replace(location.origin,'').replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id').split('?')[0],type:e.initiatorType,bytes:e.transferSize,start:e.startTime,duration:e.duration}))}));
+const row={state,profile,name,mode,contentMs:content,url:route(metrics.url),...metrics,url:route(metrics.url),requests};
+rows.push(row);await writeFile(output+'/baseline.json',JSON.stringify(rows,null,2));
+if(traceRun){const raw=JSON.parse(Buffer.from(await page.tracing.stop()).toString());const events=raw.traceEvents.map(e=>({name:e.name,cat:e.cat,ph:e.ph,ts:e.ts,dur:e.dur,pid:e.pid,tid:e.tid,...(e.name==='Screenshot'?{args:e.args}:{})}));await writeFile(output+`/${name}.trace.json`,JSON.stringify({traceEvents:events}));}
+page.off('requestfinished',listener);
+console.log(state,profile,name,mode,Math.round(content));
+}
+await context.close();
+}
+}finally{await browser.close();}
