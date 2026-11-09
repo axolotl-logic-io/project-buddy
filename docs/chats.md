@@ -26,6 +26,12 @@ activity and a construct, built in or the user's own, with the open adventure an
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
 
+The Constructs page and the Workshop's Constructs tab label each saved-adventure
+action “Adventure with [construct name]”, using the full name in both the visible
+label and accessible name. It opens the New adventure dialog with that construct
+fixed. Closing creates nothing. Construct detail pages offer editing and temporary
+Workshop tests rather than a saved-adventure start action.
+
 A quest's page has its own "New adventure" button (#670, replacing the form
 #536 embedded there), so the quest's adventures lead the page. The form is
 closed when the page opens or reloads. The button opens the same kind of
