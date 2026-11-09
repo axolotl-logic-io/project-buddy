@@ -1,6 +1,7 @@
 "use client";
 
 import { type JSX, useEffect, useRef } from "react";
+import { Notice } from "@/components/ui/form-message.tsx";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 
 // Keep keyboard focus stable when the card that submitted retirement goes away.
@@ -19,9 +20,9 @@ function RetirementFeedback({
     return null;
   }
   return (
-    <p ref={resultRef} role="status" tabIndex={-1}>
+    <Notice ref={resultRef} role="status" tabIndex={-1}>
       {RETIREMENT_COPY.retired}
-    </p>
+    </Notice>
   );
 }
 

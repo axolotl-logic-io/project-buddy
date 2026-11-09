@@ -133,3 +133,29 @@ describe("automatic chat filtering", () => {
     expect(selectedUrl.hash).toBe("#chats");
   });
 });
+
+test("a removed quest choice falls back to All without hiding its adventures", async () => {
+  const view = await render(
+    <ChatProjectFilter
+      projects={PROJECTS}
+      chats={CHATS}
+      selectedProjectId={SECOND_ID}
+    />,
+  );
+  const select = page.getByRole("combobox", {
+    name: STANDALONE_CHATS_COPY.projectFilterLabel,
+  });
+  await expect.element(select).toHaveValue(SECOND_ID);
+  await view.rerender(
+    <ChatProjectFilter
+      projects={PROJECTS.filter((project) => project.id !== SECOND_ID)}
+      chats={CHATS}
+      selectedProjectId={SECOND_ID}
+    />,
+  );
+  await expect.element(select).toHaveValue("");
+  expect(links()).toEqual(CHATS.map((chat) => `/chats/${chat.id}`));
+  await view.rerender(<ChatProjectFilter projects={PROJECTS} chats={CHATS} />);
+  await select.selectOptions(SECOND_ID);
+  expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
+});

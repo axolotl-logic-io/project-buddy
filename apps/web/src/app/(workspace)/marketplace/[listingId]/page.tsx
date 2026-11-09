@@ -5,6 +5,7 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import { orbPurchasesEnabled } from "@/marketplace/cutover.ts";
 import { getListing, type ListingView } from "@/marketplace/listing-store.ts";
 import { readOrbsBalance } from "@/orbs/orb-store.ts";
@@ -34,7 +35,7 @@ function BuyerPart({
   if (listing.copy !== undefined) {
     return (
       <div className="flex flex-col gap-3">
-        <p>{LISTING_COPY.held(listing.kind)}</p>
+        <Notice>{LISTING_COPY.held(listing.kind)}</Notice>
         <Button asChild={true} className="self-start" variant="secondary">
           <Link href={ownPromptPath(listing.kind, listing.copy)}>
             {LISTING_COPY.openCopy(listing.kind)}
@@ -68,11 +69,11 @@ function SellerPart({
 }): JSX.Element {
   if (!listing.listed) {
     if (listing.source === undefined) {
-      return <p>{LISTING_COPY.unlistedSourceGone(listing.kind)}</p>;
+      return <Notice>{LISTING_COPY.unlistedSourceGone(listing.kind)}</Notice>;
     }
     return (
       <>
-        <p>{LISTING_COPY.unlisted}</p>
+        <Notice>{LISTING_COPY.unlisted}</Notice>
         <Link
           className="self-start text-link"
           href={ownPromptPath(listing.kind, listing.source)}
@@ -86,7 +87,7 @@ function SellerPart({
     <>
       <p>{LISTING_COPY.yours}</p>
       {listing.source === undefined && (
-        <p>{LISTING_COPY.sourceGone(listing.kind)}</p>
+        <Notice>{LISTING_COPY.sourceGone(listing.kind)}</Notice>
       )}
       {listing.source !== undefined && (
         <section
