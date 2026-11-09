@@ -16,7 +16,7 @@ From `apps/web`, provision this worktree's manual environment with `npm run test
 npm run audit:performance -- --output /absolute/new-audit-directory --browser /absolute/path/to/chrome --samples 3
 ```
 
-The output directory must be new. The runner holds `/tmp/project-buddy-unattended-full-suite.lock` through its expensive stages, so do not wrap it in the same lock. It builds and starts a production server on the worktree's port, seeds synthetic data with the existing kits and collects the matrix sequentially. It resets only that worktree's guarded test database. Do not run another test or audit against that database during capture. Keep temporary session state private and remove it after capture. Stop only the server owned by the run.
+The output directory must be new. The runner holds `/tmp/project-buddy-unattended-full-suite.lock` through its expensive stages, so do not wrap it in the same lock. It builds and starts a production server on the worktree's port, seeds synthetic data with the existing kits and collects the matrix sequentially. It resets only that worktree's guarded test database. Do not run another test or audit against that database during capture. The alias-aware fixture subprocess writes session state into an owned temporary directory through an exclusive mode-0600 file. The native parent validates it and removes that directory before browser capture. Credentials otherwise remain in memory. Stop only the server owned by the run.
 
 To revalidate an existing output without building or starting the site, run:
 

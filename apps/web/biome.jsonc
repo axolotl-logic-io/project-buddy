@@ -29,6 +29,7 @@
     {
       "includes": [
         "scripts/performance/run.mts",
+        "scripts/performance/seed-command.mts",
         "scripts/performance/capture.mts",
         "scripts/performance/lighthouse.mts",
         "scripts/performance/validate.mts",
@@ -422,7 +423,8 @@
     {
       "includes": [
         "test/component-integration/scripts/test-db/reset-refusals.test.ts",
-        "test/component-integration/scripts/performance/archives.test.ts"
+        "test/component-integration/scripts/performance/archives.test.ts",
+        "test/component-integration/scripts/performance/fixture-command.test.ts"
       ],
       "linter": {
         "rules": {
