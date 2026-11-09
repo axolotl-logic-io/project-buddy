@@ -48,6 +48,8 @@ The user gets their own copy of another user's listing, paying its price in orbs
 
 ## use_case_manage_listings
 
+Your listings is an underlined navigation link on Marketplace and opens `?view=yours`. The kind links keep their existing URLs, and Open Workshop leads to definitions the user can sell.
+
 The seller sees how their listings do, updates one, and unlists one.
 
 - **Prerequisites:** `use_case_sell_in_marketplace`.

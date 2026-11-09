@@ -123,3 +123,12 @@ vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
 vi.mock("@/batteries/catalog.ts", () => ({
   availableBatteryCatalog: vi.fn(() => []),
 }));
+
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  listRetiredDefinitions: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+  restoreDefinitionAction: vi.fn(),
+  deleteRetiredDefinitionAction: vi.fn(),
+}));

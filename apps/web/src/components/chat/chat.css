@@ -203,6 +203,14 @@
     padding-block-end: var(--chat-keyboard-inset);
   }
 
+  /* The scroll controller owns following and preserving the reading position.
+     Native anchoring must not move it when media arrives after upward input. */
+  @supports (overflow-anchor: none) {
+    :root:has(.chat-thread) {
+      overflow-anchor: none;
+    }
+  }
+
   .chat-composer-dock {
     inset-block-end: var(--chat-keyboard-inset);
     @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;

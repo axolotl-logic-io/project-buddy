@@ -81,13 +81,16 @@ const PRICE_MAX = 5;
 const CONSTRUCTS_ONLY = new URLSearchParams({ kind: "construct" });
 
 // The Marketplace page, showing listings of the kind, or every kind.
-async function marketplace(kind?: string): Promise<void> {
+async function marketplace(kind?: string, view?: string): Promise<void> {
   signInAs(SIGNED_IN_USER);
   stores.listListings.mockResolvedValue([CONSTRUCT_LISTING, SPELL_LISTING]);
   stores.listOwnListings.mockResolvedValue([...OWN_LISTINGS]);
-  let query: Record<string, string> = {};
+  let query: { kind?: string; view?: string } = {};
   if (kind !== undefined) {
     query = { kind };
+  }
+  if (view !== undefined) {
+    query.view = view;
   }
   await render(
     inWorkspace(
@@ -236,7 +239,7 @@ describe("use_case_buy_listing", () => {
 
 describe("use_case_manage_listings", () => {
   test("Your listings counts each listing's sales, with buttons named for it", async () => {
-    await marketplace();
+    await marketplace(undefined, "yours");
 
     const yours = page.getByRole("region", {
       name: YOUR_LISTINGS_COPY.heading,
@@ -414,7 +417,13 @@ test("seller summaries show one orb earned and keep unlisted legacy status", asy
     { ...CONSTRUCT_LISTING, listed: true, buyers: 1, goldEarned: 1, price: 1 },
     { ...SPELL_LISTING, listed: false, legacy: true, buyers: 0, goldEarned: 0 },
   ]);
-  await render(inWorkspace(await MarketplacePage({ searchParams: NO_PARAMS })));
+  await render(
+    inWorkspace(
+      await MarketplacePage({
+        searchParams: Promise.resolve({ view: "yours" }),
+      }),
+    ),
+  );
   await expect
     .element(
       page.getByText(

@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_view_projects
 
-The user looks over her quests. Active quests are shown by default; Completed and Abandoned tabs show those statuses, as described in [quest status](quest-status.md).
+The user looks over her quests in one workspace. The heading and Start Quest action share a compact header. Underlined Active, Completed, Abandoned and Premade quests tabs select the content below. Saved quests appear as compact rows, newest first. Active quests are shown by default; Completed and Abandoned tabs show those statuses, as described in [quest status](quest-status.md).
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
@@ -137,7 +137,7 @@ The user opens one of her quests.
   - `use_case_view_progress_timeline`: see how far she has come.
   - `use_case_invite_to_project`: work on the quest with someone else.
 
-The overview and Journal share a workspace header: the title and status, New adventure, Adventures and Quest Journal navigation, and visible status actions for the owner. The selected page is underlined. Controls wrap on phones.
+The overview and Journal share a workspace header: the title and status, New adventure, navigation for Adventures, Quest Journal, Progress, Quick Notes, Versions and Members and check-ins, and visible status actions for the owner. Each selection shows its own content; query links preserve the selection. The selected page is underlined. Controls wrap on phones.
 
 ## use_case_set_check_ins
 
@@ -145,7 +145,7 @@ The user asks the quest's construct to check in on the quest on a schedule.
 
 - **Prerequisites:** `use_case_open_project`.
 - **Steps:**
-  - On the quest's page, under Check-ins, she sees that check-ins are Off.
+  - On the quest's Members and check-ins section, under Check-ins, she sees that check-ins are Off.
   - She chooses how often the construct checks in: Daily, A few times a week or Weekly, and saves.
 - **Outcome:** the page says the setting is saved, and shows her choice when she opens the quest again. The setting is for this quest alone: her other quests stay as they were, and no one else's quest can be changed this way. Choosing Off again stops the check-ins.
 - **Variations:**
@@ -306,8 +306,8 @@ The user gives the reason for wanting to complete a quest.
 The user explores starting points without creating anything.
 
 - **Prerequisites:** signed in on Quests.
-- **Steps:** browse the four offerings, open a preview, inspect its starting Journal and first activity, then close it.
-- **Outcome:** existing quests and New quest remain available. No quest, adventure or model call is made.
+- **Steps:** choose the Premade quests tab (or Find a starting point), browse the four offerings, open a preview, inspect its starting Journal and first activity, then close it.
+- **Outcome:** Start Quest remains available in the header. Switching back to a status tab shows the existing quests. The selected tab is kept in the URL, including Premade quests. Find a starting point selects and focuses the Premade quests tab. No quest, adventure or model call is made.
 
 ## use_case_start_premade_quest
 
