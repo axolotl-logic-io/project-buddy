@@ -117,7 +117,7 @@
 // A shadow or decoration that should differ by mode uses colour tokens, as
 // in color-mix(in oklab, var(--shadow) 30%, transparent).
 //
-import { z } from "zod";
+import { z } from "zod/mini";
 
 // The site's single visual identity. Old theme cookies resolve to this entry.
 const THEMES = [{ id: "parchment", name: "Parchment" }] as const;
@@ -142,8 +142,8 @@ const DEFAULT_THEME_CHOICE: ThemeChoice = {
 const THEME_IDS: readonly ThemeId[] = THEMES.map(({ id }) => id);
 
 const themeChoiceSchema = z.object({
-  theme: z.enum(THEME_IDS).catch(DEFAULT_THEME_CHOICE.theme),
-  mode: z.enum(THEME_MODES).catch(DEFAULT_THEME_CHOICE.mode),
+  theme: z.catch(z.enum(THEME_IDS), DEFAULT_THEME_CHOICE.theme),
+  mode: z.catch(z.enum(THEME_MODES), DEFAULT_THEME_CHOICE.mode),
 });
 
 // A choice read from outside the code, such as from the page's attributes.

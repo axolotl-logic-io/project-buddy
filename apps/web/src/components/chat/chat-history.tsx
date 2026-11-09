@@ -1,15 +1,15 @@
 "use client";
 
 import { type MessageRuntimeState, ThreadPrimitive } from "@assistant-ui/react";
-import { type JSX, type ReactNode, useCallback } from "react";
+import { type JSX, type ReactNode, memo, useCallback } from "react";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
 import type { ReplyCost } from "@/replies/reply-accounting.ts";
 
-// One renderer boundary for the whole history. Empty adventures do not load
-// it; populated ones retain server-rendered, searchable, accessible messages.
-function ChatHistory({
+// The complete, server-rendered history. Composer updates need not render
+// this list again when its message presentation has not changed.
+function ChatHistoryContent({
   construct,
   chatId,
   openingMessageId,
@@ -47,5 +47,7 @@ function ChatHistory({
   );
   return <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>;
 }
+
+const ChatHistory = memo(ChatHistoryContent);
 
 export { ChatHistory };

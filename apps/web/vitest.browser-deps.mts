@@ -38,6 +38,7 @@ const PREBUNDLED_DEPS: string[] = [
   "shiki/langs",
   "vitest-browser-react",
   "zod",
+  "zod/mini",
 ];
 
 // Specifiers that name a file or a module rather than a package: relative
