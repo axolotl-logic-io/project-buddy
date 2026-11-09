@@ -11,14 +11,15 @@ import { readEndToEndPort } from "../../src/env.ts";
 import { checkTestEnvironment } from "../test-db/test-database.ts";
 import {
   parseReadinessSelection,
-  type ReadinessRow,
   type ReadinessSelection,
 } from "./artifacts.ts";
 import type { CaptureOptions, Fixture } from "./capture.mts";
 import { captureMatrix, openBrowser } from "./capture.mts";
 import { captureLighthouse } from "./lighthouse.mts";
 import {
+  byteBuckets,
   observedStability,
+  STARTUP_WINDOW_MS,
   sampleRange,
   startupLongTaskTime,
 } from "./metrics.ts";
@@ -28,7 +29,6 @@ const MINIMUM_SAMPLES = 3;
 const SERVER_READY_DEADLINE_MS = 30_000;
 const SERVER_STOP_DEADLINE_MS = 10_000;
 const READINESS_BUFFER_SIZE = 128;
-const STARTUP_WINDOW_MS = 5000;
 const SAMPLE_COUNT = z.coerce.number().int().min(MINIMUM_SAMPLES);
 async function command(
   commandName: string,
@@ -120,66 +120,6 @@ async function stopServer(child: ChildProcess): Promise<void> {
   } finally {
     clearTimeout(deadline);
   }
-}
-function byteBuckets(
-  row: ReadinessRow,
-): Readonly<Record<string, { requests: number; bytes: number }>> {
-  function measure(resources: ReadinessRow["resources"]): {
-    requests: number;
-    bytes: number;
-  } {
-    return {
-      requests: resources.length,
-      bytes: resources.reduce((sum, resource) => sum + resource.bytes, 0),
-    };
-  }
-  let { start: origin } = row.nav;
-  if (row.mode === "client-navigation") {
-    ({ origin } = row);
-  }
-  const cutoff = origin + STARTUP_WINDOW_MS;
-  function completedInWindow(
-    resource: ReadinessRow["resources"][number],
-  ): boolean {
-    return (
-      resource.start >= origin && resource.start + resource.duration <= cutoff
-    );
-  }
-  const foreground = row.resources.filter(
-    (resource) =>
-      resource.purpose !== "prefetch" && completedInWindow(resource),
-  );
-  let firstLoad: ReadinessRow["resources"] = foreground;
-  let destination: ReadinessRow["resources"] = [];
-  if (row.mode === "client-navigation") {
-    destination = foreground;
-    firstLoad = [];
-  }
-  return {
-    firstLoadJavaScript: measure(
-      firstLoad.filter(
-        (resource) => resource.path === "/_next/static/:asset.js",
-      ),
-    ),
-    firstLoadFonts: measure(
-      firstLoad.filter(
-        (resource) => resource.path === "/_next/static/:asset.woff2",
-      ),
-    ),
-    cssArtwork: measure(
-      row.resources.filter(
-        (resource) =>
-          completedInWindow(resource) &&
-          resource.path === "/artwork/:asset" &&
-          resource.type === "css",
-      ),
-    ),
-    startupPrefetch: measure((row.prefetches ?? []).filter(completedInWindow)),
-    sourcePrefetchBeforeActivation: measure(
-      (row.prefetches ?? []).filter((resource) => resource.start < origin),
-    ),
-    destinationOnly: measure(destination),
-  };
 }
 // Isolate the alias-aware fixture loader from native browser callbacks and
 // native TypeScript modules already loaded by this process. Credentials cross
@@ -310,7 +250,7 @@ async function run(): Promise<void> {
     await command("npm", ["run", "check:build-fonts"], cancellation.signal);
     const buildId = (await readFile(".next/BUILD_ID", "utf8")).trim();
     const manifest = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       scope,
       selection: selection ?? null,
       captureProtocol: "commit-probe-v4",
@@ -351,6 +291,8 @@ async function run(): Promise<void> {
       },
       probeResolutionMs: 100,
       inputCharacters: 42,
+      networkAttribution:
+        "Completed CDP requests; initiator category only, no stacks or URLs; early means started by primary presence, not essential payload",
       minimumWindowMs: 5000,
       postControlWindowMs: 2000,
       quietWindowMs: 500,

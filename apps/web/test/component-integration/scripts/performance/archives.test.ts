@@ -1,7 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { expect, test } from "vitest";
-import { validateTrace } from "../../../../scripts/performance/artifacts.ts";
+import {
+  validateReadinessRows,
+  validateTrace,
+} from "../../../../scripts/performance/artifacts.ts";
 
 const ARCHIVE = new URL(
   "../../../../../../docs/performance/773/",
@@ -65,6 +68,42 @@ test("checks the retained compressed numeric cohorts rather than local raw files
       const input: unknown = JSON.parse(text);
       expect(Array.isArray(input)).toBe(true);
       expect(input).toHaveLength(count);
+    }),
+  );
+});
+
+const FOCUSED_SAMPLE_COUNT = 10;
+const FOCUSED_ROW_COUNT = 30;
+
+test("validates the committed focused gzip without treating it as a full audit", async () => {
+  const directory = new URL("../797/focused/", ARCHIVE);
+  const [readiness, trace, manifest] = await Promise.all([
+    readFile(new URL("readiness.json.gz", directory)),
+    readFile(new URL("long-adventure.trace.json.gz", directory)),
+    readFile(new URL("manifest.json", directory), "utf8"),
+  ]);
+  const input: unknown = JSON.parse(gunzipSync(readiness).toString("utf8"));
+  const rows = validateReadinessRows(input, FOCUSED_SAMPLE_COUNT, {
+    state: "populated",
+    profile: "desktop",
+    name: "long-adventure",
+  });
+  expect(rows).toHaveLength(FOCUSED_ROW_COUNT);
+  expect(() => validateReadinessRows(input, FOCUSED_SAMPLE_COUNT)).toThrow(
+    "Incomplete audit matrix",
+  );
+  const traceInput: unknown = JSON.parse(gunzipSync(trace).toString("utf8"));
+  expect(
+    validateTrace(traceInput, "long-adventure.trace.json.gz").some(
+      (event) => event.name === "Screenshot",
+    ),
+  ).toBe(false);
+  const manifestInput: unknown = JSON.parse(manifest);
+  expect(manifestInput).toEqual(
+    expect.objectContaining({
+      scope: "diagnostic",
+      complete: false,
+      diagnosticComplete: true,
     }),
   );
 });

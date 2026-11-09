@@ -87,6 +87,28 @@ const RESOURCE = z.strictObject({
     "beacon",
   ]),
 });
+const NETWORK_RESOURCE = z.strictObject({
+  path: RESOURCE.shape.path,
+  method: z.enum(["GET", "POST", "other"]),
+  resourceType: z.enum([
+    "Document",
+    "Script",
+    "Font",
+    "Image",
+    "Stylesheet",
+    "Fetch",
+    "XHR",
+    "Other",
+  ]),
+  initiator: z.enum(["parser", "script", "preload", "other"]),
+  prefetch: z.boolean(),
+  start: NONNEGATIVE,
+  duration: NONNEGATIVE,
+  bytes: NONNEGATIVE,
+  status: NONNEGATIVE,
+  failed: z.boolean(),
+});
+type NetworkResource = z.infer<typeof NETWORK_RESOURCE>;
 const READINESS = z.strictObject({
   hostLoad: z.tuple([NONNEGATIVE, NONNEGATIVE, NONNEGATIVE]),
   captureProtocol: z.literal("commit-probe-v4"),
@@ -178,6 +200,7 @@ const READINESS = z.strictObject({
     dom: NONNEGATIVE,
   }),
   resources: z.array(RESOURCE),
+  networkResources: z.array(NETWORK_RESOURCE).optional(),
   prefetches: z.array(RESOURCE).optional(),
   activated: z
     .strictObject({ region: z.literal("route-link"), rect: RECT })
@@ -373,7 +396,7 @@ function validateFieldMetric(input: unknown): z.infer<typeof FIELD_METRIC> {
   return FIELD_METRIC.parse(input);
 }
 
-export type { ReadinessRow, ReadinessSelection };
+export type { NetworkResource, ReadinessRow, ReadinessSelection };
 export {
   parseReadinessRow,
   parseReadinessSelection,
