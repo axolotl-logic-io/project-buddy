@@ -66,8 +66,113 @@
     @apply flex min-w-0 flex-col gap-6;
   }
 
-  .workshop-columns {
-    @apply grid min-w-0 grid-cols-1 items-start gap-6 md:grid-cols-2;
+  .workshop-toolbar {
+    @apply sticky z-10 flex flex-wrap items-center gap-3 border-line border-b bg-background py-3;
+    inset-block-start: var(--site-header-height);
+  }
+
+  .workshop-drawer {
+    @apply fixed right-0 z-50 flex w-full max-w-xl flex-col overflow-hidden border-line border-l bg-surface text-foreground shadow-raised;
+    --workshop-visible-height: 100dvh;
+    --workshop-visible-top: 0px;
+    block-size: var(--workshop-visible-height);
+    inset-block-start: var(--workshop-visible-top);
+  }
+
+  .workshop-drawer-header {
+    @apply flex shrink-0 flex-wrap items-center justify-between gap-2 border-line border-b p-4;
+  }
+
+  .workshop-test-content {
+    @apply flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4;
+    overscroll-behavior: contain;
+  }
+
+  .workshop-test-settings {
+    @apply rounded-control border border-line p-3;
+  }
+
+  .workshop-test-settings > summary {
+    @apply cursor-pointer;
+    min-block-size: var(--target-size);
+  }
+
+  .workshop-feedback {
+    @apply flex shrink-0 flex-col gap-2 overflow-y-auto px-4;
+    max-block-size: calc(var(--workshop-visible-height) * 0.3);
+  }
+
+  .workshop-composer {
+    @apply flex shrink-0 flex-col gap-2 overflow-y-auto border-line border-t bg-surface p-4;
+    max-block-size: calc(var(--workshop-visible-height) * 0.55);
+    padding-block-end: max(
+      calc(var(--space-unit) * 4),
+      env(safe-area-inset-bottom)
+    );
+  }
+
+  .prompt-editor {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .prompt-editor-actions {
+    @apply flex flex-col gap-3;
+  }
+
+  .prompt-editor[data-focus="true"] {
+    @apply grid gap-4;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prompt-editor-nav {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .prompt-editor-nav button {
+    @apply text-left;
+  }
+
+  .prompt-editor-nav [aria-pressed="true"] {
+    @apply bg-primary text-on-primary;
+  }
+
+  .prompt-editor[data-focus="true"] .prompt-editor-field textarea {
+    block-size: 40dvh;
+  }
+
+  .prompt-editor[data-focus="true"] .prompt-editor-actions {
+    @apply sticky bottom-0 z-10 border-line border-t bg-background py-3;
+  }
+
+  /* Short windows need editing space more than pinned form controls. */
+  @media (max-height: 32rem) {
+    .workshop-toolbar,
+    .prompt-editor[data-focus="true"] .prompt-editor-actions {
+      position: static;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .prompt-editor[data-focus="true"] {
+      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    }
+
+    .prompt-editor-name,
+    .prompt-editor-heading,
+    .prompt-editor-actions {
+      grid-column: 1 / -1;
+    }
+
+    .prompt-editor-nav {
+      @apply flex-col items-stretch self-start;
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .prompt-editor[data-focus="true"] .prompt-editor-field {
+      grid-column: 2;
+      grid-row: 3;
+    }
   }
 
   /* The headings take their sizes from the theme (src/themes/contract.css).

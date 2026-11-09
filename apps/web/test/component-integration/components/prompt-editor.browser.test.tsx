@@ -26,7 +26,10 @@ import {
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { VISUAL_GENERATION_REQUEST } from "@/constructs/visual-generation-contract.ts";
+import {
+  VISUAL_GENERATION_REQUEST,
+  type VisualGenerationRequest,
+} from "@/constructs/visual-generation-contract.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
@@ -204,6 +207,7 @@ describe("use_case_edit_construct", () => {
     const submitted = saved(saveConstructAction);
 
     await field(PROMPT_COPY.nameLabel).fill("Lumen, edited");
+    await button(CONSTRUCT_PROMPT).click();
     await field(CONSTRUCT_PROMPT).fill("Changed {{name}}");
     await button(PROMPT_COPY.save).click();
 
@@ -216,6 +220,7 @@ describe("use_case_edit_construct", () => {
     await openConstruct(LUMEN_CLONE);
     const name = field(PROMPT_COPY.nameLabel);
 
+    await button(CONSTRUCT_PROMPT).click();
     await field(CONSTRUCT_PROMPT).fill("My new prompt");
     await name.fill("   ");
     await button(PROMPT_COPY.save).click();
@@ -239,6 +244,7 @@ describe("use_case_edit_construct", () => {
   test("her unsaved changes are back when she returns to the page, until she discards them", async () => {
     const firstVisit = await openConstruct(LUMEN_CLONE);
     await field(PROMPT_COPY.nameLabel).fill("Half-renamed");
+    await button(CONSTRUCT_PROMPT).click();
     await field(CONSTRUCT_PROMPT).fill("Half-written prompt");
     await firstVisit.leave();
 
@@ -274,6 +280,7 @@ describe("use_case_edit_construct", () => {
 
   test("changes made before a later save of the construct are dropped, not shown over it", async () => {
     const firstVisit = await openConstruct(LUMEN_CLONE);
+    await button(CONSTRUCT_PROMPT).click();
     await field(CONSTRUCT_PROMPT).fill("Typed before the save");
     await firstVisit.leave();
 
@@ -351,6 +358,7 @@ test("Reset on her spell's page changes the prompt only, keeping its when-to-use
 
 test("Reset twice and leaving preserve the original unsaved text for Undo", async () => {
   const visit = await openConstruct(LUMEN_CLONE);
+  await button(CONSTRUCT_PROMPT).click();
   await field(CONSTRUCT_PROMPT).fill("Before either reset");
   await button(PROMPT_COPY.resetPrompt).click();
   await button(PROMPT_COPY.resetPrompt).click();
@@ -381,6 +389,7 @@ test("Visual description survives recovery, prompt reset and discard, and Save s
     },
   } satisfies OwnConstruct;
   const opened = await openConstruct(construct);
+  await button("Visual description").click();
   await field("Visual description").fill(edited);
   await button(PROMPT_COPY.resetPrompt).click();
   await expect.element(field("Visual description")).toHaveValue(edited);
@@ -389,6 +398,7 @@ test("Visual description survives recovery, prompt reset and discard, and Save s
   await expect.element(field("Visual description")).toHaveValue(edited);
   await button(PROMPT_COPY.discard).click();
   await expect.element(field("Visual description")).toHaveValue(original);
+  await button("Visual description").click();
   await field("Visual description").fill(edited);
   const submission = saved(saveConstructAction);
   await button(VISUAL_COPY.saveAndGenerate).click();
@@ -403,6 +413,7 @@ test("clearing an existing Visual description shows field feedback and keeps edi
       visual: { version: 1, description: "A warm light" },
     },
   });
+  await button("Visual description").click();
   await field("Visual description").fill(" ");
   await button(PROMPT_COPY.save).click();
   await expect.element(field("Visual description")).toHaveFocus();
@@ -416,6 +427,7 @@ test("clearing an existing Visual description shows field feedback and keeps edi
 
 test("new saved artwork does not discard a browser draft on reload", async () => {
   const opened = await openConstruct(LUMEN_CLONE);
+  await button("Visual description").click();
   await field("Visual description").fill("A new light in a blue cloak");
   await opened.leave();
   await openConstruct({
@@ -429,76 +441,74 @@ test("new saved artwork does not discard a browser draft on reload", async () =>
 
 const TEST_RESERVATION = 12;
 
-test.each([VISUAL_COPY.saveAndGenerate, "Generate Images"])(
-  "%s saves the edited Vellum description and shows generation loading",
-  async (label) => {
-    await setViewport(NARROWEST_VIEWPORT);
-    const edited = "A silver fox with a blue cloak, replacing the brass guide";
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>((input) => {
-        const url = String(input);
-        const quote = {
-          reservationGold: TEST_RESERVATION,
-          available: true,
-          outdated: false,
-        };
-        if (url.includes("requestId=")) {
-          return Promise.resolve(
-            Response.json({
-              ...quote,
-              result: {
-                status: "generated",
-                reservationGold: TEST_RESERVATION,
-                roles: {
-                  avatar: "generated",
-                  portrait: "generated",
-                  opening: "generated",
-                  working: "generated",
-                },
-                visual: { version: 1, description: edited },
+test("Save and generate images saves the edited description and shows loading", async () => {
+  await setViewport(NARROWEST_VIEWPORT);
+  const edited = "A silver fox with a blue cloak, replacing the brass guide";
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>((input) => {
+      const url = String(input);
+      const quote = {
+        reservationGold: TEST_RESERVATION,
+        available: true,
+        outdated: false,
+      };
+      if (url.includes("requestId=")) {
+        return Promise.resolve(
+          Response.json({
+            ...quote,
+            result: {
+              status: "generated",
+              reservationGold: TEST_RESERVATION,
+              roles: {
+                avatar: "generated",
+                portrait: "generated",
+                opening: "generated",
+                working: "generated",
               },
-            }),
-          );
-        }
-        return Promise.resolve(Response.json(quote));
-      }),
+              visual: { version: 1, description: edited },
+            },
+          }),
+        );
+      }
+      return Promise.resolve(Response.json(quote));
+    }),
+  );
+  await openConstruct({
+    ...VELLUM_CLONE,
+    definition: {
+      ...VELLUM_CLONE.definition,
+      visual: { version: 1, description: "A brass guide" },
+    },
+  });
+  await button("Visual description").click();
+  await field("Visual description").fill(edited);
+  await expect.element(button("Generate Images")).toBeEnabled();
+  const saveButton = button(VISUAL_COPY.saveAndGenerate);
+  await expect
+    .element(saveButton)
+    .toHaveAccessibleDescription(
+      `${VISUAL_COPY.saveConsequence} ${VISUAL_COPY.reservation(TEST_RESERVATION)}`,
     );
-    await openConstruct({
-      ...VELLUM_CLONE,
-      definition: {
-        ...VELLUM_CLONE.definition,
-        visual: { version: 1, description: "A brass guide" },
-      },
-    });
-    await field("Visual description").fill(edited);
-    await expect.element(button("Generate Images")).toBeEnabled();
-    const saveButton = button(VISUAL_COPY.saveAndGenerate);
-    await expect
-      .element(saveButton)
-      .toHaveAccessibleDescription(
-        `${VISUAL_COPY.saveConsequence} ${VISUAL_COPY.reservation(TEST_RESERVATION)}`,
-      );
-    const hintId = saveButton.element().getAttribute("aria-describedby");
-    const hint = document.querySelector(`#${CSS.escape(hintId ?? "")}`);
-    expect(hint?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-      saveButton.element().getBoundingClientRect().top,
-    );
-    const submission = saved(saveConstructAction);
-    await button(label).click();
-    const form = await submission;
-    expect(form.get("visualDescription")).toBe(edited);
-    expect(form.get("visualRequestId")).toEqual(expect.any(String));
-    expect(Object.values(localStorage).join(" ")).toContain(
-      String(form.get("visualRequestId")),
-    );
-    await expect
-      .element(page.getByText("Generating images…", { exact: true }))
-      .toBeVisible();
-    await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
-    await expect.element(button("Generate Images")).toBeDisabled();
-  },
-);
+  const hintId = saveButton.element().getAttribute("aria-describedby");
+  const hint = document.querySelector(`#${CSS.escape(hintId ?? "")}`);
+  expect(hint?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+    saveButton.element().getBoundingClientRect().top,
+  );
+  const submission = saved(saveConstructAction);
+  await button(VISUAL_COPY.saveAndGenerate).click();
+  const form = await submission;
+  expect(form.get("visualDescription")).toBe(edited);
+  expect(form.get("visualRequestId")).toEqual(expect.any(String));
+  expect(Object.values(localStorage).join(" ")).toContain(
+    String(form.get("visualRequestId")),
+  );
+  await expect
+    .element(page.getByText("Generating images…", { exact: true }))
+    .toBeVisible();
+  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
+  await expect.element(button("Generate Images")).toBeDisabled();
+});
 
 test.each(["activity", "spell"] as const)(
   "a saved %s shows visible announced confirmation and saved fields",
@@ -552,12 +562,15 @@ test("Save is text-only for unchanged appearance or a description edited then re
   await expect
     .element(button(PROMPT_COPY.save))
     .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
+  await button("Visual description").click();
   await field("Visual description").fill("A silver fox");
   await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeVisible();
+  await button("Visual description").click();
   await field("Visual description").fill(`  ${original}  `);
   await expect
     .element(button(PROMPT_COPY.save))
     .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
+  await button(CONSTRUCT_PROMPT).click();
   await field(CONSTRUCT_PROMPT).fill("Private new voice");
   const submission = saved(saveConstructAction);
   await button(PROMPT_COPY.save).click();
@@ -571,37 +584,72 @@ test("Save is text-only for unchanged appearance or a description edited then re
   await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
 });
 
-test("Generate Images with unchanged appearance submits an explicit paid intention and durable UUID", async () => {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() =>
-      Promise.resolve(
-        Response.json({
-          reservationGold: TEST_RESERVATION,
-          available: true,
-          outdated: false,
-        }),
-      ),
-    ),
-  );
-  await openConstruct({
-    ...VELLUM_CLONE,
-    definition: {
-      ...VELLUM_CLONE.definition,
-      visual: { version: 1, description: "A brass guide" },
-    },
-  });
-  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
-  const submission = saved(saveConstructAction);
-  await button(VISUAL_COPY.generate).click();
-  const data = await submission;
-  expect(data.get("generateImages")).toBe("true");
-  expect(data.get("visualDescription")).toBe("A brass guide");
-  expect(data.get("visualRequestId")).toEqual(expect.any(String));
-  await expect
-    .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
-    .toBeVisible();
-});
+test.each(["A brass guide", "A silver fox with a blue cloak"])(
+  "Generate Images requests paid draft artwork for %s without saving",
+  async (description) => {
+    const generation = Promise.withResolvers<Response>();
+    const generationRequests: VisualGenerationRequest[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>((_input, init) => {
+        if (init?.method === "POST") {
+          generationRequests.push(
+            VISUAL_GENERATION_REQUEST.parse(JSON.parse(String(init.body))),
+          );
+          return generation.promise;
+        }
+        return Promise.resolve(
+          Response.json({
+            reservationGold: TEST_RESERVATION,
+            available: true,
+            outdated: false,
+          }),
+        );
+      }),
+    );
+    await openConstruct({
+      ...VELLUM_CLONE,
+      definition: {
+        ...VELLUM_CLONE.definition,
+        visual: { version: 1, description: "A brass guide" },
+      },
+    });
+    await button("Visual description").click();
+    await field("Visual description").fill(description);
+    await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+    await button(VISUAL_COPY.generate).click();
+    await expect
+      .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
+      .toBeVisible();
+    expect(saveConstructAction).not.toHaveBeenCalled();
+    await expect.element(field("Visual description")).toHaveValue(description);
+    await expect
+      .element(field(CONSTRUCT_PROMPT))
+      .toHaveValue(VELLUM_CLONE.definition.prompt);
+    expect(generationRequests).toHaveLength(1);
+    expect(generationRequests[0]?.description).toBe(description);
+    expect(generationRequests[0]?.requestId).toEqual(expect.any(String));
+    expect(Object.values(localStorage).join(" ")).toContain(
+      generationRequests[0]?.requestId,
+    );
+    await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+    generation.resolve(
+      Response.json({
+        status: "failed",
+        reservationGold: TEST_RESERVATION,
+        roles: {
+          avatar: "failed",
+          portrait: "failed",
+          opening: "failed",
+          working: "failed",
+        },
+      }),
+    );
+    await expect
+      .element(page.getByText(VISUAL_COPY.states.failed))
+      .toBeVisible();
+  },
+);
 
 const PENDING_VISUAL_REQUEST = "3bb055fe-90cc-49fd-b5c5-8f9a9382c507";
 
@@ -641,9 +689,12 @@ test("text-only Save during pending work preserves its original UUID and payload
   await expect
     .element(page.getByText(VISUAL_COPY.states.pending, { exact: true }))
     .toBeVisible();
+  await button("Visual description").click();
   await field("Visual description").fill("Different appearance");
   await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
+  await button("Visual description").click();
   await field("Visual description").fill(description);
+  await button(CONSTRUCT_PROMPT).click();
   await field(CONSTRUCT_PROMPT).fill("New instructions during generation");
   await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
   const submission = saved(saveConstructAction);

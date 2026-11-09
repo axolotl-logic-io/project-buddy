@@ -1,6 +1,6 @@
 # Glossary
 
-This glossary records the domain language of Project Buddy: the words that users, docs, prompts and code use for the same things. Use these words in code, copy, prompts, docs and issues. When you need a new domain term, add it here first. The “Avoid” entries apply to names for these concepts, not ordinary uses of those words in prose.
+This glossary records the domain language of Project Buddy: the words that users, docs, prompts and code use for the same things. Use these words in code, copy, prompts, docs and issues. When you need a new domain term, add it here first.
 
 ## Core model
 
@@ -18,22 +18,17 @@ An adventure is a [quest adventure](#quest-adventure) or a [standalone adventure
 
 ### Project Buddy
 
-The product: a personal site where constructs help each user with their own quests and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every adventure has.
-
-- **UI:** "Project Buddy".
-- **Avoid:** "Project Buddies", "Blender AI tutor", "the Blender tutor", "Blender tutor site".
+The product: a personal site where constructs help each user with their own quests and ideas, on any subject.
 
 ### Workshop
 
-The shared editing and testing experience for constructs, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's batteries and do not create saved adventures.
-
-- **UI:** "Workshop".
+The shared editing and testing experience for constructs, activities and spells.
 
 ## Prompts and context
 
 ### Prompt
 
-Instructions for the model. A construct, activity or spell has a prompt; it is not itself a prompt. The application assembles prompts into messages sent to the model. A spell's prompt reaches the model through the result of a cast.
+Instructions for the model. A construct, activity or spell has a prompt. The application assembles prompts into messages sent to the model.
 
 ### Character Sheet, Activity Sheet, Spell Sheet
 
@@ -41,23 +36,19 @@ The generic headings in built-in and starter prompts: `# Character Sheet` for a 
 
 ### Built-in construct, activity or spell
 
-A construct, activity or spell that ships with the site. Built-in ones are read-only; users customize them to make their own copies.
+A construct, activity or spell that ships with the site.
 
 ### Own construct, activity or spell
 
 A user's private, editable construct, activity or spell, made by copying another or crafting one. Its prompt can become part of a shared adventure without giving others access to the original.
 
-- **UI:** "Your constructs", "Your activities", "Your spells".
-- **Avoid:** "custom construct", "user persona".
-
 ### Retire, Retirement, restore, delete forever
 
 To **retire** an own construct, activity, or spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new adventure, a new activity entry, or a future spell cast. Existing adventure snapshots and past casts stay intact.
 
-**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging batteries. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
-
-- **UI:** "Retire", "Retirement", "Restore", "Delete forever", "Keep retired".
-- **Avoid:** "Graveyard", "trash", "archive" for Retirement.
+**Retirement** is the central page listing the user's retired constructs, activities, and spells.
+**Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging batteries.
+**Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
 ### Customize, craft, tweak, clone, rename
 
