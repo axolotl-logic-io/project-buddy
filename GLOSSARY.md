@@ -684,3 +684,9 @@ The global prompt explains earlier names so constructs understand them.
 An editable starting point from the Quest library: a name, description, starting Journal and suggested first activity. Starting it creates an ordinary quest and its first adventure. Planned milestones remain Journal plans until real achievements are recorded. Browsing creates nothing.
 
 - **UI:** “Premade quests”, “Explore quest”.
+
+## Library
+
+The in-site reading area with Getting Started and books on Constructs, Spells, Activities and Model context. A book explains a subject through navigable chapters, practical examples and links to site actions. This Library is distinct from the Spellbook and the Quest library of premade quests.
+
+- **UI:** “Library”, “Getting Started”, “Chapters”.

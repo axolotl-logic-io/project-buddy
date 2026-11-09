@@ -72,3 +72,5 @@ Each area's cases are in their own file:
 - [Appearance](appearance.md)
 - [Installed app and notifications](notifications.md)
 - [Site upkeep](site-upkeep.md)
+
+- [Library](library.md): in-site guides, crafting books and model context.
