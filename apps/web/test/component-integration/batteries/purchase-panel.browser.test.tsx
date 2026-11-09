@@ -67,7 +67,7 @@ test("out of batteries links to Account purchase guidance", async () => {
   );
   await expect
     .element(page.getByRole("link", { name: BATTERY_PURCHASES_COPY.heading }))
-    .toHaveAttribute("href", "/account#buy-batteries");
+    .toHaveAttribute("href", "/account?section=batteries#buy-batteries");
 });
 
 test("disabled purchases explain availability without a purchase or earning link", async () => {

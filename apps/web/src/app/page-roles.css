@@ -1020,4 +1020,98 @@
     inline-size: 40px;
     block-size: 40px;
   }
+  .page-workspace {
+    @apply min-w-0 rounded-box border border-line bg-surface;
+  }
+
+  .page-workspace-heading {
+    @apply flex min-w-0 flex-wrap items-start justify-between gap-4 p-4 sm:p-6;
+  }
+
+  .page-workspace-heading > :first-child {
+    flex: 1 1 16rem;
+  }
+
+  .workspace-intro {
+    @apply mt-2 text-muted text-sm;
+  }
+
+  .workspace-rail {
+    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
+  }
+
+  .workspace-tablist {
+    @apply flex min-w-0 flex-wrap gap-x-4;
+  }
+
+  .workspace-tab {
+    min-inline-size: var(--target-size);
+    min-block-size: var(--target-size);
+    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-left text-muted text-sm;
+  }
+
+  .workspace-tab[data-state="active"],
+  .workspace-tab[aria-current="page"] {
+    @apply border-primary text-foreground;
+  }
+
+  .workspace-content {
+    @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
+  }
+
+  .workspace-content[hidden] {
+    display: none;
+  }
+
+  .workspace-content > .panel,
+  .workspace-content > form.panel {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .workspace-rows > ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-rows > ul > .card {
+    @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
+  }
+
+  .workspace-catalog-action {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .workspace-reader {
+    @apply grid min-w-0 gap-6 p-4 sm:p-6;
+    @media (width >= 48rem) {
+      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    }
+  }
+
+  .workspace-chapters {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  .workspace-reading {
+    @apply flex min-w-0 flex-col gap-6;
+  }
+
+  .workspace-reading > section {
+    scroll-margin-block-start: var(--site-header-height);
+  }
+  .adventure-workspace-nav {
+    @apply -mt-8 border-line border-b;
+  }
+  .appearance-settings .menu-modes {
+    @apply mx-0 grid-cols-1 gap-2 overflow-visible border-0;
+  }
+
+  .appearance-settings .menu-mode {
+    @apply justify-start gap-3 rounded-control border border-line px-3;
+  }
+
+  .appearance-setting-input {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply shrink-0;
+  }
 }

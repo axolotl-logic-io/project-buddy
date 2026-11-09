@@ -1,28 +1,20 @@
 import type { JSX } from "react";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { PageFrame } from "@/components/ui/page-frame.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { SignOutButtons } from "./sign-out-buttons.tsx";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 
-const SIGN_OUT_HEADING_ID = "sign-out-heading";
-
-// The account page's shell: its heading, the usage the page streams in, and
-// the sign-out buttons, which show whether or not the usage meter does.
 export default function AccountLayout({
   children,
 }: LayoutProps<"/account">): JSX.Element {
   return (
     <PageFrame>
-      <h1 className="page-heading">{ACCOUNT_COPY.heading}</h1>
-      {children}
-      <section
-        aria-labelledby={SIGN_OUT_HEADING_ID}
-        className="panel flex flex-col gap-4"
+      <PageWorkspace
+        title={ACCOUNT_COPY.heading}
+        intro={WORKSPACES_COPY.accountIntro}
       >
-        <h2 className="section-heading" id={SIGN_OUT_HEADING_ID}>
-          {ACCOUNT_COPY.signOutHeading}
-        </h2>
-        <SignOutButtons />
-      </section>
+        {children}
+      </PageWorkspace>
     </PageFrame>
   );
 }

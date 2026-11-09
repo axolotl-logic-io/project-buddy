@@ -21,7 +21,7 @@ The user turns notifications on for one of her devices, and checks they arrive.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). On an iPhone or iPad, [`use_case_install_app`](#use_case_install_app) too.
 - **Steps:**
-  - She opens Settings, and finds the Notifications section, with a switch for this device that is off.
+  - She opens Settings and selects Notifications, with a switch for this device that is off.
   - She switches it on. Only now does her browser ask whether Project Buddy may send notifications, and she allows them.
   - She sends a test notification, and taps it when it arrives.
   - On another device she switches notifications on too, and sends another test.
