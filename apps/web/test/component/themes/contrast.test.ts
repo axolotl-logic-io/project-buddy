@@ -146,6 +146,31 @@ describe.each(MODES)("the atlas material in %s mode", (mode) => {
     },
   );
 
+  // Focus outlines sit outside the panels, directly over the washed artwork.
+  test.each(artworkExtremes)(
+    "keeps outside focus visible over washed artwork at %s brightness",
+    (brightness) => {
+      const wash = rgb(palette.get(`${mode}-background`) ?? "");
+      const washOpacity =
+        Number.parseFloat(palette.get("home-wash-opacity") ?? "") /
+        PERCENT_SCALE;
+      if (wash === undefined) {
+        throw new Error("Home wash must be a valid colour");
+      }
+      expect(washOpacity).toBeGreaterThan(0);
+      expect(washOpacity).toBeLessThanOrEqual(1);
+      const background = {
+        mode: "rgb",
+        r: wash.r * washOpacity + brightness * (1 - washOpacity),
+        g: wash.g * washOpacity + brightness * (1 - washOpacity),
+        b: wash.b * washOpacity + brightness * (1 - washOpacity),
+      } satisfies Parameters<typeof wcagContrast>[1];
+      expect(
+        wcagContrast(values.get("atlas-focus") ?? "", background),
+      ).toBeGreaterThanOrEqual(BOUNDARY_CONTRAST);
+    },
+  );
+
   test("the Continue button remains readable", () => {
     expect(
       wcagContrast(

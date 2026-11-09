@@ -26,6 +26,12 @@ activity and a construct, built in or the user's own, with the open adventure an
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
 
+The Constructs page and the Workshop's Constructs tab label each saved-adventure
+action “Adventure with [construct name]”, using the full name in both the visible
+label and accessible name. It opens the New adventure dialog with that construct
+fixed. Closing creates nothing. Construct detail pages offer editing and temporary
+Workshop tests rather than a saved-adventure start action.
+
 A quest's page has its own "New adventure" button (#670, replacing the form
 #536 embedded there), so the quest's adventures lead the page. The form is
 closed when the page opens or reloads. The button opens the same kind of
@@ -74,15 +80,21 @@ to assistive technology on phones. Spellbook and Image gallery remain
 available from the menu; spells are also available in Workshop. The
 Spellbook pages belong to Workshop in the header.
 
+A uniform 75% palette wash preserves visible parchment artwork while making
+focus rings outside the panels readable over dark and bright terrain.
 Strongly tinted parchment panels blur the terrain behind the title,
 destination buttons, current quest and footer. Ink and muted text have known
 contrast even over the darkest marks in the artwork. Browsers without
 backdrop blur use opaque paper. Forced-colors mode removes the artwork and
-blur. The atlas uses the same paper material in both appearance modes.
+blur. The artwork wash, paper, ink, labels, icons and controls follow the
+active Light, Dark or System palette. System updates while Home is open;
+explicit Light or Dark overrides it.
 
-The Home header keeps the site's name, Quick Note and Menu on parchment.
-Other pages keep their ink HUD. Leaving a cached Home page restores the
-usual page background, header and content column without a refresh.
+Home uses the shared site header above its content, with the site's name,
+Quick Note and Menu. Quests and Adventures remain in the menu and Home's
+destinations, without shortcuts beside Quick Note on any page.
+Leaving a cached Home page restores the usual page background and content
+column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
 
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
