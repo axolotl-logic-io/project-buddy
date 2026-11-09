@@ -1,0 +1,42 @@
+import json,gzip,pathlib,re,collections,statistics,sys
+root=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else pathlib.Path('docs/performance/773/current');uuid=re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+def read_json(path):
+ if path.exists():return json.loads(path.read_text())
+ return json.loads(gzip.decompress(path.with_suffix(path.suffix+'.gz').read_bytes()))
+for path in [*root.glob('*.json'),*root.glob('*.json.gz')]:
+ text=gzip.decompress(path.read_bytes()).decode() if path.suffix=='.gz' else path.read_text();data=json.loads(text)
+ assert not uuid.search(text),path
+ for word in ['SESSION_SECRET','Authorization','Cookie','Synthetic answer','definition.prompt','snapshot']:
+  assert word not in text,(path,word)
+rows=read_json(root/'readiness.json');keys=[(r['state'],r['profile'],r['name'],r['mode'],r['sample']) for r in rows];assert len(keys)==len(set(keys))
+for r in rows:
+ origin=r['origin'] if r['mode']=='client-navigation' else r['nav']['start']
+ assert r['control']['confirmed']>=r['control']['firstAttempt']>=origin
+ assert r['end']>=r['control']['confirmed']+1990
+ assert r['end']>=r['origin']+4990
+ assert r['end']-max([e['time'] for e in r['geometry']]+[e['time'] for e in r['shifts']])>=500
+ assert r['control']['attempts']>=1
+ assert '/login' not in r['path']
+ assert len(r['shifts'])==len({json.dumps(e,sort_keys=True) for e in r['shifts']})
+ assert all(x['region'] in ['header','main','column','input'] for g in r['geometry'] for x in g['parts'])
+# Complete fixed-plan cohort: populated8journeys*2profiles*3modes*3repeats + empty5*2*3 + details2*2*3.
+assert len(rows)==186,len(rows)
+for state,names,samples in [('populated',['home','quests','quest','adventures','long-adventure','activities','workshop','editor'],3),('empty',['home','quests','adventures','activities','workshop'],1),('empty-detail',['quest','long-adventure'],1)]:
+ for profile in ['desktop','phone']:
+  for name in names:
+   for mode in ['cold-direct','warm-direct','client-navigation']:
+    assert len([r for r in rows if (r['state'],r['profile'],r['name'],r['mode'])==(state,profile,name,mode)])==samples
+for name in ['server-paths','server-streams']:
+ data=read_json(root/(name+'.json'));assert len(data)==48
+ for r in data:
+  assert r['dbHttpCount']==len(r['spans'])>0
+  assert r['completeMs']>=r['headersMs']>=0
+  assert all(x['status']==200 and x['delayMs']==r['delayMs'] for x in r['spans'])
+ for journey in set(r['name'] for r in data):
+  for delay in [0,50]:assert len([r for r in data if r['name']==journey and r['delayMs']==delay])==3
+for path in root.glob('*.json'):
+ if path.name=='readiness.json':path.with_suffix('.json.gz').write_bytes(gzip.compress(path.read_bytes(),mtime=0))
+print('Validated 186 unique readiness observations, full planned strata/repeats, observation windows, geometry/event privacy, 96 document-only DB-delay requests.')
+
+if (root/'readiness.json').exists():
+ assert read_json(root/'readiness.json')==json.loads(gzip.decompress((root/'readiness.json.gz').read_bytes()))

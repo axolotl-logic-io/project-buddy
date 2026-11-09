@@ -1,0 +1,45 @@
+import json,gzip,pathlib,statistics,collections
+root=pathlib.Path('docs/performance/773/current')
+data_path=root/'readiness.json'
+if data_path.exists():
+ rows=json.loads(data_path.read_text())
+else:
+ rows=json.loads(gzip.decompress((root/'readiness.json.gz').read_bytes()))
+def origin(r):return r['origin'] if r['mode']=='client-navigation' else r['nav']['start']
+def cls(entries):
+ best=total=0;first=last=None
+ for e in entries:
+  if e['recentInput']:continue
+  t=e['time']
+  if last is None or t-last>1000 or t-first>5000:total=0;first=t
+  total+=e['value'];last=t;best=max(best,total)
+ return best
+def stats(v):return f'{statistics.median(v):.0f} [{min(v):.0f}–{max(v):.0f}]'
+def stability(r):
+ end=r['end'];entries=[x['time'] for x in r['shifts']];previous=None
+ for sample in r['geometry']:
+  # Source9a's root header is normal flow; raw viewport Y tracks scroll.
+  fingerprint=json.dumps([{k:v for k,v in part.items() if not (part['region']=='header' and k=='y')} for part in sample['parts']],sort_keys=True)
+  if fingerprint!=previous:entries.append(sample['time']);previous=fingerprint
+ last=max(entries,default=r['primary']);return {'last':last-origin(r),'quiet':end-last>=500,'stableUseful':max(last,r['primary'],r['control']['confirmed'])-origin(r)}
+g=collections.defaultdict(list)
+for r in rows:g[r['state'],r['profile'],r['name'],r['mode']].append(r)
+out=['# Repeated control and stabilization observations','','Times are milliseconds, median [min–max]. Confirmed control response is an upper bound sampled with 100 ms pauses and automation overhead. Direct times include navigation/server wait. Stable-useful is max(primary presence, confirmed control, last observed document-geometry/shift change), conditional on a final 500 ms quiet interval in this fixed window. Deliberate tab/menu/edit movement remains identified; this is not official CLS.','','| State | Profile | Journey | Mode | n | Primary | Confirmed control | Stable-useful | Final quiet | All-shift max | Initial CLS max | Long-task total | Long-task max | Max interaction event | Response headers |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+for (state,profile,name,mode),v in g.items():
+ vals=[state,profile,name,mode,len(v),stats([r['primary']-origin(r) for r in v]),stats([r['control']['confirmed']-origin(r) for r in v]),stats([stability(r)['stableUseful'] for r in v]),f"{sum(stability(r)['quiet'] for r in v)}/{len(v)}",f"{max(sum(e['value'] for e in r['shifts']) for r in v):.4f}",f"{max(cls(r['shifts']) for r in v):.4f}" if mode!='client-navigation' else 'source metric excluded',stats([sum(e['duration'] for e in r['longtasks']) for r in v]),stats([max((e['duration'] for e in r['longtasks']),default=0) for r in v]),stats([max((e['duration'] for e in r['events'] if e['interaction']),default=0) for r in v]),stats([r['nav']['responseStart']-r['nav']['start'] for r in v]) if mode!='client-navigation' else 'source metric excluded']
+ out.append('| '+' | '.join(map(str,vals))+' |')
+out+=['',f'Completed observations: {len(rows)} / 186. Populated cells target n=3; empty states n=1. No percentile inference. Read conditions and capture corrections in [the current capture record](README.md).']
+(root/'readiness.md').write_text('\n'.join(out)+'\n')
+for filename in ['server-paths.json','server-streams.json']:
+ p=root/filename
+ if not p.exists():continue
+ sr=json.loads(p.read_text());sg=collections.defaultdict(list)
+ for r in sr:sg[r['name'],r['delayMs']].append(r)
+ lines=['# '+filename.replace('.json','').replace('-',' ').capitalize()+' sensitivity','','Synthetic extra delay per DB HTTP request. Values are median [min–max] milliseconds. Span sums include overlap and are not a serial critical path.','','| Journey | Added delay | n | Headers | Complete body | DB calls | DB duration sum | First chunk | Shell markup | Main markup | Textarea markup |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+ for (name,delay),v in sg.items():
+  vals=[name,delay,len(v),stats([r['headersMs'] for r in v]),stats([r['completeMs'] for r in v]),stats([r['dbHttpCount'] for r in v]),stats([r['dbHttpDurationSumMs'] for r in v])]
+  for key in ['firstChunkMs','shellMarkupMs','mainMarkupMs','textareaMarkupMs']:
+   a=[r[key] for r in v if r.get(key) is not None];vals.append(stats(a) if a else 'not captured/not present')
+  lines.append('| '+' | '.join(map(str,vals))+' |')
+ (root/filename.replace('.json','.md')).write_text('\n'.join(lines)+'\n')
+print('Summarized',len(rows),'readiness observations')

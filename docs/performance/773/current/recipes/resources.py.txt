@@ -1,0 +1,14 @@
+import gzip
+import json,statistics,pathlib
+root=pathlib.Path('docs/performance/773/current');data_path=root/'readiness.json'
+if data_path.exists():
+ rows=json.loads(data_path.read_text())
+else:
+ rows=json.loads(gzip.decompress((root/'readiness.json.gz').read_bytes()));lines=['# Phone startup sequence','','Populated cold-direct cells. Medians of three samples where complete; supplemental resources can omit preloads started before observer initialization. A resource finish is not proof of execution or hydration completion. Input control probes include a 42-character typing action, so their completion cost differs from single-click probes.','','| Journey | n | Primary present ms | Early script last finish ms | Font last finish ms | Confirmed control ms | Primary→control gap ms |','| --- | --- | --- | --- | --- | --- | --- |']
+for name in ['home','quests','quest','adventures','long-adventure','activities','workshop','editor']:
+ v=[r for r in rows if r['state']=='populated' and r['profile']=='phone' and r['name']==name and r['mode']=='cold-direct']
+ if not v:continue
+ def med(fn):return round(statistics.median(fn(r) for r in v))
+ values=[name,len(v),med(lambda r:r['primary']),med(lambda r:max((e['start']+e['duration'] for e in r['resources'] if e['type']=='script' and e['start']<=r['primary']),default=0)),med(lambda r:max((e['start']+e['duration'] for e in r['resources'] if '.woff2' in e['path']),default=0)),med(lambda r:r['control']['confirmed']),med(lambda r:r['control']['confirmed']-r['primary'])]
+ lines.append('| '+' | '.join(map(str,values))+' |')
+(root/'startup.md').write_text('\n'.join(lines)+'\n')
