@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { expect, test } from "vitest";
@@ -5,6 +6,8 @@ import {
   validateReadinessRows,
   validateTrace,
 } from "../../../../scripts/performance/artifacts.ts";
+
+import { validateAuditDirectory } from "../../../../scripts/performance/validate-output.mts";
 
 const ARCHIVE = new URL(
   "../../../../../../docs/performance/773/",
@@ -104,6 +107,42 @@ test("validates the committed focused gzip without treating it as a full audit",
       scope: "diagnostic",
       complete: false,
       diagnosticComplete: true,
+    }),
+  );
+});
+
+const FULL_SAMPLE_COUNT = 3;
+const HOME_FRAME_COUNT = 14;
+
+test("validates the committed complete gzip cohort and binds manual filmstrip review", async () => {
+  const directory = new URL("../797/full/", ARCHIVE);
+  await validateAuditDirectory(directory.pathname, FULL_SAMPLE_COUNT);
+  const [home, review, manifest] = await Promise.all([
+    readFile(new URL("home.trace.json.gz", directory)),
+    readFile(new URL("filmstrip-review.json", directory), "utf8"),
+    readFile(new URL("manifest.json", directory), "utf8"),
+  ]);
+  const reviewInput: unknown = JSON.parse(review);
+  expect(reviewInput).toEqual(
+    expect.objectContaining({
+      file: "home.trace.json.gz",
+      sha256: createHash("sha256").update(home).digest("hex"),
+      framesReviewed: HOME_FRAME_COUNT,
+      otherTraceScreenshots: 0,
+    }),
+  );
+  const traceInput: unknown = JSON.parse(gunzipSync(home).toString("utf8"));
+  expect(
+    validateTrace(traceInput, "home.trace.json.gz").filter(
+      (event) => event.name === "Screenshot",
+    ),
+  ).toHaveLength(HOME_FRAME_COUNT);
+  const manifestInput: unknown = JSON.parse(manifest);
+  expect(manifestInput).toEqual(
+    expect.objectContaining({
+      scope: "full",
+      complete: true,
+      diagnosticComplete: false,
     }),
   );
 });
