@@ -26,7 +26,7 @@ test("definition titles identify the definition while a private foreign name sta
       params: Promise.resolve({ activityId: "brainstorming" }),
       searchParams: Promise.resolve({}),
     }),
-  ).toEqual({ title: "Brainstorming · Project Buddy" });
+  ).toEqual({ title: "Brainstorm · Project Buddy" });
   const [spell] = listSpells();
   if (spell === undefined) {
     throw new Error("No built-in spell");

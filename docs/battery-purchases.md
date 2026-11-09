@@ -1,6 +1,8 @@
 # Battery purchases
 
-When a valid isolated test catalog is available, Account links to **Buy batteries** at `/account#buy-batteries`. Each server-configured offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. Before cutover, test grants enter the legacy shared balance also used by Marketplace sales and purchases. The flow does not create a separate currency. Before the #779 operator cutover, the existing Marketplace still uses the legacy shared balance; changing that behavior belongs to #779. After the cutover, Marketplace orbs are separate from model-use batteries. Merging code does not enable the cutover. When Checkout is unavailable, model-use shortage links retain the working legacy Marketplace earning guidance. Marketplace buyer shortages always link to selling listings; #779 must update model-use guidance with its effective operator cutover. The Library should describe this distinction and label purchases as test-only until launch approval.
+When a valid isolated test catalog is available, Account offers **Buy batteries** at `/account#buy-batteries`. Each server-controlled offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. The orb migration pauses all Marketplace buys immediately. With the gate disabled, no sales fund model use; after operator activation, sales earn only separate orbs. Battery grants never change orb balances or historical Marketplace accounting.
+
+When Checkout is unavailable, model-use shortage messages explain that purchases are unavailable and Marketplace sales cannot fund model use. They offer no dead-end purchase link or earning fallback. Marketplace buyer shortages stay independent of Batteries purchases. The Library should describe actual availability and label purchases as test-only until launch approval.
 
 ## Launch status
 
@@ -8,7 +10,7 @@ This implementation accepts test keys only, requires a local database, and refus
 
 Stripe test credentials and a configured test catalog were not supplied for this assignment. Automated default tests are deterministic; real Stripe lifecycle validation remains an external credential blocker, not a claimed passing check.
 
-The terminology reconciliation with #782 remains a dependency for the allocated integration update window. Existing Gold identifiers and copy keys remain compatible; this branch does not merge integration during the hold.
+The Batteries terminology follows the glossary. Existing `gold` identifiers and copy keys remain compatibility names.
 
 The purchase table currently cascades on user deletion. There is no current delete-user flow. Durable audit retention independent of account deletion is required before live enablement.
 

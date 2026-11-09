@@ -1,9 +1,12 @@
+import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
+
 const BATTERY_PURCHASES_COPY = {
   separator: " — ",
   heading: "Buy batteries",
   testOnly:
-    "Stripe test mode: no real money is charged. Batteries fund model use. Before the Marketplace cutover, grants and sales use the existing shared balance. Separate orbs require the operator cutover.",
-  unavailable: "Battery purchases are not configured yet.",
+    "Stripe test mode: no real money is charged. Batteries fund model use. Marketplace orbs are separate and cannot fund model use.",
+  unavailable:
+    "Battery purchases are currently unavailable. Marketplace sales cannot fund model use.",
   buy: "Continue to Stripe Checkout",
   refresh: "Refresh payment status and balance",
   canceled:
@@ -16,7 +19,7 @@ const BATTERY_PURCHASES_COPY = {
   expired: "Checkout expired; no batteries added",
   failed: "Checkout could not start; no batteries added",
   package: (amount: number, price: string): string =>
-    `${amount} batteries — ${price}`,
+    `${BATTERIES_COPY.amount(amount)} — ${price}`,
 };
 
 export { BATTERY_PURCHASES_COPY };

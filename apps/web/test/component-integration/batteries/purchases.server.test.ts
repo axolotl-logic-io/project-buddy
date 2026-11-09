@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   applyBatteryPayment,
@@ -7,11 +8,14 @@ import {
   receiveBatteryWebhook,
   startBatteryPurchase,
 } from "@/batteries/purchases.ts";
+import { SignedInLinks } from "@/components/site-header.tsx";
 import { getDb } from "@/db/client.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
+import { readOrbsBalance, readOrbsLedger } from "@/orbs/orb-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { signIn } from "../test-database/session-test-kit.ts";
 
 const OFFER = {
   packageId: "sandbox",
@@ -51,8 +55,16 @@ describe("battery payment fulfillment", () => {
     const buyer = await testUser();
     const other = await testUser();
     const session = await pending(buyer.id);
+    const orbs = await readOrbsBalance(buyer.id);
+    const ledger = await readOrbsLedger(buyer.id);
     await applyBatteryPayment(session, "evt_paid");
+    expect(await readOrbsBalance(buyer.id)).toBe(orbs);
+    expect(await readOrbsLedger(buyer.id)).toEqual(ledger);
     expect(await readGoldBalance(buyer.id)).toBe(BASELINE + GRANT);
+    await signIn(buyer);
+    expect(renderToStaticMarkup(await SignedInLinks())).toContain(
+      "<span>125</span>",
+    );
     expect(await readGoldBalance(other.id)).toBe(BASELINE);
     expect(await readBatteryPurchases(other.id)).toEqual([]);
     expect(await readBatteryPurchases(buyer.id)).toEqual([
