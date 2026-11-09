@@ -97,11 +97,16 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
     description !== undefined &&
     description !== ""
   ) {
-    await generateConstructVisual(user.id, {
-      constructId,
-      requestId: form.data.visualRequestId ?? crypto.randomUUID(),
-      description,
-    });
+    await generateConstructVisual(
+      user.id,
+      {
+        constructId,
+        requestId: form.data.visualRequestId ?? crypto.randomUUID(),
+        description,
+      },
+      undefined,
+      { saved: true, regenerate: form.data.generateImages === "true" },
+    );
   }
   return redirect(`/constructs/${constructId}?saved=1`);
 }

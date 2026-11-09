@@ -3,7 +3,7 @@ import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
-import { readLocalDraft } from "@/components/local-draft.ts";
+import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
 import { restoreVisualAction } from "@/constructs/restore-visual-action.ts";
 import type {
   VisualGenerationQuote,
@@ -92,28 +92,36 @@ function button(label: string): ReturnType<typeof page.getByRole> {
 }
 
 describe("use_case_generate_construct_images", () => {
-  test("save-first prevents paid generation, shows real quote and all roles", async () => {
+  test("unsaved appearance enables generation and shows the quote and all roles", async () => {
     const fetcher = service(quote(), outcome("generated"));
     await render(
       <ConstructVisualGeneration
         construct={construct}
         viewer="viewer"
         changed={true}
+        draftDescription="An unsaved silver guide"
       />,
     );
     await expect
       .element(page.getByText(VISUAL_COPY.reservation(RESERVATION)))
       .toBeVisible();
-    await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
-    await expect.element(page.getByText(VISUAL_COPY.saveFirst)).toBeVisible();
+    await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
     await Promise.all(
       Object.values(VISUAL_COPY.roles).map((role) =>
         expect.element(page.getByText(role, { exact: true })).toBeVisible(),
       ),
     );
-    expect(
-      fetcher.mock.calls.every(([, init]) => init?.method !== "POST"),
-    ).toBe(true);
+    await button(VISUAL_COPY.generate).click();
+    await expect
+      .element(page.getByText(VISUAL_COPY.states.generated))
+      .toBeVisible();
+    const posts = fetcher.mock.calls.filter(
+      ([, init]) => init?.method === "POST",
+    );
+    expect(posts).toHaveLength(1);
+    expect(posts[0]?.[1]?.body).toContain(
+      '"description":"An unsaved silver guide"',
+    );
   });
   test("success applies previews, persists UUID before POST and does not save drafts", async () => {
     const result = {
@@ -172,7 +180,7 @@ describe("use_case_generate_construct_images", () => {
         .first()
         .element()
         .querySelector("img");
-      expect(image?.getAttribute("src")).toContain("vellum-v1.png");
+      expect(image?.getAttribute("src")).toContain("/constructs/vellum-v1-");
     },
   );
   test("pending reload recovery and status checks never POST", async () => {
@@ -577,11 +585,167 @@ test("restoring previous artwork is explicit, free of generation requests, and b
   expect(previews.length).toBeGreaterThan(0);
   expect(
     previews.every((image) =>
-      image.querySelector("img")?.getAttribute("src")?.includes("lumen-v1.png"),
+      image
+        .querySelector("img")
+        ?.getAttribute("src")
+        ?.includes("/constructs/lumen-v1-"),
     ),
   ).toBe(true);
 
   expect(
     fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
   ).toEqual([]);
+});
+
+test("recovered construct edits generate directly and survive a failure without saving", async () => {
+  const fetcher = service(quote(), outcome("failed"));
+  const save = vi.fn<(form: FormData) => void>();
+  keepLocalDraft(`prompt:draft-editor:buddy:${construct.id}`, {
+    basedOn: "revision",
+    name: "Unsaved name",
+    texts: {
+      prompt: "Unsaved voice",
+      visualDescription: "Unsaved silver guide",
+    },
+  });
+  await render(
+    <ConstructEditor
+      construct={construct}
+      viewer="draft-editor"
+      action={save}
+      kind="construct"
+      idName="constructId"
+      promptId={construct.id}
+      savedAt="revision"
+      name={construct.name}
+      heading="Prompt"
+      defaultPrompt={undefined}
+      texts={[
+        {
+          name: "prompt",
+          text: construct.definition.prompt,
+          label: "Instructions",
+          help: "Instructions",
+        },
+        {
+          name: "visualDescription",
+          text: "A brass guide",
+          label: "Visual description",
+          help: "Appearance",
+        },
+      ]}
+    />,
+  );
+  await expect
+    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .toHaveValue("Unsaved voice");
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await expect.element(page.getByText(VISUAL_COPY.states.failed)).toBeVisible();
+  expect(save).not.toHaveBeenCalled();
+  const posts = fetcher.mock.calls.filter(
+    ([, init]) => init?.method === "POST",
+  );
+  expect(posts).toHaveLength(1);
+  expect(posts[0]?.[1]?.body).toContain('"description":"Unsaved silver guide"');
+  await expect
+    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .toHaveValue("Unsaved voice");
+  await expect
+    .element(
+      page.getByRole("textbox", { name: "Visual description", exact: true }),
+    )
+    .toHaveValue("Unsaved silver guide");
+  expect(
+    localStorage.getItem(`draft:prompt:draft-editor:buddy:${construct.id}`),
+  ).toContain("Unsaved silver guide");
+});
+
+test("first recovered description generates without saving and matching artwork makes Save free", async () => {
+  const description = "A first unsaved silver guide";
+  const fresh = { ...construct, definition: { prompt: "Saved voice" } };
+  const visual = {
+    version: 1,
+    description,
+    sourceFingerprintVersion: 2,
+    canonical: { kind: "generated", assetId: PENDING_ID },
+  } as const;
+  let generated = false;
+  const fetcher = vi.fn<typeof fetch>((_input, init) => {
+    if (init?.method === "POST") {
+      generated = true;
+      return Promise.resolve(
+        Response.json({ ...outcome("generated"), visual }),
+      );
+    }
+    if (generated) {
+      return Promise.resolve(
+        Response.json(
+          quote({ artworkDescription: description, draftVisual: visual }),
+        ),
+      );
+    }
+    return Promise.resolve(Response.json(quote()));
+  });
+  vi.stubGlobal("fetch", fetcher);
+  const saved = Promise.withResolvers<FormData>();
+  const save = vi.fn<(form: FormData) => void>((form) => {
+    saved.resolve(form);
+  });
+  keepLocalDraft(`prompt:first-draft:buddy:${construct.id}`, {
+    basedOn: "revision",
+    name: "Recovered name",
+    texts: { prompt: "Recovered voice", visualDescription: description },
+  });
+  await render(
+    <ConstructEditor
+      construct={fresh}
+      viewer="first-draft"
+      action={save}
+      kind="construct"
+      idName="constructId"
+      promptId={construct.id}
+      savedAt="revision"
+      name={construct.name}
+      heading="Prompt"
+      defaultPrompt={undefined}
+      texts={[
+        {
+          name: "prompt",
+          text: "Saved voice",
+          label: "Instructions",
+          help: "Instructions",
+        },
+        {
+          name: "visualDescription",
+          text: "",
+          label: "Visual description",
+          help: "Appearance",
+        },
+      ]}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.generated))
+    .toBeVisible();
+  await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
+  await expect
+    .element(page.getByText(VISUAL_COPY.saveWithoutGeneration))
+    .toBeVisible();
+  await expect
+    .element(page.getByText(VISUAL_COPY.outdated))
+    .not.toBeInTheDocument();
+  await expect
+    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .toHaveValue("Recovered voice");
+  expect(save).not.toHaveBeenCalled();
+  await button(PROMPT_COPY.save).click();
+  const submittedForm = await saved.promise;
+  expect(submittedForm.get("visualDescription")).toBe(description);
+  expect(submittedForm.has("visualRequestId")).toBe(false);
+  expect(
+    fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
 });

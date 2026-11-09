@@ -3,7 +3,7 @@ import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 const VISUAL_COPY = {
   restore: "Restore previous artwork",
   restoreHint:
-    "Restore the previous artwork and its Visual description without spending batteries. Save or discard text edits first. Existing adventures and Marketplace copies keep their artwork.",
+    "Restore the previous saved artwork and its Visual description without spending batteries. Save or discard text edits first. Existing adventures and Marketplace copies keep their artwork.",
   restored:
     "Previous artwork and Visual description restored. No batteries spent.",
   heading: "Visuals",
@@ -27,10 +27,9 @@ const VISUAL_COPY = {
     "The original request has not started. Resume it using its saved description. This can reserve batteries once.",
   retry: "Retry generation",
   check: "Check generation status",
-  saveFirst: "Save your changes before generating images.",
-  needsDescription: "Save a Visual description before generating images.",
+  needsDescription: "Enter a Visual description before generating images.",
   explanation:
-    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save generates replacements only when the Visual description changes. Generate Images intentionally regenerates from the current description, even if unchanged. Generation spends batteries; name and conversational instructions are never sent to the image model. Existing images stay until a replacement succeeds.",
+    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save reuses matching draft artwork; otherwise it generates replacements when the Visual description changes. Generate Images uses the current draft Visual description without saving your edits, even if unchanged. Generation spends batteries; name and conversational instructions are never sent to the image model. Existing images stay until a replacement succeeds.",
   roles: {
     avatar: "Avatar",
     portrait: "Portrait",
@@ -57,7 +56,7 @@ const VISUAL_COPY = {
   reservation: (gold: number): string =>
     `Generation reserves ${BATTERIES_COPY.amount(gold)} before it starts. Unused batteries are returned.`,
   outdated:
-    "These images are out of date for the saved Visual description. Generate replacements when you are ready.",
+    "These images use a different Visual description from the current draft. Save a matching description to keep its artwork without another generation charge.",
 };
 
 export { VISUAL_COPY };
