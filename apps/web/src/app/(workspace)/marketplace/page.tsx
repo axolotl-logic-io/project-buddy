@@ -6,6 +6,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { LISTING_ID } from "@/ids.ts";
+import { orbPurchasesEnabled } from "@/marketplace/cutover.ts";
 import { MARKETPLACE_PAGE_SIZE } from "@/marketplace/listing.ts";
 import {
   type ListingCard,
@@ -13,6 +14,7 @@ import {
   listOwnListings,
   type OwnListing,
 } from "@/marketplace/listing-store.ts";
+import { readOrbsBalance } from "@/orbs/orb-store.ts";
 import {
   PROMPT_KINDS,
   type PromptKind,
@@ -186,6 +188,8 @@ async function MarketplacePage({
   }>;
 }): Promise<JSX.Element> {
   const user = await requireUser();
+  const orbs = await readOrbsBalance(user.id);
+  const enabled = await orbPurchasesEnabled();
   const query = await searchParams;
   const { kind } = QUERY.parse(query);
   const after = CURSOR.safeParse(query).data?.after;
@@ -197,6 +201,8 @@ async function MarketplacePage({
   return (
     <>
       <BackLink href={HOME_PATH}>{MARKETPLACE_COPY.homeLink}</BackLink>
+      {!enabled && <p role="status">{MARKETPLACE_COPY.paused}</p>}
+      <p>{MARKETPLACE_COPY.orbBalance(orbs)}</p>
       <h1 className="page-heading">{MARKETPLACE_COPY.heading}</h1>
       <p className="text-muted">{MARKETPLACE_COPY.intro}</p>
       <section
