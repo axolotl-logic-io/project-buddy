@@ -42,6 +42,14 @@ async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
       initialMessages={initialMessages}
     />,
   );
+  // The history is a separate loading boundary. An empty viewport is already
+  // at the bottom, so bottomGap alone cannot establish that history is ready.
+  const conversation = page.getByRole("list", {
+    name: CHAT_COPY.conversationLabel,
+  });
+  await expect
+    .poll(() => conversation.element().children.length)
+    .toBe(initialMessages.length);
 }
 
 // Cross both the render and resize-observer phases before checking that an
