@@ -1,17 +1,17 @@
-// An own copy of a built-in construct, activity or spell is stored in the
-// text the build before the rename from buddies gives that built-in one, and
-// read back in today's text. That build, live while a release migrates and
-// again after a rollback, knows a copy is unchanged only when its text is
-// exactly its own (docs/prompts.md#storage-compatibility): then it keeps the
-// copy's prepared openings and refuses to list it in the Marketplace. Only a
-// whole definition equal to a built-in one's is translated, so text the user
-// has edited is stored and read exactly as written.
+// An unchanged own copy of a built-in is stored in its oldest recorded
+// compatible text and read back in today's text (docs/prompts.md#storage-compatibility).
+// Prefer the record from before the rename from buddies, so that build keeps
+// prepared openings and Marketplace restrictions during a rollout or rollback.
+// Find something to make has no pre-rename record: its oldest compatible text
+// is in the named-heading record. Only whole definitions equal to a recorded
+// built-in are translated; edited text is stored and read exactly as written.
 import type { ActivityDefinition } from "@/activities/activity.ts";
 import { ACTIVITY_IDS } from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import type { ConstructDefinition } from "@/constructs/construct.ts";
 import { listConstructs } from "@/constructs/index.ts";
 import { EARLIER_BUILT_INS } from "@/prompts/earlier-built-ins.ts";
+import { NAMED_SHEET_BUILT_INS } from "@/prompts/named-sheet-built-ins.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellDefinition } from "@/spells/spell.ts";
 
@@ -64,16 +64,27 @@ function fromEarlier<Definition>(
   return known.find((pair) => same(pair.earlier, text))?.current ?? text;
 }
 
+// Keep the oldest compatible text first for writes. Reads accept every
+// recorded version, including unchanged copies saved with named headings.
 function constructPairs(): TextPair<ConstructDefinition>[] {
-  return pairs(listConstructs(), EARLIER_BUILT_INS.constructs);
+  return [
+    ...pairs(listConstructs(), EARLIER_BUILT_INS.constructs),
+    ...pairs(listConstructs(), NAMED_SHEET_BUILT_INS.constructs),
+  ];
 }
 
 function activityPairs(): TextPair<ActivityDefinition>[] {
-  return pairs(ACTIVITY_IDS.map(getActivity), EARLIER_BUILT_INS.activities);
+  return [
+    ...pairs(ACTIVITY_IDS.map(getActivity), EARLIER_BUILT_INS.activities),
+    ...pairs(ACTIVITY_IDS.map(getActivity), NAMED_SHEET_BUILT_INS.activities),
+  ];
 }
 
 function spellPairs(): TextPair<SpellDefinition>[] {
-  return pairs(listSpells(), EARLIER_BUILT_INS.spells);
+  return [
+    ...pairs(listSpells(), EARLIER_BUILT_INS.spells),
+    ...pairs(listSpells(), NAMED_SHEET_BUILT_INS.spells),
+  ];
 }
 
 export function earlierConstructText(

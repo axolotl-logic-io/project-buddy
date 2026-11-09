@@ -26,10 +26,10 @@ Built-in definitions are read-only. Customize makes an editable copy. Own defini
 
 A fresh test uses the latest draft without requiring a save. Follow-up messages keep that test's version. Editing a draft marks the result as out of date; the next test starts a fresh conversation. Changing the companion buddy, activity or spell test setting also starts fresh. Existing chats and past casts retain their saved snapshots or instructions.
 
-A production implementation should show which draft version each test used and keep test conversations separate from ordinary chats. Real replies spend the acting user's gold; show that before the first run. Tests should use temporary context and keep tool effects inside the test, so trying an instruction cannot alter real project memory, record milestones or generate images without an explicit action. The exact tool policy needs a design decision before implementation.
+A production implementation should show which draft version each test used and keep test conversations separate from ordinary chats. Real replies spend the acting user's batteries; show that before the first run. Tests should use temporary context and keep tool effects inside the test, so trying an instruction cannot alter real project memory, record milestones or generate images without an explicit action. The exact tool policy needs a design decision before implementation.
 
 ## Mockup limits
 
-Replies and casts are scripted illustrations, independent of prompt text. They do not measure prompt quality or prove spell selection. Sample definitions are shortened for the layouts. Save changes updates only this open mockup's in-memory state. Reloading resets everything. The mockups make no model calls, spend no gold, write no application data and use no external assets.
+Replies and casts are scripted illustrations, independent of prompt text. They do not measure prompt quality or prove spell selection. Sample definitions are shortened for the layouts. Save changes updates only this open mockup's in-memory state. Reloading resets everything. The mockups make no model calls, spend no batteries, write no application data and use no external assets.
 
-Marketplace actions, deletion, full reset confirmation, error states, streaming, cancellation and gold failures are outside these candidate mockups. The green palette illustrates hierarchy; application implementation should use the site's existing theme contract.
+Marketplace actions, deletion, full reset confirmation, error states, streaming, cancellation and battery failures are outside these candidate mockups. The green palette illustrates hierarchy; application implementation should use the site's existing theme contract.

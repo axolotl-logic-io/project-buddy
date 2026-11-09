@@ -13,7 +13,7 @@ import {
 
 const LONG_WORD_REPEATS = 30;
 const LONG_WORD = "Woodgrain".repeat(LONG_WORD_REPEATS);
-const PRICE = 25;
+const PRICE = 3;
 const SOLD = 3;
 
 // Another user's construct, listed for 25 gold by a seller with no name, whose

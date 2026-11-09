@@ -11,6 +11,7 @@ import type {
 } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
 import { ProgressTimeline } from "@/app/(workspace)/projects/[projectId]/(overview)/progress-timeline.tsx";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   FOX_BODY_MILESTONE,
   FOX_CHAT,
@@ -74,6 +75,7 @@ describe("use_case_view_progress_timeline", () => {
 
 describe("use_case_edit_milestone", () => {
   test("edits a milestone's text, keeping refused text on screen with the reason", async () => {
+    applyTheme("parchment");
     actions.editMilestoneAction
       .mockResolvedValueOnce({
         kind: "invalid",
@@ -96,6 +98,11 @@ describe("use_case_edit_milestone", () => {
     await expect
       .element(page.getByRole("alert"))
       .toMatchTextContent(PROGRESS_TIMELINE_COPY.needsText);
+    const error = page.getByRole("alert").element();
+    expect(textField().element()).toHaveAttribute("aria-describedby", error.id);
+    expect(error.id).not.toBe("");
+    expect(Number.parseFloat(getComputedStyle(error).paddingTop)).toBe(0);
+    expect(Number.parseFloat(getComputedStyle(error).borderTopWidth)).toBe(0);
     await expect.element(textField()).toHaveValue(" ");
     await textField().fill(EDITED_TEXT);
     await page

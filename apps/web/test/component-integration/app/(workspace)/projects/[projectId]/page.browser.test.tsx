@@ -24,6 +24,8 @@ import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -184,7 +186,7 @@ describe("use_case_new_chat", () => {
     await expect.element(startButton()).toBeEnabled();
   });
 
-  test("Project Breakdown starts in the project, with no new project to name", async () => {
+  test("Break Down a Project starts in the project, with no new project to name", async () => {
     const { promise, resolve } = Promise.withResolvers<StartChatState>();
     actions.startChatAction.mockReturnValue(promise);
     await openDialog();
@@ -289,3 +291,26 @@ describe("use_case_set_check_ins", () => {
     await expect.element(checkInSetting()).not.toBeInTheDocument();
   });
 });
+
+test("an Active quest page offers Quick Note with its quest chosen", async () => {
+  await renderProject();
+  await expect
+    .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
+    .toHaveAttribute("href", `/capture?projectId=${FOX_PROJECT.id}`);
+});
+
+test.each(["completed", "abandoned"] as const)(
+  "a %s quest page keeps its Journal and adventures without an Add a Quick Note link",
+  async (status) => {
+    stores.getProject.mockResolvedValue({ ...FOX_PROJECT, status });
+    await renderProject();
+    await expect
+      .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("link", { name: MEMORY_COPY.link }))
+      .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}/memory`);
+    await expect.element(chatLink()).toBeVisible();
+    await expect.element(newChatButton()).toBeVisible();
+  },
+);
