@@ -1,6 +1,6 @@
 # Marketplace
 
-The conventions for these cases are in [the index](README.md#conventions). In the Marketplace, users share their own constructs, activities and spells and sell them to each other for gold.
+The conventions for these cases are in [the index](README.md#conventions). Before the #779 operator cutover, Marketplace sales and model use still share the legacy balance. Disabled test Checkout preserves Marketplace earning guidance; buyer shortages always link to selling listings. The separate-orbs cutover belongs to #779 and is not enabled by this groundwork. In the Marketplace, users share their own constructs, activities and spells and sell them to each other for gold.
 
 ## use_case_sell_in_marketplace
 

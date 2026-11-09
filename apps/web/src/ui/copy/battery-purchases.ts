@@ -2,7 +2,7 @@ const BATTERY_PURCHASES_COPY = {
   separator: " — ",
   heading: "Buy batteries",
   testOnly:
-    "Stripe test mode: no real money is charged. Batteries fund model use. This Checkout never buys or converts Marketplace currency.",
+    "Stripe test mode: no real money is charged. Batteries fund model use. Before the Marketplace cutover, grants and sales use the existing shared balance. Separate orbs require the operator cutover.",
   unavailable: "Battery purchases are not configured yet.",
   buy: "Continue to Stripe Checkout",
   refresh: "Refresh payment status and balance",

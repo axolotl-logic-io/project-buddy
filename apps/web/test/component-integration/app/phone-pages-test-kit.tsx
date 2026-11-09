@@ -905,7 +905,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
 ];
 
-vi.mock("@/batteries/catalog.ts", () => ({ batteryCatalog: () => [] }));
+vi.mock("@/batteries/catalog.ts", () => ({
+  availableBatteryCatalog: () => [],
+}));
 vi.mock("@/batteries/purchases.ts", () => ({
   readBatteryPurchases: async () => [],
 }));

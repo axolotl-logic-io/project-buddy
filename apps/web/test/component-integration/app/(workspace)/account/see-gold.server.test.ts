@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 // "use_case_see_gold" in use-cases/accounts.md: her account page states her
 // gold, in whole gold rounded down, and her balance falls as the construct
 // replies. The extra that hides it is checked in hide-extras.browser.test.tsx.
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
@@ -18,6 +18,10 @@ import { signIn } from "../../../test-database/session-test-kit.ts";
 const THIRTEEN_GOLD = 130_000;
 const PAST_ZERO = 1250;
 const MESSAGE = "Bevel a donut";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 test("use_case_see_gold", async () => {
   const user = await testUser();
@@ -47,3 +51,24 @@ test("a balance below 0 shows as 0", async () => {
 
   expect(renderToStaticMarkup(await AccountPage())).toContain("Gold: 0");
 });
+
+test.each(["disabled", "production", "malformed"])(
+  "Account remains usable with %s Checkout",
+  async (configuration) => {
+    const user = await testUser();
+    await signIn(user);
+    vi.stubEnv("STRIPE_TEST_SECRET_KEY", "");
+    if (configuration !== "disabled") {
+      vi.stubEnv("STRIPE_TEST_SECRET_KEY", "sk_test_fixture");
+      vi.stubEnv("STRIPE_TEST_WEBHOOK_SECRET", "whsec_fixture");
+      vi.stubEnv("STRIPE_TEST_RETURN_ORIGIN", "http://localhost");
+      vi.stubEnv("BATTERY_TEST_CATALOG", "invalid JSON");
+    }
+    if (configuration === "production") {
+      vi.stubEnv("VERCEL_ENV", "production");
+    }
+    const markup = renderToStaticMarkup(await AccountPage());
+    expect(markup).toContain("Gold: 100");
+    expect(markup).not.toContain('id="buy-batteries"');
+  },
+);
