@@ -73,6 +73,10 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   newSpellAction: vi.fn(),
 }));
 
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: async () => ({ id: "vellum" }),
+}));
+
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
@@ -121,6 +125,18 @@ describe("use_case_workshop_page", () => {
     await expect.element(tab("activity")).not.toHaveAttribute("aria-current");
 
     const builtIn = listBuiltInConstructs()[0]?.name ?? "";
+    await Promise.all(
+      [...listBuiltInConstructs(), VELLUM_CLONE].map(async (construct) => {
+        await expect
+          .element(
+            page.getByRole("button", {
+              name: `Adventure with ${construct.name}`,
+              exact: true,
+            }),
+          )
+          .toHaveTextContent(`Adventure with ${construct.name}`);
+      }),
+    );
     await expect
       .element(
         page.getByRole("button", {
