@@ -31,6 +31,9 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
     let touchY: number | undefined;
 
     function navigate(upward: boolean): void {
+      if (upward && window.scrollY <= 0) {
+        return;
+      }
       navigation += 1;
       pendingNavigation = true;
       if (upward) {
@@ -50,6 +53,22 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
     function onFocusIn(): void {
       if (!following) {
         resumeBlocked = true;
+      }
+    }
+
+    function onPointerDown(event: PointerEvent): void {
+      // Native scrollbar input targets the document, outside the thread.
+      if (event.target === document.documentElement) {
+        navigate(false);
+      }
+    }
+
+    function onClick(event: MouseEvent): void {
+      if (
+        event.target instanceof Element &&
+        event.target.closest("a[href]") !== null
+      ) {
+        navigate(false);
       }
     }
 
@@ -192,6 +211,8 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
     const observer = new ResizeObserver(follow);
     observer.observe(element);
     element.addEventListener("focusin", onFocusIn);
+    globalThis.addEventListener("pointerdown", onPointerDown);
+    globalThis.addEventListener("click", onClick, { capture: true });
     window.addEventListener("wheel", onWheel, { passive: true });
     globalThis.addEventListener("touchstart", onTouchStart, { passive: true });
     globalThis.addEventListener("touchmove", onTouchMove, { passive: true });
@@ -206,6 +227,8 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
       unsubscribe();
       observer.disconnect();
       element.removeEventListener("focusin", onFocusIn);
+      globalThis.removeEventListener("pointerdown", onPointerDown);
+      globalThis.removeEventListener("click", onClick, { capture: true });
       window.removeEventListener("wheel", onWheel);
       globalThis.removeEventListener("touchstart", onTouchStart);
       globalThis.removeEventListener("touchmove", onTouchMove);

@@ -351,8 +351,12 @@ before the browser emits a scroll event. An actual upward document movement
 away from the bottom also suspends following, including scrollbar dragging.
 A shorter document can clamp the scroll position upward while still at the
 bottom; this keeps following enabled for subsequent growth. Content growth cannot
-resume it. A downward arrival at the bottom or sending resumes it. Input that
-starts after a keyboard resize invalidates that resize's pending reading
+resume it. A downward arrival at the bottom or sending resumes it. Scrollbar
+input and message links can resume following after composer focus too. Upward input at
+the top of a short adventure leaves following enabled because there is no
+earlier content to navigate to.
+
+Input that starts after a keyboard resize invalidates that resize's pending reading
 position restoration. Input still awaiting its document scroll also prevents
 restoration, including when it arrives before the resize. Focus blocks automatic
 resumption independently: it does not invalidate the reading position or bypass
