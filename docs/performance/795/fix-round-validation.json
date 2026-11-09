@@ -1,0 +1,22 @@
+{
+  "sourceSHA": "07038f4134bdb7de8adfe46fb820022b736f6283",
+  "parentSHA": "6ee32fc326dea6b35f5ba1d0267ef4343d789a23",
+  "buildID": "nZtNbQzEfJ9A7y64XAnmf",
+  "snapshot": "/tmp/pb-795/fix-round-after-next",
+  "productBlobs": {
+    "apps/web/src/app/(workspace)/home/error.tsx": "892213ebb69279fbe9ae2cbd31d6ea5c6cdff7f4",
+    "apps/web/src/app/(workspace)/home/loading.tsx": "cebc8836edf66ff06edf52420dc1d82230ee1cbb",
+    "apps/web/src/app/(workspace)/layout.tsx": "b0af5a9ee53a9856cd3c19fc7ce06880656bb198",
+    "apps/web/src/app/(workspace)/projects/[projectId]/(overview)/loading.tsx": "7ca99d6a006979255f630e9dd8d165d3857f4f4d",
+    "apps/web/src/components/home-atlas.tsx": "f224c085edd4908ce9e63c52a18f94f37e7766e8",
+    "apps/web/src/components/ui/editor-loading.tsx": "9ecc0ea43fbbddfc028dc35a095ddf605429cd03",
+    "apps/web/src/components/ui/loading-skeleton.tsx": "245fc82632f95e63ca18c558d3703ef848b4b920"
+  },
+  "checks": {
+    "fast": "48 files, 249 tests passed",
+    "browser": "8 files, 390 tests passed",
+    "build": "passed"
+  },
+  "scope": "focused validation only; no full browser baseline or CLS acceptance claim",
+  "review": "fresh Claude review findings B1-B3/T1-T2 addressed in one fresh-context implementation round; parent inspected"
+}

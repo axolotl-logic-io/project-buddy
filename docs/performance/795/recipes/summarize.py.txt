@@ -1,41 +1,67 @@
-import json,gzip,pathlib,statistics,collections
+"""Describe matched geometry runs without population percentile or no-regression claims."""
+import json,gzip,pathlib,statistics,collections,sys
 root=pathlib.Path('docs/performance/795')
-rows=json.loads(pathlib.Path('/tmp/pb-795/geometry.json').read_text())
+working=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else pathlib.Path('/tmp/pb-795/v3/geometry.json')
+rows=json.loads(working.read_text())
 (root/'geometry.json.gz').write_bytes(gzip.compress(json.dumps(rows,separators=(',',':')).encode(),mtime=0))
-lines=['# Paired geometry observations','','Production builds use the same synthetic accounts and database, browser, light theme, viewport, CDP throttling, source routes and content-presence +2 s observation window. Direct loads use fresh contexts; client navigation warms only the declared source before resetting observers immediately before activating its real link. Warm direct loads are outside this cohort.','','The direct metric is the largest initial-load session-window cumulative layout shift (CLS), excluding recent input. Transition all-shift sum includes recent-input shifts and is **not official CLS**. Values are median [min–max]; n is independent completed observations. Candidate limits are direct ≤0.1 and transition ≤0.05. All failed captures remain in the compressed archive.','','| Profile | Journey | Mode | Before n | Before | After n | After | After within candidate limit |','| --- | --- | --- | --- | --- | --- | --- | --- |']
+def median_range(values):return f'{statistics.median(values):.5f} [{min(values):.5f}–{max(values):.5f}]' if values else 'not observed'
+def quartiles(values):
+ if len(values)<2:return None
+ q1,_,q3=statistics.quantiles(values,n=4,method='inclusive');return q1,q3
+lines=['# Paired geometry observations','','Both variants use the same synthetic fixture, browser/profile, light theme, cache protocol, source preparation and observed-primary-presence +2 s window. Direct loads use fresh contexts. Client source preparation proves the visible menu opens/closes, and unchanged time origin proves a same-document transition. Warm direct loads are outside this cohort.','','Initial-load session-window CLS excludes recent input. Transition all-shift sum includes recent-input shifts and is **not official CLS**. Values are median [min–max]; IQR is the descriptive interquartile range width. Candidate limits are direct ≤0.1 and transition ≤0.05. No observation is removed because it is an outlier or follows a click.','','| Profile | Journey | Mode | Before n | Before | Before IQR | After n | After | After IQR | After within limit |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+paired=['','## Paired differences','','Differences are after minus before for the same sample number. Negative/zero/positive counts, IQR and ranges describe this finite matched cohort; they are not confidence intervals or population bounds. Zero observed spread does not establish no regression under other conditions.','','| Profile | Journey | Mode | Pairs | Difference median [min–max] | Difference IQR | Negative / zero / positive |','| --- | --- | --- | --- | --- | --- | --- |']
+headers=['','## Observed header geometry','','Header samples must actually exist; absent data never passes as a zero-sized invariant. Width and height ranges include deliberate breadcrumb-row changes during transitions. They are not claims that the header stays the same size across routes.','','| Variant | Profile | Journey | Mode | Header observed | Width range | Height range |','| --- | --- | --- | --- | --- | --- | --- |']
+outliers=[]
 for profile in ['desktop','phone']:
  for name in ['home','quests','quest','editor']:
   for mode in ['cold-direct','client-navigation']:
    metric='initialSessionWindowCls' if mode=='cold-direct' else 'transitionAllShiftSum'
-   groups=[]
-   for variant in ['before','after']:
-    values=[r[metric] for r in rows if (r['variant'],r['profile'],r['name'],r['mode'])==(variant,profile,name,mode) and 'failure' not in r]
-    groups.append(values)
-   def fmt(values):
-    return f'{statistics.median(values):.5f} [{min(values):.5f}–{max(values):.5f}]' if values else 'no completed sample'
-   b,a=groups;limit=.1 if mode=='cold-direct' else .05
-   lines.append(f'| {profile} | {name} | {mode} | {len(b)} | {fmt(b)} | {len(a)} | {fmt(a)} | {sum(x<=limit for x in a)}/{len(a)} |')
-failures=[r for r in rows if 'failure' in r]
-lines+=['',f'Capture failures: {len(failures)}.','', 'These observations establish finite-window lab behavior on this host, not field percentiles, interaction to next paint (INP), or permanent stability. Source rectangles and sampled geometry use document coordinates; scroll positions are retained separately. Activated-link safe-region rectangles are recorded independently from affected shift-source rectangles. No click-associated shift is excluded from transition totals.','']
+   groups={variant:[row for row in rows if (row['variant'],row['profile'],row['name'],row['mode'])==(variant,profile,name,mode) and 'failure' not in row] for variant in ['before','after']}
+   values={variant:[row[metric] for row in group] for variant,group in groups.items()}
+   def iqr(values):
+    q=quartiles(values);return f'{q[1]-q[0]:.5f}' if q else 'not estimated'
+   before,after=values['before'],values['after'];limit=.1 if mode=='cold-direct' else .05
+   lines.append(f'| {profile} | {name} | {mode} | {len(before)} | {median_range(before)} | {iqr(before)} | {len(after)} | {median_range(after)} | {iqr(after)} | {sum(value<=limit for value in after)}/{len(after)} |')
+   indexed={variant:{row['sample']:row for row in group} for variant,group in groups.items()}
+   samples=sorted(indexed['before'].keys()&indexed['after'].keys())
+   differences=[indexed['after'][sample][metric]-indexed['before'][sample][metric] for sample in samples]
+   paired.append(f'| {profile} | {name} | {mode} | {len(samples)} | {median_range(differences)} | {iqr(differences)} | {sum(value<0 for value in differences)} / {sum(value==0 for value in differences)} / {sum(value>0 for value in differences)} |')
+   for variant,group in groups.items():
+    samples_with_headers=0;width=[];height=[]
+    for row in group:
+     parts=[part for event in row['geometry'] for part in event['parts'] if part['region']=='header']
+     if parts:samples_with_headers+=1
+     width.extend(part['width'] for part in parts);height.extend(part['height'] for part in parts)
+    def span(values):return f'{min(values):g}–{max(values):g}' if values else 'not observed'
+    headers.append(f'| {variant} | {profile} | {name} | {mode} | {samples_with_headers}/{len(group)} | {span(width)} | {span(height)} |')
+    q=quartiles(values[variant])
+    if q:
+     low,high=q[0]-1.5*(q[1]-q[0]),q[1]+1.5*(q[1]-q[0])
+     for row in group:
+      if row[metric]<low-1e-12 or row[metric]>high+1e-12:
+       sources=collections.Counter(source.get('tag','unknown') for shift in row['shifts'] for source in shift['sources'])
+       outliers.append(f'- {variant}, {profile}, {name}, {mode}, sample {row["sample"]}: {row[metric]:.8f}; affected source tags {dict(sources)}; host one-minute load {row["host"]["load"][0]:.2f}. Retained in every summary. Source rectangles identify the movement; this load value does not establish a cause.')
+failures=[row for row in rows if 'failure' in row]
+lines+=paired+headers+['','## Outlier and uncertainty notes','','The descriptive 1.5-IQR fence identifies samples for inspection; it is not a rejection rule. Small samples and tied values can make this fence sensitive to minor differences.']
+lines+=outliers or ['','No observation lies outside its cell’s descriptive 1.5-IQR fence. This does not establish permanent stability or future no regression.']
+loads=[row['host']['load'][0] for row in rows]
+lines+=['',f'Capture failures retained: {len(failures)}. One-minute host load across starts: {min(loads):.2f}–{max(loads):.2f}.' if loads else 'No completed host-load observations.','','These observations establish finite-window behavior for one synthetic fixture on this host, not field percentiles, interaction to next paint (INP), or permanent stability. Server/database caches are not reset between paired batches. Alternating pair order controls one simple ordering trend; it does not remove every host or scheduling effect.','','Source rectangles retain raw viewport geometry and observer-delivery scroll offset; derived document coordinates during scrolling are approximate. Sampled regions use document coordinates. Activated-link geometry is recorded separately from affected rectangles. Column-node replacement is labelled separately from movement of the same node, and never removes any browser shift from the transition sum.','']
 (root/'results.md').write_text('\n'.join(lines))
-# Numeric frames are privacy-safe rectangle filmstrips: region names and numeric geometry only.
-frames=[{k:r[k] for k in ['variant','profile','name','mode','sample','geometry','scroll','shifts','activated','origin','primary','end']} for r in rows if 'failure' not in r and r['sample']==1]
+keys=['variant','profile','name','mode','sample','geometry','scroll','shifts','activated','origin','primary','end']
+frames=[{key:row[key] for key in keys} for row in rows if 'failure' not in row and row['sample']==1]
 (root/'geometry-filmstrips.json.gz').write_bytes(gzip.compress(json.dumps(frames,separators=(',',':')).encode(),mtime=0))
-print('Summarized',len(rows),'observations;',len(failures),'failures')
-# Six numeric geometry panels per journey; never a page screenshot outside Home.
 film=root/'geometry-filmstrips';film.mkdir(exist_ok=True)
 colors={'header':'#75604b','main':'#adc4d4','column':'#c27043','input':'#777777'}
-for r in frames:
- width,height=(390,844) if r['profile']=='phone' else (1440,900)
- scale=210/width;panelHeight=height*scale;panelWidth=230
- times=[r['origin']+(r['end']-r['origin'])*i/5 for i in range(6)] if r['geometry'] else []
- pieces=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{6*panelWidth}" height="{panelHeight+70}" viewBox="0 0 {6*panelWidth} {panelHeight+70}">','<rect width="100%" height="100%" fill="white"/>']
+for row in frames:
+ width,height=(390,844) if row['profile']=='phone' else (1440,900);scale=210/width;panel_height=height*scale;panel_width=230
+ times=[row['origin']+(row['end']-row['origin'])*index/5 for index in range(6)]
+ pieces=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{6*panel_width}" height="{panel_height+90}" viewBox="0 0 {6*panel_width} {panel_height+90}">','<rect width="100%" height="100%" fill="white"/>']
  for index,time in enumerate(times):
-  sample=max((g for g in r['geometry'] if g['time']<=time),key=lambda g:g['time'],default=r['geometry'][0])
-  offset=index*panelWidth
-  pieces.append(f'<g transform="translate({offset+10},40)"><rect width="210" height="{panelHeight}" fill="none" stroke="#aaa"/><clipPath id="clip{index}"><rect width="210" height="{panelHeight}"/></clipPath><g clip-path="url(#clip{index})">')
-  for p in sample['parts']:
-   pieces.append(f'<rect x="{p["x"]*scale:.2f}" y="{p["y"]*scale:.2f}" width="{p["width"]*scale:.2f}" height="{p["height"]*scale:.2f}" fill="none" stroke="{colors[p["region"]]}" stroke-width="2"/>')
-  pieces.append(f'</g><text y="-12" font-family="sans-serif" font-size="12">{time-r["origin"]:.0f} ms</text></g>')
- pieces.append('<text x="10" y="18" font-family="sans-serif" font-size="12">Numeric document geometry: header brown, main blue, column orange, input gray; scroll is separate.</text></svg>')
- (film/f'{r["variant"]}-{r["profile"]}-{r["name"]}-{r["mode"]}.svg').write_text(''.join(pieces))
+  sample=max((event for event in row['geometry'] if event['time']<=time),key=lambda event:event['time'],default=row['geometry'][0])
+  scroll=max((event for event in row['scroll'] if event['time']<=time),key=lambda event:event['time'],default={'y':(row['activated'] or {}).get('scrollY',0)})
+  pieces.append(f'<g transform="translate({index*panel_width+10},65)"><rect width="210" height="{panel_height}" fill="none" stroke="#aaa"/><clipPath id="clip{index}"><rect width="210" height="{panel_height}"/></clipPath><g clip-path="url(#clip{index})">')
+  for part in sample['parts']:pieces.append(f'<rect x="{part["x"]*scale:.2f}" y="{part["y"]*scale:.2f}" width="{part["width"]*scale:.2f}" height="{part["height"]*scale:.2f}" fill="none" stroke="{colors[part["region"]]}" stroke-width="2"/>')
+  pieces.append(f'</g><text y="-26" font-family="sans-serif" font-size="12">{time-row["origin"]:.0f} ms; scroll {scroll["y"]:g}</text><text y="-10" font-family="sans-serif" font-size="11">column: {sample.get("columnChange","legacy")}</text></g>')
+ pieces.append('<text x="10" y="18" font-family="sans-serif" font-size="12">Numeric document geometry: header brown, main blue, column orange, input gray. Scroll and node replacement are separate.</text></svg>')
+ (film/f'{row["variant"]}-{row["profile"]}-{row["name"]}-{row["mode"]}.svg').write_text(''.join(pieces))
+print('Summarized',len(rows),'observations;',len(failures),'failures')

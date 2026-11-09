@@ -1,0 +1,57 @@
+{
+  "generatedUtc": "2026-11-09T12:37:00.920582+00:00",
+  "mode": "legacy privacy/schema preflight",
+  "finalCompletenessChecked": false,
+  "finalAcceptanceClaimed": false,
+  "legacyCohorts": {
+    "checkpoint": {
+      "records": 17,
+      "captureFailures": 5
+    },
+    "provisional v2": {
+      "records": 48,
+      "captureFailures": 0
+    }
+  },
+  "traceFiles": 12,
+  "screenshotFrames": 93,
+  "framesByArtifact": {
+    "checkpoint-traces/before/desktop/client-navigation/home.trace.json.gz": 0,
+    "checkpoint-traces/before/desktop/cold-direct/home.trace.json.gz": 8,
+    "checkpoint-traces/before/phone/client-navigation/home.trace.json.gz": 0,
+    "checkpoint-traces/before/phone/cold-direct/home.trace.json.gz": 7,
+    "provisional/v2-737c914f/after/desktop/client-navigation/home.trace.json.gz": 17,
+    "provisional/v2-737c914f/after/desktop/cold-direct/home.trace.json.gz": 13,
+    "provisional/v2-737c914f/after/phone/client-navigation/home.trace.json.gz": 21,
+    "provisional/v2-737c914f/after/phone/cold-direct/home.trace.json.gz": 7,
+    "provisional/v2-737c914f/before/desktop/client-navigation/home.trace.json.gz": 2,
+    "provisional/v2-737c914f/before/desktop/cold-direct/home.trace.json.gz": 7,
+    "provisional/v2-737c914f/before/phone/client-navigation/home.trace.json.gz": 4,
+    "provisional/v2-737c914f/before/phone/cold-direct/home.trace.json.gz": 7
+  },
+  "negativeCases": {
+    "passed": [
+      "nested host unknown field",
+      "nested nav unknown field",
+      "nested activated unknown field",
+      "nested sourcePrep unknown field",
+      "nested geometry unknown field",
+      "nested scroll unknown field",
+      "nested shifts unknown field",
+      "nested longtasks unknown field",
+      "nested lcp unknown field",
+      "nested events unknown field",
+      "source rectangle unknown field",
+      "row unknown field",
+      "same-document time origin mismatch",
+      "initial session-window reducer mismatch",
+      "transition all-shift reducer mismatch",
+      "compressed unredacted identifier",
+      "compressed unauthorized screenshot without args",
+      "compressed unauthorized screenshot with args",
+      "compressed stream filename forbidden",
+      "compressed screenshot nested unknown field"
+    ],
+    "skipped": []
+  }
+}

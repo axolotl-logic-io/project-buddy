@@ -1,11 +1,11 @@
 {
-  "beforeSource": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
-  "afterSource": "737c914fa8e5f87a198430552c8dddb86d5b9d60",
-  "beforeBuildId": "5ZJdzqfe5kTwOioEMjRk9",
-  "afterBuildId": "Ab_dyq8SMB34B7XgLvl6P",
+  "beforeSource": null,
+  "afterSource": null,
+  "beforeBuildId": null,
+  "afterBuildId": null,
   "browser": "Chrome for Testing 156.0.8078.4",
   "puppeteerCore": "24.12.1",
-  "screenshots": "synthetic Home only; cold direct full window and client after visible atlas plus two rendering frames",
+  "screenshots": "Home only; direct full window, client after identical visible primary criterion plus two rendering frames",
   "screenshotCorrection": [
     {
       "artifact": "before/desktop/client-navigation/home.trace.json.gz",
@@ -27,13 +27,45 @@
     {
       "source": "fb065b53f8f323bad4ad8fb3a974dcccb23c853a",
       "buildId": "aM1QP6WCmmfquaij_gwVK"
+    },
+    {
+      "source": "07038f4134bdb7de8adfe46fb820022b736f6283",
+      "buildId": "nZtNbQzEfJ9A7y64XAnmf"
     }
   ],
-  "status": "corrected paired cohort in progress",
-  "sourcePreparation": "shared-menu-state-v1",
+  "status": "paused for coordinator reservation, repair and Workshop reconciliation, and final paired identities",
+  "sourcePreparation": "visible-shared-menu-state-v2",
   "sameDocumentRequiredForClientNavigation": true,
   "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
   "node": "24.6.0",
-  "cohortProtocol": "geometry-commit-probe-v2",
-  "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/"
+  "cohortProtocol": "geometry-commit-probe-v3",
+  "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/",
+  "recipeSha256": {
+    "capture.mjs": "4f14bbddd125a621d87bb3a0e476ee4d911ac2f772e611bc64f03abd1014c2c8",
+    "observe.mjs": "67073ac3287b2bf78133225eb55f03f0b2ee343cd8ea5115204af5fccc6a6637",
+    "start.mjs": "0f1004db590dae3db88fe3cafccd18003e1fede3335a466f4e7382f11c04287d",
+    "cohort.mjs": "dbaf4e485c5aa1c2e90c44a8be18b15987cf57d2d76eca10f50cf8c338a1e8de"
+  },
+  "candidateAcceptanceSatisfied": false,
+  "provisionalCohorts": [
+    {
+      "directory": "provisional/v2-737c914f",
+      "afterSource": "737c914fa8e5f87a198430552c8dddb86d5b9d60",
+      "afterBuildId": "Ab_dyq8SMB34B7XgLvl6P",
+      "observations": 48,
+      "captureFailures": 0,
+      "completedBeforeSamples": [
+        1
+      ],
+      "completedAfterSamples": [
+        1,
+        2
+      ]
+    }
+  ],
+  "checkpointIdentity": {
+    "source": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+    "buildId": "5ZJdzqfe5kTwOioEMjRk9",
+    "protocol": "geometry-commit-probe-v1"
+  }
 }
