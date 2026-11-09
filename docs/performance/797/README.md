@@ -56,7 +56,7 @@ Following the separate #796 attribution investigation, summary version 2 disting
 
 Fresh checks after attribution version 2 passed: 57 files and 279 tests. They include direct validation of the committed focused gzip observations/trace, rejection of unallowlisted network metadata, and examples where late script totals decrease while early parser bytes increase. Historical missing attribution stays unavailable. The upcoming full production cohort must exercise the CDP records and Lighthouse; no full-audit acceptance is claimed yet.
 
-## Completed full cohort
+## Completed pre-fix cohort
 
 The [full capture](full/manifest.json) completed once at source `c8dce5343b497433b20396af46b0ea2e95fb7799`, production build `PkT8vZ5MahrNg6PMY7tZJ`, with actual exit 0. It retained 270 observations: three samples for each of 90 accessible state/profile/journey/cache cells. All 270 ended with a final 500 ms quiet interval within the finite observation window. The [readable table](full/summary.md) and [numeric summary](full/summary.json) report medians and ranges, not percentiles or a no-regression verdict.
 
@@ -69,3 +69,38 @@ The command finished its full cohort, but review must resolve one identified Lig
 Field collection stays off. This local workflow evidence establishes neither field INP, population percentiles, initial-payload reduction nor a product performance improvement. The measured source remains the recorded revision; later integration reconciliation must not relabel these measurements as a newer build.
 
 The final committed-evidence guard passed fresh default checks: 57 files and 280 tests. It reads the complete gzip cohort and every retained trace directly, verifies the full manifest state, and ties the 14-frame manual review to the exact Home trace hash. This does not resolve the navigation-page review item above.
+
+## Review corrections
+
+An independent review of `7c471e7e` found that this cohort cannot be accepted as it stands. The [pre-fix cohort](full/manifest.json) is kept unchanged, with these labels:
+
+- **Lighthouse content is unverified.** Navigation mode passed only the browser port, so Lighthouse opened its own tab. The content check ran on the runner's earlier page, which proves nothing about the audited document. Requested and final addresses were still checked. The six navigation reports are content-unverified and superseded.
+- **Flow CLS is unattributed.** All three timespans report CLS 0.05378774568931789, while the three Home navigations report 0. The source Home page loaded at Puppeteer's 800×600 default, and `startTimespan` then applied Lighthouse's 412×823 mobile emulation inside the measured interval. That resize may explain the value; the #773 explanation does not. It is not a product attribution.
+- **Primary is a control proxy.** The primary time records when the journey's control was present. No check confirmed that a populated page showed its data or an empty page its empty state.
+- **Only gzip was validated.** The manifest, summary and Lighthouse reports had no strict schema or completeness check.
+
+The validator now rejects this directory as a complete audit (its manifest predates schema 3 and its reports lack verification); the repository test still validates its compressed cohort and filmstrip review.
+
+### Desktop prefetch storm
+
+This cohort contains a large prefetch burst that its summary did not report. The facts below come from the committed `full/readiness.json.gz`:
+
+- 79,144 of 90,362 completed requests (87.6%) belong to 24 of 270 rows, all desktop.
+- Affected cells: empty Workshop 9 of 9 rows, populated Workshop 8 of 9, populated quest 3 of 9 and empty-detail quest 4 of 9. All three cache modes are affected.
+- Each affected row has 2,812–3,680 requests and 8.3–11.4 MB. Almost all are known prefetches of one route: `/workshop` itself on Workshop, and `/other` on the quest pages. `/other` is the categorical bucket, so the quest route is not recorded; the overview's memory link (`/projects/:id/memory`) is the likely one, since the allowlist does not name it.
+- Every burst starts 166–208 ms after the probe confirmed the dialog and closed it with Escape, and continues until the observation window ends.
+- Other rows: phone 32–76 requests (median 45), unaffected desktop 32–88 (median 41).
+- All 270 rows still had a quiet final 500 ms, because that test is geometry only.
+
+The product cause is not established: about 600 prefetches a second repeat one link that is visible on the page, after a dialog closes, on desktop only. The audit does not change product code; the coordinator tracks a follow-up. The summary now reports per-cell request, prefetch and byte ranges and counts rows still starting requests in the final 500 ms, so a corrected cohort shows whether the burst persists.
+
+### Corrections
+
+- Lighthouse navigation now runs in the checked page. See [the protocol](../../performance-audits.md#comparison-protocol). A production smoke before the corrected run found that the `bf-cache` gatherer leaves the audited page and returns, and that Next's history update fires a frame event after the audit; both are handled.
+- The mobile emulation is applied before each source page loads, and a viewport change inside a timespan fails it.
+- Protocol v5 checks each state's content after observation. The smoke found that neither account owns an activity, so that check looks for built-in cards only.
+- Strict manifest, summary and Lighthouse validation, with negative tests: other-tab and non-navigating runners, later documents, redirects, runtime errors, warnings, errored audits, emulation inside a timespan, missing or duplicated reports, an altered summary, and incomplete, diagnostic or other-sample manifests.
+- The manifest reads installed tool versions: Lighthouse 12.8.2 nests puppeteer-core 24.43.1 while the root pins 24.12.1.
+- The server-span schema is shared with #794's recorder instead of copied.
+
+The smoke ran one Lighthouse sample against a throwaway build. It was a pre-flight check, not evidence, and is not retained.
