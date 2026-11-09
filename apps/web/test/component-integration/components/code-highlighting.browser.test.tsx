@@ -7,16 +7,20 @@ afterEach(cleanup);
 
 function codeColors(): number {
   return new Set(
-    Array.from(document.querySelectorAll("code span"), (span) =>
-      getComputedStyle(span).color,
+    Array.from(
+      document.querySelectorAll("code span"),
+      (span) => getComputedStyle(span).color,
     ),
   ).size;
 }
 
 test("the first code block becomes highlighted without preloading the engine", async () => {
   await render(
-    <Markdown text={'```python\nprint("synthetic code")\n```'} running={false} />,
+    <Markdown
+      text={["```python", "print(1)", "```"].join("\n")}
+      running={false}
+    />,
   );
-  await expect.element(page.getByText('print("synthetic code")')).toBeVisible();
+  await expect.element(page.getByText("print(1)")).toBeVisible();
   await expect.poll(codeColors).toBeGreaterThan(1);
 });
