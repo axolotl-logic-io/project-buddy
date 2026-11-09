@@ -2,6 +2,8 @@
 
 These measurements address gaps identified in the first exploratory assessment. They use source `9a8ab46089fdbe8086efd2988a8cbc2e058b0e6c`, production build `eDoFyCX3Cc1n4DFG0OaCq`, containing #767's shared-header fix. They do not update integration or implement performance recommendations. The original measured build remains archived separately.
 
+The directory name `current` distinguishes the additional capture cohort from the first baseline; it does not mean the latest integration source. Final reconciliation includes integration `1810793539c72b9703ec9a63275bda6a0dabd79f`. No measurements of that later revision or the final merged PR are claimed. Both recorded source/build identities remain unchanged.
+
 ## Conditions and reproduction
 
 Use the same hardware, Chrome 156.0.8078.4, Puppeteer 24.12.1, desktop/phone CDP profiles and isolated local test environment described in the parent capture record. Reset only the worktree database with its guarded command. The fixture adds a third synthetic account with an empty quest and zero-message adventure; the original empty and populated account shapes remain unchanged.

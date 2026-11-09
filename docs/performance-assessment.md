@@ -2,6 +2,10 @@
 
 Issue [#773](https://github.com/axolotl-logic-io/project-buddy/issues/773) asks why page loads feel slow, arrive in pieces and jump. This assessment records a local production-build investigation and a prioritized design plan. It changes no product behavior or production instrumentation. The capture covers 78 accessible journey/state/profile/mode cells, one observation each. The baseline is exploratory lab evidence; it does not establish real-user performance or prove every reported symptom has one cause.
 
+## Final integration reconciliation
+
+The PR reconciles integration at `1810793539c72b9703ec9a63275bda6a0dabd79f`, after the other issue assignments merged. The evidence remains tied to the two measured revisions below. Later Batteries/orb, header-balance, breadcrumb, scrolling, editor and Library changes are included in the merge source but were not measured by this assessment. Do not treat either recorded baseline as a performance result for the final PR or current integration head. Source-level observations describe their recorded revision; implementation follow-ups must reproduce relevant findings on the then-current source before changing it.
+
 ## Evidence and conditions
 
 The measured source is commit `242e3a1ac55de980c9eb3b6780f19db66816ed58`, including the responsive artwork change in #763. The production build ID is `_KA3WaPrXszi9invOlrvUL`. Measurements use Next 16.4.3, React 19.3.0 and Node 24.6.0 on Linux x86_64, AMD Ryzen 9 7950X (32 logical CPUs), 32 GB RAM. The host also serves other issue worktrees; resource contention remains a confounder. No production database, deployment or real model was used. The checkout later merged newer integration source, but every browser capture continued to use the unchanged running production build identified above.
