@@ -7,7 +7,7 @@ import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
 const Markdown = dynamic(() =>
-  import("@/components/markdown-content.tsx").then((module) => module.Markdown),
+  import("@/components/markdown.tsx").then((module) => module.Markdown),
 );
 
 export function PromptNameField({

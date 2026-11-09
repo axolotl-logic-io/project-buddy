@@ -36,7 +36,14 @@ function ChatHistory({
         cost={replyCosts?.get(message.id)}
       />
     ),
-    [construct, chatId, openingMessageId, activityAllowed, authorNames, replyCosts],
+    [
+      construct,
+      chatId,
+      openingMessageId,
+      activityAllowed,
+      authorNames,
+      replyCosts,
+    ],
   );
   return <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>;
 }
