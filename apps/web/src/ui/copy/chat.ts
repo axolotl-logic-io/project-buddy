@@ -1,3 +1,4 @@
+import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 // The text of chats: the new-chat form, the chat page and its conversation,
 // the construct's tool parts, and chat names.
 import { pageTitle } from "@/ui/copy/site.ts";
@@ -72,20 +73,20 @@ export const STANDALONE_CHATS_COPY = {
 } as const;
 
 export const CHAT_COPY = {
-  balance: (gold: number): string => `Gold balance: ${gold}`,
-  balanceUnknown: "Gold balance unavailable",
+  balance: (gold: number): string => `Batteries balance: ${gold}`,
+  balanceUnknown: "Batteries balance unavailable",
   costPending:
     "Reply cost pending, including any image and automatic adventure name.",
-  costUnknown: "Reply cost unavailable; this does not mean zero gold.",
+  costUnknown: "Reply cost unavailable; this does not mean zero batteries.",
   replyCost: (gold: number): string =>
-    `Reply cost: ${gold} gold (including retries, images and any automatic adventure name).`,
+    `Reply cost: ${BATTERIES_COPY.amount(gold)} (including retries, images and any automatic adventure name).`,
   stop: "Stop reply",
   stopping: "Stop requested. Waiting for the server…",
   stopFailed:
     "The server could not confirm Stop. The reply may still be running. Try again or reload.",
   stopCompleted: "The reply finished before Stop took effect.",
   cancelledReply:
-    "Reply stopped at your request. Tool effects already started may remain or finish. Gold charged for use is not refunded.",
+    "Reply stopped at your request. Tool effects already started may remain or finish. Batteries charged for use are not refunded.",
   reattach:
     "Images from your unsent message were not kept. Attach them again before sending.",
   replyingElsewhere: (name: string): string =>

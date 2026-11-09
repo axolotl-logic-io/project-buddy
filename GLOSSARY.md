@@ -25,7 +25,7 @@ The product: a personal site where constructs help each user with their own ques
 
 ### Workshop
 
-The shared editing and testing experience for constructs, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's gold and do not create saved adventures.
+The shared editing and testing experience for constructs, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's batteries and do not create saved adventures.
 
 - **UI:** "Workshop".
 
@@ -50,7 +50,7 @@ A user's private, editable construct, activity or spell, made by copying another
 
 To **retire** an own construct, activity, or spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new adventure, a new activity entry, or a future spell cast. Existing adventure snapshots and past casts stay intact.
 
-**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging gold. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
+**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging batteries. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
 - **UI:** "Retire", "Retirement", "Restore", "Delete forever", "Keep retired".
 - **Avoid:** "Graveyard", "trash", "archive" for Retirement.
@@ -83,7 +83,7 @@ A preserved copy of a construct or activity's name and prompt, kept with an adve
 
 ### Harness
 
-The application machinery around the model: it assembles context, makes model calls, executes tool calls and carries the adventure forward. The harness enforces access and gold rules; a prompt cannot grant access or tools the harness does not allow.
+The application machinery around the model: it assembles context, makes model calls, executes tool calls and carries the adventure forward. The harness enforces access and battery rules; a prompt cannot grant access or tools the harness does not allow.
 
 ### Global prompt
 
@@ -286,7 +286,7 @@ An opening written ahead of time for a built-in construct in a built-in activity
 
 ### Check-in
 
-A quest adventure the construct starts automatically on a schedule its owner chooses. Its opening draws on the Journal to help the user resume. Check-ins are optional. For who pays for model use, see [gold](#gold).
+A quest adventure the construct starts automatically on a schedule its owner chooses. Its opening draws on the Journal to help the user resume. Check-ins are optional. For who pays for model use, see [batteries](#batteries).
 
 - **UI:** "Check-ins".
 - **Avoid:** "nudge", "reminder", "ping".
@@ -525,7 +525,7 @@ A user's account role: user or admin. The admin role grants only the right to se
 
 The user performing an action now. Their access determines what the action may read or change. In a team quest, the acting user can be the owner or a member; acting does not confer ownership.
 
-The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [gold](#gold).
+The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [batteries](#batteries).
 
 When a [client](#client) acts through a connection, the connection’s user is the acting user. The connection can narrow that user’s permissions, but cannot grant access the user does not have.
 
@@ -533,7 +533,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it. Members share access to its adventures, Journal, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
 
-Ownership and access are distinct: own constructs, activities, spells and gold belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs, activities, spells and batteries belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
@@ -605,7 +605,7 @@ The `login` command starts browser-based authorization for a command utility to 
 
 ### Generated image
 
-An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [gold](#gold). It belongs to its source adventure. An image in a team quest adventure is accessible to the quest's owner and members.
+An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [batteries](#batteries). It belongs to its source adventure. An image in a team quest adventure is accessible to the quest's owner and members.
 
 ### Image gallery
 
@@ -613,27 +613,27 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 ## Usage
 
-### Gold
+### Batteries
 
-The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s gold. A new adventure's generated opening spends the gold of the user starting it. An automatic check-in spends the quest owner's gold.
+Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s batteries. A new adventure's generated opening spends the batteries of the user starting it. An automatic check-in spends the quest owner's batteries.
 
-Gold can also move between users through transfers, such as Marketplace sales. Users see gold rather than provider costs.
+Batteries fund model use. Marketplace orbs are a separate currency; there is no conversion between them. Users see batteries rather than provider costs.
 
-- **UI:** "gold", "You're out of gold."
+- **UI:** "Batteries", "1 battery", "100 batteries", "Buy batteries", "You're out of batteries."
 - **Avoid:** "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
 
-### Gold balance
+### Battery balance
 
-How much gold a user has available.
+How many batteries a user has available.
 
-- **UI:** "Gold balance".
+- **UI:** "Batteries balance".
 - **Avoid:** "usage meter" in UI copy and docs.
 
 ### Credit
 
-A model provider account's prepaid balance. Provider credit is separate from each user's gold.
+A model provider account's prepaid balance. Provider credit is separate from each user's batteries.
 
-- **Avoid:** "credits" for gold.
+- **Avoid:** "credits" for batteries.
 
 ## Prompt marketplace
 

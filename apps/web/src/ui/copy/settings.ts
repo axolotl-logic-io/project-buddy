@@ -39,8 +39,8 @@ export const FLAG_COPY = {
     hint: "The theme's pattern behind every page.",
   },
   usageMeter: {
-    label: "Gold balance",
-    hint: "How much gold you have left for your constructs, on your account page.",
+    label: "Batteries balance",
+    hint: "How much batteries you have left for your constructs, on your account page.",
   },
 } as const;
 
