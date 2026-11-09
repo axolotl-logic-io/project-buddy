@@ -44,7 +44,7 @@ The user starts or reopens a standalone adventure, without choosing a quest.
   - Editing or deleting an owned construct later does not change an adventure's saved name or voice.
   - An invalid construct or another user's construct is refused, saving no adventure.
   - While Claude is unavailable, an adventure with a prepared opening still starts; one whose construct has to write its opening is not saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
-  - Out of gold, starting an adventure is refused with the out-of-gold message; the selected construct remains chosen and existing conversations stay readable.
+  - Out of batteries, starting an adventure is refused with the out-of-batteries message; the selected construct remains chosen and existing conversations stay readable.
   - While an adventure starts, its button is disabled and the form shows progress.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
@@ -73,8 +73,8 @@ The user talks an idea through in a standalone adventure before it becomes a que
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
-  - She sends another message once she is out of gold.
-- **Outcome:** the replies arrive as in any adventure, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone adventure creates no quest unless she asks the construct for one, and changes no quest's Journal. Out of gold, her message is refused with the out-of-gold message, as in any adventure ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
+  - She sends another message once she is out of batteries.
+- **Outcome:** the replies arrive as in any adventure, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone adventure creates no quest unless she asks the construct for one, and changes no quest's Journal. Out of batteries, her message is refused with the out-of-batteries message, as in any adventure ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a quest.
   - `use_case_project_from_standalone_chat`: she asks the construct to make the idea a quest.
@@ -89,7 +89,7 @@ The user asks the construct in an adventure to turn the idea they talked through
   - Review and edit the proposed summary and optional motivation, then confirm creation.
   - Follow the link to its first adventure in Break Down a Project.
 - **Outcome:** the confirmed summary and motivation become the first Journal version and inform the opening, using the source adventure's selected construct. The standalone source stays intact. Full transcripts are not copied and planned steps do not become completed milestones. The quest, opening, Journal and confirmation result save together. Repeating confirmation returns the same quest; concurrent confirmations create only one.
-- **Variations:** invalid names fail before creation. An unavailable opening, insufficient gold or storage failure saves no quest, preserves the summary draft and allows an explicit retry. The construct's proposal alone creates nothing and spends no opening gold. A user who removes everything from the summary and motivation starts with an empty Journal and the ordinary opening.
+- **Variations:** invalid names fail before creation. An unavailable opening, insufficient batteries or storage failure saves no quest, preserves the summary draft and allows an explicit retry. The construct's proposal alone creates nothing and spends no opening batteries. A user who removes everything from the summary and motivation starts with an empty Journal and the ordinary opening.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
 
@@ -114,9 +114,9 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Steps:**
   - The user opens Home or follows the site's name after signing in.
   - They follow a labeled destination in the responsive control panel.
-- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Adventures, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home keeps Quick Note and the menu available. Every other page's header remains a HUD in the atlas's ink and gold, whose site's name leads back to Home and which names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
+- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Adventures, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Quests and Adventures have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
 - **Variations:**
-  - Following a link away from Home restores the destination's header and content column without a refresh. Returning to Home restores the map layout, including with browser back and forward.
+  - Following a link away from Home restores the destination's page background and content column without a refresh, with the same shared header. Returning to Home restores the map layout, including with browser back and forward.
   - Before the first quest, Start a quest opens Break Down a Project with a new quest selected.
   - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
   - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
@@ -337,7 +337,7 @@ The quest's construct checks in on her, on the schedule she chose.
 - **Steps:**
   - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. A check-in opening has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. A check-in opening has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of batteries, the check-in is skipped and nothing is saved or sent.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -495,7 +495,7 @@ The user asks their construct about images in a quest or standalone adventure.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the adventure and ask a follow-up question about an earlier image.
 - **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the quest owner. Deleting the adventure, its quest or its account deletes its images.
-- **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.
+- **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-batteries refusal returns text and attachments to the composer. No paid model runs during tests.
 
 ## use_case_construct_presence
 
@@ -514,5 +514,5 @@ The user stops a reply that is still running.
 
 - **Prerequisites:** signed in, with current access to the adventure.
 - **Steps:** choose Stop reply and wait for the server to confirm it.
-- **Outcome:** the server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Gold charged for use is not refunded.
+- **Outcome:** the server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
 - **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

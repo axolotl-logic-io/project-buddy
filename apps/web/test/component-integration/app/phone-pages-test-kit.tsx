@@ -716,6 +716,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
+        vi.mocked(listProjects).mockResolvedValue([]);
+        vi.mocked(listOwnActivities).mockResolvedValue([]);
       },
       () =>
         ConstructsPage({

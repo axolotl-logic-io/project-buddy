@@ -9,7 +9,7 @@ An activity sets the scene an adventure plays out. The site has four built-in ac
 - **Find something to make:** the construct helps the user discover a small achievable creative project and supports uncertainty and challenges while they make it. No idea or inspiration source is required.
 - **Break Down a Project:** the construct helps her split a goal into milestones and the next small steps.
 
-Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Write new activity” to distinguish it from an own definition named “New activity”.
+Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Craft activity” to distinguish it from an own definition named “New activity”.
 
 ## use_case_start_chat_in_activity
 
@@ -28,7 +28,7 @@ The user starts an adventure in the activity she wants.
 - **Next:**
   - `use_case_construct_changes_activity`: the construct moves the adventure into another activity.
   - `use_case_customize_activity`: make an activity of her own.
-  - `use_case_new_activity`: write an activity of her own from scratch.
+  - `use_case_new_activity`: craft an activity of her own.
 
 ## use_case_construct_changes_activity
 
@@ -56,18 +56,18 @@ The user makes an activity of her own from a built-in one, and changes it.
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
   - `use_case_start_chat_in_activity`: start an adventure in it.
-  - `use_case_new_activity`: write an activity of her own from scratch.
+  - `use_case_new_activity`: craft an activity of her own.
 
 ## use_case_new_activity
 
-The user writes an activity of her own from scratch, without starting from one she can see.
+The user crafts an activity of her own without copying another.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - On Activities, she chooses Write new activity. The site makes a new activity of hers and opens its page to edit.
+  - On Activities, she chooses Craft activity. The site makes a new activity of hers and opens its page to edit.
   - She names it, writes its instructions and opening request, and saves.
   - She resets its prompt, then starts an adventure in the activity.
   - In another adventure, the construct moves the adventure into it.
-- **Outcome:** the new activity is named "New activity" and starts with Chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start an adventure in it, and the construct can move an adventure into it. Choosing Write new activity again makes another activity named "New activity". Another user never sees it.
+- **Outcome:** the new activity is named "New activity" and starts with Chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start an adventure in it, and the construct can move an adventure into it. Choosing Craft activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start an adventure in it.

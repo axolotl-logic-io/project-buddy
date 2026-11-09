@@ -1,6 +1,6 @@
-// The activities page's New activity button, with her own activities and
+// The activities page's Craft activity button, with her own activities and
 // with none: it sits among her own, follows the built-in activities in
-// keyboard order, and Enter writes a new activity.
+// keyboard order, and Enter crafts a new activity.
 import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -44,7 +44,7 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn<typeof startChatAction>(),
 }));
 
-// Listing exposes these actions; only New activity is submitted, from the
+// Listing exposes these actions; only Craft activity is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
@@ -66,7 +66,7 @@ beforeEach(() => {
   });
 });
 
-test("her activities offer New activity, with or without activities of her own", async () => {
+test("her activities offer Craft activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(startChatAction).mockClear();
   vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
@@ -80,9 +80,7 @@ test("her activities offer New activity, with or without activities of her own",
   );
 
   await expect
-    .element(
-      ownRegion().getByRole("button", { name: ACTIVITIES_COPY.newActivity }),
-    )
+    .element(ownRegion().getByRole("button", { name: "Craft activity" }))
     .toBeEnabled();
 
   vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -98,13 +96,11 @@ test("her activities offer New activity, with or without activities of her own",
     .element(ownRegion().getByText(ACTIVITIES_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(
-      ownRegion().getByRole("button", { name: ACTIVITIES_COPY.newActivity }),
-    )
+    .element(ownRegion().getByRole("button", { name: "Craft activity" }))
     .toBeEnabled();
 });
 
-test("New activity is the next control after the built-in activities, and Enter writes one", async () => {
+test("Craft activity is the next control after the built-in activities, and Enter crafts one", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(startChatAction).mockClear();
   vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -135,7 +131,7 @@ test("New activity is the next control after the built-in activities, and Enter 
   lastControl.element().focus();
   await tabForward();
   await expect
-    .element(page.getByRole("button", { name: ACTIVITIES_COPY.newActivity }))
+    .element(page.getByRole("button", { name: "Craft activity" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
