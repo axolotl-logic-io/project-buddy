@@ -10,7 +10,7 @@ The user makes, customizes, tweaks or clones a construct, activity or spell from
 - **Steps:**
   - Open Workshop from Home. It shows Constructs first.
   - Choose Activities or Spells to show that kind instead.
-  - Choose New to write one from scratch, Customize on a built-in one, or Tweak or Clone on an own one.
+  - Choose Craft construct, Craft activity or Craft spell to make one without copying another, Customize on a built-in one, or Tweak or Clone on an own one.
 - **Outcome:** each action opens the definition's Workshop to edit and test, as on that kind's own page. Only the user's own definitions appear beside the built-ins. An unknown kind shows Constructs. Viewing the page changes nothing.
 - **Next:** `use_case_workshop_draft`: test the definition before saving it.
 

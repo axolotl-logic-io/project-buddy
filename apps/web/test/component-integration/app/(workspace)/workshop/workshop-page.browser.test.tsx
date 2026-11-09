@@ -1,5 +1,5 @@
 // The Workshop's own page in the browser: a tab for each kind, Constructs
-// first, each offering New, Customize for the built-in ones, and Tweak and
+// first, each offering Craft, Customize for the built-in ones, and Tweak and
 // Clone for the user's own.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -129,7 +129,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
+      .element(page.getByRole("button", { name: "Craft construct" }))
       .toBeEnabled();
     await expect
       .element(
@@ -146,7 +146,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: ACTIVITIES_COPY.newActivity }))
+      .element(page.getByRole("button", { name: "Craft activity" }))
       .not.toBeInTheDocument();
   });
 
@@ -160,7 +160,7 @@ describe("use_case_workshop_page", () => {
     await expect.element(tab(kind)).toHaveAttribute("aria-current", "page");
   });
 
-  test("the Activities tab offers New, Customize, Tweak and Clone for activities", async () => {
+  test("the Activities tab offers Craft, Customize, Tweak and Clone for activities", async () => {
     await showWorkshop("activity");
     await expect
       .element(tab("activity"))
@@ -174,7 +174,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: ACTIVITIES_COPY.newActivity }))
+      .element(page.getByRole("button", { name: "Craft activity" }))
       .toBeEnabled();
     await expect
       .element(
@@ -191,11 +191,11 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
+      .element(page.getByRole("button", { name: "Craft construct" }))
       .not.toBeInTheDocument();
   });
 
-  test("the Spells tab offers New, Customize, Tweak and Clone for spells", async () => {
+  test("the Spells tab offers Craft, Customize, Tweak and Clone for spells", async () => {
     await showWorkshop("spell");
     await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
     const builtIn = listSpells()[0]?.name ?? "";
@@ -207,7 +207,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+      .element(page.getByRole("button", { name: "Craft spell" }))
       .toBeEnabled();
     await expect
       .element(
@@ -231,7 +231,7 @@ describe("use_case_workshop_page", () => {
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");
     await expect
-      .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
+      .element(page.getByRole("button", { name: "Craft construct" }))
       .toBeEnabled();
   });
 
@@ -249,3 +249,7 @@ describe("use_case_workshop_page", () => {
     expect(listConstructs).not.toHaveBeenCalled();
   });
 });
+
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));

@@ -78,7 +78,7 @@ function submissionOf(
   return submitted.promise;
 }
 
-test("her spells offer New spell, with or without spells of her own", async () => {
+test("her spells offer Craft spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const screen = await render(
@@ -91,7 +91,7 @@ test("her spells offer New spell, with or without spells of her own", async () =
   );
 
   await expect
-    .element(ownRegion().getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+    .element(ownRegion().getByRole("button", { name: "Craft spell" }))
     .toBeEnabled();
 
   vi.mocked(listOwnSpells).mockResolvedValue([]);
@@ -107,11 +107,11 @@ test("her spells offer New spell, with or without spells of her own", async () =
     .element(ownRegion().getByText(SPELLBOOK_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(ownRegion().getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+    .element(ownRegion().getByRole("button", { name: "Craft spell" }))
     .toBeEnabled();
 });
 
-test("New spell is the next control after the built-in spells, and Enter writes one", async () => {
+test("Craft spell is the next control after the built-in spells, and Enter crafts one", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
@@ -131,7 +131,7 @@ test("New spell is the next control after the built-in spells, and Enter writes 
     .focus();
   await tabForward();
   await expect
-    .element(page.getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
+    .element(page.getByRole("button", { name: "Craft spell" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
