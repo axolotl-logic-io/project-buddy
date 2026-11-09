@@ -31,7 +31,7 @@
       "buildId": "aM1QP6WCmmfquaij_gwVK"
     }
   ],
-  "status": "320-observation confirmation complete; final evidence review and merge gates pending",
+  "status": "320-observation confirmation and final fresh review complete; protected integration merge pending",
   "sourcePreparation": "visible-shared-menu-state-v2",
   "sameDocumentRequiredForClientNavigation": true,
   "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
@@ -45,7 +45,7 @@
     "cohort.mjs": "4a08925c19893da2cd66ab91d0a9a4063e122527163a0ac218ed6986fcb9ed37",
     "prepare-pair.py": "f4fe83d974ea98acd3e15068d68c60e872498470d9d6efce1eb35acfbe8d1cec"
   },
-  "candidateAcceptanceSatisfied": false,
+  "candidateAcceptanceSatisfied": true,
   "provisionalCohorts": [
     {
       "directory": "provisional/v2-737c914f",
@@ -88,5 +88,13 @@
     "result": "Synthetic Home/blank startup and shared header only; no source-page pixels, prompts, domain identifiers or sessions observed.",
     "otherRetainedFramesReview": "Original checkpoint cold15 and provisional client44 reviewed by capture helper; provisional cold34, pilot13 and final47 reviewed by parent."
   },
-  "confirmationSummary": "confirmation-summary.json"
+  "confirmationSummary": "confirmation-summary.json",
+  "finalReview": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "head": "02ab280aeb68c847f32b115da950b66f34b4d1fd",
+    "verdict": "acceptable; no material blockers or recapture required",
+    "record": "review.md",
+    "parentFollowup": "Documentation-only notes resolved; optional layout prop typing nit deferred."
+  }
 }

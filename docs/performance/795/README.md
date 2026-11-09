@@ -1,6 +1,6 @@
 # Stable page geometry evidence
 
-The final matched production-build cohort for [#795](https://github.com/axolotl-logic-io/project-buddy/issues/795) contains **320 observations, ten per variant in each of sixteen cells, with zero capture failures**. All 80 after direct-load observations meet initial session-window CLS ≤0.1; all 80 after client observations meet the separate all-shift transition sum ≤0.05. The largest after initial metric is 0.001360; every after transition sum is zero. These are finite local observations, not field percentiles, INP or a permanent-stability guarantee. Final independent evidence review and protected integration merge remain pending.
+The final matched production-build cohort for [#795](https://github.com/axolotl-logic-io/project-buddy/issues/795) contains **320 observations, ten per variant in each of sixteen cells, with zero capture failures**. All 80 after direct-load observations meet initial session-window CLS ≤0.1; all 80 after client observations meet the separate all-shift transition sum ≤0.05. The largest after initial metric is 0.001360; every after transition sum is zero. These are finite local observations, not field percentiles, INP or a permanent-stability guarantee. Fresh independent Opus review accepts the revised product and completed evidence with no material blocker or recapture required. Protected integration merge remains pending.
 
 [Results](results.md) include medians, min–max, IQR, paired differences, retained outliers and inclusive direct-load diagnostics. [The comparison chart](transition-comparison.png) shows transitions only. [Frame ownership](frames.md) explains implementation and tradeoffs. [The manifest](manifest.json), [build record](post808-builds.json), [confirmation summary](confirmation-summary.json) and [validator result](validation.json) identify this cohort. Historical #773 numbers are not reused as post-change measurements.
 
@@ -55,11 +55,12 @@ At measured after source `9f44f3c5`, fast checks pass 256 tests; focused Chromiu
 
 This record extends existing #773 capture recipes; #797 owns the maintained audit command/schema. Copy the archived `.txt` recipes into a private temporary directory, adjust absolute worktree/port/database paths, and provision the guarded local environment using existing test/seed kits. Keep the session file private. Build the two exact revisions, preserve snapshot topology, and use [the final pair configuration](recipes/final-pair-config.json.txt). The controller refuses an existing cohort and stops on any capture failure; preserve failures rather than repeating until green.
 
-All expensive stages, including the complete server lifetime, run sequentially under `flock /tmp/project-buddy-unattended-full-suite.lock`. The final run held that lock for preparation and the whole paired cohort, then reduced and validated the artifacts. Do not overwrite this completed cohort. For read-only reproduction of validation from the repository root:
+All expensive stages, including the complete server lifetime, run sequentially under `flock /tmp/project-buddy-unattended-full-suite.lock`. The final run held that lock for preparation and the whole paired cohort, then reduced and validated the artifacts. Do not overwrite this completed cohort. The validator rewrites its report in the supplied artifact directory. To reproduce validation without changing the checkout, use a scratch copy from the repository root:
 
 ```sh
-cp docs/performance/795/recipes/validate.py.txt /tmp/validate-795.py
-python /tmp/validate-795.py
+capture_copy=$(mktemp -d /tmp/pb-795-validation.XXXXXX)
+cp -a docs/performance/795/. "$capture_copy/"
+python "$capture_copy/recipes/validate.py.txt" "$capture_copy"
 ```
 
 `--preflight` validates retained artifacts without asserting final completeness. Final validation without flags reports 320 completed final records, 24 trace files across all cohorts, 153 screenshot frames and 21 passing negative cases. No hosted telemetry or service is introduced; collection stays off.
@@ -70,7 +71,7 @@ python /tmp/validate-795.py
 
 The stopped provisional v2 cohort retains 48 observations, zero failures and unequal counts, before `bb4d213c` versus after `737c914f`. Its old side-by-side editor is not final evidence. The isolated Home location-row pilot retains 24 observations, three pairs across four client cells, reviewed fix `07038f4` versus `e6d2ab1e`. An initial symlink-copy preparation failure started no browser and produced zero observations; it is retained separately. Neither cohort is pooled into the final pair. Earlier `a29dbe28`/`fb065b53` builds are unmeasured prototypes; `07038f4` was measured as the pilot control.
 
-Fresh Opus review at `6ee32fc3` requested changes. The one authorized fresh Codex implementation round committed `07038f4`, fixing cached Home decoration, Home error gutters, duplicate quest announcements and real frame tests. Its 249 fast and 390 focused browser cases passed. Parent inspection also corrected/validated the artifact pipeline and phone location-row alternative. Final fresh review must assess this revised product and completed evidence before READY.
+Fresh Opus review at `6ee32fc3` requested changes. The one authorized fresh Codex implementation round committed `07038f4`, fixing cached Home decoration, Home error gutters, duplicate quest announcements and real frame tests. Its 249 fast and 390 focused browser cases passed. Parent inspection also corrected/validated the artifact pipeline and phone location-row alternative. [Final fresh Opus review](review.md) at `02ab280a` accepted the revised product and completed evidence with no material blockers or recapture requirement. The parent resolved its documentation notes without changing measured product source. The optional layout-prop typing consistency nit is deferred to avoid an unrelated product edit.
 
 | Review concern | Resolution |
 | --- | --- |
