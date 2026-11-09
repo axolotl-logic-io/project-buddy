@@ -31,6 +31,7 @@ import {
   matchingBuiltInConstruct,
   matchingBuiltInSpell,
 } from "@/prompts/matching-built-in.ts";
+import { NAMED_SHEET_BUILT_INS } from "@/prompts/named-sheet-built-ins.ts";
 import { getSpell, listSpells } from "@/spells/index.ts";
 import type { SpellDefinition } from "@/spells/spell.ts";
 import {
@@ -82,7 +83,7 @@ test("the earlier Vellum fixture is the authentic one: Buddy in its heading, con
   expect(EARLIER_VELLUM_PROMPT.startsWith("# Buddy: Vellum\n")).toBe(true);
   expect(EARLIER_VELLUM_PROMPT).toContain("a small brass construct");
   expect(getConstruct("vellum").definition.prompt).toBe(
-    EARLIER_VELLUM_PROMPT.replace("# Buddy: Vellum\n", "# Construct: Vellum\n"),
+    EARLIER_VELLUM_PROMPT.replace("# Buddy: Vellum\n", "# Character Sheet\n"),
   );
 });
 
@@ -169,10 +170,16 @@ test("an unchanged copy of the Blender manual spell is written in the earlier bu
   );
 });
 
-test("a built-in spell the rename left alone is stored as it is", () => {
+test("the one-question spell is stored with its historical heading", () => {
+  const named = Object.entries(NAMED_SHEET_BUILT_INS.spells).find(
+    ([id]) => id === "ask-one-question",
+  )?.[1];
+  if (named === undefined) {
+    throw new Error("The named one-question spell was not recorded");
+  }
   const askOne = getSpell("ask-one-question").definition;
 
-  expect(writeSpell(askOne)).toEqual(storedSpellPrompt(askOne));
+  expect(writeSpell(askOne)).toEqual(storedSpellPrompt(named));
 });
 
 test("a copy saved in an earlier text keeps its prepared openings", () => {
@@ -224,8 +231,16 @@ test("an edited copy is stored and read exactly as written, in either wording, a
 });
 
 test("a discovery copy round-trips without a fabricated earlier definition and keeps its opening", () => {
+  const named = Object.entries(NAMED_SHEET_BUILT_INS.activities).find(
+    ([id]) => id === "find-something-to-make",
+  )?.[1];
+  if (named === undefined) {
+    throw new Error(
+      "The named Find something to make activity was not recorded",
+    );
+  }
   const discovery = getActivity("find-something-to-make").definition;
-  expect(writeActivity(discovery)).toEqual(storedActivityPrompt(discovery));
+  expect(writeActivity(discovery)).toEqual(storedActivityPrompt(named));
   const read = readActivity(writeActivity(discovery));
   expect(read).toEqual(discovery);
   expect(matchingBuiltInActivity(read ?? discovery)?.id).toBe(
@@ -235,3 +250,46 @@ test("a discovery copy round-trips without a fabricated earlier definition and k
     preparedOpening(getConstruct("vellum").definition, read ?? discovery),
   ).toBeTruthy();
 });
+
+for (const [id, named] of Object.entries(NAMED_SHEET_BUILT_INS.constructs)) {
+  test(`the named ${id} construct reads as a sheet without losing identity or visual metadata`, () => {
+    const read = currentConstructText(named);
+    expect(read.prompt).toBe(
+      `# Character Sheet${named.prompt.slice(named.prompt.indexOf("\n"))}`,
+    );
+    expect(read.visual).toEqual(named.visual);
+    expect(matchingBuiltInConstruct(read)?.id).toBe(id);
+    const edited = { ...named, prompt: `${named.prompt}\nMy instructions.` };
+    expect(currentConstructText(edited)).toEqual(edited);
+    expect(earlierConstructText(edited)).toEqual(edited);
+  });
+}
+for (const [id, named] of Object.entries(NAMED_SHEET_BUILT_INS.activities)) {
+  test(`the named ${id} activity reads as a sheet and retains its opening`, () => {
+    const read = currentActivityText(named);
+    expect(read.prompt).toBe(
+      `# Activity Sheet${named.prompt.slice(named.prompt.indexOf("\n"))}`,
+    );
+    expect(read.openingRequest).toBe(named.openingRequest);
+    expect(matchingBuiltInActivity(read)?.id).toBe(id);
+    const edited = { ...named, openingRequest: "My opening." };
+    expect(currentActivityText(edited)).toEqual(edited);
+    expect(earlierActivityText(edited)).toEqual(edited);
+    expect(
+      preparedOpening(getConstruct("vellum").definition, read),
+    ).toBeDefined();
+  });
+}
+for (const [id, named] of Object.entries(NAMED_SHEET_BUILT_INS.spells)) {
+  test(`the named ${id} spell reads as a sheet without changing selection metadata`, () => {
+    const read = currentSpellText(named);
+    expect(read.prompt).toBe(
+      `# Spell Sheet${named.prompt.slice(named.prompt.indexOf("\n"))}`,
+    );
+    expect(read.whenToUse).toBe(named.whenToUse);
+    expect(matchingBuiltInSpell(read)?.id).toBe(id);
+    const edited = { ...named, whenToUse: "My selection rule." };
+    expect(currentSpellText(edited)).toEqual(edited);
+    expect(earlierSpellText(edited)).toEqual(edited);
+  });
+}

@@ -17,6 +17,7 @@ const PREBUNDLED_DEPS: string[] = [
   "@neondatabase/serverless",
   "@streamdown/code",
   "ai",
+  "culori",
   "drizzle-orm",
   "drizzle-orm/neon-http",
   "drizzle-orm/neon-serverless",

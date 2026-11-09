@@ -25,17 +25,17 @@ test("use_case_see_gold", async () => {
   const chat = await data.chat(await data.project());
 
   await signIn(user);
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Gold: 100");
+  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 100");
 
   await spendGold(user, THIRTEEN_GOLD);
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Gold: 87");
+  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 87");
 
   const { status } = await sendChatMessage(chat.id, MESSAGE);
 
   expect(status).toBe(HTTP_STATUS.ok);
   // A reply from the mock construct costs a fraction of a gold, which the page
   // rounds down.
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Gold: 86");
+  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 86");
 });
 
 test("a balance below 0 shows as 0", async () => {
@@ -45,5 +45,5 @@ test("a balance below 0 shows as 0", async () => {
 
   await signIn(user);
 
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Gold: 0");
+  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 0");
 });

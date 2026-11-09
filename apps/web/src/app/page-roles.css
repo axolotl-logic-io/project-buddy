@@ -196,15 +196,23 @@
     @apply font-medium text-danger text-sm;
   }
 
-  /* The box that sets such a message apart from what surrounds it, such as
-     a failed reply in the chat. */
-  .error-box {
-    @apply rounded-box border border-danger bg-surface px-4 py-3;
+  /* Shared page feedback and static state. Words carry purpose and severity;
+     an opaque surface, outline and spacing group it without colour alone. */
+  .notice {
+    @apply min-w-0 rounded-box border border-line bg-surface px-4 py-3 text-foreground text-sm;
+    overflow-wrap: anywhere;
   }
 
-  /* A message saying what a form did, such as "Saved.". */
-  .status-text {
-    @apply text-muted text-sm;
+  .notice.error-text {
+    @apply border-danger text-danger;
+  }
+
+  .notice:empty {
+    @apply border-0 p-0;
+  }
+
+  .notice a {
+    @apply inline-flex min-h-(--target-size) max-w-full items-center underline underline-offset-4;
   }
 
   /* A raised surface that groups a page's part, such as a form. */
@@ -357,21 +365,21 @@
      <dialog> is hidden by the browser's own display: none, so the panel is
      a flex column only while open. The page under it doesn't scroll. Each
      theme dresses it through the menu tokens (src/themes/themes.ts). */
-  /* The header is a game's HUD in every theme, in the atlas's ink and gold:
+  /* The header is a game's HUD in every theme, with an independent ink and gold palette:
      the site's name behind a compass medallion, the place the page belongs
-     to, the shortcuts in gold, and the buttons as ink tiles with a gold rim,
+     to, and the buttons as ink tiles with a gold rim,
      Quick Note in gold. The menu's panel inside it keeps the theme's own
      look, so only the header's own children are dressed. */
   .site-header {
     @apply flex items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
+    background: var(--hud-ink);
+    color: var(--hud-paper);
+    border-color: var(--hud-gold);
   }
 
   .site-header > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-gold);
+    --focus-outline: 3px solid var(--hud-gold);
   }
 
   .hud-title {
@@ -382,14 +390,14 @@
     @apply flex shrink-0 items-center justify-center rounded-full border-2;
     inline-size: calc(var(--target-size) * 0.75);
     block-size: calc(var(--target-size) * 0.75);
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-gold);
+    background: var(--hud-paper);
+    color: var(--hud-ink);
+    border-color: var(--hud-gold);
   }
 
   .hud-place {
     @apply hidden border-l-2 pl-3 font-semibold;
-    border-color: var(--atlas-line);
+    border-color: var(--hud-line);
     font-family: var(--atlas-font);
   }
 
@@ -400,16 +408,16 @@
 
   .site-header > .button-secondary {
     @apply rounded-control border-2 shadow-none;
-    background: var(--atlas-ink);
-    color: var(--atlas-paper);
-    border-color: var(--atlas-gold);
-    box-shadow: 0 3px 0 var(--atlas-line);
+    background: var(--hud-ink);
+    color: var(--hud-paper);
+    border-color: var(--hud-gold);
+    box-shadow: 0 3px 0 var(--hud-line);
   }
 
   .site-header > a.button-secondary {
-    background: var(--atlas-gold);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-paper);
+    background: var(--hud-gold);
+    color: var(--hud-ink);
+    border-color: var(--hud-paper);
   }
 
   .header-quick-note {
@@ -427,54 +435,10 @@
     }
   }
 
-  .site-shortcuts {
-    @apply mr-2 hidden items-center gap-2;
-  }
-
-  .site-shortcut {
-    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
-    color: var(--atlas-gold);
-    text-decoration-thickness: calc(var(--line-width) * 2);
-  }
-
-  .site-shortcut:hover {
-    color: var(--atlas-paper);
-  }
-
-  @container (min-width: 48rem) {
-    .site-shortcuts {
-      display: flex;
-    }
-  }
-
   @container (min-width: 40rem) {
     .hud-place {
       display: block;
     }
-  }
-
-  /* Home keeps its controls in the same frosted paper as the atlas.
-     The dialog itself retains the user's appearance and no blur, so its
-     fixed positioning stays relative to the viewport. */
-  .site-header:has(~ main .atlas:not([data-inactive])) {
-    @apply z-10 mx-4 mt-4 rounded-box border p-2 shadow-control sm:p-3;
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-line);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-focus);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title {
-    @apply mr-auto;
-    font-family: var(--atlas-font);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) .hud-medallion,
-  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
-    display: none;
   }
 
   .site-menu {
@@ -560,7 +524,7 @@
 }
 
 @layer roles {
-  /* The artwork belongs behind the entire Home page, including its header.
+  /* The artwork belongs behind Home content below the shared header.
      Hidden cached Home pages must never dress the page currently on screen. */
   body:has(.atlas:not([data-inactive])) {
     background-color: var(--atlas-paper);
@@ -740,22 +704,6 @@
       -webkit-backdrop-filter: var(--atlas-blur);
       backdrop-filter: var(--atlas-blur);
     }
-
-    /* Avoid a filter on the header: it would contain the fixed menu.
-       Its pseudo-element blurs only the paper behind the header's controls. */
-    .site-header:has(~ main .atlas:not([data-inactive])) {
-      @apply relative isolate;
-      background: transparent;
-    }
-
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
-      @apply pointer-events-none absolute inset-0 rounded-box;
-      z-index: -1;
-      content: "";
-      background: var(--atlas-frost);
-      -webkit-backdrop-filter: var(--atlas-blur);
-      backdrop-filter: var(--atlas-blur);
-    }
   }
 
   @container (min-width: 48rem) {
@@ -785,8 +733,7 @@
     .atlas-title,
     .atlas-destination,
     .atlas-continue,
-    .atlas-footer,
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
+    .atlas-footer {
       @supports (backdrop-filter: blur(0)) or
         (-webkit-backdrop-filter: blur(0)) {
         -webkit-backdrop-filter: none;

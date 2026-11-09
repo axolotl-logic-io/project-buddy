@@ -1,7 +1,7 @@
 import type { Activity } from "@/activities/activity.ts";
 
 const INSTRUCTIONS = [
-  "# Activity: Open adventure",
+  "# Activity Sheet",
   "There is no set scene: follow the user's lead. Answer what they ask, and help with whatever they bring up.",
 ].join("\n");
 
@@ -10,7 +10,7 @@ const OPENING_KICKOFF =
 
 export const openChat: Activity = {
   id: "open-chat",
-  name: "Open adventure",
+  name: "Chat",
   description: "No set scene: the construct follows your lead.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };

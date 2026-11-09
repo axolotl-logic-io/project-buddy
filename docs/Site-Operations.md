@@ -37,7 +37,7 @@ npm run ops:query -- production "select count(*) from chat_unreads"
 
 The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `CONSTRUCT_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
-At runtime, the web app spends tokens on users' construct chats, charged per user to each user's gold balance. That spend isn't commit-driven, so this page doesn't cover it.
+At runtime, the web app spends tokens on users' construct chats, charged per user to each user's battery balance. That spend isn't commit-driven, so this page doesn't cover it.
 
 ## Signed-out smoke checks
 
@@ -127,6 +127,8 @@ When 0028 was released, the previous build kept reading and writing only `chats.
 
 Both could happen only in those few minutes, and neither needed action.
 
-Migration 0030 is additive. It adds `gold_balances`, each user's [gold](../GLOSSARY.md#gold) in micro-USD, and `gold_ledger`, every grant and transfer of it, and gives every existing user the starting 100 gold once, whatever they spent before. The new build reads and writes only gold; `monthly_spend` stayed, unread, until migration 0035 dropped it. In the minutes between the migration and the promotion, the previous build keeps charging `monthly_spend`, so calls made then cost no gold, and an account it creates then has no balance: the new build grants that account its 100 gold the first time it reads its balance. A rollback to the previous build brings the monthly quota back, counting only what was spent before this release; spending under gold isn't in `monthly_spend`.
+Migration 0030 is additive. It adds `gold_balances`, each user's [gold](../GLOSSARY.md#batteries) in micro-USD, and `gold_ledger`, every grant and transfer of it, and gives every existing user the starting 100 gold once, whatever they spent before. The new build reads and writes only gold; `monthly_spend` stayed, unread, until migration 0035 dropped it. In the minutes between the migration and the promotion, the previous build keeps charging `monthly_spend`, so calls made then cost no gold, and an account it creates then has no balance: the new build grants that account its 100 gold the first time it reads its balance. A rollback to the previous build brings the monthly quota back, counting only what was spent before this release; spending under gold isn't in `monthly_spend`.
 
 Migration 0035 drops `monthly_spend`, and makes `image_generations.month` nullable. The drop is destructive: it ran only once the gold release was live in production, and a rollback to a build before gold is no longer safe, because that build charges `monthly_spend`. Making the column nullable is additive. The build no longer writes `image_generations.month`, so new claims leave it empty; the build before it still writes it, and nothing reads it. Migration 0036 drops it ([#655](https://github.com/axolotl-logic-io/project-buddy/issues/655)).
+
+The model-use balance is now called [Batteries](batteries.md). The migration history above retains its original terminology and schema names. The rename itself has no migration or new grant.

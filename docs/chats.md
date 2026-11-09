@@ -21,10 +21,18 @@ button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
 new-adventure form. The dialog is named "New adventure", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
 in the construct picker's open list closes only the list. That form, like
-the new adventure page at `/chats/new`, offers a quest or "No quest", an
-activity and a construct, built in or the user's own, with the open adventure and Vellum
+the new adventure page at `/chats/new`, offers an accessible Active quest or "No quest", an
+activity and a construct, built in or the user's own, with Chat and Vellum
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
+
+Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
+
+The Constructs page and the Workshop's Constructs tab label each saved-adventure
+action “Adventure with [construct name]”, using the full name in both the visible
+label and accessible name. It opens the New adventure dialog with that construct
+fixed. Closing creates nothing. Construct detail pages offer editing and temporary
+Workshop tests rather than a saved-adventure start action.
 
 A quest's page has its own "New adventure" button (#670, replacing the form
 #536 embedded there), so the quest's adventures lead the page. The form is
@@ -46,7 +54,7 @@ A standalone conversation has no Journal and no [progress timeline](progress-tim
 can't record milestones. Its construct can search and cite the Blender manual, change
 the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
 move the standalone conversation into the quest. The new quest's
-first adventure opens in Project Breakdown through the link the adventure shows.
+first adventure opens in Break Down a Project through the link the adventure shows.
 
 ## Home atlas
 
@@ -74,20 +82,26 @@ to assistive technology on phones. Spellbook and Image gallery remain
 available from the menu; spells are also available in Workshop. The
 Spellbook pages belong to Workshop in the header.
 
+A uniform 75% palette wash preserves visible parchment artwork while making
+focus rings outside the panels readable over dark and bright terrain.
 Strongly tinted parchment panels blur the terrain behind the title,
 destination buttons, current quest and footer. Ink and muted text have known
 contrast even over the darkest marks in the artwork. Browsers without
 backdrop blur use opaque paper. Forced-colors mode removes the artwork and
-blur. The atlas uses the same paper material in both appearance modes.
+blur. The artwork wash, paper, ink, labels, icons and controls follow the
+active Light, Dark or System palette. System updates while Home is open;
+explicit Light or Dark overrides it.
 
-The Home header keeps the site's name, Quick Note and Menu on parchment.
-Other pages keep their ink HUD. Leaving a cached Home page restores the
-usual page background, header and content column without a refresh.
+Home uses the shared site header above its content, with the site's name,
+Quick Note and Menu. Quests and Adventures remain in the menu and Home's
+destinations, without shortcuts beside Quick Note on any page.
+Leaving a cached Home page restores the usual page background and content
+column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
 
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
 The quest sits below all six destinations. With no quest, the same position
-offers Start a quest, leading to a new quest in Project Breakdown.
+offers Start a quest, leading to a new quest in Break Down a Project.
 The existing site header keeps Quick Note and Menu available; Settings and
 Account also appear below the map. Home reads no new data source, creates
 nothing and makes no model call.
@@ -132,9 +146,9 @@ Find something to make (`find-something-to-make`) helps the user discover a smal
 
 Use it without a quest, in an existing quest or with a new quest through the normal adventure form. Vellum and Lumen have prepared openings; edited definitions and new quests with motivation use generated openings. In a quest, the construct uses its existing Journal and the usual tool rules. A standalone adventure has no Journal or quest progress. Suggested milestones remain plans until meaningful work is reported completed.
 
-Every adventure is in one activity at a time: the open adventure, brainstorming, Project Breakdown, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
+Every adventure is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
 
-Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Project Breakdown. The quest creation form defaults to Project Breakdown. An adventure records each
+Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Break Down a Project. The quest creation form defaults to Break Down a Project. An adventure records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
 `select_activity` tool. Its in-adventure result shows the activity it entered,
 including while the reply streams and after reopening the adventure. Saved activity
@@ -152,7 +166,7 @@ newest first by creation time (descending id breaks ties). Each links to its
 existing conversation. There is no adventure-name search or separate No quest
 filter.
 
-Above the list, **Quest** offers **All** and only the viewer's quests by
+Above the list, **Quest** offers **All** and only accessible Active quests by
 name: their own and the team quests they've joined. The page loads the
 viewer's complete adventure list, even when opened with a
 quest filter. Selecting a quest immediately filters those loaded adventures in
@@ -243,10 +257,10 @@ A quest's construct can start an adventure on its own: a check-in. The quest's p
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
 
 1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no adventure started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the quest without error when they are out of gold. The new adventure is in the open adventure, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries. The new adventure is in Chat, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
 3. Emails the owner the construct's message, with a link to the adventure and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the adventure stays.
 
-When the owner is out of gold, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
+When the owner is out of batteries, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
 The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
 
@@ -353,7 +367,7 @@ New quest asks for a quest name and optional motivation: why the user wants to c
 
 New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference used by the dedicated New quest form. Quests created by a construct from an existing adventure keep that adventure's construct.
 
-When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
+When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
 ## Construct presence
 
@@ -383,8 +397,8 @@ under `use_case_construct_presence`.
 
 Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.
 
-## Reply control and gold
+## Reply control and batteries
 
 Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
 
-The composer shows the acting user's gold balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
+The composer shows the acting user's battery balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.

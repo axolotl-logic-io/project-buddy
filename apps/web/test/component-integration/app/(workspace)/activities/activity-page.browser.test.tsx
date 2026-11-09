@@ -20,7 +20,7 @@ import { inWorkspace } from "../../workspace-test-kit.tsx";
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open adventure" }],
+    activities: [{ id: "open-chat", name: "Chat" }],
   }),
 }));
 
@@ -54,7 +54,7 @@ test.each([
     source: getActivity("brainstorming").name,
   },
   {
-    made: "written from scratch",
+    made: "crafted",
     activity: { ...BRAINSTORMING_CLONE, clonedFrom: undefined },
     source: getActivity(DEFAULT_ACTIVITY_ID).name,
   },
