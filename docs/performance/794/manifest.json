@@ -1,0 +1,68 @@
+{
+  "issue": 794,
+  "lineage": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+  "before": {
+    "build": "p6kzXUzloqeOGieyNS_4L",
+    "instrumentationPatchSha256": "9db4c329a691f0a683d1647de894c85c601f07e94183e37a9e7ac5c5e2849203"
+  },
+  "after": {
+    "source": "f85bc6ba8254b937afd76370b0022abbc6831a99",
+    "build": "WnZXNfBQ75clkSQJY2F8H"
+  },
+  "browser": "Chrome/156.0.8078.4",
+  "node": "24.6.0",
+  "next": "16.4.3",
+  "extraDatabaseHttpDelayMs": 50,
+  "initialSamplesPerCell": 3,
+  "confirmationSamplesPerCell": 10,
+  "plannedBrowserObservations": 208,
+  "plannedDocumentObservations": 52,
+  "screenshots": false,
+  "fieldCollection": false,
+  "failures": [
+    {
+      "stage": "baseline-relocation",
+      "completedDocumentObservations": 2,
+      "reason": "relative hashed external-package links invalid after build copy"
+    },
+    {
+      "stage": "browser-version-pilot",
+      "completedBrowserObservations": 28,
+      "browser": "Chrome/145.0.7632.6",
+      "reason": "unordered filesystem glob selected wrong browser"
+    },
+    {
+      "stage": "browser-server-start",
+      "completedBrowserObservations": 0,
+      "reason": "previous server shutdown not awaited before releasing lock"
+    },
+    {
+      "stage": "affected-browser-tests",
+      "failed": 4,
+      "passed": 354,
+      "reason": "stale artwork save expectations"
+    },
+    {
+      "stage": "canonical-test-lint",
+      "reason": "conditional expectations in upstream correction required follow-up"
+    },
+    {
+      "stage": "canonical-non-drawer-adaptation",
+      "passed": 34,
+      "failed": 4,
+      "reason": "prompt section navigation button absent in non-drawer fixture"
+    }
+  ],
+  "completedBrowserObservations": 208,
+  "completedDocumentObservations": 52,
+  "validator": {
+    "ownerIssue": 797,
+    "module": "scripts/performance/server-evidence.ts",
+    "sha256": "d2e6b0a53e7685cb4503e387adc4f3cde9de31f9d2fd1a77f5dced5e931db3e8"
+  },
+  "artifacts": {
+    "interrupted-documents.json.gz": "b57135796879bb607baed82144483f6d177bb48caa5446bc97beed1a12b3e570",
+    "browser.json.gz": "43cccf17d45e712de07d7bbcf45932d8ee950f04e0b7f984337675285a4a444a",
+    "documents.json.gz": "3e4980a11dcbcce4b7063caacb55eaa77312f79d0e96350fe612c5834e65dfe1"
+  }
+}

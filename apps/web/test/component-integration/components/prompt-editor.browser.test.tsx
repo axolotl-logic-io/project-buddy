@@ -558,7 +558,6 @@ test("Save is text-only for unchanged appearance or a description edited then re
   await expect
     .element(button(PROMPT_COPY.save))
     .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
-  await button(CONSTRUCT_PROMPT).click();
   await field(CONSTRUCT_PROMPT).fill("Private new voice");
   const submission = saved(saveConstructAction);
   await button(PROMPT_COPY.save).click();
@@ -602,7 +601,7 @@ test.each(["A brass guide", "A silver fox with a blue cloak"])(
         visual: { version: 1, description: "A brass guide" },
       },
     });
-      await field("Visual description").fill(description);
+    await field("Visual description").fill(description);
     await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
     await button(VISUAL_COPY.generate).click();
     await expect
@@ -679,7 +678,6 @@ test("text-only Save during pending work preserves its original UUID and payload
   await field("Visual description").fill("Different appearance");
   await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
   await field("Visual description").fill(description);
-  await button(CONSTRUCT_PROMPT).click();
   await field(CONSTRUCT_PROMPT).fill("New instructions during generation");
   await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
   const submission = saved(saveConstructAction);
