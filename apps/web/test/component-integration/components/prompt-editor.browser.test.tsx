@@ -26,7 +26,10 @@ import {
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { VISUAL_GENERATION_REQUEST } from "@/constructs/visual-generation-contract.ts";
+import {
+  VISUAL_GENERATION_REQUEST,
+  type VisualGenerationRequest,
+} from "@/constructs/visual-generation-contract.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
@@ -439,13 +442,21 @@ test("new saved artwork does not discard a browser draft on reload", async () =>
 const TEST_RESERVATION = 12;
 
 test.each([VISUAL_COPY.saveAndGenerate, "Generate Images"])(
-  "%s saves the edited Vellum description and shows generation loading",
+  "%s uses the edited description and shows generation loading",
   async (label) => {
     await setViewport(NARROWEST_VIEWPORT);
     const edited = "A silver fox with a blue cloak, replacing the brass guide";
+    const generation = Promise.withResolvers<Response>();
+    const generationRequests: VisualGenerationRequest[] = [];
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>((input) => {
+      vi.fn<typeof fetch>((input, init) => {
+        if (init?.method === "POST") {
+          generationRequests.push(
+            VISUAL_GENERATION_REQUEST.parse(JSON.parse(String(init.body))),
+          );
+          return generation.promise;
+        }
         const url = String(input);
         const quote = {
           reservationGold: TEST_RESERVATION,
@@ -494,6 +505,39 @@ test.each([VISUAL_COPY.saveAndGenerate, "Generate Images"])(
     expect(hint?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
       saveButton.element().getBoundingClientRect().top,
     );
+    if (label === VISUAL_COPY.generate) {
+      await button(label).click();
+      await expect
+        .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
+        .toBeVisible();
+      expect(saveConstructAction).not.toHaveBeenCalled();
+      expect(generationRequests).toHaveLength(1);
+      expect(generationRequests[0]?.description).toBe(edited);
+      expect(generationRequests[0]?.requestId).toEqual(expect.any(String));
+      expect(Object.values(localStorage).join(" ")).toContain(
+        generationRequests[0]?.requestId,
+      );
+      await expect.element(field("Visual description")).toHaveValue(edited);
+      await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
+      await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+      generation.resolve(
+        Response.json({
+          status: "failed",
+          reservationGold: TEST_RESERVATION,
+          roles: {
+            avatar: "failed",
+            portrait: "failed",
+            opening: "failed",
+            working: "failed",
+          },
+        }),
+      );
+      await expect
+        .element(page.getByText(VISUAL_COPY.states.failed))
+        .toBeVisible();
+      await expect.element(field("Visual description")).toHaveValue(edited);
+      return;
+    }
     const submission = saved(saveConstructAction);
     await button(label).click();
     const form = await submission;
@@ -584,18 +628,26 @@ test("Save is text-only for unchanged appearance or a description edited then re
   await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
 });
 
-test("Generate Images with unchanged appearance submits an explicit paid intention and durable UUID", async () => {
+test("Generate Images with unchanged appearance requests paid work without saving", async () => {
+  const generation = Promise.withResolvers<Response>();
+  const generationRequests: VisualGenerationRequest[] = [];
   vi.stubGlobal(
     "fetch",
-    vi.fn<typeof fetch>(() =>
-      Promise.resolve(
+    vi.fn<typeof fetch>((_input, init) => {
+      if (init?.method === "POST") {
+        generationRequests.push(
+          VISUAL_GENERATION_REQUEST.parse(JSON.parse(String(init.body))),
+        );
+        return generation.promise;
+      }
+      return Promise.resolve(
         Response.json({
           reservationGold: TEST_RESERVATION,
           available: true,
           outdated: false,
         }),
-      ),
-    ),
+      );
+    }),
   );
   await openConstruct({
     ...VELLUM_CLONE,
@@ -605,15 +657,31 @@ test("Generate Images with unchanged appearance submits an explicit paid intenti
     },
   });
   await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
-  const submission = saved(saveConstructAction);
   await button(VISUAL_COPY.generate).click();
-  const data = await submission;
-  expect(data.get("generateImages")).toBe("true");
-  expect(data.get("visualDescription")).toBe("A brass guide");
-  expect(data.get("visualRequestId")).toEqual(expect.any(String));
   await expect
     .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
     .toBeVisible();
+  expect(saveConstructAction).not.toHaveBeenCalled();
+  expect(generationRequests).toHaveLength(1);
+  expect(generationRequests[0]?.description).toBe("A brass guide");
+  expect(generationRequests[0]?.requestId).toEqual(expect.any(String));
+  expect(Object.values(localStorage).join(" ")).toContain(
+    generationRequests[0]?.requestId,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+  generation.resolve(
+    Response.json({
+      status: "failed",
+      reservationGold: TEST_RESERVATION,
+      roles: {
+        avatar: "failed",
+        portrait: "failed",
+        opening: "failed",
+        working: "failed",
+      },
+    }),
+  );
+  await expect.element(page.getByText(VISUAL_COPY.states.failed)).toBeVisible();
 });
 
 const PENDING_VISUAL_REQUEST = "3bb055fe-90cc-49fd-b5c5-8f9a9382c507";
