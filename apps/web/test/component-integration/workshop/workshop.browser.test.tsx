@@ -4,6 +4,7 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { Breadcrumbs, SiteHeader } from "@/components/site-header.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
@@ -544,3 +545,44 @@ test.each(["construct", "activity", "spell"] as const)(
     expect(saveAction).not.toHaveBeenCalled();
   },
 );
+
+test("the test drawer action stays below pinned breadcrumbs while scrolling", async () => {
+  await render(
+    <>
+      <SiteHeader
+        links={
+          <Breadcrumbs
+            items={[
+              { label: "Workshop", href: "/workshop" },
+              { label: DRAFT.name },
+            ]}
+          />
+        }
+      />
+      {inWorkspace(
+        <Workshop initial={DRAFT} options={OPTIONS}>
+          <div style={{ minHeight: "200dvh" }}>Long editor content</div>
+        </Workshop>,
+      )}
+    </>,
+  );
+  window.scrollTo({ top: window.innerHeight, behavior: "instant" });
+  const breadcrumbs = page.getByRole("navigation", { name: "Breadcrumbs" });
+  const testButton = page.getByRole("button", {
+    name: WORKSHOP_COPY.test,
+    exact: true,
+  });
+  await expect.poll(() => window.scrollY).toBeGreaterThan(0);
+  await expect
+    .poll(
+      () =>
+        testButton.element().getBoundingClientRect().top -
+        breadcrumbs.element().getBoundingClientRect().bottom,
+    )
+    .toBeGreaterThanOrEqual(0);
+  await expect.element(testButton).toBeInViewport({ ratio: 1 });
+  await testButton.click();
+  await expect
+    .element(page.getByRole("dialog", { name: WORKSHOP_COPY.test }))
+    .toBeVisible();
+});
