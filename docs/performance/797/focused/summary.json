@@ -1,0 +1,1087 @@
+{
+  "diagnostic": "Median/min–max only; trend warnings, no score gate or field INP inference",
+  "startupWindowMs": 5000,
+  "byteScope": "Resources started and completed within fixed first five seconds; source prefetch before activation separate diagnostic; full variable observation retained in gzip",
+  "cells": [
+    {
+      "cell": "populated/desktop/long-adventure/cold-direct",
+      "shell": {
+        "count": 10,
+        "median": 47.05000019073486,
+        "min": 40.5,
+        "max": 483.30000019073486
+      },
+      "stability": [
+        {
+          "lastChangeMs": 982.1000003814697,
+          "quiet": true,
+          "stableUsefulMs": 1256.9000005722046
+        },
+        {
+          "lastChangeMs": 565.8000001907349,
+          "quiet": true,
+          "stableUsefulMs": 814.8000001907349
+        },
+        {
+          "lastChangeMs": 637.2999992370605,
+          "quiet": true,
+          "stableUsefulMs": 886.5999994277954
+        },
+        {
+          "lastChangeMs": 590.4000005722046,
+          "quiet": true,
+          "stableUsefulMs": 815.5
+        },
+        {
+          "lastChangeMs": 569.5,
+          "quiet": true,
+          "stableUsefulMs": 817.8000001907349
+        },
+        {
+          "lastChangeMs": 648.8000001907349,
+          "quiet": true,
+          "stableUsefulMs": 874.3000001907349
+        },
+        {
+          "lastChangeMs": 577.4000005722046,
+          "quiet": true,
+          "stableUsefulMs": 802.5
+        },
+        {
+          "lastChangeMs": 580.8999996185303,
+          "quiet": true,
+          "stableUsefulMs": 808.3000001907349
+        },
+        {
+          "lastChangeMs": 647.5,
+          "quiet": true,
+          "stableUsefulMs": 885.3000001907349
+        },
+        {
+          "lastChangeMs": 565.1999998092651,
+          "quiet": true,
+          "stableUsefulMs": 754.6999998092651
+        }
+      ],
+      "initialSessionWindowCls": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "allShiftSums": {
+        "count": 10,
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "primary": {
+        "count": 10,
+        "median": 385.09999990463257,
+        "min": 380,
+        "max": 843.6000003814697
+      },
+      "control": {
+        "count": 10,
+        "median": 816.6500000953674,
+        "min": 754.6999998092651,
+        "max": 1256.9000005722046
+      },
+      "startupLongTaskBusyMs": {
+        "count": 10,
+        "median": 202,
+        "min": 76,
+        "max": 301
+      },
+      "quietWindows": 10,
+      "bytes": [
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 9,
+            "bytes": 13192
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 9,
+            "bytes": 13192
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 9,
+            "bytes": 13192
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 8,
+            "bytes": 12490
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 9,
+            "bytes": 13192
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 645848
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 131368
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 821
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        }
+      ]
+    },
+    {
+      "cell": "populated/desktop/long-adventure/warm-direct",
+      "shell": {
+        "count": 10,
+        "median": 58.69999980926514,
+        "min": 44,
+        "max": 62.30000019073486
+      },
+      "stability": [
+        {
+          "lastChangeMs": 547.0999994277954,
+          "quiet": true,
+          "stableUsefulMs": 754.1999998092651
+        },
+        {
+          "lastChangeMs": 349.3999996185303,
+          "quiet": true,
+          "stableUsefulMs": 544.5999994277954
+        },
+        {
+          "lastChangeMs": 349.0999994277954,
+          "quiet": true,
+          "stableUsefulMs": 543.0999994277954
+        },
+        {
+          "lastChangeMs": 349.5999994277954,
+          "quiet": true,
+          "stableUsefulMs": 554.3000001907349
+        },
+        {
+          "lastChangeMs": 343.30000019073486,
+          "quiet": true,
+          "stableUsefulMs": 536.1999998092651
+        },
+        {
+          "lastChangeMs": 347.6000003814697,
+          "quiet": true,
+          "stableUsefulMs": 553.2000007629395
+        },
+        {
+          "lastChangeMs": 384.19999980926514,
+          "quiet": true,
+          "stableUsefulMs": 592.1999998092651
+        },
+        {
+          "lastChangeMs": 352.80000019073486,
+          "quiet": true,
+          "stableUsefulMs": 552.3000001907349
+        },
+        {
+          "lastChangeMs": 349.1000003814697,
+          "quiet": true,
+          "stableUsefulMs": 550.6000003814697
+        },
+        {
+          "lastChangeMs": 348.4000005722046,
+          "quiet": true,
+          "stableUsefulMs": 555.1000003814697
+        }
+      ],
+      "initialSessionWindowCls": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "allShiftSums": {
+        "count": 10,
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "primary": {
+        "count": 10,
+        "median": 349.15000009536743,
+        "min": 343.19999980926514,
+        "max": 546.6999998092651
+      },
+      "control": {
+        "count": 10,
+        "median": 552.7500004768372,
+        "min": 536.1999998092651,
+        "max": 754.1999998092651
+      },
+      "startupLongTaskBusyMs": {
+        "count": 10,
+        "median": 0,
+        "min": 0,
+        "max": 55
+      },
+      "quietWindows": 10,
+      "bytes": [
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 8,
+            "bytes": 12490
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 8,
+            "bytes": 12490
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 21,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 3,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 1,
+            "bytes": 300
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 10029
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "destinationOnly": {
+            "requests": 0,
+            "bytes": 0
+          }
+        }
+      ]
+    },
+    {
+      "cell": "populated/desktop/long-adventure/client-navigation",
+      "shell": {
+        "count": 10,
+        "median": 5.549999713897705,
+        "min": 0.6999998092651367,
+        "max": 7.5
+      },
+      "stability": [
+        {
+          "lastChangeMs": 352.8999996185303,
+          "quiet": true,
+          "stableUsefulMs": 553.6999998092651
+        },
+        {
+          "lastChangeMs": 339.79999923706055,
+          "quiet": true,
+          "stableUsefulMs": 529.7999992370605
+        },
+        {
+          "lastChangeMs": 327.8999996185303,
+          "quiet": true,
+          "stableUsefulMs": 514.6000003814697
+        },
+        {
+          "lastChangeMs": 325.5,
+          "quiet": true,
+          "stableUsefulMs": 512.5999994277954
+        },
+        {
+          "lastChangeMs": 311.30000019073486,
+          "quiet": true,
+          "stableUsefulMs": 494.69999980926514
+        },
+        {
+          "lastChangeMs": 317.5,
+          "quiet": true,
+          "stableUsefulMs": 499.19999980926514
+        },
+        {
+          "lastChangeMs": 310.9000005722046,
+          "quiet": true,
+          "stableUsefulMs": 503.19999980926514
+        },
+        {
+          "lastChangeMs": 331.80000019073486,
+          "quiet": true,
+          "stableUsefulMs": 531.3000001907349
+        },
+        {
+          "lastChangeMs": 331,
+          "quiet": true,
+          "stableUsefulMs": 525.6999998092651
+        },
+        {
+          "lastChangeMs": 346,
+          "quiet": true,
+          "stableUsefulMs": 569.6999998092651
+        }
+      ],
+      "initialSessionWindowCls": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "allShiftSums": {
+        "count": 10,
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "primary": {
+        "count": 10,
+        "median": 328.84999990463257,
+        "min": 310.30000019073486,
+        "max": 352.30000019073486
+      },
+      "control": {
+        "count": 10,
+        "median": 520.1500000953674,
+        "min": 494.69999980926514,
+        "max": 569.6999998092651
+      },
+      "startupLongTaskBusyMs": {
+        "count": 10,
+        "median": 0,
+        "min": 0,
+        "max": 55
+      },
+      "quietWindows": 10,
+      "bytes": [
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 12,
+            "bytes": 28026
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 22,
+            "bytes": 23042
+          },
+          "destinationOnly": {
+            "requests": 18,
+            "bytes": 79921
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 11,
+            "bytes": 24851
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 24,
+            "bytes": 29407
+          },
+          "destinationOnly": {
+            "requests": 15,
+            "bytes": 66436
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 1,
+            "bytes": 702
+          },
+          "destinationOnly": {
+            "requests": 14,
+            "bytes": 78367
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 5,
+            "bytes": 3546
+          },
+          "destinationOnly": {
+            "requests": 13,
+            "bytes": 62979
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 29,
+            "bytes": 45384
+          },
+          "destinationOnly": {
+            "requests": 13,
+            "bytes": 62095
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 29,
+            "bytes": 45384
+          },
+          "destinationOnly": {
+            "requests": 13,
+            "bytes": 62097
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 1,
+            "bytes": 702
+          },
+          "destinationOnly": {
+            "requests": 13,
+            "bytes": 62981
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 29,
+            "bytes": 45384
+          },
+          "destinationOnly": {
+            "requests": 12,
+            "bytes": 62101
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 1,
+            "bytes": 702
+          },
+          "destinationOnly": {
+            "requests": 13,
+            "bytes": 62980
+          }
+        },
+        {
+          "firstLoadJavaScript": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "firstLoadFonts": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "cssArtwork": {
+            "requests": 0,
+            "bytes": 0
+          },
+          "startupPrefetch": {
+            "requests": 7,
+            "bytes": 11788
+          },
+          "sourcePrefetchBeforeActivation": {
+            "requests": 29,
+            "bytes": 45384
+          },
+          "destinationOnly": {
+            "requests": 12,
+            "bytes": 62106
+          }
+        }
+      ]
+    }
+  ]
+}

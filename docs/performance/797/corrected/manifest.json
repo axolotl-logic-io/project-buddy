@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 3,
+  "scope": "full",
+  "selection": null,
+  "captureProtocol": "commit-probe-v5",
+  "sourceCommit": "782210baecd5b5ce493d1e0aa6ecffb14d8d2514",
+  "buildId": "EsiYBEB-wlJ-cTqSlnkBH",
+  "samples": 3,
+  "fixture": {
+    "accounts": 3,
+    "quests": 2,
+    "messages": 200,
+    "ownConstructs": 1,
+    "emptyDetailMessages": 0,
+    "editedPromptEnding": "Edited."
+  },
+  "tools": {
+    "browser": "Chrome/156.0.8078.4",
+    "puppeteerCore": "24.12.1",
+    "lighthouse": "12.8.2",
+    "lighthousePuppeteerCore": "24.43.1"
+  },
+  "hostBefore": {
+    "name": "giffany",
+    "cpuCount": 32,
+    "memoryBytes": 32707588096,
+    "load": [
+      1.81,
+      1.66,
+      1.38
+    ]
+  },
+  "hostAfter": {
+    "name": "giffany",
+    "cpuCount": 32,
+    "memoryBytes": 32707588096,
+    "load": [
+      1.24,
+      1.3,
+      1.31
+    ]
+  },
+  "cache": "new browser context per journey/sample; cold direct, warm direct then source→client; server/database not reset between cells",
+  "theme": "parchment/light",
+  "profiles": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "cpuRate": 1,
+      "latency": 0,
+      "download": -1,
+      "upload": -1
+    },
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "cpuRate": 4,
+      "latency": 150,
+      "download": 200000,
+      "upload": 93750
+    }
+  },
+  "lighthouseEmulation": "Lighthouse mobile screen and user agent, applied before each source page loads",
+  "probeResolutionMs": 100,
+  "inputCharacters": 42,
+  "networkAttribution": "Completed CDP requests; initiator category only, no stacks or URLs; early means started by primary presence, not essential payload",
+  "minimumWindowMs": 5000,
+  "postControlWindowMs": 2000,
+  "quietWindowMs": 500,
+  "productionAccess": false,
+  "fieldCollection": false,
+  "screenshotPolicy": {
+    "allowedFiles": [
+      "home.trace.json.gz",
+      "stream.trace.json.gz"
+    ],
+    "manualReviewRequired": true
+  },
+  "complete": true,
+  "diagnosticComplete": false
+}
