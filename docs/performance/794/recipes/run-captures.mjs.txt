@@ -1,0 +1,19 @@
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {readFile,writeFile} from 'node:fs/promises';
+import {loadavg,cpus} from 'node:os';
+async function command(file,args){const c=spawn(file,args,{stdio:'inherit'});const status=await new Promise((resolve,reject)=>{c.on('error',reject);c.on('exit',resolve);});if(status!==0)throw Error(`capture failed ${status}`);}
+const before=spawn(process.execPath,['/tmp/pb-794/start.mjs','before','37601','/tmp/pb-794/before']);
+let after;
+try{
+// Server readiness is the emitted Next Ready line; fail on an unchanged deadline.
+async function ready(variant){const path=`/tmp/pb-794/${variant}-server.log`;const {watch}=await import('node:fs');await new Promise(async(resolve,reject)=>{const timer=setTimeout(()=>{watcher.close();reject(Error('server readiness deadline'));},30000);const watcher=watch('/tmp/pb-794',async(_,name)=>{if(name!==`${variant}-server.log`)return;const log=await readFile(path,'utf8');if(log.includes('Ready in')){clearTimeout(timer);watcher.close();resolve();}});try{const log=await readFile(path,'utf8');if(log.includes('Ready in')){clearTimeout(timer);watcher.close();resolve();}}catch{}});}
+await ready('before');
+after=spawn(process.execPath,['/tmp/pb-794/start.mjs','after','37602','apps/web']);
+await ready('after');
+await writeFile('/tmp/pb-794/host.json',JSON.stringify({load:loadavg(),cpus:cpus().length,at:new Date().toISOString()}));
+if(!process.argv.includes('--browser-only'))await command(process.execPath,['/tmp/pb-794/documents.mjs']);
+await command(process.execPath,['/tmp/pb-794/capture.mjs']);
+}finally{
+await Promise.all([before,after].filter(Boolean).map(async child=>{if(child.exitCode!==null||child.signalCode!==null)return;const stopped=once(child,'exit');child.kill('SIGTERM');await stopped;}));
+}
