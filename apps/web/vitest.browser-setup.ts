@@ -102,3 +102,9 @@ vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
     throw new Error("Mock the premade quest action in this test");
   }),
 }));
+
+// Direct workspace-layout fixtures use the same unavailable purchase catalog
+// as the workspace kit, without importing server configuration or logging.
+vi.mock("@/batteries/catalog.ts", () => ({
+  availableBatteryCatalog: vi.fn(() => []),
+}));

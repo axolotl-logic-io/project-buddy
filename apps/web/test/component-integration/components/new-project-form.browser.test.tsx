@@ -5,6 +5,7 @@ import type { createProjectAction } from "@/app/(workspace)/projects/actions.ts"
 import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
@@ -64,7 +65,7 @@ describe("use_case_new_project", () => {
   });
 });
 
-test("out-of-batteries refusal keeps Why and the construct and the legacy Marketplace link", async () => {
+test("out-of-batteries refusal keeps Why and the construct and shows purchase availability", async () => {
   const message = userMessage("out-of-gold");
   const motivation = "A gift for a friend";
   actions.createProjectAction.mockResolvedValue({
@@ -83,8 +84,13 @@ test("out-of-batteries refusal keeps Why and the construct and the legacy Market
   await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
   await expect.element(page.getByText(message, { exact: true })).toBeVisible();
   await expect
+    .element(
+      page.getByText(BATTERY_PURCHASES_COPY.unavailable, { exact: true }),
+    )
+    .toBeVisible();
+  await expect
     .element(page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }))
-    .toHaveAttribute("href", "/marketplace#your-listings");
+    .not.toBeInTheDocument();
   await expect.element(why).toHaveValue(motivation);
   await expect.element(page.getByText("Lumen", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
