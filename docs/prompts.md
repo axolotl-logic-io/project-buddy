@@ -12,7 +12,11 @@ Reset changes the editor draft and offers Undo reset; only Save stores it. Unsav
 
 ## Workshop
 
-Construct, activity and spell detail pages share the Workshop. The existing save, reset, Customize, delete and Marketplace actions remain available. Choose an example test case or write a message beside the definition. Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
+Construct, activity and spell detail pages share the Workshop. The existing save, reset, Customize, delete and Marketplace actions remain available.
+
+The editor uses the available width and shows one instruction section at a time. Choose Try your draft to open the test drawer, then choose an example test case or write a message. The drawer fills the screen width on phones and keeps the composer below the scrolling results. Back to editing or Escape closes it and returns focus to Try your draft. Reopening preserves test results, settings and unsent messages; closing does not cancel a pending test.
+
+Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
 
 Construct tests choose an activity; activity tests choose a construct and can test the opening request. Spell tests choose both and either let the construct select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as adventures. Real tests spend the acting user's gold.
 
