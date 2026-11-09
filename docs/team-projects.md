@@ -21,7 +21,7 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 
 The owner can't leave their own quest. Transferring ownership is out of scope.
 
-Check-ins stay the owner's: their setting, their email and their gold. A check-in starts a new adventure in the quest, which members can read like any other adventure. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
+Check-ins stay the owner's: their setting, their email and their batteries. A check-in starts a new adventure in the quest, which members can read like any other adventure. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
 
 Standalone adventures, own constructs, own activities, own spells, push subscriptions and each user's image gallery stay private to their user.
 

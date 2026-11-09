@@ -112,7 +112,7 @@ describe("use_case_new_project_name_too_long", () => {
 test("an out-of-gold refusal preserves the quest name and motivation", async () => {
   actions.createProjectAction.mockImplementation(async (_previous, form) => ({
     kind: "outOfGold",
-    message: "You're out of gold.",
+    message: "You're out of batteries.",
     name: String(form.get("name")),
     motivation: String(form.get("motivation")),
   }));
@@ -125,7 +125,7 @@ test("an out-of-gold refusal preserves the quest name and motivation", async () 
   await motivation.fill("A gift for a friend");
   await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
   await expect
-    .element(page.getByText("You're out of gold.", { exact: true }))
+    .element(page.getByText("You're out of batteries.", { exact: true }))
     .toBeVisible();
   await expect.element(name).toHaveValue("Birdhouse");
   await expect.element(motivation).toHaveValue("A gift for a friend");
