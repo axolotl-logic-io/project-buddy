@@ -83,7 +83,7 @@ The validator now rejects this directory as a complete audit (its manifest preda
 
 ### Desktop prefetch storm
 
-This cohort contains a large prefetch burst that its summary did not report. The facts below come from the committed `full/readiness.json.gz`:
+This cohort contains a large prefetch burst that its summary did not report. Issue [#819](https://github.com/axolotl-logic-io/project-buddy/issues/819) tracks it separately from this tooling change. The facts below come from the committed `full/readiness.json.gz`:
 
 - 79,144 of 90,362 completed requests (87.6%) belong to 24 of 270 rows, all desktop.
 - Affected cells: empty Workshop 9 of 9 rows, populated Workshop 8 of 9, populated quest 3 of 9 and empty-detail quest 4 of 9. All three cache modes are affected.
@@ -92,7 +92,7 @@ This cohort contains a large prefetch burst that its summary did not report. The
 - Other rows: phone 32–76 requests (median 45), unaffected desktop 32–88 (median 41).
 - All 270 rows still had a quiet final 500 ms, because that test is geometry only.
 
-The product cause is not established: about 600 prefetches a second repeat one link that is visible on the page, after a dialog closes, on desktop only. The audit does not change product code; the coordinator tracks a follow-up. The summary now reports per-cell request, prefetch and byte ranges and counts rows still starting requests in the final 500 ms, so a corrected cohort shows whether the burst persists.
+The product cause is not established: about 600 prefetches a second repeat one link that is visible on the page, after a dialog closes, on desktop only. The audit does not change product code; #819 tracks the cause. The summary now reports per-cell request, prefetch and byte ranges and counts rows still starting requests in the final 500 ms, so a corrected cohort shows whether the burst persists.
 
 ### Corrections
 
@@ -104,3 +104,9 @@ The product cause is not established: about 600 prefetches a second repeat one l
 - The server-span schema is shared with #794's recorder instead of copied.
 
 The smoke ran one Lighthouse sample against a throwaway build. It was a pre-flight check, not evidence, and is not retained.
+
+## Failed corrected attempt
+
+The first corrected invocation used clean source `9a3b231f90deb8c0b1503ca32704205c05e711a0`, production build `B8rBwMYULlijrBg6DRi5S`, with tools and fixture counts read from the installation and seed. It retained nine observations (populated desktop Home, all samples and modes) and the Home trace, then stopped at populated desktop Quests, sample 1, cold direct: phase `state-content`, kind `content-absent`. No Lighthouse run or final validation occurred. Cleanup reset the isolated database, closed port 36769 and removed private fixture directories. The [failure record](attempt-4.failure.json) is retained.
+
+The check was wrong, not the page. The Quests probe confirms readiness by selecting the second status tab, so after observation the page correctly shows that tab, not the active quest. The pre-flight smoke loaded each page without running probes, so it could not catch this. The Quests check now runs before the probe, as the editor's already did, because both probes change what the page shows. Every other probe opens and closes a menu or dialog or types into the composer, leaving the checked content in place. This attempt is not retried as a measurement; the next invocation records its own source and build.

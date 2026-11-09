@@ -663,10 +663,12 @@ async function captureMatrix(
           globalThis.audit.primary = performance.now();
         });
         const content = stateContent(state, name, fixture);
-        // The editor probe replaces the prompt's text, so its saved content is
-        // read before the probe; other states are read after the observation
-        // window, outside every measured interval.
-        if (name === "editor") {
+        // Two probes change what the page shows: the editor's replaces the
+        // prompt text and the quests probe switches to another status tab.
+        // Those states are read before the probe; the rest after the
+        // observation window, outside every measured interval.
+        const probeChangesContent = name === "editor" || name === "quests";
+        if (probeChangesContent) {
           phase = "state-content";
           if ((await page.evaluate(statePresent, content)) !== true) {
             throw new Error("State content not observed");
@@ -733,7 +735,7 @@ async function captureMatrix(
         });
         phase = "state-content";
         if (
-          name !== "editor" &&
+          !probeChangesContent &&
           (await page.evaluate(statePresent, content)) !== true
         ) {
           throw new Error("State content not observed");
