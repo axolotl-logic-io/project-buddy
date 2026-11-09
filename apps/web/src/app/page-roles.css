@@ -359,7 +359,7 @@
      theme dresses it through the menu tokens (src/themes/themes.ts). */
   /* The header is a game's HUD in every theme, in the atlas's ink and gold:
      the site's name behind a compass medallion, the place the page belongs
-     to, the shortcuts in gold, and the buttons as ink tiles with a gold rim,
+     to, and the buttons as ink tiles with a gold rim,
      Quick Note in gold. The menu's panel inside it keeps the theme's own
      look, so only the header's own children are dressed. */
   .site-header {
@@ -427,54 +427,10 @@
     }
   }
 
-  .site-shortcuts {
-    @apply mr-2 hidden items-center gap-2;
-  }
-
-  .site-shortcut {
-    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
-    color: var(--atlas-gold);
-    text-decoration-thickness: calc(var(--line-width) * 2);
-  }
-
-  .site-shortcut:hover {
-    color: var(--atlas-paper);
-  }
-
-  @container (min-width: 48rem) {
-    .site-shortcuts {
-      display: flex;
-    }
-  }
-
   @container (min-width: 40rem) {
     .hud-place {
       display: block;
     }
-  }
-
-  /* Home keeps its controls in the same frosted paper as the atlas.
-     The dialog itself retains the user's appearance and no blur, so its
-     fixed positioning stays relative to the viewport. */
-  .site-header:has(~ main .atlas:not([data-inactive])) {
-    @apply z-10 mx-4 mt-4 rounded-box border p-2 shadow-control sm:p-3;
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-line);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-focus);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title {
-    @apply mr-auto;
-    font-family: var(--atlas-font);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) .hud-medallion,
-  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
-    display: none;
   }
 
   .site-menu {
@@ -740,22 +696,6 @@
       -webkit-backdrop-filter: var(--atlas-blur);
       backdrop-filter: var(--atlas-blur);
     }
-
-    /* Avoid a filter on the header: it would contain the fixed menu.
-       Its pseudo-element blurs only the paper behind the header's controls. */
-    .site-header:has(~ main .atlas:not([data-inactive])) {
-      @apply relative isolate;
-      background: transparent;
-    }
-
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
-      @apply pointer-events-none absolute inset-0 rounded-box;
-      z-index: -1;
-      content: "";
-      background: var(--atlas-frost);
-      -webkit-backdrop-filter: var(--atlas-blur);
-      backdrop-filter: var(--atlas-blur);
-    }
   }
 
   @container (min-width: 48rem) {
@@ -785,8 +725,7 @@
     .atlas-title,
     .atlas-destination,
     .atlas-continue,
-    .atlas-footer,
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
+    .atlas-footer {
       @supports (backdrop-filter: blur(0)) or
         (-webkit-backdrop-filter: blur(0)) {
         -webkit-backdrop-filter: none;
