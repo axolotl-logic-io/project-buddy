@@ -57,7 +57,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The user's gold (src/gold/) is spent: the chat, the new-chat and
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
-    "You're out of gold. The construct can't reply, generate images or start new adventures and quests without it.",
+    "You're out of batteries. The construct can't reply, generate images or start new adventures and quests without it.",
   unknown: "Something went wrong. Please try again later.",
 };
 
