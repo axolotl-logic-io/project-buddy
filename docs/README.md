@@ -25,6 +25,10 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and generated-asset ownership.
 
+## Plans
+
+- [API access proposal](api-access-plan.md): operation inventory, candidate permissions, unresolved decisions and future test evidence for command utilities and external agents; no API implementation or approved release contract.
+
 ## Practices
 
 - [Use case completeness assessment](use-case-assessment.md): the current inventory, reconciled gaps and validation limits.
