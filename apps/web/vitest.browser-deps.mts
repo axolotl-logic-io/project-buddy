@@ -34,6 +34,7 @@ const PREBUNDLED_DEPS: string[] = [
   "react-dom/client",
   "react-dom/server",
   "streamdown",
+  "shiki/langs",
   "vitest-browser-react",
   "zod",
 ];

@@ -1,0 +1,22 @@
+import { afterEach, expect, test } from "vitest";
+import { page } from "vitest/browser";
+import { cleanup, render } from "vitest-browser-react";
+import { Markdown } from "@/components/markdown.tsx";
+
+afterEach(cleanup);
+
+function codeColors(): number {
+  return new Set(
+    Array.from(document.querySelectorAll("code span"), (span) =>
+      getComputedStyle(span).color,
+    ),
+  ).size;
+}
+
+test("the first code block becomes highlighted without preloading the engine", async () => {
+  await render(
+    <Markdown text={'```python\nprint("synthetic code")\n```'} running={false} />,
+  );
+  await expect.element(page.getByText('print("synthetic code")')).toBeVisible();
+  await expect.poll(codeColors).toBeGreaterThan(1);
+});
