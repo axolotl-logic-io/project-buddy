@@ -15,8 +15,11 @@ import type {
   StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
+import ProjectError from "@/app/(workspace)/projects/[projectId]/(overview)/error.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
+import ProjectLoading from "@/app/(workspace)/projects/[projectId]/(overview)/loading.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
+import type { listChats } from "@/chats/store.ts";
 import type { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { userMessage } from "@/errors/app-error.ts";
@@ -25,11 +28,21 @@ import type { getProject } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
+import { applyTheme } from "../../../../themes/theme-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
+  PHONE_VIEWPORT,
+  setViewport,
+} from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import {
   FOX_CHAT,
@@ -46,6 +59,7 @@ vi.mock(
   () => import("../../../../auth/current-user-test-kit.ts"),
 );
 const stores = vi.hoisted(() => ({
+  listChats: vi.fn<typeof listChats>(),
   getProject: vi.fn<typeof getProject>(),
   checkInsAreOn: vi.fn<typeof checkInsAreOn>(() => false),
 }));
@@ -56,7 +70,7 @@ vi.mock("@/check-ins/check-ins-enabled.ts", () => ({
   checkInsAreOn: stores.checkInsAreOn,
 }));
 vi.mock("@/chats/store.ts", () => ({
-  listChats: () => Promise.resolve([FOX_CHAT]),
+  listChats: stores.listChats,
 }));
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: () => Promise.resolve([]),
@@ -99,6 +113,8 @@ vi.mock(
   () => import("../../../../activities/activity-choices-test-kit.ts"),
 );
 
+const STANDARD_WIDTH = 768;
+
 const PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
 async function renderProject(): Promise<void> {
@@ -140,6 +156,7 @@ function chatLink(): ReturnType<typeof page.getByRole> {
 
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
+  stores.listChats.mockResolvedValue([FOX_CHAT]);
   stores.getProject.mockResolvedValue(FOX_PROJECT);
   stores.checkInsAreOn.mockReturnValue(false);
 });
@@ -314,3 +331,129 @@ test.each(["completed", "abandoned"] as const)(
     await expect.element(newChatButton()).toBeVisible();
   },
 );
+
+describe.each(["light", "dark"])("quest frame in %s", (mode) => {
+  test.each(
+    [NARROWEST_VIEWPORT, PHONE_VIEWPORT, LAPTOP_VIEWPORT].flatMap((viewport) =>
+      [true, false].map((populated) => ({ viewport, populated })),
+    ),
+  )(
+    "preserves real quest regions and error recovery at $viewport.width px, populated $populated",
+    async ({ viewport, populated }) => {
+      applyTheme("parchment", mode);
+      await setViewport(viewport);
+      const screen = await render(
+        inWorkspace(
+          <ProjectLayout params={PARAMS}>
+            <ProjectLoading />
+          </ProjectLayout>,
+        ),
+      );
+      const busy = page.getByRole("status", { name: PROJECT_COPY.loading });
+      expect(page.getByRole("status").all()).toHaveLength(1);
+      await expect.element(busy).toHaveAttribute("aria-busy", "true");
+      await expect.element(page.getByRole("link")).not.toBeInTheDocument();
+      await expect.element(page.getByRole("listitem")).not.toBeInTheDocument();
+      const frame = busy.element().parentElement;
+      const before = frame?.getBoundingClientRect();
+      const slots = [
+        PROGRESS_TIMELINE_COPY.heading,
+        PROJECT_COPY.chatsHeading,
+      ].map((name) => {
+        const section = page
+          .getByRole("heading", { name, exact: true })
+          .element().parentElement;
+        return section?.getBoundingClientRect();
+      });
+      const titleBefore = busy
+        .element()
+        .firstElementChild?.getBoundingClientRect();
+      expect(before?.width).toBeLessThanOrEqual(STANDARD_WIDTH);
+      if (!populated) {
+        stores.listChats.mockResolvedValue([]);
+      }
+      const content = await ProjectPage({
+        params: PARAMS,
+        searchParams: Promise.resolve({}),
+      });
+      await screen.rerender(
+        inWorkspace(<ProjectLayout params={PARAMS}>{content}</ProjectLayout>),
+      );
+      const heading = page.getByRole("heading", { name: FOX_PROJECT.name });
+      await expect.element(heading).toBeVisible();
+      const title = heading.element().getBoundingClientRect();
+      expect(
+        heading.element().parentElement?.getBoundingClientRect(),
+      ).toMatchObject({ x: titleBefore?.x, width: titleBefore?.width });
+      expect(title.left).toBeGreaterThan(0);
+      expect(title.right).toBeLessThan(viewport.width);
+      expect(frame?.getBoundingClientRect()).toMatchObject({
+        x: before?.x,
+        width: before?.width,
+      });
+      for (const name of [
+        PROGRESS_TIMELINE_COPY.heading,
+        PROJECT_COPY.chatsHeading,
+      ]) {
+        const section = page
+          .getByRole("heading", { name, exact: true })
+          .element().parentElement;
+        const box = section?.getBoundingClientRect();
+        expect(box?.left).toBe(title.left);
+        expect(box?.right).toBeLessThan(viewport.width);
+        const reserved = slots.at(
+          [PROGRESS_TIMELINE_COPY.heading, PROJECT_COPY.chatsHeading].indexOf(
+            name,
+          ),
+        );
+        expect(box).toMatchObject({ x: reserved?.x, width: reserved?.width });
+        expect(box?.height).toBeGreaterThanOrEqual(
+          Number.parseFloat(
+            getComputedStyle(section ?? heading.element()).minBlockSize,
+          ),
+        );
+      }
+      await expect.element(newChatButton()).toBeVisible();
+      await expect
+        .element(page.getByRole("status", { name: PROJECT_COPY.loading }))
+        .not.toBeInTheDocument();
+      let result = page.getByText(PROJECT_COPY.noChats);
+      if (populated) {
+        result = chatLink();
+      }
+      await expect.element(result).toBeVisible();
+      const retry = vi.fn<() => void>();
+      await screen.rerender(
+        inWorkspace(
+          <ProjectLayout params={PARAMS}>
+            <ProjectError
+              error={new Error("Private quest detail")}
+              retry={retry}
+            />
+          </ProjectLayout>,
+        ),
+      );
+      expect(frame?.getBoundingClientRect()).toMatchObject({
+        x: before?.x,
+        width: before?.width,
+      });
+      await expect.element(page.getByRole("alert")).toBeVisible();
+      await expect
+        .element(page.getByText("Private quest detail"))
+        .not.toBeInTheDocument();
+      const button = page.getByRole("button", { name: PROBLEMS_COPY.retry });
+      const target = button.element().getBoundingClientRect();
+      expect(target.left).toBeGreaterThan(0);
+      expect(target.right).toBeLessThan(viewport.width);
+      await button.click();
+      expect(retry).toHaveBeenCalledOnce();
+      await expect
+        .element(page.getByRole("link", { name: PROBLEMS_COPY.projectsLink }))
+        .toBeVisible();
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        viewport.width,
+      );
+      await setViewport(LAPTOP_VIEWPORT);
+    },
+  );
+});

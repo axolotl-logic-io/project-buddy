@@ -2,6 +2,7 @@
 
 import type { JSX } from "react";
 import { PageError } from "@/components/ui/page-error.tsx";
+import { PageFrame } from "@/components/ui/page-frame.tsx";
 
 export default function SegmentError({
   error,
@@ -10,5 +11,9 @@ export default function SegmentError({
   readonly error: Error & { digest?: string };
   readonly retry: () => void;
 }): JSX.Element {
-  return <PageError error={error} retry={retry} />;
+  return (
+    <PageFrame>
+      <PageError error={error} retry={retry} />
+    </PageFrame>
+  );
 }

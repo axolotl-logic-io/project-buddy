@@ -4,7 +4,7 @@ import { HOME_COPY } from "@/ui/copy/home.ts";
 
 export default function HomeLoading(): JSX.Element {
   return (
-    <div className="atlas">
+    <div className="atlas" data-inactive="">
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
