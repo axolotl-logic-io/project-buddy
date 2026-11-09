@@ -86,7 +86,9 @@ A present control does not prove the page shows its state. After each observatio
 - `message-count`: the long adventure lists exactly its 200 messages; the empty adventure lists none.
 - `no-owned-entities`: an empty account's page links no quest or adventure of its own.
 - `built-in-activities-only`: Activities offers built-in cards and no own-activity editor link; neither synthetic account owns an activity.
-- `edited-prompt`: the editor shows the edited construct's prompt. The probe replaces that text, so this one check runs before the probe.
+- `edited-prompt`: the editor shows the edited construct's prompt.
+
+Two probes change what the page shows: the editor's replaces the prompt text and the Quests probe selects another status tab. Those two checks run after primary presence and before the probe.
 
 The fixture reports its counts, and the manifest records them with the installed browser, puppeteer-core, Lighthouse and Lighthouse's own nested puppeteer-core versions.
 
