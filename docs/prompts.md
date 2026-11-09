@@ -12,7 +12,9 @@ Reset changes the editor draft and offers Undo reset; only Save stores it. Unsav
 
 ## Workshop
 
-Construct, activity and spell detail pages share the Workshop. The existing save, reset, Customize, delete and Marketplace actions remain available. Choose an example test case or write a message beside the definition. Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
+Construct, activity and spell detail pages share the Workshop. In the Workshop and collection pages, choose Craft construct, Craft activity or Craft spell to create an own definition without copying another. The saved starter names remain "New construct", "New activity" and "New spell".
+
+The existing save, reset, Customize, delete and Marketplace actions remain available. Choose an example test case or write a message beside the definition. Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
 
 Construct tests choose an activity; activity tests choose a construct and can test the opening request. Spell tests choose both and either let the construct select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as adventures. Real tests spend the acting user's gold.
 
