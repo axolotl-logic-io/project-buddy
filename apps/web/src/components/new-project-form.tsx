@@ -39,7 +39,9 @@ export function NewProjectForm({
   choices,
   cancel = false,
 }: {
-  readonly choices?: QuestCreationChoices | undefined;
+  readonly choices?:
+    | Pick<QuestCreationChoices, "userConstructs" | "preferredConstructId">
+    | undefined;
   readonly cancel?: boolean;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(

@@ -3,7 +3,9 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
+import { userMessage } from "@/errors/app-error.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const actions = vi.hoisted(() => ({
@@ -60,4 +62,33 @@ describe("use_case_new_project", () => {
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
     expect(sent?.get("motivation")).toBe("");
   });
+});
+
+test("out-of-gold refusal keeps Why and the construct and offers a way to earn gold", async () => {
+  const message = userMessage("out-of-gold");
+  const motivation = "A gift for a friend";
+  actions.createProjectAction.mockResolvedValue({
+    kind: "outOfGold",
+    message,
+    name: PROJECTS_COPY.defaultName,
+    motivation,
+  });
+  await render(
+    <NewProjectForm
+      choices={{ preferredConstructId: "lumen", userConstructs: [] }}
+    />,
+  );
+  const why = page.getByRole("textbox", { name: PROJECTS_COPY.whyLabel });
+  await why.fill(motivation);
+  await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
+  await expect.element(page.getByText(message, { exact: true })).toBeVisible();
+  await expect
+    .element(page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }))
+    .toHaveAttribute("href", "/marketplace#your-listings");
+  await expect.element(why).toHaveValue(motivation);
+  await expect.element(page.getByText("Lumen", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
+  const [, retry] = actions.createProjectAction.mock.lastCall ?? [];
+  expect(retry?.get("constructId")).toBe("lumen");
+  expect(retry?.get("motivation")).toBe(motivation);
 });
