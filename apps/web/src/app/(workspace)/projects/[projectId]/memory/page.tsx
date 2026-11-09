@@ -19,8 +19,14 @@ export const metadata: Metadata = { title: MEMORY_COPY.title };
 
 export default async function MemoryPage({
   params,
+  searchParams,
 }: PageProps<"/projects/[projectId]/memory">): Promise<JSX.Element> {
   const { projectId } = await params;
+  const { section } = await searchParams;
+  let current: "journal" | "versions" = "journal";
+  if (section === "versions") {
+    current = "versions";
+  }
   const user = await requireUser();
   const project = await getProject(user.id, projectId);
   if (project === undefined) {
@@ -34,41 +40,46 @@ export default async function MemoryPage({
   const memory = history[0] ?? EMPTY_MEMORY;
 
   return (
-    <>
-      <QuestWorkspace
-        project={project}
-        current="journal"
-        newAdventure={
-          <NewChatDialog
-            activities={activities}
-            projectId={project.id}
-            selectedActivityId={DEFAULT_ACTIVITY_ID}
-            userConstructs={userConstructs}
-          />
-        }
-      />
-      <div className="flex flex-col gap-2">
-        <h2 className="section-heading">{MEMORY_COPY.heading}</h2>
-        <p className="text-muted">{MEMORY_COPY.intro}</p>
-      </div>
-      <MemoryView
-        viewer={user.id}
-        memory={{ text: memory.text, version: memory.version }}
-        projectId={project.id}
-      >
-        {isMemoryEmpty(memory) && (
-          <p className="text-muted">{MEMORY_COPY.empty}</p>
-        )}
-        {!isMemoryEmpty(memory) && (
-          <div className="memory-text">
-            <Markdown running={false} text={memory.text} />
+    <QuestWorkspace
+      project={project}
+      current={current}
+      newAdventure={
+        <NewChatDialog
+          activities={activities}
+          projectId={project.id}
+          selectedActivityId={DEFAULT_ACTIVITY_ID}
+          userConstructs={userConstructs}
+        />
+      }
+    >
+      {current === "journal" && (
+        <>
+          <div className="flex flex-col gap-2">
+            <h2 className="section-heading">{MEMORY_COPY.heading}</h2>
+            <p className="text-muted">{MEMORY_COPY.intro}</p>
           </div>
-        )}
-      </MemoryView>
-      <section className="flex flex-col gap-4">
-        <h2 className="section-heading">{MEMORY_COPY.historyHeading}</h2>
-        <MemoryHistory history={history} projectId={project.id} />
-      </section>
-    </>
+          <MemoryView
+            viewer={user.id}
+            memory={{ text: memory.text, version: memory.version }}
+            projectId={project.id}
+          >
+            {isMemoryEmpty(memory) && (
+              <p className="text-muted">{MEMORY_COPY.empty}</p>
+            )}
+            {!isMemoryEmpty(memory) && (
+              <div className="memory-text">
+                <Markdown running={false} text={memory.text} />
+              </div>
+            )}
+          </MemoryView>
+        </>
+      )}
+      {current === "versions" && (
+        <section className="flex flex-col gap-4">
+          <h2 className="section-heading">{MEMORY_COPY.historyHeading}</h2>
+          <MemoryHistory history={history} projectId={project.id} />
+        </section>
+      )}
+    </QuestWorkspace>
   );
 }

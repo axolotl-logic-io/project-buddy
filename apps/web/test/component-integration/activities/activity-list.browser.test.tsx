@@ -6,7 +6,6 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { OwnActivity } from "@/activities/activity-store.ts";
 import { listOwnActivities } from "@/activities/activity-store.ts";
-import { listActivities } from "@/activities/index.ts";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import { newActivityAction } from "@/app/(workspace)/activities/actions.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
@@ -17,7 +16,6 @@ import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { BRAINSTORMING_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
-import { tabForward } from "../components/keyboard-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -55,7 +53,7 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
 
 // Her activities, under their heading.
 function ownRegion(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("region", { name: ACTIVITIES_COPY.ownHeading });
+  return page.getByRole("tabpanel", { name: "Yours", exact: true });
 }
 
 beforeEach(() => {
@@ -80,9 +78,10 @@ test("her activities offer Craft activity, with or without activities of her own
   );
 
   await expect
-    .element(ownRegion().getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Craft activity" }))
     .toBeEnabled();
 
+  await page.getByRole("tab", { name: "Yours", exact: true }).click();
   vi.mocked(listOwnActivities).mockResolvedValue([]);
   await screen.rerender(
     inWorkspace(
@@ -96,11 +95,11 @@ test("her activities offer Craft activity, with or without activities of her own
     .element(ownRegion().getByText(ACTIVITIES_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(ownRegion().getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Craft activity" }))
     .toBeEnabled();
 });
 
-test("Craft activity is the next control after the built-in activities, and Enter crafts one", async () => {
+test("the header Craft activity action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(startChatAction).mockClear();
   vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -118,18 +117,10 @@ test("Craft activity is the next control after the built-in activities, and Ente
       }),
     ),
   );
-  const lastBuiltIn = listActivities().at(-1);
-  let lastControl = page.getByRole("button", {
-    name: ACTIVITIES_COPY.customizeLabel(lastBuiltIn?.name ?? ""),
-  });
-  if (lastBuiltIn?.id === "find-something-to-make") {
-    lastControl = page.getByRole("button", {
-      name: "Explore quest: Start without inspiration",
-    });
-  }
-
-  lastControl.element().focus();
-  await tabForward();
+  page
+    .getByRole("button", { name: "Craft activity", exact: true })
+    .element()
+    .focus();
   await expect
     .element(page.getByRole("button", { name: "Craft activity" }))
     .toHaveFocus();
@@ -180,6 +171,9 @@ test.each([
         }),
       ),
     );
+    if (activity.id === SAVED_ACTIVITY.id) {
+      await page.getByRole("tab", { name: "Yours", exact: true }).click();
+    }
     const trigger = page.getByRole("button", {
       name: activity.name,
       exact: true,

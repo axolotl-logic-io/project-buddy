@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { AppearanceChoices } from "@/components/appearance-choices.tsx";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
+import type { WorkspaceSection } from "@/components/workspace-section.ts";
+import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import { readVapidKeysIfSet } from "@/env.ts";
 import { NOTIFICATIONS_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { FlagSwitches } from "./flag-switches.tsx";
 import { InterviewConstructForm } from "./interview-construct-form.tsx";
 import { NotificationSwitch } from "./notification-switch.tsx";
@@ -22,27 +27,47 @@ export default async function SettingsPage(): Promise<JSX.Element> {
     ownConstructChoices(),
   ]);
   const publicKey = readVapidKeysIfSet()?.publicKey;
-  return (
-    <>
-      <h1 className="page-heading">{SETTINGS_COPY.heading}</h1>
-      <InterviewConstructForm
-        constructId={chosen.id}
-        userConstructs={constructs}
-      />
-      <section
-        aria-labelledby={EXTRAS_HEADING_ID}
-        className="panel flex flex-col gap-2"
-      >
-        <h2 className="section-heading" id={EXTRAS_HEADING_ID}>
-          {SETTINGS_COPY.extrasHeading}
-        </h2>
-        <p className="field-hint">{SETTINGS_COPY.extrasHint}</p>
-        <FlagSwitches />
-      </section>
-      {publicKey !== undefined && (
+  const sections: WorkspaceSection[] = [
+    {
+      id: "general",
+      label: WORKSPACES_COPY.general,
+      content: (
+        <InterviewConstructForm
+          constructId={chosen.id}
+          userConstructs={constructs}
+        />
+      ),
+    },
+    {
+      id: "appearance",
+      label: WORKSPACES_COPY.appearance,
+      content: <AppearanceChoices settings={true} />,
+    },
+    {
+      id: "extras",
+      label: SETTINGS_COPY.extrasHeading,
+      content: (
+        <section
+          aria-labelledby={EXTRAS_HEADING_ID}
+          className="flex flex-col gap-3"
+        >
+          <h2 className="section-heading" id={EXTRAS_HEADING_ID}>
+            {SETTINGS_COPY.extrasHeading}
+          </h2>
+          <p className="field-hint">{SETTINGS_COPY.extrasHint}</p>
+          <FlagSwitches />
+        </section>
+      ),
+    },
+  ];
+  if (publicKey !== undefined) {
+    sections.push({
+      id: "notifications",
+      label: NOTIFICATIONS_COPY.heading,
+      content: (
         <section
           aria-labelledby={NOTIFICATIONS_HEADING_ID}
-          className="panel flex flex-col gap-2"
+          className="flex flex-col gap-3"
         >
           <h2 className="section-heading" id={NOTIFICATIONS_HEADING_ID}>
             {NOTIFICATIONS_COPY.heading}
@@ -50,7 +75,15 @@ export default async function SettingsPage(): Promise<JSX.Element> {
           <p className="field-hint">{NOTIFICATIONS_COPY.hint}</p>
           <NotificationSwitch publicKey={publicKey} />
         </section>
-      )}
-    </>
+      ),
+    });
+  }
+  return (
+    <PageWorkspace
+      title={SETTINGS_COPY.heading}
+      intro={WORKSPACES_COPY.settingsIntro}
+    >
+      <WorkspaceTabs label={SETTINGS_COPY.heading} sections={sections} />
+    </PageWorkspace>
   );
 }

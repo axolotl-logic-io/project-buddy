@@ -50,8 +50,14 @@ async function checkInSetting(
 // invitations and its check-in setting, once check-ins are on for the site.
 export default async function ProjectPage({
   params,
+  searchParams,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
   const { projectId } = await params;
+  const { section } = await searchParams;
+  let current: "adventures" | "progress" | "notes" | "members" = "adventures";
+  if (section === "progress" || section === "notes" || section === "members") {
+    current = section;
+  }
   const user = await requireUser();
   const project = await getProject(user.id, projectId);
   if (project === undefined) {
@@ -78,46 +84,55 @@ export default async function ProjectPage({
   ]);
 
   return (
-    <>
-      <QuestWorkspace
-        project={project}
-        current="adventures"
-        newAdventure={
-          <NewChatDialog
-            activities={activities}
-            projectId={project.id}
-            selectedActivityId={DEFAULT_ACTIVITY_ID}
-            userConstructs={userConstructs}
-          />
-        }
-      />
+    <QuestWorkspace
+      project={project}
+      current={current}
+      newAdventure={
+        <NewChatDialog
+          activities={activities}
+          projectId={project.id}
+          selectedActivityId={DEFAULT_ACTIVITY_ID}
+          userConstructs={userConstructs}
+        />
+      }
+    >
       {project.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
-      <section className="page-slot">
-        <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
-        <ProgressTimeline milestones={milestones} />
-      </section>
-      <section className="page-slot">
-        <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
-        <ChatList chats={chats} />
-      </section>
-      <ProjectNotes
-        notes={notes}
-        projectId={project.id}
-        status={project.status}
-      />
-      <ProjectMembers
-        members={members}
-        projectId={project.id}
-        viewer={user.id}
-      />
-      {invitations !== undefined && (
-        <ProjectInvite invitations={invitations} projectId={project.id} />
+      {current === "progress" && (
+        <section className="page-slot">
+          <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
+          <ProgressTimeline milestones={milestones} />
+        </section>
       )}
-      {frequency !== null && (
-        <CheckInSetting frequency={frequency} projectId={project.id} />
+      {current === "adventures" && (
+        <section className="page-slot">
+          <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
+          <ChatList chats={chats} />
+        </section>
       )}
-    </>
+      {current === "notes" && (
+        <ProjectNotes
+          notes={notes}
+          projectId={project.id}
+          status={project.status}
+        />
+      )}
+      {current === "members" && (
+        <>
+          <ProjectMembers
+            members={members}
+            projectId={project.id}
+            viewer={user.id}
+          />
+          {invitations !== undefined && (
+            <ProjectInvite invitations={invitations} projectId={project.id} />
+          )}
+          {frequency !== null && (
+            <CheckInSetting frequency={frequency} projectId={project.id} />
+          )}
+        </>
+      )}
+    </QuestWorkspace>
   );
 }

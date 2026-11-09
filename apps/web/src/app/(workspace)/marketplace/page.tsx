@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { LISTING_ID } from "@/ids.ts";
 import { orbPurchasesEnabled } from "@/marketplace/cutover.ts";
@@ -20,6 +21,7 @@ import {
   STORED_PROMPT_KIND,
 } from "@/prompts/prompt.ts";
 import { MARKETPLACE_COPY, YOUR_LISTINGS_COPY } from "@/ui/copy/marketplace.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { unlistListingAction } from "./actions.ts";
 
 const LISTINGS_HEADING_ID = "listings-heading";
@@ -55,8 +57,10 @@ function marketplacePath(
 // The kind filter: every kind, or one, as links, the shown one marked.
 function KindFilter({
   shown,
+  yours,
 }: {
   readonly shown: PromptKind | undefined;
+  readonly yours: boolean;
 }): JSX.Element {
   const choices: readonly {
     readonly kind: PromptKind | undefined;
@@ -68,26 +72,39 @@ function KindFilter({
       label: MARKETPLACE_COPY.kinds[kind].many,
     })),
   ];
+  let ownCurrent: "page" | undefined;
+  if (yours) {
+    ownCurrent = "page";
+  }
   return (
-    <nav aria-label={MARKETPLACE_COPY.filterLabel}>
-      <ul className="flex flex-wrap gap-2">
+    <nav className="workspace-rail" aria-label={MARKETPLACE_COPY.filterLabel}>
+      <ul className="workspace-tablist">
         {choices.map(({ kind, label }) => {
           let current: "page" | undefined;
-          let variant: "secondary" | "quiet" = "quiet";
-          if (kind === shown) {
+          if (kind === shown && !yours) {
             current = "page";
-            variant = "secondary";
           }
           return (
             <li key={label}>
-              <Button asChild={true} variant={variant}>
-                <Link aria-current={current} href={marketplacePath(kind)}>
-                  {label}
-                </Link>
-              </Button>
+              <Link
+                className="workspace-tab"
+                aria-current={current}
+                href={marketplacePath(kind)}
+              >
+                {label}
+              </Link>
             </li>
           );
         })}
+        <li>
+          <Link
+            className="workspace-tab"
+            aria-current={ownCurrent}
+            href="/marketplace?view=yours"
+          >
+            {YOUR_LISTINGS_COPY.heading}
+          </Link>
+        </li>
       </ul>
     </nav>
   );
@@ -183,6 +200,7 @@ async function MarketplacePage({
   readonly searchParams: Promise<{
     kind?: string;
     after?: string;
+    view?: string;
   }>;
 }): Promise<JSX.Element> {
   const user = await requireUser();
@@ -190,6 +208,7 @@ async function MarketplacePage({
   const enabled = await orbPurchasesEnabled();
   const query = await searchParams;
   const { kind } = QUERY.parse(query);
+  const yours = query.view === "yours";
   const after = CURSOR.safeParse(query).data?.after;
   const [shown, own] = await Promise.all([
     listListings(user.id, { kind, after }),
@@ -197,58 +216,74 @@ async function MarketplacePage({
   ]);
   const last = shown.at(-1);
   return (
-    <>
-      {!enabled && <p role="status">{MARKETPLACE_COPY.paused}</p>}
-      <p>{MARKETPLACE_COPY.orbBalance(orbs)}</p>
-      <h1 className="page-heading">{MARKETPLACE_COPY.heading}</h1>
-      <p className="text-muted">{MARKETPLACE_COPY.intro}</p>
-      <section
-        aria-labelledby={LISTINGS_HEADING_ID}
-        className="flex flex-col gap-4"
-      >
-        <h2 className="section-heading" id={LISTINGS_HEADING_ID}>
-          {MARKETPLACE_COPY.listingsHeading}
-        </h2>
-        <KindFilter shown={kind} />
-        {shown.length === 0 && (
-          <p className="text-muted">{MARKETPLACE_COPY.empty}</p>
-        )}
-        {shown.length > 0 && (
-          <ul className="grid min-w-0 gap-3 sm:grid-cols-2">
-            {shown.map((listing) => (
-              <ListingCardItem key={listing.id} listing={listing} />
-            ))}
-          </ul>
-        )}
-        {shown.length === MARKETPLACE_PAGE_SIZE && last !== undefined && (
-          <Link
-            className="self-start text-link"
-            href={marketplacePath(kind, last)}
+    <PageWorkspace
+      title={MARKETPLACE_COPY.heading}
+      intro={MARKETPLACE_COPY.intro}
+      action={
+        <Button asChild={true} variant="secondary">
+          <Link href="/workshop">{WORKSPACES_COPY.openWorkshop}</Link>
+        </Button>
+      }
+    >
+      <div className="workspace-content flex flex-col gap-2">
+        {!enabled && <p role="status">{MARKETPLACE_COPY.paused}</p>}
+        <p>{MARKETPLACE_COPY.orbBalance(orbs)}</p>
+      </div>
+      <KindFilter shown={kind} yours={yours} />
+      {!yours && (
+        <div className="workspace-content workspace-rows">
+          <section
+            aria-labelledby={LISTINGS_HEADING_ID}
+            className="flex flex-col gap-4"
           >
-            {MARKETPLACE_COPY.older}
-          </Link>
-        )}
-      </section>
-      <section
-        aria-labelledby={YOUR_LISTINGS_HEADING_ID}
-        className="flex flex-col gap-4"
-        id={YOUR_LISTINGS_ID}
-      >
-        <h2 className="section-heading" id={YOUR_LISTINGS_HEADING_ID}>
-          {YOUR_LISTINGS_COPY.heading}
-        </h2>
-        {own.length === 0 && (
-          <p className="text-muted">{YOUR_LISTINGS_COPY.none}</p>
-        )}
-        {own.length > 0 && (
-          <ul className="grid min-w-0 gap-3 sm:grid-cols-2">
-            {own.map((listing) => (
-              <OwnListingItem key={listing.id} listing={listing} />
-            ))}
-          </ul>
-        )}
-      </section>
-    </>
+            <h2 className="section-heading" id={LISTINGS_HEADING_ID}>
+              {MARKETPLACE_COPY.listingsHeading}
+            </h2>
+            {shown.length === 0 && (
+              <p className="text-muted">{MARKETPLACE_COPY.empty}</p>
+            )}
+            {shown.length > 0 && (
+              <ul className="flex min-w-0 flex-col gap-3">
+                {shown.map((listing) => (
+                  <ListingCardItem key={listing.id} listing={listing} />
+                ))}
+              </ul>
+            )}
+            {shown.length === MARKETPLACE_PAGE_SIZE && last !== undefined && (
+              <Link
+                className="self-start text-link"
+                href={marketplacePath(kind, last)}
+              >
+                {MARKETPLACE_COPY.older}
+              </Link>
+            )}
+          </section>
+        </div>
+      )}
+      {yours && (
+        <div className="workspace-content workspace-rows">
+          <section
+            aria-labelledby={YOUR_LISTINGS_HEADING_ID}
+            className="flex flex-col gap-4"
+            id={YOUR_LISTINGS_ID}
+          >
+            <h2 className="section-heading" id={YOUR_LISTINGS_HEADING_ID}>
+              {YOUR_LISTINGS_COPY.heading}
+            </h2>
+            {own.length === 0 && (
+              <p className="text-muted">{YOUR_LISTINGS_COPY.none}</p>
+            )}
+            {own.length > 0 && (
+              <ul className="flex min-w-0 flex-col gap-3">
+                {own.map((listing) => (
+                  <OwnListingItem key={listing.id} listing={listing} />
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
+    </PageWorkspace>
   );
 }
 
