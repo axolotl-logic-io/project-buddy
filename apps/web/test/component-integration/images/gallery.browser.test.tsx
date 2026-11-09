@@ -113,7 +113,5 @@ test("insufficient image-reservation gold explains the amounts without claiming 
         AVAILABLE_GOLD,
       ),
     );
-  await expect
-    .element(page.getByRole("link"))
-    .toHaveAttribute("href", "/marketplace#your-listings");
+  await expect.element(page.getByRole("link")).not.toBeInTheDocument();
 });

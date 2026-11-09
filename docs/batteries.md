@@ -8,7 +8,7 @@ Replies, generated adventure openings and names, images and Workshop tests spend
 
 Before the orb migration, the existing gold accounting, now called Batteries for model use, also backed legacy Marketplace transfers. The orb migration pauses all Marketplace buys immediately, including old and free forms. While the gate is disabled, no sales can fund model use. After operator activation, Marketplace transfers use separate orbs and cannot fund model use. Batteries and orbs cannot be converted.
 
-The [Marketplace cutover plan](marketplace.md#currency-cutover-proposal) documents policy review, migration, old-build drain, history and grant verification, and separate operator activation. Merging code alone does not activate orb buys or authorize production changes. [#781](https://github.com/axolotl-logic-io/project-buddy/issues/781) owns the EarnGoldLink copy and target and must retire legacy earning guidance before release, regardless of Checkout availability or the orb gate.
+The [Marketplace cutover plan](marketplace.md#currency-cutover-proposal) documents policy review, migration, old-build drain, history and grant verification, and separate operator activation. Merging code alone does not activate orb buys or authorize production changes. [Battery purchases](battery-purchases.md) retire legacy earning guidance regardless of Checkout availability or the orb gate. Disabled purchases show an honest unavailable message; only configured isolated test Checkout offers the Account purchase link.
 
 ## Compatibility boundaries
 

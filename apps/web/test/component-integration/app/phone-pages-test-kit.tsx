@@ -88,7 +88,7 @@ import {
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -837,7 +837,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }),
   },
   {
-    name: "a listing's page, refused for too little gold",
+    name: "a listing's page, refused for too few orbs",
     render: listingPage(CONSTRUCT_LISTING_TO_BUY),
     open: async (): Promise<void> => {
       vi.mocked(buyListingAction).mockResolvedValue({
@@ -846,7 +846,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
           CONSTRUCT_LISTING.price,
           SHORT_GOLD,
         ),
-        earnGold: true,
+        earnGold: false,
       });
       await page
         .getByRole("button", {
@@ -854,7 +854,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
         })
         .click();
       await vi.waitFor(() =>
-        page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }).element(),
+        page
+          .getByText(
+            LISTING_COPY.tooLittleGold(CONSTRUCT_LISTING.price, SHORT_GOLD),
+          )
+          .element(),
       );
     },
   },
@@ -903,6 +907,25 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }, chatPage),
   },
 ];
+
+const PHONE_ORB_BALANCE = 100;
+vi.mock("@/orbs/orb-store.ts", () => ({
+  readOrbsBalance: vi.fn(() => Promise.resolve(PHONE_ORB_BALANCE)),
+}));
+vi.mock("@/marketplace/cutover.ts", () => ({
+  orbPurchasesEnabled: vi.fn(() => Promise.resolve(true)),
+}));
+
+vi.mock("@/batteries/catalog.ts", () => ({
+  availableBatteryCatalog: () => [],
+}));
+vi.mock("@/batteries/purchases.ts", () => ({
+  readBatteryPurchases: async () => [],
+}));
+vi.mock("@/app/(workspace)/account/battery-actions.ts", () => ({
+  buyBatteries: vi.fn(),
+  refreshBatteryPayments: vi.fn(),
+}));
 
 export type { PhonePage };
 export { PHONE_PAGES };

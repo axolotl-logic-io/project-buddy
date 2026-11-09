@@ -151,7 +151,7 @@ The user has spent all her batteries.
   - She sends another message.
   - Instead of a reply, the adventure says "You're out of batteries."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, her account page shows "Batteries: 0", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. The orb migration pauses all Marketplace buys until separate operator activation. Afterwards sales earn only orbs, which cannot fund model use. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, her account page shows "Batteries: 0", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. With a valid isolated test catalog, model-use shortage messages link to Account. Otherwise they explain that purchases are unavailable and Marketplace sales cannot fund model use. The orb migration pauses all Marketplace buys until separate operator activation. Afterwards sales earn only orbs, which cannot fund model use. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her batteries.
 
@@ -196,3 +196,16 @@ The user signs out of every browser and device at once, for example after signin
 - **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and an adventure left open there says she has been signed out when she next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs her in, even within its 30 minutes. If she cancels instead of confirming, nothing changes and she stays signed in everywhere. A new link signs her in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where she wants to be.
+
+## use_case_buy_batteries
+
+The signed-in user buys batteries for model use through Stripe-hosted Checkout.
+
+- **Prerequisites:** a configured test-mode catalog; live purchases are unavailable pending approved pricing, tax and refund terms.
+- **Steps:**
+  - In Account, the user reviews a package's battery amount and price with its currency.
+  - The user continues to Stripe Checkout and pays using Stripe test mode.
+  - Stripe confirms the payment to the site, even if the user closes Checkout.
+  - The user refreshes payment status in Account.
+- **Outcome:** the buyer's balance increases by the configured amount once. Account shows the fulfilled purchase with its price and currency. Browser redirects grant nothing. Model-use rates do not change. The grant changes only the Batteries balance; Marketplace orbs and historical purchase records stay unchanged.
+- **Variations:** unpaid, failed and expired sessions grant nothing. Closing Checkout shows a cancellation notice without claiming a payment failed. Duplicate and concurrent events grant once. After a storage failure, replaying the Stripe event completes the same grant safely.

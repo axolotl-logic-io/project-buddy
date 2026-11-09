@@ -47,6 +47,7 @@ import {
 } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
+import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import {
   constructAssetGrants,
@@ -353,9 +354,14 @@ function accountOwnedBy(owner: UserId): SQL {
   return eq(users.id, owner);
 }
 
+function batteryPurchasesOwnedBy(owner: UserId): SQL {
+  return eq(batteryPurchases.userId, owner);
+}
+
 export {
   accountOwnedBy,
   activitySessionOpenTo,
+  batteryPurchasesOwnedBy,
   chatOpenTo,
   chatUnreadOwnedBy,
   constructGenerationOwnedBy,
