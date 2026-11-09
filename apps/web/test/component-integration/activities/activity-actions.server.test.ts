@@ -1,6 +1,6 @@
 // Her activities, from the activities pages' forms, in the test database
 // with the mock construct: customizing a built-in activity makes a copy of her
-// own, and New activity writes one from scratch, which she edits, clones,
+// own, and Craft activity makes one, which she edits, clones,
 // resets and starts chats in; a chat keeps the activity as it was when it
 // entered it; and the built-in activities and other users' activities are
 // never changed.
@@ -91,14 +91,14 @@ async function customizeBrainstorming(user: User): Promise<OwnActivity> {
   return copy;
 }
 
-// Writes a new activity from scratch, from the New activity button; checks
+// Crafts an activity from the Craft activity button; checks
 // it opened the page of the activity it made, and returns that activity.
 async function writeNew(user: User): Promise<OwnActivity> {
   const writing = newActivityAction();
   await Promise.allSettled([writing]);
   const activity = (await listOwnActivities(user.id)).at(-1);
   if (activity === undefined) {
-    throw new Error("New activity made no activity");
+    throw new Error("Craft activity made no activity");
   }
   await expectRedirect(() => writing, `/activities/${activity.id}`);
   return activity;
@@ -225,7 +225,7 @@ describe("use_case_customize_activity", () => {
 });
 
 describe("use_case_new_activity", () => {
-  test("a new activity starts with default instructions, and each New activity makes another", async () => {
+  test("a new activity starts with default instructions, and each Craft activity makes another", async () => {
     const user = await signedInUser();
 
     const activity = await writeNew(user);
