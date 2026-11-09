@@ -1,0 +1,19 @@
+{
+  "sourceCommit": "9a3b231f90deb8c0b1503ca32704205c05e711a0",
+  "buildId": "B8rBwMYULlijrBg6DRi5S",
+  "complete": false,
+  "observations": 9,
+  "failure": {
+    "state": "populated",
+    "profile": "desktop",
+    "name": "quests",
+    "sample": 1,
+    "mode": "cold-direct",
+    "reason": "capture-failed",
+    "diagnostic": {
+      "phase": "state-content",
+      "kind": "content-absent",
+      "fields": []
+    }
+  }
+}

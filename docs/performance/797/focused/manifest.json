@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "scope": "diagnostic",
+  "selection": {
+    "state": "populated",
+    "profile": "desktop",
+    "name": "long-adventure"
+  },
+  "captureProtocol": "commit-probe-v4",
+  "sourceCommit": "68e41cb7269d4750a8593d426abac08dd7c3ed46",
+  "buildId": "d2Gafz9Cj5XIqEbEuQJhu",
+  "samples": 10,
+  "fixture": {
+    "accounts": 3,
+    "quests": 2,
+    "messages": 200,
+    "ownConstructs": 1,
+    "emptyDetailMessages": 0
+  },
+  "browser": "Chrome156.0.8078.4",
+  "puppeteerCore": "24.12.1",
+  "lighthouse": "12.8.2",
+  "hostBefore": {
+    "name": "giffany",
+    "cpuCount": 32,
+    "memoryBytes": 32707588096,
+    "load": [
+      5.4,
+      2.9,
+      2.62
+    ]
+  },
+  "cache": "new browser context per journey/sample; cold direct, warm direct then source→client; server/database not reset between cells",
+  "theme": "parchment/light",
+  "profiles": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "cpuRate": 1,
+      "latency": 0,
+      "download": -1,
+      "upload": -1
+    },
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "cpuRate": 4,
+      "latency": 150,
+      "download": 200000,
+      "upload": 93750
+    }
+  },
+  "probeResolutionMs": 100,
+  "inputCharacters": 42,
+  "minimumWindowMs": 5000,
+  "postControlWindowMs": 2000,
+  "quietWindowMs": 500,
+  "productionAccess": false,
+  "fieldCollection": false,
+  "screenshotPolicy": {
+    "allowedFiles": [
+      "home.trace.json.gz",
+      "stream.trace.json.gz"
+    ],
+    "manualReviewRequired": true
+  },
+  "complete": false,
+  "hostAfter": {
+    "name": "giffany",
+    "cpuCount": 32,
+    "memoryBytes": 32707588096,
+    "load": [
+      0.66,
+      1.97,
+      2.32
+    ]
+  },
+  "diagnosticComplete": true
+}

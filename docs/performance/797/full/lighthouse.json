@@ -1,0 +1,1808 @@
+[
+  {
+    "sample": 1,
+    "path": "/home",
+    "authenticated": true,
+    "cache": "authenticated warm assets; storage reset disabled",
+    "version": "12.8.2",
+    "mode": "navigation",
+    "throttlingMethod": "simulate",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 622.5140999267578,
+        "unit": "millisecond"
+      },
+      "largest-contentful-paint": {
+        "score": 1,
+        "value": 911.5113999267578,
+        "unit": "millisecond"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 622.5140999267578,
+        "unit": "millisecond"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 1,
+        "value": 1,
+        "unit": "millisecond"
+      },
+      "max-potential-fid": {
+        "score": 1,
+        "value": 51,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless"
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 1.685,
+        "unit": "millisecond"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 911.5113999267578,
+        "unit": "millisecond"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 590.7959999999999,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 250.4240000000008,
+        "unit": "millisecond"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.013199999999999998,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0.9973,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 912,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": 1
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 77263,
+        "unit": "byte"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "dom-size": {
+        "score": 1,
+        "value": 168,
+        "unit": "element"
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 0
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 1,
+    "path": "/chats/:id",
+    "authenticated": true,
+    "cache": "authenticated warm assets; storage reset disabled",
+    "version": "12.8.2",
+    "mode": "navigation",
+    "throttlingMethod": "simulate",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 760.3767999267578,
+        "unit": "millisecond"
+      },
+      "largest-contentful-paint": {
+        "score": 0.99,
+        "value": 1652.5800000000004,
+        "unit": "millisecond"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 1005.1451251996743,
+        "unit": "millisecond"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 0.81,
+        "value": 278.4832000732423,
+        "unit": "millisecond"
+      },
+      "max-potential-fid": {
+        "score": 0.89,
+        "value": 133,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless"
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.412,
+        "unit": "millisecond"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 1652.5800000000004,
+        "unit": "millisecond"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "mainthread-work-breakdown": {
+        "score": 0,
+        "value": 6175.031999999541,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 0,
+        "value": 4967.7159999998785,
+        "unit": "millisecond"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.015,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0.86,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 1653,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": 1
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 83324,
+        "unit": "byte"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "dom-size": {
+        "score": 0.5,
+        "value": 1839,
+        "unit": "element"
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 0
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 0.5
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 2,
+    "path": "/home",
+    "authenticated": true,
+    "cache": "authenticated warm assets; storage reset disabled",
+    "version": "12.8.2",
+    "mode": "navigation",
+    "throttlingMethod": "simulate",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 622.5770499267578,
+        "unit": "millisecond"
+      },
+      "largest-contentful-paint": {
+        "score": 1,
+        "value": 911.6372999267578,
+        "unit": "millisecond"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 622.5770499267578,
+        "unit": "millisecond"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 0.99,
+        "value": 81,
+        "unit": "millisecond"
+      },
+      "max-potential-fid": {
+        "score": 0.97,
+        "value": 94,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless"
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.221,
+        "unit": "millisecond"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 911.6372999267578,
+        "unit": "millisecond"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 804.6720000000017,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 327.24400000000014,
+        "unit": "millisecond"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.012750000000000001,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 1.0602500000000001,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 912,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": null
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 79045,
+        "unit": "byte"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "dom-size": {
+        "score": 1,
+        "value": 168,
+        "unit": "element"
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 0
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 2,
+    "path": "/chats/:id",
+    "authenticated": true,
+    "cache": "authenticated warm assets; storage reset disabled",
+    "version": "12.8.2",
+    "mode": "navigation",
+    "throttlingMethod": "simulate",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 760.3097999267578,
+        "unit": "millisecond"
+      },
+      "largest-contentful-paint": {
+        "score": 0.99,
+        "value": 1688.7930000000003,
+        "unit": "millisecond"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 1158.5731162119753,
+        "unit": "millisecond"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 0.51,
+        "value": 586.4832000732428,
+        "unit": "millisecond"
+      },
+      "max-potential-fid": {
+        "score": 0.5,
+        "value": 248.00000000000023,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless"
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.247,
+        "unit": "millisecond"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 1724.5430000000006,
+        "unit": "millisecond"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "mainthread-work-breakdown": {
+        "score": 0,
+        "value": 6328.927999999513,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 0,
+        "value": 5332.567999999873,
+        "unit": "millisecond"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.012,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0.7929999999999999,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 1725,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": 1
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 67180,
+        "unit": "byte"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "dom-size": {
+        "score": 0.5,
+        "value": 1839,
+        "unit": "element"
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 0
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 3,
+    "path": "/home",
+    "authenticated": true,
+    "cache": "authenticated warm assets; storage reset disabled",
+    "version": "12.8.2",
+    "mode": "navigation",
+    "throttlingMethod": "simulate",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 610.7023499267578,
+        "unit": "millisecond"
+      },
+      "largest-contentful-paint": {
+        "score": 1,
+        "value": 911.8878999267579,
+        "unit": "millisecond"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 610.7023499267578,
+        "unit": "millisecond"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 0.99,
+        "value": 83,
+        "unit": "millisecond"
+      },
+      "max-potential-fid": {
+        "score": 0.97,
+        "value": 94,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless"
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.437,
+        "unit": "millisecond"
+      },
+      "interactive": {
+        "score": 1,
+        "value": 911.8878999267579,
+        "unit": "millisecond"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "mainthread-work-breakdown": {
+        "score": 0,
+        "value": 4895.947999999794,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 0,
+        "value": 4162.0239999998485,
+        "unit": "millisecond"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.012450000000000001,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 1.1855499999999999,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 912,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": 1
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 83448,
+        "unit": "byte"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "dom-size": {
+        "score": 1,
+        "value": 167,
+        "unit": "element"
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 0
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 3,
+    "path": "/chats/:id",
+    "authenticated": true,
+    "cache": "authenticated warm assets; storage reset disabled",
+    "version": "12.8.2",
+    "mode": "navigation",
+    "throttlingMethod": "simulate",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "viewport": {
+        "score": 1
+      },
+      "first-contentful-paint": {
+        "score": 1,
+        "value": 760.5014499267578,
+        "unit": "millisecond"
+      },
+      "largest-contentful-paint": {
+        "score": 0.99,
+        "value": 1671.4846499999999,
+        "unit": "millisecond"
+      },
+      "first-meaningful-paint": {
+        "score": null
+      },
+      "speed-index": {
+        "score": 1,
+        "value": 1107.8149738002626,
+        "unit": "millisecond"
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 0.37,
+        "value": 790.983200073242,
+        "unit": "millisecond"
+      },
+      "max-potential-fid": {
+        "score": 0.52,
+        "value": 243,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 1,
+        "value": 0,
+        "unit": "unitless"
+      },
+      "server-response-time": {
+        "score": 1,
+        "value": 2.244,
+        "unit": "millisecond"
+      },
+      "interactive": {
+        "score": 0.99,
+        "value": 2212.1846499999997,
+        "unit": "millisecond"
+      },
+      "user-timings": {
+        "score": null
+      },
+      "critical-request-chains": {
+        "score": 1
+      },
+      "redirects": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "mainthread-work-breakdown": {
+        "score": 0,
+        "value": 7089.911999999382,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 0,
+        "value": 5997.09599999986,
+        "unit": "millisecond"
+      },
+      "uses-rel-preconnect": {
+        "score": 1
+      },
+      "font-display": {
+        "score": 1
+      },
+      "diagnostics": {
+        "score": 1
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.01485,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0.9846499999999999,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "metrics": {
+        "score": 1,
+        "value": 2212,
+        "unit": "millisecond"
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "third-party-facades": {
+        "score": null
+      },
+      "largest-contentful-paint-element": {
+        "score": 1
+      },
+      "lcp-lazy-loaded": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": null
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "prioritize-lcp-image": {
+        "score": null
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 71114,
+        "unit": "byte"
+      },
+      "offscreen-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "render-blocking-resources": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-css-rules": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 0.5,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "dom-size": {
+        "score": 0.5,
+        "value": 1839,
+        "unit": "element"
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 0
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": 1
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 0.5
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 0
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  }
+]

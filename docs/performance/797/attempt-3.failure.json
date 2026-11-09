@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "4c0b5876d676208cab80eed9527d07245fabb20f",
+  "buildId": "DTl7yL9-gBlD8CL0j3wAe",
+  "complete": false,
+  "observations": 38,
+  "failure": {
+    "state": "populated",
+    "profile": "desktop",
+    "name": "long-adventure",
+    "sample": 1,
+    "mode": "client-navigation",
+    "reason": "capture-failed",
+    "diagnostic": {
+      "phase": "validate-result",
+      "kind": "schema",
+      "fields": [
+        "events"
+      ]
+    }
+  }
+}

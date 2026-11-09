@@ -1,0 +1,728 @@
+[
+  {
+    "sample": 1,
+    "source": "/home",
+    "destination": "/projects",
+    "authenticated": true,
+    "scope": "Source Home document can contribute lifetime metrics; flow CLS is not an independent transition metric",
+    "version": "12.8.2",
+    "mode": "timespan",
+    "throttlingMethod": "devtools",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "is-on-https": {
+        "score": 1
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 0.98,
+        "value": 0.05378774568931789,
+        "unit": "unitless"
+      },
+      "interaction-to-next-paint": {
+        "score": 1,
+        "value": 27.558,
+        "unit": "millisecond"
+      },
+      "errors-in-console": {
+        "score": 1
+      },
+      "user-timings": {
+        "score": null
+      },
+      "image-aspect-ratio": {
+        "score": 1
+      },
+      "image-size-responsive": {
+        "score": 1
+      },
+      "deprecations": {
+        "score": 1
+      },
+      "third-party-cookies": {
+        "score": 1
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 309.0420000000006,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 109.76200000000006,
+        "unit": "millisecond"
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0.0168,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 568.4172,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": 1
+      },
+      "long-tasks": {
+        "score": null
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "valid-source-maps": {
+        "score": 1
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 14513,
+        "unit": "byte"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 0.5,
+        "value": 100,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "inspector-issues": {
+        "score": 1
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "work-during-interaction": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 1
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": null
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 1
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 1
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 2,
+    "source": "/home",
+    "destination": "/projects",
+    "authenticated": true,
+    "scope": "Source Home document can contribute lifetime metrics; flow CLS is not an independent transition metric",
+    "version": "12.8.2",
+    "mode": "timespan",
+    "throttlingMethod": "devtools",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "is-on-https": {
+        "score": 1
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 0.98,
+        "value": 0.05378774568931789,
+        "unit": "unitless"
+      },
+      "interaction-to-next-paint": {
+        "score": 1,
+        "value": 25.078,
+        "unit": "millisecond"
+      },
+      "errors-in-console": {
+        "score": 1
+      },
+      "user-timings": {
+        "score": null
+      },
+      "image-aspect-ratio": {
+        "score": 1
+      },
+      "image-size-responsive": {
+        "score": 1
+      },
+      "deprecations": {
+        "score": 1
+      },
+      "third-party-cookies": {
+        "score": 1
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 281.6280000000002,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 101.45100000000009,
+        "unit": "millisecond"
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": 1
+      },
+      "long-tasks": {
+        "score": null
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "valid-source-maps": {
+        "score": 1
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 5257,
+        "unit": "byte"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 0.5,
+        "value": 100,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "inspector-issues": {
+        "score": 1
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "work-during-interaction": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 1
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": null
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 1
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 1
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  },
+  {
+    "sample": 3,
+    "source": "/home",
+    "destination": "/projects",
+    "authenticated": true,
+    "scope": "Source Home document can contribute lifetime metrics; flow CLS is not an independent transition metric",
+    "version": "12.8.2",
+    "mode": "timespan",
+    "throttlingMethod": "devtools",
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "audits": {
+      "is-on-https": {
+        "score": 1
+      },
+      "screenshot-thumbnails": {
+        "score": 1
+      },
+      "final-screenshot": {
+        "score": 1
+      },
+      "total-blocking-time": {
+        "score": 1,
+        "value": 2.2000000000000455,
+        "unit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "score": 0.98,
+        "value": 0.05378774568931789,
+        "unit": "unitless"
+      },
+      "interaction-to-next-paint": {
+        "score": 1,
+        "value": 26.338,
+        "unit": "millisecond"
+      },
+      "errors-in-console": {
+        "score": 1
+      },
+      "user-timings": {
+        "score": null
+      },
+      "image-aspect-ratio": {
+        "score": 1
+      },
+      "image-size-responsive": {
+        "score": 1
+      },
+      "deprecations": {
+        "score": 1
+      },
+      "third-party-cookies": {
+        "score": 1
+      },
+      "mainthread-work-breakdown": {
+        "score": 1,
+        "value": 293.49900000000025,
+        "unit": "millisecond"
+      },
+      "bootup-time": {
+        "score": 1,
+        "value": 117.4750000000002,
+        "unit": "millisecond"
+      },
+      "network-requests": {
+        "score": 1
+      },
+      "network-rtt": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "network-server-latency": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "main-thread-tasks": {
+        "score": 1
+      },
+      "resource-summary": {
+        "score": 1
+      },
+      "third-party-summary": {
+        "score": null
+      },
+      "layout-shifts": {
+        "score": 1
+      },
+      "long-tasks": {
+        "score": 1
+      },
+      "non-composited-animations": {
+        "score": null
+      },
+      "unsized-images": {
+        "score": 1
+      },
+      "valid-source-maps": {
+        "score": 1
+      },
+      "script-treemap-data": {
+        "score": 1
+      },
+      "uses-long-cache-ttl": {
+        "score": 1,
+        "value": 0,
+        "unit": "byte"
+      },
+      "total-byte-weight": {
+        "score": 1,
+        "value": 3757,
+        "unit": "byte"
+      },
+      "unminified-css": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unminified-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "unused-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "modern-image-formats": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-text-compression": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "uses-responsive-images": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "efficient-animated-content": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "duplicated-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "legacy-javascript": {
+        "score": 1,
+        "value": 0,
+        "unit": "millisecond"
+      },
+      "inspector-issues": {
+        "score": 1
+      },
+      "no-document-write": {
+        "score": 1
+      },
+      "uses-http2": {
+        "score": 1
+      },
+      "uses-passive-event-listeners": {
+        "score": 1
+      },
+      "work-during-interaction": {
+        "score": 1
+      },
+      "bf-cache": {
+        "score": 1
+      },
+      "cache-insight": {
+        "score": 1
+      },
+      "cls-culprits-insight": {
+        "score": 1
+      },
+      "document-latency-insight": {
+        "score": null
+      },
+      "dom-size-insight": {
+        "score": 1
+      },
+      "duplicated-javascript-insight": {
+        "score": 1
+      },
+      "font-display-insight": {
+        "score": 1
+      },
+      "forced-reflow-insight": {
+        "score": 1
+      },
+      "image-delivery-insight": {
+        "score": 1
+      },
+      "inp-breakdown-insight": {
+        "score": 1
+      },
+      "lcp-breakdown-insight": {
+        "score": null
+      },
+      "lcp-discovery-insight": {
+        "score": null
+      },
+      "legacy-javascript-insight": {
+        "score": 1
+      },
+      "modern-http-insight": {
+        "score": 1
+      },
+      "network-dependency-tree-insight": {
+        "score": 1
+      },
+      "render-blocking-insight": {
+        "score": 1
+      },
+      "third-parties-insight": {
+        "score": 1
+      },
+      "viewport-insight": {
+        "score": 1
+      }
+    }
+  }
+]
