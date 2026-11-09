@@ -8,6 +8,10 @@ const WORKSHOP_COPY = {
     "Shape a construct, activity or spell, then put your draft to the test.",
   edit: "At the workbench",
   test: "Try your draft",
+  close: "Back to editing",
+  settings: "Test settings",
+  chooseCase: "Choose an example…",
+  limitsHeading: "Test limits · Only spell casting is available",
   cases: "Test cases",
   caseHint: "Choose a starting point or write your own message.",
   examples: [
