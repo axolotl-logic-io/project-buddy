@@ -1,7 +1,7 @@
 const VISUAL_COPY = {
   restore: "Restore previous artwork",
   restoreHint:
-    "Restore the previous artwork and its Visual description without spending gold. Save or discard text edits first. Existing adventures and Marketplace copies keep their artwork.",
+    "Restore the previous saved artwork and its Visual description without spending gold. Save or discard text edits first. Existing adventures and Marketplace copies keep their artwork.",
   restored: "Previous artwork and Visual description restored. No gold spent.",
   heading: "Visuals",
   description: "Visual description",
@@ -26,7 +26,7 @@ const VISUAL_COPY = {
   check: "Check generation status",
   needsDescription: "Enter a Visual description before generating images.",
   explanation:
-    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save generates replacements only when the Visual description changes. Generate Images uses the current draft Visual description without saving your edits, even if unchanged. Generation spends gold; name and conversational instructions are never sent to the image model. Existing images stay until a replacement succeeds.",
+    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save reuses matching draft artwork; otherwise it generates replacements when the Visual description changes. Generate Images uses the current draft Visual description without saving your edits, even if unchanged. Generation spends gold; name and conversational instructions are never sent to the image model. Existing images stay until a replacement succeeds.",
   roles: {
     avatar: "Avatar",
     portrait: "Portrait",
@@ -53,7 +53,7 @@ const VISUAL_COPY = {
   reservation: (gold: number): string =>
     `Generation reserves ${gold.toLocaleString("en-US")} gold before it starts. Unused gold is returned.`,
   outdated:
-    "These images are out of date for the saved Visual description. Generate replacements when you are ready.",
+    "These images use a different Visual description from the current draft. Save a matching description to keep its artwork without another generation charge.",
 };
 
 export { VISUAL_COPY };
