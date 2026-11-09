@@ -40,8 +40,26 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
-  .page-column:has(.workshop) {
+  .workspace-frame {
+    @apply flex w-full flex-1 flex-col;
+  }
+
+  .page-frame-editor {
     @apply max-w-6xl;
+  }
+
+  .page-frame-home {
+    @apply max-w-none gap-0 p-0;
+  }
+
+  .page-title-row {
+    min-block-size: var(--target-size);
+    @apply flex flex-wrap items-center justify-between gap-4;
+  }
+
+  .page-slot {
+    min-block-size: calc(var(--target-size) * 3);
+    @apply flex min-w-0 flex-col gap-4;
   }
 
   .workshop {
@@ -711,10 +729,6 @@
     @supports (background-attachment: scroll) {
       background-attachment: scroll;
     }
-  }
-
-  .page-column:has(> .atlas:not([data-inactive])) {
-    @apply max-w-none gap-0 p-0;
   }
 
   .atlas {

@@ -107,7 +107,9 @@ active Light, Dark or System palette. System updates while Home is open;
 explicit Light or Dark overrides it.
 
 Home uses the shared site header above its content, with the site's name,
-Quick Note and Menu. Quests and Adventures remain in the menu and Home's
+Quick Note and Menu. A current-page Home breadcrumb uses the same location
+row as other signed-in pages, keeping the content origin stable during
+navigation. Quests and Adventures remain in the menu and Home's
 destinations, without shortcuts beside Quick Note on any page.
 Leaving a cached Home page restores the usual page background and content
 column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
@@ -493,4 +495,4 @@ The composer shows the acting user's battery balance. Reply costs retain fractio
 
 The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand, Menu and Quick Note row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it when their extra is on. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
 
-Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, Marketplace listings, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home and unknown or inaccessible pages have no breadcrumb trail.
+Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, Marketplace listings, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.

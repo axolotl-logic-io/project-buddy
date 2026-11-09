@@ -1,0 +1,100 @@
+{
+  "beforeSource": "70f0fc09a9d07ec3ffeafd7af8465a19c5bf324c",
+  "afterSource": "9f44f3c5a8060e11491ffc48489313c5fc8d6b0e",
+  "beforeBuildId": "cSP-7V74N3htfQPMQq_cE",
+  "afterBuildId": "noCbIyhyy19Vp_A8gWb4O",
+  "browser": "Chrome for Testing 156.0.8078.4",
+  "puppeteerCore": "24.12.1",
+  "screenshots": "Home only; direct full window, client after identical visible primary criterion plus two rendering frames",
+  "screenshotCorrection": [
+    {
+      "artifact": "checkpoint-traces/before/desktop/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 5,
+      "appliesTo": "original flat-snapshot checkpoint only; not final traces"
+    },
+    {
+      "artifact": "checkpoint-traces/before/phone/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 9,
+      "appliesTo": "original flat-snapshot checkpoint only; not final traces"
+    }
+  ],
+  "targetSamplesPerCell": 10,
+  "productionAccess": false,
+  "collectionEnabled": false,
+  "unmeasuredPrototypes": [
+    {
+      "source": "a29dbe28d8166f7be3fd5badf607bb2c0a5f4306",
+      "buildId": "xR2nTsTB7mLLjTF_Hs8bb"
+    },
+    {
+      "source": "fb065b53f8f323bad4ad8fb3a974dcccb23c853a",
+      "buildId": "aM1QP6WCmmfquaij_gwVK"
+    }
+  ],
+  "status": "320-observation confirmation and final fresh review complete; protected integration merge pending",
+  "sourcePreparation": "visible-shared-menu-state-v2",
+  "sameDocumentRequiredForClientNavigation": true,
+  "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
+  "node": "24.6.0",
+  "cohortProtocol": "geometry-commit-probe-v3",
+  "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/",
+  "recipeSha256": {
+    "capture.mjs": "5f5a32b5a4c782c5851bf459c79d9add613d7b5dc3f69b735993cb6949164434",
+    "observe.mjs": "67073ac3287b2bf78133225eb55f03f0b2ee343cd8ea5115204af5fccc6a6637",
+    "start.mjs": "0f1004db590dae3db88fe3cafccd18003e1fede3335a466f4e7382f11c04287d",
+    "cohort.mjs": "4a08925c19893da2cd66ab91d0a9a4063e122527163a0ac218ed6986fcb9ed37",
+    "prepare-pair.py": "f4fe83d974ea98acd3e15068d68c60e872498470d9d6efce1eb35acfbe8d1cec"
+  },
+  "candidateAcceptanceSatisfied": true,
+  "provisionalCohorts": [
+    {
+      "directory": "provisional/v2-737c914f",
+      "afterSource": "737c914fa8e5f87a198430552c8dddb86d5b9d60",
+      "afterBuildId": "Ab_dyq8SMB34B7XgLvl6P",
+      "observations": 48,
+      "captureFailures": 0,
+      "completedBeforeSamples": [
+        1
+      ],
+      "completedAfterSamples": [
+        1,
+        2
+      ]
+    }
+  ],
+  "checkpointIdentity": {
+    "source": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+    "buildId": "5ZJdzqfe5kTwOioEMjRk9",
+    "protocol": "geometry-commit-probe-v1"
+  },
+  "targetObservations": 320,
+  "scope": "post-Workshop matched geometry confirmation",
+  "measuredBudgetsSatisfied": true,
+  "completedObservations": 320,
+  "captureFailures": 0,
+  "manualScreenshotReview": {
+    "finalFramesReviewed": 47,
+    "framesByFinalArtifact": {
+      "before/desktop/cold-direct/home.trace.json.gz": 7,
+      "before/desktop/client-navigation/home.trace.json.gz": 2,
+      "before/phone/cold-direct/home.trace.json.gz": 7,
+      "before/phone/client-navigation/home.trace.json.gz": 4,
+      "after/desktop/cold-direct/home.trace.json.gz": 9,
+      "after/desktop/client-navigation/home.trace.json.gz": 2,
+      "after/phone/cold-direct/home.trace.json.gz": 12,
+      "after/phone/client-navigation/home.trace.json.gz": 4
+    },
+    "method": "Every retained final frame inspected on lossless local contact sheets by the parent.",
+    "result": "Synthetic Home/blank startup and shared header only; no source-page pixels, prompts, domain identifiers or sessions observed.",
+    "otherRetainedFramesReview": "Original checkpoint cold15 and provisional client44 reviewed by capture helper; provisional cold34, pilot13 and final47 reviewed by parent."
+  },
+  "confirmationSummary": "confirmation-summary.json",
+  "finalReview": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "head": "02ab280aeb68c847f32b115da950b66f34b4d1fd",
+    "verdict": "acceptable; no material blockers or recapture required",
+    "record": "review.md",
+    "parentFollowup": "Documentation-only notes resolved; optional layout prop typing nit deferred."
+  }
+}

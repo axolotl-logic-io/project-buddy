@@ -1,0 +1,5 @@
+import {spawn} from 'node:child_process';
+process.loadEnvFile('/home/bestieboots/.t3/worktrees/project-buddy/issues-795-performance/apps/web/.env.test');
+const child=spawn(process.execPath,['/home/bestieboots/.t3/worktrees/project-buddy/issues-795-performance/node_modules/next/dist/bin/next','start',process.argv[2],'--port','35841'],{stdio:'inherit',env:process.env,cwd:process.argv[2]});
+process.on('SIGTERM',()=>child.kill('SIGTERM'));
+child.on('exit',code=>process.exit(code??1));
