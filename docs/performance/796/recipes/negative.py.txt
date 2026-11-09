@@ -1,0 +1,28 @@
+import copy,gzip,json,shutil,subprocess,tempfile
+from pathlib import Path
+root=Path(__file__).resolve().parent.parent;check=root/'recipes/check.py.txt'
+results=[]
+def run(name,file,mutate):
+ with tempfile.TemporaryDirectory(prefix='pb796-negative-') as temp:
+  dest=Path(temp)
+  for p in root.iterdir():
+   if p.is_file():shutil.copyfile(p,dest/p.name)
+  path=dest/file;value=json.loads(gzip.decompress(path.read_bytes()));mutate(value)
+  path.write_bytes(gzip.compress(json.dumps(value).encode(),mtime=0))
+  r=subprocess.run(['python',str(check),str(dest),'--partial'],capture_output=True,text=True)
+  assert r.returncode!=0,('negative accepted',name)
+  results.append({'case':name,'rejected':True})
+run('private UUID in categorical path','measurements.json.gz',lambda a:a[0]['resources'][0].update(path='/chats/00000000-0000-4000-8000-000000000000'))
+run('raw resource URL','measurements.json.gz',lambda a:a[0]['resources'][0].update(path='https://example.invalid/private'))
+run('unknown prompt payload','measurements.json.gz',lambda a:a[0].update(prompt='synthetic forbidden payload'))
+run('request headers','measurements.json.gz',lambda a:a[0]['networkResources'][0].update(headers={'test':'synthetic'}))
+run('wrong build','measurements.json.gz',lambda a:a[0].update(buildId='wrong-build'))
+run('unknown event name','measurements.json.gz',lambda a:a[0]['events'].append({'name':'payload','time':0,'duration':16,'interaction':1}))
+trace=next(root.glob('*.trace.json.gz')).name
+run('screenshot with arguments',trace,lambda a:a['traceEvents'].append({'name':'Screenshot','cat':'devtools.timeline','ph':'I','ts':1,'pid':1,'tid':1,'args':{'snapshot':'synthetic'}}))
+run('screenshot without arguments',trace,lambda a:a['traceEvents'].append({'name':'Screenshot','cat':'devtools.timeline','ph':'I','ts':1,'pid':1,'tid':1}))
+run('screenshot category',trace,lambda a:a['traceEvents'].append({'name':'Event','cat':'disabled-by-default-devtools.screenshot','ph':'I','ts':1,'pid':1,'tid':1}))
+if (root/'reading-anchors.json.gz').exists():
+ run('moved visible reading anchor','reading-anchors.json.gz',lambda a:a[0]['anchorAfter'].update(top=a[0]['anchorBefore']['top']+20))
+(root/'negative-results.json').write_text(json.dumps(results,indent=2)+'\n')
+print(len(results),'negative cases rejected')

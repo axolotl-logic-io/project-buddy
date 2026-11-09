@@ -1,0 +1,35 @@
+import gzip,json
+from pathlib import Path
+
+def union(intervals):
+ merged=[]
+ for start,end in sorted(intervals):
+  if not merged or start>merged[-1][1]:merged.append([start,end])
+  else:merged[-1][1]=max(merged[-1][1],end)
+ return merged
+
+def length(intervals):return sum(b-a for a,b in union(intervals))
+
+root=Path(__file__).resolve().parent
+if root.name=='recipes':root=root.parent
+metadata={}
+if (root/'trace-metadata.json.gz').exists():metadata={m['variant']:m for m in json.loads(gzip.decompress((root/'trace-metadata.json.gz').read_bytes()))}
+rows=[]
+for variant in ['before','renderer']:
+ meta=metadata.get(variant)
+ if meta is None:meta=json.loads((root/f'{variant}-cold-metadata.json').read_text())
+ data=json.loads(gzip.decompress((root/f'{variant}-cold.trace.json.gz').read_bytes()))
+ candidates={(x['pid'],x['tid']) for x in meta['mainThreads']};counts={key:sum(e['name']=='EventDispatch' and (e['pid'],e['tid'])==key for e in data['traceEvents']) for key in candidates};active=max(counts,key=counts.get);main={active};origin=meta['traceOrigin']*1000
+ intervals={key:[] for key in ['script','layoutStyle','paint','events']}
+ for e in data['traceEvents']:
+  if (e['pid'],e['tid']) not in main or e['ph']!='X':continue
+  start=max(0,e['ts']/1000-origin);end=min(8000,(e['ts']+e.get('dur',0))/1000-origin)
+  if end<=start:continue
+  if e['name'] in ['FunctionCall','EvaluateScript','RunMicrotasks','v8.evaluateModule']:intervals['script'].append((start,end))
+  if e['name'] in ['Layout','UpdateLayoutTree']:intervals['layoutStyle'].append((start,end))
+  if e['name'] in ['Paint','PrePaint']:intervals['paint'].append((start,end))
+  if e['name']=='EventDispatch':intervals['events'].append((start,end))
+ row={'variant':variant,'buildId':meta['buildId'],'windowMs':8000,'diagnosticSamples':1,'activeRenderer':{'pid':active[0],'tid':active[1]},'selection':'most-event-dispatches','traceOrigin':meta['traceOrigin'],'coverageMs':{k:round(length(v),3) for k,v in intervals.items()}}
+ rows.append(row)
+(root/'attribution.json').write_text(json.dumps(rows,indent=2))
+print(json.dumps(rows,indent=2))

@@ -1,6 +1,6 @@
 "use client";
 
-import type { JSX } from "react";
+import { type JSX, memo } from "react";
 import {
   type Components,
   defaultComponents,
@@ -33,13 +33,17 @@ function headingComponents(topLevel: number): Components {
   );
 }
 
+const HEADING_COMPONENTS = HEADING_TAGS.map((_, index) =>
+  headingComponents(index + 1),
+);
+
 // Text as Markdown, with GitHub's extensions and highlighted code, styled
 // from the token contract (chat.css). While the text is still streaming,
 // unfinished Markdown, such as an open code fence, renders as if it were
 // closed, and a caret marks where the text will continue. Links open in a
 // new tab. Inside a page that already has headings, topHeadingLevel puts
 // the text's headings below them, so the page keeps a single h1.
-export function Markdown({
+function MarkdownContent({
   text,
   running,
   topHeadingLevel = 1,
@@ -52,7 +56,10 @@ export function Markdown({
     <Streamdown
       caret="block"
       className="markdown"
-      components={headingComponents(topHeadingLevel)}
+      components={
+        HEADING_COMPONENTS[topHeadingLevel - 1] ??
+        headingComponents(topHeadingLevel)
+      }
       isAnimating={running}
       linkSafety={LINK_SAFETY}
       plugins={STREAMDOWN_PLUGINS}
@@ -61,3 +68,8 @@ export function Markdown({
     </Streamdown>
   );
 }
+
+// Completed prose does not change when sibling messages or the composer update.
+const Markdown = memo(MarkdownContent);
+
+export { Markdown };

@@ -1,0 +1,25 @@
+// Reuses docs/performance/773/recipes/lighthouse.mjs.txt warm audit protocol.
+import puppeteer from '/tmp/pb-773-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js';
+import lighthouse from '/tmp/pb-773-tools/node_modules/lighthouse/core/index.js';
+import {readFile,writeFile} from 'node:fs/promises';
+import {createWriteStream} from 'node:fs';
+import {spawn} from 'node:child_process';
+import {loadavg} from 'node:os';
+process.loadEnvFile('apps/web/.env.test');
+const variant=process.argv[2],sample=Number(process.argv[3]);
+const s=JSON.parse(await readFile('/tmp/pb-796/session.json','utf8'));
+const base='http://localhost:30145';const path=`/chats/${s.chat}`;
+const buildId=(await readFile('apps/web/.next/BUILD_ID','utf8')).trim();
+const server=spawn(process.execPath,['../../node_modules/next/dist/bin/next','start','--port','30145'],{cwd:'apps/web',env:process.env,stdio:['ignore','pipe','pipe']});
+server.stderr.pipe(createWriteStream(`/tmp/pb-796/lighthouse-${variant}-server.log`,{mode:0o600}));
+let browser;
+try{
+ await new Promise((resolve,reject)=>{server.stdout.on('data',v=>{if(v.toString().includes('Ready'))resolve();});server.on('exit',()=>reject(Error('server exited')));});
+ browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--remote-debugging-port=0']});
+ const page=(await browser.pages())[0];await page.setCookie({name:'session',value:s.populated,url:base,httpOnly:true,sameSite:'Lax'});
+ await page.goto(base+path,{waitUntil:'networkidle0'});if(page.url().split('?')[0]!==base+path)throw Error('Authenticated source absent');
+ const hostLoad=loadavg();const {lhr}=await lighthouse(base+path,{port:Number(new URL(browser.wsEndpoint()).port),disableStorageReset:true,onlyCategories:['performance'],output:'json',logLevel:'error'});
+ if(lhr.finalDisplayedUrl.split('?')[0]!==base+path)throw Error('Audit measured wrong page');
+ const row={variant,sample,buildId,hostLoad,path:'/chats/:id',version:lhr.lighthouseVersion,throttlingMethod:lhr.configSettings.throttlingMethod,throttling:lhr.configSettings.throttling,formFactor:lhr.configSettings.formFactor,screenEmulation:lhr.configSettings.screenEmulation,disableStorageReset:lhr.configSettings.disableStorageReset,warnings:lhr.runWarnings,runtimeError:lhr.runtimeError?.code??null,audits:Object.fromEntries(['total-blocking-time','first-contentful-paint','largest-contentful-paint','cumulative-layout-shift','interactive','speed-index'].map(key=>[key,{score:lhr.audits[key]?.score??null,value:lhr.audits[key]?.numericValue??null,unit:lhr.audits[key]?.numericUnit??null}]))};
+ await writeFile(`/tmp/pb-796/${variant}-lighthouse-${sample}.json`,JSON.stringify(row));console.log('lighthouse',variant,sample,'TBT',row.audits['total-blocking-time'].value,'warnings',row.warnings.length);if(row.runtimeError)throw Error('Lighthouse runtime error '+row.runtimeError);
+}finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(resolve=>server.on('exit',resolve));}
