@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_view_projects
 
-The user looks over her quests. Active quests are shown by default; Completed and Abandoned tabs show those statuses, as described in [quest status](quest-status.md).
+The user looks over her quests in one workspace. The heading and Start Quest action share a compact header. Underlined Active, Completed, Abandoned and Premade quests tabs select the content below. Saved quests appear as compact rows, newest first. Active quests are shown by default; Completed and Abandoned tabs show those statuses, as described in [quest status](quest-status.md).
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
@@ -306,8 +306,8 @@ The user gives the reason for wanting to complete a quest.
 The user explores starting points without creating anything.
 
 - **Prerequisites:** signed in on Quests.
-- **Steps:** browse the four offerings, open a preview, inspect its starting Journal and first activity, then close it.
-- **Outcome:** existing quests and New quest remain available. No quest, adventure or model call is made.
+- **Steps:** choose the Premade quests tab (or Find a starting point), browse the four offerings, open a preview, inspect its starting Journal and first activity, then close it.
+- **Outcome:** Start Quest remains available in the header. Switching back to a status tab shows the existing quests. The selected tab is kept in the URL, including Premade quests. Find a starting point selects and focuses the Premade quests tab. No quest, adventure or model call is made.
 
 ## use_case_start_premade_quest
 

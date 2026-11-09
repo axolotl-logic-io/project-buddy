@@ -1,6 +1,10 @@
 # Premade quests
 
-Quests offers four editable starting points alongside Start Quest and the existing quest list:
+Quests combines saved quests and editable starting points in one workspace. Start Quest stays in the header. The underlined Active, Completed, Abandoned and Premade quests tabs select the content below; Active is the default. Saved quests appear as compact rows, newest first, with team marks and Restore quest where available. Invitations remain above the tabs.
+
+The selected tab is kept in the URL with `status`, including `status=premade`. Find a starting point selects the Premade quests tab and moves keyboard focus to it. On phones the tab rail wraps into two columns.
+
+The Premade quests tab offers four editable starting points:
 
 - **Start without inspiration** starts with **Find something to make**.
 - **Design an original character** starts with **Brainstorm**.
