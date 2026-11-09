@@ -79,7 +79,12 @@ async function show(draft: WorkshopDraft = DRAFT): Promise<void> {
               label: "Opening request",
               help: "Opening",
             },
-          ]}
+          ].filter(
+            (field) =>
+              field.name === "prompt" ||
+              (field.name === "whenToUse" && draft.kind === "spell") ||
+              (field.name === "openingRequest" && draft.kind === "activity"),
+          )}
         />
       </Workshop>,
     ),
@@ -285,18 +290,36 @@ test.each(["construct", "activity", "spell"] as const)(
     installReply();
     await show({ ...DRAFT, kind });
     await page
-      .getByRole("textbox", { name: "When to use", exact: true })
-      .fill("Unsaved selection");
+      .getByRole("textbox", { name: "Name", exact: true })
+      .fill("Unsaved name");
     await page
-      .getByRole("textbox", { name: "Opening request", exact: true })
-      .fill("Unsaved opening");
+      .getByRole("textbox", { name: "Prompt", exact: true })
+      .fill("Unsaved prompt");
+    if (kind === "spell") {
+      await page
+        .getByRole("textbox", { name: "When to use", exact: true })
+        .fill("Unsaved selection");
+    }
+    if (kind === "activity") {
+      await page
+        .getByRole("textbox", { name: "Opening request", exact: true })
+        .fill("Unsaved opening");
+    }
     await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
     await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
     expect(requests.at(-1)?.draft).toMatchObject({
       kind,
-      whenToUse: "Unsaved selection",
-      openingRequest: "Unsaved opening",
+      name: "Unsaved name",
+      prompt: "Unsaved prompt",
     });
+    const expected: Partial<WorkshopDraft> = {};
+    if (kind === "spell") {
+      expected.whenToUse = "Unsaved selection";
+    }
+    if (kind === "activity") {
+      expected.openingRequest = "Unsaved opening";
+    }
+    expect(requests.at(-1)?.draft).toMatchObject(expected);
     expect(saveAction).not.toHaveBeenCalled();
   },
 );

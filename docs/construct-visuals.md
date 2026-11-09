@@ -44,9 +44,11 @@ Snapshots copy the visual description, immutable references and framing into the
 
 ## Generated-asset service contract
 
-`src/constructs/visual-generation-contract.ts` defines the request and response boundaries for the service. It exports `VISUAL_GENERATION_REQUEST`, `VISUAL_GENERATION_RESULT`, `VISUAL_GENERATION_QUOTE`, `VISUAL_GENERATION_STATUS` and `VISUAL_ROLE_STATE`, with inferred types. A request contains a construct UUID, a durable request UUID and the normalized saved visual description. A result contains its status, gold reservation, per-role states and optional visual metadata. A read-only quote contains the reservation, provider availability, outdated status, optional pending request UUID with its immutable description, and optional result. These schemas add no endpoint or paid call by themselves.
+`src/constructs/visual-generation-contract.ts` defines the request and response boundaries for the service. It exports `VISUAL_GENERATION_REQUEST`, `VISUAL_GENERATION_RESULT`, `VISUAL_GENERATION_QUOTE`, `VISUAL_GENERATION_STATUS` and `VISUAL_ROLE_STATE`, with inferred types. A request contains a construct UUID, a durable request UUID and the normalized draft Visual description. A result contains its status, gold reservation, per-role states and optional visual metadata. A read-only quote contains the reservation, provider availability, outdated status, optional pending request UUID with its immutable description, and optional result and latest still-granted draft artwork with its source description. These schemas add no endpoint or paid call by themselves.
 
-New visual metadata carries `sourceFingerprint`, a SHA-256 digest of the normalized Visual description only, and `sourceFingerprintVersion: 2`. The provider receives that exact description alone: no name, conversational instructions, reference image or creative wrapper. Name and voice edits do not stale artwork. For older unversioned hashes, the service compares an owned immutable generation record’s description when one is available; other legacy artwork reports unknown freshness. Existing text and paid history are never rewritten to infer a baseline.
+New visual metadata carries `sourceFingerprint`, a SHA-256 digest of the normalized Visual description only, and `sourceFingerprintVersion: 2`. The provider receives that exact description alone: no name, conversational instructions, reference image or creative wrapper. Name and voice edits do not stale artwork.
+
+For older unversioned hashes, the service compares an owned immutable generation record’s description when one is available; other legacy artwork reports unknown freshness. Existing text and paid history are never rewritten to infer a baseline.
 
 The implemented service follows these requirements. `src/constructs/visual-generation.ts` owns generation; `visual-asset-store.ts` owns immutable bytes and grants, and the resource-scoped API routes authorize delivery.
 
@@ -73,7 +75,7 @@ Public built-in personality copy requires explicit built-in canonical artwork me
 
 ## Previous artwork recovery
 
-Successful replacement retains one previous image identity on the own construct. Restore previous artwork restores that image and its saved Visual description, preserving current name and prompt. It uses existing bytes, makes no model call, and charges no gold. The editor requires other changes to be saved or discarded first. Pending generation blocks restoration. A new successful generation replaces the recovery slot.
+A saved replacement retains one previous image identity on the own construct. Restore previous artwork restores that image and its saved Visual description, preserving current name and prompt. It uses existing bytes, makes no model call, and charges no gold. The editor requires other changes to be saved or discarded first. Pending generation blocks restoration. A new saved replacement replaces the recovery slot.
 
 Generated identity metadata comes from the recorded generation when available, including artwork legitimately held through a bought copy. Unknown legacy freshness remains unknown. Missing artwork never gets a fabricated recovery entry. Existing adventures, listings and bought copies keep their snapshots. Recovery retains the old asset grant; discarding the slot or deleting the definition releases it through the existing final-grant cleanup.
 
@@ -84,3 +86,11 @@ The shared renderer uses compressed WebP derivatives at 64, 128, 256, 512 and 10
 Built-in derivatives are committed beside the immutable reference PNGs. To regenerate them, run `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/resize-construct-artwork.ts` from `apps/web/`. The reference loader continues to use the original PNGs for generation.
 
 Generated sources use the same bounded widths through a `width` query parameter on the destination-scoped endpoint. Delivery checks the signed-in user's current access before resizing to WebP and keeps `private, no-store`; it does not use the shared Next.js image optimizer. Omitting `width` retains original-byte delivery for existing callers. Invalid widths are rejected. Resizing never enlarges a smaller source.
+
+## Draft artwork
+
+Generate Images accepts the current unsaved or recovered nonempty Visual description, including a first description. It stores a compatible nonempty generation snapshot without changing the saved definition. Its construct asset grant allows owner-only preview and status recovery. The latest successful draft for the current saved appearance is retained alongside saved and previous artwork; replacement and deletion use the existing grant cleanup. Draft artwork does not enter adventure or Marketplace snapshots until Save attaches it.
+
+Save attaches matching draft artwork and its description without another paid call. Under the generation lock, matching version 2 fingerprints suppress automatic generation; explicit regeneration still spends gold. A saved submission superseded by another tab before claim reserves nothing. A saved appearance changed during generation rejects the result and keeps prior artwork while settling the one billed call.
+
+Restore previous artwork restores the previous saved artwork and its saved description. Unsaved draft artwork becomes eligible for that recovery slot after explicit Save attaches it. Its recorded description is the actual generation source, so restoring it does not substitute the description that happened to be saved during draft generation.

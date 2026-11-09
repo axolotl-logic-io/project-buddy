@@ -660,3 +660,92 @@ test("recovered construct edits generate directly and survive a failure without 
     localStorage.getItem(`draft:prompt:draft-editor:buddy:${construct.id}`),
   ).toContain("Unsaved silver guide");
 });
+
+test("first recovered description generates without saving and matching artwork makes Save free", async () => {
+  const description = "A first unsaved silver guide";
+  const fresh = { ...construct, definition: { prompt: "Saved voice" } };
+  const visual = {
+    version: 1,
+    description,
+    sourceFingerprintVersion: 2,
+    canonical: { kind: "generated", assetId: PENDING_ID },
+  } as const;
+  let generated = false;
+  const fetcher = vi.fn<typeof fetch>((_input, init) => {
+    if (init?.method === "POST") {
+      generated = true;
+      return Promise.resolve(
+        Response.json({ ...outcome("generated"), visual }),
+      );
+    }
+    if (generated) {
+      return Promise.resolve(
+        Response.json(
+          quote({ artworkDescription: description, draftVisual: visual }),
+        ),
+      );
+    }
+    return Promise.resolve(Response.json(quote()));
+  });
+  vi.stubGlobal("fetch", fetcher);
+  const saved = Promise.withResolvers<FormData>();
+  const save = vi.fn<(form: FormData) => void>((form) => {
+    saved.resolve(form);
+  });
+  keepLocalDraft(`prompt:first-draft:buddy:${construct.id}`, {
+    basedOn: "revision",
+    name: "Recovered name",
+    texts: { prompt: "Recovered voice", visualDescription: description },
+  });
+  await render(
+    <ConstructEditor
+      construct={fresh}
+      viewer="first-draft"
+      action={save}
+      kind="construct"
+      idName="constructId"
+      promptId={construct.id}
+      savedAt="revision"
+      name={construct.name}
+      heading="Prompt"
+      defaultPrompt={undefined}
+      texts={[
+        {
+          name: "prompt",
+          text: "Saved voice",
+          label: "Instructions",
+          help: "Instructions",
+        },
+        {
+          name: "visualDescription",
+          text: "",
+          label: "Visual description",
+          help: "Appearance",
+        },
+      ]}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.generated))
+    .toBeVisible();
+  await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
+  await expect
+    .element(page.getByText(VISUAL_COPY.saveWithoutGeneration))
+    .toBeVisible();
+  await expect
+    .element(page.getByText(VISUAL_COPY.outdated))
+    .not.toBeInTheDocument();
+  await expect
+    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .toHaveValue("Recovered voice");
+  expect(save).not.toHaveBeenCalled();
+  await button(PROMPT_COPY.save).click();
+  const submittedForm = await saved.promise;
+  expect(submittedForm.get("visualDescription")).toBe(description);
+  expect(submittedForm.has("visualRequestId")).toBe(false);
+  expect(
+    fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
+});

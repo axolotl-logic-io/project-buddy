@@ -14,7 +14,10 @@ import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { restoreVisualAction } from "@/constructs/restore-visual-action.ts";
-import type { ConstructVisual } from "@/constructs/visual.ts";
+import {
+  type ConstructVisual,
+  normalizeVisualDescription,
+} from "@/constructs/visual.ts";
 import {
   VISUAL_GENERATION_QUOTE,
   VISUAL_GENERATION_REQUEST,
@@ -116,6 +119,12 @@ function ConstructVisualGeneration({
       unresolved?: VisualGenerationRequest,
     ): void => {
       setQuote(next);
+      if (next.draftVisual !== undefined) {
+        setVisualResult({
+          source: construct.definition.visual,
+          visual: next.draftVisual,
+        });
+      }
       onQuoteChange?.(next);
       setUnknown(false);
       const missingClaim =
@@ -154,7 +163,14 @@ function ConstructVisualGeneration({
         keepLocalDraft(requestKey, recovered);
       }
     },
-    [construct.id, savedDescription, requestKey, apply, onQuoteChange],
+    [
+      construct.id,
+      construct.definition.visual,
+      savedDescription,
+      requestKey,
+      apply,
+      onQuoteChange,
+    ],
   );
   const read = useCallback(
     async (unresolved?: VisualGenerationRequest): Promise<void> => {
@@ -338,7 +354,10 @@ function ConstructVisualGeneration({
         <p>{VISUAL_COPY.reservation(quote.reservationGold)}</p>
       )}
       {quote?.available === false && <p>{VISUAL_COPY.states.unavailable}</p>}
-      {quote?.outdated === true && <p>{VISUAL_COPY.outdated}</p>}
+      {((quote?.artworkDescription !== undefined &&
+        normalizeVisualDescription(description) !== quote.artworkDescription) ||
+        (quote?.artworkDescription === undefined &&
+          quote?.outdated === true)) && <p>{VISUAL_COPY.outdated}</p>}
       {quote?.freshnessUnknown === true && (
         <p>{VISUAL_COPY.freshnessUnknown}</p>
       )}

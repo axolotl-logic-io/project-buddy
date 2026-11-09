@@ -26,6 +26,7 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 function generationRequested(
   form: FormData,
   savedDescription: string,
+  artworkDescription?: string,
 ): boolean {
   const value = form.get("visualDescription");
   if (typeof value !== "string") {
@@ -34,7 +35,8 @@ function generationRequested(
   const description = normalizeVisualDescription(value);
   return (
     description !== "" &&
-    (description !== normalizeVisualDescription(savedDescription) ||
+    ((description !== normalizeVisualDescription(savedDescription) &&
+      description !== artworkDescription) ||
       form.get("generateImages") === "true")
   );
 }
@@ -59,6 +61,7 @@ function ConstructEditor({
       const generate = generationRequested(
         form,
         construct.definition.visual?.description ?? "",
+        quote?.artworkDescription,
       );
       // A text-only save must not put an older tab's unchanged appearance
       // over a newer saved description or unexpectedly start paid work.
@@ -91,10 +94,11 @@ function ConstructEditor({
         generationRequested(
           new FormData(event.currentTarget, event.nativeEvent.submitter),
           construct.definition.visual?.description ?? "",
+          quote?.artworkDescription,
         ),
       );
     },
-    [construct],
+    [construct, quote?.artworkDescription],
   );
   const report = useContext(PromptDraftContext);
   // Start disabled until the editor has checked this browser's recovered draft.
@@ -123,6 +127,8 @@ function ConstructEditor({
     normalizeVisualDescription(construct.definition.visual?.description ?? "");
   if (
     descriptionChanged &&
+    normalizeVisualDescription(draftDescription) !==
+      quote?.artworkDescription &&
     normalizeVisualDescription(draftDescription) !== ""
   ) {
     saveLabel = VISUAL_COPY.saveAndGenerate;

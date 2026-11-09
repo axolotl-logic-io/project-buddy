@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
+import { z } from "zod";
 import { createChat } from "@/chats/new-chat-store.ts";
 import {
   cloneConstruct,
@@ -22,6 +23,7 @@ import { getDb, inTransaction } from "@/db/client.ts";
 import {
   constructAssetGrants,
   constructAssets,
+  constructGenerations,
 } from "@/db/tables/construct-visuals.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
@@ -857,7 +859,9 @@ test("draft artwork preserves saved text and replays the paid request once", asy
   expect(provider.generate).toHaveBeenCalledTimes(1);
   expect(await goldSpent(user)).toBe(COST);
   expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
-    outdated: true,
+    outdated: false,
+    artworkDescription: draft.description,
+    draftVisual: generated.visual,
   });
 });
 
@@ -874,11 +878,158 @@ test("first draft artwork does not persist a description or conversational edits
   };
   const generated = await generateConstructVisual(user.id, request, provider);
   expect(generated.status).toBe("generated");
+  expect(generated.visual?.description).toBe(request.description);
+  const [record] = await getDb()
+    .select()
+    .from(constructGenerations)
+    .where(
+      and(
+        eq(constructGenerations.userId, user.id),
+        eq(constructGenerations.requestId, request.requestId),
+      ),
+    );
+  // The previous build drops the whole optional visual if this required text is empty.
+  const oldVisual = z
+    .object({
+      version: z.literal(1),
+      description: z.string().trim().min(1),
+      canonical: z.object({ kind: z.literal("generated"), assetId: z.uuid() }),
+    })
+    .optional()
+    .catch(undefined);
+  expect(oldVisual.parse(record?.visual)).toMatchObject({
+    description: request.description,
+    canonical: generated.visual?.canonical,
+  });
+  expect(
+    await getVisualAsset(
+      user.id,
+      { kind: "construct", id: construct.id },
+      assetId(generated),
+    ),
+  ).toBeDefined();
+  await editConstructMetadata(user.id, construct.id, {
+    prompt: "Text after discard",
+    visualDescription: "",
+  });
   expect(await getOwnConstruct(user.id, construct.id)).toMatchObject({
     name: "No appearance",
     definition: {
-      prompt: "Saved instructions",
-      visual: { description: "", canonical: generated.visual?.canonical },
+      prompt: "Text after discard",
+      visual: undefined,
     },
   });
+});
+
+test("saving generated draft artwork attaches it without another paid call", async () => {
+  const { user, construct, request, provider } = await setup();
+  const draft = { ...request, description: "A silver draft owl" };
+  const generated = await generateConstructVisual(user.id, draft, provider);
+  expect(generated.visual?.description).toBe(draft.description);
+  expect(
+    await getVisualAsset(
+      user.id,
+      { kind: "construct", id: construct.id },
+      assetId(generated),
+    ),
+  ).toBeDefined();
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    draftVisual: generated.visual,
+  });
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: draft.description,
+  });
+  expect(
+    await generateConstructVisual(
+      user.id,
+      { ...draft, requestId: crypto.randomUUID() },
+      provider,
+      { saved: true, regenerate: false },
+    ),
+  ).toMatchObject({ status: "generated", visual: generated.visual });
+  expect(
+    (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+  ).toEqual(generated.visual);
+  expect(provider.generate).toHaveBeenCalledTimes(1);
+  expect(await goldSpent(user)).toBe(COST);
+});
+test("a saved submission superseded before claim reserves no gold", async () => {
+  const { user, construct, request, provider } = await setup();
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: "Other tab",
+  });
+  expect(
+    await generateConstructVisual(user.id, request, provider, {
+      saved: true,
+      regenerate: false,
+    }),
+  ).toMatchObject({ status: "stale" });
+  expect(provider.generate).not.toHaveBeenCalled();
+  expect(await goldSpent(user)).toBe(0);
+});
+test("a saved appearance changed while draft generation runs keeps prior art and bills once", async () => {
+  const { user, construct, request, provider } = await setup();
+  const prior = await generateConstructVisual(user.id, request, provider);
+  const started = Promise.withResolvers<void>();
+  const response = Promise.withResolvers<GeneratedImage>();
+  const generate = vi.fn<ImageProvider["generate"]>(() => {
+    started.resolve();
+    return response.promise;
+  });
+  const draft = {
+    ...request,
+    requestId: crypto.randomUUID(),
+    description: "Draft B",
+  };
+  const pending = generateConstructVisual(user.id, draft, { generate });
+  await started.promise;
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: "Saved C",
+  });
+  response.resolve(await image());
+  expect((await pending).status).toBe("stale");
+  expect(
+    (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+  ).toEqual({ ...prior.visual, description: "Saved C" });
+  expect(generate.mock.calls).toEqual([["Draft B"]]);
+  expect(await goldSpent(user)).toBe(COST * 2);
+});
+
+test("saved draft artwork restores its source description and releases detached previews", async () => {
+  const { user, construct, request, provider } = await setup();
+  const first = await generateConstructVisual(user.id, request, provider);
+  const draft = {
+    ...request,
+    requestId: crypto.randomUUID(),
+    description: "Draft silver owl",
+  };
+  const second = await generateConstructVisual(user.id, draft, provider);
+  const outsider = await testUser();
+  expect(
+    await getVisualAsset(
+      outsider.id,
+      { kind: "construct", id: construct.id },
+      assetId(second),
+    ),
+  ).toBeUndefined();
+  const clone = await cloneConstruct(user.id, construct.id);
+  expect(clone?.definition.visual).toEqual(first.visual);
+  await editConstructMetadata(user.id, construct.id, {
+    visualDescription: draft.description,
+  });
+  expect(await restoreConstructVisual(user.id, construct.id)).toBe(true);
+  expect(
+    (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+  ).toEqual(first.visual);
+  expect(
+    (await readVisualGeneration(user.id, construct.id))?.draftVisual,
+  ).toBeUndefined();
+  expect(
+    await getVisualAsset(
+      user.id,
+      { kind: "construct", id: construct.id },
+      assetId(second),
+    ),
+  ).toBeUndefined();
+  expect(await goldSpent(user)).toBe(COST * 2);
 });
