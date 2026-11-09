@@ -585,7 +585,10 @@ test("restoring previous artwork is explicit, free of generation requests, and b
   expect(previews.length).toBeGreaterThan(0);
   expect(
     previews.every((image) =>
-      image.querySelector("img")?.getAttribute("src")?.includes("/constructs/lumen-v1-"),
+      image
+        .querySelector("img")
+        ?.getAttribute("src")
+        ?.includes("/constructs/lumen-v1-"),
     ),
   ).toBe(true);
 
