@@ -4,7 +4,7 @@ import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts"
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 
 const INSTRUCTIONS: string = [
-  "# Activity: Quest interview",
+  "# Activity Sheet",
   "Before you help with the work, the quest's Journal should hold four things:",
   "- the user's goal: what they want to make or learn;",
   "- what they already know about it;",

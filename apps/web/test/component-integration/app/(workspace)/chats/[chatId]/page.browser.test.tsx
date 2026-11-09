@@ -371,6 +371,11 @@ describe("use_case_rename_chat", () => {
       await expect
         .element(page.getByText(CHAT_NAME_COPY.needsName))
         .toBeVisible();
+      const error = page.getByRole("alert").element();
+      expect(field.element()).toHaveAttribute("aria-describedby", error.id);
+      expect(error.id).not.toBe("");
+      expect(Number.parseFloat(getComputedStyle(error).paddingTop)).toBe(0);
+      expect(Number.parseFloat(getComputedStyle(error).borderTopWidth)).toBe(0);
       await expect.element(field).toHaveValue(invalid);
       await expect.element(heading).not.toBeInTheDocument();
       vi.mocked(renameChatAction).mockImplementation(() => {

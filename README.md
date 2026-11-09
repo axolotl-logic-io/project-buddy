@@ -144,7 +144,7 @@ The site uses one parchment theme with Light, Dark and System modes. Theme contr
 
 ## Image generation
 
-Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with adventure uploads and spend the same gold as adventure. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
+Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with adventure uploads and spend the same batteries as adventure. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
 
 ## Installed app and notifications
 
