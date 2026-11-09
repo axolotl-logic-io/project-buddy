@@ -58,6 +58,7 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
+import { tabForward } from "./keyboard-test-kit.ts";
 import { closeMenu, menuButton, openMenu } from "./site-menu-test-kit.ts";
 
 // site-header.tsx reads the session for SignedInLinks, server code.
@@ -566,7 +567,7 @@ describe("header battery balance", () => {
         .getBoundingClientRect();
       const menuBox = menuButton().element().getBoundingClientRect();
       expect(balanceBox.right).toBeLessThanOrEqual(menuBox.left);
-      await userEvent.tab();
+      await tabForward();
       await expect
         .element(page.getByRole("link", { name: SITE_COPY.name }))
         .toHaveFocus();
