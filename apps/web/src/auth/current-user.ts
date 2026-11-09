@@ -9,6 +9,7 @@ import { cache } from "react";
 import { readSessionUser, type User } from "@/accounts/users-store.ts";
 import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
+import { measureServerOperation } from "@/performance/server-spans.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 
 // The signed-in user, or undefined when the request has no valid session.
@@ -21,15 +22,17 @@ const currentUser: () => Promise<User | undefined> = cache(
   async (): Promise<User | undefined> => {
     const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
     await connection();
-    const session = await readSessionToken(
-      token,
-      readSessionSecret(),
-      new Date(),
-    );
-    if (session === undefined) {
-      return undefined;
-    }
-    return readSessionUser(session.id, session.sessionEpoch);
+    return measureServerOperation("current-user", async () => {
+      const session = await readSessionToken(
+        token,
+        readSessionSecret(),
+        new Date(),
+      );
+      if (session === undefined) {
+        return;
+      }
+      return readSessionUser(session.id, session.sessionEpoch);
+    });
   },
 );
 

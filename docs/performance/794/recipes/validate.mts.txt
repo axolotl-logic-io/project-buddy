@@ -1,0 +1,27 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {gzipSync,gunzipSync} from 'node:zlib';
+import {validateServerEvidence} from '/home/bestieboots/.t3/worktrees/project-buddy/issues-797-performance/apps/web/scripts/performance/server-evidence.ts';
+for(const kind of ['browser','documents'] as const){
+ const value=JSON.parse(readFileSync(`/tmp/pb-794/${kind}.json`,'utf8'));
+ try{validateServerEvidence(value,kind);}catch{throw Error('server evidence rejected');}
+ if(kind==='browser'){
+  if(value.rows.length!==208)throw Error('browser cohort incomplete');
+  for(const row of value.rows)if(!Number.isFinite(row.shellMs)||!Number.isFinite(row.primaryMs)||row.primaryMs<row.headersMs||row.shellMs<row.headersMs)throw Error('browser milestone missing or inconsistent');
+  for(const profile of ['desktop','phone'])for(const name of ['home','editor'])for(const variant of ['before','after'])for(const cache of ['cold','warm']){
+   const cell=value.rows.filter(row=>row.profile===profile&&row.name===name&&row.variant===variant&&row.cache===cache);
+   if(cell.length!==13||new Set(cell.map(row=>row.sample)).size!==13||cell.filter(row=>row.phase==='initial').length!==3||cell.filter(row=>row.phase==='confirmation').length!==10)throw Error('browser cell incomplete');
+  }
+ }else{
+  if(value.length!==52)throw Error('document cohort incomplete');
+  for(const name of ['home','editor'])for(const variant of ['before','after']){
+   const cell=value.filter(row=>row.name===name&&row.variant===variant);
+   if(cell.length!==13||new Set(cell.map(row=>row.sample)).size!==13||cell.filter(row=>row.phase==='initial').length!==3||cell.filter(row=>row.phase==='confirmation').length!==10)throw Error('document cell incomplete');
+  }
+  for(const row of value)if(row.primaryMarkupMs===null||row.shellMarkupMs===null||row.primaryMarkupMs<row.headersMs||row.completeMs<row.primaryMarkupMs)throw Error('document milestone missing or inconsistent');
+ }
+ const file=`docs/performance/794/${kind}.json.gz`;writeFileSync(file,gzipSync(JSON.stringify(value),{level:9}));
+ try{validateServerEvidence(JSON.parse(gunzipSync(readFileSync(file)).toString()),kind);}catch{throw Error('compressed evidence rejected');}
+ const polluted=structuredClone(value);if(kind==='browser'){polluted.rows[0].prompt='forbidden';}else{polluted[0].session='forbidden';}
+ let rejected=false;try{validateServerEvidence(polluted,kind);}catch{rejected=true;}if(!rejected)throw Error('negative privacy case accepted');
+}
+console.log('Both compressed server archives validated; forbidden fields rejected.');
