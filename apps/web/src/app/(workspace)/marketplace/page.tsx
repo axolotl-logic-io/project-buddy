@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { LISTING_ID } from "@/ids.ts";
 import { MARKETPLACE_PAGE_SIZE } from "@/marketplace/listing.ts";
@@ -18,7 +17,6 @@ import {
   type PromptKind,
   STORED_PROMPT_KIND,
 } from "@/prompts/prompt.ts";
-import { HOME_PATH } from "@/routes.ts";
 import { MARKETPLACE_COPY, YOUR_LISTINGS_COPY } from "@/ui/copy/marketplace.ts";
 import { unlistListingAction } from "./actions.ts";
 
@@ -196,7 +194,6 @@ async function MarketplacePage({
   const last = shown.at(-1);
   return (
     <>
-      <BackLink href={HOME_PATH}>{MARKETPLACE_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{MARKETPLACE_COPY.heading}</h1>
       <p className="text-muted">{MARKETPLACE_COPY.intro}</p>
       <section

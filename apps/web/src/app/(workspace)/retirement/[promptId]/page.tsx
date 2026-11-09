@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { RetirementActions } from "../retirement-actions.tsx";
@@ -21,7 +20,6 @@ async function RetiredDefinitionPage({
   }
   return (
     <>
-      <BackLink href="/retirement">{RETIREMENT_COPY.heading}</BackLink>
       <h1 className="page-heading">{definition.name}</h1>
       <p className="text-muted">
         {RETIREMENT_COPY.kind[definition.kind]}

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
+import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { HeaderSize } from "@/components/header-size.tsx";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -16,6 +18,43 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+
+// Parents remain full-size keyboard targets. The final item names the current
+// page; long names are visually shortened without shortening accessible names.
+function Breadcrumbs({
+  items,
+}: {
+  readonly items: readonly Breadcrumb[];
+}): JSX.Element | null {
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <nav aria-label={SITE_COPY.breadcrumbs} className="header-breadcrumbs">
+      <ol>
+        {items.map((item, index) => (
+          <li key={item.href ?? "current"}>
+            {index > 0 && (
+              <span aria-hidden="true" className="breadcrumb-separator">
+                {SITE_COPY.breadcrumbSeparator}
+              </span>
+            )}
+            {item.href !== undefined && (
+              <Link href={item.href} title={item.label}>
+                <span>{item.label}</span>
+              </Link>
+            )}
+            {item.href === undefined && (
+              <span aria-current="page" title={item.label}>
+                {item.label}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
 
 // The ids of the menu's two groups' names. The header is on every page
 // once, so they are unique.
@@ -80,16 +119,20 @@ function AccountLinks(): JSX.Element {
 // place the page belongs to, if any, beside the site's name.
 async function SignedInLinks({
   place,
+  breadcrumbs,
 }: {
   readonly place?: string | undefined;
+  readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
-  if ((await currentUser()) === undefined) {
+  const user = await currentUser();
+  if (user === undefined) {
     return <SiteMenu links={null} />;
   }
   return (
     <>
       {place !== undefined && <p className="hud-place">{place}</p>}
       <SiteMenu links={<AccountLinks />} shortcuts={true} />
+      {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
     </>
   );
 }
@@ -107,6 +150,7 @@ function SiteHeader({
 }): JSX.Element {
   return (
     <header className="site-header">
+      <HeaderSize />
       <Link className="header-title hud-title" href={HOME_PATH}>
         <span className="hud-medallion">
           <Icon name="compass" />
@@ -118,4 +162,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, SignedInLinks, SiteHeader };
+export { AccountLinks, Breadcrumbs, SignedInLinks, SiteHeader };
