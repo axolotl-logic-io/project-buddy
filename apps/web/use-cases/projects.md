@@ -26,7 +26,7 @@ The user starts a quest for something she wants to make or learn.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses New quest on her quests page and gives the quest a name. She can also give her motivation: why she wants to complete it. There is no construct picker; Settings chooses the new quest construct, with Vellum as the default.
-  - The site creates the quest and opens its first adventure, in Project Breakdown. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
+  - The site creates the quest and opens its first adventure, in Break Down a Project. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the quest is first in her quests list, under the name she gave it. Its first adventure is listed with the New quest construct saved in Settings, or Vellum by default, and shows that construct's name. The adventure already holds its opening in the chosen construct's voice before she has written anything.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans from the adventure.
@@ -38,7 +38,7 @@ The user starts a quest for something she wants to make or learn.
 
 ## use_case_new_project_with_construct
 
-The user starts a quest in Project Breakdown with a construct of her own.
+The user starts a quest in Break Down a Project with a construct of her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_construct`](constructs.md#use_case_customize_construct).
 - **Steps:**
@@ -90,7 +90,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 This legacy case applies only to preserved Quest interview adventures. New quests can start in any activity. In an existing interview adventure, the construct interviews the user while the Journal doesn't yet hold her goal, what she already knows, what the result is for and a path of milestones.
 
-- **Prerequisites:** a preserved Quest interview adventure from before new quests switched to Project Breakdown.
+- **Prerequisites:** a preserved Quest interview adventure from before new quests switched to Break Down a Project.
 - **Steps:**
   - In the interview adventure, the construct asks about three things, one question at a time: her goal (what she wants to make or learn), what she already knows about it, and what the result is for.
   - She answers in her own words, and the construct asks a follow-up question where something is unclear.
@@ -311,7 +311,7 @@ The user explores starting points without creating anything.
 
 The user makes a starting point their own.
 
-- **Prerequisites:** signed in, with gold available.
+- **Prerequisites:** signed in, with batteries available.
 - **Steps:** preview a premade quest; edit its name, Journal, motivation, activity and construct; choose Start quest.
 - **Outcome:** the ordinary quest and first adventure are saved together and the adventure opens. The preview defaults to the preferred New quest construct. Start without inspiration defaults to Find something to make. Confirmed Journal text and motivation are saved as the first user Journal version. Planned milestones do not become timeline progress. The quest belongs to the acting user and uses ordinary Journal, adventure, status and membership controls.
 - **Variations:** invalid input, an unavailable choice or a failed opening saves nothing. The form keeps every edit for correction or retry and prevents submission while pending.

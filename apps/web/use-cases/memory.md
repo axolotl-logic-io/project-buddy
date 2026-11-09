@@ -80,7 +80,7 @@ The Journal changed while the user was editing it.
 
 The user asks the construct what to work on next, and it answers from the quest's Journal.
 
-- **Prerequisites:** a quest Journal holding milestones, saved through `use_case_construct_updates_memory` or `use_case_edit_memory`, and an open adventure in the same quest. A preserved interview is not required.
+- **Prerequisites:** a quest Journal holding milestones, saved through `use_case_construct_updates_memory` or `use_case_edit_memory`, and an adventure in the same quest. A preserved interview is not required.
 - **Steps:**
   - She asks what she should work on next.
   - The construct answers from the quest's Journal, in the construct's voice.
@@ -98,7 +98,7 @@ The user saves a Quick Note to a quest between sessions, without starting an adv
 - **Steps:**
   - On any page of the signed-in site, she opens the Quick Note page from the header's **Quick Note** link in one tap.
   - She chooses an accessible Active quest, including a team quest, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
-- **Outcome:** the site says the Quick Note is saved to the quest's Journal, clears its text for the next one and keeps the quest chosen. The quest's Journal ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her gold. The quest's page lists the Quick Note among its newest Quick Notes, newest first. Every adventure in the quest works from the Journal with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the site says the Quick Note is saved to the quest's Journal, clears its text for the next one and keeps the quest chosen. The quest's Journal ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her batteries. The quest's page lists the Quick Note among its newest Quick Notes, newest first. Every adventure in the quest works from the Journal with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
   - She leaves and returns: the chosen accessible Active quest and its unsaved Quick Note return in this browser. Each quest keeps its own draft; Discard changes removes it.
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.

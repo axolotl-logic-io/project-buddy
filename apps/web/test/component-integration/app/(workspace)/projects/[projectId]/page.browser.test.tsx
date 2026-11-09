@@ -186,7 +186,7 @@ describe("use_case_new_chat", () => {
     await expect.element(startButton()).toBeEnabled();
   });
 
-  test("Project Breakdown starts in the project, with no new project to name", async () => {
+  test("Break Down a Project starts in the project, with no new project to name", async () => {
     const { promise, resolve } = Promise.withResolvers<StartChatState>();
     actions.startChatAction.mockReturnValue(promise);
     await openDialog();

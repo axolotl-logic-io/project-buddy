@@ -13,7 +13,7 @@ const OPENING_KICKOFF =
 
 export const brainstorming: Activity = {
   id: "brainstorming",
-  name: "Brainstorming",
+  name: "Brainstorm",
   description:
     "The construct helps you explore an idea, question your assumptions and make decisions.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
