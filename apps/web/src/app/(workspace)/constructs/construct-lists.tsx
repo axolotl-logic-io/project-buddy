@@ -1,7 +1,6 @@
 // Constructs shared by the Constructs page and the Workshop: the
 // built-in constructs, each of which she can customize, and her own, oldest
-// first, each of which she can tweak or clone, with a button that writes a
-// new one from scratch.
+// first, each of which she can tweak or clone, with a button that crafts a new one.
 import Link from "next/link";
 import type { JSX } from "react";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";

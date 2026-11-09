@@ -54,7 +54,7 @@ test.each([
     source: getActivity("brainstorming").name,
   },
   {
-    made: "written from scratch",
+    made: "crafted",
     activity: { ...BRAINSTORMING_CLONE, clonedFrom: undefined },
     source: getActivity(DEFAULT_ACTIVITY_ID).name,
   },

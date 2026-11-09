@@ -21,11 +21,11 @@ export const CONSTRUCTS_COPY = {
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
-    "No constructs of your own yet. Customize one above, or choose New construct to write one from scratch.",
-  newConstruct: "Write new construct",
-  // The name of a construct written from scratch, until the user renames it.
+    "No constructs of your own yet. Customize one above, or choose Craft construct to make one without copying another.",
+  newConstruct: "Craft construct",
+  // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",
-  startLabel: (name: string): string => `Start an adventure with ${name}`,
+  startLabel: (name: string): string => `Adventure with ${name}`,
   customize: "Customize",
   customizeLabel: (name: string): string =>
     `Customize ${name}: make your own copy`,
