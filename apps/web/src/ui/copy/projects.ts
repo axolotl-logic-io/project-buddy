@@ -25,6 +25,9 @@ export const PROJECTS_COPY = {
     "Choose an available construct for your first adventure.",
   cancel: "Cancel",
   creating: "Creating the quest and its first adventure…",
+  exploreFirst: "Explore before starting a quest",
+  newestFirst: "Your quests, newest first",
+  findStartingPoint: "Find a starting point",
   allProjectsLink: "All quests",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>

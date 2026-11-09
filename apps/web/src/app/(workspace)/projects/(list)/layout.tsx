@@ -18,9 +18,13 @@ export default async function ProjectListLayout({
   const choices = { userConstructs, preferredConstructId: preferred.id };
   return (
     <PageFrame>
-      <h1 className="page-heading">{PROJECTS_COPY.heading}</h1>
-      <NewProjectDialog choices={choices} />
-      {children}
+      <div className="quests-index">
+        <header className="quests-index-heading">
+          <h1 className="page-heading">{PROJECTS_COPY.heading}</h1>
+          <NewProjectDialog choices={choices} />
+        </header>
+        {children}
+      </div>
     </PageFrame>
   );
 }
