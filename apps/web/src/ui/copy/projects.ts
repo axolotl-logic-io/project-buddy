@@ -8,15 +8,22 @@ export const PROJECTS_COPY = {
   homeLink: "Home",
   heading: "Quests",
   loading: "Loading quests…",
-  none: "No quests yet. Choose New quest to start one.",
-  newHeading: "New quest",
+  none: "No quests yet. Choose Start Quest to start one.",
+  newHeading: "Start Quest",
   closeNewProject: "Close",
   listHeading: "All quests",
   shared: "Shared",
   sharedWithYou: "Shared with you",
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Quest name",
-  create: "Create quest",
+  create: "Start Quest",
+  defaultName: "New quest",
+  whyLabel: "Why",
+  constructHint:
+    "This construct joins your first adventure. You can start other adventures in this quest with other constructs.",
+  unavailableConstruct:
+    "Choose an available construct for your first adventure.",
+  cancel: "Cancel",
   creating: "Creating the quest and its first adventure…",
   allProjectsLink: "All quests",
   needsName: "A quest needs a name.",
@@ -58,4 +65,21 @@ export const PROJECT_MEMBERS_COPY = {
     "You can no longer open this quest or its adventures unless the owner invites you again. What you wrote stays in the adventures.",
   leaveConfirm: "Leave quest",
   leaveCancel: "Stay",
+} as const;
+
+export const QUEST_LIBRARY_COPY = {
+  heading: "Premade quests",
+  intro:
+    "Bring your own idea, or find a place to begin. Each starting point is yours to change.",
+  explore: "Explore quest",
+  exploreLabel: (name: string): string => `Explore quest: ${name}`,
+  journalLabel: "Starting Journal",
+  journalHint:
+    "Edit this starting plan here or change the Journal later. Possible milestones are plans, not completed progress.",
+  activityLabel: "First activity",
+  start: "Start quest",
+  activityIntro:
+    "Want to keep working on what you discover? Start a quest with this activity and return as your idea takes shape.",
+  invalid:
+    "Check the starting details and choose an available activity and construct.",
 } as const;

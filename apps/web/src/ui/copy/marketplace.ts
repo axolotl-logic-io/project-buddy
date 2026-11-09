@@ -8,12 +8,19 @@ import {
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
-// A price as a listing shows it: "Free", or the gold it costs.
-function price(gold: number): string {
-  if (gold === 0) {
+function orbAmount(orbs: number): string {
+  if (orbs === 1) {
+    return "1 orb";
+  }
+  return `${orbs} orbs`;
+}
+
+// A price as a listing shows it: "Free", or the orbs it costs.
+function price(orbs: number): string {
+  if (orbs === 0) {
     return "Free";
   }
-  return `${gold} gold`;
+  return orbAmount(orbs);
 }
 
 // A seller as a listing names them: their name, or a stand-in for someone
@@ -27,9 +34,8 @@ function by(name: string | undefined): string {
   return `by ${seller(name)}`;
 }
 
-// What earning gold takes, which every out-of-gold message links to.
-const EARN_GOLD =
-  "Earn gold by selling your constructs, activities and spells in the Marketplace.";
+// Compatibility copy key for older callers; Marketplace earnings never fund model use.
+const EARN_GOLD = "Batteries pay for model use. Marketplace orbs are separate.";
 
 // Each kind of own prompt, singular and plural.
 const KIND_NAMES: Readonly<
@@ -53,9 +59,13 @@ export const MARKETPLACE_COPY = {
   headerLink: "Marketplace",
   homeLink: "Home",
   heading: "Marketplace",
+  paused:
+    "Marketplace buys are paused. Orbs are prepared for the planned rollout; sellers can choose new prices, but no one can buy yet. Batteries remain separate.",
+  orbBalance: (balance: number): string =>
+    `Orb balance: ${orbAmount(balance)}. Batteries pay for model use separately.`,
   loading: "Loading the Marketplace…",
   intro:
-    "Constructs, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
+    "Constructs, activities and spells that other users wrote, free or for orbs. To sell one of your own, open its page and choose Sell in the Marketplace.",
   filterLabel: "Listing kinds",
   all: "All",
   kinds: KIND_NAMES,
@@ -86,29 +96,34 @@ export const YOUR_LISTINGS_COPY = {
   heading: "Your listings",
   none: "You haven't listed anything yet.",
   // A listing's line under its name: its kind, whether it is listed and at
-  // what price, how many users bought it and the gold it earned.
+  // what price, how many users bought it and the orbs it earned.
   summary: ({
     kind,
     listed,
-    price: gold,
+    legacy,
+    price: orbs,
     buyers,
     goldEarned,
   }: {
     readonly kind: PromptKind;
     readonly listed: boolean;
+    readonly legacy?: boolean;
     readonly price: number;
     readonly buyers: number;
     readonly goldEarned: number;
   }): string => {
     let state = "Unlisted";
     if (listed) {
-      state = `Listed: ${price(gold)}`;
+      state = `Listed: ${price(orbs)}`;
+    }
+    if (listed && legacy === true) {
+      state = "Needs an orb price";
     }
     let bought = `Bought by ${buyers} users`;
     if (buyers === 1) {
       bought = "Bought by 1 user";
     }
-    return `${KIND_NAMES[kind].one} · ${state} · ${bought} · ${goldEarned} gold earned`;
+    return `${KIND_NAMES[kind].one} · ${state} · ${bought} · ${orbAmount(goldEarned)} earned`;
   },
   update: "Update listing",
   updateLabel: (name: string): string => `Update the listing of ${name}`,
@@ -125,23 +140,26 @@ export const LISTING_COPY = {
   kindAndSeller: (kind: PromptKind, name: string | undefined): string =>
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
+  legacy:
+    "Legacy listing: unavailable until the seller chooses a price from 0 to 5 orbs. Historical gold prices are not converted.",
   writtenByAnother: (kind: PromptKind): string =>
     `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the adventures you use it in, and in a team quest's adventure they also guide replies to the quest's members. They can't widen what the model reaches: only the quests and adventures accessible to the person requesting the reply, including team quests they have joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
-  buy: (gold: number): string => {
-    if (gold === 0) {
+  buy: (orbs: number): string => {
+    if (orbs === 0) {
       return "Get for free";
     }
-    return `Buy for ${gold} gold`;
+    return `Buy for ${orbAmount(orbs)}`;
   },
   buying: "Getting it…",
-  tooLittleGold: (needed: number, gold: number): string =>
-    `You need ${needed} gold. You have ${gold}.`,
+  paused: "Marketplace buys are paused for the orb rollout. Try again later.",
+  tooLittleGold: (needed: number, orbs: number): string =>
+    `You need ${orbAmount(needed)}. You have ${orbs}.`,
   // The seller changed the price after the page showed it; nothing moved.
-  priceChanged: (gold: number): string => {
-    if (gold === 0) {
+  priceChanged: (orbs: number): string => {
+    if (orbs === 0) {
       return "This listing is now free.";
     }
-    return `The price is now ${gold} gold.`;
+    return `The price is now ${orbAmount(orbs)}.`;
   },
   buyLimited: `Limit reached. You can get up to ${PURCHASES_PER_HOUR} listings an hour. Try again later.`,
   held: (kind: PromptKind): string =>
@@ -177,7 +195,7 @@ export const SELL_COPY = {
   descriptionLabel: "Description",
   descriptionHint: (max: number): string =>
     `What it does and who it suits, as plain text, up to ${max} characters.`,
-  priceLabel: "Price in gold",
+  priceLabel: "Price in orbs",
   priceHint: (max: number): string =>
     `A whole number from 0 to ${max}. 0 lists it for free.`,
   sell: "Sell in the Marketplace",
@@ -187,7 +205,7 @@ export const SELL_COPY = {
   descriptionTooLong: (max: number): string =>
     `Make the description ${max} characters or fewer.`,
   priceInvalid: (max: number): string =>
-    `Enter a whole number of gold from 0 to ${max}.`,
+    `Enter a whole number of orbs from 0 to ${max}.`,
   limited: `Listing limit reached. You can publish or update up to ${LISTING_CHANGES_PER_HOUR} listings an hour. Try again later.`,
   builtIn: (kind: PromptKind): string =>
     `It still has a built-in ${KIND_NAMES[kind].one.toLowerCase()}'s ${KIND_CONTENTS[kind]}. Edit it to make it your own before you sell it.`,

@@ -1,5 +1,19 @@
 # Adventures
 
+## Start a quest
+
+On Quests, Start Quest opens a dialog with two fields: Construct and Why.
+Construct defaults to the account's New quest construct preference. The visible
+explanation makes clear that this construct joins the first adventure; later
+adventures in the same quest can use other constructs. Why is optional and
+becomes the quest motivation in the opening and first Journal version.
+
+Starting gives the quest the default name New quest and opens its first adventure
+in Break Down a Project. With no motivation, the existing prepared opening is used
+when available. Failed openings save nothing and keep the construct choice and
+Why for retry. Cancel, Close and Escape create nothing. The premade quest
+previews remain separate and keep their editable name, Journal and activity.
+
 ## Standalone adventure
 
 The current `/chat` page is the signed-in user's **Adventures** hub, not a single
@@ -21,10 +35,18 @@ button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
 new-adventure form. The dialog is named "New adventure", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
 in the construct picker's open list closes only the list. That form, like
-the new adventure page at `/chats/new`, offers a quest or "No quest", an
-activity and a construct, built in or the user's own, with the open adventure and Vellum
+the new adventure page at `/chats/new`, offers an accessible Active quest or "No quest", an
+activity and a construct, built in or the user's own, with Chat and Vellum
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
+
+Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
+
+The Constructs page and the Workshop's Constructs tab label each saved-adventure
+action “Adventure with [construct name]”, using the full name in both the visible
+label and accessible name. It opens the New adventure dialog with that construct
+fixed. Closing creates nothing. Construct detail pages offer editing and temporary
+Workshop tests rather than a saved-adventure start action.
 
 A quest's page has its own "New adventure" button (#670, replacing the form
 #536 embedded there), so the quest's adventures lead the page. The form is
@@ -46,7 +68,7 @@ A standalone conversation has no Journal and no [progress timeline](progress-tim
 can't record milestones. Its construct can search and cite the Blender manual, change
 the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
 move the standalone conversation into the quest. The new quest's
-first adventure opens in Project Breakdown through the link the adventure shows.
+first adventure opens in Break Down a Project through the link the adventure shows.
 
 ## Home atlas
 
@@ -61,34 +83,39 @@ from the northern relief study and restyled as sepia ink engraving on aged
 paper. It is a decorative CSS background, with no map labels baked into the
 image. There is no compass bar or region caption.
 
-The destinations follow the original terrain:
+Home has one responsive control panel, with no Map/List switch. The map
+fills the background behind the heading, places, current quest and footer.
+Quests, Adventures, Constructs, Activities, Workshop and Marketplace appear
+in that reading and keyboard order, in two columns on phones and three on
+wide screens. The map has no geographic markers, trails or separate phone
+overview. It needs no panning, zooming, hovering or animation.
 
-- Quests sits in the northern highlands, suggesting a journey toward a goal.
-- Adventures is central in the river valley, where the other trails meet.
-- Constructs sits in the sheltered western foothills, near Quests and Adventures.
-- Activities occupies the broad eastern basin, with room to explore.
-- Workshop sits farther down the river, where water can support making.
-- Marketplace sits upstream on the northern approach to the central valley.
+`src/home/places.ts` names the six destinations once. Each is a normal link
+to an existing page. Descriptions show on wide screens and remain accessible
+to assistive technology on phones. Spellbook and Image gallery remain
+available from the menu; spells are also available in Workshop. The
+Spellbook pages belong to Workshop in the header.
 
-The dotted trails express connections between places. Their positions carry
-no prerequisites: every destination is open from the start. The artwork and
-markers share the same coordinate space so resizing keeps them aligned.
+A uniform 75% palette wash preserves visible parchment artwork while making
+focus rings outside the panels readable over dark and bright terrain.
+Strongly tinted parchment panels blur the terrain behind the title,
+destination buttons, current quest and footer. Ink and muted text have known
+contrast even over the darkest marks in the artwork. Browsers without
+backdrop blur use opaque paper. Forced-colors mode removes the artwork and
+blur. The artwork wash, paper, ink, labels, icons and controls follow the
+active Light, Dark or System palette. System updates while Home is open;
+explicit Light or Dark overrides it.
 
-Spellbook and Image gallery have no map markers or destination rows. Both
-remain available from the menu; spells are also available in Workshop.
-The Spellbook pages belong to Workshop in the header. Settings sits beside Account in the bottom bar, outside both
-Map and List views.
-
-`src/home/places.ts` names the six destinations once for the map and its
-List view. Each is a normal link to an existing page, in the same reading and
-keyboard order. On narrow screens the landscape becomes a compact overview
-above destination rows. There is no required panning, zooming or animation.
-Opaque paper labels and the atlas material's semantic tokens keep text and
-focus readable independently of the artwork and the user's theme.
+Home uses the shared site header above its content, with the site's name,
+Quick Note and Menu. Quests and Adventures remain in the menu and Home's
+destinations, without shortcuts beside Quick Note on any page.
+Leaving a cached Home page restores the usual page background and content
+column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
 
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
-With no quest, it offers Start a quest, leading to a new quest in Project Breakdown.
+The quest sits below all six destinations. With no quest, the same position
+offers Start a quest, leading to a new quest in Break Down a Project.
 The existing site header keeps Quick Note and Menu available; Settings and
 Account also appear below the map. Home reads no new data source, creates
 nothing and makes no model call.
@@ -129,9 +156,13 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 
 ## Activities
 
-Every adventure is in one activity at a time: the open adventure, brainstorming, Project Breakdown, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
+Find something to make (`find-something-to-make`) helps the user discover a small achievable creative project without needing an idea or inspiration source first. The construct explores interests, energy, available materials and constraints one manageable question at a time. It helps with uncertainty, perfectionism, missing skills and limited materials, and continues supporting the user after they choose an idea.
 
-Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Project Breakdown. The quest creation form defaults to Project Breakdown. An adventure records each
+Use it without a quest, in an existing quest or with a new quest through the normal adventure form. Vellum and Lumen have prepared openings; edited definitions and new quests with motivation use generated openings. In a quest, the construct uses its existing Journal and the usual tool rules. A standalone adventure has no Journal or quest progress. Suggested milestones remain plans until meaningful work is reported completed.
+
+Every adventure is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
+
+Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Break Down a Project. The quest creation form defaults to Break Down a Project. An adventure records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
 `select_activity` tool. Its in-adventure result shows the activity it entered,
 including while the reply streams and after reopening the adventure. Saved activity
@@ -149,7 +180,7 @@ newest first by creation time (descending id breaks ties). Each links to its
 existing conversation. There is no adventure-name search or separate No quest
 filter.
 
-Above the list, **Quest** offers **All** and only the viewer's quests by
+Above the list, **Quest** offers **All** and only accessible Active quests by
 name: their own and the team quests they've joined. The page loads the
 viewer's complete adventure list, even when opened with a
 quest filter. Selecting a quest immediately filters those loaded adventures in
@@ -240,10 +271,10 @@ A quest's construct can start an adventure on its own: a check-in. The quest's p
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
 
 1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no adventure started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the quest without error when they are out of gold. The new adventure is in the open adventure, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries. The new adventure is in Chat, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
 3. Emails the owner the construct's message, with a link to the adventure and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the adventure stays.
 
-When the owner is out of gold, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
+When the owner is out of batteries, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
 The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
 
@@ -334,6 +365,76 @@ The composer also moves above a keyboard that shrinks only the visual viewport.
 The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
 cover these behaviors under `use_case_follow_latest_messages`.
 
+### Scroll ownership and alternatives
+
+`useChatScroll` owns automatic document movement. The adventure uses the
+page's scroll area so the pinned header, sticky composer and message jump
+clearance share one coordinate system. assistant-ui's automatic viewport
+scrolling and its initialization, run-start and thread-switch jumps stay
+disabled. Opening a mounted adventure and explicitly sending start following;
+reply completion and focus do not.
+
+Upward wheel, touch movement or document navigation keys suspend following
+before the browser emits a scroll event. An actual upward document movement
+away from the bottom also suspends following, including scrollbar dragging.
+A shorter document can clamp the scroll position upward while still at the
+bottom; this keeps following enabled for subsequent growth. Content growth cannot
+resume it. A downward arrival at the bottom or sending resumes it. Scrollbar
+input and message links can resume following after composer focus too. Upward input at
+the top of a short adventure leaves following enabled because there is no
+earlier content to navigate to.
+
+Input that starts after a keyboard resize invalidates that resize's pending reading
+position restoration. Input still awaiting its document scroll also prevents
+restoration, including when it arrives before the resize. Focus blocks automatic
+resumption independently: it does not invalidate the reading position or bypass
+the resize scroll guard. Resizing alone never grants permission to follow.
+All controller movements are instant. While reading, ordinary content layout
+and anchoring belong to the browser; the controller restores the document
+position only for keyboard/viewport changes without newer navigation.
+
+The alternatives considered for #771 were:
+
+- **assistant-ui's supported viewport:** the installed 0.15.27 implementation
+  handles input intent, content resize and message anchoring, but scrolls its
+  own element. Enabling it on the current unbounded viewport cannot follow
+  the document. It would require the bounded container change below.
+- **A bounded conversation container:** isolates scroll ownership and could
+  use assistant-ui's controller. It also changes the page layout, sticky
+  composer, keyboard sizing and document jump targets. Retaining document
+  scrolling avoids that broader change; the tradeoff is maintaining the small
+  document controller and its browser interaction coverage.
+- **Browser behavior alone:** anchoring helps retain earlier content, but
+  cannot provide the required follow-on-stream and send behavior. Keep native
+  scrolling and anchoring, with explicit permission for automatic bottom moves.
+
+### Regression evidence and limits
+
+The original #565 implementation (PR #569) inferred reading intent from a
+later document scroll event. Its resize restoration could ignore intervening
+scroll events. Commit `f21c93c6` fixed Firefox 149's fractional visual viewport
+wheel offsets by comparing whole-pixel keyboard insets. That addresses the
+reported jitter sequence, but does not establish intent before document scroll.
+The old tests explicitly awaited that scroll event before incoming content;
+the Firefox test covered only unchanged-inset jitter.
+
+The #771 tests deliver upward input and delayed content growth in the same
+turn as a queued viewport resize, before any document scroll event. They also
+exercise content shrink followed by growth, focused-composer keyboard resizing
+with controlled browser focus scroll, native browser wheel and PageUp navigation,
+stream growth, send and return-to-bottom, and keyboard sizing in Chromium and
+WebKit. Controlled touch
+and visual viewport events isolate ordering without sleeps. Native wheel tests
+assert no downward pull while the gesture may still be moving upward; exact
+reading-position invariance is asserted with controlled settled navigation.
+WebKit can emit scrollend between native wheel segments, so scrollend alone
+does not prove that the gesture is finished. The wheel command moves the pointer
+within the visible iframe without a locator hover that could scroll the list.
+These reproduce a failure mode of the previous controller; the new report's exact device and
+timing remain unknown. Firefox's fractional-offset sequence is covered through
+controlled viewport events, not a Firefox browser run. Headless viewport tests
+do not validate a real phone keyboard or touch momentum on physical devices.
+
 ## Adventure image attachments
 
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the adventure and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
@@ -344,13 +445,15 @@ Unsent message text is kept in this browser per viewer and adventure until sent.
 
 When an unsent message included images, returning to the adventure shows a reminder to attach them again. Browser drafts store text and that reminder, never image files or image URLs.
 
-## New quest details
+## Quest creation details
 
-New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **New quest construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the adventure.
+Start Quest offers a construct picker and optional Why: why the user wants to complete the quest. The picker defaults to the account's **New quest construct** in Settings, initially Vellum. Settings offers built-in constructs and the user's own constructs. The preference applies to the first adventure of future quests across devices; the user can change the choice before starting.
 
-New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference used by the dedicated New quest form. Quests created by a construct from an existing adventure keep that adventure's construct.
+Existing adventure snapshots stay unchanged. If the preferred construct is deleted or unavailable, the picker defaults to Vellum.
 
-When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
+New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference that defaults the dedicated Start Quest picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+
+When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
 ## Construct presence
 
@@ -380,8 +483,14 @@ under `use_case_construct_presence`.
 
 Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.
 
-## Reply control and gold
+## Reply control and batteries
 
 Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
 
-The composer shows the acting user's gold balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
+The composer shows the acting user's battery balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
+
+## Header navigation
+
+The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand, Menu and Quick Note row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it when their extra is on. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
+
+Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, Marketplace listings, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home and unknown or inaccessible pages have no breadcrumb trail.

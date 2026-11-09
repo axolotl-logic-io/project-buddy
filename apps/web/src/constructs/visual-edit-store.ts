@@ -6,6 +6,10 @@ import {
   storedConstructPrompt,
 } from "@/constructs/construct-definition.ts";
 import { normalizeVisualDescription } from "@/constructs/visual.ts";
+import {
+  grantVisualAssets,
+  latestDraftVisual,
+} from "@/constructs/visual-asset-store.ts";
 import { inTransaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { parseOwnPromptId, type UserId } from "@/ids.ts";
@@ -65,6 +69,17 @@ async function editConstructMetadata(
       definition.visual?.description ?? "",
     );
     let { visual } = definition;
+    const draft = await latestDraftVisual(owner, parsedId, definition, tx);
+    if (
+      draft !== undefined &&
+      normalizeVisualDescription(draft.description) === edit.visualDescription
+    ) {
+      visual = draft;
+      await tx
+        .update(ownPrompts)
+        .set({ previousVisual: definition.visual ?? null })
+        .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, parsedId)));
+    }
     if (edit.visualDescription !== undefined && edit.visualDescription !== "") {
       visual = { ...visual, version: 1, description: edit.visualDescription };
     }
@@ -82,6 +97,12 @@ async function editConstructMetadata(
         updatedAt: sql`now()`,
       })
       .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, parsedId)));
+    await grantVisualAssets(
+      owner,
+      tx,
+      { kind: "construct", id: parsedId },
+      { parts: { ...definition, visual } },
+    );
     const description = visual?.description;
     return {
       kind: "saved",

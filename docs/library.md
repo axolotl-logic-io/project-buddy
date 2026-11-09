@@ -1,0 +1,37 @@
+# Library
+
+The signed-in Library at `/library` contains Getting Started and books on Constructs, Spells, Activities and Model context. Each book has a stable route, chapter anchors, a contents navigation, related books and a link to its relevant site action. The Library reads no private quest data and makes no model calls.
+
+## Content ownership
+
+Product contributors own the reader-facing text in `apps/web/src/ui/copy/library.ts`. The renderer is in `apps/web/src/library/library.tsx`; route files are thin authenticated adapters. Keep existing book ids and chapter anchors stable when editing headings. Use the glossary and the docs style guide. The content uses Batteries for model use. Character Sheet, Activity Sheet and Spell Sheet are headings inside prompt text, not replacements for the editor labels Prompt and Instructions. Craft construct, Craft activity and Craft spell are the creation controls; compatibility fields stay unchanged.
+
+The Marketplace orb rollout has three states. Before its migration, legacy trades used the shared gold balance. The migration’s database INSERT trigger atomically pauses **all** buys, including old and free forms. After migration with the purchase gate disabled, all buys remain paused; held copies still open, the one-time 100-orb starting balance and seller repricing are available, and public browsing shows only explicitly orb-priced listings. After separate authorized enablement, buys use orbs and never earn model-use Batteries. The Library explains these states and directs readers to Marketplace availability rather than inferring enablement from a merge. Post-migration sales never fund Batteries, regardless of the gate.
+
+The [Marketplace cutover procedure](marketplace.md#currency-cutover-proposal) documents the singleton `marketplace_cutover` row (id 1, enabled boolean). The buy transaction and trigger lock it FOR SHARE. The server reader is `orbPurchasesEnabled()` in `apps/web/src/marketplace/cutover.ts`. Enablement requires separate authorized SQL after policy approval, draining old requests and verifying history; there is no app/operator write API. This issue authorizes no production enablement.
+
+[Battery purchases](battery-purchases.md) are test-only. Account packages require valid configured Stripe test keys/prices, an isolated local database and nonproduction operation. Production and hosted preview purchases are unavailable. Shortage guidance has no Marketplace earning fallback. Real Stripe lifecycle validation is unrun; commercial pricing, currency, tax, refunds, dispute adjustments and durable audit retention remain open launch blockers in #781. Test receipts are not live purchases.
+
+Construct artwork generation now accepts the current draft Visual description without saving definition text. Save attaches matching draft art without another charge; without matching art, a changed description can request generation. The model receives only the normalized submitted description.
+
+Changes to prompts, model inputs, tools, access rules, snapshots, limits or relevant user flows must update the corresponding Library chapters in the same PR. The reviewer compares technical claims with the source map below and checks whether the call-site inventory changed. Explain conditional context rather than claiming all operations receive all data. Use fictional examples only.
+
+## Source map
+
+| Reader chapter | Implementation sources under `apps/web/src/` |
+| --- | --- |
+| Getting Started / first-adventure, continue | `chats/`, `projects/`, `notes/`, `memory/`, `app/(workspace)/chat/`, `app/(workspace)/projects/` |
+| Getting Started / craft | `marketplace/cutover.ts`, `batteries/catalog.ts`, `components/earn-gold-link.tsx` |
+| Constructs / character, craft, test | `constructs/`, `components/constructs/`, `constructs/visual-generation.ts`, `prompts/`, `workshop/test-draft.ts` |
+| Spells / selection, craft, test | `spells/spell-choices.ts`, `spells/cast-spell.ts`, `spells/cast-spell-contract.ts`, `workshop/test-draft.ts` |
+| Activities / sessions, craft, test | `activities/activity-sessions.ts`, `activities/select-activity.ts`, `activities/prepared-openings.ts`, `replies/chat-opening.ts`, `chats/start-chat.ts` |
+| Model context / inventory | `replies/reply.ts`, `replies/tools/index.ts`, `replies/chat-opening.ts`, `replies/chat-naming.ts`, `check-ins/check-ins.ts`, `check-ins/check-in-kickoff.ts`, `workshop/test-draft.ts`, `images/image-provider.ts`, `images/generate-tool.ts`, `images/generate.ts`, `constructs/visual-generation.ts` |
+| Model context / assembly | `replies/system-prompt.ts`, `replies/global-prompt.ts`, `replies/role-prompt.ts`, `replies/memory-prompt.ts`, `replies/milestones-prompt.ts`, `replies/standalone-chat-prompt.ts`, `replies/chat-kickoff.ts`, `replies/author-names.ts`, `accounts/user-name.ts` |
+| Model context / tools | `replies/tools/index.ts`, tool contracts and executors, `accounts/owner-scope.ts`, `blender-manual/search-tool.ts`, `blender-manual/cite-tool.ts` |
+| Model context / history | `chats/store.ts`, `images/store.ts`, `images/generation-store.ts`, `spells/cast-spell-contract.ts`, `activities/activity-sessions.ts`, `workshop/protocol.ts`, `components/workshop/workshop.tsx` |
+
+## Review and checks
+
+The repository Library guard detects new model-call source files missing from the inventory, missing book/action/chapter-link routes, invalid Workshop kind parameters, broken chapter anchors and broken source-map paths (including route groups). It also inventories consumers of the image-provider contract so a new image operation cannot hide behind the shared provider. It cannot establish prose accuracy: review changed arguments, prompt sections, tool schemas and context reads against the affected chapters. New operations must appear in the reader inventory and source map, even when they reuse the shared provider.
+
+The Library browser test covers book navigation, chapter anchors, related mechanics links, action destinations and sign-in gating. Every book and the index are registered in `PHONE_PAGES` for the existing 320/390 px, touch-target and Light/Dark checks. Run focused Library and header tests for content/navigation edits; use the phone suite for layout changes and the default checks for repository coverage. Review links and examples alongside related product changes rather than requiring brittle assertions on exact prose.

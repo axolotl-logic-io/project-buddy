@@ -6,7 +6,7 @@ interface NewChatSelection {
   readonly projectId: string;
 }
 
-// Older interview links now start a quest in Project Breakdown.
+// Older interview links now start a quest in Break Down a Project.
 function initialSelection(selection: NewChatSelection): NewChatSelection {
   if (selection.activityId === "interview") {
     return {

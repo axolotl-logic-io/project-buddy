@@ -10,8 +10,8 @@ The user looks over her quests. Active quests are shown by default; Completed an
 - **Steps:**
   - She goes to her quests.
   - The site lists them, newest first. If there are none, it invites her to create one.
-  - The new-quest form isn't on the page itself: a "New quest" button above the list opens it in a dialog named "New quest". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button.
-- **Outcome:** every quest she has is listed by name, newest first, and each one links to the quest. Team quests she is a member of are listed too, marked "Shared with you"; her own quests that have members are marked "Shared". With no quests, the page says there are none yet and points her to the "New quest" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing. Invitations to other people's quests that she hasn't answered are listed above her quests, under Quest invitations, each with Join and Decline (`use_case_join_project`).
+  - The new-quest form isn't on the page itself: a "Start Quest" button above the list opens it in a dialog named "Start Quest". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button.
+- **Outcome:** every quest she has is listed by name, newest first, and each one links to the quest. Team quests she is a member of are listed too, marked "Shared with you"; her own quests that have members are marked "Shared". With no quests, the page says there are none yet and points her to the "Start Quest" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing. Invitations to other people's quests that she hasn't answered are listed above her quests, under Quest invitations, each with Join and Decline (`use_case_join_project`).
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_join_project`: join a quest she was invited to.
@@ -25,9 +25,9 @@ The user starts a quest for something she wants to make or learn.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses New quest on her quests page and gives the quest a name. She can also give her motivation: why she wants to complete it. There is no construct picker; Settings chooses the new quest construct, with Vellum as the default.
-  - The site creates the quest and opens its first adventure, in Project Breakdown. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
-- **Outcome:** the quest is first in her quests list, under the name she gave it. Its first adventure is listed with the New quest construct saved in Settings, or Vellum by default, and shows that construct's name. The adventure already holds its opening in the chosen construct's voice before she has written anything.
+  - She chooses Start Quest on her quests page. The dialog has only Construct, then Why. Construct starts with her Settings preference, or Vellum by default. Why is optional motivation. The construct explanation says this choice applies to the first adventure; later adventures can use other constructs.
+  - The site creates the quest and opens its first adventure, in Break Down a Project. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
+- **Outcome:** the quest is first in her quests list, under the default name New quest. Its first adventure is listed with the construct she selected, and shows that construct's name. The adventure already holds its opening in the chosen construct's voice before she has written anything.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans from the adventure.
   - `use_case_new_project_without_name`: she forgets to name it.
@@ -38,11 +38,11 @@ The user starts a quest for something she wants to make or learn.
 
 ## use_case_new_project_with_construct
 
-The user starts a quest in Project Breakdown with a construct of her own.
+The user starts a quest in Break Down a Project with a construct of her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_construct`](constructs.md#use_case_customize_construct).
 - **Steps:**
-  - In Settings, she saves her New quest construct. The picker offers built-in constructs, then her own, oldest first. She then starts a new quest and gives it a name and optional motivation.
+  - In Settings, she saves her New quest construct. The picker offers built-in constructs, then her own, oldest first. She then chooses Start Quest, selects her construct and enters optional Why.
   - The site creates the quest, as in `use_case_new_project`, and opens its first adventure.
 - **Outcome:** the first adventure shows her construct's name, and the construct's first question is written in its voice. The adventure keeps her construct as it was, so a later edit to the construct doesn't change it.
 - **Next:**
@@ -67,9 +67,9 @@ The user tries to start a quest without giving it a name.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses to start a new quest and leaves the name empty, or types only spaces.
+  - She starts a quest from the new-adventure form and leaves the name empty, or types only spaces.
   - The site asks her for a name.
-- **Outcome:** she is still on her quests page with the name field in front of her, rather than an error page. No new quest appears in her quests list.
+- **Outcome:** the new-adventure form keeps the quest-name dialog open with her choices, rather than showing an error page. No new quest appears in her quests list.
 - **Next:**
   - `use_case_new_project`: give it a name this time.
 
@@ -79,7 +79,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She starts a new quest from the New quest form or the new-adventure form's name dialog, and types or pastes a name longer than 80 characters.
+  - She starts a new quest from the new-adventure form's name dialog, and types or pastes a name longer than 80 characters.
   - The name field takes no more than 80 characters. If a longer name reaches the site anyway, the site refuses it.
 - **Outcome:** the name field says to use a shorter name of at most 80 characters, and keeps the name and motivation. No new quest appears in her quests list. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Quests named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
 - **Next:**
@@ -90,7 +90,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 This legacy case applies only to preserved Quest interview adventures. New quests can start in any activity. In an existing interview adventure, the construct interviews the user while the Journal doesn't yet hold her goal, what she already knows, what the result is for and a path of milestones.
 
-- **Prerequisites:** a preserved Quest interview adventure from before new quests switched to Project Breakdown.
+- **Prerequisites:** a preserved Quest interview adventure from before new quests switched to Break Down a Project.
 - **Steps:**
   - In the interview adventure, the construct asks about three things, one question at a time: her goal (what she wants to make or learn), what she already knows about it, and what the result is for.
   - She answers in her own words, and the construct asks a follow-up question where something is unclear.
@@ -197,7 +197,7 @@ The user works in a team quest: someone else's quest that she is a member of.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the quest's owner has made her a member, as accepting a quest invitation does.
 - **Steps:**
-  - She finds the quest in her quests list, the Adventures page and its quest filter, Today and the Quick Note page.
+  - She finds the quest in her quests list and the Adventures page. While Active, it also appears in the Adventures quest filter, New adventure choices, Today and Quick Note selection. Completing or abandoning removes it from dropdowns; restoring it makes it available again.
   - She opens the quest, one of its adventures and its Journal. She continues an adventure, starts a new one, edits the Journal, adds and deletes a Quick Note, and edits and deletes a milestone.
   - She looks at the quest's Members section.
 - **Outcome:** the quest, its adventures, their messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her standalone adventures, her own constructs and activities, and her image gallery stay hers alone, except that a team quest adventure she starts with her own construct, or that the construct moves into her own activity, runs on that construct's or activity's instructions for everyone in the quest. The adventure's messages show the change of activity by its name, and never hold its instructions. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
@@ -287,7 +287,7 @@ The user chooses which construct the quest creation form uses. New-adventure for
 - **Steps:**
   - The user opens Settings and chooses a New quest construct from the built-in constructs or their own.
   - They choose Save new quest construct.
-- **Outcome:** the choice is saved to their account across devices. The New quest form uses it. New adventure and activity start forms use the selected construct. Other users' choices and existing adventures stay unchanged. Vellum is the default and the fallback if the saved construct is deleted or unavailable. Another user's construct cannot be saved.
+- **Outcome:** the choice is saved to their account across devices. The Start Quest dialog defaults to it; the user can choose a different construct for the first adventure. New adventure and activity start forms use the selected construct. Other users' choices and existing adventures stay unchanged. Vellum is the default and the fallback if the saved construct is deleted or unavailable. Another user's construct cannot be saved.
 
 ## use_case_new_project_motivation
 
@@ -295,6 +295,39 @@ The user gives the reason for wanting to complete a quest.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - The user enters a quest name and optional motivation in either quest creation form.
+  - The user selects a construct and optional Why in Start Quest, or enters a name and optional motivation in the new-adventure form.
   - They start the quest.
-- **Outcome:** the chosen construct receives the name and motivation and writes an opening that acknowledges the reason and follows the selected activity. Motivation is saved as the user's first Journal version, shared with later quest adventures. If the opening fails, nothing is saved and the form keeps the name and motivation. A blank motivation keeps the name-only flow and prepared opening when available.
+- **Outcome:** the chosen construct receives the name and motivation and writes an opening that acknowledges the reason and follows the selected activity. Motivation is saved as the user's first Journal version, shared with later quest adventures. If the opening fails, nothing is saved and the form keeps the construct choice and motivation (and the name where supplied). A blank motivation keeps the name-only flow and prepared opening when available.
+
+## use_case_browse_premade_quests
+
+The user explores starting points without creating anything.
+
+- **Prerequisites:** signed in on Quests.
+- **Steps:** browse the four offerings, open a preview, inspect its starting Journal and first activity, then close it.
+- **Outcome:** existing quests and New quest remain available. No quest, adventure or model call is made.
+
+## use_case_start_premade_quest
+
+The user makes a starting point their own.
+
+- **Prerequisites:** signed in, with batteries available.
+- **Steps:** preview a premade quest; edit its name, Journal, motivation, activity and construct; choose Start quest.
+- **Outcome:** the ordinary quest and first adventure are saved together and the adventure opens. The preview defaults to the preferred New quest construct. Start without inspiration defaults to Find something to make. Confirmed Journal text and motivation are saved as the first user Journal version. Planned milestones do not become timeline progress. The quest belongs to the acting user and uses ordinary Journal, adventure, status and membership controls.
+- **Variations:** invalid input, an unavailable choice or a failed opening saves nothing. The form keeps every edit for correction or retry and prevents submission while pending.
+
+## use_case_activity_premade_quest_entry
+
+The user discovers the associated quest while browsing Find something to make.
+
+- **Prerequisites:** signed in on Activities or the built-in activity's page.
+- **Steps:** choose Explore quest for Start without inspiration.
+- **Outcome:** an editable preview opens before anything is created. The activity's ordinary adventure start remains available without requiring a quest.
+
+## use_case_start_quest_two_fields
+
+The user starts a quest without naming it first.
+
+- **Prerequisites:** signed in on Quests.
+- **Steps:** choose Start Quest, select Construct, optionally enter Why, then choose Start Quest.
+- **Outcome:** the quest receives the valid default name New quest. Its first adventure uses the selected construct and the default Break Down a Project activity. Later adventures can use different constructs. The construct explanation is visible and announced with its field. Cancel, Close and Escape create nothing. The dialog keeps keyboard focus, scrolls on phones and retains both choices after a failed opening. An unavailable or another user's construct is refused without saving anything.

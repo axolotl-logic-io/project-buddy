@@ -27,7 +27,7 @@ export const metadata: Metadata = { title: NEW_CHAT_COPY.title };
 // The new chat page, the landing page: the start page of every activity, at
 // /chats/new?activity=ACTIVITY_ID, with the activity chosen, and the project
 // chosen with projectId=PROJECT_ID or a new project with projectId=new.
-// Older interview links choose Project Breakdown. An activity that is none of theirs reads as the default
+// Older interview links choose Break Down a Project. An activity that is none of theirs reads as the default
 // activity. Above the form, the Today section shows what is waiting for the
 // user, under the page's heading; a user with nothing waiting sees only the
 // form, under its own.

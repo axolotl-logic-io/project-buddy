@@ -1,0 +1,21 @@
+import gzip
+import json,pathlib,statistics
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+matplotlib.rcParams['svg.fonttype']='none'
+root=pathlib.Path('docs/performance/773/current');data_path=root/'readiness.json'
+if data_path.exists():
+ rows=json.loads(data_path.read_text())
+else:
+ rows=json.loads(gzip.decompress((root/'readiness.json.gz').read_bytes()))
+names=['home','quests','quest','adventures','long-adventure','activities','workshop','editor'];labels=['Home','Quests','Quest','Adventures','Long adventure','Activities','Workshop','Editor'];primary=[];confirmed=[]
+for name in names:
+ v=[r for r in rows if r['state']=='populated' and r['profile']=='phone' and r['name']==name and r['mode']=='cold-direct'];assert len(v)==3
+ primary.append(statistics.median(r['primary'] for r in v)/1000);confirmed.append(statistics.median(r['control']['confirmed'] for r in v)/1000)
+fig,ax=plt.subplots(figsize=(9,4.8),layout='constrained');y=list(range(8));ax.barh([n-.18 for n in y],primary,height=.32,label='Primary content present',color='#1f77b4');bars=ax.barh([n+.18 for n in y],confirmed,height=.32,label='Trusted control confirmed',color='#ff7f0e');ax.set_yticks(y,labels);ax.invert_yaxis();ax.set_xlabel('Seconds from navigation start (median of 3)');ax.set_xlim(0,6.5);ax.grid(axis='x',alpha=.2);ax.set_axisbelow(True);ax.spines[['top','right','left']].set_visible(False);ax.legend(loc='lower right',frameon=False)
+for bar,value in zip(bars,confirmed):ax.text(value+.06,bar.get_y()+bar.get_height()/2,f'{value:.2f}',va='center',fontsize=9)
+fig.savefig(root/'phone-startup.png',dpi=160);fig.savefig(root/'phone-startup.svg',transparent=True)
+svg=(root/'phone-startup.svg').read_text();svg=svg[svg.index('<svg'):];svg=svg.replace('#000000','var(--foreground)').replace('#1f77b4','var(--chart-1)').replace('#ff7f0e','var(--chart-2)').replace('#b0b0b0','var(--border)')
+html='<!doctype html><html><head><meta charset="utf-8"><style>svg{width:100%;height:400px;display:block}p{font-size:13px;color:var(--muted-foreground);line-height:1.5}</style></head><body>'+svg+'<p>Cold phone emulation: 390×844, 4× CPU, 150 ms latency, 200 kB/s download. Source 9a8ab46, build eDoFyCX3Cc1n4DFG0OaCq. Control times are sampled upper bounds; adventure/editor probes include typing 42 characters. This is lab evidence, not field INP.</p></body></html>'
+pathlib.Path('/tmp/pb-773-current/chart.html').write_text(html)

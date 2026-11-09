@@ -10,6 +10,7 @@ import { render } from "vitest-browser-react";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
+import { replyGoldAction } from "@/replies/reply-gold-action.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
@@ -24,6 +25,9 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
+const INITIAL_BALANCE = 100;
+const SETTLED_BALANCE = 98;
+const ACCOUNTING_POLL_MS = 2000;
 const REPLY = "Here I am.";
 const STOPPED: ChatMessage = {
   id: "stopped-message",
@@ -54,6 +58,8 @@ function reply(): Response {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  vi.mocked(replyGoldAction).mockReset();
+  refresh.mockClear();
 });
 
 describe("use_case_reply_fails", () => {
@@ -224,4 +230,83 @@ test("Stop waits for the server and a failed request leaves the stream running",
   } finally {
     output?.close();
   }
+});
+
+describe("use_case_see_gold", () => {
+  test("idle accounting seeds the balance and late settlement refreshes only when it changes", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    const viewer = userIdFixture();
+    const pending = {
+      viewer,
+      balance: 100,
+      costs: [{ messageId: STOPPED.id, gold: 0, state: "pending" }],
+    } satisfies NonNullable<Awaited<ReturnType<typeof replyGoldAction>>>;
+    vi.mocked(replyGoldAction).mockResolvedValue(pending);
+    await render(
+      <ChatView
+        viewer={viewer}
+        constructName="Vellum"
+        chatId={chatIdFixture()}
+        initialMessages={[STOPPED]}
+        stoppedReplyId={STOPPED.id}
+      />,
+    );
+    await expect
+      .element(
+        page.getByText(CHAT_COPY.balance(INITIAL_BALANCE), { exact: true }),
+      )
+      .toBeVisible();
+    expect(refresh).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(ACCOUNTING_POLL_MS);
+    expect(refresh).not.toHaveBeenCalled();
+    vi.mocked(replyGoldAction).mockResolvedValue({
+      ...pending,
+      balance: 98,
+      costs: [{ messageId: STOPPED.id, gold: 2, state: "actual" }],
+    });
+    await vi.advanceTimersByTimeAsync(ACCOUNTING_POLL_MS);
+    await expect
+      .element(
+        page.getByText(CHAT_COPY.balance(SETTLED_BALANCE), { exact: true }),
+      )
+      .toBeVisible();
+    await expect.poll(() => refresh.mock.calls.length).toBe(1);
+  });
+
+  test("a reply finishing before the first balance read still refreshes settled accounting", async () => {
+    const viewer = userIdFixture();
+    const first =
+      Promise.withResolvers<Awaited<ReturnType<typeof replyGoldAction>>>();
+    const settled =
+      Promise.withResolvers<Awaited<ReturnType<typeof replyGoldAction>>>();
+    vi.mocked(replyGoldAction)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValue(settled.promise);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(reply())),
+    );
+    await render(
+      <ChatView
+        viewer={viewer}
+        constructName="Vellum"
+        chatId={chatIdFixture()}
+        initialMessages={[STOPPED]}
+        stoppedReplyId={STOPPED.id}
+      />,
+    );
+    await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
+    await expect.element(page.getByText(REPLY)).toBeVisible();
+    await expect.poll(() => refresh.mock.calls.length).toBe(1);
+    // The finish refresh can precede accounting. Its later first known
+    // balance must refresh again rather than becoming an idle baseline.
+    settled.resolve({ viewer, balance: 98, costs: [] });
+    await expect
+      .element(
+        page.getByText(CHAT_COPY.balance(SETTLED_BALANCE), { exact: true }),
+      )
+      .toBeVisible();
+    await expect.poll(() => refresh.mock.calls.length).toBe(2);
+    first.resolve({ viewer, balance: 100, costs: [] });
+  });
 });

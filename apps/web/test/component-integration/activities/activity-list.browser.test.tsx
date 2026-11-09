@@ -1,9 +1,10 @@
-// The activities page's New activity button, with her own activities and
+// The activities page's Craft activity button, with her own activities and
 // with none: it sits among her own, follows the built-in activities in
-// keyboard order, and Enter writes a new activity.
+// keyboard order, and Enter crafts a new activity.
 import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { OwnActivity } from "@/activities/activity-store.ts";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
@@ -25,6 +26,11 @@ vi.mock(
 vi.mock("@/activities/activity-store.ts", () => ({
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
 }));
+const SAVED_ACTIVITY: OwnActivity = {
+  ...BRAINSTORMING_CLONE,
+  name: "Brainstorming (clone)",
+};
+
 const PROJECT = {
   id: projectIdFixture(),
   name: "Low-poly fox",
@@ -38,7 +44,7 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn<typeof startChatAction>(),
 }));
 
-// Listing exposes these actions; only New activity is submitted, from the
+// Listing exposes these actions; only Craft activity is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
@@ -60,10 +66,10 @@ beforeEach(() => {
   });
 });
 
-test("her activities offer New activity, with or without activities of her own", async () => {
+test("her activities offer Craft activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(startChatAction).mockClear();
-  vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+  vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
   const screen = await render(
     inWorkspace(
       await ActivitiesPage({
@@ -74,9 +80,7 @@ test("her activities offer New activity, with or without activities of her own",
   );
 
   await expect
-    .element(
-      ownRegion().getByRole("button", { name: ACTIVITIES_COPY.newActivity }),
-    )
+    .element(ownRegion().getByRole("button", { name: "Craft activity" }))
     .toBeEnabled();
 
   vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -92,13 +96,11 @@ test("her activities offer New activity, with or without activities of her own",
     .element(ownRegion().getByText(ACTIVITIES_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(
-      ownRegion().getByRole("button", { name: ACTIVITIES_COPY.newActivity }),
-    )
+    .element(ownRegion().getByRole("button", { name: "Craft activity" }))
     .toBeEnabled();
 });
 
-test("New activity is the next control after the built-in activities, and Enter writes one", async () => {
+test("Craft activity is the next control after the built-in activities, and Enter crafts one", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(startChatAction).mockClear();
   vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -116,15 +118,20 @@ test("New activity is the next control after the built-in activities, and Enter 
       }),
     ),
   );
-  const lastBuiltIn = listActivities().at(-1)?.name ?? "";
+  const lastBuiltIn = listActivities().at(-1);
+  let lastControl = page.getByRole("button", {
+    name: ACTIVITIES_COPY.customizeLabel(lastBuiltIn?.name ?? ""),
+  });
+  if (lastBuiltIn?.id === "find-something-to-make") {
+    lastControl = page.getByRole("button", {
+      name: "Explore quest: Start without inspiration",
+    });
+  }
 
-  page
-    .getByRole("button", { name: ACTIVITIES_COPY.customizeLabel(lastBuiltIn) })
-    .element()
-    .focus();
+  lastControl.element().focus();
   await tabForward();
   await expect
-    .element(page.getByRole("button", { name: ACTIVITIES_COPY.newActivity }))
+    .element(page.getByRole("button", { name: "Craft activity" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
@@ -133,19 +140,25 @@ test("New activity is the next control after the built-in activities, and Enter 
 });
 
 test.each([
+  { id: "open-chat", name: "Chat", project: NEW_CHAT_COPY.noProject },
+  {
+    id: "find-something-to-make",
+    name: "Find something to make",
+    project: NEW_CHAT_COPY.noProject,
+  },
   {
     id: "brainstorming",
-    name: "Brainstorming",
+    name: "Brainstorm",
     project: NEW_CHAT_COPY.noProject,
   },
   {
     id: BRAINSTORMING_CLONE.id,
-    name: BRAINSTORMING_CLONE.name,
+    name: SAVED_ACTIVITY.name,
     project: NEW_CHAT_COPY.noProject,
   },
   {
     id: "project-breakdown",
-    name: "Project Breakdown",
+    name: "Break Down a Project",
     project: NEW_CHAT_COPY.noProject,
   },
 ])(
@@ -153,7 +166,7 @@ test.each([
   async (activity) => {
     signInAs(SIGNED_IN_USER);
     vi.mocked(startChatAction).mockClear();
-    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+    vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
     const submitted = Promise.withResolvers<FormData>();
     vi.mocked(startChatAction).mockImplementation((_state, form) => {
       submitted.resolve(form);
@@ -168,7 +181,7 @@ test.each([
       ),
     );
     const trigger = page.getByRole("button", {
-      name: ACTIVITIES_COPY.startLabel(activity.name),
+      name: activity.name,
       exact: true,
     });
     await trigger.click();
@@ -209,3 +222,10 @@ test.each([
     expect(sent.get("projectId")).toBe(PROJECT.id);
   },
 );
+
+vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+  startPremadeQuestAction: vi.fn(),
+}));
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));
