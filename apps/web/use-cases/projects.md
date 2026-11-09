@@ -137,6 +137,8 @@ The user opens one of her quests.
   - `use_case_view_progress_timeline`: see how far she has come.
   - `use_case_invite_to_project`: work on the quest with someone else.
 
+The overview and Journal share a workspace header: the title and status, New adventure, Adventures and Quest Journal navigation, and visible status actions for the owner. The selected page is underlined. Controls wrap on phones.
+
 ## use_case_set_check_ins
 
 The user asks the quest's construct to check in on the quest on a schedule.
@@ -331,3 +333,11 @@ The user starts a quest without naming it first.
 - **Prerequisites:** signed in on Quests.
 - **Steps:** choose Start Quest, select Construct, optionally enter Why, then choose Start Quest.
 - **Outcome:** the quest receives the valid default name New quest. Its first adventure uses the selected construct and the default Break Down a Project activity. Later adventures can use different constructs. The construct explanation is visible and announced with its field. Cancel, Close and Escape create nothing. The dialog keeps keyboard focus, scrolls on phones and retains both choices after a failed opening. An unavailable or another user's construct is refused without saving anything.
+
+## use_case_rename_quest
+
+The owner changes the quest title inline on its overview or Journal page.
+
+- **Prerequisites:** signed in as the quest owner.
+- **Steps:** choose Edit quest title, enter the name, then choose Save title or press Enter.
+- **Outcome:** the trimmed title is saved and appears on the quest and its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to the pencil. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Members and other users cannot rename the quest.
