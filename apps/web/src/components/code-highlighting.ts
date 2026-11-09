@@ -1,50 +1,58 @@
-import {
-  type CodeHighlighterPlugin,
-  createCodePlugin,
-  type ThemeInput,
+import type {
+  CodeHighlighterPlugin,
+  HighlightOptions,
+  HighlightResult,
 } from "@streamdown/code";
+import { bundledLanguages, bundledLanguagesInfo } from "shiki/langs";
+import { CODE_TOKEN_COLORS } from "@/components/code-theme.ts";
 
-// The colours of highlighted code: the token contract's code colours, as CSS
-// variables, so code follows the site's theme and the mode the user chose
-// rather than the operating system's. Streamdown asks for a light and a
-// dark highlighting theme and picks between them by the operating system,
-// so this one serves as both. The scopes are TextMate's.
-const CODE_TOKEN_COLORS: ThemeInput = {
-  name: "code-tokens",
-  fg: "var(--foreground)",
-  bg: "transparent",
-  settings: [
-    { settings: { foreground: "var(--foreground)" } },
-    {
-      scope: ["comment", "punctuation.definition.comment"],
-      settings: { foreground: "var(--code-comment)" },
-    },
-    {
-      scope: ["keyword", "storage"],
-      settings: { foreground: "var(--code-keyword)" },
-    },
-    {
-      scope: ["string", "string.regexp"],
-      settings: { foreground: "var(--code-string)" },
-    },
-    {
-      scope: [
-        "entity.name.function",
-        "support.function",
-        "meta.function-call.generic",
-      ],
-      settings: { foreground: "var(--code-function)" },
-    },
-    {
-      scope: ["constant", "variable.parameter", "entity.name.type"],
-      settings: { foreground: "var(--code-constant)" },
-    },
-  ],
+function isLanguage(value: string): value is HighlightOptions["language"] {
+  return Object.hasOwn(bundledLanguages, value);
+}
+
+const LANGUAGES = bundledLanguagesInfo.map(({ id }) => id).filter(isLanguage);
+const LANGUAGE_NAMES = new Set(
+  bundledLanguagesInfo.flatMap(({ id, aliases = [] }) => [id, ...aliases]),
+);
+let engine: Promise<CodeHighlighterPlugin> | undefined;
+
+function loadEngine(): Promise<CodeHighlighterPlugin> {
+  engine ??= import("@/components/code-highlighting-engine.ts").then(
+    ({ CODE_ENGINE }) => CODE_ENGINE,
+  );
+  return engine;
+}
+
+function keepPlainCode(): void {
+  // Code remains readable when the optional highlighting chunk cannot load.
+}
+
+// Streamdown already renders plain code while highlighting is pending. Load
+// the regex engine only for a code block, keeping prose and editors independent
+// of its download and evaluation. Each request keeps its own completion callback.
+function highlight(
+  options: HighlightOptions,
+  callback?: (result: HighlightResult) => void,
+): null {
+  loadEngine()
+    .then((loaded) => {
+      const result = loaded.highlight(options, callback);
+      if (result !== null) {
+        callback?.(result);
+      }
+    })
+    .catch(keepPlainCode);
+  return null;
+}
+
+const CODE_HIGHLIGHTER: CodeHighlighterPlugin = {
+  name: "shiki",
+  type: "code-highlighter",
+  getSupportedLanguages: () => LANGUAGES,
+  getThemes: () => [CODE_TOKEN_COLORS, CODE_TOKEN_COLORS],
+  supportsLanguage: (language: HighlightOptions["language"]) =>
+    LANGUAGE_NAMES.has(language.trim().toLowerCase()),
+  highlight,
 };
-
-// The site's code highlighter, which Streamdown colours code blocks with.
-const CODE_HIGHLIGHTER: CodeHighlighterPlugin = createCodePlugin({
-  themes: [CODE_TOKEN_COLORS, CODE_TOKEN_COLORS],
-});
 
 export { CODE_HIGHLIGHTER };
