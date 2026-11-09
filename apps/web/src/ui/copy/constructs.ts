@@ -21,11 +21,11 @@ export const CONSTRUCTS_COPY = {
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
-    "No constructs of your own yet. Customize one above, or choose New construct to write one from scratch.",
-  newConstruct: "Write new construct",
-  // The name of a construct written from scratch, until the user renames it.
+    "No constructs of your own yet. Customize one above, or choose Craft construct to make one without copying another.",
+  newConstruct: "Craft construct",
+  // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",
-  startLabel: (name: string): string => `Start an adventure with ${name}`,
+  startLabel: (name: string): string => `Adventure with ${name}`,
   customize: "Customize",
   customizeLabel: (name: string): string =>
     `Customize ${name}: make your own copy`,
@@ -53,6 +53,6 @@ export const CONSTRUCT_DEFINITION_COPY: Readonly<
 > = {
   prompt: {
     label: "Prompt",
-    help: "How the construct talks and works with you. Use voice and habits headings to organize it.",
+    help: "The name identifies the construct; the Character Sheet contains its instructions. Use voice and habits headings to organize how it talks and works with you.",
   },
 };

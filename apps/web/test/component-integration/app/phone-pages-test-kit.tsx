@@ -87,7 +87,6 @@ import {
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -298,16 +297,14 @@ function projectsPageOf(
       vi.mocked(listConstructs).mockResolvedValue([...ownConstructs]);
       vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
     },
-    async () => (
-      <ProjectListLayout params={NO_PARAMS}>
-        {
-          await ProjectsPage({
-            params: Promise.resolve({}),
-            searchParams: Promise.resolve({}),
-          })
-        }
-      </ProjectListLayout>
-    ),
+    async () =>
+      ProjectListLayout({
+        params: NO_PARAMS,
+        children: await ProjectsPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+      }),
   );
 }
 
@@ -532,7 +529,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project invitation's page", render: projectInvitationPage },
   {
-    name: "the projects list's New project dialog",
+    name: "the projects list's Start Quest dialog",
     render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
@@ -541,7 +538,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+          .getByRole("textbox", { name: PROJECTS_COPY.whyLabel })
           .element(),
       );
     },
@@ -717,6 +714,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
+        vi.mocked(listProjects).mockResolvedValue([]);
+        vi.mocked(listOwnActivities).mockResolvedValue([]);
       },
       () =>
         ConstructsPage({
@@ -749,7 +748,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
-          name: ACTIVITIES_COPY.startLabel("Brainstorming"),
+          name: "Brainstorm",
           exact: true,
         })
         .click();
