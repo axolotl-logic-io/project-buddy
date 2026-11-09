@@ -25,6 +25,10 @@ import {
 } from "../viewports-test-kit.ts";
 
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("../auth/current-user-test-kit.ts"),
+);
 
 const DRAFT: WorkshopDraft = {
   kind: "construct",
