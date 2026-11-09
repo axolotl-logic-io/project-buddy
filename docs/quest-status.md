@@ -20,7 +20,7 @@ Reply instructions include the requesting owner’s latest proposal decision in 
 
 ## Quest workspace
 
-The quest overview and Quest Journal share a compact header. The title and its pencil appear above the status, with New adventure beside them. The lower rail holds Adventures and Quest Journal navigation, followed by the owner's status actions. The current page has an underlined link. Controls wrap on phones.
+The quest overview and Quest Journal share a compact header. The title and its pencil appear above the status, with New adventure beside them. The lower rail holds Adventures, Quest Journal, Progress, Quick Notes, Versions and Members and check-ins navigation, followed by the owner's status actions. The current section appears below the rail. The current page has an underlined link. Controls wrap on phones.
 
 The owner can choose the pencil to edit the title inline. Save title or Enter saves a trimmed name of up to 80 characters. Cancel title edit or Escape discards the draft, and focus returns to the pencil. Invalid names and storage failures keep the draft open for correction. Members can read the title but cannot edit it.
 

@@ -19,7 +19,7 @@ The user starts an adventure in the activity she wants.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens Activities from any signed-in page's menu. The page lists the built-in activities, each with what it is, then her own.
+  - She opens Activities from any signed-in page's menu. The Built-in tab lists the built-in activities, each with what it is. Yours lists her own, Retired holds retired activities, and Craft activity stays in the heading.
   - She chooses Brainstorm, the activity’s name used directly as its start action. Chat and Break Down a Project also use their names directly; own activities keep their saved names. The New adventure modal opens on Activities with Brainstorm fixed and no Activity field.
   - She leaves the quest at "No quest", picks a construct and starts the adventure.
   - Another time, she chooses Break Down a Project and selects a new or existing quest.

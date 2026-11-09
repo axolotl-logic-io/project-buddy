@@ -14,6 +14,9 @@ import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
+const SELECTED_TAB =
+  /<button\b(?=[^>]*role="tab")(?=[^>]*aria-selected="true")[^>]*>(?<label>[^<]+)<\/button>/u;
+
 // 13 gold, in micro-USD, of the starting 100, leaving exactly 87.
 const THIRTEEN_GOLD = 130_000;
 const PAST_ZERO = 1250;
@@ -70,5 +73,20 @@ test.each(["disabled", "production", "malformed"])(
     const markup = renderToStaticMarkup(await AccountPage());
     expect(markup).toContain("Batteries: 100");
     expect(markup).not.toContain('id="buy-batteries"');
+  },
+);
+
+test.each([{ battery: "success" }, { section: "batteries" }])(
+  "purchase navigation opens Batteries instead of hiding it in Profile (%o)",
+  async (query) => {
+    const user = await testUser();
+    await signIn(user);
+    const html = renderToStaticMarkup(
+      await AccountPage({
+        searchParams: Promise.resolve(query),
+      }),
+    );
+    const { label } = SELECTED_TAB.exec(html)?.groups ?? {};
+    expect(label).toBe("Batteries");
   },
 );
