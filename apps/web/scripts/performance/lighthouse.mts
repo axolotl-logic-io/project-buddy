@@ -18,7 +18,7 @@ import {
 import { verifiedNavigation, verifiedTimespan } from "./lighthouse-evidence.ts";
 import { primaryPresent, statePresent } from "./observe.mts";
 
-// Lighthouse 12.8.2 nests its own puppeteer-core (24.43.1) while the matrix
+// Lighthouse 13.6.0 nests its own puppeteer-core (25.16.0) while the matrix
 // pins 24.12.1 at the root; the manifest records both installed versions.
 // Their Page classes share the CDP contract but carry different private
 // TypeScript brands. Validate the actual Page instance at this single
@@ -67,6 +67,9 @@ async function captureLighthouse(
     // The timespan's emulation is Lighthouse's own mobile profile, applied
     // before any source page loads so the measured interval never resizes.
     const metrics = screenEmulationMetrics.mobile;
+    if (metrics === undefined) {
+      throw new Error("Lighthouse mobile screen emulation is unavailable");
+    }
     await page.setViewport({
       width: metrics.width,
       height: metrics.height,
