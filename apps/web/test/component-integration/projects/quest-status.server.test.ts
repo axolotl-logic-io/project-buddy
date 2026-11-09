@@ -4,6 +4,7 @@ import {
   changeQuestStatusAction,
   readQuestStatusApprovalAction,
 } from "@/app/(workspace)/projects/status-actions.ts";
+import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listMessages } from "@/chats/store.ts";
 import {
   claimCheckIn,
@@ -12,6 +13,7 @@ import {
 } from "@/check-ins/check-in-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { activeProjects } from "@/projects/active-projects.ts";
 import {
   STATUS_APPROVAL_ID,
   type StatusApproval,
@@ -70,6 +72,17 @@ describe("use_case_change_quest_status", () => {
     async (target) => {
       const team = await teamProject();
       const before = await seenBy(team.member, team);
+      const outsider = await testUser();
+      expect(await activeProjects(team.member.id)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
+      expect(await activeProjects(outsider.id)).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
       await signIn(team.owner);
       await saveCheckInFrequency(team.owner.id, team.project.id, "daily");
       const result = await changeQuestStatusAction(
@@ -96,6 +109,21 @@ describe("use_case_change_quest_status", () => {
         await saveCheckInFrequency(team.owner.id, team.project.id, "daily"),
       ).toBe(false);
       expect(await claimCheckIn(team.owner.id, team.project.id)).toBe(false);
+      expect(await activeProjects(team.owner.id)).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
+      expect(await activeProjects(team.member.id)).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
+      expect((await newChatChoices(team.owner.id)).projects).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
       const change = required(result.change);
       expect(
         await changeQuestStatus(team.owner.id, {
@@ -108,6 +136,16 @@ describe("use_case_change_quest_status", () => {
         "off",
       );
       expect(await seenBy(team.member, team)).toEqual(before);
+      expect(await activeProjects(team.member.id)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
+      expect((await newChatChoices(team.owner.id)).projects).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: team.project.id }),
+        ]),
+      );
     },
   );
   test.each(["member", "outsider"] as const)(

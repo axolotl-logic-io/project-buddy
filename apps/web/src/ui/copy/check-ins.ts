@@ -7,7 +7,7 @@ import { pageTitle } from "./site.ts";
 export const CHECK_IN_SETTING_COPY = {
   heading: "Check-ins",
   intro:
-    "Your construct can start an adventure on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your gold.",
+    "Your construct can start an adventure on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your batteries.",
   label: "How often",
   frequencies: {
     off: "Off",

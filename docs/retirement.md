@@ -24,7 +24,7 @@ Only the definition's owner can read or change it. Team quest membership gives n
 
 Listings are independent published copies. Retirement and permanent deletion do not unlist them; the user unlists them in the Marketplace. A retired source cannot be updated or listed again until restored.
 
-A retired bought copy remains held. Opening it from a listing leads to its Retirement view, and attempting to buy it again does not charge gold. Restoring it costs nothing. Permanent deletion gives no refund and allows another buy at the listing's current price and instructions.
+A retired bought copy remains held. Opening it from a listing leads to its Retirement view, and attempting to buy it again does not charge orbs. Restoring it costs nothing. Permanent deletion gives no refund and allows another buy at the listing's current price and instructions.
 
 ## Storage and release
 

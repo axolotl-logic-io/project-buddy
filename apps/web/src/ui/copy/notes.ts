@@ -22,7 +22,7 @@ export const QUICK_CAPTURE_COPY = {
   empty: "Write something to save. An empty Quick Note can't be saved.",
   tooLong: `A Quick Note can be at most ${NOTE_MAX_LENGTH} characters. Shorten it, or put the rest in the quest's Journal.`,
   noProjects:
-    "Quick Notes go into a quest's Journal, and you have no quests yet. Start a quest first.",
+    "Quick Notes go into an Active quest's Journal. Start a quest or restore one from Quests first.",
   noProjectsLink: "Go to Quests",
 } as const;
 

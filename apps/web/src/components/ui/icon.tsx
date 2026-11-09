@@ -1,3 +1,11 @@
+import {
+  Bot,
+  ListChecks,
+  MessagesSquare,
+  Pencil,
+  Shield,
+  Store,
+} from "lucide-react";
 import type { JSX } from "react";
 
 // What each icon draws on a 16 by 16 grid: an outline, in strokes, and
@@ -8,19 +16,6 @@ interface IconPaths {
 }
 
 const ICON_PATHS = {
-  shield: { stroke: "M2 2h12v6c0 4-6 6-6 6S2 12 2 8zM6 2V1m4 1V1M6 6h4v4H6z" },
-  flame: {
-    stroke:
-      "M8 1c3 4-1 5 1 8 2-1 3-3 3-3 5 6 0 9-4 9-5 0-8-4-4-9 0 3 1 4 2 4-2-4 2-5 2-9z",
-  },
-  house: { stroke: "M1 7 8 1l7 6M3 6v9h4v-5h3v5h3V6M4 4V1h2v1" },
-  tools: {
-    stroke: "m2 1 11 13m1-13L3 14M1 10l4 4m6-4 4 4M1 1l2 4 2-2zm14 0-2 4-2-2z",
-  },
-  market: {
-    stroke:
-      "M2 6h12v9H2zM1 6l2-5h10l2 5M1 6c0 3 3 3 4 1 1 2 5 2 6 0 1 2 4 2 4-1M6 15v-5h4v5",
-  },
   // A circle with an exclamation mark, for something that went wrong.
   alert: {
     stroke:
@@ -61,9 +56,6 @@ const ICON_PATHS = {
   },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
-  // A pencil, for changing a name or the project's memory, and for the
-  // Workshop.
-  pencil: { stroke: "M10.5 2.5l3 3-8 8h-3v-3zM9 4l3 3" },
   // A magnifying glass, for a search of the manual.
   search: {
     stroke: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.5 10.5l3 3",
@@ -84,7 +76,24 @@ const ICON_PATHS = {
   },
 } as const;
 
-type IconName = keyof typeof ICON_PATHS;
+// Place symbols share these six named imports. Pencil also marks editing
+// controls and edit summaries throughout the interface.
+const PLACE_ICONS = {
+  shield: Shield,
+  messages: MessagesSquare,
+  bot: Bot,
+  checklist: ListChecks,
+  pencil: Pencil,
+  store: Store,
+} as const;
+
+type PlaceIconName = keyof typeof PLACE_ICONS;
+
+function isPlaceIcon(name: IconName): name is PlaceIconName {
+  return Object.hasOwn(PLACE_ICONS, name);
+}
+
+type IconName = keyof typeof ICON_PATHS | keyof typeof PLACE_ICONS;
 
 // A small line icon in the text colour around it, as tall as a line of that
 // text, so it lines up with the first line beside it however many lines
@@ -99,6 +108,14 @@ function Icon({
   readonly name: IconName;
   readonly className?: string;
 }): JSX.Element {
+  if (isPlaceIcon(name)) {
+    const LibraryIcon = PLACE_ICONS[name];
+    return (
+      <span className={`icon ${className}`}>
+        <LibraryIcon aria-hidden="true" focusable="false" />
+      </span>
+    );
+  }
   const paths: IconPaths = ICON_PATHS[name];
   return (
     <span className={`icon ${className}`}>
