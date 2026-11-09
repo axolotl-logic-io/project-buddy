@@ -1,6 +1,6 @@
 # Accounts
 
-The conventions for these cases are in [the index](README.md#conventions). Who may sign up, and the gold every account starts with, are described [there too](README.md#who-uses-the-site).
+The conventions for these cases are in [the index](README.md#conventions). Who may sign up, and the batteries every account starts with, are described [there too](README.md#who-uses-the-site).
 
 ## use_case_admin_invites
 
@@ -92,7 +92,7 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own quests, adventures, Journal, constructs and gold.
+Two users each see only their own quests, adventures, Journal, constructs and batteries.
 
 - **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a quest that has an adventure ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
@@ -100,8 +100,8 @@ Two users each see only their own quests, adventures, Journal, constructs and go
   - She tries to send a message in that adventure, save that Journal and rename that adventure, using its address.
   - She looks over her own quests, and starts a new adventure.
   - She tries to restore an earlier version of the first user's Journal, and to read, clone, edit and delete the first user's construct.
-  - Both users spend gold.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure, Journal and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. Restoring the first user's Journal answers as for a quest that never existed, shows none of its text and saves nothing. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's gold pays only for their own calls.
+  - Both users spend batteries.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure, Journal and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. Restoring the first user's Journal answers as for a quest that never existed, shows none of its text and saves nothing. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's batteries pay only for their own calls.
 - **Variations:**
   - Each user can have many standalone adventures, in no quest: each one she starts, however many at once, is a new adventure of her own. The first user's standalone adventure, and its messages, are not found to her, exactly as an unknown adventure is, and take none of her writes: its address says it cannot be found, and a message sent to it through the adventure API is refused as not found. A standalone adventure is never among a quest's adventures, and goes when its account is deleted.
   - A team quest the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other quests do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
@@ -119,7 +119,7 @@ The user checks how many Batteries they have left.
   - They send an adventure message and wait for its reply and accounting to finish.
 - **Outcome:** the header shows the viewing user's own Batteries, including in a team quest. Account and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including Workshop tests and construct image generation. A failed or cancelled Workshop test still refreshes after its request settles; checking a recovered image generation updates any reserved or settled balance. An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
 - **Extras:** hiding the Account balance extra does not hide the compact header balance. Account still offers Sign out and Sign out everywhere.
-- **Adventure replies:** the acting user's balance appears near the composer. Actual fractional reply costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
+- **Adventure replies:** the acting user's balance appears near the composer. Actual fractional battery costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
 - **Next:**
   - `use_case_out_of_gold`: they spend their last Batteries.
   - `use_case_sign_out`: they are done for the day.
@@ -143,17 +143,17 @@ The user tells the construct what to call her, so a construct that says `{{name}
 
 ## use_case_out_of_gold
 
-The user has spent all her gold.
+The user has spent all her batteries.
 
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with 1 gold left.
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with 1 battery left.
 - **Steps:**
-  - With 1 gold left, she sends a message. Its reply takes her under 1 gold, and it finishes in full.
+  - With 1 battery left, she sends a message. Its reply takes her under 1 battery, and it finishes in full.
   - She sends another message.
-  - Instead of a reply, the adventure says "You're out of gold."
+  - Instead of a reply, the adventure says "You're out of batteries."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New quest keeps the entered name and motivation after refusal. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. Out-of-gold messages link to the Marketplace to earn gold by selling own constructs, activities and spells. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, her account page shows "Batteries: 0", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation, Workshop tests and check-ins are refused too. The orb migration pauses all Marketplace buys until separate operator activation. Afterwards sales earn only orbs, which cannot fund model use. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
-  - `use_case_see_gold`: check her gold.
+  - `use_case_see_gold`: check her batteries.
 
 ## use_case_settings_follow_user
 
