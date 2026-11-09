@@ -7,6 +7,7 @@ import HomeLoading from "@/app/(workspace)/home/loading.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
+import { HomeFrame } from "@/components/ui/page-frame.tsx";
 import type { TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
@@ -431,13 +432,49 @@ describe("use_case_home_atlas", () => {
     );
   });
 
+  test.each(["loading", "atlas"])(
+    "leaves body paper and art unchanged with a first-mounted hidden %s",
+    async (kind) => {
+      await setViewport(LAPTOP_VIEWPORT);
+      function cached(mode: "visible" | "hidden"): Promise<JSX.Element> {
+        let content = <HomeLoading />;
+        if (kind === "atlas") {
+          content = <HomeAtlas latestQuest={undefined} />;
+        }
+        return inSiteFrame(
+          <HomeFrame>
+            <React.Activity mode={mode}>{content}</React.Activity>
+          </HomeFrame>,
+        );
+      }
+      const screen = await render(
+        await inSiteFrame(<h1>{QUICK_CAPTURE_COPY.heading}</h1>),
+      );
+      const paper = getComputedStyle(document.body).backgroundColor;
+      const art = getComputedStyle(document.body).backgroundImage;
+      await screen.rerender(await cached("hidden"));
+      expect(getComputedStyle(document.body).backgroundColor).toBe(paper);
+      expect(getComputedStyle(document.body).backgroundImage).toBe(art);
+      await screen.rerender(await cached("visible"));
+      await expect
+        .element(page.getByRole("heading", { name: HOME_COPY.heading }))
+        .toBeVisible();
+      expect(getComputedStyle(document.body).backgroundImage === art).toBe(
+        kind === "loading",
+      );
+      await screen.rerender(await cached("hidden"));
+      expect(getComputedStyle(document.body).backgroundColor).toBe(paper);
+      expect(getComputedStyle(document.body).backgroundImage).toBe(art);
+    },
+  );
+
   test("keeps the header rectangle and main origin stable from loading to Home", async () => {
     await setViewport(LAPTOP_VIEWPORT);
     const screen = await render(
       await inSiteFrame(
-        <div className="page-column">
+        <HomeFrame>
           <HomeLoading />
-        </div>,
+        </HomeFrame>,
       ),
     );
     const headerBox = page
@@ -447,18 +484,25 @@ describe("use_case_home_atlas", () => {
       .toJSON();
     const main = page.getByRole("main").element();
     const { x, y, width } = main.getBoundingClientRect();
+    const column = main.firstElementChild;
+    const columnBefore = column?.getBoundingClientRect();
+    expect(columnBefore?.width).toBe(LAPTOP_VIEWPORT.width);
     await screen.rerender(
       await inSiteFrame(
-        <div className="page-column">
+        <HomeFrame>
           <HomeAtlas latestQuest={undefined} />
-        </div>,
+        </HomeFrame>,
       ),
     );
     expect(
       page.getByRole("banner").element().getBoundingClientRect().toJSON(),
     ).toEqual(headerBox);
     expect(main.getBoundingClientRect()).toMatchObject({ x, y, width });
-    // Content height and the inner column differ between loading and Home (#795).
+    expect(column?.getBoundingClientRect()).toMatchObject({
+      x: columnBefore?.x,
+      y: columnBefore?.y,
+      width: columnBefore?.width,
+    });
   });
 
   test.each(["light", "dark"])(

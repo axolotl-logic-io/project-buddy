@@ -9,6 +9,7 @@
 // loaded, since the site's name's width depends on them.
 // test/component-integration/app/phone-pages.touch.browser.test.tsx checks every page's reflow
 // and targets.
+import type { JSX } from "react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -77,6 +78,7 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 // The height of a button, as --target-size sets it in
 // src/app/page-roles.css.
 const BUTTON_HEIGHT_PX = 44;
+const LOCATION_BALANCE = 870_000;
 
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
@@ -376,6 +378,75 @@ describe("the site menu", () => {
 const LONG_NAME_REPEATS = 20;
 
 describe("breadcrumbs in the shared header", () => {
+  test.each(
+    [NARROWEST_VIEWPORT, IPHONE_15_VIEWPORT, LAPTOP_VIEWPORT].flatMap(
+      (viewport) => ["light", "dark"].map((mode) => ({ viewport, mode })),
+    ),
+  )(
+    "keeps the main origin and header footprint from Home to Quests at $viewport.width px in $mode",
+    async ({ viewport, mode }) => {
+      applyTheme("parchment", mode);
+      signInAs(SIGNED_IN_USER);
+      vi.mocked(readGoldBalance).mockResolvedValue(LOCATION_BALANCE);
+      await setViewport(viewport);
+      async function location(home: boolean): Promise<JSX.Element> {
+        let trail: Parameters<typeof Breadcrumbs>[0]["items"] = [
+          { label: SITE_COPY.home },
+        ];
+        let heading: string = SITE_COPY.home;
+        if (!home) {
+          trail = [
+            { label: SITE_COPY.home, href: "/home" },
+            { label: PROJECTS_COPY.heading },
+          ];
+          ({ heading } = PROJECTS_COPY);
+        }
+        return (
+          <>
+            <SiteHeader links={await SignedInLinks({ breadcrumbs: trail })} />
+            <main>
+              <h1>{heading}</h1>
+            </main>
+          </>
+        );
+      }
+      const screen = await render(await location(true));
+      await loadFonts();
+      const navigation = page.getByRole("navigation", {
+        name: SITE_COPY.breadcrumbs,
+      });
+      expect(
+        navigation.element().querySelector('[aria-current="page"]')
+          ?.textContent,
+      ).toBe(SITE_COPY.home);
+      const before = page
+        .getByRole("banner")
+        .element()
+        .getBoundingClientRect()
+        .toJSON();
+      const main = page.getByRole("main").element();
+      const origin = main.getBoundingClientRect().y;
+      await screen.rerender(await location(false));
+      expect(
+        page.getByRole("banner").element().getBoundingClientRect().toJSON(),
+      ).toEqual(before);
+      expect(main.getBoundingClientRect().y).toBe(origin);
+      await expect
+        .element(navigation.getByRole("link", { name: SITE_COPY.home }))
+        .toHaveAttribute("href", "/home");
+      await openMenu();
+      await closeMenu();
+      await screen.rerender(await location(true));
+      expect(main.getBoundingClientRect().y).toBe(origin);
+      expect(
+        page.getByRole("banner").element().getBoundingClientRect().toJSON(),
+      ).toEqual(before);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        viewport.width,
+      );
+    },
+  );
+
   for (const mode of ["light", "dark"]) {
     test(`long names keep parent targets and controls usable at 320 px in ${mode}`, async () => {
       applyTheme("parchment", mode);
