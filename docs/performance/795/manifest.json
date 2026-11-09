@@ -1,0 +1,39 @@
+{
+  "beforeSource": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+  "afterSource": "737c914fa8e5f87a198430552c8dddb86d5b9d60",
+  "beforeBuildId": "5ZJdzqfe5kTwOioEMjRk9",
+  "afterBuildId": "Ab_dyq8SMB34B7XgLvl6P",
+  "browser": "Chrome for Testing 156.0.8078.4",
+  "puppeteerCore": "24.12.1",
+  "screenshots": "synthetic Home only; cold direct full window and client after visible atlas plus two rendering frames",
+  "screenshotCorrection": [
+    {
+      "artifact": "before/desktop/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 5
+    },
+    {
+      "artifact": "before/phone/client-navigation/home.trace.json.gz",
+      "removedSourceInclusiveFrames": 9
+    }
+  ],
+  "targetSamplesPerCell": 10,
+  "productionAccess": false,
+  "collectionEnabled": false,
+  "unmeasuredPrototypes": [
+    {
+      "source": "a29dbe28d8166f7be3fd5badf607bb2c0a5f4306",
+      "buildId": "xR2nTsTB7mLLjTF_Hs8bb"
+    },
+    {
+      "source": "fb065b53f8f323bad4ad8fb3a974dcccb23c853a",
+      "buildId": "aM1QP6WCmmfquaij_gwVK"
+    }
+  ],
+  "status": "corrected paired cohort in progress",
+  "sourcePreparation": "shared-menu-state-v1",
+  "sameDocumentRequiredForClientNavigation": true,
+  "runtimeTopology": "snapshot/apps/web/.next with snapshot/node_modules",
+  "node": "24.6.0",
+  "cohortProtocol": "geometry-commit-probe-v2",
+  "checkpointArchive": "checkpoint.json.gz and checkpoint-traces/"
+}

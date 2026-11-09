@@ -1,0 +1,31 @@
+# Route frame ownership
+
+Issue [#795](https://github.com/axolotl-logic-io/project-buddy/issues/795) moves content-width ownership into segment layouts. It preserves the shared header, session validation, ownership predicates, data queries, purchases and navigation scroll ownership.
+
+The workspace supplies a full-width flex container. Route layouts choose one of three existing column roles: the ordinary reading column, Home's full-width atlas, or the wider editor surface. The layouts contain no data reads and remain Server Components. Next nests loading, error and page content inside these layouts. Width therefore does not depend on whether an asynchronous atlas or Workshop descendant has arrived.
+
+Ordinary routes receive explicit layouts to preserve their previous reading width after moving width ownership out of the workspace. Existing account, quest-list and adventure-list layouts retain their headings and controls. The pattern shares three frame components and semantic CSS roles; it introduces no theme or design system. Signed-out routes retain their existing frames.
+
+Home loading now reserves an atlas region with its title and decorative placeholders. Quest loading reserves a title/actions row, status/action space, Progress and Adventures sections. The quest's loaded sections use the same minimum-height role for empty and populated content. Skeleton blocks remain hidden from assistive technology inside labelled busy status regions. No fake adventure rows become accessible data. Empty content remains inside the route frame. Home, quest overview and the three definition editors have segment error boundaries inside their layouts; these reuse the existing shared error content, retry and newer-build reload behavior. Errors in a layout itself still reach the root error boundary, which retains the ordinary reading column. Missing or inaccessible routes retain the existing generic not-found treatment.
+
+The editor loading surface reserves its heading and editing area. The independently approved [Workshop Focus and Drawer work](https://github.com/axolotl-logic-io/project-buddy/pull/808) moves test controls to an initially closed drawer. This change coordinates frame width with that work and does not reproduce its UI. Measurements compare the integration editor with this branch's geometry; they do not measure the drawer branch.
+
+## Exceptions and tradeoffs
+
+Frames reserve semantic regions, not an exact row count or the height of arbitrary user text. Long quest names, additional adventures, first-visit introductions, conditional owner controls, member lists and form errors can legitimately grow a page. Those changes remain observable rather than being hidden behind a fixed-height crop. Error states retain the column width without pretending to contain a successful form or list.
+
+The quest still resolves its existing parallel data group before rendering the page. This change does not add a client fetch waterfall or import Suspense. The site header and its navigation remain outside the segment loading boundary. Authentication and authorization remain prerequisites for private data.
+
+Home's decorative background still follows the active atlas; its background changes do not control ancestor geometry. Existing Activity lifecycle cleanup continues to prevent cached hidden Home content from decorating another route. The editor retains its current behavior until the drawer work merges. Full editor form-height matching is intentionally outside the three shared column roles. Until the independent drawer change merges, the loaded editor still has side-by-side edit/test columns while its loading surface reserves the future full-width form. This is an explicit compatibility tradeoff agreed with that owner, not a claim that placeholder and loaded descendants have identical positions. The geometry observer covers frame/input rectangles and browser shift sources; low shift sums alone cannot establish exact descendant alignment. Reconciliation with the drawer remains a merge dependency.
+
+## Validation
+
+The implementation capture target is `737c914fa8e5f87a198430552c8dddb86d5b9d60`, production build `Ab_dyq8SMB34B7XgLvl6P`. The prototypes at `a29dbe28` and `fb065b53` were refined before any after captures. Fast checks passed 48 files and 249 tests, and the production build passed. The final focused page-frame browser tests passed 36 tests across Chromium and WebKit, covering narrow phone, phone and laptop geometry in light/dark mode, busy semantics, navigation focus through Home loading, empty/error frame width, reduced-motion skeletons, and actual segment-error recovery, privacy and phone target fit.
+
+Test-only commit `227049b3` incorporates the canonical shared browser boundary correction from Workshop commit `0de6c80f`: isolate server balance reads and supply the existing router test context to editor fixtures. Stripe remains a server dependency. That test-only correction changes no production behavior. The existing Home/header test was subsequently updated to use the real Home frame and passed 44 Chromium/WebKit cases.
+
+The existing Home, composer and scroll component integrations also passed 84 Chromium/WebKit cases after the canonical test boundary correction. This checks the existing #771 focus, history-reading and composer behavior without changing its implementation. The existing phone kit passed 254 Chromium/WebKit touch cases across its phone widths and theme scenarios.
+
+[The capture record](README.md) owns before/after evidence, failures and interpretation limits. The matched final cohort is still pending. Historical #773 numbers are not used as post-change measurements. Candidate limits must be assessed against the completed matched cohort; a successful build or browser component test alone establishes no CLS result.
+
+The earlier queued error check stopped at deterministic import ordering/formatting in the newly edited test. Formatting was corrected before the final check/build/browser run above. This was a corrected lint failure, not a flaky test or a passing retry used to erase a failure. The full reconciled browser baseline remains owned by PR #808; these focused passes do not establish that broader suite passes.

@@ -1,0 +1,158 @@
+"""#773 compressed-artifact checks extended for a paired geometry cohort."""
+import json,gzip,pathlib,re,sys,copy,tempfile,math
+root=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else pathlib.Path('docs/performance/795')
+uuid=re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+regions={'header-home-link','workshop-definition-link','quest-list-link','atlas-quests-link'}
+rowkeys={'captureProtocol','variant','buildId','stage','sample','profile','name','mode','host','activated','origin','shell','primary','geometry','scroll','shifts','longtasks','lcp','events','end','nav','finalScrollY','initialSessionWindowCls','transitionAllShiftSum','failure','diagnostic','sourcePrep','timeOrigin','screenshotScope','pixelStart'}
+events={'click','pointerdown','pointerup','pointercancel','pointerover','pointerout','pointerenter','pointerleave','mousedown','mouseup','mouseover','mouseout','mouseenter','mouseleave','keydown','keyup','keypress','touchstart','touchend','touchcancel','beforeinput','input','contextmenu'}
+
+def number(value):assert type(value) in [int,float] and math.isfinite(value)
+def numeric(record,keys):
+ assert set(record)==set(keys)
+ for value in record.values():number(value)
+def rectangle(r):
+ numeric(r,['x','y','width','height']);assert r['width']>=0 and r['height']>=0
+
+def inspect(path):
+ text=gzip.decompress(path.read_bytes()).decode() if path.suffix=='.gz' else path.read_text()
+ assert not uuid.search(text),path
+ for banned in ['SESSION_SECRET','Authorization','Cookie','Synthetic answer','definition.prompt','sessionToken']:
+  assert banned not in text,(path,banned)
+ return json.loads(text)
+
+def validate(rows,complete=True):
+ seen=set()
+ for r in rows:
+  assert set(r)<=rowkeys
+  key=tuple(r[k] for k in ['variant','sample','profile','name','mode']);assert key not in seen;seen.add(key)
+  assert r['variant'] in ['before','after'] and r['profile'] in ['desktop','phone']
+  assert r['name'] in ['home','quests','quest','editor']
+  assert r['stage'] in ['exploration','confirmation','diagnostic']
+  assert r['mode'] in ['cold-direct','client-navigation']
+  assert type(r['sample']) is int and 0<=r['sample']<=10
+  assert re.fullmatch(r'[A-Za-z0-9_-]{1,64}',r['buildId'])
+  host=r['host'];assert set(host)=={'load','freeMemory','cpuCount'}
+  assert len(host['load'])==3
+  for value in host['load']:number(value)
+  number(host['freeMemory']);number(host['cpuCount'])
+  if 'failure' in r:
+   assert r['failure']=='capture did not complete'
+   d=r.get('diagnostic')
+   if d is not None:
+    assert set(d)=={'path','busy','inputNames','hasMain','headingCount'}
+    assert d['path'] in ['/constructs/:id','/projects/:id','/home','/projects','/workshop','/login']
+    assert set(d['inputNames'])<={'prompt','visualDescription','message',''}
+    assert type(d['hasMain']) is bool
+    number(d['busy']);number(d['headingCount'])
+   continue
+  assert r['captureProtocol'] in ['geometry-commit-probe-v1','geometry-commit-probe-v2']
+  if complete:assert r['captureProtocol']=='geometry-commit-probe-v2'
+  for k in ['origin','primary','end','finalScrollY']:number(r[k])
+  if r['shell'] is not None:number(r['shell'])
+  if r['captureProtocol']=='geometry-commit-probe-v2':
+   assert r['screenshotScope'] in [None,'home-after-visible-atlas-and-two-frames','home-cold-full-window']
+   if r['pixelStart'] is not None:number(r['pixelStart'])
+  assert r['end']>=r['primary']+1990 and r['primary']>=r['origin']
+  numeric(r['nav'],['start','responseStart','requestStart'])
+  assert len(r['shifts'])==len({json.dumps(e,sort_keys=True) for e in r['shifts']})
+  for e in r['shifts']:
+   assert set(e) in [{'time','value','recentInput','sources'},{'time','value','recentInput','sources','deliveryScrollY'}]
+   number(e['time']);number(e['value']);assert type(e['recentInput']) is bool
+   if 'deliveryScrollY' in e:number(e['deliveryScrollY'])
+   assert e['time']>=r['origin'] and e['value']>=0
+   for s in e['sources']:
+    assert set(s)<={'tag','previous','current','previousViewport','currentViewport'}
+    assert re.fullmatch(r'[A-Z][A-Z0-9-]*',s.get('tag','DIV'))
+    rectangle(s['previous']);rectangle(s['current'])
+    if 'previousViewport' in s:rectangle(s['previousViewport']);rectangle(s['currentViewport'])
+  for g in r['geometry']:
+   assert set(g)=={'time','parts'};number(g['time'])
+   for part in g['parts']:
+    assert set(part)=={'region','x','y','width','height'}
+    assert part['region'] in ['header','main','column','input']
+    rectangle({k:part[k] for k in ['x','y','width','height']})
+  for s in r['scroll']:numeric(s,['time','y'])
+  for s in r['longtasks']:numeric(s,['time','duration'])
+  for s in r['lcp']:
+   assert set(s)<={'time','size','tag'};number(s['time']);number(s['size'])
+   assert re.fullmatch(r'[A-Z][A-Z0-9-]*',s.get('tag','DIV'))
+  for s in r['events']:
+   assert set(s)=={'time','duration','interaction','name'}
+   assert s['name'] in events
+   for k in ['time','duration','interaction']:number(s[k])
+  if r['mode']=='client-navigation':
+   if r['captureProtocol']=='geometry-commit-probe-v2':
+    prep=r['sourcePrep'];assert set(prep)=={'protocol','menuOpened','menuClosed','timeOrigin'}
+    assert prep['protocol']=='shared-menu-state-v1' and prep['menuOpened'] is True and prep['menuClosed'] is True
+    number(prep['timeOrigin']);number(r['timeOrigin']);assert prep['timeOrigin']==r['timeOrigin']
+   assert 'initialSessionWindowCls' not in r;number(r['transitionAllShiftSum'])
+   assert abs(r['transitionAllShiftSum']-sum(e['value'] for e in r['shifts']))<1e-12
+   a=r['activated'];assert set(a)=={'region','rect','scrollY'} and a['region'] in regions
+   rectangle(a['rect']);number(a['scrollY'])
+  else:
+   assert 'transitionAllShiftSum' not in r and r['activated'] is None
+   number(r['initialSessionWindowCls'])
+   maximum=0;window=[]
+   for shift in (e for e in r['shifts'] if not e['recentInput']):
+    if not window or shift['time']-window[-1]['time']>=1000 or shift['time']-window[0]['time']>=5000:window=[]
+    window.append(shift);maximum=max(maximum,sum(e['value'] for e in window))
+   assert abs(r['initialSessionWindowCls']-maximum)<1e-12
+   if r['captureProtocol']=='geometry-commit-probe-v2':assert r['sourcePrep'] is None;number(r['timeOrigin'])
+ if complete:
+  for v in ['before','after']:
+   for p in ['desktop','phone']:
+    for n in ['home','quests','quest','editor']:
+     for m in ['cold-direct','client-navigation']:
+      group=[r for r in rows if (r['variant'],r['profile'],r['name'],r['mode'])==(v,p,n,m)]
+      assert len(group)==10 and not any('failure' in r for r in group),(v,p,n,m)
+
+def trace(path):
+ data=inspect(path);assert set(data)=={'traceEvents'}
+ frames=0
+ for e in data['traceEvents']:
+  assert set(e)<={'name','cat','ph','ts','dur','pid','tid','args'}
+  assert type(e['name']) is str and type(e.get('cat','')) is str
+  if e['name']=='Screenshot':
+   assert path.name in ['home.trace.json.gz','stream.trace.json.gz'] and path.parent.name in ['cold-direct','client-navigation']
+   assert set(e.get('args',{}))=={'snapshot'}
+   assert re.fullmatch(r'[A-Za-z0-9+/=]+',e['args']['snapshot']);frames+=1
+  else:assert 'args' not in e
+ return frames
+rows=inspect(root/'geometry.json.gz');validate(rows)
+if (root/'checkpoint.json.gz').exists():validate(inspect(root/'checkpoint.json.gz'),False)
+frames=sum(trace(path) for path in root.rglob('*.trace.json.gz'))
+for path in root.glob('*.json.gz'):inspect(path)
+for field in ['host','nav','activated']:
+ bad=copy.deepcopy(rows);record=next(r for r in bad if r.get(field) is not None);record[field]['text']='forbidden'
+ try:validate(bad,False)
+ except AssertionError:pass
+ else:raise AssertionError('negative nested unknown field accepted: '+field)
+for field in ['geometry','scroll','shifts','longtasks','lcp','events']:
+ bad=copy.deepcopy(rows);record=next((r for r in bad if r.get(field)),None)
+ if record is None:continue
+ record[field][0]['text']='forbidden'
+ try:validate(bad,False)
+ except AssertionError:pass
+ else:raise AssertionError('negative nested array field accepted: '+field)
+bad=copy.deepcopy(rows);record=next(r for r in bad if any(e['sources'] for e in r.get('shifts',[])))
+next(e for e in record['shifts'] if e['sources'])['sources'][0]['current']['text']='forbidden'
+try:validate(bad,False)
+except AssertionError:pass
+else:raise AssertionError('negative source rectangle text accepted')
+bad=copy.deepcopy(rows);bad[0]['prompt']='forbidden'
+try:validate(bad,False)
+except AssertionError:pass
+else:raise AssertionError('negative row field accepted')
+with tempfile.TemporaryDirectory() as temporary:
+ path=pathlib.Path(temporary)/'bad.json.gz'
+ path.write_bytes(gzip.compress(json.dumps({'route':'/projects/00000000-0000-0000-0000-000000000000'}).encode(),mtime=0))
+ try:inspect(path)
+ except AssertionError:pass
+ else:raise AssertionError('compressed route identifier accepted')
+ for event in [{'name':'Screenshot'},{'name':'Screenshot','args':{'snapshot':'forbidden'}}]:
+  path=pathlib.Path(temporary)/'editor.trace.json.gz'
+  path.write_bytes(gzip.compress(json.dumps({'traceEvents':[event]}).encode(),mtime=0))
+  try:trace(path)
+  except AssertionError:pass
+  else:raise AssertionError('compressed unauthorized screenshot accepted')
+print(f'Validated {len(rows)} paired observations and {frames} Home-only frames; nested fields, compressed identifiers and unauthorized screenshots rejected.')
