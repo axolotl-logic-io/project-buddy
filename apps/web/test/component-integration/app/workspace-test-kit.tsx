@@ -8,6 +8,10 @@ vi.mock(
   () => import("./refresh-preferences-test-kit.ts"),
 );
 
+vi.mock("@/batteries/catalog.ts", () => ({
+  availableBatteryCatalog: () => [],
+}));
+
 function inWorkspace(content: JSX.Element): JSX.Element {
   return (
     <main className="flex flex-1 flex-col">

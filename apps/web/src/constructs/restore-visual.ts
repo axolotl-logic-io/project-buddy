@@ -73,7 +73,12 @@ async function restoreConstructVisual(
       .update(ownPrompts)
       .set({ parts, previousVisual: null, updatedAt: sql`now()` })
       .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, id)));
-    await grantVisualAssets(owner, tx, { kind: "construct", id }, { parts });
+    await grantVisualAssets(
+      owner,
+      tx,
+      { kind: "construct", id },
+      { parts, retainDraft: false },
+    );
     return true;
   });
 }

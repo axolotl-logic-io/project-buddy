@@ -157,9 +157,10 @@ function severalAuthorsSection({ severalAuthors }: ReplyPromptContext): string {
   return "";
 }
 
-// The chat's current activity, after the memory it may work from.
+// The chat's current activity, after the memory it may work from. Quote the
+// snapshot name so line breaks in an own name cannot become headings.
 function activitySection({ activity }: ReplyPromptContext): string {
-  return activity.definition.prompt;
+  return `Current activity: ${JSON.stringify(activity.name)}\n\n${activity.definition.prompt}`;
 }
 
 const CHAT_SECTIONS: readonly PromptSection[] = [

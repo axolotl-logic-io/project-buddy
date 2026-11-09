@@ -1,8 +1,8 @@
 // The Marketplace's pages in Chromium and WebKit. "use_case_browse_marketplace":
 // listings show their name, kind, seller and price, and their descriptions
 // as plain text, with a kind filter that marks the kind shown; a listing's
-// page says another user wrote it. "use_case_buy_listing": too little gold
-// says how much is needed and links to earning more.
+// page says another user wrote it. "use_case_buy_listing": too few orbs
+// says how many are needed and distinguishes Batteries.
 // "use_case_manage_listings": Your listings counts each listing's sales and
 // names its buttons for it. "use_case_sell_in_marketplace": the sell form
 // on an own prompt's page shows a refusal at its field. What the actions
@@ -44,6 +44,16 @@ import {
 } from "../../../marketplace/marketplace-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
+const balance = vi.hoisted(() => ({ orbs: 100 }));
+vi.mock("@/orbs/orb-store.ts", () => ({
+  readOrbsBalance: async (): Promise<number> => balance.orbs,
+}));
+
+const cutover = vi.hoisted(() => ({ enabled: true }));
+vi.mock("@/marketplace/cutover.ts", () => ({
+  orbPurchasesEnabled: async (): Promise<boolean> => cutover.enabled,
+}));
+
 const actions = vi.hoisted(() => ({
   buyListingAction: vi.fn<typeof buyListingAction>(),
   sellListingAction: vi.fn<typeof sellListingAction>(),
@@ -63,9 +73,10 @@ const stores = vi.hoisted(() => ({
 vi.mock("@/marketplace/listing-store.ts", () => stores);
 
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
-const PRICE = 25;
-const SHORT_GOLD = 12;
-const PRICE_MAX = 10_000;
+const STARTING_ORBS = 100;
+const PRICE = 3;
+const SHORT_ORBS = 2;
+const PRICE_MAX = 5;
 // The filter's link to constructs alone.
 const CONSTRUCTS_ONLY = new URLSearchParams({ kind: "construct" });
 
@@ -102,6 +113,8 @@ async function listingPage(
 }
 
 afterEach(() => {
+  cutover.enabled = true;
+  balance.orbs = STARTING_ORBS;
   vi.clearAllMocks();
 });
 
@@ -124,7 +137,7 @@ describe("use_case_browse_marketplace", () => {
     await expect
       .element(listings.getByText("Spell by Sam Seller"))
       .toBeVisible();
-    await expect.element(listings.getByText("25 gold")).toBeVisible();
+    await expect.element(listings.getByText("3 orbs")).toBeVisible();
     await expect.element(listings.getByText("Free")).toBeVisible();
     expect(listings.element().querySelector("b")).toBeNull();
     expect(listings.element().querySelector("strong")).toBeNull();
@@ -176,30 +189,34 @@ describe("use_case_browse_marketplace", () => {
       .element(page.getByText(LISTING_COPY.writtenByAnother("construct")))
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Buy for 25 gold" }))
+      .element(page.getByRole("button", { name: "Buy for 3 orbs" }))
       .toBeVisible();
   });
 });
 
 describe("use_case_buy_listing", () => {
-  test("too little gold says how much is needed, with a link to earning gold", async () => {
+  test("too few orbs says how much is needed and distinguishes Batteries", async () => {
     actions.buyListingAction.mockResolvedValue({
       kind: "refused",
-      message: LISTING_COPY.tooLittleGold(PRICE, SHORT_GOLD),
-      earnGold: true,
+      message: LISTING_COPY.tooLittleGold(PRICE, SHORT_ORBS),
+      earnGold: false,
     });
     await listingPage(CONSTRUCT_LISTING_TO_BUY);
 
-    await page.getByRole("button", { name: "Buy for 25 gold" }).click();
+    await page.getByRole("button", { name: "Buy for 3 orbs" }).click();
 
-    const alert = page.getByText("You need 25 gold. You have 12.");
+    await expect
+      .element(page.getByText(MARKETPLACE_COPY.orbBalance(STARTING_ORBS)))
+      .toBeVisible();
+    const alert = page.getByText("You need 3 orbs. You have 2.");
     await expect.element(alert).toBeVisible();
     await expect
       .element(page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }))
-      .toHaveAttribute("href", "/marketplace#your-listings");
+      .not.toBeInTheDocument();
     const [, sent] = actions.buyListingAction.mock.lastCall ?? [];
     expect(sent?.get("listingId")).toBe(CONSTRUCT_LISTING.id);
     expect(sent?.get("price")).toBe(String(PRICE));
+    expect(sent?.get("currency")).toBe("orbs");
   });
 
   test("a listing they already have links to their copy instead", async () => {
@@ -212,7 +229,7 @@ describe("use_case_buy_listing", () => {
       )
       .toHaveAttribute("href", `/constructs/${copy}`);
     await expect
-      .element(page.getByRole("button", { name: "Buy for 25 gold" }))
+      .element(page.getByRole("button", { name: "Buy for 3 orbs" }))
       .not.toBeInTheDocument();
   });
 });
@@ -227,13 +244,13 @@ describe("use_case_manage_listings", () => {
     await expect
       .element(
         yours.getByText(
-          "Construct · Listed: 25 gold · Bought by 3 users · 75 gold earned",
+          "Construct · Listed: 3 orbs · Bought by 3 users · 9 orbs earned",
         ),
       )
       .toBeVisible();
     await expect
       .element(
-        yours.getByText("Spell · Unlisted · Bought by 1 user · 0 gold earned"),
+        yours.getByText("Spell · Unlisted · Bought by 1 user · 0 orbs earned"),
       )
       .toBeVisible();
     await expect
@@ -258,13 +275,13 @@ describe("use_case_manage_listings", () => {
 
     await page
       .getByRole("spinbutton", { name: SELL_COPY.priceLabel })
-      .fill("30");
+      .fill("4");
     await page.getByRole("button", { name: LISTING_COPY.update }).click();
     await expect
       .element(page.getByRole("status"))
       .toHaveTextContent(LISTING_COPY.updated);
     const [, sent] = actions.updateListingAction.mock.lastCall ?? [];
-    expect(sent?.get("price")).toBe("30");
+    expect(sent?.get("price")).toBe("4");
     expect(sent?.get("listingId")).toBe(CONSTRUCT_LISTING.id);
   });
 
@@ -335,4 +352,79 @@ describe("use_case_sell_in_marketplace", () => {
       .element(page.getByRole("button", { name: SELL_COPY.sell }))
       .not.toBeInTheDocument();
   });
+});
+
+test("disabled rollout explains the pause and offers no buy even for a free listing", async () => {
+  cutover.enabled = false;
+  await listingPage({ ...CONSTRUCT_LISTING_TO_BUY, price: 0 });
+  await expect.element(page.getByText(MARKETPLACE_COPY.paused)).toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: LISTING_COPY.buy(0) }))
+    .not.toBeInTheDocument();
+});
+
+test("legacy listing requires an explicitly chosen orb price", async () => {
+  await listingPage({ ...CONSTRUCT_LISTING_AS_SELLER, legacy: true });
+  await expect.element(page.getByText(LISTING_COPY.legacy)).toBeVisible();
+  await expect
+    .element(page.getByRole("spinbutton", { name: SELL_COPY.priceLabel }))
+    .toHaveValue(null);
+});
+
+test("a one-orb listing and balance offer a one-orb buy and show its refusal", async () => {
+  balance.orbs = 1;
+  actions.buyListingAction.mockResolvedValue({
+    kind: "refused",
+    message: LISTING_COPY.tooLittleGold(1, 0),
+    earnGold: false,
+  });
+  await listingPage({ ...CONSTRUCT_LISTING_TO_BUY, price: 1 });
+  await expect.element(page.getByText("1 orb", { exact: true })).toBeVisible();
+  await expect
+    .element(
+      page.getByText(
+        "Orb balance: 1 orb. Batteries pay for model use separately.",
+      ),
+    )
+    .toBeVisible();
+  await page.getByRole("button", { name: "Buy for 1 orb" }).click();
+  await expect
+    .element(page.getByText("You need 1 orb. You have 0."))
+    .toBeVisible();
+  const [, sent] = actions.buyListingAction.mock.lastCall ?? [];
+  expect(sent?.get("price")).toBe("1");
+});
+
+test("a changed price of one orb is shown without retrying the buy", async () => {
+  actions.buyListingAction.mockResolvedValue({
+    kind: "refused",
+    message: LISTING_COPY.priceChanged(1),
+    earnGold: false,
+  });
+  await listingPage(CONSTRUCT_LISTING_TO_BUY);
+  await page.getByRole("button", { name: "Buy for 3 orbs" }).click();
+  await expect.element(page.getByText("The price is now 1 orb.")).toBeVisible();
+  expect(actions.buyListingAction).toHaveBeenCalledTimes(1);
+});
+
+test("seller summaries show one orb earned and keep unlisted legacy status", async () => {
+  signInAs(SIGNED_IN_USER);
+  stores.listListings.mockResolvedValue([]);
+  stores.listOwnListings.mockResolvedValue([
+    { ...CONSTRUCT_LISTING, listed: true, buyers: 1, goldEarned: 1, price: 1 },
+    { ...SPELL_LISTING, listed: false, legacy: true, buyers: 0, goldEarned: 0 },
+  ]);
+  await render(inWorkspace(await MarketplacePage({ searchParams: NO_PARAMS })));
+  await expect
+    .element(
+      page.getByText(
+        "Construct · Listed: 1 orb · Bought by 1 user · 1 orb earned",
+      ),
+    )
+    .toBeVisible();
+  await expect
+    .element(
+      page.getByText("Spell · Unlisted · Bought by 0 users · 0 orbs earned"),
+    )
+    .toBeVisible();
 });
