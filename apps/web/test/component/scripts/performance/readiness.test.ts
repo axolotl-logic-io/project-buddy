@@ -168,3 +168,34 @@ test("focused diagnostics require explicit scope and cannot masquerade as a full
     }),
   ).toThrow("Inaccessible diagnostic selection");
 });
+
+test("network attribution keeps only coarse initiators and numeric request facts", () => {
+  const request = {
+    path: "/_next/static/:asset.js",
+    method: "GET",
+    resourceType: "Script",
+    initiator: "parser",
+    prefetch: false,
+    start: 0,
+    duration: 1,
+    bytes: 1,
+    status: 200,
+    failed: false,
+  };
+  expect(() =>
+    parseReadinessRow({ ...HOME, networkResources: [request] }),
+  ).not.toThrow();
+  for (const unsafe of [
+    { initiator: "private URL" },
+    { stack: "private" },
+    { url: "private" },
+    { headers: { cookie: "private" } },
+  ]) {
+    expect(() =>
+      parseReadinessRow({
+        ...HOME,
+        networkResources: [{ ...request, ...unsafe }],
+      }),
+    ).toThrow();
+  }
+});

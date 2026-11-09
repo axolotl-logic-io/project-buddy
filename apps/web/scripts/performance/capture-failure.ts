@@ -20,6 +20,7 @@ const SCHEMA_FIELDS = z.enum([
   "events",
   "geometry",
   "resources",
+  "networkResources",
   "prefetches",
   "control",
   "lcp",

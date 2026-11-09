@@ -1,5 +1,6 @@
-import type { ReadinessRow } from "./artifacts.ts";
+import type { NetworkResource, ReadinessRow } from "./artifacts.ts";
 
+const STARTUP_WINDOW_MS = 5000;
 const SESSION_GAP_MS = 1000;
 const SESSION_LENGTH_MS = 5000;
 const QUIET_MS = 500;
@@ -94,7 +95,7 @@ function startupLongTaskTime(
   if (row.mode === "client-navigation") {
     ({ origin } = row);
   }
-  const end = origin + SESSION_LENGTH_MS;
+  const end = origin + STARTUP_WINDOW_MS;
   return row.longtasks.reduce(
     (total, task) =>
       total +
@@ -106,4 +107,144 @@ function startupLongTaskTime(
   );
 }
 
-export { initialCls, observedStability, sampleRange, startupLongTaskTime };
+function byteBuckets(
+  row: Pick<
+    ReadinessRow,
+    | "resources"
+    | "mode"
+    | "nav"
+    | "origin"
+    | "primary"
+    | "prefetches"
+    | "networkResources"
+  >,
+): Readonly<Record<string, { requests: number; bytes: number }>> {
+  function measure(resources: ReadinessRow["resources"]): {
+    requests: number;
+    bytes: number;
+  } {
+    return {
+      requests: resources.length,
+      bytes: resources.reduce((sum, resource) => sum + resource.bytes, 0),
+    };
+  }
+  let { start: origin } = row.nav;
+  if (row.mode === "client-navigation") {
+    ({ origin } = row);
+  }
+  const cutoff = origin + STARTUP_WINDOW_MS;
+  function completedInWindow(
+    resource: ReadinessRow["resources"][number],
+  ): boolean {
+    return (
+      resource.start >= origin && resource.start + resource.duration <= cutoff
+    );
+  }
+  const foreground = row.resources.filter(
+    (resource) =>
+      resource.purpose !== "prefetch" && completedInWindow(resource),
+  );
+  let firstLoad: ReadinessRow["resources"] = foreground;
+  let destination: ReadinessRow["resources"] = [];
+  if (row.mode === "client-navigation") {
+    destination = foreground;
+    firstLoad = [];
+  }
+  let network: Readonly<Record<string, { requests: number; bytes: number }>> =
+    {};
+  if (row.networkResources !== undefined) {
+    function measureNetwork(requests: NetworkResource[]): {
+      requests: number;
+      bytes: number;
+    } {
+      return {
+        requests: requests.length,
+        bytes: requests.reduce((sum, request) => sum + request.bytes, 0),
+      };
+    }
+    const completed = row.networkResources.filter(
+      (request) =>
+        request.start >= origin && request.start + request.duration <= cutoff,
+    );
+    const scripts = completed.filter(
+      (request) =>
+        !(request.failed || request.prefetch) &&
+        request.resourceType === "Script",
+    );
+    network = {
+      networkEarlyParserScripts: measureNetwork(
+        scripts.filter(
+          (request) =>
+            request.start <= row.primary && request.initiator === "parser",
+        ),
+      ),
+      networkEarlyPreloadScripts: measureNetwork(
+        scripts.filter(
+          (request) =>
+            request.start <= row.primary && request.initiator === "preload",
+        ),
+      ),
+      networkEarlyScriptDependencies: measureNetwork(
+        scripts.filter(
+          (request) =>
+            request.start <= row.primary && request.initiator === "script",
+        ),
+      ),
+      networkEarlyUnattributedScripts: measureNetwork(
+        scripts.filter(
+          (request) =>
+            request.start <= row.primary && request.initiator === "other",
+        ),
+      ),
+      networkLateScripts: measureNetwork(
+        scripts.filter((request) => request.start > row.primary),
+      ),
+      networkWindowPrefetch: measureNetwork(
+        completed.filter((request) => request.prefetch),
+      ),
+      networkSourcePrefetchBeforeActivation: measureNetwork(
+        row.networkResources.filter(
+          (request) => request.prefetch && request.start < origin,
+        ),
+      ),
+      networkFailedRequests: measureNetwork(
+        completed.filter((request) => request.failed),
+      ),
+    };
+  }
+  return {
+    ...network,
+    completedWindowJavaScript: measure(
+      firstLoad.filter(
+        (resource) => resource.path === "/_next/static/:asset.js",
+      ),
+    ),
+    completedWindowFonts: measure(
+      firstLoad.filter(
+        (resource) => resource.path === "/_next/static/:asset.woff2",
+      ),
+    ),
+    cssArtwork: measure(
+      row.resources.filter(
+        (resource) =>
+          completedInWindow(resource) &&
+          resource.path === "/artwork/:asset" &&
+          resource.type === "css",
+      ),
+    ),
+    startupPrefetch: measure((row.prefetches ?? []).filter(completedInWindow)),
+    sourcePrefetchBeforeActivation: measure(
+      (row.prefetches ?? []).filter((resource) => resource.start < origin),
+    ),
+    destinationWindowResources: measure(destination),
+  };
+}
+
+export {
+  byteBuckets,
+  initialCls,
+  observedStability,
+  STARTUP_WINDOW_MS,
+  sampleRange,
+  startupLongTaskTime,
+};

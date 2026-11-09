@@ -38,4 +38,20 @@ The v4 invocation at `4c0b5876d676208cab80eed9527d07245fabb20f`, build `DTl7yL9-
 
 Inspection against the [Event Timing draft's exposed-event list](https://w3c.github.io/event-timing/#sec-events-exposed) found omitted standard discrete names, including mouse enter/leave, pointer cancellation/capture and drag/drop. The schema now retains those enumerated types while continuing to reject arbitrary text and invalid numbers. Failure diagnostics can identify static event properties without retaining rejected values. A focused diagnostic will exercise the affected journey before another full cohort. A selected diagnostic cannot pass the default full-matrix validator, and is not a completed full audit.
 
-The enumeration and explicit diagnostic-scope changes passed fresh default checks: 56 files and 273 tests, with lint, type generation, TypeScript and script guards passing. Full-matrix validation remains the default; tests verify that selected rows cannot pass it implicitly. The focused ten-sample run remains pending and must not be presented as full-audit acceptance.
+The enumeration and explicit diagnostic-scope changes passed fresh default checks: 56 files and 273 tests, with lint, type generation, TypeScript and script guards passing. Full-matrix validation remains the default; tests verify that selected rows cannot pass it implicitly. The focused ten-sample run described below confirms the schema correction only and must not be presented as full-audit acceptance.
+
+## Focused confirmation
+
+The [focused diagnostic](focused/manifest.json) used source `68e41cb7269d4750a8593d426abac08dd7c3ed46`, build `d2Gafz9Cj5XIqEbEuQJhu`. It completed once with exit 0: ten populated desktop long-adventure samples in each of three cache modes, 30 observations total. The actual gzip observations and one screenshot-free trace passed scoped validation. The manifest remains `scope: diagnostic`, `complete: false`, `diagnosticComplete: true`; Lighthouse was not run.
+
+The retained observations include ten `mouseenter` entries, one of the standard names absent from the earlier enum. Applying that old name restriction would reject these actual records. This confirms an exercised schema defect, without recovering the erased property from the earlier failed cohort. The separate planned default-validation check exited 1 as expected: selected observations and one trace cannot satisfy the full audit. That refusal is a negative validation case, not another product failure.
+
+Cleanup reset the isolated database, closed port 36769 and removed private fixture directories. The full v4 cohort remains pending. Diagnostic rows are retained separately and will not be pooled with it or with the earlier failed runs.
+
+## Attribution update
+
+The focused summary predates CDP initiator attribution. Its `firstLoadJavaScript` and `destinationOnly` labels describe completed observation-window totals, not essential initial payload or exclusive destination ownership. The diagnostic contains no CDP network attribution and those values remain unavailable; its artifacts are not regenerated or pooled with later captures.
+
+Following the separate #796 attribution investigation, summary version 2 distinguishes completed-window totals from early scripts (started by primary-content presence), late scripts and known prefetch. CDP records retain only categorical paths, method, resource type, initiator category and numeric request facts, without request IDs, stacks, raw URLs or headers. The full capture will exercise this additional attribution; no payload reduction is claimed from a five-second total.
+
+Fresh checks after attribution version 2 passed: 57 files and 279 tests. They include direct validation of the committed focused gzip observations/trace, rejection of unallowlisted network metadata, and examples where late script totals decrease while early parser bytes increase. Historical missing attribution stays unavailable. The upcoming full production cohort must exercise the CDP records and Lighthouse; no full-audit acceptance is claimed yet.

@@ -118,7 +118,7 @@ function observe(transition = false): void {
           sources: entry.sources.map((source) => {
             let tag = "UNKNOWN";
             if (source.node instanceof Element) {
-              tag = source.node.tagName;
+              tag = source.node.tagName.toUpperCase();
             }
             return {
               tag,
@@ -146,7 +146,7 @@ function observe(transition = false): void {
         globalThis.audit.lcp.push({
           time: entry.startTime,
           size: entry.size,
-          tag: entry.element?.tagName ?? "UNKNOWN",
+          tag: entry.element?.tagName.toUpperCase() ?? "UNKNOWN",
         });
       }
     }

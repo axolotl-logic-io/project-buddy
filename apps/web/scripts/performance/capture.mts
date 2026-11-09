@@ -11,6 +11,7 @@ import puppeteer, {
 } from "puppeteer-core";
 import { z } from "zod";
 import {
+  type NetworkResource,
   parseReadinessRow,
   parseReadinessSelection,
   type ReadinessRow,
@@ -378,18 +379,86 @@ async function captureMatrix(
       });
       const cdp = await page.createCDPSession();
       const prefetchUrls = new Set<string>();
+      type RequestRecord = Omit<NetworkResource, "start" | "duration"> & {
+        wallTime: number;
+        timestamp: number;
+        end?: number;
+      };
+      const networkRequests = new Map<string, RequestRecord>();
       cdp.on("Network.requestWillBeSent", (event) => {
+        let initiator: NetworkResource["initiator"] = "other";
+        for (const allowed of ["parser", "script", "preload"] as const) {
+          if (event.initiator.type === allowed) {
+            initiator = allowed;
+          }
+        }
+        let resourceType: NetworkResource["resourceType"] = "Other";
+        for (const allowed of [
+          "Document",
+          "Script",
+          "Font",
+          "Image",
+          "Stylesheet",
+          "Fetch",
+          "XHR",
+        ] as const) {
+          if (event.type === allowed) {
+            resourceType = allowed;
+          }
+        }
+        let method: NetworkResource["method"] = "other";
+        const { method: requestMethod } = event.request;
+        if (requestMethod === "GET" || requestMethod === "POST") {
+          method = requestMethod;
+        }
         const headers = Object.entries(event.request.headers);
-        if (
-          headers.some(
-            ([key, value]) =>
-              ["purpose", "sec-purpose", "next-router-prefetch"].includes(
-                key.toLowerCase(),
-              ) &&
-              (String(value).includes("prefetch") || String(value) === "1"),
-          )
-        ) {
+        const prefetch = headers.some(
+          ([key, value]) =>
+            ["purpose", "sec-purpose", "next-router-prefetch"].includes(
+              key.toLowerCase(),
+            ) &&
+            (String(value).includes("prefetch") || String(value) === "1"),
+        );
+        if (prefetch) {
           prefetchUrls.add(event.request.url);
+        }
+        networkRequests.set(event.requestId, {
+          path: safeResource(event.request.url),
+          method,
+          resourceType,
+          initiator,
+          prefetch,
+          bytes: 0,
+          status: 0,
+          failed: false,
+          wallTime: event.wallTime,
+          timestamp: event.timestamp,
+        });
+      });
+      cdp.on("Network.responseReceived", (event) => {
+        const request = networkRequests.get(event.requestId);
+        if (request !== undefined) {
+          request.status = event.response.status;
+        }
+      });
+      cdp.on("Network.dataReceived", (event) => {
+        const request = networkRequests.get(event.requestId);
+        if (request !== undefined) {
+          request.bytes += event.encodedDataLength;
+        }
+      });
+      cdp.on("Network.loadingFinished", (event) => {
+        const request = networkRequests.get(event.requestId);
+        if (request !== undefined) {
+          request.end = event.timestamp;
+          request.bytes = event.encodedDataLength;
+        }
+      });
+      cdp.on("Network.loadingFailed", (event) => {
+        const request = networkRequests.get(event.requestId);
+        if (request !== undefined) {
+          request.end = event.timestamp;
+          request.failed = true;
         }
       });
       await cdp.send("Network.enable");
@@ -424,6 +493,7 @@ async function captureMatrix(
         activeMode = mode;
         const hostLoad = loadavg();
         prefetchUrls.clear();
+        networkRequests.clear();
         const tracing =
           sample === 1 &&
           mode === "cold-direct" &&
@@ -606,6 +676,25 @@ async function captureMatrix(
             resources,
           };
         });
+        const documentTimeOrigin = await page.evaluate(
+          () => performance.timeOrigin,
+        );
+        const SecondsToMs = 1000;
+        const networkResources: NetworkResource[] = Array.from(
+          networkRequests.values(),
+        ).flatMap((request) => {
+          const { wallTime, timestamp, end, ...record } = request;
+          if (end === undefined) {
+            return [];
+          }
+          return [
+            {
+              ...record,
+              start: Math.max(0, wallTime * SecondsToMs - documentTimeOrigin),
+              duration: Math.max(0, end - timestamp) * SecondsToMs,
+            },
+          ];
+        });
         let threshold = 0;
         if (mode === "client-navigation") {
           threshold = data.origin;
@@ -667,6 +756,7 @@ async function captureMatrix(
           path: route(path),
           control,
           resources,
+          networkResources,
           prefetches,
           activated,
           initialSessionWindowCls,
