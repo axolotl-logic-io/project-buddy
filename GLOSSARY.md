@@ -631,7 +631,7 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s batteries. A new adventure's generated opening spends the batteries of the user starting it. An automatic check-in spends the quest owner's batteries.
 
-Batteries fund model use. Users see batteries rather than provider costs. Until the planned orb cutover is enabled, the existing gold accounting also backs legacy Marketplace transfers. Separate Marketplace orbs, with no conversion to batteries, are planned under [#779](https://github.com/axolotl-logic-io/project-buddy/issues/779); merging its code alone does not enable the cutover.
+Batteries fund model use. Before the orb migration, legacy Marketplace sales transferred the shared gold balance between users. The migration pauses all buys. After separate operator activation, Marketplace sales use orbs and do not fund model use. See the [cutover plan](docs/marketplace.md#currency-cutover-proposal).
 
 - **UI:** "Batteries", "1 battery", "100 batteries", "Buy batteries", "You're out of batteries."
 - **Avoid:** "gold" in new model-use copy except compatibility identifiers; "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
@@ -649,18 +649,24 @@ A model provider account's prepaid balance. Provider credit is separate from eac
 
 - **Avoid:** "credits" for batteries.
 
+### Orbs
+
+The separate Marketplace balance prepared by the orb rollout. Orb buys start paused and require an explicit operator cutover; see the [rollout plan](docs/marketplace.md#currency-cutover-proposal). Before that migration, legacy Marketplace trades used the shared model-use gold balance, now called Batteries. Each user receives 100 orbs once. Listing prices are whole orbs from 0 to 5. Orbs cannot be bought, cashed out or converted to Batteries. Model use spends Batteries separately. Historical gold purchases keep their original currency.
+
+- **UI:** "orbs", "Orb balance".
+
 ## Prompt marketplace
 
 ### Marketplace
 
-The page where users share their own constructs, activities and spells and sell them to each other for gold. Listings are visible to every signed-in user.
+The page where users share their own constructs, activities and spells and sell them to each other for orbs. Listings are visible to every signed-in user.
 
 - **UI:** "Marketplace", "Sell in the Marketplace", "Your listings".
 - **Avoid:** "store", "shop" in UI copy.
 
 ### Listing
 
-A published copy of a seller's own construct, activity or spell, with a description and a price in gold. A free listing lets users share them without payment. Editing the original construct, activity or spell does not change the listing until the seller updates it. Unlisting stops new sales. Browsing a listing does not reveal its prompt.
+A published copy of a seller's own construct, activity or spell, with a description and a price in orbs. A free listing lets users share them without payment. Editing the original construct, activity or spell does not change the listing until the seller updates it. Unlisting stops new sales. Browsing a listing does not reveal its prompt.
 
 Built-in constructs, activities and spells, unchanged copies of them, and bought ones cannot be listed.
 
@@ -673,7 +679,7 @@ The user who published a listing. Only they update or unlist it. Others see the 
 
 ### Buy
 
-To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
+To get one's own copy of someone else's listing: the buyer's orbs move to the seller, all at once with saving the copy, or nothing changes. A free listing moves no orbs ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
 
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.
