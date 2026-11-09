@@ -1,7 +1,6 @@
 "use client";
 
 import { type JSX, useActionState } from "react";
-import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import type { ListingId } from "@/ids.ts";
@@ -28,6 +27,7 @@ export function BuyForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input name="listingId" type="hidden" value={listingId} />
+      <input name="currency" type="hidden" value="orbs" />
       <input name="price" type="hidden" value={price} />
       <Button className="self-start" disabled={pending} type="submit">
         {label}
@@ -35,7 +35,6 @@ export function BuyForm({
       {state.kind === "refused" && (
         <Alert>
           <span>{state.message}</span>
-          {state.earnGold === true && <EarnGoldLink />}
         </Alert>
       )}
     </form>

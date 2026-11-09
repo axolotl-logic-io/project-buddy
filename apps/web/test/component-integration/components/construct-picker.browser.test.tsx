@@ -59,10 +59,13 @@ describe("use_case_standalone_chat", () => {
       name: NEW_CHAT_COPY.previousConstruct,
     });
 
+    await expect
+      .element(page.getByRole("group", { name: NEW_CHAT_COPY.constructLabel }))
+      .not.toHaveAttribute("aria-describedby");
     expect(sent(form)).toBe(VELLUM.id);
     const image = form.querySelector("img");
     expect(new URL(image?.src ?? "", globalThis.location.href).pathname).toBe(
-      "/constructs/vellum-v1.png",
+      "/constructs/vellum-v1-1024.webp",
     );
     await expect
       .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.sample))
@@ -125,7 +128,7 @@ test("own choices use their saved art without guessing from their name", async (
   );
   const image = screen.container.querySelector("img");
   expect(new URL(image?.src ?? "", globalThis.location.href).pathname).toBe(
-    "/constructs/vellum-v1.png",
+    "/constructs/vellum-v1-1024.webp",
   );
   await expect.element(page.getByText("Lumen", { exact: true })).toBeVisible();
   await expect
