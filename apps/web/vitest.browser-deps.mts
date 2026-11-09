@@ -24,6 +24,7 @@ const PREBUNDLED_DEPS: string[] = [
   "drizzle-orm/pg-core",
   "lucide-react",
   "next/cache",
+  "next/dynamic",
   "next/headers",
   "next/image",
   "next/link",
