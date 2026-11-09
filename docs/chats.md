@@ -1,5 +1,19 @@
 # Adventures
 
+## Start a quest
+
+On Quests, Start Quest opens a dialog with two fields: Construct and Why.
+Construct defaults to the account's New quest construct preference. The visible
+explanation makes clear that this construct joins the first adventure; later
+adventures in the same quest can use other constructs. Why is optional and
+becomes the quest motivation in the opening and first Journal version.
+
+Starting gives the quest the default name New quest and opens its first adventure
+in Project Breakdown. With no motivation, the existing prepared opening is used
+when available. Failed openings save nothing and keep the construct choice and
+Why for retry. Cancel, Close and Escape create nothing. The premade quest
+previews remain separate and keep their editable name, Journal and activity.
+
 ## Standalone adventure
 
 The current `/chat` page is the signed-in user's **Adventures** hub, not a single
