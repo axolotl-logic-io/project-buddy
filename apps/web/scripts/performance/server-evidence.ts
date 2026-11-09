@@ -1,31 +1,16 @@
 import { z } from "zod";
+import { SERVER_SPAN } from "../../src/performance/server-span.ts";
 
 const NONNEGATIVE = z.number().finite().nonnegative();
 const SAMPLE = z.number().int().positive();
 const LOAD = z.tuple([NONNEGATIVE, NONNEGATIVE, NONNEGATIVE]);
-const SPAN = z.strictObject({
-  operation: z.enum([
-    "current-user",
-    "today",
-    "home-summary",
-    "workshop-options",
-    "construct-metadata",
-    "construct-data",
-    "activity-metadata",
-    "activity-data",
-    "spell-metadata",
-    "spell-data",
-  ]),
-  durationMs: NONNEGATIVE,
-  queryCount: z.number().int().nonnegative(),
-});
 const COMMON = z.strictObject({
   sample: SAMPLE,
   phase: z.enum(["initial", "confirmation"]),
   name: z.enum(["home", "editor"]),
   variant: z.enum(["before", "after"]),
   hostLoad: LOAD,
-  spans: z.array(SPAN),
+  spans: z.array(SERVER_SPAN),
   headersMs: NONNEGATIVE,
 });
 const DOCUMENT_ROW = COMMON.extend({
@@ -67,8 +52,8 @@ const BROWSER_ARCHIVE = z.strictObject({
   rows: z.array(BROWSER_ROW).min(1),
 });
 
-function validateServerSpans(input: unknown): z.infer<typeof SPAN>[] {
-  return z.array(SPAN).parse(input);
+function validateServerSpans(input: unknown): z.infer<typeof SERVER_SPAN>[] {
+  return z.array(SERVER_SPAN).parse(input);
 }
 function validateServerEvidence(
   input: unknown,
