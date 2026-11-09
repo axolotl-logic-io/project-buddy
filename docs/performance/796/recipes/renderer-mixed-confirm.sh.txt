@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+for sample in 1 2 3 4 5 6 7 8 9 10; do
+  variants='before renderer'
+  if ((sample % 2 == 0)); then variants='renderer before'; fi
+  for variant in $variants; do
+    flock /tmp/project-buddy-unattended-full-suite.lock bash -c 'set -euo pipefail; rm -rf apps/web/.next; cp -a "/tmp/pb-796/$1-next" apps/web/.next; node /tmp/pb-796/mixed-confirm.mjs "$1" "$2"' _ "$variant" "$sample"
+  done
+done

@@ -1,0 +1,21 @@
+import json
+from pathlib import Path
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+root=Path(__file__).resolve().parent
+if root.name=='recipes':root=root.parent
+s=json.loads((root/'summary.json').read_text())
+fig,axes=plt.subplots(1,3,figsize=(10,3.8),sharey=True)
+for ax,path,label in zip(axes,['editor','empty-adventure','long-adventure'],['Own definition editor','0-message adventure','200-message adventure']):
+ for i,(variant,color) in enumerate([('before','#526175'),('renderer','#89602f')]):
+  r=next(r for r in s['coldConfirmation'] if r['variant']==variant and r['path']==path)
+  v=r['metrics']['controlMs'];m=v['median'];ax.bar(i,m,color=color,width=.65)
+  ax.errorbar(i,m,yerr=[[m-v['min']],[v['max']-m]],color='black',capsize=5,fmt='none')
+  ax.text(i,v['max']+140,f'{m:,.0f}',ha='center',fontsize=10)
+ ax.set_xticks([0,1],['Before','Renderer']);ax.set_title(label,fontsize=11);ax.set_ylim(0,7600);ax.grid(axis='y',alpha=.2);ax.set_axisbelow(True)
+ for side in ['top','right']:ax.spines[side].set_visible(False)
+axes[0].set_ylabel('Action confirmation (ms)')
+fig.suptitle('Cold phone input confirmation — matched normal production builds',fontsize=13)
+fig.text(.5,.02,'10 runs per variant; bars = median, whiskers = observed min–max. 42 characters per attempt.\nLab completion upper bounds include typing/automation; not hydration timestamps or field INP.',ha='center',fontsize=9)
+fig.tight_layout(rect=(0,.12,1,.92));fig.savefig(root/'input-confirmation.svg',metadata={'Date':None});plt.close(fig)

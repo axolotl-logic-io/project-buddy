@@ -1,0 +1,63 @@
+{
+  "schema": "796-local-experiment-v1",
+  "baseline": {
+    "source": "bb4d213c24c0e7c0d8930f96581b0cba7763da37",
+    "buildId": "49iPP5noQxeZGWd96H5TE"
+  },
+  "renderer": {
+    "source": "e99e266d4410adb9b596a909df55f325dce64ddd",
+    "buildId": "wZMt37C0myB-rkIq1iLn9"
+  },
+  "production": true,
+  "reactProfiling": false,
+  "browser": "Chrome 156.0.8078.4",
+  "driver": "Puppeteer 24.12.1",
+  "logicalCpus": 32,
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 1,
+    "touch": true,
+    "mobile": true
+  },
+  "theme": "parchment.light",
+  "cpuSlowdown": 4,
+  "network": {
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 93750
+  },
+  "mainObservations": 132,
+  "controlledStreams": 6,
+  "mixedConfirmationObservations": 20,
+  "mainMatrixSamples": 3,
+  "coldConfirmationSamples": 10,
+  "clientPreparation": "menu-source-v3",
+  "directPreparation": "commit-probe-v2",
+  "comparisonWindowMs": 5000,
+  "probeCharactersPerAttempt": 42,
+  "probeSampleIntervalMs": 100,
+  "normalMinimumAfterConfirmationMs": 2000,
+  "pairOrder": "odd-before-renderer-even-renderer-before",
+  "hostLoad": "per-observation loadavg 1/5/15 minutes",
+  "localCollectionOnly": true,
+  "screenshots": false,
+  "historicalBaselineSources": [
+    "242e3a1",
+    "9a8ab46"
+  ],
+  "separateProtocols": [
+    "mixed20 server-document-prewarm",
+    "cold200 DevTools trace n1",
+    "Home ten-second artwork completion",
+    "content-visibility CSS override",
+    "warm simulated Lighthouse"
+  ],
+  "integrationMeasurement": false,
+  "supplementalReadingAnchors": 2,
+  "homeTenSecondObservations": 6,
+  "lighthouseScreeningObservations": 6,
+  "boundedScreeningObservations": 6,
+  "boundedStatus": "rejected-accessible-tree-coverage",
+  "packageImportStatus": "rejected-identical-javascript-output"
+}

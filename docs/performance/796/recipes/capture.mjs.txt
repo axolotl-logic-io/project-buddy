@@ -1,0 +1,97 @@
+import puppeteer from '/tmp/pb-773-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js';
+import {readFile,writeFile} from 'node:fs/promises';
+import {createWriteStream} from 'node:fs';
+import {spawn} from 'node:child_process';
+import {loadavg} from 'node:os';
+process.loadEnvFile('apps/web/.env.test');
+const base='http://localhost:30145';const s=JSON.parse(await readFile('/tmp/pb-796/session.json','utf8'));
+const variant=process.argv[2]; const sample=Number(process.argv[3]);
+const buildId=(await readFile('apps/web/.next/BUILD_ID','utf8')).trim();
+const {node:actions}=JSON.parse(await readFile('apps/web/.next/server/server-reference-manifest.json','utf8'));
+const actionOperations=new Map(Object.entries(actions).map(([id,action])=>[id,action.exportedName==='refreshPreferencesAction'?'preferences-refresh':action.exportedName==='replyGoldAction'?'reply-accounting':'other']));
+const server=spawn(process.execPath,['../../node_modules/next/dist/bin/next','start','--port','30145'],{cwd:'apps/web',env:process.env,stdio:['ignore','pipe','pipe']});
+server.stderr.pipe(createWriteStream(`/tmp/pb-796/server-${variant}.log`,{mode:0o600}));
+let browser;
+try{
+await new Promise((res,rej)=>{server.stdout.on('data',v=>{if(v.toString().includes('Ready'))res();});server.on('exit',()=>rej(Error('server exited')));});
+browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+function safePath(value){const path=new URL(value,base).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id');if(path.startsWith('/_next/static/'))return path.endsWith('.js')?'/_next/static/:asset.js':path.endsWith('.css')?'/_next/static/:asset.css':'/_next/static/:font';if(path.startsWith('/atlas/')||path.startsWith('/constructs/')&&path.endsWith('.webp')||path.startsWith('/textures/'))return '/artwork/:asset';if(/^\/(home|projects|chats|chat|constructs|workshop|activities)(\/|$)/.test(path))return path;return '/other';}
+async function observe(){
+window.auditObservers?.forEach(o=>o.disconnect());window.auditObservers=[];
+function watch(options,callback){const observer=new PerformanceObserver(callback);observer.observe(options);window.auditObservers.push(observer);}
+window.audit={origin:performance.now(),shell:null,primary:null,geometry:[],scroll:[],shifts:[],longtasks:[],lcp:[],events:[]};let previous='';let live=true;window.stopAudit=()=>{live=false;};
+const start=window.audit.origin;
+watch({type:'layout-shift',buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.shifts.push({time:e.startTime,value:e.value,recentInput:e.hadRecentInput,sources:e.sources?.map(x=>({tag:x.node?.tagName,previous:x.previousRect.toJSON(),current:x.currentRect.toJSON()}))});});
+watch({type:'longtask',buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.longtasks.push({time:e.startTime,duration:e.duration});});
+watch({type:'largest-contentful-paint',buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.lcp.push({time:e.startTime,size:e.size,tag:e.element?.tagName});});
+watch({type:'event',durationThreshold:16,buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.events.push({time:e.startTime,duration:e.duration,interaction:e.interactionId,name:e.name});});
+function frame(){if(!live)return;const time=performance.now();const header=document.querySelector('body > header'),main=document.querySelector('main');if(!window.audit.shell&&header?.querySelector('a'))window.audit.shell=time;
+const parts=[header,main,document.querySelector('main > .page-column'),...document.querySelectorAll('main textarea')].filter(Boolean).map((node,index)=>{const r=node.getBoundingClientRect();return {region:index===0?'header':index===1?'main':index===2?'column':'input',x:r.x,y:index===0?r.y:r.y+scrollY,width:r.width,height:r.height};});const value=JSON.stringify(parts);if(value!==previous){previous=value;window.audit.geometry.push({time,parts});}requestAnimationFrame(frame);}requestAnimationFrame(frame);window.addEventListener('scroll',()=>{if(live)window.audit.scroll.push({time:performance.now(),y:scrollY});},{passive:true});
+}
+async function visible(page,selector){for(const el of await page.$$(selector))if(await el.isVisible())return el;return null;}
+async function probe(page,name){
+const marker='audit-'+crypto.randomUUID();
+let attempts=0;const start=performance.now();let firstAttempt;
+while(performance.now()-start<15000){
+ attempts++;
+ if(firstAttempt===undefined)firstAttempt=await page.evaluate(()=>performance.now());
+ if(name==='editor'||name==='long-adventure'){
+  const selector=name==='editor'?'textarea[name="prompt"]':'textarea[aria-label="Message"]';
+  const input=await visible(page,selector);if(!input)throw new Error('Expected input absent');await input.focus();await page.keyboard.type(marker);
+ }else{
+  const selector=name==='home'?'header button[aria-haspopup="dialog"]':name==='quests'?'button[role="tab"]:nth-child(2)':'main button[aria-haspopup="dialog"]';
+  const control=await visible(page,selector);if(!control)throw new Error(`Expected control absent ${name}`);await control.click();
+ }
+ // Fixed 100 ms readiness probe resolution. This is lab sampling, not a behavior-test retry.
+ await new Promise(r=>setTimeout(r,100));
+ const success=await page.evaluate((name,marker)=>{
+  if(name==='home')return !!document.querySelector('dialog[open]');
+  if(name==='quests')return document.querySelectorAll('button[role="tab"]')[1]?.getAttribute('aria-selected')==='true';
+  if(name==='editor')return Object.values(localStorage).some(v=>v.includes(marker));
+  if(name==='long-adventure')return [...document.querySelectorAll('main button')].some(b=>b.textContent.trim()==='Send'&&!b.disabled);
+  return !!document.querySelector('[role="dialog"] input,[role="dialog"] select');
+ },name,marker);
+ if(success){const confirmed=await page.evaluate(()=>performance.now());if(!['editor','long-adventure','quests'].includes(name))await page.keyboard.press('Escape');return {firstAttempt,confirmed,attempts,method:name==='home'?'menu-open':name==='quests'?'status-tab-state':name==='editor'?'persisted-draft':name==='long-adventure'?'send-enabled':'adventure-dialog-form'};}
+}
+throw new Error(`Control readiness not confirmed ${name}`);
+}
+const rows=[];const journeys=[['home','/home','/projects'],['long-adventure',`/chats/${s.chat}`,`/projects/${s.project}`],['editor',`/constructs/${s.construct}`,'/workshop'],['empty-adventure',`/chats/${s.emptyChat}`,`/projects/${s.emptyProject}`],['medium-adventure',`/chats/${s.mediumChat}`,`/projects/${s.mediumProject}`]];
+for(const profile of ['phone'])for(const [originalName,path,source] of journeys.filter(j=>process.argv[4]!=='confirm'||['long-adventure','editor','empty-adventure'].includes(j[0]))){const name=originalName.endsWith('-adventure')?'long-adventure':originalName;const state=originalName==='empty-adventure'?'empty-detail':'populated';
+ const context=await browser.createBrowserContext();const page=await context.newPage();await page.setViewport(profile==='phone'?{width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1}:{width:1440,height:900,deviceScaleFactor:1});await page.setCookie({name:'session',value:state==='empty-detail'?s.details:originalName==='medium-adventure'?s.medium:s.populated,url:base,httpOnly:true,sameSite:'Lax'});const cdp=await page.createCDPSession();const network=new Map();
+cdp.on('Network.requestWillBeSent',e=>{const h=e.request.headers;const actionId=Object.entries(h).find(([k])=>k.toLowerCase()==='next-action')?.[1];network.set(e.requestId,{path:safePath(e.request.url),method:e.request.method,resourceType:e.type,initiator:e.initiator.type,operation:actionOperations.get(actionId)??'other',prefetch:Object.entries(h).some(([k,v])=>['purpose','sec-purpose','next-router-prefetch'].includes(k.toLowerCase())&&(String(v).includes('prefetch')||v==='1')),wallTime:e.wallTime*1000,startedMono:e.timestamp,finishWall:null,bytes:0,status:0});});
+cdp.on('Network.responseReceived',e=>{const r=network.get(e.requestId);if(r)r.status=e.response.status;});
+cdp.on('Network.loadingFinished',e=>{const r=network.get(e.requestId);if(r){r.bytes=e.encodedDataLength;r.finishWall=r.wallTime+(e.timestamp-r.startedMono)*1000;}});
+await cdp.send('Network.enable');await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:profile==='phone'?150:0,downloadThroughput:profile==='phone'?200000:-1,uploadThroughput:profile==='phone'?93750:-1});await cdp.send('Emulation.setCPUThrottlingRate',{rate:profile==='phone'?4:1});await page.evaluateOnNewDocument(observe);
+ for(const mode of (process.argv[4]==='confirm'?['cold-direct']:process.argv[4]==='client'?['cold-direct','warm-direct','client-navigation']:['cold-direct','warm-direct','client-navigation'])){
+ const hostLoad=loadavg();network.clear();
+ let navigation;let sourceTimeOrigin;
+ if(mode==='client-navigation'){
+  await page.goto(base+source,{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!document.querySelector('[aria-busy="true"]')&&document.querySelector('main')?.innerText.length>40);await page.click('header button[aria-haspopup="dialog"]');await page.waitForSelector('dialog[open]');await page.keyboard.press('Escape');sourceTimeOrigin=await page.evaluate(()=>performance.timeOrigin);await page.evaluate(()=>window.stopAudit?.());await page.evaluate(observe);
+  const anchor=await visible(page,`a[href="${path}"]`);if(!anchor)throw new Error('Missing route link');await anchor.click();await page.waitForFunction(path=>location.pathname===path,{},path);
+ }else{const committed=new Promise(resolve=>{const handler=frame=>{if(frame===page.mainFrame()){page.off('framenavigated',handler);resolve();}};page.on('framenavigated',handler);});navigation=page.goto(base+path,{waitUntil:'domcontentloaded'});await committed;}
+ if(mode==='client-navigation'&&await page.evaluate(()=>performance.timeOrigin)!==sourceTimeOrigin)throw Error('Native navigation is not a client transition');
+ if(page.url().split('?')[0]!==base+path)throw new Error('Intended signed-in page not reached');
+ await page.waitForFunction(name=>{
+  if(document.querySelector('[aria-busy="true"]'))return false;
+  if(name==='home')return !!document.querySelector('main a[href="/projects"]');
+  if(name==='editor')return !!document.querySelector('textarea[name="prompt"]');
+  if(name==='long-adventure')return !!document.querySelector('textarea[aria-label="Message"]');
+  if(name==='quests')return !!document.querySelector('button[role="tab"]');
+  return !!document.querySelector('main button[aria-haspopup="dialog"]');
+ },{},name).catch(async error=>{console.log("probe-failed",name,navigation?(await navigation).status():"transition",await page.evaluate(()=>({busy:[...document.querySelectorAll('[aria-busy="true"]')].map(e=>e.tagName),main:!!document.querySelector("main"),links:[...document.querySelectorAll("main a")].map(e=>e.getAttribute("href").replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,":id"))})));throw error;});
+ await page.evaluate(direct=>{window.audit.direct=direct;window.audit.primary=performance.now();},mode!=="client-navigation");
+ const history=await page.evaluate(()=>({messages:document.querySelectorAll(".chat-thread ol[aria-label] > li").length,height:document.documentElement.scrollHeight}));
+ const expected={"long-adventure":200,"medium-adventure":20,"empty-adventure":0}[originalName];if(expected!==undefined&&history.messages!==expected)throw Error("History count mismatch");
+ const control=await probe(page,name);
+ // Observe at least five seconds after destination start and two seconds after confirmed control response.
+ const remaining=await page.evaluate(confirmed=>Math.max(window.audit.origin+5000,confirmed+2000)-performance.now(),control.confirmed);if(remaining>0)await new Promise(r=>setTimeout(r,remaining));
+ if(navigation){const response=await navigation;if(!response.ok())throw new Error(`Non-2xx ${response.status()}`);}
+ const data=await page.evaluate(()=>{window.stopAudit();const n=performance.getEntriesByType('navigation')[0];return {...window.audit,end:performance.now(),richCases:{codeBlocks:document.querySelectorAll('.chat-thread pre code').length,images:document.querySelectorAll('img[alt="Synthetic image"]').length,loadedImages:[...document.querySelectorAll('img[alt="Synthetic image"]')].filter(i=>i.complete&&i.naturalWidth>0).length,toolResults:document.querySelectorAll('.chat-thread aside').length},nav:{responseStart:n.responseStart,requestStart:n.requestStart,start:n.startTime,dom:n.domContentLoadedEventEnd},resources:performance.getEntriesByType('resource').filter(r=>window.audit.direct || r.startTime>=window.audit.origin).map(r=>({path:r.name.replace(location.origin,'').replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id').split('?')[0],start:r.startTime,duration:r.duration,bytes:r.transferSize,type:r.initiatorType}))};});
+ data.resources=data.resources.map(r=>({...r,path:safePath(r.path)}));
+ const origin=await page.evaluate(()=>performance.timeOrigin);const networkResources=[...network.values()].map(({wallTime,startedMono,finishWall,...r})=>({...r,start:wallTime-origin,finish:finishWall===null?null:finishWall-origin}));
+ if(process.argv[4]!=='client'||mode==='client-navigation')rows.push({variant,buildId,hostLoad,history,networkResources,captureProtocol:mode==='client-navigation'?'menu-source-v3':'commit-probe-v2',state,profile,name,mode,sample,path:originalName,control,...data});await writeFile(`/tmp/pb-796/${variant}-${sample}${process.argv[4]==='client'?'-client':''}.json`,JSON.stringify(rows));console.log(state,profile,name,sample,mode,'ready',Math.round(control.confirmed-data.origin),'attempts',control.attempts);
+ }
+ await context.close();
+ 
+}
+}finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(r=>server.on('exit',r));}

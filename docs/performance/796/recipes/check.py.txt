@@ -1,0 +1,221 @@
+import gzip,json,re,sys,math
+from pathlib import Path
+root=Path(sys.argv[1]);partial='--partial' in sys.argv
+manifest=json.loads((root/'manifest.json').read_text())
+trace_allowlist=json.loads((root/'trace-allowlist.json').read_text())
+uid=re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f-]{18,}',re.I)
+forbidden={'headers','cookies','cookie','authorization','session','prompt','text','body','snapshot','screenshots','args','requestId','userId','chatId','input','output'}
+row_fields={'variant','buildId','hostLoad','history','networkResources','captureProtocol','state','profile','name','mode','sample','path','control','origin','shell','primary','geometry','scroll','shifts','longtasks','lcp','events','end','nav','resources','direct','richCases','serverPrewarm'}
+paths={'/_next/static/:asset.js','/_next/static/:asset.css','/_next/static/:font','/artwork/:asset','/other','/home','/projects','/projects/:id','/projects/:id/memory','/chats/:id','/chat','/constructs','/constructs/:id','/workshop','/activities'}
+methods={'menu-open','persisted-draft','send-enabled'}
+regions={'header','main','column','input'}
+variants={'before','renderer'}
+journeys={'home','long-adventure','editor','empty-adventure','medium-adventure'}
+modes={'cold-direct','warm-direct','client-navigation'}
+builds={'before':manifest['baseline']['buildId'],'renderer':manifest['renderer']['buildId']}
+event_names={'beforeinput','click','input','keydown','keypress','keyup','mousedown','mouseout','mouseover','mouseup','pointerdown','pointerenter','pointerleave','pointerout','pointerover','pointerup'}
+rect_fields={'x','y','width','height','top','right','bottom','left'}
+
+def keys(value,required,optional=set()):
+ assert isinstance(value,dict)
+ assert set(value)>=required,(required-set(value))
+ assert not set(value)-required-optional,('unknown fields',set(value)-required-optional)
+
+def walk(value):
+ if isinstance(value,dict):
+  assert not set(value)&forbidden,('payload fields',set(value)&forbidden)
+  for v in value.values():walk(v)
+ elif isinstance(value,list):
+  for v in value:walk(v)
+ elif isinstance(value,str):
+  assert not uid.search(value),'unredacted identifier'
+  assert 'http://' not in value and 'https://' not in value,'raw URL'
+ elif isinstance(value,float):assert math.isfinite(value)
+
+def numeric(value):
+ assert isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value)
+
+def observers(row):
+ for g in row['geometry']:
+  keys(g,{'time','parts'});numeric(g['time'])
+  for p in g['parts']:
+   keys(p,{'region','x','y','width','height'});assert p['region'] in regions
+   for k in ['x','y','width','height']:numeric(p[k])
+ for s in row['shifts']:
+  keys(s,{'time','value','recentInput'}, {'sources'});assert isinstance(s['recentInput'],bool);numeric(s['time']);numeric(s['value'])
+  for source in s.get('sources',[]):
+   keys(source,{'previous','current'},{'tag'})
+   if 'tag' in source:assert source['tag'] in {'::before','::after','A','ARTICLE','ASIDE','BODY','BUTTON','CANVAS','CODE','DD','DETAILS','DIALOG','DIV','DL','DT','EM','FIELDSET','FIGCAPTION','FIGURE','FOOTER','FORM','H1','H2','H3','H4','H5','H6','HEADER','HR','IMG','INPUT','LABEL','LI','MAIN','NAV','OL','OPTION','P','PRE','SECTION','SELECT','SMALL','SPAN','STRONG','SUMMARY','TABLE','TBODY','TD','TEXTAREA','TH','THEAD','TR','UL'}
+   for r in [source['previous'],source['current']]:
+    keys(r,rect_fields)
+    for n in r.values():numeric(n)
+ for t in row['longtasks']:keys(t,{'time','duration'});numeric(t['time']);numeric(t['duration']);assert t['duration']>=50
+ for e in row['events']:keys(e,{'time','duration','interaction','name'});assert e['name'] in event_names;numeric(e['time']);numeric(e['duration']);numeric(e['interaction'])
+ for s in row['scroll']:keys(s,{'time','y'});numeric(s['time']);numeric(s['y'])
+ for l in row['lcp']:
+  keys(l,{'time','size'},{'tag'});numeric(l['time']);numeric(l['size'])
+  if 'tag' in l:assert l['tag'] in {'H1','H2','H3','P','SPAN','LI','DIV','IMG'}
+
+def observation(row,legacy=False):
+ assert not set(row)-row_fields,('row fields',set(row)-row_fields)
+ walk(row);observers(row)
+ assert row['path'] in journeys and row['mode'] in modes and row['profile']=='phone'
+ assert row['name'] in {'home','editor','long-adventure'} and row['state'] in {'populated','empty-detail'}
+ assert row['captureProtocol'] in {'menu-source-v3','commit-probe-v2'}
+ assert isinstance(row['sample'],int) and 1<=row['sample']<=10
+ assert isinstance(row['hostLoad'],list) and len(row['hostLoad'])==3
+ for n in row['hostLoad']:numeric(n)
+ for field in ['origin','primary','end']:numeric(row[field])
+ for field in ['shell']:
+  if row[field] is not None:numeric(row[field])
+ if legacy:
+  assert row['variant'] in {'before','isolated','focused','renderer','eager','auto'}
+  assert row.get('buildId') in {None,builds['before'],builds['renderer'],'WWc6DYITpVqE1_symBwNa','L4DWWkF16I637703cfCgK','JLzEzXFUTd2K1RsxrnLOq'}
+ if 'serverPrewarm' in row:assert row['serverPrewarm']=='home-plain-adventure-editor-empty-documents'
+ keys(row['control'],{'firstAttempt','confirmed','attempts','method'})
+ assert row['control']['method'] in methods
+ for k in ['firstAttempt','confirmed','attempts']:numeric(row['control'][k])
+ assert row['origin']<=row['primary']<=row['control']['firstAttempt']<=row['control']['confirmed']<=row['end']
+ assert row['end']>=row['origin']+4990 and row['end']>=row['control']['confirmed']+1990
+ for n in row['networkResources']:
+  keys(n,{'path','method','resourceType','prefetch','bytes','status','start'},{'operation','finish','initiator'})
+  for k in ['bytes','status','start']:numeric(n[k])
+  assert n['bytes']>=0
+  assert n['resourceType'] in {'Document','Script','Font','Image','Stylesheet','Fetch','XHR','Other'}
+  assert n['path'] in paths,n['path'];assert n['method'] in {'GET','POST'};assert isinstance(n['prefetch'],bool)
+  if not legacy:assert 'initiator' in n
+  if 'initiator' in n:assert n['initiator'] in {'parser','script','preload','other'}
+  assert n.get('operation','other') in {'preferences-refresh','reply-accounting','other'}
+  if n.get('finish') is not None:numeric(n['finish']);assert n['finish']>=n['start']
+ for a in row['resources']:
+  keys(a,{'path','start','duration','bytes','type'});assert a['path'] in paths,a['path'];assert a['type'] in {'css','fetch','img','link','other','script'}
+  for k in ['start','duration','bytes']:numeric(a[k])
+ keys(row['nav'],{'responseStart','requestStart','start','dom'})
+ for n in row['nav'].values():numeric(n)
+ if 'history' in row:
+  keys(row['history'],{'messages','height'})
+  for n in row['history'].values():numeric(n)
+ if 'richCases' in row:
+  keys(row['richCases'],{'codeBlocks','images','loadedImages','toolResults'})
+  for n in row['richCases'].values():numeric(n)
+ if not legacy:
+  assert 'serverPrewarm' not in row
+  assert row['variant'] in variants and row['path'] in journeys and row['mode'] in modes
+  assert row['buildId']==builds[row['variant']]
+  assert row['profile']=='phone'
+  assert row['captureProtocol']==('menu-source-v3' if row['mode']=='client-navigation' else 'commit-probe-v2')
+  expected={'long-adventure':200,'medium-adventure':20,'empty-adventure':0}.get(row['path'])
+  if expected is not None:assert row['history']['messages']==expected
+  if row['path']=='medium-adventure':
+   assert row['richCases']=={'codeBlocks':1,'images':1,'loadedImages':1,'toolResults':1}
+
+rows=json.loads(gzip.decompress((root/'measurements.json.gz').read_bytes()))
+expected={(v,j,m,s) for v in variants for j in journeys for m in modes for s in [1,2,3]}
+expected|={(v,j,'cold-direct',s) for v in variants for j in ['long-adventure','editor','empty-adventure'] for s in range(4,11)}
+cells=set()
+for row in rows:
+ observation(row)
+ key=tuple(row[k] for k in ['variant','path','mode','sample']);assert key not in cells,key;cells.add(key)
+assert cells<=expected
+if not partial:assert cells==expected,('missing observations',sorted(expected-cells))
+experiments=json.loads(gzip.decompress((root/'experiments.json.gz').read_bytes()))
+for exp in experiments:
+ keys(exp,{'experiment','status','observations'});assert exp['status']=='rejected'
+ for r in exp['observations']:observation(r,legacy=True)
+for p in root.glob('*.trace.json.gz'):
+ trace=json.loads(gzip.decompress(p.read_bytes()));keys(trace,{'traceEvents'})
+ for e in trace['traceEvents']:
+  keys(e,{'name','cat','ph','ts','pid','tid'},{'dur'});
+  for k in ['name','cat','ph']:assert e[k] in trace_allowlist[k],('unknown trace label',k)
+  for k in ['ts','pid','tid']:numeric(e[k])
+  if 'dur' in e:numeric(e['dur'])
+ assert e['name']!='Screenshot' and 'screenshot' not in e['cat'].lower(),'forbidden screenshot'
+ walk(trace)
+stream_path=root/'streams.json.gz'
+streams=[]
+if stream_path.exists():
+ streams=json.loads(gzip.decompress(stream_path.read_bytes()))
+ for s in streams:
+  keys(s,{'variant','buildId','sample','hostLoad','started','completed','menu','mainThreads','traceOrigin','origin','shell','primary','geometry','scroll','shifts','longtasks','lcp','events','end','y','messageCount','historyAvailable'},{'reading'})
+  walk(s);observers(s)
+  assert s['variant'] in variants and s['buildId']==builds[s['variant']]
+  assert s['sample'] in [1,2,3] and s['completed']>=s['started']
+  assert s['messageCount']==202 and s['historyAvailable'] is True
+  for t in s['mainThreads']:keys(t,{'pid','tid'})
+  for m in s['menu']:
+   keys(m,{'method','requested','opened'});assert m['method']=='programmatic-button'
+   for a in [m['requested'],m['opened']]:keys(a,{'time','y'})
+  if s['sample']==2:
+   keys(s['reading'],{'time','y'})
+   # Document Y can follow removal above the reader. The supplemental probe
+   # checks the SAME visible message in viewport coordinates after completion.
+ if not partial:assert {(s['variant'],s['sample']) for s in streams}=={(v,i) for v in variants for i in [1,2,3]}
+elif not partial:raise AssertionError('missing controlled stream evidence')
+mixed_path=root/'mixed-confirmation.json.gz'
+if mixed_path.exists():
+ mixed=json.loads(gzip.decompress(mixed_path.read_bytes()))
+ mixed_cells=set()
+ for r in mixed:
+  observation(r,legacy=True)
+  assert r['variant'] in variants and r['buildId']==builds[r['variant']]
+  assert r['path']=='medium-adventure' and r['mode']=='cold-direct'
+  assert r['serverPrewarm']=='home-plain-adventure-editor-empty-documents'
+  assert r['history']['messages']==20 and r['richCases']=={'codeBlocks':1,'images':1,'loadedImages':1,'toolResults':1}
+  key=(r['variant'],r['sample']);assert key not in mixed_cells;mixed_cells.add(key)
+ if not partial:assert mixed_cells=={(v,i) for v in variants for i in range(1,11)}
+elif not partial:raise AssertionError('missing mixed confirmation evidence')
+anchor_path=root/'reading-anchors.json.gz'
+if anchor_path.exists():
+ anchors=json.loads(gzip.decompress(anchor_path.read_bytes()))
+ for a in anchors:
+  keys(a,{'variant','buildId','sample','hostLoad','started','completed','menu','reading','mainThreads','traceOrigin','origin','shell','primary','geometry','scroll','shifts','longtasks','lcp','events','end','y','messageCount','historyAvailable','anchorBefore','anchorAfter'})
+  walk(a)
+  assert a['variant'] in variants and a['buildId']==builds[a['variant']]
+  assert a['messageCount']==204 and a['historyAvailable'] is True
+  for anchor in [a['anchorBefore'],a['anchorAfter']]:keys(anchor,{'index','top','height','y','time'})
+  assert a['anchorBefore']['index']==a['anchorAfter']['index']<202
+  assert abs(a['anchorBefore']['top']-a['anchorAfter']['top'])<=1,'visible reading anchor moved'
+  assert abs(a['anchorBefore']['height']-a['anchorAfter']['height'])<=1,'earlier message geometry changed'
+ if not partial:assert {a['variant'] for a in anchors}==variants
+elif not partial:raise AssertionError('missing reading anchor evidence')
+
+
+for r in json.loads(gzip.decompress((root/'cold-diagnostics.json.gz').read_bytes())):
+ observation(r,legacy=True);assert r['variant'] in variants and r['buildId']==builds[r['variant']]
+metadata=json.loads(gzip.decompress((root/'trace-metadata.json.gz').read_bytes()))
+for m in metadata:
+ keys(m,{'variant','buildId','mainThreads','traceOrigin'})
+ assert m['variant'] in variants and m['buildId']==builds[m['variant']]
+ for t in m['mainThreads']:keys(t,{'pid','tid'})
+ walk(m)
+for filename,expected_count in [('home-artwork.json.gz',6),('bounded.json.gz',6),('lighthouse.json.gz',6)]:
+ if not (root/filename).exists():
+  assert partial,('missing supplemental cohort',filename)
+  continue
+ cohort=json.loads(gzip.decompress((root/filename).read_bytes()))
+ if not partial:assert len(cohort)==expected_count,(filename,len(cohort))
+ if filename=='home-artwork.json.gz':
+  for r in cohort:
+   observation(r);assert r['path']=='home' and r['mode']=='cold-direct'
+   assert r['end']>=r['origin']+9990
+ elif filename=='bounded.json.gz':
+  for r in cohort:
+   b=r['bounded'];r={k:v for k,v in r.items() if k!='bounded'}
+   observation(r,legacy=True);assert r['variant'] in {'eager','auto'} and r['buildId']==builds['renderer']
+   keys(b,{'style','intrinsic','domMessages','matched','visible','selectionRect','accessibleListItems','accessibleQuestions','accessibleAnswers'})
+   assert b['style']==('auto' if r['variant']=='auto' else 'visible')
+   assert b['intrinsic'] in {'auto 400px','none'}
+   assert b['domMessages']==200
+   assert isinstance(b['matched'],bool) and isinstance(b['visible'],bool)
+   if b['selectionRect'] is not None:keys(b['selectionRect'],{'top','bottom'})
+   walk(b)
+ else:
+  for r in cohort:
+   keys(r,{'variant','sample','buildId','hostLoad','path','version','throttlingMethod','throttling','formFactor','screenEmulation','disableStorageReset','warnings','runtimeError','audits'})
+   walk(r);assert r['variant'] in variants and r['buildId']==builds[r['variant']]
+   assert r['path']=='/chats/:id' and r['throttlingMethod']=='simulate' and r['disableStorageReset'] is True
+   assert r['runtimeError'] is None and r['warnings']==[],('Lighthouse failure or warning',r['runtimeError'],r['warnings'])
+   assert set(r['audits'])=={'total-blocking-time','first-contentful-paint','largest-contentful-paint','cumulative-layout-shift','interactive','speed-index'}
+   for audit in r['audits'].values():keys(audit,{'score','value','unit'})
+
+print(f'Validated {len(rows)}/{len(expected)} matched observations, rejected experiments, {len(streams)}/6 streams and no-screenshot traces.')

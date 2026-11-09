@@ -1,0 +1,44 @@
+import gzip,json,statistics
+from pathlib import Path
+from collections import defaultdict
+root=Path(__file__).resolve().parent
+if root.name=='recipes':root=root.parent
+if (root/'measurements.json.gz').exists():
+ rows=json.loads(gzip.decompress((root/'measurements.json.gz').read_bytes()))
+ mixed=json.loads(gzip.decompress((root/'mixed-confirmation.json.gz').read_bytes())) if (root/'mixed-confirmation.json.gz').exists() else []
+else:
+ rows=[r for v in ['before','renderer'] for p in root.glob(v+'-[0-9]*.json') if p.stem.split('-')[-1].isdigit() for r in json.loads(p.read_text())]
+ mixed=[r for v in ['before','renderer'] for p in root.glob(v+'-mixed-confirm-[0-9]*.json') for r in json.loads(p.read_text())]
+def maximum_session_cls(shifts):
+ best=total=0;start=last=None
+ for s in sorted(shifts,key=lambda x:x['time']):
+  if s['recentInput']:continue
+  t=s['time']
+  if start is None or t-last>1000 or t-start>5000:start=t;total=0
+  total+=s['value'];last=t;best=max(best,total)
+ return best
+
+def metrics(r):
+ start=r['origin'] if r['mode']=='client-navigation' else 0;end=start+5000
+ rs=[x for x in r['resources'] if start<=x['start'] and x['start']+x['duration']<=end]
+ network=[n for n in r['networkResources'] if start<=n['start'] and n.get('finish') is not None and n['finish']<=end]
+ keyboard=[e['duration'] for e in r['events'] if e['name'] in ['keydown','keypress','keyup']]
+ shifts=[s for s in r['shifts'] if start<=s['time']<=end]
+ result={'primaryMs':r['primary']-start,'controlMs':r['control']['confirmed']-start,'firstAttemptMs':r['control']['firstAttempt']-start,'probeAttempts':r['control']['attempts'],'longTaskOverlap5sMs':sum(max(0,min(t['time']+t['duration'],end)-max(t['time'],start)) for t in r['longtasks']),'maxLongTaskObservedMs':max([t['duration'] for t in r['longtasks']]+[0]),'worstKeyboardObservedMs':max(keyboard) if keyboard else None,'completed5sScriptBytes':sum(x['bytes'] for x in rs if x['type']=='script'),'completed5sFontBytes':sum(x['bytes'] for x in rs if x['path']=='/_next/static/:font'),'earlyStartedScriptBytes':sum(x['bytes'] for x in r['resources'] if x['type']=='script' and start<=x['start']<=r['primary']),'earlyParserScriptBytes':sum(n['bytes'] for n in network if n['resourceType']=='Script' and n.get('initiator')=='parser' and n['start']<=r['primary'] and not n['prefetch']),'lateUnmarkedScriptBytes':sum(n['bytes'] for n in network if n['resourceType']=='Script' and n['start']>r['primary'] and not n['prefetch']),'knownPrefetchBytes':sum(n['bytes'] for n in network if n['prefetch']),'cssInitiatedArtworkBytes':sum(x['bytes'] for x in rs if x['path']=='/artwork/:asset' and x['type']=='css'),'allShiftSum5s':sum(s['value'] for s in shifts),'httpErrorResponses':sum(n['status']>=400 for n in r['networkResources']),'preferencesPostsObserved':sum(n['method']=='POST' and n.get('operation')=='preferences-refresh' for n in r['networkResources']),'accountingPostsObserved':sum(n['method']=='POST' and n.get('operation')=='reply-accounting' for n in r['networkResources'])}
+ if r['mode']!='client-navigation':result['initialSessionWindowCls']=maximum_session_cls(shifts)
+ return result
+
+def summary(rows):
+ groups=defaultdict(list)
+ for r in rows:groups[(r['variant'],r['path'],r['mode'])].append(r)
+ result=[]
+ for (variant,path,mode),rs in sorted(groups.items()):
+  ms=[metrics(r) for r in rs];values={}
+  for key in ms[0]:
+   numbers=[m[key] for m in ms if m[key] is not None]
+   values[key]={'available':len(numbers),'median':statistics.median(numbers),'min':min(numbers),'max':max(numbers)} if numbers else {'available':0}
+  result.append({'variant':variant,'path':path,'mode':mode,'n':len(rs),'metrics':values})
+ return result
+out={'schema':'796-experiment-summary-v1','screening':summary([r for r in rows if r['sample']<=3]),'coldConfirmation':summary([r for r in rows if r['mode']=='cold-direct' and r['path'] in ['editor','long-adventure','empty-adventure']]),'mixedPrewarmConfirmation':summary(mixed),'hostLoad':{v:{'n':len([r for r in rows+mixed if r['variant']==v]),'oneMinuteMin':min(r['hostLoad'][0] for r in rows+mixed if r['variant']==v),'oneMinuteMax':max(r['hostLoad'][0] for r in rows+mixed if r['variant']==v)} for v in ['before','renderer']}}
+(root/'summary.json').write_text(json.dumps(out,indent=2)+'\n')
+print('Reduced',len(rows),'main and',len(mixed),'separate prewarmed mixed observations')

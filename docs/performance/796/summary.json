@@ -1,0 +1,4597 @@
+{
+  "schema": "796-experiment-summary-v1",
+  "screening": [
+    {
+      "variant": "before",
+      "path": "editor",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 369.9000005722046,
+          "min": 368.0,
+          "max": 652.5
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 665.1999998092651,
+          "min": 657.9000005722046,
+          "max": 928.0
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 384.80000019073486,
+          "min": 379.5,
+          "max": 662.1000003814697
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 23691,
+          "min": 23691,
+          "max": 23691
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "editor",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 743.1999998092651,
+          "min": 743,
+          "max": 747.4000005722046
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 4310.60000038147,
+          "min": 4308.10000038147,
+          "max": 4345.10000038147
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 745,
+          "min": 744.8000001907349,
+          "max": 748.8000001907349
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 17,
+          "min": 17,
+          "max": 17
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 427.0,
+          "min": 426.0,
+          "max": 439.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 172,
+          "min": 170,
+          "max": 178
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 144,
+          "min": 144,
+          "max": 168
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 430574,
+          "min": 430574,
+          "max": 430574
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 430574,
+          "min": 430574,
+          "max": 430574
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 434669,
+          "min": 434669,
+          "max": 434669
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17587,
+          "min": 17587,
+          "max": 18316
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.0007296822374301611,
+          "min": 0.0007296822374301611,
+          "max": 0.0007296822374301611
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "editor",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 599,
+          "min": 587.6000003814697,
+          "max": 602.3000001907349
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 876.3000001907349,
+          "min": 862.5,
+          "max": 887
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 610.1000003814697,
+          "min": 599.3000001907349,
+          "max": 615.5
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 32
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 12205,
+          "min": 12205,
+          "max": 15200
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "empty-adventure",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 361.80000019073486,
+          "min": 350.29999923706055,
+          "max": 634.5999994277954
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 726.8000001907349,
+          "min": 690.5,
+          "max": 991.8999996185303
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 363.8999996185303,
+          "min": 354.19999980926514,
+          "max": 637.8999996185303
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 32,
+          "min": 32,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 23673,
+          "min": 23673,
+          "max": 27447
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 1,
+          "max": 2
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "empty-adventure",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 734.1999998092651,
+          "min": 733.5,
+          "max": 741.2999992370605
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 5405.89999961853,
+          "min": 5405.599999427795,
+          "max": 5456
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 735.6999998092651,
+          "min": 734.8999996185303,
+          "max": 742.6999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 22,
+          "min": 21,
+          "max": 22
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 455.0,
+          "min": 447.0,
+          "max": 465.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 290,
+          "min": 283,
+          "max": 291
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 32,
+          "min": 32,
+          "max": 32
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 643500,
+          "min": 643500,
+          "max": 643500
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 630554,
+          "min": 630554,
+          "max": 630554
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 635066,
+          "min": 635066,
+          "max": 635066
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 13139,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17636,
+          "min": 17636,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.0007279715422756417,
+          "min": 0.0007279715422756417,
+          "max": 0.0007279715422756417
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "empty-adventure",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 506.80000019073486,
+          "min": 502.5999994277954,
+          "max": 518.5
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 899.5,
+          "min": 873,
+          "max": 914.5
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 508.1000003814697,
+          "min": 504.0999994277954,
+          "max": 522.3000001907349
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 48,
+          "min": 48,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 13471,
+          "min": 13471,
+          "max": 16432
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.033055561794808445,
+          "min": 0.033055561794808445,
+          "max": 0.033055561794808445
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "home",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 464.3999996185303,
+          "min": 456.3999996185303,
+          "max": 465.20000076293945
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 604.3000001907349,
+          "min": 600.0999994277954,
+          "max": 606.9000005722046
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 465.5999994277954,
+          "min": 458.69999980926514,
+          "max": 468.20000076293945
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 62087,
+          "min": 62076,
+          "max": 62087
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.05723141888097752,
+          "min": 0.05723141888097752,
+          "max": 0.05723141888097752
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "home",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 741,
+          "min": 732.0999994277954,
+          "max": 741.8000001907349
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 2813.1000003814697,
+          "min": 2809.0999994277954,
+          "max": 2849.5
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 742.5999994277954,
+          "min": 733.5999994277954,
+          "max": 744
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 15,
+          "min": 15,
+          "max": 16
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 264.0,
+          "min": 161.0,
+          "max": 272.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 165,
+          "min": 161,
+          "max": 169
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 16,
+          "max": 32
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 277678,
+          "min": 255371,
+          "max": 277678
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 192083,
+          "min": 192083,
+          "max": 192083
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 195727,
+          "min": 195727,
+          "max": 195727
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 86570,
+          "min": 64158,
+          "max": 86570
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 54424,
+          "min": 54424,
+          "max": 57326
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.04671467204831025,
+          "min": 0.04671467204831025,
+          "max": 0.04671467204831025
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "home",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 506.5,
+          "min": 505.4000005722046,
+          "max": 519.6999998092651
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 648.4000005722046,
+          "min": 647.6999998092651,
+          "max": 659.6000003814697
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 508.4000005722046,
+          "min": 508.30000019073486,
+          "max": 520.8000001907349
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 49572,
+          "min": 49572,
+          "max": 49572
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 315839,
+          "min": 312839,
+          "max": 318839
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "long-adventure",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 973.1999998092651,
+          "min": 970.1000003814697,
+          "max": 1012.5
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 1790.7999992370605,
+          "min": 1777.9000005722046,
+          "max": 1827.5
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 980.6999998092651,
+          "min": 975.8000001907349,
+          "max": 1018.1000003814697
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 629.0,
+          "min": 628.0,
+          "max": 706.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 208,
+          "min": 206,
+          "max": 211
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 48,
+          "min": 40,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 22469,
+          "min": 20712,
+          "max": 22469
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "long-adventure",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 867.6999998092651,
+          "min": 867.2000007629395,
+          "max": 869.5999994277954
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 6420.10000038147,
+          "min": 6418.39999961853,
+          "max": 6790.900000572205
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 869,
+          "min": 868.8000001907349,
+          "max": 870.8999996185303
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 20,
+          "min": 20,
+          "max": 20
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 563.3000001907349,
+          "min": 469.0999994277954,
+          "max": 597.2999992370605
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 485,
+          "min": 483,
+          "max": 509
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 504,
+          "min": 504,
+          "max": 528
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 643500,
+          "min": 643500,
+          "max": 643500
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 630554,
+          "min": 630554,
+          "max": 630554
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 635066,
+          "min": 635066,
+          "max": 635066
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 13139,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17636,
+          "min": 17636,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.010803063860421097,
+          "min": 0.010803063860421097,
+          "max": 0.010803063860421097
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "long-adventure",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 658.1000003814697,
+          "min": 592.4000005722046,
+          "max": 665.3000001907349
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 1880.4000005722046,
+          "min": 1782.3999996185303,
+          "max": 1918.3000001907349
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 670.6999998092651,
+          "min": 603.3000001907349,
+          "max": 679.6999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 967.0,
+          "min": 964.0,
+          "max": 1007.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 414,
+          "min": 395,
+          "max": 421
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 432,
+          "min": 408,
+          "max": 440
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17636,
+          "min": 17636,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.033087345988841915,
+          "min": 0.033087345988841915,
+          "max": 0.033087345988841915
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "medium-adventure",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 531.5,
+          "min": 530.3000001907349,
+          "max": 534.6999998092651
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 962.0999994277954,
+          "min": 939.1999998092651,
+          "max": 972.5
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 550.5,
+          "min": 547.6999998092651,
+          "max": 552.5999994277954
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 54.0,
+          "min": 52,
+          "max": 55
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 54,
+          "min": 52,
+          "max": 55
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 32,
+          "min": 32,
+          "max": 32
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 26102,
+          "min": 21929,
+          "max": 27306
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "medium-adventure",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 819.3000001907349,
+          "min": 808.1999998092651,
+          "max": 833.2000007629395
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 6149.800000190735,
+          "min": 6114.200000762939,
+          "max": 6152.60000038147
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 820.6999998092651,
+          "min": 810.1000003814697,
+          "max": 834.6000003814697
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 23,
+          "min": 22,
+          "max": 23
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 169.0,
+          "min": 167.0,
+          "max": 198.5
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 309,
+          "min": 285,
+          "max": 316
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 176,
+          "min": 176,
+          "max": 192
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 643500,
+          "min": 643500,
+          "max": 643500
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 630554,
+          "min": 630554,
+          "max": 630554
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 635066,
+          "min": 635066,
+          "max": 635066
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 13139,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17636,
+          "min": 17636,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.005236579151066134,
+          "min": 0.005236579151066134,
+          "max": 0.005236579151066134
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "medium-adventure",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 536.1999998092651,
+          "min": 529.6000003814697,
+          "max": 624.0999994277954
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 1087.2000007629395,
+          "min": 1066.8000001907349,
+          "max": 1177.0999994277954
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 538.8000001907349,
+          "min": 536.1000003814697,
+          "max": 641.3000001907349
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 132.0,
+          "min": 0,
+          "max": 139.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 132,
+          "min": 0,
+          "max": 139
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 144,
+          "min": 32,
+          "max": 152
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 13471,
+          "min": 13471,
+          "max": 13471
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.03311913018287538,
+          "min": 0.03311913018287538,
+          "max": 0.03311913018287538
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "editor",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 643.1000003814697,
+          "min": 624.8000001907349,
+          "max": 869.6000003814697
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 936.6000003814697,
+          "min": 903.6000003814697,
+          "max": 1143.5
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 652.8999996185303,
+          "min": 635.2000007629395,
+          "max": 880.1999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 24898,
+          "min": 23692,
+          "max": 25477
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "editor",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 744.1999998092651,
+          "min": 743.3000001907349,
+          "max": 750.8000001907349
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 2916.699999809265,
+          "min": 2913.9000005722046,
+          "max": 2938
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 744.9000005722046,
+          "min": 744.8000001907349,
+          "max": 751.8999996185303
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 10,
+          "min": 10,
+          "max": 10
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 281.0,
+          "min": 277.0,
+          "max": 290.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 163,
+          "min": 161,
+          "max": 165
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 152,
+          "min": 144,
+          "max": 160
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 249235,
+          "min": 249235,
+          "max": 249235
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 209935,
+          "min": 209935,
+          "max": 209935
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 213722,
+          "min": 213722,
+          "max": 213722
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 39784,
+          "min": 39784,
+          "max": 39784
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 21274,
+          "min": 18315,
+          "max": 21309
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.0007296822374301611,
+          "min": 0.0007296822374301611,
+          "max": 0.0007296822374301611
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "editor",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 566.3000001907349,
+          "min": 551.6999998092651,
+          "max": 591.2000007629395
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 859.6000003814697,
+          "min": 830.9000005722046,
+          "max": 886.9000005722046
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 580.9000005722046,
+          "min": 562.1999998092651,
+          "max": 607.5
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 12208,
+          "min": 12208,
+          "max": 15167
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "empty-adventure",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 360.30000019073486,
+          "min": 348.70000076293945,
+          "max": 374.0999994277954
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 726.0,
+          "min": 693.3000001907349,
+          "max": 739.3999996185303
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 363.19999980926514,
+          "min": 351.4000005722046,
+          "max": 378.30000019073486
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 48,
+          "min": 48,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 23680,
+          "min": 22474,
+          "max": 27460
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "empty-adventure",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 732.9000005722046,
+          "min": 732.3999996185303,
+          "max": 735.1999998092651
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 5131.5,
+          "min": 5094.299999237061,
+          "max": 5149.700000762939
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 734.2000007629395,
+          "min": 733.5999994277954,
+          "max": 737.1999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 20,
+          "min": 20,
+          "max": 20
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 453.0,
+          "min": 446.0,
+          "max": 453.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 267,
+          "min": 254,
+          "max": 278
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 32,
+          "min": 32,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 591919,
+          "min": 591919,
+          "max": 591919
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 578973,
+          "min": 578973,
+          "max": 578973
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 583446,
+          "min": 583446,
+          "max": 583446
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 13139,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17639,
+          "min": 17639,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.03378353333708409,
+          "min": 0.03378353333708409,
+          "max": 0.03378353333708409
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "empty-adventure",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 524.1999998092651,
+          "min": 516.9000005722046,
+          "max": 596.1999998092651
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 916.1000003814697,
+          "min": 911.6000003814697,
+          "max": 991.6999998092651
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 528.6000003814697,
+          "min": 521.6000003814697,
+          "max": 629.8000001907349
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 56.0,
+          "min": 0,
+          "max": 59
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 56,
+          "min": 0,
+          "max": 59
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 48,
+          "min": 32,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 14680,
+          "min": 13474,
+          "max": 16433
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.033055561794808445,
+          "min": 0.033055561794808445,
+          "max": 0.033055561794808445
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "home",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 467.0,
+          "min": 463.6000003814697,
+          "max": 467.69999980926514
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 604.3999996185303,
+          "min": 598.3000001907349,
+          "max": 609.0
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 468.69999980926514,
+          "min": 465.80000019073486,
+          "max": 469.80000019073486
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 16,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 62078,
+          "min": 62078,
+          "max": 62078
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.05723141888097752,
+          "min": 0.05723141888097752,
+          "max": 0.05723141888097752
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "home",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 738,
+          "min": 732.9000005722046,
+          "max": 748.1999998092651
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 2859,
+          "min": 2849.8999996185303,
+          "max": 2865.800000190735
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 739.1999998092651,
+          "min": 734.1000003814697,
+          "max": 750.0999994277954
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 166.0,
+          "min": 162.0,
+          "max": 184.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 166,
+          "min": 162,
+          "max": 184
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 32,
+          "min": 16,
+          "max": 32
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 255371,
+          "min": 255371,
+          "max": 255371
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 192083,
+          "min": 192083,
+          "max": 192083
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 195727,
+          "min": 195727,
+          "max": 195727
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 64158,
+          "min": 64158,
+          "max": 64158
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 57320,
+          "min": 57320,
+          "max": 57320
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.04671467204831025,
+          "min": 0.04671467204831025,
+          "max": 0.04671467204831025
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "home",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 513.5,
+          "min": 492.80000019073486,
+          "max": 516.6000003814697
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 657,
+          "min": 635.1000003814697,
+          "max": 664.7000007629395
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 516,
+          "min": 493.80000019073486,
+          "max": 518.1000003814697
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 24,
+          "min": 24,
+          "max": 24
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 49566,
+          "min": 49530,
+          "max": 49566
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 315435,
+          "min": 315031,
+          "max": 316127
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "long-adventure",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 999.6999998092651,
+          "min": 945,
+          "max": 1035.8000001907349
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 1707.4000005722046,
+          "min": 1697.6000003814697,
+          "max": 1830.1999998092651
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 1005.1999998092651,
+          "min": 950.4000005722046,
+          "max": 1036.9000005722046
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 662.0,
+          "min": 635.0,
+          "max": 690.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 208,
+          "min": 207,
+          "max": 252
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 40,
+          "min": 32,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 22474,
+          "min": 22474,
+          "max": 33513
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "long-adventure",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 871.3000001907349,
+          "min": 840.3000001907349,
+          "max": 872.1000003814697
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 6317.5,
+          "min": 6313.5,
+          "max": 6393.699999809265
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 872.8999996185303,
+          "min": 842.1000003814697,
+          "max": 873.1999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 18,
+          "min": 18,
+          "max": 18
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 671.0,
+          "min": 653.0,
+          "max": 673.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 494,
+          "min": 489,
+          "max": 510
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 504,
+          "min": 504,
+          "max": 504
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 591919,
+          "min": 591919,
+          "max": 591919
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 578973,
+          "min": 578973,
+          "max": 578973
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 583446,
+          "min": 583446,
+          "max": 583446
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 13139,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17639,
+          "min": 17639,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.010803063860421097,
+          "min": 0.010803063860421097,
+          "max": 0.010803063860421097
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "long-adventure",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 655.4000005722046,
+          "min": 647.1999998092651,
+          "max": 662
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 1886.8000001907349,
+          "min": 1783.9000005722046,
+          "max": 1942.9000005722046
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 665,
+          "min": 659.6000003814697,
+          "max": 670.6999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 991.0,
+          "min": 952.0,
+          "max": 1014.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 388,
+          "min": 381,
+          "max": 420
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 408,
+          "min": 400,
+          "max": 432
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17639,
+          "min": 17639,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.033087345988841915,
+          "min": 0.033087345988841915,
+          "max": 0.033087345988841915
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "medium-adventure",
+      "mode": "client-navigation",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 500.4000005722046,
+          "min": 483.69999980926514,
+          "max": 626.5
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 932.5,
+          "min": 929.8000001907349,
+          "max": 1019.6999998092651
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 555.1999998092651,
+          "min": 538.8000001907349,
+          "max": 630.1000003814697
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 63.0,
+          "min": 56.0,
+          "max": 97.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 63,
+          "min": 56,
+          "max": 97
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 32,
+          "min": 24,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 27316,
+          "min": 27316,
+          "max": 27451
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "medium-adventure",
+      "mode": "cold-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 814.5,
+          "min": 809.5,
+          "max": 814.5
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 5803.900000572205,
+          "min": 5789.199999809265,
+          "max": 5867
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 815.6999998092651,
+          "min": 810.5,
+          "max": 816
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 22,
+          "min": 21,
+          "max": 22
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 422.0,
+          "min": 419.9000005722046,
+          "max": 436.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 264,
+          "min": 260,
+          "max": 273
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 184,
+          "min": 176,
+          "max": 184
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 591919,
+          "min": 591919,
+          "max": 591919
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 131368,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 578973,
+          "min": 578973,
+          "max": 578973
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 583446,
+          "min": 583446,
+          "max": 583446
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 13139,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 17639,
+          "min": 17639,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 821,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.005236579151066134,
+          "min": 0.005236579151066134,
+          "max": 0.005236579151066134
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "medium-adventure",
+      "mode": "warm-direct",
+      "n": 3,
+      "metrics": {
+        "primaryMs": {
+          "available": 3,
+          "median": 538.1999998092651,
+          "min": 525.3999996185303,
+          "max": 610.5999994277954
+        },
+        "controlMs": {
+          "available": 3,
+          "median": 1064.5999994277954,
+          "min": 1026.1000003814697,
+          "max": 1149.0999994277954
+        },
+        "firstAttemptMs": {
+          "available": 3,
+          "median": 544.5,
+          "min": 528.6000003814697,
+          "max": 617.1999998092651
+        },
+        "probeAttempts": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "longTaskOverlap5sMs": {
+          "available": 3,
+          "median": 140.0,
+          "min": 0,
+          "max": 182.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 3,
+          "median": 131,
+          "min": 0,
+          "max": 140
+        },
+        "worstKeyboardObservedMs": {
+          "available": 3,
+          "median": 144,
+          "min": 32,
+          "max": 152
+        },
+        "completed5sScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "completed5sFontBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyStartedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "earlyParserScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 3,
+          "median": 13474,
+          "min": 13474,
+          "max": 13474
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 3,
+          "median": 300,
+          "min": 300,
+          "max": 300
+        },
+        "allShiftSum5s": {
+          "available": 3,
+          "median": 0.03311913018287538,
+          "min": 0.03311913018287538,
+          "max": 0.03311913018287538
+        },
+        "httpErrorResponses": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 3,
+          "median": 2,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    }
+  ],
+  "coldConfirmation": [
+    {
+      "variant": "before",
+      "path": "editor",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 744.2999997138977,
+          "min": 742.6999998092651,
+          "max": 747.4000005722046
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 4358.450000286102,
+          "min": 4308.10000038147,
+          "max": 4448.599999427795
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 745.9499998092651,
+          "min": 744.6999998092651,
+          "max": 748.8000001907349
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 17.0,
+          "min": 16,
+          "max": 17
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 442.5,
+          "min": 424.0,
+          "max": 461.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 178.0,
+          "min": 168,
+          "max": 194
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 168.0,
+          "min": 144,
+          "max": 192
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 430574.0,
+          "min": 430574,
+          "max": 430574
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 430574.0,
+          "min": 430574,
+          "max": 430574
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 434669.0,
+          "min": 434669,
+          "max": 434669
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 17585.5,
+          "min": 7255,
+          "max": 18316
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.0007296822374301611,
+          "min": 0.0007296822374301611,
+          "max": 0.0007296822374301611
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "empty-adventure",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 733.4499998092651,
+          "min": 725.3000001907349,
+          "max": 741.2999992370605
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 5486.050000190735,
+          "min": 5405.599999427795,
+          "max": 5542.800000190735
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 734.8999996185303,
+          "min": 726.5,
+          "max": 742.6999998092651
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 22.0,
+          "min": 21,
+          "max": 22
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 459.0,
+          "min": 437.0,
+          "max": 488.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 289.5,
+          "min": 272,
+          "max": 311
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 32.0,
+          "min": 24,
+          "max": 32
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 643500.0,
+          "min": 643500,
+          "max": 643500
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 630554.0,
+          "min": 630554,
+          "max": 630554
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 635066.0,
+          "min": 635066,
+          "max": 635066
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 13139.0,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 17636.0,
+          "min": 17636,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.0007279715422756417,
+          "min": 0.0007279715422756417,
+          "max": 0.0007279715422756417
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 2.0,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "before",
+      "path": "long-adventure",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 1141.2000002861023,
+          "min": 867.2000007629395,
+          "max": 1316.7999992370605
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 6685.349999904633,
+          "min": 6418.39999961853,
+          "max": 6896.300000190735
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 1152.1000003814697,
+          "min": 868.8000001907349,
+          "max": 1353.6000003814697
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 18.5,
+          "min": 18,
+          "max": 20
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 491.75,
+          "min": 456.19999980926514,
+          "max": 597.2999992370605
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 511.0,
+          "min": 481,
+          "max": 549
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 528.0,
+          "min": 496,
+          "max": 576
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 643500.0,
+          "min": 643500,
+          "max": 643500
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 630554.0,
+          "min": 630554,
+          "max": 630554
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 635066.0,
+          "min": 635066,
+          "max": 635066
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 13139.0,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 13471.0,
+          "min": 13471,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.010803063860421097,
+          "min": 0.00016121209581879828,
+          "max": 0.010803063860421097
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 2.0,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "editor",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 745.4999995231628,
+          "min": 743.0999994277954,
+          "max": 757.1000003814697
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 2932.8500003814697,
+          "min": 2913.9000005722046,
+          "max": 3045.300000190735
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 746.6999998092651,
+          "min": 744.8000001907349,
+          "max": 758.5
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 10.0,
+          "min": 9,
+          "max": 10
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 285.5,
+          "min": 277.0,
+          "max": 305.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 165.0,
+          "min": 159,
+          "max": 169
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 140.0,
+          "min": 128,
+          "max": 160
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 249235.0,
+          "min": 249235,
+          "max": 249235
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 209935.0,
+          "min": 209935,
+          "max": 209935
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 213722.0,
+          "min": 213722,
+          "max": 213722
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 39784.0,
+          "min": 39784,
+          "max": 39784
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 21274.0,
+          "min": 18315,
+          "max": 21309
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.0007296822374301611,
+          "min": 0.0007296822374301611,
+          "max": 0.0007296822374301611
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "empty-adventure",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 733.25,
+          "min": 731.5999994277954,
+          "max": 736.1000003814697
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 5141.550000667572,
+          "min": 5094.299999237061,
+          "max": 5219.10000038147
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 734.6000003814697,
+          "min": 733,
+          "max": 737.6999998092651
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 20.0,
+          "min": 20,
+          "max": 21
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 433.0,
+          "min": 427.0,
+          "max": 453.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 266.5,
+          "min": 254,
+          "max": 279
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 32.0,
+          "min": 24,
+          "max": 48
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 591919.0,
+          "min": 591919,
+          "max": 591919
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 578973.0,
+          "min": 578973,
+          "max": 578973
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 583446.0,
+          "min": 583446,
+          "max": 583446
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 13139.0,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 17639.0,
+          "min": 17639,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.03378353333708409,
+          "min": 0.03378353333708409,
+          "max": 0.03378353333708409
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 2.0,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "long-adventure",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 1147.8000001907349,
+          "min": 840.3000001907349,
+          "max": 1307.3999996185303
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 6395.050000190735,
+          "min": 6206.900000572205,
+          "max": 6623.800000190735
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 1164.3500003814697,
+          "min": 842.1000003814697,
+          "max": 1314.5
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 17.0,
+          "min": 16,
+          "max": 18
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 655.5,
+          "min": 599.0999994277954,
+          "max": 688.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 498.5,
+          "min": 489,
+          "max": 518
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 512.0,
+          "min": 504,
+          "max": 536
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 591919.0,
+          "min": 591919,
+          "max": 591919
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 578973.0,
+          "min": 578973,
+          "max": 578973
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 583446.0,
+          "min": 583446,
+          "max": 583446
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 13139.0,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 13474.0,
+          "min": 13474,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.010803063860421097,
+          "min": 0.00016121209581879828,
+          "max": 0.010803063860421097
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 2.0,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    }
+  ],
+  "mixedPrewarmConfirmation": [
+    {
+      "variant": "before",
+      "path": "medium-adventure",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 820.0999999046326,
+          "min": 812.3000001907349,
+          "max": 837.1000003814697
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 6082.5,
+          "min": 6006.300000190735,
+          "max": 6202.300000190735
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 821.7000002861023,
+          "min": 813.8000001907349,
+          "max": 839.2000007629395
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 22.5,
+          "min": 22,
+          "max": 23
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 208.5,
+          "min": 159.69999980926514,
+          "max": 238.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 278.0,
+          "min": 272,
+          "max": 313
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 184.0,
+          "min": 168,
+          "max": 224
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 643500.0,
+          "min": 643500,
+          "max": 643500
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 630554.0,
+          "min": 630554,
+          "max": 630554
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 635066.0,
+          "min": 635066,
+          "max": 635066
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 13139.0,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 13471.0,
+          "min": 13471,
+          "max": 17636
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.005236579151066134,
+          "min": 0.005236579151066134,
+          "max": 0.005638636607098119
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 2.0,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "renderer",
+      "path": "medium-adventure",
+      "mode": "cold-direct",
+      "n": 10,
+      "metrics": {
+        "primaryMs": {
+          "available": 10,
+          "median": 817.25,
+          "min": 810.1999998092651,
+          "max": 825.8999996185303
+        },
+        "controlMs": {
+          "available": 10,
+          "median": 5842.650000095367,
+          "min": 5764.099999427795,
+          "max": 5934.699999809265
+        },
+        "firstAttemptMs": {
+          "available": 10,
+          "median": 818.8999996185303,
+          "min": 812,
+          "max": 827.0999994277954
+        },
+        "probeAttempts": {
+          "available": 10,
+          "median": 21.0,
+          "min": 20,
+          "max": 22
+        },
+        "longTaskOverlap5sMs": {
+          "available": 10,
+          "median": 425.0,
+          "min": 405.19999980926514,
+          "max": 443.0
+        },
+        "maxLongTaskObservedMs": {
+          "available": 10,
+          "median": 268.5,
+          "min": 257,
+          "max": 342
+        },
+        "worstKeyboardObservedMs": {
+          "available": 10,
+          "median": 188.0,
+          "min": 176,
+          "max": 400
+        },
+        "completed5sScriptBytes": {
+          "available": 10,
+          "median": 591919.0,
+          "min": 591919,
+          "max": 591919
+        },
+        "completed5sFontBytes": {
+          "available": 10,
+          "median": 131368.0,
+          "min": 131368,
+          "max": 131368
+        },
+        "earlyStartedScriptBytes": {
+          "available": 10,
+          "median": 578973.0,
+          "min": 578973,
+          "max": 578973
+        },
+        "earlyParserScriptBytes": {
+          "available": 10,
+          "median": 583446.0,
+          "min": 583446,
+          "max": 583446
+        },
+        "lateUnmarkedScriptBytes": {
+          "available": 10,
+          "median": 13139.0,
+          "min": 13139,
+          "max": 13139
+        },
+        "knownPrefetchBytes": {
+          "available": 10,
+          "median": 13474.0,
+          "min": 13474,
+          "max": 17639
+        },
+        "cssInitiatedArtworkBytes": {
+          "available": 10,
+          "median": 821.0,
+          "min": 821,
+          "max": 821
+        },
+        "allShiftSum5s": {
+          "available": 10,
+          "median": 0.005236579151066134,
+          "min": 0.005236579151066134,
+          "max": 0.005236579151066134
+        },
+        "httpErrorResponses": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "preferencesPostsObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "accountingPostsObserved": {
+          "available": 10,
+          "median": 2.0,
+          "min": 2,
+          "max": 2
+        },
+        "initialSessionWindowCls": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    }
+  ],
+  "hostLoad": {
+    "before": {
+      "n": 76,
+      "oneMinuteMin": 1.03,
+      "oneMinuteMax": 5.02
+    },
+    "renderer": {
+      "n": 76,
+      "oneMinuteMin": 1.05,
+      "oneMinuteMax": 5.62
+    }
+  }
+}
