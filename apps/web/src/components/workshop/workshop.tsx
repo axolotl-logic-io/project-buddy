@@ -37,7 +37,7 @@ import {
 } from "@/workshop/protocol.ts";
 
 const Markdown = dynamic(() =>
-  import("@/components/markdown-content.tsx").then((module) => module.Markdown),
+  import("@/components/markdown.tsx").then((module) => module.Markdown),
 );
 
 interface TestRun {

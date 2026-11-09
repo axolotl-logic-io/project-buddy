@@ -13,7 +13,9 @@ import type { ReplyCost } from "@/replies/reply-accounting.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const ChatHistory = dynamic(() =>
-  import("@/components/chat/chat-history.tsx").then((module) => module.ChatHistory),
+  import("@/components/chat/chat-history.tsx").then(
+    (module) => module.ChatHistory,
+  ),
 );
 
 // The conversation, any failure or a reply that stopped before it was
