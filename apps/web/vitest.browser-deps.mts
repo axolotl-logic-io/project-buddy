@@ -24,6 +24,7 @@ const PREBUNDLED_DEPS: string[] = [
   "drizzle-orm/pg-core",
   "lucide-react",
   "next/cache",
+  "next/dynamic",
   "next/headers",
   "next/image",
   "next/link",
@@ -34,6 +35,7 @@ const PREBUNDLED_DEPS: string[] = [
   "react-dom/client",
   "react-dom/server",
   "streamdown",
+  "shiki/langs",
   "vitest-browser-react",
   "zod",
 ];

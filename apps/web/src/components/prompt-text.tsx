@@ -1,9 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { type JSX, useId } from "react";
-import { Markdown } from "@/components/markdown.tsx";
+
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+
+const Markdown = dynamic(() =>
+  import("@/components/markdown.tsx").then((module) => module.Markdown),
+);
 
 export function PromptNameField({
   name,
