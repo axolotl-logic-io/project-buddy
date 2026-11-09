@@ -9,6 +9,8 @@ A spell is a set of instructions the construct loads only when it needs them. Ea
 
 Successful saves in an own spell’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Craft spell” to distinguish it from an own definition named “New spell”.
 
+Built-in, starter, customized and reset prompts use `# Spell Sheet`. The separate name identifies the definition; renaming leaves the sheet heading alone. Edited instructions and existing adventure snapshots keep their text.
+
 ## use_case_construct_casts_spell
 
 The construct casts one of her spells when it fits what she needs.

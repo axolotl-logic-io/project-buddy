@@ -35,6 +35,10 @@ The shared editing and testing experience for constructs, activities and spells.
 
 Instructions for the model. A construct, activity or spell has a prompt; it is not itself a prompt. The application assembles prompts into messages sent to the model. A spell's prompt reaches the model through the result of a cast.
 
+### Character Sheet, Activity Sheet, Spell Sheet
+
+The generic headings in built-in and starter prompts: `# Character Sheet` for a construct, `# Activity Sheet` for an activity, and `# Spell Sheet` for a spell. The separate name identifies the definition; the sheet contains its instructions. These are prompt headings, not new names for constructs, activities or spells. Renaming a definition does not require editing its heading or identity instructions.
+
 ### Built-in construct, activity or spell
 
 A construct, activity or spell that ships with the site. Built-in ones are read-only; users customize them to make their own copies.

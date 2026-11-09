@@ -2,6 +2,8 @@
 
 The Constructs page lists AI characters with a name and a prompt, built in or the user's own.
 
+Built-in, starter, customized and reset prompts use `# Character Sheet`. The separate name identifies the definition; renaming leaves the sheet heading alone. Edited instructions and existing adventure snapshots keep their text.
+
 The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_view_constructs
