@@ -207,7 +207,7 @@ An earlier built-in activity. Existing adventure snapshots keep its instructions
 
 ### New quest construct
 
-The account setting that chooses the construct for the quest creation form. It defaults to Vellum. New-adventure forms use the construct the user chooses, including when starting a new quest. Existing adventure snapshots stay unchanged. The internal `interview` identifiers remain compatible.
+The account setting that defaults the construct for a new quest's first adventure, initially Vellum. The user can change it in the Start Quest picker before starting. New-adventure forms use the construct the user chooses, including when starting a new quest. Existing adventure snapshots stay unchanged. The internal `interview` identifiers remain compatible.
 
 - **UI:** "New quest construct".
 
