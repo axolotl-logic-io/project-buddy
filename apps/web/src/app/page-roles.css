@@ -516,7 +516,7 @@
 }
 
 @layer roles {
-  /* The artwork belongs behind the entire Home page, including its header.
+  /* The artwork belongs behind Home content below the shared header.
      Hidden cached Home pages must never dress the page currently on screen. */
   body:has(.atlas:not([data-inactive])) {
     background-color: var(--atlas-paper);
