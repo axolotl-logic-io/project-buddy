@@ -41,7 +41,7 @@ A construct, activity or spell that ships with the site. Built-in ones are read-
 
 ### Own construct, activity or spell
 
-A user's private, editable construct, activity or spell, made by copying another or writing one from scratch. Its prompt can become part of a shared adventure without giving others access to the original.
+A user's private, editable construct, activity or spell, made by copying another or crafting one. Its prompt can become part of a shared adventure without giving others access to the original.
 
 - **UI:** "Your constructs", "Your activities", "Your spells".
 - **Avoid:** "custom construct", "user persona".
@@ -55,9 +55,11 @@ To **retire** an own construct, activity, or spell is to put it aside without lo
 - **UI:** "Retire", "Retirement", "Restore", "Delete forever", "Keep retired".
 - **Avoid:** "Graveyard", "trash", "archive" for Retirement.
 
-### Customize, write from scratch, tweak, clone, rename
+### Customize, craft, tweak, clone, rename
 
-To **customize** is to make an own copy of a built-in construct, activity or spell. To **write from scratch** is to make one without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+To **customize** is to make an own copy of a built-in construct, activity or spell. To **craft** is to create an own construct, activity or spell without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+
+- **Avoid:** "Write new", "write from scratch" and "New construct/activity/spell" as creation action labels; use "Craft" with the kind where needed.
 
 ### Message
 
@@ -104,7 +106,7 @@ An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice
 
 A construct is not a prompt; it has one. People working together on a [team quest](#team-quest) are its [members](#member).
 
-- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "New construct".
+- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Craft construct".
 - **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
 
 ### Earlier names (compatibility)
@@ -187,7 +189,7 @@ An activity that ships with the site.
 
 ### Own activity
 
-A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or writing one from scratch.
+A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or crafting one.
 
 ### Project Breakdown
 
@@ -215,7 +217,7 @@ The built-in activity with no set scene. It is the default when the user picks n
 
 A user's list of [spells](#spell), built in and their own, and the page that shows it. It is the user's lorebook of spells; use "lorebook" only to explain it.
 
-- **UI:** "Spellbook", "Built-in spells", "Your spells", "New spell".
+- **UI:** "Spellbook", "Built-in spells", "Your spells", "Craft spell".
 - **Avoid:** "skill library", "lorebook" outside explanations.
 
 ### Spell

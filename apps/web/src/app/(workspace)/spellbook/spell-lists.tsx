@@ -1,7 +1,6 @@
 // The spells list, shared by the Spellbook and the Workshop: the built-in
 // spells, each of which she can customize, and her own, each of which she
-// can tweak, clone or delete, with a button that writes a new one from
-// scratch.
+// can tweak, clone or delete, with a button that crafts a new one.
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
