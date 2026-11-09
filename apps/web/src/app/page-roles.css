@@ -12,6 +12,74 @@
    disabled looks), and every role ships in the stylesheet whether or not a
    page uses it. globals.css imports this file into the components layer. */
 @layer roles {
+  .quests-index {
+    @apply min-w-0 rounded-box border border-line bg-surface;
+  }
+
+  .quests-index-heading {
+    @apply flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6;
+  }
+
+  .quests-index-invitations {
+    @apply px-4 sm:px-6;
+  }
+
+  .quests-index-invitations:has(section) {
+    @apply pb-4;
+  }
+
+  .quests-index-tablist {
+    @apply grid grid-cols-2 border-line border-y px-4 sm:flex sm:flex-wrap sm:gap-x-4 sm:px-6;
+  }
+
+  .quests-index-premade {
+    @apply sm:ml-auto;
+  }
+
+  .quests-index-count {
+    @apply text-muted text-xs;
+  }
+
+  .quests-index-content {
+    @apply min-w-0 p-4 sm:px-6;
+  }
+
+  .quests-index-content > .text-muted {
+    @apply py-6;
+  }
+
+  .quests-index-footer {
+    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 py-2 text-muted text-sm sm:px-6;
+  }
+
+  .quests-index-list {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .quests-index-row {
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-4 last:border-b-0;
+  }
+
+  .quests-index-restore {
+    @apply relative z-10 col-start-2 col-end-4 justify-self-start;
+  }
+
+  .quests-index-mark {
+    min-inline-size: var(--target-size);
+    min-block-size: var(--target-size);
+    @apply flex shrink-0 items-center justify-center rounded-control border border-line text-primary;
+  }
+
+  .quests-index-link {
+    overflow-wrap: anywhere;
+    @apply hover:text-primary after:absolute after:inset-0;
+  }
+
+  .quests-index-link:focus-visible::after {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
   .quest-workspace {
     @apply min-w-0 rounded-box border border-line bg-surface;
   }
@@ -41,8 +109,13 @@
     @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-muted;
   }
 
-  .quest-workspace-tab[aria-current="page"] {
+  .quest-workspace-tab[aria-current="page"],
+  .quest-workspace-tab[data-state="active"] {
     @apply border-primary text-foreground;
+  }
+
+  .quests-index-tablist .quest-workspace-tab {
+    @apply justify-center sm:justify-start;
   }
 
   .quest-status-actions {

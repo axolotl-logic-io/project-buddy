@@ -577,9 +577,21 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
+    name: "the premade quests tab",
+    render: projectsPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("tab", { name: "Premade quests", exact: true })
+        .click();
+    },
+  },
+  {
     name: "the premade quest preview",
     render: projectsPage,
     open: async (): Promise<void> => {
+      await page
+        .getByRole("tab", { name: "Premade quests", exact: true })
+        .click();
       await page
         .getByRole("button", {
           name: "Explore quest: Start without inspiration",
