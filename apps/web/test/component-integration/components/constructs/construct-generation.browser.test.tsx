@@ -20,6 +20,9 @@ import {
   smallTargets,
 } from "../../touch-targets-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
+import { refresh } from "../router-test-kit.ts";
+
+vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
 const RESERVATION = 123;
 const PENDING_ID = "3bb055fe-90cc-49fd-b5c5-8f9a9382c507";
@@ -60,6 +63,7 @@ function quote(
 }
 afterEach(() => {
   vi.unstubAllGlobals();
+  refresh.mockClear();
   localStorage.clear();
 });
 
@@ -597,6 +601,55 @@ test("restoring previous artwork is explicit, free of generation requests, and b
   ).toEqual([]);
 });
 
+describe("use_case_see_gold", () => {
+  test.each(["generated", "outOfGold", "failed"] as const)(
+    "refreshes after %s generation settles",
+    async (status) => {
+      service(quote(), outcome(status));
+      await render(
+        <ConstructVisualGeneration
+          construct={construct}
+          viewer="viewer"
+          changed={false}
+        />,
+      );
+      await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+      expect(refresh).not.toHaveBeenCalled();
+      await button(VISUAL_COPY.generate).click();
+      await expect.poll(() => refresh.mock.calls.length).toBe(1);
+      await expect
+        .element(page.getByText(VISUAL_COPY.states[status]))
+        .toBeVisible();
+    },
+  );
+
+  test("refreshes after a lost paid response and again when its status is recovered", async () => {
+    const fetcher = service(quote(), outcome("pending"));
+    fetcher.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(quote())),
+    );
+    await render(
+      <ConstructVisualGeneration
+        construct={construct}
+        viewer="viewer"
+        changed={false}
+      />,
+    );
+    await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+    fetcher.mockRejectedValueOnce(new Error("Lost response"));
+    await button(VISUAL_COPY.generate).click();
+    await expect.poll(() => refresh.mock.calls.length).toBe(1);
+    fetcher.mockResolvedValueOnce(
+      Response.json(quote({ result: outcome("failed") })),
+    );
+    await button(VISUAL_COPY.check).click();
+    await expect.poll(() => refresh.mock.calls.length).toBe(2);
+    await expect
+      .element(page.getByText(VISUAL_COPY.states.failed))
+      .toBeVisible();
+  });
+});
+
 test("recovered construct edits generate directly and survive a failure without saving", async () => {
   const fetcher = service(quote(), outcome("failed"));
   const save = vi.fn<(form: FormData) => void>();
@@ -745,6 +798,7 @@ test("first recovered description generates without saving and matching artwork 
   const submittedForm = await saved.promise;
   expect(submittedForm.get("visualDescription")).toBe(description);
   expect(submittedForm.has("visualRequestId")).toBe(false);
+  expect(refresh).toHaveBeenCalledTimes(1);
   expect(
     fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
   ).toHaveLength(1);

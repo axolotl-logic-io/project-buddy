@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   type JSX,
   useCallback,
@@ -66,6 +67,7 @@ function ConstructVisualGeneration({
   readonly viewer: string;
   readonly changed: boolean;
 }): JSX.Element {
+  const { refresh } = useRouter();
   const [restored, setRestored] = useState(false);
   const requestKey = `visual:${viewer}:${construct.id}`;
   const [quote, setQuote] = useState<VisualGenerationQuote>();
@@ -178,8 +180,11 @@ function ConstructVisualGeneration({
         await readQuote(construct.id, unresolved?.requestId),
         unresolved,
       );
+      if (unresolved !== undefined) {
+        refresh();
+      }
     },
-    [acceptQuote, construct.id],
+    [acceptQuote, construct.id, refresh],
   );
   useEffect(() => {
     if (saving === true) {
@@ -256,7 +261,7 @@ function ConstructVisualGeneration({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(next),
-      });
+      }).finally(refresh);
       const parsed = VISUAL_GENERATION_RESULT.parse(await response.json());
       apply(parsed);
       if (parsed.status === "not-found") {
@@ -284,6 +289,7 @@ function ConstructVisualGeneration({
     requestKey,
     apply,
     read,
+    refresh,
   ]);
   const restore = useCallback(async (): Promise<void> => {
     if (
