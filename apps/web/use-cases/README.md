@@ -64,6 +64,7 @@ Each area's cases are in their own file:
 - [Journal](memory.md)
 - [Constructs](constructs.md)
 - [Activities](activities.md)
+- [Library](library.md)
 - [Workshop](workshop.md): edit and test unsaved constructs, activities and spells.
 - [Marketplace](marketplace.md): publish listings, buy copies and manage sales.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.

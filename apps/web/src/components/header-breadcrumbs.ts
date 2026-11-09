@@ -22,6 +22,7 @@ import {
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
+import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
@@ -52,6 +53,7 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["constructs", { label: CONSTRUCTS_COPY.heading, href: "/constructs" }],
     ["activities", { label: ACTIVITIES_COPY.heading, href: "/activities" }],
     ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
+    ["library", { label: LIBRARY_COPY.heading, href: "/library" }],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
     ["marketplace", { label: MARKETPLACE_COPY.heading, href: "/marketplace" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
@@ -138,6 +140,13 @@ async function headerBreadcrumbs(
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
+  }
+  if (section === "library") {
+    const book = LIBRARY_COPY.books.find((candidate) => candidate.id === id);
+    if (book === undefined) {
+      return [];
+    }
+    return [HOME, root, { label: book.title }];
   }
   let name: string | undefined;
   if (section === "constructs") {

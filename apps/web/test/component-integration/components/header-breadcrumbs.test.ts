@@ -29,6 +29,23 @@ beforeEach(() => {
 });
 
 describe("header navigation hierarchy", () => {
+  test("keeps Library books under Library and omits unknown books", async () => {
+    if (USER === undefined) {
+      throw new Error("Invalid fixture user");
+    }
+    expect(await headerBreadcrumbs(USER, ["library"])).toEqual([
+      { label: "Home", href: "/home" },
+      { label: "Library" },
+    ]);
+    expect(await headerBreadcrumbs(USER, ["library", "model-context"])).toEqual(
+      [
+        { label: "Home", href: "/home" },
+        { label: "Library", href: "/library" },
+        { label: "Model context" },
+      ],
+    );
+    expect(await headerBreadcrumbs(USER, ["library", "unknown"])).toEqual([]);
+  });
   test("uses the accessible quest for an adventure and updates to standalone and Home", async () => {
     if (USER === undefined) {
       throw new Error("Invalid fixture user");

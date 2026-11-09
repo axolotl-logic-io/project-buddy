@@ -29,6 +29,7 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -84,6 +85,7 @@ const PLACES = [
   CONSTRUCTS_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
+  LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
   GENERATION_COPY.heading,
