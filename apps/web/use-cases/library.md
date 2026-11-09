@@ -9,7 +9,7 @@ The user learns how to start and resume work, craft definitions and understand m
 - **Prerequisites:** a signed-in account.
 - **Steps:**
   - Open Library from the site menu.
-  - Choose Getting Started, Constructs, Spells, Activities or Model context.
+  - Choose Getting Started, Constructs, Spells, Activities or Model context from the underlined book rail. The index initially opens Getting Started. Chapters appear beside the reading on wide screens and above it on phones.
   - Follow chapter links and related books.
   - Follow the book's action link to Adventures, Constructs, Spellbook, Activities or Workshop.
 - **Outcome:** stable book routes and chapter anchors expose practical guides, worked examples and the conditional model-input inventory. Reading makes no model call or data change. Signed-out readers must sign in. The index and books fit phones and both appearance modes.

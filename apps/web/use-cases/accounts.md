@@ -115,7 +115,7 @@ The user checks how many Batteries they have left.
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - They read their Batteries balance in the shared header, including Home, without opening a menu.
-  - They open Account to see the same balance and its explanation.
+  - They open Account and select Batteries to see the same balance and its explanation. Profile holds the name form; Security holds Sign out and Sign out everywhere. Checkout return links select Batteries. Loading and failed balance states still offer sign-out.
   - They send an adventure message and wait for its reply and accounting to finish.
 - **Outcome:** the header shows the viewing user's own Batteries, including in a team quest. Account and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including Workshop tests and construct image generation. A failed or cancelled Workshop test still refreshes after its request settles; checking a recovered image generation updates any reserved or settled balance. An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
 - **Extras:** hiding the Account balance extra does not hide the compact header balance. Account still offers Sign out and Sign out everywhere.
@@ -130,7 +130,7 @@ The user tells the construct what to call her, so a construct that says `{{name}
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - On her account page, under "Your name", she types her name, such as "Mabel", and saves.
+  - On her account page’s Profile tab, under "Your name", she types her name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows her name, also after a reload.
   - She adventures in a construct of her own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](constructs.md#use_case_edit_construct)).
 - **Outcome:** her name is saved trimmed, and the construct's system prompt says "Hi Mabel" wherever the construct's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new adventure's opening. The construct itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.

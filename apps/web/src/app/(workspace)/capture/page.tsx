@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { activeProjects } from "@/projects/active-projects.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
@@ -23,21 +24,23 @@ export default async function QuickCapturePage({
 
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <h1 className="page-heading">{QUICK_CAPTURE_COPY.heading}</h1>
-        <p className="text-muted">{QUICK_CAPTURE_COPY.intro}</p>
-      </div>
       {chosen === undefined && (
-        <div className="panel flex flex-col items-start gap-4">
-          <p>{QUICK_CAPTURE_COPY.noProjects}</p>
-          <Button asChild={true} variant="secondary">
-            <Link href="/projects">{QUICK_CAPTURE_COPY.noProjectsLink}</Link>
-          </Button>
-        </div>
+        <PageWorkspace
+          title={QUICK_CAPTURE_COPY.heading}
+          intro={QUICK_CAPTURE_COPY.intro}
+        >
+          <div className="workspace-content flex flex-col items-start gap-4">
+            <p>{QUICK_CAPTURE_COPY.noProjects}</p>
+            <Button asChild={true} variant="secondary">
+              <Link href="/projects">{QUICK_CAPTURE_COPY.noProjectsLink}</Link>
+            </Button>
+          </div>
+        </PageWorkspace>
       )}
       {chosen !== undefined && (
         <QuickCaptureForm
           key={chosen.id}
+          workspace={true}
           viewer={user.id}
           projectId={chosen.id}
           projects={projects.map(({ id, name }) => ({ id, name }))}

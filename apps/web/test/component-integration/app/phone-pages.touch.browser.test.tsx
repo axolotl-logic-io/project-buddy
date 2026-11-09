@@ -42,6 +42,7 @@ import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readRecentNotes } from "@/notes/note-store.ts";
 import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
+import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readHomeSummary, readToday } from "@/today/today-store.ts";
@@ -315,6 +316,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
   vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
   for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);

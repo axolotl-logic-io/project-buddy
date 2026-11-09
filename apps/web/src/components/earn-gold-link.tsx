@@ -36,7 +36,10 @@ function EarnGoldLink(): JSX.Element {
   return (
     <>
       {" "}
-      <Link className="text-link" href="/account#buy-batteries">
+      <Link
+        className="text-link"
+        href="/account?section=batteries#buy-batteries"
+      >
         {BATTERY_PURCHASES_COPY.heading}
       </Link>
     </>

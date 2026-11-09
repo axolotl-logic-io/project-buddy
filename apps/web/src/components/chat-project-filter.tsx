@@ -4,11 +4,14 @@ import { type ChangeEvent, type JSX, useState } from "react";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
+import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import type { ProjectId } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 
 interface ChatProjectFilterProps {
   // The caller supplies only projects and chats belonging to the current user.
+  readonly workspace?: boolean;
   readonly projects: readonly {
     readonly id: ProjectId;
     readonly name: string;
@@ -38,6 +41,7 @@ function ChatProjectFilter({
   projects,
   chats,
   selectedProjectId,
+  workspace = false,
 }: ChatProjectFilterProps): JSX.Element {
   const [projectId, selectProject] = useState(selectedProjectId ?? "");
   const onChange = changeProject.bind(null, selectProject);
@@ -46,7 +50,7 @@ function ChatProjectFilter({
   if (selected !== undefined) {
     visibleChats = chats.filter((chat) => chat.project?.id === selected.id);
   }
-  return (
+  const filter = (
     <>
       <SelectField
         className="min-h-(--target-size) truncate"
@@ -62,6 +66,61 @@ function ChatProjectFilter({
           </option>
         ))}
       </SelectField>
+    </>
+  );
+  if (workspace === true) {
+    return (
+      <WorkspaceTabs
+        preserveState={false}
+        label={STANDALONE_CHATS_COPY.heading}
+        sections={[
+          {
+            id: "all",
+            label: WORKSPACES_COPY.allAdventures,
+            content: (
+              <div className="flex flex-col gap-4">
+                {filter}
+                <ChatList
+                  chats={visibleChats}
+                  emptyMessage={STANDALONE_CHATS_COPY.noChats}
+                  showProjectNames={true}
+                />
+              </div>
+            ),
+          },
+          {
+            id: "quests",
+            label: WORKSPACES_COPY.questAdventures,
+            content: (
+              <div className="flex flex-col gap-4">
+                {filter}
+                <ChatList
+                  chats={visibleChats.filter(
+                    (chat) => chat.project !== undefined,
+                  )}
+                  emptyMessage={STANDALONE_CHATS_COPY.noChats}
+                  showProjectNames={true}
+                />
+              </div>
+            ),
+          },
+          {
+            id: "standalone",
+            label: WORKSPACES_COPY.standalone,
+            content: (
+              <ChatList
+                chats={chats.filter((chat) => chat.project === undefined)}
+                emptyMessage={STANDALONE_CHATS_COPY.noChats}
+              />
+            ),
+          },
+        ]}
+      />
+    );
+  }
+  return (
+    <>
+      {filter}
       <ChatList
         chats={visibleChats}
         emptyMessage={STANDALONE_CHATS_COPY.noChats}
