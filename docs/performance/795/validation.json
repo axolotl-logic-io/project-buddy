@@ -1,0 +1,77 @@
+{
+  "generatedUtc": "2026-11-09T13:59:02.257229+00:00",
+  "mode": "final paired cohort validation",
+  "finalCompletenessChecked": true,
+  "pilotCompletenessChecked": false,
+  "finalAcceptanceClaimed": false,
+  "legacyCohorts": {
+    "checkpoint": {
+      "records": 17,
+      "captureFailures": 5
+    },
+    "provisional v2": {
+      "records": 48,
+      "captureFailures": 0
+    },
+    "Home trail pilot": {
+      "records": 24,
+      "captureFailures": 0
+    }
+  },
+  "traceFiles": 24,
+  "screenshotFrames": 153,
+  "framesByArtifact": {
+    "after/desktop/client-navigation/home.trace.json.gz": 2,
+    "after/desktop/cold-direct/home.trace.json.gz": 9,
+    "after/phone/client-navigation/home.trace.json.gz": 4,
+    "after/phone/cold-direct/home.trace.json.gz": 12,
+    "before/desktop/client-navigation/home.trace.json.gz": 2,
+    "before/desktop/cold-direct/home.trace.json.gz": 7,
+    "before/phone/client-navigation/home.trace.json.gz": 4,
+    "before/phone/cold-direct/home.trace.json.gz": 7,
+    "checkpoint-traces/before/desktop/client-navigation/home.trace.json.gz": 0,
+    "checkpoint-traces/before/desktop/cold-direct/home.trace.json.gz": 8,
+    "checkpoint-traces/before/phone/client-navigation/home.trace.json.gz": 0,
+    "checkpoint-traces/before/phone/cold-direct/home.trace.json.gz": 7,
+    "provisional/home-trail-pilot/after/desktop/client-navigation/home.trace.json.gz": 2,
+    "provisional/home-trail-pilot/after/phone/client-navigation/home.trace.json.gz": 5,
+    "provisional/home-trail-pilot/before/desktop/client-navigation/home.trace.json.gz": 2,
+    "provisional/home-trail-pilot/before/phone/client-navigation/home.trace.json.gz": 4,
+    "provisional/v2-737c914f/after/desktop/client-navigation/home.trace.json.gz": 17,
+    "provisional/v2-737c914f/after/desktop/cold-direct/home.trace.json.gz": 13,
+    "provisional/v2-737c914f/after/phone/client-navigation/home.trace.json.gz": 21,
+    "provisional/v2-737c914f/after/phone/cold-direct/home.trace.json.gz": 7,
+    "provisional/v2-737c914f/before/desktop/client-navigation/home.trace.json.gz": 2,
+    "provisional/v2-737c914f/before/desktop/cold-direct/home.trace.json.gz": 7,
+    "provisional/v2-737c914f/before/phone/client-navigation/home.trace.json.gz": 4,
+    "provisional/v2-737c914f/before/phone/cold-direct/home.trace.json.gz": 7
+  },
+  "negativeCases": {
+    "passed": [
+      "nested host unknown field",
+      "nested nav unknown field",
+      "nested activated unknown field",
+      "nested sourcePrep unknown field",
+      "nested presence unknown field",
+      "nested geometry unknown field",
+      "nested scroll unknown field",
+      "nested shifts unknown field",
+      "nested longtasks unknown field",
+      "nested lcp unknown field",
+      "nested events unknown field",
+      "source rectangle unknown field",
+      "row unknown field",
+      "same-document time origin mismatch",
+      "initial session-window reducer mismatch",
+      "transition all-shift reducer mismatch",
+      "compressed unredacted identifier",
+      "compressed unauthorized screenshot without args",
+      "compressed unauthorized screenshot with args",
+      "compressed stream filename forbidden",
+      "compressed screenshot nested unknown field"
+    ],
+    "skipped": []
+  },
+  "finalRecords": 320,
+  "finalCaptureFailures": 0
+}

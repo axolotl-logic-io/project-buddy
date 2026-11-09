@@ -37,6 +37,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Practices
 
+- [Shared server paths](performance/794/README.md): local operation spans, owner-scoped summaries and controlled production-build comparisons.
+
 - [Signed-in performance assessment](performance-assessment.md): exploratory production-build evidence, validation limits and systemic follow-ups.
 
 - [Adventure and editor client work](performance/796/README.md): matched renderer experiments, cold editor gains, rejected startup designs and remaining responsiveness limits.

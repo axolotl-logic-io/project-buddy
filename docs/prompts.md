@@ -16,11 +16,15 @@ Built-in and starter prompts begin with `# Character Sheet` for a construct, `# 
 
 Construct, activity and spell detail pages share the Workshop. In the Workshop and collection pages, choose Craft construct, Craft activity or Craft spell to create an own definition without copying another. The saved starter names remain "New construct", "New activity" and "New spell".
 
-The existing save, reset, Customize, delete and Marketplace actions remain available. Choose an example test case or write a message beside the definition. Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
+The existing save, reset, Customize, delete and Marketplace actions remain available. The editor uses the available width and shows one instruction section at a time. Choose Try your draft to open the test drawer, then choose an example test case or write a message.
+
+The drawer fills the screen width on phones and keeps the composer below the scrolling results. Back to editing or Escape closes it and returns focus to Try your draft. Reopening preserves test results, settings and unsent messages; closing does not cancel a pending test.
+
+Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
 
 Construct tests choose an activity; activity tests choose a construct and can test the opening request. Spell tests choose both and either let the construct select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as adventures. Real tests spend the acting user's batteries.
 
-Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save adventures, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating quests, editing the Journal, recording milestones and generating images are unavailable. The test area explains these limits before use. Cancel stops waiting for the test; any model use already incurred can still cost batteries.
+Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save adventures, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating quests, editing the Journal, recording milestones and generating images are unavailable. The visible summary says only spell casting is available; expand Test limits for the unavailable actions. Temporary-test information remains visible. Cancel stops waiting for the test; any model use already incurred can still cost batteries.
 
 ## Construct images
 

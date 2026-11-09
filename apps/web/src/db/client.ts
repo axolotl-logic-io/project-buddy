@@ -15,6 +15,7 @@ import {
   type NeonDatabase,
 } from "drizzle-orm/neon-serverless";
 import { readDatabaseUrl } from "../env.ts";
+import { countServerQuery } from "../performance/query-counter.ts";
 
 // Hosts of a database on this machine: the end-to-end test database, which
 // runs in Docker behind Neon's local proxy (compose.test-db.yml). The proxy
@@ -81,7 +82,10 @@ export function isOnThisMachine(host: string): boolean {
 // Created on first use rather than at import, so `next build` succeeds
 // without DATABASE_URL as long as no page queries the database.
 export function getDb(): Database {
-  database ??= drizzle({ client: neon(readDatabaseUrl()) });
+  database ??= drizzle({
+    client: neon(readDatabaseUrl()),
+    logger: { logQuery: countServerQuery },
+  });
   return database;
 }
 
@@ -106,7 +110,9 @@ export async function inTransaction<T>(
 ): Promise<T> {
   const pool = openPool(readDatabaseUrl());
   try {
-    return await drizzleOverPool(pool).transaction(work);
+    return await drizzleOverPool(pool, {
+      logger: { logQuery: countServerQuery },
+    }).transaction(work);
   } finally {
     await pool.end();
   }

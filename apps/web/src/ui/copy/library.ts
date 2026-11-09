@@ -61,7 +61,7 @@ const LIBRARY_COPY: {
           title: "Continue and find your work",
           links: [{ href: "/projects", label: "Find your quests" }],
           paragraphs: [
-            "Open Adventures to find and continue a conversation. Open a quest to find its adventures, Journal and progress timeline. Rename an adventure to make it easier to recognize; a manual name stops automatic renaming.",
+            "The header shows where you are, including Home. Its parent links lead back to the containing pages. Open Adventures to find and continue a conversation. Open a quest to find its adventures, Journal and progress timeline. Rename an adventure to make it easier to recognize; a manual name stops automatic renaming.",
             "The Journal holds persistent quest context such as goals, preferences, constraints and agreed plans. The construct is instructed to save useful information there, but you can read and edit it yourself. Check it when a reply seems to misunderstand your goal.",
             "Quick Notes let you capture information without a conversation. They become part of the quest Journal, so later quest adventures can use them. Another adventure’s entire conversation is not automatically supplied: put lasting information in the Journal.",
             "For example, save “The shelf gets sun only in the morning” as a Quick Note. In a later quest adventure, ask for plants that fit that constraint. A standalone adventure has no quest Journal.",
@@ -79,7 +79,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Open Workshop to craft a construct, activity or spell. Choose a built-in definition to customize, or create your own. Test a draft beside its editor before saving. Read the relevant book for worked examples and the shared Model context book for exactly what a test receives.",
+            "Open Workshop to craft a construct, activity or spell. Choose a built-in definition to customize, or create your own. Edit one instruction section at a time, then choose Try your draft to test it in a drawer before saving. The drawer covers the editor on phones. Back to editing or Escape closes it; reopening keeps the conversation, settings and unsent message. Tests disappear when you leave or reload the page. Expand Test limits for unavailable actions. Read the relevant book for worked examples and the shared Model context book for exactly what a test receives.",
             "Batteries power model use: replies, generated openings, automatic names, Workshop tests and images. They belong to the acting user; automatic check-ins use the quest owner’s balance. Prepared openings need no model call. Canceling a request does not promise a refund for work already done.",
             "Marketplace sharing and buying gives you copies of constructs, activities and spells. Its orbs are separate from model-use Batteries. Historically, before the orb migration, trades used the shared balance called gold. That historical behavior is not a way to earn Batteries after the migration.",
             "The orb migration pauses all new buys atomically, including old forms and free listings. With the purchase gate disabled, all buys stay paused. Held copies still open; each user can receive the one-time 100-orb starting balance and sellers can reprice listings. Public browsing shows only listings explicitly priced in orbs. Merging the implementation does not enable buying or continue legacy trades.",
@@ -130,7 +130,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Choose a companion under Test activity in the Workshop. Test “I have one sunny shelf. What should I do first?” Check whether Moss offers a concrete, manageable experiment. Then test an unrelated request to ensure the voice does not force every answer back to gardening.",
+            "Choose Try your draft to open the drawer, then choose a companion under Test activity. Test “I have one sunny shelf. What should I do first?” Check whether Moss offers a concrete, manageable experiment. Then test an unrelated request to ensure the voice does not force every answer back to gardening.",
             "Change one habit at a time and start a fresh test. Follow-ups keep the test version; editing the draft or companion marks results out of date and the next test starts fresh. Save when the behavior is useful, then start a new adventure to use the saved construct.",
             "Tests use real model calls and Batteries, but save no adventure or quest changes. They cannot prove Journal edits, manual searches, image generation or other unavailable tools work. A pleasant greeting alone does not demonstrate reliable technical help. Generate Images is a separate paid action: it uses the current draft Visual description without saving the name, Prompt or description. Generated draft art can be previewed and recovered. Save attaches matching draft art without another charge; a changed saved description with no matching draft art can request replacement artwork.",
           ],
@@ -178,7 +178,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Choose Test construct and Test activity in Workshop. First choose Let the construct decide and ask “Should I plant basil or mint on my sunny shelf?” Look for the spell cast and then assess the comparison. Also test a request that should not need it, such as “Say hello.”",
+            "Choose Try your draft to open the drawer, then choose Test construct and Test activity. First choose Let the construct decide and ask “Should I plant basil or mint on my sunny shelf?” Look for the spell cast and then assess the comparison. Also test a request that should not need it, such as “Say hello.”",
             "Choose Cast before replying to load the draft before the reply when you want to isolate the Spell Sheet. A good forced reply proves nothing about automatic selection. If forced behavior is good but automatic casting fails, refine the when-to-use guidance and try a fresh test.",
             "Follow-ups retain loaded spell ids and the test conversation, but resolve those ids against the current draft or accessible source on each request. Unlike adventure casts, Workshop does not preserve old cast instruction text. Tests have only spell casting, not real quest tools or manual search. Review behavior across several realistic requests; one successful example cannot guarantee future selection or compliance.",
           ],
@@ -226,7 +226,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Choose Test construct and use Test opening request in Workshop. Then send “I have ten minutes and a sunny shelf.” Check that the reply helps define a small experiment. Follow up with an unrelated question and check that the activity does not prevent a useful answer.",
+            "Choose Try your draft to open the drawer, then choose Test construct and use Test opening request. Then send “I have ten minutes and a sunny shelf.” Check that the reply helps define a small experiment. Follow up with an unrelated question and check that the activity does not prevent a useful answer.",
             "Built-in construct/activity combinations, and unchanged copies, may have a prepared opening. It is displayed without a model call. Special quest motivation and interview kickoffs always generate an opening, even for built-in combinations. Modified combinations normally generate an opening from the opening request and assembled context. Workshop opening tests exercise generation, not prepared-opening selection.",
             "Test a fresh conversation after editing. Workshop has no real quest Journal and cannot switch activities or save milestones. Use the model context book to understand these limits before interpreting a test as evidence for a real quest workflow.",
           ],
