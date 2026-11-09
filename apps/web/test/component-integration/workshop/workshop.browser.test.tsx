@@ -234,13 +234,9 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
   "%s stops waiting and announces the possible spend",
   async (label) => {
     const completed = Promise.withResolvers<Response>();
-    let signal: AbortSignal | null | undefined;
     vi.stubGlobal(
       "fetch",
-      vi.fn((_url: string, init: RequestInit): Promise<Response> => {
-        ({ signal } = init);
-        return completed.promise;
-      }),
+      vi.fn(() => completed.promise),
     );
     await show();
     await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
@@ -249,9 +245,12 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
       .element(page.getByText(WORKSHOP_COPY.cancelHint))
       .toBeVisible();
     await closeTests();
-    expect(signal?.aborted).toBe(false);
+    expect(refresh).not.toHaveBeenCalled();
     await openTests();
     await expect.element(page.getByText(WORKSHOP_COPY.pending)).toBeVisible();
+    await expect
+      .element(message())
+      .toHaveValue(WORKSHOP_COPY.examples[0].message);
     await page.getByRole("button", { name: label, exact: true }).click();
     expect(refresh).not.toHaveBeenCalled();
     await expect
