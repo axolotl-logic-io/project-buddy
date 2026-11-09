@@ -115,5 +115,5 @@ test("insufficient image-reservation gold explains the amounts without claiming 
     );
   await expect
     .element(page.getByRole("link"))
-    .toHaveAttribute("href", "/marketplace#your-listings");
+    .toHaveAttribute("href", "/account#buy-batteries");
 });

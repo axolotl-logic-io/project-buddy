@@ -1,7 +1,9 @@
 // The app's log, which Vercel collects from the console: one line per
 // failure on the error stream, and one diagnostics line per construct reply on
 // the info stream. The only module that writes to the console.
+
 import type { ContentPart, StepResult, ToolSet } from "ai";
+import Stripe from "stripe";
 import type { EmailProblem } from "@/email/email-failure.ts";
 import { anthropicErrorDetails } from "@/errors/anthropic-errors.ts";
 import type { AppErrorCase } from "@/errors/app-error.ts";
@@ -44,6 +46,11 @@ function causeDetails(
 function describeError(error: unknown, depth: number): ErrorDetails {
   if (!(error instanceof Error)) {
     return { value: String(error) };
+  }
+  // Stripe's messages and raw payloads may include submitted payment data.
+  // Keep only SDK classification and HTTP status, never the raw exception.
+  if (error instanceof Stripe.errors.StripeError) {
+    return { name: error.type, status: error.statusCode };
   }
   function describeCause(cause: unknown): ErrorDetails {
     return describeError(cause, depth + 1);
