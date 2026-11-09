@@ -181,9 +181,20 @@ export function NewChatForm({
   readonly fixedConstructId?: ConstructId | OwnPromptId;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
-  const [selection, select] = useState(() =>
+  const [storedSelection, select] = useState(() =>
     firstSelection(selectedActivityId, projectId, selectedProjectId),
   );
+  const active = projects?.filter((project) => project.status === "active");
+  let selection = storedSelection;
+  if (
+    active !== undefined &&
+    selection.projectId !== "" &&
+    selection.projectId !== NEW_PROJECT &&
+    !active.some((project) => project.id === selection.projectId)
+  ) {
+    selection = chooseProject(selection, "");
+    select(selection);
+  }
   const [naming, setNaming] = useState(false);
   const formId = useId();
   // The status line, empty except while the chat is being started, which
@@ -270,9 +281,9 @@ export function NewChatForm({
             <option value="">{NEW_CHAT_COPY.noProject}</option>
             <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
           </optgroup>
-          {projects.length > 0 && (
+          {active !== undefined && active.length > 0 && (
             <optgroup label={NEW_CHAT_COPY.existingProjects}>
-              {projects.map((project) => (
+              {active.map((project) => (
                 <option key={project.id} value={project.id}>
                   {QUEST_STATUS_COPY.option(
                     project.name,
