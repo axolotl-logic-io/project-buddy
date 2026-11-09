@@ -59,7 +59,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "Open Workshop to craft a construct, activity or spell. Choose a built-in definition to customize, or create your own. Test a draft beside its editor before saving. Read the relevant book for worked examples and the shared Model context book for exactly what a test receives.",
             "Batteries power model use: replies, generated openings, automatic names, Workshop tests and images. They belong to the acting user; automatic check-ins use the quest owner’s balance. Prepared openings need no model call. Canceling a request does not promise a refund for work already done.",
-            "Marketplace orbs are separate from Batteries. Marketplace sharing and buying gives you copies of constructs, activities and spells; it does not earn model-use Batteries. Live Battery buying is unavailable until configured and commercial policy is approved; any test purchase panel is test-only. Do not treat a test receipt as a live purchase.",
+            "Marketplace sharing and buying gives you copies of constructs, activities and spells. The planned orb currency is separate from Batteries, but that rollout is not enabled. Before the cutover, Marketplace trades still move the existing shared balance (older screens may call it gold), so sales can affect the balance used for model calls. After the orb cutover, Marketplace trades will move orbs and will not earn model-use Batteries. Do not assume the cutover is live because orb support has been built. Live Battery buying is unavailable until configured and commercial policy is approved; any test purchase panel is test-only. Do not treat a test receipt as a live purchase.",
           ],
         },
       ],
