@@ -214,3 +214,22 @@ test("restores each project's Quick Note and selected project, with discard and 
   await expect.element(projectField()).toHaveValue(FOX_PROJECT.id);
   await expect.element(noteField()).toHaveValue("");
 });
+
+test.each(["completed", "abandoned"] as const)(
+  "Quick Note ignores a %s quest link and saved choice",
+  async (status) => {
+    stores.listProjects.mockResolvedValue([
+      { ...TURTLE_PROJECT, status },
+      FOX_PROJECT,
+    ]);
+    localStorage.setItem(
+      `draft:quick-note:${SIGNED_IN_USER.id}`,
+      JSON.stringify(TURTLE_PROJECT.id),
+    );
+    await renderCapture(TURTLE_PROJECT.id);
+    await expect.element(projectField()).toHaveValue(FOX_PROJECT.id);
+    await expect
+      .element(page.getByRole("option", { name: TURTLE_PROJECT.name }))
+      .not.toBeInTheDocument();
+  },
+);

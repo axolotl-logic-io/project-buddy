@@ -112,7 +112,11 @@ export default async function ProjectPage({
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
-      <ProjectNotes notes={notes} projectId={project.id} />
+      <ProjectNotes
+        notes={notes}
+        projectId={project.id}
+        status={project.status}
+      />
       <ProjectMembers
         members={members}
         projectId={project.id}
