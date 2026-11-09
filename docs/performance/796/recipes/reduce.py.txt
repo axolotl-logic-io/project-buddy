@@ -1,4 +1,4 @@
-import gzip,json,statistics
+import csv,gzip,io,json,statistics
 from pathlib import Path
 from collections import defaultdict
 root=Path(__file__).resolve().parent
@@ -24,7 +24,15 @@ def metrics(r):
  network=[n for n in r['networkResources'] if start<=n['start'] and n.get('finish') is not None and n['finish']<=end]
  keyboard=[e['duration'] for e in r['events'] if e['name'] in ['keydown','keypress','keyup']]
  shifts=[s for s in r['shifts'] if start<=s['time']<=end]
- result={'primaryMs':r['primary']-start,'controlMs':r['control']['confirmed']-start,'firstAttemptMs':r['control']['firstAttempt']-start,'probeAttempts':r['control']['attempts'],'longTaskOverlap5sMs':sum(max(0,min(t['time']+t['duration'],end)-max(t['time'],start)) for t in r['longtasks']),'maxLongTaskObservedMs':max([t['duration'] for t in r['longtasks']]+[0]),'worstKeyboardObservedMs':max(keyboard) if keyboard else None,'completed5sScriptBytes':sum(x['bytes'] for x in rs if x['type']=='script'),'completed5sFontBytes':sum(x['bytes'] for x in rs if x['path']=='/_next/static/:font'),'earlyStartedScriptBytes':sum(x['bytes'] for x in r['resources'] if x['type']=='script' and start<=x['start']<=r['primary']),'earlyParserScriptBytes':sum(n['bytes'] for n in network if n['resourceType']=='Script' and n.get('initiator')=='parser' and n['start']<=r['primary'] and not n['prefetch']),'lateUnmarkedScriptBytes':sum(n['bytes'] for n in network if n['resourceType']=='Script' and n['start']>r['primary'] and not n['prefetch']),'knownPrefetchBytes':sum(n['bytes'] for n in network if n['prefetch']),'cssInitiatedArtworkBytes':sum(x['bytes'] for x in rs if x['path']=='/artwork/:asset' and x['type']=='css'),'allShiftSum5s':sum(s['value'] for s in shifts),'httpErrorResponses':sum(n['status']>=400 for n in r['networkResources']),'preferencesPostsObserved':sum(n['method']=='POST' and n.get('operation')=='preferences-refresh' for n in r['networkResources']),'accountingPostsObserved':sum(n['method']=='POST' and n.get('operation')=='reply-accounting' for n in r['networkResources'])}
+ result={'observationWindowMs':r['end']-start,'wholeObservedScriptBytes':sum(x['bytes'] for x in r['resources'] if x['path']=='/_next/static/:asset.js' and start<=x['start'] and x['start']+x['duration']<=r['end']),'wholeObservedScriptInitiatedBytes':sum(x['bytes'] for x in r['resources'] if x['type']=='script' and start<=x['start'] and x['start']+x['duration']<=r['end']),'longTaskOverlapObservedMs':sum(max(0,min(t['time']+t['duration'],r['end'])-max(t['time'],start)) for t in r['longtasks']),'primaryMs':r['primary']-start,'controlMs':r['control']['confirmed']-start,'firstAttemptMs':r['control']['firstAttempt']-start,'probeAttempts':r['control']['attempts'],'longTaskOverlap5sMs':sum(max(0,min(t['time']+t['duration'],end)-max(t['time'],start)) for t in r['longtasks']),'maxLongTaskObservedMs':max([t['duration'] for t in r['longtasks']]+[0]),'worstKeyboardObservedMs':max(keyboard) if keyboard else None,'completed5sScriptBytes':sum(x['bytes'] for x in rs if x['type']=='script'),'completed5sFontBytes':sum(x['bytes'] for x in rs if x['path']=='/_next/static/:font'),'earlyStartedScriptBytes':sum(x['bytes'] for x in r['resources'] if x['type']=='script' and start<=x['start']<=r['primary']),'earlyParserScriptBytes':sum(n['bytes'] for n in network if n['resourceType']=='Script' and n.get('initiator')=='parser' and n['start']<=r['primary'] and not n['prefetch']),'lateUnmarkedScriptBytes':sum(n['bytes'] for n in network if n['resourceType']=='Script' and n['start']>r['primary'] and not n['prefetch']),'knownPrefetchBytes':sum(n['bytes'] for n in network if n['prefetch']),'cssInitiatedArtworkBytes':sum(x['bytes'] for x in rs if x['path']=='/artwork/:asset' and x['type']=='css'),'allShiftSum5s':sum(s['value'] for s in shifts),'httpErrorResponses':sum(n['status']>=400 for n in r['networkResources']),'preferencesPostsObserved':sum(n['method']=='POST' and n.get('operation')=='preferences-refresh' for n in r['networkResources']),'accountingPostsObserved':sum(n['method']=='POST' and n.get('operation')=='reply-accounting' for n in r['networkResources'])}
+ # These byte signatures identify separate chunks in this archived build pair only.
+ # Zero engine chunks before does not mean no engine: it was embedded initially.
+ for label,size in [('separateEngine',51716),('engineCompanion',1868),('pythonGrammar',9519)]:
+  chunks=[x for x in r['resources'] if x['type']=='script' and x['bytes']==size and start<=x['start'] and x['start']+x['duration']<=r['end']]
+  result[label+'CountObserved']=len(chunks)
+  result[label+'CountAfter5s']=sum(x['start']>=end for x in chunks)
+  result[label+'StartObservedMs']=min((x['start']-start for x in chunks),default=None)
+  result[label+'FinishObservedMs']=max((x['start']+x['duration']-start for x in chunks),default=None)
  if r['mode']!='client-navigation':result['initialSessionWindowCls']=maximum_session_cls(shifts)
  return result
 
@@ -39,6 +47,20 @@ def summary(rows):
    values[key]={'available':len(numbers),'median':statistics.median(numbers),'min':min(numbers),'max':max(numbers)} if numbers else {'available':0}
   result.append({'variant':variant,'path':path,'mode':mode,'n':len(rs),'metrics':values})
  return result
-out={'schema':'796-experiment-summary-v1','screening':summary([r for r in rows if r['sample']<=3]),'coldConfirmation':summary([r for r in rows if r['mode']=='cold-direct' and r['path'] in ['editor','long-adventure','empty-adventure']]),'mixedPrewarmConfirmation':summary(mixed),'hostLoad':{v:{'n':len([r for r in rows+mixed if r['variant']==v]),'oneMinuteMin':min(r['hostLoad'][0] for r in rows+mixed if r['variant']==v),'oneMinuteMax':max(r['hostLoad'][0] for r in rows+mixed if r['variant']==v)} for v in ['before','renderer']}}
-(root/'summary.json').write_text(json.dumps(out,indent=2)+'\n')
-print('Reduced',len(rows),'main and',len(mixed),'separate prewarmed mixed observations')
+def build_summary():
+ return {'schema':'796-experiment-summary-v2','screening':summary([r for r in rows if r['sample']<=3]),'coldConfirmation':summary([r for r in rows if r['mode']=='cold-direct' and r['path'] in ['editor','long-adventure','empty-adventure']]),'mixedPrewarmConfirmation':summary(mixed),'hostLoad':{v:{'n':len([r for r in rows+mixed if r['variant']==v]),'oneMinuteMin':min(r['hostLoad'][0] for r in rows+mixed if r['variant']==v),'oneMinuteMax':max(r['hostLoad'][0] for r in rows+mixed if r['variant']==v)} for v in ['before','renderer']}}
+def matrix_text(out):
+ buffer=io.StringIO(newline='')
+ writer=csv.writer(buffer,lineterminator='\n')
+ writer.writerow(['cohort','variant','journey','mode','n','metric','available','median','min','max'])
+ for cohort in ['screening','coldConfirmation','mixedPrewarmConfirmation']:
+  for cell in out[cohort]:
+   for metric,values in cell['metrics'].items():
+    writer.writerow([cohort,cell['variant'],cell['path'],cell['mode'],cell['n'],metric]+[values.get(k,'') for k in ['available','median','min','max']])
+ return buffer.getvalue()
+
+if __name__=='__main__':
+ out=build_summary()
+ (root/'summary.json').write_text(json.dumps(out,indent=2)+'\n')
+ with (root/'matrix.csv').open('w',newline='') as target:target.write(matrix_text(out))
+ print('Reduced',len(rows),'main and',len(mixed),'separate prewarmed mixed observations')

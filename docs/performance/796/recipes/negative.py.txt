@@ -1,6 +1,6 @@
 import copy,gzip,json,shutil,subprocess,tempfile
 from pathlib import Path
-root=Path('docs/performance/796');check=Path('/tmp/pb-796/check.py')
+root=Path(__file__).resolve().parent.parent;check=root/'recipes/check.py.txt'
 results=[]
 def run(name,file,mutate):
  with tempfile.TemporaryDirectory(prefix='pb796-negative-') as temp:
@@ -24,5 +24,5 @@ run('screenshot without arguments',trace,lambda a:a['traceEvents'].append({'name
 run('screenshot category',trace,lambda a:a['traceEvents'].append({'name':'Event','cat':'disabled-by-default-devtools.screenshot','ph':'I','ts':1,'pid':1,'tid':1}))
 if (root/'reading-anchors.json.gz').exists():
  run('moved visible reading anchor','reading-anchors.json.gz',lambda a:a[0]['anchorAfter'].update(top=a[0]['anchorBefore']['top']+20))
-Path('/tmp/pb-796/negative-results.json').write_text(json.dumps(results,indent=2)+'\n')
+(root/'negative-results.json').write_text(json.dumps(results,indent=2)+'\n')
 print(len(results),'negative cases rejected')

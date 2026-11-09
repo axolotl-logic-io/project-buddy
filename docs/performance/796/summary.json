@@ -1,5 +1,5 @@
 {
-  "schema": "796-experiment-summary-v1",
+  "schema": "796-experiment-summary-v2",
   "screening": [
     {
       "variant": "before",
@@ -7,6 +7,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5009.800000190735,
+          "min": 5001.89999961853,
+          "max": 5012.0
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 369.9000005722046,
@@ -114,6 +138,60 @@
           "median": 0,
           "min": 0,
           "max": 0
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -123,6 +201,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 6314.699999809265,
+          "min": 6312.300000190735,
+          "max": 6347.60000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 472214,
+          "min": 472214,
+          "max": 472214
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 469874,
+          "min": 469874,
+          "max": 469874
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 427.0,
+          "min": 426.0,
+          "max": 439.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 743.1999998092651,
@@ -231,6 +333,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -245,6 +401,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5192.5,
+          "min": 5177.60000038147,
+          "max": 5192.700000762939
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 599,
@@ -353,6 +533,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -367,6 +601,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5014.599999427795,
+          "min": 5012.599999427795,
+          "max": 5016.299999237061
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 361.80000019073486,
@@ -474,6 +732,60 @@
           "median": 2,
           "min": 1,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -483,6 +795,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 7413.699999809265,
+          "min": 7409.699999809265,
+          "max": 7462.60000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 645840,
+          "min": 645840,
+          "max": 645840
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 643500,
+          "min": 643500,
+          "max": 643500
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 455.0,
+          "min": 447.0,
+          "max": 465.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 734.1999998092651,
@@ -591,6 +927,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -605,6 +995,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5175.199999809265,
+          "min": 5173.5,
+          "max": 5175.400000572205
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 506.80000019073486,
@@ -713,6 +1127,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -727,6 +1195,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5012.39999961853,
+          "min": 5010.800000190735,
+          "max": 5013.39999961853
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 464.3999996185303,
@@ -834,6 +1326,60 @@
           "median": 0,
           "min": 0,
           "max": 0
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -843,6 +1389,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5171.099999427795,
+          "min": 5169.099999427795,
+          "max": 5171.10000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 280018,
+          "min": 280018,
+          "max": 280018
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 277678,
+          "min": 277678,
+          "max": 277678
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 264.0,
+          "min": 161.0,
+          "max": 272.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 741,
@@ -951,6 +1521,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -965,6 +1589,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5189.10000038147,
+          "min": 5182.5,
+          "max": 5194
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 506.5,
@@ -1073,6 +1721,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -1087,6 +1789,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5011.0,
+          "min": 5005.299999237061,
+          "max": 5011.5
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 629.0,
+          "min": 628.0,
+          "max": 706.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 973.1999998092651,
@@ -1194,6 +1920,60 @@
           "median": 2,
           "min": 2,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -1203,6 +1983,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 8422.800000190735,
+          "min": 8422.199999809265,
+          "max": 8793.699999809265
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 645840,
+          "min": 645840,
+          "max": 645840
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 643500,
+          "min": 643500,
+          "max": 643500
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 1641.0,
+          "min": 1640.0,
+          "max": 1646.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 867.6999998092651,
@@ -1311,6 +2115,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -1325,6 +2183,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5188.300000190735,
+          "min": 5184.599999427795,
+          "max": 5192.5
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 967.0,
+          "min": 964.0,
+          "max": 1007.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 658.1000003814697,
@@ -1433,6 +2315,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -1447,6 +2383,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5005.89999961853,
+          "min": 5005.699999809265,
+          "max": 5006.299999237061
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 54.0,
+          "min": 52,
+          "max": 55
+        },
         "primaryMs": {
           "available": 3,
           "median": 531.5,
@@ -1554,6 +2514,60 @@
           "median": 2,
           "min": 2,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -1563,6 +2577,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 8155.800000190735,
+          "min": 8119.400000572205,
+          "max": 8156.39999961853
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 656325,
+          "min": 656325,
+          "max": 656325
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 653985,
+          "min": 653985,
+          "max": 653985
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 770.0,
+          "min": 757.0,
+          "max": 771.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 819.3000001907349,
@@ -1671,6 +2709,66 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 3,
+          "median": 6268.199999809265,
+          "min": 6224.10000038147,
+          "max": 6276.5
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 3,
+          "median": 6468.10000038147,
+          "min": 6424.0,
+          "max": 6476.10000038147
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -1685,6 +2783,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5179.300000190735,
+          "min": 5178,
+          "max": 5186.5
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 132.0,
+          "min": 0,
+          "max": 139.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 536.1999998092651,
@@ -1793,6 +2915,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -1807,6 +2983,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5006.300000190735,
+          "min": 5004.0,
+          "max": 5014.5
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 643.1000003814697,
@@ -1914,6 +3114,60 @@
           "median": 0,
           "min": 0,
           "max": 0
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -1923,6 +3177,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5170.5,
+          "min": 5169.60000038147,
+          "max": 5170.699999809265
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 251575,
+          "min": 251575,
+          "max": 251575
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 249235,
+          "min": 249235,
+          "max": 249235
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 281.0,
+          "min": 277.0,
+          "max": 290.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 744.1999998092651,
@@ -2031,6 +3309,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -2045,6 +3377,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5186.10000038147,
+          "min": 5177.60000038147,
+          "max": 5192.10000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 566.3000001907349,
@@ -2153,6 +3509,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -2167,6 +3577,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5015.39999961853,
+          "min": 5011.699999809265,
+          "max": 5016.800000190735
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 360.30000019073486,
@@ -2274,6 +3708,60 @@
           "median": 2,
           "min": 2,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -2283,6 +3771,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 7139.199999809265,
+          "min": 7102.799999237061,
+          "max": 7158.60000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 594259,
+          "min": 594259,
+          "max": 594259
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 591919,
+          "min": 591919,
+          "max": 591919
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 453.0,
+          "min": 446.0,
+          "max": 453.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 732.9000005722046,
@@ -2391,6 +3903,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -2405,6 +3971,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5177.89999961853,
+          "min": 5173.5,
+          "max": 5187.300000190735
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 56.0,
+          "min": 0,
+          "max": 59
+        },
         "primaryMs": {
           "available": 3,
           "median": 524.1999998092651,
@@ -2513,6 +4103,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -2527,6 +4171,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5009.60000038147,
+          "min": 5000.0,
+          "max": 5012.0
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 467.0,
@@ -2634,6 +4302,60 @@
           "median": 0,
           "min": 0,
           "max": 0
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -2643,6 +4365,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5178,
+          "min": 5172.60000038147,
+          "max": 5178.599999427795
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 280018,
+          "min": 280018,
+          "max": 280018
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 277678,
+          "min": 277678,
+          "max": 277678
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 166.0,
+          "min": 162.0,
+          "max": 184.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 738,
@@ -2751,6 +4497,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -2765,6 +4565,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5190.800000190735,
+          "min": 5189.300000190735,
+          "max": 5191.200000762939
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
         "primaryMs": {
           "available": 3,
           "median": 513.5,
@@ -2873,6 +4697,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -2887,6 +4765,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5006.300000190735,
+          "min": 5005.099999427795,
+          "max": 5009.800000190735
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 662.0,
+          "min": 635.0,
+          "max": 690.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 999.6999998092651,
@@ -2994,6 +4896,60 @@
           "median": 2,
           "min": 2,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -3003,6 +4959,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 8317.699999809265,
+          "min": 8315.599999427795,
+          "max": 8394.800000190735
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 594259,
+          "min": 594259,
+          "max": 594259
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 591919,
+          "min": 591919,
+          "max": 591919
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 1619.0,
+          "min": 1604.0,
+          "max": 1668.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 871.3000001907349,
@@ -3111,6 +5091,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -3125,6 +5159,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5188,
+          "min": 5183.699999809265,
+          "max": 5197.5
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 991.0,
+          "min": 952.0,
+          "max": 1014.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 655.4000005722046,
@@ -3233,6 +5291,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -3247,6 +5359,30 @@
       "mode": "client-navigation",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5014.199999809265,
+          "min": 5008.300000190735,
+          "max": 5016.0
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 63.0,
+          "min": 56.0,
+          "max": 97.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 500.4000005722046,
@@ -3354,6 +5490,60 @@
           "median": 2,
           "min": 2,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
         }
       }
     },
@@ -3363,6 +5553,30 @@
       "mode": "cold-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 7807.400000572205,
+          "min": 7792,
+          "max": 7869.599999427795
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 658328,
+          "min": 658328,
+          "max": 658328
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 655988,
+          "min": 655988,
+          "max": 655988
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 725.0,
+          "min": 709.0,
+          "max": 726.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 814.5,
@@ -3471,6 +5685,78 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "separateEngineStartObservedMs": {
+          "available": 3,
+          "median": 5914.900000572205,
+          "min": 5909.400000572205,
+          "max": 5988.599999427795
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 3,
+          "median": 6430.5,
+          "min": 6424.199999809265,
+          "max": 6505.89999961853
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 3,
+          "median": 5912.699999809265,
+          "min": 5906.699999809265,
+          "max": 5987.299999237061
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 3,
+          "median": 6085.199999809265,
+          "min": 6078.699999809265,
+          "max": 6161.199999809265
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 3,
+          "median": 6457.10000038147,
+          "min": 6450.5,
+          "max": 6536
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 3,
+          "median": 6654.900000572205,
+          "min": 6649.0,
+          "max": 6738.89999961853
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -3485,6 +5771,30 @@
       "mode": "warm-direct",
       "n": 3,
       "metrics": {
+        "observationWindowMs": {
+          "available": 3,
+          "median": 5182.5,
+          "min": 5177.39999961853,
+          "max": 5183.599999427795
+        },
+        "wholeObservedScriptBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 3,
+          "median": 140.0,
+          "min": 0,
+          "max": 182.0
+        },
         "primaryMs": {
           "available": 3,
           "median": 538.1999998092651,
@@ -3593,6 +5903,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 3,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 3,
           "median": 0,
@@ -3609,6 +5973,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 6361.800000190735,
+          "min": 6312.300000190735,
+          "max": 6452.699999809265
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 472214.0,
+          "min": 472214,
+          "max": 472214
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 469874.0,
+          "min": 469874,
+          "max": 469874
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 442.5,
+          "min": 424.0,
+          "max": 461.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 744.2999997138977,
@@ -3717,6 +6105,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -3731,6 +6173,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 7491.950000286102,
+          "min": 7409.699999809265,
+          "max": 7550.300000190735
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 645840.0,
+          "min": 645840,
+          "max": 645840
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 643500.0,
+          "min": 643500,
+          "max": 643500
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 459.0,
+          "min": 437.0,
+          "max": 488.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 733.4499998092651,
@@ -3839,6 +6305,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -3853,6 +6373,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 8690.599999904633,
+          "min": 8422.199999809265,
+          "max": 8901.10000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 645840.0,
+          "min": 645840,
+          "max": 645840
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 643500.0,
+          "min": 643500,
+          "max": 643500
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 1658.5,
+          "min": 1628.0,
+          "max": 1786.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 1141.2000002861023,
@@ -3961,6 +6505,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -3975,6 +6573,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 5173.800000190735,
+          "min": 5169.60000038147,
+          "max": 5175.200000762939
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 251575.0,
+          "min": 251575,
+          "max": 251575
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 249235.0,
+          "min": 249235,
+          "max": 249235
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 285.5,
+          "min": 277.0,
+          "max": 305.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 745.4999995231628,
@@ -4083,6 +6705,60 @@
           "min": 0,
           "max": 0
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -4097,6 +6773,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 7148.900000095367,
+          "min": 7102.799999237061,
+          "max": 7224
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 594259.0,
+          "min": 594259,
+          "max": 594259
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 591919.0,
+          "min": 591919,
+          "max": 591919
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 433.0,
+          "min": 427.0,
+          "max": 453.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 733.25,
@@ -4205,6 +6905,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -4219,6 +6973,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 8397.900000095367,
+          "min": 8211,
+          "max": 8630.300000190735
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 594259.0,
+          "min": 594259,
+          "max": 594259
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 591919.0,
+          "min": 591919,
+          "max": 591919
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 1623.5,
+          "min": 1543.0,
+          "max": 1702.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 1147.8000001907349,
@@ -4327,6 +7105,60 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 0
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -4343,6 +7175,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 8088.950000286102,
+          "min": 8012.800000190735,
+          "max": 8206.699999809265
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 656325.0,
+          "min": 656325,
+          "max": 656325
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 653985.0,
+          "min": 653985,
+          "max": 653985
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 768.5,
+          "min": 708.0,
+          "max": 822.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 820.0999999046326,
@@ -4451,6 +7307,66 @@
           "min": 2,
           "max": 2
         },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "separateEngineStartObservedMs": {
+          "available": 0
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 0
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 0
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 0
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 10,
+          "median": 6203.60000038147,
+          "min": 6125.800000190735,
+          "max": 6337.300000190735
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 10,
+          "median": 6403.200000286102,
+          "min": 6326.60000038147,
+          "max": 6536.099999427795
+        },
         "initialSessionWindowCls": {
           "available": 10,
           "median": 0.0,
@@ -4465,6 +7381,30 @@
       "mode": "cold-direct",
       "n": 10,
       "metrics": {
+        "observationWindowMs": {
+          "available": 10,
+          "median": 7846.449999809265,
+          "min": 7767.199999809265,
+          "max": 7937.60000038147
+        },
+        "wholeObservedScriptBytes": {
+          "available": 10,
+          "median": 658328.0,
+          "min": 658328,
+          "max": 658328
+        },
+        "wholeObservedScriptInitiatedBytes": {
+          "available": 10,
+          "median": 655988.0,
+          "min": 655988,
+          "max": 655988
+        },
+        "longTaskOverlapObservedMs": {
+          "available": 10,
+          "median": 732.5,
+          "min": 704.0,
+          "max": 892.0
+        },
         "primaryMs": {
           "available": 10,
           "median": 817.25,
@@ -4572,6 +7512,78 @@
           "median": 2.0,
           "min": 2,
           "max": 2
+        },
+        "separateEngineCountObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "separateEngineCountAfter5s": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "separateEngineStartObservedMs": {
+          "available": 10,
+          "median": 5953.349999904633,
+          "min": 5876.099999427795,
+          "max": 6054.60000038147
+        },
+        "separateEngineFinishObservedMs": {
+          "available": 10,
+          "median": 6485.549999713898,
+          "min": 6392.89999961853,
+          "max": 6570.400000572205
+        },
+        "engineCompanionCountObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "engineCompanionCountAfter5s": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "engineCompanionStartObservedMs": {
+          "available": 10,
+          "median": 5951.949999809265,
+          "min": 5874.699999809265,
+          "max": 6052.800000190735
+        },
+        "engineCompanionFinishObservedMs": {
+          "available": 10,
+          "median": 6125.400000095367,
+          "min": 6047.699999809265,
+          "max": 6224.900000572205
+        },
+        "pythonGrammarCountObserved": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarCountAfter5s": {
+          "available": 10,
+          "median": 1.0,
+          "min": 1,
+          "max": 1
+        },
+        "pythonGrammarStartObservedMs": {
+          "available": 10,
+          "median": 6512.099999904633,
+          "min": 6419.099999427795,
+          "max": 6599.10000038147
+        },
+        "pythonGrammarFinishObservedMs": {
+          "available": 10,
+          "median": 6710.549999713898,
+          "min": 6617.89999961853,
+          "max": 6803.10000038147
         },
         "initialSessionWindowCls": {
           "available": 10,

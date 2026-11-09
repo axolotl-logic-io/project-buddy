@@ -218,4 +218,16 @@ for filename,expected_count in [('home-artwork.json.gz',6),('bounded.json.gz',6)
    assert set(r['audits'])=={'total-blocking-time','first-contentful-paint','largest-contentful-paint','cumulative-layout-shift','interactive','speed-index'}
    for audit in r['audits'].values():keys(audit,{'score','value','unit'})
 
+# Derived evidence must exactly match the archived reducer, including every cell
+# and metric. Partial mode is reserved for the existing raw negative fixtures.
+if not partial:
+ import runpy
+ reducer=runpy.run_path(str(root/'recipes/reduce.py.txt'))
+ expected_summary=reducer['build_summary']()
+ actual_summary=json.loads((root/'summary.json').read_text())
+ walk(actual_summary)
+ assert actual_summary==expected_summary,'derived summary differs from raw observations'
+ with (root/'matrix.csv').open(newline='') as matrix:
+  assert matrix.read()==reducer['matrix_text'](expected_summary),'matrix differs from derived summary'
+
 print(f'Validated {len(rows)}/{len(expected)} matched observations, rejected experiments, {len(streams)}/6 streams and no-screenshot traces.')
