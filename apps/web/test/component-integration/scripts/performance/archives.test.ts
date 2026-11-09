@@ -157,3 +157,29 @@ test("keeps the pre-fix gzip cohort and its filmstrip review, but not as a verif
     }),
   );
 });
+
+const CORRECTED_HOME_FRAME_COUNT = 19;
+
+test("validates the committed corrected audit and binds its manual filmstrip review", async () => {
+  const directory = new URL("../797/corrected/", ARCHIVE);
+  await validateAuditDirectory(directory.pathname, FULL_SAMPLE_COUNT);
+  const [home, review] = await Promise.all([
+    readFile(new URL("home.trace.json.gz", directory)),
+    readFile(new URL("filmstrip-review.json", directory), "utf8"),
+  ]);
+  const reviewInput: unknown = JSON.parse(review);
+  expect(reviewInput).toEqual(
+    expect.objectContaining({
+      file: "home.trace.json.gz",
+      sha256: createHash("sha256").update(home).digest("hex"),
+      framesReviewed: CORRECTED_HOME_FRAME_COUNT,
+      otherTraceScreenshots: 0,
+    }),
+  );
+  const traceInput: unknown = JSON.parse(gunzipSync(home).toString("utf8"));
+  expect(
+    validateTrace(traceInput, "home.trace.json.gz").filter(
+      (event) => event.name === "Screenshot",
+    ),
+  ).toHaveLength(CORRECTED_HOME_FRAME_COUNT);
+});
