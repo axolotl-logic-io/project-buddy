@@ -4,8 +4,8 @@ import { render } from "vitest-browser-react";
 import type { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
