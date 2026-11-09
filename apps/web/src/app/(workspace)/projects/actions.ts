@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { startProject } from "@/chats/start-chat.ts";
+import {
+  type ChosenConstruct,
+  chosenConstruct,
+} from "@/constructs/chosen-construct.ts";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import {
@@ -15,8 +19,9 @@ import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 // The form's fields as sent; the name is checked by the shared rule.
 const CREATE_PROJECT_FORM = z.object({
-  name: z.string().default(""),
+  name: z.string().default(PROJECTS_COPY.defaultName),
   motivation: z.string().trim().default(""),
+  constructId: z.string().optional(),
 });
 
 // What the name field says about a name the shared rule refused.
@@ -38,7 +43,8 @@ export type CreateProjectState =
       readonly motivation: string;
     };
 
-// Starts the quest with the account's interview construct and supplied motivation.
+// Starts with the selected construct, or the account preference for legacy callers.
+// The two-field dialog omits a name and receives a valid default.
 // Opening failures save nothing; a storage failure reaches the error boundary.
 export async function createProjectAction(
   _state: CreateProjectState,
@@ -60,7 +66,15 @@ export async function createProjectAction(
     };
   }
 
-  const chosen = await interviewConstruct(user.id);
+  let chosen: ChosenConstruct | undefined;
+  if (form.data.constructId === undefined) {
+    chosen = await interviewConstruct(user.id);
+  } else {
+    chosen = await chosenConstruct(user.id, form.data.constructId);
+  }
+  if (chosen === undefined) {
+    return { kind: "invalid", message: PROJECTS_COPY.unavailableConstruct };
+  }
   const started = await startProject(user.id, name.name, chosen.construct, {
     motivation: form.data.motivation,
   });

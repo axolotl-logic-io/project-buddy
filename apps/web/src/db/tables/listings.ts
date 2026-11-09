@@ -40,6 +40,7 @@ export const listings = pgTable(
     name: text("name").notNull(),
     parts: jsonb("parts").notNull(),
     description: text("description").notNull(),
+    currency: text("currency").notNull().default("gold"),
     price: integer("price").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -50,6 +51,10 @@ export const listings = pgTable(
     unlistedAt: timestamp("unlisted_at", { withTimezone: true }),
   },
   (table) => [
+    check(
+      "listings_currency_price",
+      sql`${table.currency} = 'gold' or (${table.currency} = 'orbs' and ${table.price} between 0 and 5)`,
+    ),
     uniqueIndex("listings_source_id_idx").on(table.sourceId),
     index("listings_seller_id_idx").on(table.sellerId),
     index("listings_listed_idx")
@@ -83,6 +88,7 @@ export const purchases = pgTable(
     buyerId: uuid("buyer_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    currency: text("currency").notNull().default("gold"),
     price: integer("price").notNull(),
     copyId: uuid("copy_id").references(() => ownPrompts.id, {
       onDelete: "set null",
@@ -92,6 +98,10 @@ export const purchases = pgTable(
       .defaultNow(),
   },
   (table) => [
+    check(
+      "purchases_currency_price",
+      sql`${table.currency} = 'gold' or (${table.currency} = 'orbs' and ${table.price} between 0 and 5)`,
+    ),
     uniqueIndex("purchases_one_copy_idx")
       .on(table.listingId, table.buyerId)
       .where(sql`${table.copyId} is not null`),

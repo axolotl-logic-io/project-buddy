@@ -38,7 +38,11 @@ afterEach(() => {
 
 test("lists each note with its day, under the Notes heading, and links to quick capture with the project", async () => {
   await render(
-    <ProjectNotes notes={[EYES, CAGE]} projectId={FOX_PROJECT.id} />,
+    <ProjectNotes
+      notes={[EYES, CAGE]}
+      projectId={FOX_PROJECT.id}
+      status="active"
+    />,
   );
 
   const list = page.getByRole("list", { name: PROJECT_NOTES_COPY.heading });
@@ -57,7 +61,9 @@ test("lists each note with its day, under the Notes heading, and links to quick 
 });
 
 test("with no notes, says there are none yet", async () => {
-  await render(<ProjectNotes notes={[]} projectId={FOX_PROJECT.id} />);
+  await render(
+    <ProjectNotes notes={[]} projectId={FOX_PROJECT.id} status="active" />,
+  );
 
   await expect.element(page.getByText(PROJECT_NOTES_COPY.none)).toBeVisible();
 });
@@ -67,7 +73,11 @@ describe("use_case_delete_note", () => {
     const { promise, resolve } = Promise.withResolvers<DeleteNoteState>();
     actions.deleteNoteAction.mockReturnValue(promise);
     const screen = await render(
-      <ProjectNotes notes={[EYES, CAGE]} projectId={FOX_PROJECT.id} />,
+      <ProjectNotes
+        notes={[EYES, CAGE]}
+        projectId={FOX_PROJECT.id}
+        status="active"
+      />,
     );
 
     await deleteButton(CAGE).click();
@@ -81,7 +91,11 @@ describe("use_case_delete_note", () => {
     });
     resolve({ kind: "deleted" });
     await screen.rerender(
-      <ProjectNotes notes={[EYES]} projectId={FOX_PROJECT.id} />,
+      <ProjectNotes
+        notes={[EYES]}
+        projectId={FOX_PROJECT.id}
+        status="active"
+      />,
     );
 
     await expect
@@ -98,7 +112,13 @@ describe("use_case_delete_note", () => {
       kind: "missing",
       message: PROJECT_NOTES_COPY.missing,
     });
-    await render(<ProjectNotes notes={[CAGE]} projectId={FOX_PROJECT.id} />);
+    await render(
+      <ProjectNotes
+        notes={[CAGE]}
+        projectId={FOX_PROJECT.id}
+        status="active"
+      />,
+    );
 
     await deleteButton(CAGE).click();
 
@@ -111,3 +131,31 @@ describe("use_case_delete_note", () => {
       .toHaveFocus();
   });
 });
+
+test.each(["completed", "abandoned"] as const)(
+  "a %s quest keeps its Quick Notes readable and deletable",
+  async (status) => {
+    actions.deleteNoteAction.mockResolvedValue({ kind: "deleted" });
+    await render(
+      <ProjectNotes
+        notes={[CAGE]}
+        projectId={FOX_PROJECT.id}
+        status={status}
+      />,
+    );
+    await expect.element(page.getByText(CAGE.text)).toBeVisible();
+    await expect
+      .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
+      .not.toBeInTheDocument();
+    await deleteButton(CAGE).click();
+    const [, sent] = actions.deleteNoteAction.mock.lastCall ?? [];
+    expect(Object.fromEntries(sent ?? [])).toEqual({
+      projectId: FOX_PROJECT.id,
+      day: CAGE.day,
+      text: CAGE.text,
+    });
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(PROJECT_NOTES_COPY.deleted);
+  },
+);

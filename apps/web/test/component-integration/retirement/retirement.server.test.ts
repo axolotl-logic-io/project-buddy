@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
 import {
   cloneActivity,
@@ -24,6 +25,8 @@ import {
   interviewConstruct,
   saveInterviewConstruct,
 } from "@/constructs/interview-construct.ts";
+import { getDb } from "@/db/client.ts";
+import { marketplaceCutover } from "@/db/tables/orbs.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
 import { buyListing } from "@/marketplace/buy-listing.ts";
@@ -232,7 +235,12 @@ describe("use_case_restore_retired_definition", () => {
     if (listing.kind !== "published") {
       throw new Error("No listing");
     }
+    await getDb()
+      .update(marketplaceCutover)
+      .set({ enabled: true })
+      .where(eq(marketplaceCutover.id, 1));
     const bought = await buyListing(buyer.id, {
+      currency: "orbs",
       listingId: listing.id,
       price: 1,
     });
@@ -243,7 +251,11 @@ describe("use_case_restore_retired_definition", () => {
     const gold = await readGoldBalance(buyer.id);
     await retireDefinition(buyer.id, "construct", bought.copy.id);
     expect(
-      await buyListing(buyer.id, { listingId: listing.id, price: 1 }),
+      await buyListing(buyer.id, {
+        currency: "orbs",
+        listingId: listing.id,
+        price: 1,
+      }),
     ).toEqual({ kind: "held", copy: bought.copy });
     await restoreDefinition(buyer.id, bought.copy.id);
     expect(await getOwnConstruct(buyer.id, bought.copy.id)).toEqual(before);

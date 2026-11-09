@@ -80,7 +80,7 @@ function MilestoneEditor({
         type="text"
         value={draft}
       />
-      <div id={errorId}>{error !== undefined && <Alert>{error}</Alert>}</div>
+      {error !== undefined && <Alert id={errorId}>{error}</Alert>}
       <div className="flex flex-wrap gap-2">
         <Button disabled={pending} type="submit">
           {PROGRESS_TIMELINE_COPY.save}

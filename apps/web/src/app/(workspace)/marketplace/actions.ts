@@ -25,6 +25,7 @@ import { LISTING_COPY, SELL_COPY } from "@/ui/copy/marketplace.ts";
 const LINE_BREAK = /\r\n?/gu;
 
 const TERMS_FIELDS = {
+  currency: z.literal("orbs"),
   description: z.string().transform((text) => text.replace(LINE_BREAK, "\n")),
   price: z.string(),
 };
@@ -50,6 +51,7 @@ const SHOWN_PRICE = /^\d+$/u;
 // The buy form: the listing and the price its button showed.
 const BUY_FORM = z.object({
   listingId: z.string(),
+  currency: z.literal("orbs"),
   price: z.string().regex(SHOWN_PRICE).transform(Number),
 });
 
@@ -212,12 +214,14 @@ export async function buyListingAction(
         message: LISTING_COPY.priceChanged(outcome.price),
         earnGold: false,
       };
-    case "too-little-gold":
+    case "too-little-orbs":
       return {
         kind: "refused",
-        message: LISTING_COPY.tooLittleGold(outcome.price, outcome.gold),
-        earnGold: true,
+        message: LISTING_COPY.tooLittleGold(outcome.price, outcome.orbs),
+        earnGold: false,
       };
+    case "paused":
+      return { kind: "refused", message: LISTING_COPY.paused, earnGold: false };
     case "limited":
       return {
         kind: "refused",

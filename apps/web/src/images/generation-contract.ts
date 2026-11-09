@@ -29,7 +29,7 @@ type GenerateImageInput = z.infer<typeof GENERATE_IMAGE_INPUT>;
 type GenerateImageOutput = z.infer<typeof GENERATE_IMAGE_OUTPUT>;
 
 const GENERATE_IMAGE_DESCRIPTION =
-  "Generate at most one image per user message, only when the user asks you to create an image. Describe the requested image in the prompt (at most 1000 characters). The result is displayed automatically and saved in the user's gallery. Do not repeat a failed or pending request automatically. Each image reserves gold before generation. An outOfGold result means the image reservation could not be covered, not necessarily a zero balance. Use requiredGold and availableGold as the amounts at the time of this request when provided. Replies still spend gold even if image generation is refused; never offer further replies as free. Do not claim an image was generated unless the tool succeeds.";
+  "Generate at most one image per user message, only when the user asks you to create an image. Describe the requested image in the prompt (at most 1000 characters). The result is displayed automatically and saved in the user's gallery. Do not repeat a failed or pending request automatically. Each image reserves batteries before generation. An outOfGold result means the image reservation could not be covered, not necessarily a zero balance. Use requiredGold and availableGold as the amounts at the time of this request when provided. Replies still spend batteries even if image generation is refused; never offer further replies as free. Do not claim an image was generated unless the tool succeeds.";
 
 function generatedImageUrl(id: GenerationId, download = false): string {
   if (download) {

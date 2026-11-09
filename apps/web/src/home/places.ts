@@ -30,21 +30,21 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     href: "/chat",
     name: CHAT_COPY.headerLink,
     description: HOME_COPY.chats,
-    icon: "flame",
+    icon: "messages",
   },
   {
     id: "constructs",
     href: "/constructs",
     name: CONSTRUCTS_COPY.heading,
     description: HOME_COPY.constructs,
-    icon: "house",
+    icon: "bot",
   },
   {
     id: "activities",
     href: "/activities",
     name: ACTIVITIES_COPY.heading,
     description: HOME_COPY.activities,
-    icon: "tools",
+    icon: "checklist",
   },
   {
     id: "workshop",
@@ -58,7 +58,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     href: "/marketplace",
     name: MARKETPLACE_COPY.heading,
     description: HOME_COPY.marketplace,
-    icon: "market",
+    icon: "store",
   },
 ];
 

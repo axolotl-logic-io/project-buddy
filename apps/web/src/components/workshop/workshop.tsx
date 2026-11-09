@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {
   type ChangeEvent,
@@ -47,6 +48,7 @@ interface WorkshopProps {
 }
 
 function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
+  const { refresh } = useRouter();
   const [draft, setDraft] = useState(initial);
   const [constructId, setConstructId] = useState(
     options.constructs[0]?.id ?? DEFAULT_CONSTRUCT_ID,
@@ -160,7 +162,8 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
         const response = await fetch("/api/workshop", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          signal: abort.signal,
+          // Keep the response as the accounting acknowledgement even when
+          // the user stops waiting. Cancellation only discards the local reply.
           body: workshopRequestBody({
             draft,
             constructId,
@@ -171,7 +174,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
             castIds: casts.map((cast) => cast.id),
             message,
           }),
-        });
+        }).finally(refresh);
         if (!response.ok) {
           const errorCase = readAppErrorCase(await response.text());
           setOutOfGold(errorCase === "out-of-gold");
@@ -224,7 +227,17 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
         }
       }
     },
-    [pending, run, key, draft, constructId, activityId, forceCast, message],
+    [
+      pending,
+      run,
+      key,
+      draft,
+      constructId,
+      activityId,
+      forceCast,
+      message,
+      refresh,
+    ],
   );
   const send = useCallback((): Promise<void> => runTest(false), [runTest]);
   const testOpening = useCallback(

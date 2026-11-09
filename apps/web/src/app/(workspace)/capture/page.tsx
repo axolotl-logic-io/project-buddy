@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { listProjects } from "@/projects/store.ts";
+import { activeProjects } from "@/projects/active-projects.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { QuickCaptureForm } from "./quick-capture-form.tsx";
 
@@ -18,7 +18,7 @@ export default async function QuickCapturePage({
 }: PageProps<"/capture">): Promise<JSX.Element> {
   const { projectId } = await searchParams;
   const user = await requireUser();
-  const projects = await listProjects(user.id);
+  const projects = await activeProjects(user.id);
   const chosen = projects.find(({ id }) => id === projectId) ?? projects.at(0);
 
   return (
@@ -37,6 +37,7 @@ export default async function QuickCapturePage({
       )}
       {chosen !== undefined && (
         <QuickCaptureForm
+          key={chosen.id}
           viewer={user.id}
           projectId={chosen.id}
           projects={projects.map(({ id, name }) => ({ id, name }))}

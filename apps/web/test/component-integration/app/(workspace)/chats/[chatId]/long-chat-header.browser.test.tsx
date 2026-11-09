@@ -31,6 +31,10 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT, STANDALONE_CHAT } from "../../page-fixtures.ts";
 
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn().mockResolvedValue(0),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../../auth/current-user-test-kit.ts"),
