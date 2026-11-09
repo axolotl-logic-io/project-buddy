@@ -9,6 +9,7 @@ import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { VISUAL_WIDTH } from "@/constructs/visual-delivery.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
@@ -41,6 +42,8 @@ const OWN: ConstructSnapshot = {
   name: "Paper Bird",
   definition: { prompt: "An own construct." },
 };
+const BUILT_IN_VISUAL_PATH =
+  /^\/constructs\/(?:lumen|vellum)-v1-(?:64|128|256|512|1024)\.webp$/u;
 const CONSTRUCT_NAME = /Lumen|Vellum|Paper Bird/u;
 const LAPTOP_WIDTH = 1280;
 const LAPTOP_HEIGHT = 900;
@@ -119,9 +122,11 @@ describe("use_case_construct_presence", () => {
       expect(art.getBoundingClientRect().width).toBeGreaterThan(AVATAR_SIZE);
       const portrait = portraitFor("Take one small step.");
       const image = portrait.querySelector("img");
-      expect(image?.getAttribute("src")).toBe(
-        new URL(`/constructs/${id}-v1.png`, location.origin).href,
-      );
+      const source = new URL(image?.getAttribute("src") ?? "", location.href);
+      expect(source.origin).toBe(location.origin);
+      expect(source.pathname).toMatch(BUILT_IN_VISUAL_PATH);
+      expect(source.pathname).toContain(`/constructs/${id}-v1-`);
+      expect(image?.getAttribute("srcset")).toBeTruthy();
       expect(portrait.getBoundingClientRect().width).toBe(AVATAR_SIZE);
       const avatar = portrait.querySelector("[data-visual-role]");
       if (avatar === null) {
@@ -241,15 +246,27 @@ describe("use_case_construct_presence", () => {
     };
     await render(view(construct));
     const portrait = portraitFor("Take one small step.");
-    expect(portrait.querySelector("img")?.getAttribute("src")).toBe(
-      new URL(
-        `/api/constructs/visuals/adventure/${ADVENTURE_ID}/${assetId}`,
-        location.origin,
-      ).href,
+    const portraitSource = new URL(
+      portrait.querySelector("img")?.getAttribute("src") ?? "",
+      location.href,
     );
-    expect(opening().querySelector("img")?.getAttribute("src")).toBe(
-      portrait.querySelector("img")?.getAttribute("src"),
+    const openingSource = new URL(
+      opening().querySelector("img")?.getAttribute("src") ?? "",
+      location.href,
     );
+    const destination = `/api/constructs/visuals/adventure/${ADVENTURE_ID}/${assetId}`;
+    expect(portraitSource.origin).toBe(location.origin);
+    expect(portraitSource.pathname).toBe(destination);
+    expect(
+      VISUAL_WIDTH.safeParse(Number(portraitSource.searchParams.get("width")))
+        .success,
+    ).toBe(true);
+    expect(openingSource.origin).toBe(location.origin);
+    expect(openingSource.pathname).toBe(destination);
+    expect(
+      VISUAL_WIDTH.safeParse(Number(openingSource.searchParams.get("width")))
+        .success,
+    ).toBe(true);
   });
 
   test("legacy history starting with a user never treats a later reply as an opening", async () => {

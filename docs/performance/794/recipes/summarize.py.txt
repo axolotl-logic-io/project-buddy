@@ -1,0 +1,24 @@
+import json,statistics,itertools
+from pathlib import Path
+b=json.loads(Path('/tmp/pb-794/browser.json').read_text());d=json.loads(Path('/tmp/pb-794/documents.json').read_text())
+def summary(rows,field):
+ v=[r[field] for r in rows if r.get(field) is not None]
+ if not v:return 'missing'
+ return f'{statistics.median(v):.1f} [{min(v):.1f}–{max(v):.1f}]'
+lines=['# Controlled server comparison','','Values are median [min–max] milliseconds. Initial (n=3) and confirmation (n=10) cohorts are separate. Synthetic extra DB delay: 50 ms per HTTP request. See the capture record for uncertainty and definitions.','','## Document transport','','| Phase | Route | Variant | n | Headers | Shell markup | Primary markup | Complete body |','| --- | --- | --- | --- | --- | --- | --- | --- |']
+for phase,name,variant in itertools.product(['initial','confirmation'],['home','editor'],['before','after']):
+ rows=[r for r in d if (r['phase'],r['name'],r['variant'])==(phase,name,variant)]
+ lines.append('| '+' | '.join([phase,name,variant,str(len(rows))]+[summary(rows,f) for f in ['headersMs','shellMarkupMs','primaryMarkupMs','completeMs']])+' |')
+lines+=['','## Browser navigation and DOM insertion','','| Phase | Profile | Route | Cache | Variant | n | Navigation to headers | Request to headers | Shell DOM | Primary DOM | Document complete |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+for phase,profile,name,cache,variant in itertools.product(['initial','confirmation'],['desktop','phone'],['home','editor'],['cold','warm'],['before','after']):
+ rows=[r for r in b['rows'] if (r['phase'],r['profile'],r['name'],r['cache'],r['variant'])==(phase,profile,name,cache,variant)]
+ lines.append('| '+' | '.join([phase,profile,name,cache,variant,str(len(rows))]+[summary(rows,f) for f in ['headersMs','requestToHeadersMs','shellMs','primaryMs','documentCompleteMs']])+' |')
+lines+=['','## Domain operations','','Document-only spans exclude browser prefetch. The operations below overlap; sum columns must not be treated as a serial route duration.','','| Phase | Route | Variant | Operation | n | Duration | Query count |','| --- | --- | --- | --- | --- | --- | --- |']
+for phase,name,variant in itertools.product(['initial','confirmation'],['home','editor'],['before','after']):
+ rows=[r for r in d if (r['phase'],r['name'],r['variant'])==(phase,name,variant)]
+ spans=[s for r in rows for s in r['spans']]
+ for op in sorted(set(s['operation'] for s in spans)):
+  ss=[s for s in spans if s['operation']==op]
+  lines.append('| '+' | '.join([phase,name,variant,op,str(len(ss)),summary(ss,'durationMs'),summary(ss,'queryCount')])+' |')
+Path('docs/performance/794/results.md').write_text('\n'.join(lines)+'\n')
+print('browser rows',len(b['rows']),'documents',len(d),'resource kinds',sorted(set(x['kind'] for r in b['rows'] for x in r['resources'])))

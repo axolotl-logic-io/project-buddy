@@ -1,0 +1,224 @@
+"""#773 compressed-artifact checks extended for a paired geometry cohort."""
+import json,gzip,pathlib,re,sys,copy,tempfile,math,datetime
+arguments=[value for value in sys.argv[1:] if not value.startswith('--')]
+root=pathlib.Path(arguments[0]) if arguments else pathlib.Path('docs/performance/795')
+uuid=re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+regions={'header-home-link','workshop-definition-link','quest-list-link','atlas-quests-link'}
+rowkeys={'captureProtocol','variant','buildId','stage','sample','profile','name','mode','host','activated','origin','shell','primary','geometry','scroll','shifts','longtasks','lcp','events','end','nav','finalScrollY','initialSessionWindowCls','transitionAllShiftSum','failure','diagnostic','sourcePrep','timeOrigin','screenshotScope','pixelStart','browserVersion','presence','phase'}
+events={'click','pointerdown','pointerup','pointercancel','pointerover','pointerout','pointerenter','pointerleave','mousedown','mouseup','mouseover','mouseout','mouseenter','mouseleave','keydown','keyup','keypress','touchstart','touchend','touchcancel','beforeinput','input','contextmenu'}
+
+def number(value):assert type(value) in [int,float] and math.isfinite(value)
+def numeric(record,keys):
+ assert set(record)==set(keys)
+ for value in record.values():number(value)
+def rectangle(r):
+ numeric(r,['x','y','width','height']);assert r['width']>=0 and r['height']>=0
+
+def inspect(path):
+ text=gzip.decompress(path.read_bytes()).decode() if path.suffix=='.gz' else path.read_text()
+ assert not uuid.search(text),path
+ for banned in ['SESSION_SECRET','Authorization','Cookie','Synthetic answer','definition.prompt','sessionToken']:
+  assert banned not in text,(path,banned)
+ return json.loads(text)
+
+def validate(rows,complete=True):
+ seen=set()
+ for r in rows:
+  assert set(r)<=rowkeys
+  key=tuple(r[k] for k in ['variant','sample','profile','name','mode']);assert key not in seen;seen.add(key)
+  assert r['variant'] in ['before','after'] and r['profile'] in ['desktop','phone']
+  assert r['name'] in ['home','quests','quest','editor']
+  assert r['stage'] in ['exploration','confirmation','diagnostic']
+  assert r['mode'] in ['cold-direct','client-navigation']
+  assert type(r['sample']) is int and 0<=r['sample']<=10
+  assert re.fullmatch(r'[A-Za-z0-9_-]{1,64}',r['buildId'])
+  host=r['host'];assert set(host)=={'load','freeMemory','cpuCount'}
+  assert len(host['load'])==3
+  for value in host['load']:number(value)
+  number(host['freeMemory']);number(host['cpuCount'])
+  if 'captureProtocol' in r:assert r['captureProtocol'] in ['geometry-commit-probe-v1','geometry-commit-probe-v2','geometry-commit-probe-v3']
+  if 'failure' in r:
+   assert set(r)<={'captureProtocol','variant','buildId','stage','sample','profile','name','mode','host','browserVersion','phase','failure','diagnostic'}
+   if 'browserVersion' in r:assert re.fullmatch(r'(?:HeadlessChrome|Chrome)/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+',r['browserVersion'])
+   assert r['failure']=='capture did not complete'
+   if 'phase' in r:assert r['phase'] in ['setup','source-primary','source-menu','activation','destination-primary','observation']
+   d=r.get('diagnostic')
+   if d is not None:
+    assert set(d)=={'path','busy','inputNames','hasMain','headingCount'}
+    assert d['path'] in ['/constructs/:id','/projects/:id','/home','/projects','/workshop','/login']
+    assert set(d['inputNames'])<={'prompt','visualDescription','message',''}
+    assert type(d['hasMain']) is bool
+    number(d['busy']);number(d['headingCount'])
+   continue
+  assert r['captureProtocol'] in ['geometry-commit-probe-v1','geometry-commit-probe-v2','geometry-commit-probe-v3']
+  if complete:assert r['captureProtocol']=='geometry-commit-probe-v3'
+  if r['captureProtocol'] in ['geometry-commit-probe-v2','geometry-commit-probe-v3']:assert re.fullmatch(r'(?:HeadlessChrome|Chrome)/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+',r['browserVersion'])
+  for k in ['origin','primary','end','finalScrollY']:number(r[k])
+  if r['shell'] is not None:number(r['shell'])
+  if r['captureProtocol'] in ['geometry-commit-probe-v2','geometry-commit-probe-v3']:
+   assert r['screenshotScope'] in [None,'home-after-visible-atlas-and-two-frames','home-client-after-visible-primary-and-two-frames','home-cold-full-window']
+   if r['pixelStart'] is not None:number(r['pixelStart'])
+  assert r['end']>=r['primary']+1990 and r['primary']>=r['origin']
+  numeric(r['nav'],['start','responseStart','requestStart'])
+  assert len(r['shifts'])==len({json.dumps(e,sort_keys=True) for e in r['shifts']})
+  for e in r['shifts']:
+   assert set(e) in [{'time','value','recentInput','sources'},{'time','value','recentInput','sources','deliveryScrollY'}]
+   number(e['time']);number(e['value']);assert type(e['recentInput']) is bool
+   if 'deliveryScrollY' in e:number(e['deliveryScrollY'])
+   assert e['time']>=r['origin'] and e['value']>=0
+   for s in e['sources']:
+    assert set(s)<={'tag','previous','current','previousViewport','currentViewport'}
+    assert re.fullmatch(r'[A-Z][A-Z0-9-]*',s.get('tag','DIV'))
+    rectangle(s['previous']);rectangle(s['current'])
+    assert ('previousViewport' in s)==('currentViewport' in s)
+    if 'previousViewport' in s:rectangle(s['previousViewport']);rectangle(s['currentViewport'])
+  for g in r['geometry']:
+   assert set(g) in [{'time','parts'},{'time','parts','columnChange'}];number(g['time'])
+   if r['captureProtocol']=='geometry-commit-probe-v3':assert set(g)=={'time','parts','columnChange'} and g['columnChange'] in ['absent','initial','replacement','movement','unchanged']
+   else:assert set(g)=={'time','parts'}
+   for part in g['parts']:
+    assert set(part) in [{'region','x','y','width','height'},{'region','instance','x','y','width','height'}]
+    if r['captureProtocol']=='geometry-commit-probe-v3':assert set(part)=={'region','instance','x','y','width','height'} and type(part['instance']) is int and part['instance']>=0
+    else:assert set(part)=={'region','x','y','width','height'}
+    assert part['region'] in ['header','main','column','input']
+    rectangle({k:part[k] for k in ['x','y','width','height']})
+  for s in r['scroll']:numeric(s,['time','y'])
+  for s in r['longtasks']:numeric(s,['time','duration'])
+  for s in r['lcp']:
+   assert set(s)<={'time','size','tag'};number(s['time']);number(s['size'])
+   assert re.fullmatch(r'[A-Z][A-Z0-9-]*',s.get('tag','DIV'))
+  for s in r['events']:
+   assert set(s)=={'time','duration','interaction','name'}
+   assert s['name'] in events
+   for k in ['time','duration','interaction']:number(s[k])
+  if r['captureProtocol']=='geometry-commit-probe-v3':
+   assert set(r['presence'])=={'header','main','column'} and all(value is True for value in r['presence'].values())
+   assert any(part['region']=='header' and part['width']>0 and part['height']>0 for sample in r['geometry'] for part in sample['parts'])
+   if r['mode']=='client-navigation':
+    assert r['sourcePrep']['protocol']=='visible-shared-menu-state-v2'
+    assert r['activated']['region'] in ['header-link','page-navigation-link','main-content-link']
+   if r['name']=='home' and r['sample']==1:
+    expected='home-cold-full-window' if r['mode']=='cold-direct' else 'home-client-after-visible-primary-and-two-frames'
+    assert r['screenshotScope']==expected
+    if r['mode']=='client-navigation':assert r['pixelStart']>=r['primary']
+   else:assert r['screenshotScope'] is None and r['pixelStart'] is None
+  if r['mode']=='client-navigation':
+   if r['captureProtocol'] in ['geometry-commit-probe-v2','geometry-commit-probe-v3']:
+    prep=r['sourcePrep'];assert set(prep)=={'protocol','menuOpened','menuClosed','timeOrigin'}
+    assert prep['protocol'] in ['shared-menu-state-v1','visible-shared-menu-state-v2'] and prep['menuOpened'] is True and prep['menuClosed'] is True
+    number(prep['timeOrigin']);number(r['timeOrigin']);assert prep['timeOrigin']==r['timeOrigin']
+   assert 'initialSessionWindowCls' not in r;number(r['transitionAllShiftSum'])
+   assert abs(r['transitionAllShiftSum']-sum(e['value'] for e in r['shifts']))<1e-12
+   a=r['activated'];assert set(a)=={'region','rect','scrollY'} and a['region'] in regions|{'header-link','page-navigation-link','main-content-link'}
+   rectangle(a['rect']);number(a['scrollY'])
+  else:
+   assert 'transitionAllShiftSum' not in r and r['activated'] is None
+   number(r['initialSessionWindowCls'])
+   maximum=0;window=[]
+   for shift in (e for e in r['shifts'] if not e['recentInput']):
+    if not window or shift['time']-window[-1]['time']>=1000 or shift['time']-window[0]['time']>=5000:window=[]
+    window.append(shift);maximum=max(maximum,sum(e['value'] for e in window))
+   assert abs(r['initialSessionWindowCls']-maximum)<1e-12
+   if r['captureProtocol'] in ['geometry-commit-probe-v2','geometry-commit-probe-v3']:assert r['sourcePrep'] is None;number(r['timeOrigin'])
+ if complete:
+  for v in ['before','after']:
+   for p in ['desktop','phone']:
+    for n in ['home','quests','quest','editor']:
+     for m in ['cold-direct','client-navigation']:
+      group=[r for r in rows if (r['variant'],r['profile'],r['name'],r['mode'])==(v,p,n,m)]
+      assert len(group)==10 and not any('failure' in r for r in group),(v,p,n,m)
+
+def trace(path,artifact_root=None):
+ actual_root=root if artifact_root is None else artifact_root
+ permitted={prefix/variant/profile/mode/'home.trace.json.gz' for prefix in [actual_root,actual_root/'checkpoint-traces',actual_root/'provisional/v2-737c914f',actual_root/'provisional/home-trail-pilot'] for variant in ['before','after'] for profile in ['desktop','phone'] for mode in ['cold-direct','client-navigation']}
+ assert path in permitted
+ data=inspect(path);assert set(data)=={'traceEvents'}
+ frames=0
+ for e in data['traceEvents']:
+  assert set(e)<={'name','cat','ph','ts','dur','pid','tid','args'}
+  assert type(e['name']) is str and type(e.get('cat','')) is str
+  if e['name']=='Screenshot':
+   assert path.name=='home.trace.json.gz' and path.parent.name in ['cold-direct','client-navigation']
+   assert 'snapshot' in e.get('args',{}) and set(e['args'])<={'snapshot','expected_display_time','frame_sequence','source_id'}
+   for key,value in e['args'].items():
+    if key!='snapshot':number(value)
+   assert re.fullmatch(r'[A-Za-z0-9+/=]+',e['args']['snapshot']);frames+=1
+  else:assert 'args' not in e
+ return frames
+def negative_cases(rows):
+ passed=[];skipped=[]
+ def reject(callback,label):
+  try:callback()
+  except AssertionError:passed.append(label)
+  else:raise AssertionError('negative case accepted: '+label)
+ for field in ['host','nav','activated','sourcePrep']+(['presence'] if any('presence' in row for row in rows) else []):
+  bad=copy.deepcopy(rows);record=next(row for row in bad if row.get(field) is not None);record[field]['text']='forbidden'
+  reject(lambda:validate(bad,False),'nested '+field+' unknown field')
+ for field in ['geometry','scroll','shifts','longtasks','lcp','events']:
+  bad=copy.deepcopy(rows);record=next((row for row in bad if row.get(field)),None)
+  if record is None:skipped.append(field+' has no observed records');continue
+  record[field][0]['text']='forbidden'
+  reject(lambda:validate(bad,False),'nested '+field+' unknown field')
+ bad=copy.deepcopy(rows);record=next(row for row in bad if any(entry['sources'] for entry in row.get('shifts',[])))
+ next(entry for entry in record['shifts'] if entry['sources'])['sources'][0]['current']['text']='forbidden'
+ reject(lambda:validate(bad,False),'source rectangle unknown field')
+ bad=copy.deepcopy(rows);bad[0]['prompt']='forbidden'
+ reject(lambda:validate(bad,False),'row unknown field')
+ bad=copy.deepcopy(rows);record=next(row for row in bad if row.get('sourcePrep') is not None);record['timeOrigin']+=1
+ reject(lambda:validate(bad,False),'same-document time origin mismatch')
+ bad=copy.deepcopy(rows);record=next((row for row in bad if 'initialSessionWindowCls' in row),None)
+ if record is None:skipped.append('no direct observations for initial reducer negative')
+ else:
+  record['initialSessionWindowCls']+=0.01;reject(lambda:validate(bad,False),'initial session-window reducer mismatch')
+ bad=copy.deepcopy(rows);record=next(row for row in bad if 'transitionAllShiftSum' in row);record['transitionAllShiftSum']+=0.01
+ reject(lambda:validate(bad,False),'transition all-shift reducer mismatch')
+ with tempfile.TemporaryDirectory() as temporary:
+  temporary=pathlib.Path(temporary)
+  path=temporary/'bad.json.gz'
+  path.write_bytes(gzip.compress(json.dumps({'route':'/projects/00000000-0000-0000-0000-000000000000'}).encode(),mtime=0))
+  reject(lambda:inspect(path),'compressed unredacted identifier')
+  directory=temporary/'before/desktop/cold-direct';directory.mkdir(parents=True)
+  for name,event,label in [('editor.trace.json.gz',{'name':'Screenshot'},'unauthorized screenshot without args'),('editor.trace.json.gz',{'name':'Screenshot','args':{'snapshot':'forbidden'}},'unauthorized screenshot with args'),('stream.trace.json.gz',{'name':'Screenshot','args':{'snapshot':'forbidden'}},'stream filename forbidden'),('home.trace.json.gz',{'name':'Screenshot','args':{'snapshot':'forbidden','text':'forbidden'}},'screenshot nested unknown field')]:
+   path=directory/name;path.write_bytes(gzip.compress(json.dumps({'traceEvents':[event]}).encode(),mtime=0))
+   reject(lambda:trace(path,temporary),'compressed '+label)
+ return {'passed':passed,'skipped':skipped}
+
+def main():
+ preflight='--preflight' in sys.argv[1:];pilot='--pilot' in sys.argv[1:]
+ legacy=[('checkpoint',root/'checkpoint.json.gz'),('provisional v2',root/'provisional/v2-737c914f/geometry.json.gz'),('Home trail pilot',root/'provisional/home-trail-pilot/geometry.json.gz')]
+ cohorts={}
+ for label,path in legacy:
+  if path.exists():
+   records=inspect(path);validate(records,False);cohorts[label]={'records':len(records),'captureFailures':sum('failure' in row for row in records)}
+ if pilot:
+  rows=inspect(root/'provisional/home-trail-pilot/geometry.json.gz');validate(rows,False)
+  manifest=inspect(root/'provisional/home-trail-pilot/manifest.json')
+  assert len(rows)==24 and all(row['captureProtocol']=='geometry-commit-probe-v3' and row['mode']=='client-navigation' and 'failure' not in row for row in rows)
+  for variant in ['before','after']:
+   for profile in ['desktop','phone']:
+    for name in ['home','quests']:
+     cell=[row for row in rows if (row['variant'],row['profile'],row['name'])==(variant,profile,name)]
+     assert {row['sample'] for row in cell}=={1,2,3} and len(cell)==3
+  for row in rows:assert row['buildId']==manifest[row['variant']+'BuildId']
+ elif preflight:
+  rows=inspect(root/'provisional/v2-737c914f/geometry.json.gz')
+ else:
+  rows=inspect(root/'geometry.json.gz');validate(rows)
+  manifest=inspect(root/'manifest.json')
+  for row in rows:assert row['buildId']==manifest[row['variant']+'BuildId']
+  film_keys=['variant','profile','name','mode','sample','geometry','scroll','shifts','activated','origin','primary','end']
+  assert inspect(root/'geometry-filmstrips.json.gz')==[{key:row[key] for key in film_keys} for row in rows if 'failure' not in row and row['sample']==1]
+ frames={str(path.relative_to(root)):trace(path) for path in sorted(root.rglob('*.trace.json.gz'))}
+ for path in [*root.rglob('*.json.gz'),*root.rglob('manifest.json')]:inspect(path)
+ negatives=negative_cases(rows)
+ report={'generatedUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'mode':'Home trail pilot validation' if pilot else 'legacy privacy/schema preflight' if preflight else 'final paired cohort validation','finalCompletenessChecked':not(preflight or pilot),'pilotCompletenessChecked':pilot,'finalAcceptanceClaimed':False,'legacyCohorts':cohorts,'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'framesByArtifact':frames,'negativeCases':negatives}
+ if pilot:
+  (root/'provisional/home-trail-pilot/validation.json').write_text(json.dumps(report,indent=2)+'\n')
+ elif preflight:
+  (root/'preflight.json').write_text(json.dumps(report,indent=2)+'\n')
+ else:
+  report['finalRecords']=len(rows)
+  report['finalCaptureFailures']=sum('failure' in row for row in rows)
+  (root/'validation.json').write_text(json.dumps(report,indent=2)+'\n')
+ print(json.dumps({'mode':report['mode'],'legacyRecords':sum(value['records'] for value in cohorts.values()),'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'negativeCasesPassed':len(negatives['passed']),'negativeCasesSkipped':len(negatives['skipped']),'finalCompletenessChecked':not(preflight or pilot),'pilotCompletenessChecked':pilot}))
+if __name__=='__main__':main()

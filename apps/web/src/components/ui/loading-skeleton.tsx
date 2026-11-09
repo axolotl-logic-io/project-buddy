@@ -20,7 +20,7 @@ const SHAPE_BLOCKS: Readonly<Record<SkeletonShape, readonly string[]>> = {
 // projects…", for screen readers. Its region is busy (aria-busy) for as long
 // as it shows, which is how a test knows the page is still loading. The
 // shapes pulse unless the user asks for less motion.
-export function LoadingSkeleton({
+function LoadingSkeleton({
   label,
   shapes,
 }: {
@@ -30,6 +30,19 @@ export function LoadingSkeleton({
   return (
     <div aria-busy="true" className="flex flex-col gap-4" role="status">
       <span className="sr-only">{label}</span>
+      <LoadingShapes shapes={shapes} />
+    </div>
+  );
+}
+
+// Decorative shapes for a page that already supplies its own busy status.
+function LoadingShapes({
+  shapes,
+}: {
+  readonly shapes: readonly SkeletonShape[];
+}): JSX.Element {
+  return (
+    <>
       {shapes.map((shape) => (
         <div aria-hidden="true" className="flex flex-col gap-3" key={shape}>
           {SHAPE_BLOCKS[shape].map((block) => (
@@ -37,6 +50,8 @@ export function LoadingSkeleton({
           ))}
         </div>
       ))}
-    </div>
+    </>
   );
 }
+
+export { LoadingShapes, LoadingSkeleton };

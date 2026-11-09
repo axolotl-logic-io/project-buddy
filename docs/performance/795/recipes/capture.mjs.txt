@@ -1,0 +1,88 @@
+// Extends #773 readiness recipe; fixed lab windows are observations, not behavior-test waits.
+import puppeteer from '/tmp/pb-773-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {loadavg,freemem,cpus} from 'node:os';
+import {gzipSync} from 'node:zlib';
+import {observe,primaryVisible} from './observe.mjs';
+const root='/home/bestieboots/.t3/worktrees/project-buddy/issues-795-performance';
+const [variant,sampleText,stage='exploration',cohort='final']=process.argv.slice(2);const sample=Number(sampleText);
+if(!['final','home-trail-pilot'].includes(cohort))throw new Error('Unknown capture cohort');
+const pilot=cohort==='home-trail-pilot';const output=root+'/docs/performance/795'+(pilot?'/provisional/home-trail-pilot':''),working=pilot?'/tmp/pb-795/home-trail-pilot':'/tmp/pb-795/v3';await mkdir(output,{recursive:true});await mkdir(working,{recursive:true});
+const session=JSON.parse(await readFile('/tmp/pb-795/session.json','utf8'));
+const base='http://localhost:35841';
+const journeys=[['home','/home','/projects','quests'],['quests','/projects','/home','home'],['quest',`/projects/${session.project}`,'/projects','quests'],['editor',`/constructs/${session.construct}`,'/workshop','workshop']];
+const snapshot=`/tmp/pb-795/${pilot?'pilot-':''}${variant}-app/apps/web`;
+const buildId=(await readFile(snapshot+'/.next/BUILD_ID','utf8')).trim();
+let rows=[];try{rows=JSON.parse(await readFile(working+'/geometry.json','utf8'));}catch{}
+async function firstVisible(page,selector){for(const node of await page.$$(selector))if(await node.evaluate(element=>element.checkVisibility({visibilityProperty:true,opacityProperty:true,contentVisibilityAuto:true})))return node;return null;}
+const server=spawn(process.execPath,['/tmp/pb-795/start.mjs',snapshot],{stdio:['ignore','pipe','pipe']});
+let browser;
+try{
+ let ready='',deadline;
+ try{await Promise.race([new Promise((resolve,reject)=>{server.stdout.on('data',chunk=>{ready+=chunk;if(ready.includes('Ready in'))resolve();});server.on('exit',()=>reject(new Error('Capture server exited before ready')));}),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(new Error('Capture server readiness deadline')),30000);})]);}finally{clearTimeout(deadline);}
+ browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const browserVersion=await browser.version();
+ for(const profile of ['desktop','phone'])for(const [name,path,source,sourceName] of journeys.filter(journey=>!pilot||['home','quests'].includes(journey[0])))for(const mode of (pilot?['client-navigation']:['cold-direct','client-navigation'])){
+  const host={load:loadavg(),freeMemory:freemem(),cpuCount:cpus().length};
+  const context=await browser.createBrowserContext();const page=await context.newPage();let phase='setup';
+  try{
+   await page.setViewport(profile==='phone'?{width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1}:{width:1440,height:900,deviceScaleFactor:1});
+   await page.setCookie({name:'session',value:session.populated,url:base,httpOnly:true,sameSite:'Lax'});
+   const cdp=await page.createCDPSession();await cdp.send('Network.enable');
+   await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:profile==='phone'?150:0,downloadThroughput:profile==='phone'?200000:-1,uploadThroughput:profile==='phone'?93750:-1});
+   await cdp.send('Emulation.setCPUThrottlingRate',{rate:profile==='phone'?4:1});
+   await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'light'}]);
+   await page.evaluateOnNewDocument(observe);
+   let navigation,activated=null,sourcePrep=null,pixelStart=null,screenshotScope=null;
+   const screenshot=name==='home'&&sample===1&&stage==='exploration';
+   if(mode==='client-navigation'){
+    phase='source-primary';await page.goto(base+source,{waitUntil:'load'});await page.waitForFunction(primaryVisible,{},sourceName);await page.evaluate(()=>document.fonts.ready);
+    phase='source-menu';const menu=await firstVisible(page,'body > header button[aria-haspopup="dialog"]');if(!menu)throw new Error('source menu absent');
+    await menu.click();await page.waitForFunction(()=>window.auditVisible('body > header dialog[open]').length>0);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>window.auditVisible('body > header dialog[open]').length===0&&window.auditVisible('body > header button[aria-haspopup="dialog"]').some(node=>node.getAttribute('aria-expanded')==='false'));
+    sourcePrep={protocol:'visible-shared-menu-state-v2',menuOpened:true,menuClosed:true,timeOrigin:await page.evaluate(()=>performance.timeOrigin)};
+    phase='activation';const anchor=await firstVisible(page,`a[href="${path}"]`);if(!anchor)throw new Error('missing source link');
+    // Safe-region scrolling precedes reset; every click-associated shift after reset is retained.
+    await anchor.scrollIntoView();await page.evaluate(()=>window.stopAudit?.());await page.evaluate(observe);
+    activated=await anchor.evaluate(node=>{if(!node.checkVisibility({visibilityProperty:true,opacityProperty:true,contentVisibilityAuto:true}))throw new Error('activated link became hidden');const rect=node.getBoundingClientRect();let region='main-content-link';if(node.closest('body > header'))region='header-link';else if(node.closest('nav'))region='page-navigation-link';return{region,rect:{x:rect.x,y:rect.y+scrollY,width:rect.width,height:rect.height},scrollY};});
+    await anchor.click();await page.waitForFunction(destination=>location.pathname===destination,{},path);
+   }else{
+    if(screenshot){await page.tracing.start({screenshots:true,categories:['devtools.timeline','disabled-by-default-devtools.screenshot']});screenshotScope='home-cold-full-window';}
+    const committed=new Promise(resolve=>{const handler=frame=>{if(frame===page.mainFrame()){page.off('framenavigated',handler);resolve();}};page.on('framenavigated',handler);});
+    navigation=page.goto(base+path,{waitUntil:'domcontentloaded'});await committed;
+   }
+   phase='destination-primary';await page.waitForFunction(primaryVisible,{},name);
+   if(sourcePrep&&await page.evaluate(()=>performance.timeOrigin)!==sourcePrep.timeOrigin)throw new Error('client navigation replaced source document');
+   await page.evaluate(()=>window.audit.primary=performance.now());
+   if(screenshot&&mode==='client-navigation'){
+    // Identical visible PRIMARY criterion in both variants, then an explicit compositor boundary.
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    await page.tracing.start({screenshots:true,categories:['devtools.timeline','disabled-by-default-devtools.screenshot']});
+    pixelStart=await page.evaluate(()=>performance.now());screenshotScope='home-client-after-visible-primary-and-two-frames';
+   }
+   phase='observation';await page.waitForFunction(()=>performance.now()>=window.audit.primary+2000);
+   if(navigation){const response=await navigation;if(!response.ok())throw new Error('non-2xx destination');}
+   if(page.url().split('?')[0]!==base+path)throw new Error('wrong signed-in destination');
+   const data=await page.evaluate(()=>{
+    window.stopAudit();const visible=window.auditVisible;
+    function present(selector){const nodes=visible(selector);if(nodes.length!==1)return false;const rect=nodes[0].getBoundingClientRect();return rect.width>0&&rect.height>0;}
+    const presence={header:present('body > header'),main:present('main'),column:present('main .page-column')};
+    if(!presence.header||!presence.main||!presence.column)throw new Error('required visible frame absent');
+    const nav=performance.getEntriesByType('navigation')[0],shifts=window.audit.shifts;let maximum=0,sum=0,start=null,last=null;
+    for(const entry of shifts.filter(entry=>!entry.recentInput)){if(last===null||entry.time-last>=1000||entry.time-start>=5000){sum=0;start=entry.time;}sum+=entry.value;maximum=Math.max(maximum,sum);last=entry.time;}
+    return{...window.audit,presence,timeOrigin:performance.timeOrigin,end:performance.now(),initialSessionWindowCls:maximum,transitionAllShiftSum:shifts.reduce((total,entry)=>total+entry.value,0),nav:{start:nav.startTime,responseStart:nav.responseStart,requestStart:nav.requestStart},finalScrollY:scrollY};
+   });
+   const row={captureProtocol:'geometry-commit-probe-v3',variant,buildId,stage,sample,profile,name,mode,host,browserVersion,activated,sourcePrep,pixelStart,screenshotScope,...data};
+   if(mode==='client-navigation')delete row.initialSessionWindowCls;else delete row.transitionAllShiftSum;
+   rows.push(row);
+   if(screenshot){const raw=JSON.parse(Buffer.from(await page.tracing.stop()).toString());const traceEvents=raw.traceEvents.map(entry=>({name:entry.name,cat:entry.cat,ph:entry.ph,ts:entry.ts,dur:entry.dur,pid:entry.pid,tid:entry.tid,...(entry.name==='Screenshot'?{args:entry.args}:{})}));const dir=`${output}/${variant}/${profile}/${mode}`;await mkdir(dir,{recursive:true});await writeFile(dir+'/home.trace.json.gz',gzipSync(JSON.stringify({traceEvents}),{mtime:0}));}
+   console.log(variant,stage,sample,profile,name,mode,'shifts',data.shifts.length,'sum',data.shifts.reduce((total,entry)=>total+entry.value,0).toFixed(5));
+  }catch(error){
+   rows.push({captureProtocol:'geometry-commit-probe-v3',variant,buildId,stage,sample,profile,name,mode,host,browserVersion,phase,failure:'capture did not complete',diagnostic:await page.evaluate(()=>({path:location.pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id'),busy:window.auditVisible('[aria-busy="true"]').length,inputNames:window.auditVisible('textarea').map(node=>node.name),hasMain:window.auditVisible('main').length>0,headingCount:window.auditVisible('main h1').length})).catch(()=>null)});
+   console.error('CAPTURE FAILURE',variant,stage,sample,profile,name,mode,phase,error.message.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id'));
+  }finally{await writeFile(working+'/geometry.json',JSON.stringify(rows));await context.close();}
+ }
+}finally{await browser?.close();if(server.exitCode===null&&server.signalCode===null){server.kill('SIGTERM');await once(server,'exit');}}

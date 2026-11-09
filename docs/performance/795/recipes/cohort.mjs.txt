@@ -1,0 +1,20 @@
+import {spawn} from 'node:child_process';
+import {readFile,writeFile,mkdir,access} from 'node:fs/promises';
+const cohort=process.argv[2]??'final';if(!['final','home-trail-pilot'].includes(cohort))throw new Error('Unknown capture cohort');
+const working=cohort==='home-trail-pilot'?'/tmp/pb-795/home-trail-pilot':'/tmp/pb-795/v3';await mkdir(working,{recursive:true});
+await writeFile(working+'/cohort-started',new Date().toISOString(),{flag:'wx'});
+await writeFile(working+'/geometry.json','[]');
+let stopped=false;
+for(let sample=1;sample<=(cohort==='home-trail-pilot'?3:10)&&!stopped;sample++){
+ const order=sample%2===1?['before','after']:['after','before'];
+ for(const variant of order){
+  const child=spawn(process.execPath,['/tmp/pb-795/capture.mjs',variant,String(sample),sample<=3?'exploration':'confirmation',cohort],{stdio:'inherit'});
+  const code=await new Promise(resolve=>child.on('exit',resolve));
+  if(code!==0)throw new Error('Capture process failed; preserve checkpoint and investigate.');
+  const rows=JSON.parse(await readFile(working+'/geometry.json','utf8'));
+  const failures=rows.filter(row=>'failure' in row);
+  await writeFile(working+'/progress.json',JSON.stringify({sample,variant,observations:rows.length,failures:failures.length}));
+  if(failures.length)throw new Error('A capture failed; stop the cohort without retrying it.');
+  try{await access(working+'/stop-after-pass');stopped=true;console.log('Intentional stop after completed pass',variant,sample,rows.length);break;}catch{}
+ }
+}

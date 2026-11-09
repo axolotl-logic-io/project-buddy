@@ -1,0 +1,19 @@
+import {spawn} from 'node:child_process';
+import {readFile,writeFile,rename} from 'node:fs/promises';
+const original=JSON.parse(await readFile('/tmp/pb-795/geometry.json','utf8'));
+if(original.some(r=>r.captureProtocol==='geometry-commit-probe-v2'))throw new Error('A corrected cohort already exists; do not overwrite or blindly retry it.');
+await writeFile('/tmp/pb-795/cohort-started',new Date().toISOString(),{flag:'wx'});
+await rename('/tmp/pb-795/geometry.json','/tmp/pb-795/checkpoint-v1.json');
+await writeFile('/tmp/pb-795/geometry.json','[]');
+for(let sample=1;sample<=10;sample++){
+ const order=sample%2===1?['before','after']:['after','before'];
+ for(const variant of order){
+  const child=spawn(process.execPath,['/tmp/pb-795/capture.mjs',variant,String(sample),sample<=3?'exploration':'confirmation'],{stdio:'inherit'});
+  const code=await new Promise(resolve=>child.on('exit',resolve));
+  if(code!==0)throw new Error('Capture process failed; preserve checkpoint and investigate.');
+  const rows=JSON.parse(await readFile('/tmp/pb-795/geometry.json','utf8'));
+  const failures=rows.filter(r=>'failure' in r);
+  await writeFile('/tmp/pb-795/progress.json',JSON.stringify({sample,variant,observations:rows.length,failures:failures.length}));
+  if(failures.length)throw new Error('A capture failed; stop the cohort without retrying it.');
+ }
+}
