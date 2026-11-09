@@ -44,7 +44,7 @@ import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readToday } from "@/today/today-store.ts";
+import type { readHomeSummary, readToday } from "@/today/today-store.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -110,6 +110,7 @@ vi.mock("@/chats/all-chats.ts", () => ({
 }));
 vi.mock("@/today/today-store.ts", () => ({
   readToday: vi.fn<typeof readToday>(),
+  readHomeSummary: vi.fn<typeof readHomeSummary>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),

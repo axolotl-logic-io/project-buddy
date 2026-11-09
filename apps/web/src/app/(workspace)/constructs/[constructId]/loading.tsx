@@ -1,12 +1,7 @@
 import type { JSX } from "react";
-import { LoadingSkeleton } from "@/components/ui/loading-skeleton.tsx";
+import { EditorLoading } from "@/components/ui/editor-loading.tsx";
 import { CONSTRUCT_COPY } from "@/ui/copy/constructs.ts";
 
 export default function ConstructLoading(): JSX.Element {
-  return (
-    <LoadingSkeleton
-      label={CONSTRUCT_COPY.loading}
-      shapes={["heading", "panel"]}
-    />
-  );
+  return <EditorLoading label={CONSTRUCT_COPY.loading} />;
 }

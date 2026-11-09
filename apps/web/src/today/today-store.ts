@@ -22,7 +22,8 @@ import {
 } from "@/ids.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import { nextStepOf } from "@/memory/next-step.ts";
-import type { Today } from "@/today/today.ts";
+import { measureServerOperation } from "@/performance/server-spans.ts";
+import type { Today, TodayProject } from "@/today/today.ts";
 
 // How many projects and other recent chats Today shows at most.
 const TODAY_PROJECT_COUNT = 3;
@@ -93,24 +94,56 @@ async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
 
 // What is waiting for the owner today.
 function readToday(owner: UserId): Promise<Today> {
-  return withAppErrors("readToday", async () => {
-    const [shown, recentChats] = await Promise.all([
-      activeProjects(owner, TODAY_PROJECT_COUNT),
-      activeChats(owner, TODAY_PROJECT_COUNT + TODAY_CHAT_COUNT),
-    ]);
-    const continued = new Set(shown.map(({ latestChat }) => latestChat));
-    return {
-      projects: await Promise.all(
-        shown.map(async (entry) => ({
-          ...entry,
-          nextStep: nextStepOf(await readMemory(owner, entry.project.id)),
-        })),
-      ),
-      chats: recentChats
-        .filter(({ id }) => !continued.has(id))
-        .slice(0, TODAY_CHAT_COUNT),
-    };
-  });
+  return measureServerOperation("today", () =>
+    withAppErrors("readToday", async () => {
+      const [shown, recentChats] = await Promise.all([
+        activeProjects(owner, TODAY_PROJECT_COUNT),
+        activeChats(owner, TODAY_PROJECT_COUNT + TODAY_CHAT_COUNT),
+      ]);
+      const continued = new Set(shown.map(({ latestChat }) => latestChat));
+      return {
+        projects: await Promise.all(
+          shown.map(async (entry) => ({
+            ...entry,
+            nextStep: nextStepOf(await readMemory(owner, entry.project.id)),
+          })),
+        ),
+        chats: recentChats
+          .filter(({ id }) => !continued.has(id))
+          .slice(0, TODAY_CHAT_COUNT),
+      };
+    }),
+  );
 }
 
-export { readToday };
+// Home needs one continued quest and whether any adventure exists. Keep the
+// same ordering and access predicates as Today without loading unused cards.
+function readHomeSummary(owner: UserId): Promise<{
+  latestQuest: TodayProject | undefined;
+  firstVisit: boolean;
+}> {
+  return measureServerOperation("home-summary", () =>
+    withAppErrors("readHomeSummary", async () => {
+      const [[latest], [adventure]] = await Promise.all([
+        activeProjects(owner, 1),
+        getDb()
+          .select({ id: chats.id })
+          .from(chats)
+          .where(chatOpenTo(owner))
+          .limit(1),
+      ]);
+      if (latest !== undefined) {
+        return {
+          latestQuest: {
+            ...latest,
+            nextStep: nextStepOf(await readMemory(owner, latest.project.id)),
+          },
+          firstVisit: false,
+        };
+      }
+      return { latestQuest: undefined, firstVisit: adventure === undefined };
+    }),
+  );
+}
+
+export { readHomeSummary, readToday };

@@ -7,7 +7,8 @@ import HomeLoading from "@/app/(workspace)/home/loading.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
-import type { Today, TodayProject } from "@/today/today.ts";
+import { HomeFrame } from "@/components/ui/page-frame.tsx";
+import type { TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -36,7 +37,15 @@ import { inSiteFrame } from "../../site-frame-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 import { FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
 
-const stores = vi.hoisted(() => ({ readToday: vi.fn<() => Promise<Today>>() }));
+const stores = vi.hoisted(() => ({
+  readHomeSummary:
+    vi.fn<
+      () => Promise<{
+        latestQuest: TodayProject | undefined;
+        firstVisit: boolean;
+      }>
+    >(),
+}));
 vi.mock("@/today/today-store.ts", () => stores);
 vi.mock(
   "@/auth/current-user.ts",
@@ -69,7 +78,10 @@ const DESTINATIONS = [
 beforeEach(() => {
   applyTheme("parchment");
   signInAs(SIGNED_IN_USER);
-  stores.readToday.mockResolvedValue({ projects: [], chats: [] });
+  stores.readHomeSummary.mockResolvedValue({
+    latestQuest: undefined,
+    firstVisit: true,
+  });
 });
 afterEach(async () => {
   await commands.emulateColorScheme("light");
@@ -420,13 +432,49 @@ describe("use_case_home_atlas", () => {
     );
   });
 
+  test.each(["loading", "atlas"])(
+    "leaves body paper and art unchanged with a first-mounted hidden %s",
+    async (kind) => {
+      await setViewport(LAPTOP_VIEWPORT);
+      function cached(mode: "visible" | "hidden"): Promise<JSX.Element> {
+        let content = <HomeLoading />;
+        if (kind === "atlas") {
+          content = <HomeAtlas latestQuest={undefined} />;
+        }
+        return inSiteFrame(
+          <HomeFrame>
+            <React.Activity mode={mode}>{content}</React.Activity>
+          </HomeFrame>,
+        );
+      }
+      const screen = await render(
+        await inSiteFrame(<h1>{QUICK_CAPTURE_COPY.heading}</h1>),
+      );
+      const paper = getComputedStyle(document.body).backgroundColor;
+      const art = getComputedStyle(document.body).backgroundImage;
+      await screen.rerender(await cached("hidden"));
+      expect(getComputedStyle(document.body).backgroundColor).toBe(paper);
+      expect(getComputedStyle(document.body).backgroundImage).toBe(art);
+      await screen.rerender(await cached("visible"));
+      await expect
+        .element(page.getByRole("heading", { name: HOME_COPY.heading }))
+        .toBeVisible();
+      expect(getComputedStyle(document.body).backgroundImage === art).toBe(
+        kind === "loading",
+      );
+      await screen.rerender(await cached("hidden"));
+      expect(getComputedStyle(document.body).backgroundColor).toBe(paper);
+      expect(getComputedStyle(document.body).backgroundImage).toBe(art);
+    },
+  );
+
   test("keeps the header rectangle and main origin stable from loading to Home", async () => {
     await setViewport(LAPTOP_VIEWPORT);
     const screen = await render(
       await inSiteFrame(
-        <div className="page-column">
+        <HomeFrame>
           <HomeLoading />
-        </div>,
+        </HomeFrame>,
       ),
     );
     const headerBox = page
@@ -436,18 +484,25 @@ describe("use_case_home_atlas", () => {
       .toJSON();
     const main = page.getByRole("main").element();
     const { x, y, width } = main.getBoundingClientRect();
+    const column = main.firstElementChild;
+    const columnBefore = column?.getBoundingClientRect();
+    expect(columnBefore?.width).toBe(LAPTOP_VIEWPORT.width);
     await screen.rerender(
       await inSiteFrame(
-        <div className="page-column">
+        <HomeFrame>
           <HomeAtlas latestQuest={undefined} />
-        </div>,
+        </HomeFrame>,
       ),
     );
     expect(
       page.getByRole("banner").element().getBoundingClientRect().toJSON(),
     ).toEqual(headerBox);
     expect(main.getBoundingClientRect()).toMatchObject({ x, y, width });
-    // Content height and the inner column differ between loading and Home (#795).
+    expect(column?.getBoundingClientRect()).toMatchObject({
+      x: columnBefore?.x,
+      y: columnBefore?.y,
+      width: columnBefore?.width,
+    });
   });
 
   test.each(["light", "dark"])(
@@ -539,13 +594,16 @@ describe("use_case_home_atlas", () => {
   test("requires sign-in before reading recent work", async () => {
     signOut();
     await expect(HomePage()).rejects.toThrow(SIGNED_OUT_REDIRECT);
-    expect(stores.readToday).not.toHaveBeenCalled();
+    expect(stores.readHomeSummary).not.toHaveBeenCalled();
   });
 });
 
 describe("use_case_today_on_landing", () => {
   test("continues the most recent quest's real chat and next step", async () => {
-    stores.readToday.mockResolvedValue({ projects: [LATEST], chats: [] });
+    stores.readHomeSummary.mockResolvedValue({
+      latestQuest: LATEST,
+      firstVisit: false,
+    });
     await render(inWorkspace(await HomePage()));
     await expect
       .element(

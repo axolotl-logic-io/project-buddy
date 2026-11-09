@@ -73,6 +73,9 @@ async function headerBreadcrumbs(
   path: readonly string[],
 ): Promise<readonly Breadcrumb[]> {
   const [section = "", id, child] = path;
+  if (section === "home" && id === undefined) {
+    return [{ label: SITE_COPY.home }];
+  }
   const root = ROOTS.get(section);
   if (id === undefined) {
     if (root === undefined) {

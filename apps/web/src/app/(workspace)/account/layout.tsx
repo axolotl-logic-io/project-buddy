@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { PageFrame } from "@/components/ui/page-frame.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { SignOutButtons } from "./sign-out-buttons.tsx";
 
@@ -10,7 +11,7 @@ export default function AccountLayout({
   children,
 }: LayoutProps<"/account">): JSX.Element {
   return (
-    <>
+    <PageFrame>
       <h1 className="page-heading">{ACCOUNT_COPY.heading}</h1>
       {children}
       <section
@@ -22,6 +23,6 @@ export default function AccountLayout({
         </h2>
         <SignOutButtons />
       </section>
-    </>
+    </PageFrame>
   );
 }
