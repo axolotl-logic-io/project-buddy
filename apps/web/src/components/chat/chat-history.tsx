@@ -1,7 +1,7 @@
 "use client";
 
 import { type MessageRuntimeState, ThreadPrimitive } from "@assistant-ui/react";
-import { type JSX, type ReactNode, memo, useCallback } from "react";
+import { type JSX, memo, type ReactNode, useCallback } from "react";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";

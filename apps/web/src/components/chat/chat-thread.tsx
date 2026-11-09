@@ -3,8 +3,8 @@
 import { ThreadPrimitive } from "@assistant-ui/react";
 import { type JSX, useCallback, useRef } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
-import { ChatHistory } from "@/components/chat/chat-history.tsx";
 import { ChatError } from "@/components/chat/chat-error.tsx";
+import { ChatHistory } from "@/components/chat/chat-history.tsx";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
@@ -60,14 +60,14 @@ export function ChatThread({
           aria-label={CHAT_COPY.conversationLabel}
           className="flex flex-col gap-8"
         >
-            <ChatHistory
-              construct={construct}
-              chatId={chatId}
-              openingMessageId={openingMessageId}
-              authorNames={authorNames}
-              replyCosts={replyCosts}
-              activityAllowed={error === undefined && replyStopped !== true}
-            />
+          <ChatHistory
+            construct={construct}
+            chatId={chatId}
+            openingMessageId={openingMessageId}
+            authorNames={authorNames}
+            replyCosts={replyCosts}
+            activityAllowed={error === undefined && replyStopped !== true}
+          />
         </ol>
         {error !== undefined && (
           <ChatError error={error} onRetry={onRetry && retry} />
