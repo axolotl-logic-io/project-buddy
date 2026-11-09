@@ -4,6 +4,7 @@ import { type JSX, useEffect, useRef, useState } from "react";
 import { LinkRequestForm } from "@/app/login/link-request-form.tsx";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
+import { Notice } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { SentProjectInvitation } from "@/projects/project-invitations.ts";
 import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
@@ -53,9 +54,9 @@ export function ProjectInvite({
       </h2>
       <p className="text-muted">{copy.intro}</p>
       {revoked !== undefined && (
-        <p ref={resultRef} role="status" tabIndex={-1}>
+        <Notice ref={resultRef} role="status" tabIndex={-1}>
           {copy.revoked(revoked)}
-        </p>
+        </Notice>
       )}
       <LinkRequestForm
         key={revision}
