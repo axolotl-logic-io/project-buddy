@@ -16,7 +16,5 @@ export default async function HeaderLinks({
   if (user !== undefined) {
     breadcrumbs = await headerBreadcrumbs(user.id, path);
   }
-  return (
-    <SignedInLinks breadcrumbs={breadcrumbs} place={placeOf(path)?.name} />
-  );
+  return SignedInLinks({ breadcrumbs, place: placeOf(path)?.name });
 }

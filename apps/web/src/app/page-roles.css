@@ -284,6 +284,10 @@
     scroll-padding-top: var(--site-header-height);
   }
 
+  html:has(.header-breadcrumbs) {
+    --site-header-height: 52px;
+  }
+
   .chat-header {
     inset-block-start: var(--site-header-height);
     @apply sticky z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
@@ -351,11 +355,11 @@
      theme dresses it through the menu tokens (src/themes/themes.ts). */
   /* The header is a game's HUD in every theme, in the atlas's ink and gold:
      the site's name behind a compass medallion, the place the page belongs
-     to, the shortcuts in gold, and the buttons as ink tiles with a gold rim,
+     to, and the buttons as ink tiles with a gold rim,
      Quick Note in gold. The menu's panel inside it keeps the theme's own
      look, so only the header's own children are dressed. */
   .site-header {
-    @apply sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
+    @apply relative z-20 flex flex-wrap items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
     background: var(--atlas-ink);
     color: var(--atlas-paper);
@@ -373,7 +377,20 @@
   }
 
   .header-breadcrumbs li {
-    @apply flex min-w-0 flex-1 items-center gap-1;
+    @apply flex min-w-0 items-center gap-1;
+    flex: 0 1 auto;
+  }
+
+  .header-breadcrumbs li:not(:first-child) {
+    min-inline-size: calc(var(--target-size) + 1rem);
+  }
+
+  .header-breadcrumbs li:first-child {
+    flex-shrink: 0;
+  }
+
+  .header-breadcrumbs li:has([aria-current]) {
+    flex-shrink: 2;
   }
 
   .header-breadcrumbs a,
@@ -399,7 +416,7 @@
   }
 
   .hud-title {
-    @apply inline-flex shrink-0 items-center gap-2 whitespace-nowrap;
+    @apply inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
 
   .hud-medallion {
@@ -423,6 +440,7 @@
   }
 
   .site-header > .button-secondary {
+    flex-shrink: 0;
     @apply rounded-control border-2 shadow-none;
     background: var(--atlas-ink);
     color: var(--atlas-paper);
@@ -441,6 +459,10 @@
   }
 
   @media (width < 32rem) {
+    .hud-medallion {
+      display: none;
+    }
+
     .header-quick-note {
       min-inline-size: var(--target-size);
       padding-inline: 0;
@@ -451,30 +473,17 @@
     }
   }
 
-  .site-shortcuts {
-    @apply mr-2 hidden items-center gap-2;
-  }
-
-  .site-shortcut {
-    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
-    color: var(--atlas-gold);
-    text-decoration-thickness: calc(var(--line-width) * 2);
-  }
-
-  .site-shortcut:hover {
-    color: var(--atlas-paper);
-  }
-
-  @container (min-width: 48rem) {
-    .site-shortcuts {
-      display: flex;
-    }
-  }
-
   @container (min-width: 40rem) {
     .hud-place {
       display: block;
     }
+  }
+
+  .site-header:has(.header-breadcrumbs) {
+    @apply pb-1;
+    --header-controls-height: 60px;
+    position: sticky;
+    inset-block-start: calc(-1 * var(--header-controls-height));
   }
 
   .site-header:has(.header-breadcrumbs) > .hud-place {
@@ -483,30 +492,6 @@
 
   .site-header:has(.header-breadcrumbs) > .hud-title {
     margin-inline-end: auto;
-  }
-
-  /* Home keeps its controls in the same frosted paper as the atlas.
-     The dialog itself retains the user's appearance and no blur, so its
-     fixed positioning stays relative to the viewport. */
-  .site-header:has(~ main .atlas:not([data-inactive])) {
-    @apply z-10 mx-4 mt-4 rounded-box border p-2 shadow-control sm:p-3;
-    background: var(--atlas-paper);
-    color: var(--atlas-ink);
-    border-color: var(--atlas-line);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > :not(.site-menu) {
-    --focus-outline: 3px solid var(--atlas-focus);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title {
-    @apply mr-auto;
-    font-family: var(--atlas-font);
-  }
-
-  .site-header:has(~ main .atlas:not([data-inactive])) .hud-medallion,
-  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
-    display: none;
   }
 
   .site-menu {
@@ -592,7 +577,7 @@
 }
 
 @layer roles {
-  /* The artwork belongs behind the entire Home page, including its header.
+  /* The artwork belongs behind Home content below the shared header.
      Hidden cached Home pages must never dress the page currently on screen. */
   body:has(.atlas:not([data-inactive])) {
     background-color: var(--atlas-paper);
@@ -772,22 +757,6 @@
       -webkit-backdrop-filter: var(--atlas-blur);
       backdrop-filter: var(--atlas-blur);
     }
-
-    /* Avoid a filter on the header: it would contain the fixed menu.
-       Its pseudo-element blurs only the paper behind the header's controls. */
-    .site-header:has(~ main .atlas:not([data-inactive])) {
-      @apply relative isolate;
-      background: transparent;
-    }
-
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
-      @apply pointer-events-none absolute inset-0 rounded-box;
-      z-index: -1;
-      content: "";
-      background: var(--atlas-frost);
-      -webkit-backdrop-filter: var(--atlas-blur);
-      backdrop-filter: var(--atlas-blur);
-    }
   }
 
   @container (min-width: 48rem) {
@@ -817,8 +786,7 @@
     .atlas-title,
     .atlas-destination,
     .atlas-continue,
-    .atlas-footer,
-    .site-header:has(~ main .atlas:not([data-inactive]))::before {
+    .atlas-footer {
       @supports (backdrop-filter: blur(0)) or
         (-webkit-backdrop-filter: blur(0)) {
         -webkit-backdrop-filter: none;

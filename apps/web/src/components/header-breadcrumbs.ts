@@ -14,7 +14,11 @@ import { getSpell, isSpellId } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import {
+  CHAT_NAME_COPY,
+  NEW_CHAT_COPY,
+  STANDALONE_CHATS_COPY,
+} from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
@@ -94,7 +98,7 @@ async function headerBreadcrumbs(
         href: `/projects/${chat.project.id}`,
       });
     }
-    return [...parents, { label: chat.name }];
+    return [...parents, { label: chat.name ?? CHAT_NAME_COPY.fallback }];
   }
   if (section === "projects") {
     if (

@@ -16,7 +16,6 @@ export default async function ActivitiesPage({
   return (
     <>
       <RetirementFeedback completed={retired === "1"} />
-
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{ACTIVITIES_COPY.heading}</h1>
         <p className="text-muted">{ACTIVITIES_COPY.intro}</p>

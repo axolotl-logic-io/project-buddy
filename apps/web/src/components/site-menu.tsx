@@ -13,10 +13,8 @@ import {
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -52,8 +50,8 @@ function MenuLink({
 // or mode chosen in it shows there at once.
 // Closing it returns focus to the button. The links are in the page's first
 // HTML, inside the closed panel. With shortcuts, for a signed-in user, the
-// header also holds Projects and Chats where there is room, and at every
-// width the Quick Note link, so a Quick Note is one tap away.
+// header also holds the Quick Note link at every width, so a Quick Note
+// is one tap away.
 function SiteMenu({
   links,
   shortcuts = false,
@@ -77,16 +75,6 @@ function SiteMenu({
 
   return (
     <>
-      {shortcuts === true && (
-        <nav aria-label={SITE_MENU_COPY.placesLabel} className="site-shortcuts">
-          <Link className="site-shortcut" href="/projects">
-            {PROJECTS_COPY.headerLink}
-          </Link>
-          <Link className="site-shortcut" href="/chat">
-            {CHAT_COPY.headerLink}
-          </Link>
-        </nav>
-      )}
       {shortcuts === true && (
         <Button asChild={true} variant="secondary">
           <Link className="header-quick-note" href="/capture">
