@@ -2,8 +2,8 @@ const QUEST_STATUS_COPY = {
   labels: { active: "Active", completed: "Completed", abandoned: "Abandoned" },
   actions: {
     active: "Restore quest",
-    completed: "Mark completed",
-    abandoned: "Mark abandoned",
+    completed: "Complete",
+    abandoned: "Abandon",
   },
   saved: {
     active: "Quest restored. Check-ins stay off until you turn them on.",
@@ -11,7 +11,6 @@ const QUEST_STATUS_COPY = {
     abandoned: "Quest abandoned. Check-ins paused.",
   },
   option: (name: string, status: string): string => `${name} (${status})`,
-  menu: "Quest actions",
   tabs: "Quest status",
   restore: "Restore quest",
   undo: "Undo",

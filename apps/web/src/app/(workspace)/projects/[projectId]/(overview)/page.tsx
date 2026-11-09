@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
@@ -11,8 +10,7 @@ import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
-import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
-import { Button } from "@/components/ui/button.tsx";
+import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { UserId } from "@/ids.ts";
@@ -21,7 +19,6 @@ import { readRecentNotes } from "@/notes/note-store.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import { listSentProjectInvitations } from "@/projects/project-invitations.ts";
 import { getProject, type Project } from "@/projects/store.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -82,29 +79,21 @@ export default async function ProjectPage({
 
   return (
     <>
-      <div className="page-title-row">
-        <h1 className="page-heading">{project.name}</h1>
-        <Button asChild={true} variant="secondary">
-          <Link href={`/projects/${project.id}/memory`}>
-            {MEMORY_COPY.link}
-          </Link>
-        </Button>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-muted">
-          {QUEST_STATUS_COPY.labels[project.status]}
-        </span>
-        <QuestStatusControls project={project} />
-      </div>
+      <QuestWorkspace
+        project={project}
+        current="adventures"
+        newAdventure={
+          <NewChatDialog
+            activities={activities}
+            projectId={project.id}
+            selectedActivityId={DEFAULT_ACTIVITY_ID}
+            userConstructs={userConstructs}
+          />
+        }
+      />
       {project.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
-      <NewChatDialog
-        activities={activities}
-        projectId={project.id}
-        selectedActivityId={DEFAULT_ACTIVITY_ID}
-        userConstructs={userConstructs}
-      />
       <section className="page-slot">
         <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
         <ProgressTimeline milestones={milestones} />

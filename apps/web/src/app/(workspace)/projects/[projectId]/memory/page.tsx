@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { activityChoices } from "@/activities/activity-choices.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { Markdown } from "@/components/markdown.tsx";
+import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { QuestWorkspace } from "@/components/quest-workspace.tsx";
+import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
@@ -21,13 +26,29 @@ export default async function MemoryPage({
   if (project === undefined) {
     notFound();
   }
-  const history = await readMemoryHistory(user.id, project.id);
+  const [history, activities, userConstructs] = await Promise.all([
+    readMemoryHistory(user.id, project.id),
+    activityChoices(user.id),
+    ownConstructChoices(),
+  ]);
   const memory = history[0] ?? EMPTY_MEMORY;
 
   return (
     <>
+      <QuestWorkspace
+        project={project}
+        current="journal"
+        newAdventure={
+          <NewChatDialog
+            activities={activities}
+            projectId={project.id}
+            selectedActivityId={DEFAULT_ACTIVITY_ID}
+            userConstructs={userConstructs}
+          />
+        }
+      />
       <div className="flex flex-col gap-2">
-        <h1 className="page-heading">{MEMORY_COPY.heading}</h1>
+        <h2 className="section-heading">{MEMORY_COPY.heading}</h2>
         <p className="text-muted">{MEMORY_COPY.intro}</p>
       </div>
       <MemoryView

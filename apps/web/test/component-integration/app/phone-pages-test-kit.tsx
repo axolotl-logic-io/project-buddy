@@ -93,7 +93,7 @@ import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import {
   SIGNED_IN_USER,
@@ -576,6 +576,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
         page
           .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
           .element(),
+      );
+    },
+  },
+  {
+    name: "a quest with its title editor open",
+    render: projectPage,
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: PROJECT_COPY.rename }).click();
+      await vi.waitFor(() =>
+        page.getByRole("textbox", { name: PROJECT_COPY.titleLabel }).element(),
       );
     },
   },
