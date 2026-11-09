@@ -6,6 +6,7 @@ import { listAllChats } from "@/chats/all-chats.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { PROJECT_ID } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 
@@ -26,17 +27,19 @@ export default async function StandaloneChatsPage({
   const projectId = PROJECT_ID.safeParse(project).data;
   const selected = projects.find((choice) => choice.id === projectId);
   return (
-    <>
-      <NewChatDialog {...choices} selectedActivityId={DEFAULT_ACTIVITY_ID} />
-      <section className="flex flex-col gap-4">
-        <h2 className="section-heading">{STANDALONE_CHATS_COPY.listHeading}</h2>
-        <ChatProjectFilter
-          key={selected?.id ?? ""}
-          projects={projects}
-          chats={chats}
-          selectedProjectId={selected?.id}
-        />
-      </section>
-    </>
+    <PageWorkspace
+      title={STANDALONE_CHATS_COPY.heading}
+      action={
+        <NewChatDialog {...choices} selectedActivityId={DEFAULT_ACTIVITY_ID} />
+      }
+    >
+      <ChatProjectFilter
+        key={selected?.id ?? ""}
+        projects={projects}
+        chats={chats}
+        selectedProjectId={selected?.id}
+        workspace={true}
+      />
+    </PageWorkspace>
   );
 }

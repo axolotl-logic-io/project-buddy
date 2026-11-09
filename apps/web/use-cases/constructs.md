@@ -8,7 +8,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_view_constructs
 
-The user looks over the Constructs page: the built-in constructs, and her own.
+The user looks over the Constructs page through Built-in, Yours and Retired tabs. Craft construct stays in the heading. The Workshop list keeps its existing layout.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**

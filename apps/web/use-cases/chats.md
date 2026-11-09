@@ -144,7 +144,7 @@ The user looks for an adventure on the Adventures page, wherever it is: in a que
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has adventures in a quest ([`use_case_new_chat`](#use_case_new_chat)) and adventures in no quest (`use_case_standalone_chat`).
 - **Steps:**
-  - The user opens Adventures, from Home or from any signed-in page's header.
+  - The user opens Adventures, from Home or from any signed-in page's header. All adventures is selected by default; Quest adventures excludes standalone conversations, and Standalone shows only conversations without a quest. New adventure stays in the heading.
 - **Outcome:** each adventure with a saved activity session shows its current activity by name. The list holds every adventure of theirs, those in their quests and those in none together, newest first. It holds no other user's adventure. Each adventure links to its conversation, as on its quest's page. A quest's own page still lists only that quest's adventures.
 - **Next:**
   - `use_case_filter_chats_by_project`: narrow the list to one quest's adventures.

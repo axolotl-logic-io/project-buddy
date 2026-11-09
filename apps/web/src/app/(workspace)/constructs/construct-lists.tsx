@@ -11,7 +11,9 @@ import {
 } from "@/chats/new-chat-choices.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
 import {
   type ConstructId,
@@ -19,8 +21,11 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
+import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
+import { RetirementList } from "../retirement/retirement-list.tsx";
 import {
   cloneConstructAction,
   editBuiltInConstructAction,
@@ -172,12 +177,70 @@ function OwnConstructCards({
   return <OwnConstructList constructs={constructs} choices={choices} />;
 }
 
-async function ConstructLists(): Promise<JSX.Element> {
+async function ConstructLists({
+  workspace = false,
+}: {
+  readonly workspace?: boolean;
+} = {}): Promise<JSX.Element> {
   const user = await requireUser();
   const [own, choices] = await Promise.all([
     listOwnConstructs(user.id),
     newChatChoices(user.id),
   ]);
+  if (workspace === true) {
+    const retired = await listRetiredDefinitions(user.id);
+    return (
+      <PageWorkspace
+        title={CONSTRUCTS_COPY.heading}
+        intro={CONSTRUCTS_COPY.intro}
+        action={
+          <form action={newConstructAction}>
+            <Button type="submit">{CONSTRUCTS_COPY.newConstruct}</Button>
+          </form>
+        }
+      >
+        <WorkspaceTabs
+          label={CONSTRUCTS_COPY.heading}
+          sections={[
+            {
+              id: "built-in",
+              label: WORKSPACES_COPY.builtIn,
+              content: (
+                <div className="">
+                  <BuiltInConstructCards
+                    constructs={listBuiltInConstructs()}
+                    choices={choices}
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "yours",
+              label: WORKSPACES_COPY.yours,
+              content: (
+                <div className="">
+                  <OwnConstructCards constructs={own} choices={choices} />
+                </div>
+              ),
+            },
+            {
+              id: "retired",
+              label: WORKSPACES_COPY.retired,
+              content: (
+                <div className="flex flex-col gap-4">
+                  <RetirementList
+                    definitions={retired.filter(
+                      (definition) => definition.kind === "construct",
+                    )}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
+      </PageWorkspace>
+    );
+  }
   return (
     <>
       <section

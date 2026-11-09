@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { LoadingShapes } from "@/components/ui/loading-skeleton.tsx";
-import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 export default function ProjectLoading(): JSX.Element {
@@ -11,19 +10,20 @@ export default function ProjectLoading(): JSX.Element {
       role="status"
       aria-label={PROJECT_COPY.loading}
     >
-      <div className="page-title-row flex-col items-stretch">
-        <LoadingShapes shapes={["heading"]} />
+      <div className="quest-workspace">
+        <div className="quest-workspace-heading">
+          <LoadingShapes shapes={["heading", "line"]} />
+        </div>
+        <div className="workspace-rail">
+          <LoadingShapes shapes={["line"]} />
+        </div>
+        <div className="workspace-content">
+          <section className="page-slot">
+            <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
+            <LoadingShapes shapes={["cards"]} />
+          </section>
+        </div>
       </div>
-      <LoadingShapes shapes={["line"]} />
-      <LoadingShapes shapes={["line"]} />
-      <section className="page-slot">
-        <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
-        <LoadingShapes shapes={["line"]} />
-      </section>
-      <section className="page-slot">
-        <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
-        <LoadingShapes shapes={["cards"]} />
-      </section>
     </div>
   );
 }
