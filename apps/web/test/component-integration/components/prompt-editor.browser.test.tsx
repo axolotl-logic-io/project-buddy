@@ -601,7 +601,7 @@ test.each(["A brass guide", "A silver fox with a blue cloak"])(
         visual: { version: 1, description: "A brass guide" },
       },
     });
-      await field("Visual description").fill(description);
+    await field("Visual description").fill(description);
     await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
     await button(VISUAL_COPY.generate).click();
     await expect
