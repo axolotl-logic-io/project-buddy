@@ -1,9 +1,9 @@
 "use client";
 
-import { ThreadPrimitive, useAuiState } from "@assistant-ui/react";
-import dynamic from "next/dynamic";
+import { ThreadPrimitive } from "@assistant-ui/react";
 import { type JSX, useCallback, useRef } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
+import { ChatHistory } from "@/components/chat/chat-history.tsx";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
@@ -11,12 +11,6 @@ import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
 import type { ReplyCost } from "@/replies/reply-accounting.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-
-const ChatHistory = dynamic(() =>
-  import("@/components/chat/chat-history.tsx").then(
-    (module) => module.ChatHistory,
-  ),
-);
 
 // The conversation, any failure or a reply that stopped before it was
 // made, with a way to retry it, and the composer, docked at the bottom of
@@ -52,7 +46,6 @@ export function ChatThread({
     onRetry?.();
     inputRef.current?.focus();
   }, [onRetry]);
-  const hasMessages = useAuiState(({ thread }) => thread.messages.length > 0);
 
   return (
     <ThreadPrimitive.Root ref={scrollRef} className="chat-thread flex flex-col">
@@ -67,7 +60,6 @@ export function ChatThread({
           aria-label={CHAT_COPY.conversationLabel}
           className="flex flex-col gap-8"
         >
-          {hasMessages && (
             <ChatHistory
               construct={construct}
               chatId={chatId}
@@ -76,7 +68,6 @@ export function ChatThread({
               replyCosts={replyCosts}
               activityAllowed={error === undefined && replyStopped !== true}
             />
-          )}
         </ol>
         {error !== undefined && (
           <ChatError error={error} onRetry={onRetry && retry} />
