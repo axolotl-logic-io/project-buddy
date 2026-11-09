@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
-import { HOME_PATH } from "@/routes.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { RetirementList } from "./retirement-list.tsx";
 
@@ -17,7 +15,6 @@ async function RetirementPage({
   const definitions = await listRetiredDefinitions(user.id);
   return (
     <>
-      <BackLink href={HOME_PATH}>{RETIREMENT_COPY.home}</BackLink>
       <h1 className="page-heading">{RETIREMENT_COPY.heading}</h1>
       <p className="text-muted">{RETIREMENT_COPY.intro}</p>
       {restored === "1" && (

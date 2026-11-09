@@ -2,10 +2,8 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
-import { HOME_PATH } from "@/routes.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { ActivityLists } from "../activities/activity-lists.tsx";
 import { ConstructLists } from "../constructs/construct-lists.tsx";
@@ -72,7 +70,6 @@ export default async function WorkshopPage({
   const { kind } = QUERY.parse(await searchParams);
   return (
     <>
-      <BackLink href={HOME_PATH}>{WORKSHOP_PAGE_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
         <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>

@@ -14,6 +14,7 @@ import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import {
   AccountLinks,
+  Breadcrumbs,
   HeaderBalance,
   SignedInLinks,
   SiteHeader,
@@ -368,6 +369,82 @@ describe("the site menu", () => {
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
   });
+});
+
+const LONG_NAME_REPEATS = 20;
+
+describe("breadcrumbs in the shared header", () => {
+  for (const mode of ["light", "dark"]) {
+    test(`long names keep parent targets and controls usable at 320 px in ${mode}`, async () => {
+      applyTheme("parchment", mode);
+      await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
+      const longName = "Long quest and adventure name ".repeat(
+        LONG_NAME_REPEATS,
+      );
+      const screen = await render(
+        <SiteHeader
+          links={
+            <>
+              <SiteMenu links={<AccountLinks />} shortcuts={true} />
+              <HeaderBalance microUsd={870_000} />
+              <Breadcrumbs
+                items={[
+                  { label: "Home", href: "/home" },
+                  { label: "All quests", href: "/projects" },
+                  { label: longName, href: "/projects/quest" },
+                  { label: longName },
+                ]}
+              />
+            </>
+          }
+        />,
+      );
+      await loadFonts();
+      const navigation = page.getByRole("navigation", { name: "Breadcrumbs" });
+      await expect.element(navigation).toBeVisible();
+      expect(navigation.element().closest("header")).not.toBeNull();
+      expect(
+        navigation.element().querySelector('[aria-current="page"]')
+          ?.textContent,
+      ).toBe(longName);
+      const parent = navigation.getByRole("link", { name: longName });
+      parent.element().focus();
+      await expect.element(parent).toHaveFocus();
+      const bounds = parent.element().getBoundingClientRect();
+      expect(bounds.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+      expect(bounds.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+      await expect
+        .element(page.getByRole("button", { name: "Menu", exact: true }))
+        .toBeVisible();
+      await expect
+        .element(page.getByRole("link", { name: "Quick Note", exact: true }))
+        .toBeVisible();
+      await screen.rerender(
+        <SiteHeader
+          links={
+            <Breadcrumbs
+              items={[{ label: "Home", href: "/home" }, { label: "Settings" }]}
+            />
+          }
+        />,
+      );
+      expect(
+        page.getByRole("navigation", { name: "Breadcrumbs" }).elements(),
+      ).toHaveLength(1);
+      await expect
+        .element(page.getByRole("link", { name: longName }))
+        .not.toBeInTheDocument();
+      expect(
+        navigation.element().querySelector('[aria-current="page"]')
+          ?.textContent,
+      ).toBe("Settings");
+      await screen.rerender(<SiteHeader />);
+      await expect.element(navigation).not.toBeInTheDocument();
+    });
+  }
 });
 
 describe("header battery balance", () => {
