@@ -635,18 +635,24 @@ A model provider account's prepaid balance. Provider credit is separate from eac
 
 - **Avoid:** "credits" for gold.
 
+### Orbs
+
+The separate Marketplace balance prepared by the orb rollout. Orb buys start paused and require an explicit operator cutover; see the [rollout plan](docs/marketplace.md#currency-cutover-proposal). Before that migration, legacy Marketplace trades used the shared model-use gold balance, now called Batteries. Each user receives 100 orbs once. Listing prices are whole orbs from 0 to 5. Orbs cannot be bought, cashed out or converted to Batteries. Model use spends Batteries separately. Historical gold purchases keep their original currency.
+
+- **UI:** "orbs", "Orb balance".
+
 ## Prompt marketplace
 
 ### Marketplace
 
-The page where users share their own constructs, activities and spells and sell them to each other for gold. Listings are visible to every signed-in user.
+The page where users share their own constructs, activities and spells and sell them to each other for orbs. Listings are visible to every signed-in user.
 
 - **UI:** "Marketplace", "Sell in the Marketplace", "Your listings".
 - **Avoid:** "store", "shop" in UI copy.
 
 ### Listing
 
-A published copy of a seller's own construct, activity or spell, with a description and a price in gold. A free listing lets users share them without payment. Editing the original construct, activity or spell does not change the listing until the seller updates it. Unlisting stops new sales. Browsing a listing does not reveal its prompt.
+A published copy of a seller's own construct, activity or spell, with a description and a price in orbs. A free listing lets users share them without payment. Editing the original construct, activity or spell does not change the listing until the seller updates it. Unlisting stops new sales. Browsing a listing does not reveal its prompt.
 
 Built-in constructs, activities and spells, unchanged copies of them, and bought ones cannot be listed.
 
@@ -659,7 +665,7 @@ The user who published a listing. Only they update or unlist it. Others see the 
 
 ### Buy
 
-To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
+To get one's own copy of someone else's listing: the buyer's orbs moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no orbs ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
 
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.

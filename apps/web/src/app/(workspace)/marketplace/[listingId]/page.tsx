@@ -5,20 +5,31 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { orbPurchasesEnabled } from "@/marketplace/cutover.ts";
 import { getListing, type ListingView } from "@/marketplace/listing-store.ts";
+import { readOrbsBalance } from "@/orbs/orb-store.ts";
 import { ownPromptPath } from "@/prompts/own-prompt-paths.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { unlistListingAction, updateListingAction } from "../actions.ts";
 import { BuyForm } from "../buy-form.tsx";
 import { ListingTermsForm } from "../listing-terms-form.tsx";
 
+function listingPrice(listing: ListingView): string {
+  if (listing.legacy === true) {
+    return LISTING_COPY.legacy;
+  }
+  return MARKETPLACE_COPY.price(listing.price);
+}
+
 const UPDATE_HEADING_ID = "update-listing-heading";
 
 // What a buyer can do: open the copy they have, or buy one.
 function BuyerPart({
   listing,
+  enabled,
 }: {
   readonly listing: ListingView & { readonly viewer: "buyer" };
+  readonly enabled: boolean;
 }): JSX.Element {
   if (listing.copy !== undefined) {
     return (
@@ -32,11 +43,24 @@ function BuyerPart({
       </div>
     );
   }
+  if (listing.legacy === true) {
+    return <p>{LISTING_COPY.legacy}</p>;
+  }
+  if (!enabled) {
+    return <p>{MARKETPLACE_COPY.paused}</p>;
+  }
   return <BuyForm listingId={listing.id} price={listing.price} />;
 }
 
 // What the seller can do: open the prompt it was published from, update
 // the listing from it and unlist it, while each is possible.
+function orbPrice(listing: ListingView): number | undefined {
+  if (listing.legacy === true) {
+    return undefined;
+  }
+  return listing.price;
+}
+
 function SellerPart({
   listing,
 }: {
@@ -82,7 +106,7 @@ function SellerPart({
           <ListingTermsForm
             action={updateListingAction}
             description={listing.description}
-            price={listing.price}
+            price={orbPrice(listing)}
             words={{
               submit: LISTING_COPY.update,
               pending: LISTING_COPY.updating,
@@ -114,6 +138,8 @@ export default async function ListingPage({
   const { listingId } = await params;
   const user = await requireUser();
   const listing = await getListing(user.id, listingId);
+  const orbs = await readOrbsBalance(user.id);
+  const enabled = await orbPurchasesEnabled();
   if (listing === undefined) {
     notFound();
   }
@@ -126,9 +152,10 @@ export default async function ListingPage({
           {LISTING_COPY.kindAndSeller(listing.kind, listing.sellerName)}
         </p>
       </div>
+      <p>{MARKETPLACE_COPY.orbBalance(orbs)}</p>
       <dl className="flex flex-wrap gap-2">
         <dt className="font-semibold">{LISTING_COPY.priceLabel}</dt>
-        <dd>{MARKETPLACE_COPY.price(listing.price)}</dd>
+        <dd>{listingPrice(listing)}</dd>
       </dl>
       {listing.description !== "" && (
         <p className="wrap-anywhere whitespace-pre-line">
@@ -140,7 +167,7 @@ export default async function ListingPage({
           <p className="text-muted">
             {LISTING_COPY.writtenByAnother(listing.kind)}
           </p>
-          <BuyerPart listing={listing} />
+          <BuyerPart listing={listing} enabled={enabled} />
         </>
       )}
       {listing.viewer === "seller" && <SellerPart listing={listing} />}

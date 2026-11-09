@@ -1,5 +1,5 @@
 // Marketplace listings: a seller publishes a copy of one of their own
-// prompts, of any kind (src/prompts/own-prompt-kinds.ts), with a description and a price in gold, for other
+// prompts, of any kind (src/prompts/own-prompt-kinds.ts), with a description and a price in orbs, for other
 // users to buy (buy-listing.ts). A listing is the copy as last published:
 // editing or deleting the seller's prompt changes no listing until the
 // seller updates it, which republishes the prompt's current name and
@@ -45,6 +45,8 @@ import {
   type UserId,
 } from "@/ids.ts";
 import {
+  LISTING_DESCRIPTION_MAX_LENGTH,
+  LISTING_PRICE_MAX,
   type ListingTerms,
   MARKETPLACE_PAGE_SIZE,
 } from "@/marketplace/listing.ts";
@@ -68,6 +70,7 @@ interface ListingCard {
   readonly name: string;
   readonly description: string;
   readonly sellerName: string | undefined;
+  readonly legacy?: boolean;
   readonly price: number;
   readonly listedAt: Date;
   readonly yours: boolean;
@@ -92,14 +95,16 @@ interface BuyerView {
 type ListingView = ListingCard & (SellerView | BuyerView);
 
 // One of the seller's listings, as their list of them shows it: whether it
-// is still listed, how many times it was bought, and the gold it earned.
+// is still listed, how many times it was bought, and the orbs it earned.
 interface OwnListing {
   readonly id: ListingId;
   readonly kind: PromptKind;
   readonly name: string;
+  readonly legacy?: boolean;
   readonly price: number;
   readonly listed: boolean;
   readonly buyers: number;
+  // Compatibility field name: only orb-denominated purchases contribute.
   readonly goldEarned: number;
 }
 
@@ -143,6 +148,7 @@ const LISTING_ROW = z.object({
   description: z.string(),
   sellerId: z.string(),
   sellerName: z.string().nullable(),
+  currency: z.string(),
   price: z.number(),
   listedAt: z.date(),
   unlistedAt: z.date().nullable(),
@@ -167,6 +173,7 @@ async function readListingRows(
         description: listings.description,
         sellerId: listings.sellerId,
         sellerName: users.name,
+        currency: listings.currency,
         price: listings.price,
         listedAt: listings.createdAt,
         unlistedAt: listings.unlistedAt,
@@ -187,6 +194,14 @@ async function readListingRows(
   });
 }
 
+// Only legacy rows need a marker; current cards retain their existing shape.
+function legacyMarker(currency: string): { readonly legacy?: boolean } {
+  if (currency === "orbs") {
+    return {};
+  }
+  return { legacy: true };
+}
+
 // The row as the viewer sees it on a card.
 function cardOf(viewer: UserId, row: ListingRow): ListingCard {
   return {
@@ -195,6 +210,7 @@ function cardOf(viewer: UserId, row: ListingRow): ListingCard {
     name: row.name,
     description: row.description,
     sellerName: row.sellerName ?? undefined,
+    ...legacyMarker(row.currency),
     price: row.price,
     listedAt: row.listedAt,
     yours: row.sellerId === viewer,
@@ -230,6 +246,14 @@ async function publishListing(
   source: ListingSource,
   terms: ListingTerms,
 ): Promise<ListingChangeOutcome> {
+  if (
+    !Number.isSafeInteger(terms.price) ||
+    terms.price < 0 ||
+    terms.price > LISTING_PRICE_MAX ||
+    terms.description.length > LISTING_DESCRIPTION_MAX_LENGTH
+  ) {
+    return { kind: "not-found" };
+  }
   const listable = await listableSource(seller, source);
   if (typeof listable === "string") {
     return { kind: listable };
@@ -242,6 +266,7 @@ async function publishListing(
     return { kind: "limited" };
   }
   const published = {
+    currency: "orbs",
     name: listable.name,
     parts: listingPayload(source.kind, listable.parts),
     description: terms.description,
@@ -374,7 +399,12 @@ async function listListings(
     ofKind = eq(listings.kind, storedPromptKind(kind));
   }
   const rows = await readListingRows(
-    and(listingListed(), ofKind, afterListing(viewer, after)),
+    and(
+      listingListed(),
+      eq(listings.currency, "orbs"),
+      ofKind,
+      afterListing(viewer, after),
+    ),
     MARKETPLACE_PAGE_SIZE,
   );
   return rows.map((row) => cardOf(viewer, row));
@@ -437,6 +467,7 @@ const OWN_LISTING_ROW = z.object({
   id: LISTING_ID,
   kind: STORED_PROMPT_KIND,
   name: z.string(),
+  currency: z.string(),
   price: z.number(),
   unlistedAt: z.date().nullable(),
   buyers: z.coerce.number(),
@@ -444,7 +475,7 @@ const OWN_LISTING_ROW = z.object({
 });
 
 // The seller's listings, listed or not, newest first, with how many users
-// bought each, counting one who bought it again once, and the gold it
+// bought each, counting one who bought it again once, and the orbs it
 // earned.
 async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
   const rows = await withAppErrors("list own listings", () =>
@@ -453,10 +484,11 @@ async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
         id: listings.id,
         kind: listings.kind,
         name: listings.name,
+        currency: listings.currency,
         price: listings.price,
         unlistedAt: listings.unlistedAt,
         buyers: sql<number>`count(distinct ${purchases.buyerId})`,
-        goldEarned: sql<number>`coalesce(sum(${purchases.price}), 0)`,
+        goldEarned: sql<number>`coalesce(sum(case when ${purchases.currency} = 'orbs' then ${purchases.price} else 0 end), 0)`,
       })
       .from(listings)
       .leftJoin(
@@ -475,8 +507,14 @@ async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
     if (!parsed.success) {
       return [];
     }
-    const { unlistedAt, ...listing } = parsed.data;
-    return [{ ...listing, listed: unlistedAt === null }];
+    const { unlistedAt, currency, ...listing } = parsed.data;
+    return [
+      {
+        ...listing,
+        ...legacyMarker(currency),
+        listed: unlistedAt === null,
+      },
+    ];
   });
 }
 
@@ -526,6 +564,7 @@ async function readSaleState(
           id: listings.id,
           unlistedAt: listings.unlistedAt,
           description: listings.description,
+          currency: listings.currency,
           price: listings.price,
         })
         .from(listings)
@@ -542,7 +581,7 @@ async function readSaleState(
   if (listable === "built-in") {
     return { kind: listable };
   }
-  if (row === undefined) {
+  if (row === undefined || row.currency !== "orbs") {
     return { kind: "listable" };
   }
   return {

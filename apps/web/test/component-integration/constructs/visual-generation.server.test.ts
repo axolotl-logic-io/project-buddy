@@ -23,6 +23,7 @@ import {
   constructAssetGrants,
   constructAssets,
 } from "@/db/tables/construct-visuals.ts";
+import { marketplaceCutover } from "@/db/tables/orbs.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
 import { IMAGE_RESERVATION_MICRO_USD } from "@/images/image-provider.ts";
@@ -374,7 +375,12 @@ describe("use_case_generate_construct_visual", () => {
     expect(
       await getVisualAsset(buyer.id, { kind: "listing", id: listing.id }, id),
     ).toBeDefined();
+    await getDb()
+      .update(marketplaceCutover)
+      .set({ enabled: true })
+      .where(eq(marketplaceCutover.id, 1));
     const bought = await buyListing(buyer.id, {
+      currency: "orbs",
       listingId: listing.id,
       price: 0,
     });
@@ -691,7 +697,12 @@ test("legacy hashes use owned generation descriptions; copied legacy art with no
   if (listing.kind !== "published") {
     throw new Error("No listing");
   }
+  await getDb()
+    .update(marketplaceCutover)
+    .set({ enabled: true })
+    .where(eq(marketplaceCutover.id, 1));
   const bought = await buyListing(buyer.id, {
+    currency: "orbs",
     listingId: listing.id,
     price: 0,
   });
@@ -816,7 +827,12 @@ test("recovery on a bought copy restores its original image identity without cha
     throw new Error("No listing");
   }
   const buyer = await testUser();
+  await getDb()
+    .update(marketplaceCutover)
+    .set({ enabled: true })
+    .where(eq(marketplaceCutover.id, 1));
   const bought = await buyListing(buyer.id, {
+    currency: "orbs",
     listingId: listing.id,
     price: 0,
   });
