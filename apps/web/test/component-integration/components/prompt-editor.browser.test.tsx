@@ -51,6 +51,8 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
+vi.mock("next/navigation", () => import("./router-test-kit.ts"));
+
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
