@@ -55,7 +55,15 @@ const WHEEL_UP_PIXELS = -400;
 
 // Deliver wheel input through the browser, including its native default scroll.
 async function wheelUp(context: BrowserCommandContext): Promise<void> {
-  await context.iframe.getByRole("list").hover();
+  const frame = await context.page.locator("iframe").boundingBox();
+  if (frame === null) {
+    throw new Error("The browser test iframe is not visible");
+  }
+  // Hovering a locator scrolls it into view. Move within the visible iframe.
+  await context.page.mouse.move(
+    frame.x + frame.width / 2,
+    frame.y + frame.height / 2,
+  );
   await context.page.mouse.wheel(0, WHEEL_UP_PIXELS);
 }
 

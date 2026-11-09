@@ -23,6 +23,8 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
     let resizeFrame = 0;
     let navigation = 0;
     let resizeNavigation = 0;
+    // Input intent remains active until the document actually moves.
+    let pendingNavigation = false;
     // Input can suspend follow before a scroll exists. Focus must not grant
     // permission to resume it; only navigation back down or sending can.
     let resumeBlocked = false;
@@ -30,6 +32,7 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
 
     function navigate(upward: boolean): void {
       navigation += 1;
+      pendingNavigation = true;
       if (upward) {
         following = false;
         resumeBlocked = true;
@@ -93,10 +96,20 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
       }
     }
 
+    function atBottom(): boolean {
+      return (
+        document.documentElement.scrollHeight -
+          window.innerHeight -
+          window.scrollY <=
+        1
+      );
+    }
+
     function follow(): void {
       // Scroll events can arrive after a resize observer. Notice an actual
       // upward move here too (scrollbar dragging and navigation links).
-      if (window.scrollY < lastY && resizeFrame === 0) {
+      // Shrinking content can clamp Y upward while still at the bottom.
+      if (window.scrollY < lastY && !atBottom() && resizeFrame === 0) {
         following = false;
       }
       if (following) {
@@ -114,17 +127,18 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
       if (
         (resizeFrame !== 0 || window.innerHeight !== lastHeight) &&
         navigation === resizeNavigation &&
-        !resumeBlocked
+        !pendingNavigation
       ) {
         return;
       }
       const y = window.scrollY;
-      const remaining =
-        document.documentElement.scrollHeight - window.innerHeight - y;
-      if (y < lastY) {
+      if (y !== lastY) {
+        pendingNavigation = false;
+      }
+      if (y < lastY && !atBottom()) {
         following = false;
         resumeBlocked = false;
-      } else if (y > lastY && remaining <= 1 && !resumeBlocked) {
+      } else if (y > lastY && atBottom() && !resumeBlocked) {
         following = true;
       }
       lastY = y;
@@ -153,7 +167,10 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
       // Restore after the browser applies its own focus/scroll anchoring for
       // the resized viewport, before recording further user scrolling.
       resizeFrame = requestAnimationFrame((): void => {
-        if (!(following || resumeBlocked) && navigation === resizeNavigation) {
+        if (
+          !(following || pendingNavigation) &&
+          navigation === resizeNavigation
+        ) {
           window.scrollTo({ top: lastY, behavior: "instant" });
         }
         lastHeight = window.innerHeight;
@@ -165,6 +182,7 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
 
     function onSend(): void {
       following = true;
+      pendingNavigation = false;
       resumeBlocked = false;
       lastY = window.scrollY;
       follow();

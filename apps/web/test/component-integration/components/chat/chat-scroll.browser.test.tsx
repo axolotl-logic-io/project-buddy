@@ -134,6 +134,88 @@ describe("use_case_follow_latest_messages", () => {
     });
   }
 
+  test("content shrink at the bottom keeps following subsequent growth", async () => {
+    await openChat();
+    await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+    await layoutSettled();
+    const conversation = page
+      .getByRole("list", { name: CHAT_COPY.conversationLabel })
+      .element();
+    const extra = Object.assign(document.createElement("div"), {
+      textContent: LONG_TEXT,
+    });
+    conversation.append(extra);
+    await layoutSettled();
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+    const expandedY = window.scrollY;
+    extra.remove();
+    await layoutSettled();
+    expect(window.scrollY).toBeLessThan(expandedY);
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+    conversation.append(extra);
+    await layoutSettled();
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+  });
+
+  for (const keyboard of ["visual", "layout"]) {
+    test(`composer focus preserves reading through ${keyboard} keyboard resizing and growth`, async () => {
+      await page.viewport(PHONE_VIEWPORT.width, PHONE_VIEWPORT.height);
+      await layoutSettled();
+      const viewport = Object.assign(new EventTarget(), {
+        height: PHONE_VIEWPORT.height,
+        offsetTop: 0,
+      });
+      if (keyboard === "visual") {
+        vi.stubGlobal("visualViewport", viewport);
+      }
+      await openChat();
+      await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+      await layoutSettled();
+      const readingY = await readEarlier();
+      page
+        .getByRole("textbox", { name: CHAT_COPY.messageLabel })
+        .element()
+        .focus({ preventScroll: true });
+      // Model browser focus scrolling during keyboard resize, before restoration.
+      function focusScroll(): void {
+        window.scrollTo({ top: readingY + READING_STEP, behavior: "instant" });
+      }
+      if (keyboard === "visual") {
+        viewport.height = KEYBOARD_HEIGHT;
+        viewport.dispatchEvent(new Event("resize"));
+        focusScroll();
+      } else {
+        window.addEventListener("resize", focusScroll, { once: true });
+        await page.viewport(PHONE_VIEWPORT.width, KEYBOARD_HEIGHT);
+      }
+      await layoutSettled();
+      expect(window.scrollY).toBe(readingY);
+      const conversation = page
+        .getByRole("list", { name: CHAT_COPY.conversationLabel })
+        .element();
+      conversation.append(
+        Object.assign(document.createElement("div"), {
+          textContent: LONG_TEXT,
+        }),
+      );
+      await layoutSettled();
+      expect(window.scrollY).toBe(readingY);
+      globalThis.dispatchEvent(new WheelEvent("wheel", { deltaY: 120 }));
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "instant",
+      });
+      await layoutSettled();
+      conversation.append(
+        Object.assign(document.createElement("div"), {
+          textContent: LONG_TEXT,
+        }),
+      );
+      await layoutSettled();
+      expect(bottomGap()).toBeLessThanOrEqual(1);
+    });
+  }
+
   for (const input of ["wheel", "touch", "keyboard"]) {
     test(`${input} suspends following before a scroll event and a queued viewport update`, async () => {
       const viewport = Object.assign(new EventTarget(), {
@@ -189,45 +271,71 @@ describe("use_case_follow_latest_messages", () => {
     });
   }
 
-  for (const navigation of ["PageUp", "wheel"]) {
-    test(`browser ${navigation} navigation survives content growth and composer focus`, async () => {
-      await openChat();
-      await expect.poll(bottomGap).toBeLessThanOrEqual(1);
-      await document.fonts.ready;
-      await layoutSettled();
-      const bottom = window.scrollY;
-      const ended = new Promise<void>((resolve) =>
-        window.addEventListener("scrollend", () => resolve(), { once: true }),
-      );
-      if (navigation === "wheel") {
-        await commands.wheelUp();
-      } else {
-        await userEvent.keyboard("{PageUp}");
-      }
-      await ended;
-      await expect.poll(() => window.scrollY).toBeLessThan(bottom);
-      await layoutSettled();
-      const readingY = window.scrollY;
-      const conversation = page
-        .getByRole("list", { name: CHAT_COPY.conversationLabel })
-        .element();
-      conversation.append(
-        Object.assign(document.createElement("div"), {
-          textContent: LONG_TEXT,
-        }),
-      );
-      await layoutSettled();
-      expect(window.scrollY, "content growth after native navigation").toBe(
-        readingY,
-      );
-      page
-        .getByRole("textbox", { name: CHAT_COPY.messageLabel })
-        .element()
-        .focus();
-      await layoutSettled();
-      expect(window.scrollY).toBe(readingY);
-    });
-  }
+  test("browser PageUp navigation survives content growth and composer focus", async () => {
+    await openChat();
+    await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+    await document.fonts.ready;
+    await layoutSettled();
+    const bottom = window.scrollY;
+    const ended = new Promise<void>((resolve) =>
+      window.addEventListener("scrollend", () => resolve(), { once: true }),
+    );
+    await userEvent.keyboard("{PageUp}");
+    await ended;
+    await expect.poll(() => window.scrollY).toBeLessThan(bottom);
+    await layoutSettled();
+    const readingY = window.scrollY;
+    const conversation = page
+      .getByRole("list", { name: CHAT_COPY.conversationLabel })
+      .element();
+    conversation.append(
+      Object.assign(document.createElement("div"), {
+        textContent: LONG_TEXT,
+      }),
+    );
+    await layoutSettled();
+    expect(window.scrollY).toBe(readingY);
+    page
+      .getByRole("textbox", { name: CHAT_COPY.messageLabel })
+      .element()
+      .focus();
+    await layoutSettled();
+    expect(window.scrollY).toBe(readingY);
+  });
+
+  test("browser wheel navigation survives content growth and composer focus", async () => {
+    await openChat();
+    await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+    await document.fonts.ready;
+    await layoutSettled();
+    const bottom = window.scrollY;
+    const ended = new Promise<void>((resolve) =>
+      window.addEventListener("scrollend", () => resolve(), { once: true }),
+    );
+    await commands.wheelUp();
+    await ended;
+    await expect.poll(() => window.scrollY).toBeLessThan(bottom);
+    await layoutSettled();
+    const readingY = window.scrollY;
+    const conversation = page
+      .getByRole("list", { name: CHAT_COPY.conversationLabel })
+      .element();
+    conversation.append(
+      Object.assign(document.createElement("div"), {
+        textContent: LONG_TEXT,
+      }),
+    );
+    await layoutSettled();
+    // WebKit can continue upward after scrollend between wheel segments.
+    // Native navigation must not pull down; controlled tests assert exact Y.
+    expect(window.scrollY).toBeLessThanOrEqual(readingY);
+    page
+      .getByRole("textbox", { name: CHAT_COPY.messageLabel })
+      .element()
+      .focus();
+    await layoutSettled();
+    expect(window.scrollY).toBeLessThanOrEqual(readingY);
+  });
 
   test("keyboard resizing follows the bottom and preserves an earlier reading position", async () => {
     await page.viewport(PHONE_VIEWPORT.width, PHONE_VIEWPORT.height);

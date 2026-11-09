@@ -348,10 +348,15 @@ reply completion and focus do not.
 
 Upward wheel, touch movement or document navigation keys suspend following
 before the browser emits a scroll event. An actual upward document movement
-also suspends following, including scrollbar dragging. Content growth cannot
+away from the bottom also suspends following, including scrollbar dragging.
+A shorter document can clamp the scroll position upward while still at the
+bottom; this keeps following enabled for subsequent growth. Content growth cannot
 resume it. A downward arrival at the bottom or sending resumes it. Input that
 starts after a keyboard resize invalidates that resize's pending reading
-position restoration. Resizing alone never grants permission to follow.
+position restoration. Input still awaiting its document scroll also prevents
+restoration, including when it arrives before the resize. Focus blocks automatic
+resumption independently: it does not invalidate the reading position or bypass
+the resize scroll guard. Resizing alone never grants permission to follow.
 All controller movements are instant. While reading, ordinary content layout
 and anchoring belong to the browser; the controller restores the document
 position only for keyboard/viewport changes without newer navigation.
@@ -383,10 +388,17 @@ the Firefox test covered only unchanged-inset jitter.
 
 The #771 tests deliver upward input and delayed content growth in the same
 turn as a queued viewport resize, before any document scroll event. They also
-exercise native browser wheel and PageUp navigation, stream growth, send and
-return-to-bottom, and keyboard sizing in Chromium and WebKit. Controlled touch
-and visual viewport events isolate ordering without sleeps. These reproduce
-a failure mode of the previous controller; the new report's exact device and
+exercise content shrink followed by growth, focused-composer keyboard resizing
+with controlled browser focus scroll, native browser wheel and PageUp navigation,
+stream growth, send and return-to-bottom, and keyboard sizing in Chromium and
+WebKit. Controlled touch
+and visual viewport events isolate ordering without sleeps. Native wheel tests
+assert no downward pull while the gesture may still be moving upward; exact
+reading-position invariance is asserted with controlled settled navigation.
+WebKit can emit scrollend between native wheel segments, so scrollend alone
+does not prove that the gesture is finished. The wheel command moves the pointer
+within the visible iframe without a locator hover that could scroll the list.
+These reproduce a failure mode of the previous controller; the new report's exact device and
 timing remain unknown. Firefox's fractional-offset sequence is covered through
 controlled viewport events, not a Firefox browser run. Headless viewport tests
 do not validate a real phone keyboard or touch momentum on physical devices.
