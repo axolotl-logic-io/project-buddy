@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+task_root="$PWD"
+cp apps/web/next.config.ts /tmp/pb-796/next.config.original
+trap 'cp /tmp/pb-796/next.config.original "$task_root/apps/web/next.config.ts"' EXIT
+python3 - <<'PY'
+p='apps/web/next.config.ts';s=open(p).read();needle='  cacheComponents: true,';assert needle in s;s=s.replace(needle,needle+'\n  experimental: {\n    optimizePackageImports: ["ai", "@ai-sdk/react", "@assistant-ui/react", "@assistant-ui/react-ai-sdk", "radix-ui"],\n  },');open(p,'w').write(s)
+PY
+cd apps/web
+node -e 'process.loadEnvFile(".env.test");const {spawnSync}=require("node:child_process");process.exit(spawnSync("npm",["run","build"],{env:process.env,stdio:"inherit"}).status??1)'
+cp -a .next /tmp/pb-796/optimized-next

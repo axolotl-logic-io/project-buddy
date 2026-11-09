@@ -1,0 +1,38 @@
+[
+  {
+    "variant": "before",
+    "buildId": "49iPP5noQxeZGWd96H5TE",
+    "windowMs": 8000,
+    "diagnosticSamples": 1,
+    "activeRenderer": {
+      "pid": 3046321,
+      "tid": 3046321
+    },
+    "selection": "most-event-dispatches",
+    "traceOrigin": 5453234.571786,
+    "coverageMs": {
+      "script": 2582.218,
+      "layoutStyle": 416.933,
+      "paint": 339.832,
+      "events": 1467.691
+    }
+  },
+  {
+    "variant": "renderer",
+    "buildId": "wZMt37C0myB-rkIq1iLn9",
+    "windowMs": 8000,
+    "diagnosticSamples": 1,
+    "activeRenderer": {
+      "pid": 3047301,
+      "tid": 3047301
+    },
+    "selection": "most-event-dispatches",
+    "traceOrigin": 5453244.460961,
+    "coverageMs": {
+      "script": 2630.786,
+      "layoutStyle": 447.736,
+      "paint": 353.615,
+      "events": 1654.7
+    }
+  }
+]

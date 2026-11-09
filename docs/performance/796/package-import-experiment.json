@@ -1,0 +1,23 @@
+{
+  "experiment": "package-import-optimization",
+  "status": "rejected-no-output-change",
+  "source": "e99e266d4410adb9b596a909df55f325dce64ddd",
+  "configOverride": {
+    "experimental.optimizePackageImports": [
+      "ai",
+      "@ai-sdk/react",
+      "@assistant-ui/react",
+      "@assistant-ui/react-ai-sdk",
+      "radix-ui"
+    ]
+  },
+  "normalBuildId": "wZMt37C0myB-rkIq1iLn9",
+  "experimentalBuildId": "B3YnV9fSWhGwb435kjDWC",
+  "staticJavaScriptFilesEach": 380,
+  "matchingNamedChunks": 377,
+  "buildIdDirectoryManifestFilesEach": 3,
+  "contentHashMultisetsIdentical": true,
+  "gzipBytesEach": 3117175,
+  "runtimeCapture": "not-run-no-distinct-JavaScript-output",
+  "configRestored": true
+}

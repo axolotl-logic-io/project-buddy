@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
@@ -15,7 +16,7 @@ import {
   useState,
 } from "react";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
-import { Markdown } from "@/components/markdown.tsx";
+
 import {
   type PromptDraft,
   PromptDraftContext,
@@ -35,6 +36,10 @@ import {
   type WorkshopResult,
   workshopRequestBody,
 } from "@/workshop/protocol.ts";
+
+const Markdown = dynamic(() =>
+  import("@/components/markdown.tsx").then((module) => module.Markdown),
+);
 
 interface TestRun {
   readonly key: string;

@@ -1,0 +1,84 @@
+import puppeteer from '/tmp/pb-773-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js';
+import {readFile,writeFile} from 'node:fs/promises';
+import {createWriteStream} from 'node:fs';
+import {spawn} from 'node:child_process';
+import {loadavg} from 'node:os';
+process.loadEnvFile('apps/web/.env.test');
+const base='http://localhost:30145';const s=JSON.parse(await readFile('/tmp/pb-796/session.json','utf8'));
+const variant=process.argv[2]; const sample=Number(process.argv[3]);
+const buildId=(await readFile('apps/web/.next/BUILD_ID','utf8')).trim();
+const server=spawn(process.execPath,['../../node_modules/next/dist/bin/next','start','--port','30145'],{cwd:'apps/web',env:process.env,stdio:['ignore','pipe','pipe']});
+server.stderr.pipe(createWriteStream(`/tmp/pb-796/server-${variant}.log`,{mode:0o600}));
+let browser;
+try{
+await new Promise((res,rej)=>{server.stdout.on('data',v=>{if(v.toString().includes('Ready'))res();});server.on('exit',()=>rej(Error('server exited')));});
+browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+function safePath(value){const path=new URL(value,base).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id');if(path.startsWith('/_next/static/'))return path.endsWith('.js')?'/_next/static/:asset.js':path.endsWith('.css')?'/_next/static/:asset.css':'/_next/static/:font';if(path.startsWith('/atlas/')||path.startsWith('/constructs/')&&path.endsWith('.webp')||path.startsWith('/textures/'))return '/artwork/:asset';if(/^\/(home|projects|chats|chat|constructs|workshop|activities)(\/|$)/.test(path))return path;return '/other';}
+async function observe(){
+window.auditObservers?.forEach(o=>o.disconnect());window.auditObservers=[];
+function watch(options,callback){const observer=new PerformanceObserver(callback);observer.observe(options);window.auditObservers.push(observer);}
+window.audit={origin:performance.now(),shell:null,primary:null,geometry:[],scroll:[],shifts:[],longtasks:[],lcp:[],events:[]};let previous='';let live=true;window.stopAudit=()=>{live=false;};
+const start=window.audit.origin;
+watch({type:'layout-shift',buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.shifts.push({time:e.startTime,value:e.value,recentInput:e.hadRecentInput,sources:e.sources?.map(x=>({tag:x.node?.tagName,previous:x.previousRect.toJSON(),current:x.currentRect.toJSON()}))});});
+watch({type:'longtask',buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.longtasks.push({time:e.startTime,duration:e.duration});});
+watch({type:'largest-contentful-paint',buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.lcp.push({time:e.startTime,size:e.size,tag:e.element?.tagName});});
+watch({type:'event',durationThreshold:16,buffered:true},list=>{for(const e of list.getEntries())if(e.startTime>=start)window.audit.events.push({time:e.startTime,duration:e.duration,interaction:e.interactionId,name:e.name});});
+function frame(){if(!live)return;const time=performance.now();const header=document.querySelector('body > header'),main=document.querySelector('main');if(!window.audit.shell&&header?.querySelector('a'))window.audit.shell=time;
+const parts=[header,main,document.querySelector('main > .page-column'),...document.querySelectorAll('main textarea')].filter(Boolean).map((node,index)=>{const r=node.getBoundingClientRect();return {region:index===0?'header':index===1?'main':index===2?'column':'input',x:r.x,y:index===0?r.y:r.y+scrollY,width:r.width,height:r.height};});const value=JSON.stringify(parts);if(value!==previous){previous=value;window.audit.geometry.push({time,parts});}requestAnimationFrame(frame);}requestAnimationFrame(frame);window.addEventListener('scroll',()=>{if(live)window.audit.scroll.push({time:performance.now(),y:scrollY});},{passive:true});
+}
+async function visible(page,selector){for(const el of await page.$$(selector))if(await el.isVisible())return el;return null;}
+async function probe(page,name){
+const marker='audit-'+crypto.randomUUID();
+let attempts=0;const start=performance.now();let firstAttempt;
+while(performance.now()-start<15000){
+ attempts++;
+ if(firstAttempt===undefined)firstAttempt=await page.evaluate(()=>performance.now());
+ if(name==='editor'||name==='long-adventure'){
+  const selector=name==='editor'?'textarea[name="prompt"]':'textarea[aria-label="Message"]';
+  const input=await visible(page,selector);if(!input)throw new Error('Expected input absent');await input.focus();await page.keyboard.type(marker);
+ }else{
+  const selector=name==='home'?'header button[aria-haspopup="dialog"]':name==='quests'?'button[role="tab"]:nth-child(2)':'main button[aria-haspopup="dialog"]';
+  const control=await visible(page,selector);if(!control)throw new Error(`Expected control absent ${name}`);await control.click();
+ }
+ // Fixed 100 ms readiness probe resolution. This is lab sampling, not a behavior-test retry.
+ await new Promise(r=>setTimeout(r,100));
+ const success=await page.evaluate((name,marker)=>{
+  if(name==='home')return !!document.querySelector('dialog[open]');
+  if(name==='quests')return document.querySelectorAll('button[role="tab"]')[1]?.getAttribute('aria-selected')==='true';
+  if(name==='editor')return Object.values(localStorage).some(v=>v.includes(marker));
+  if(name==='long-adventure')return [...document.querySelectorAll('main button')].some(b=>b.textContent.trim()==='Send'&&!b.disabled);
+  return !!document.querySelector('[role="dialog"] input,[role="dialog"] select');
+ },name,marker);
+ if(success){const confirmed=await page.evaluate(()=>performance.now());if(!['editor','long-adventure','quests'].includes(name))await page.keyboard.press('Escape');return {firstAttempt,confirmed,attempts,method:name==='home'?'menu-open':name==='quests'?'status-tab-state':name==='editor'?'persisted-draft':name==='long-adventure'?'send-enabled':'adventure-dialog-form'};}
+}
+throw new Error(`Control readiness not confirmed ${name}`);
+}
+const context=await browser.createBrowserContext();const page=await context.newPage();await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1});await page.setCookie({name:'session',value:s.stream,url:base,httpOnly:true,sameSite:'Lax'});const cdp=await page.createCDPSession();await cdp.send('Network.enable');await cdp.send('Performance.enable');await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750});await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});await page.evaluateOnNewDocument(observe);
+const chat=s.streamChats[(sample-1)*2+(variant!=='before'?1:0)];
+await page.goto(base+'/chats/'+chat,{waitUntil:'networkidle0'});
+if(new URL(page.url()).pathname!=='/chats/'+chat)throw Error('Signed-in destination missing');
+await page.waitForFunction(()=>document.querySelectorAll('.chat-thread ol[aria-label] > li').length===200);
+const menu=[];
+for(const method of ['programmatic-button']){
+ await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
+ const requested=await page.evaluate(()=>({time:performance.now(),y:scrollY}));
+ await page.evaluate(()=>document.querySelector('header button[aria-haspopup="dialog"]').click());
+ await page.waitForSelector('dialog[open]');
+ const opened=await page.evaluate(()=>({time:performance.now(),y:scrollY}));await page.keyboard.press('Escape');menu.push({method,requested,opened});
+}
+await page.focus('textarea[aria-label="Message"]');await page.keyboard.type('/mock-slow synthetic reader');
+await page.evaluate(()=>window.stopAudit());await page.evaluate(observe);
+await page.tracing.start({screenshots:false,categories:['devtools.timeline','v8','blink.user_timing']});
+const hostLoad=loadavg();const started=await page.evaluate(()=>performance.now());await page.keyboard.press('Enter');
+await page.waitForFunction(()=>document.querySelector('.chat-thread li[aria-busy="true"]'));
+let reading;
+if(sample===2){const previous=await page.evaluate(()=>scrollY);await page.evaluate(()=>{document.activeElement?.blur();window.captureScrollEnd=undefined;document.addEventListener('scrollend',()=>{window.captureScrollEnd={time:performance.now(),y:scrollY};},{once:true});});await page.keyboard.press('PageUp');await page.waitForFunction(previous=>window.captureScrollEnd&&window.captureScrollEnd.y<previous,{},previous);reading=await page.evaluate(()=>window.captureScrollEnd);}
+await page.waitForFunction(()=>{const items=document.querySelectorAll('.chat-thread ol[aria-label] > li');return items.length===202&&items[201].getAttribute('aria-busy')==='false'&&items[201].innerText.length>40;});
+const completed=await page.evaluate(()=>performance.now());
+const data=await page.evaluate(()=>{window.stopAudit();return {...window.audit,end:performance.now(),y:scrollY,messageCount:document.querySelectorAll('.chat-thread ol[aria-label] > li').length,historyAvailable:document.querySelector('.chat-thread ol[aria-label] > li')?.innerText.includes('Synthetic question 0.')};});
+const raw=JSON.parse(Buffer.from(await page.tracing.stop()).toString());const mainThreads=raw.traceEvents.filter(e=>e.name==='thread_name'&&e.args?.name==='CrRendererMain').map(({pid,tid})=>({pid,tid}));const traceOrigin=(await cdp.send('Performance.getMetrics')).metrics.find(m=>m.name==='NavigationStart')?.value;const traceEvents=raw.traceEvents.filter(e=>e.name!=='Screenshot').map(({name,cat,ph,ts,dur,pid,tid})=>({name,cat,ph,ts,dur,pid,tid}));
+const {gzipSync}=await import('node:zlib');await writeFile(`/tmp/pb-796/${variant}-${sample}-stream.trace.json.gz`,gzipSync(JSON.stringify({traceEvents})));
+await writeFile(`/tmp/pb-796/${variant}-${sample}-stream.json`,JSON.stringify({variant,buildId,sample,hostLoad,started,completed,menu,reading,mainThreads,traceOrigin,...data}));
+console.log('stream',variant,sample,'complete',Math.round(completed-started),'reading-preserved',reading===undefined||data.y===reading.y);
+await context.close();
+}finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(r=>server.on('exit',r));}
