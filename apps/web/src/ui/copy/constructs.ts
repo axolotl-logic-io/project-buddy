@@ -53,6 +53,6 @@ export const CONSTRUCT_DEFINITION_COPY: Readonly<
 > = {
   prompt: {
     label: "Prompt",
-    help: "How the construct talks and works with you. Use voice and habits headings to organize it.",
+    help: "The name identifies the construct; the Character Sheet contains its instructions. Use voice and habits headings to organize how it talks and works with you.",
   },
 };

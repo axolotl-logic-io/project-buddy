@@ -11,6 +11,8 @@ An activity sets the scene an adventure plays out. The site has four built-in ac
 
 Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Write new activity” to distinguish it from an own definition named “New activity”.
 
+Built-in, starter, customized and reset prompts use `# Activity Sheet`. The separate name identifies the activity; renaming leaves the sheet heading alone. Edited instructions and existing activity snapshots keep their text.
+
 ## use_case_start_chat_in_activity
 
 The user starts an adventure in the activity she wants.

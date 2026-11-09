@@ -101,7 +101,7 @@ test("unrelated requests take precedence in a quest Brainstorming adventure with
   expect(prompt).toContain("This takes precedence over activity instructions");
   expect(prompt).toContain("continue saving useful quest information");
   expect(prompt).toContain("Next step: Assemble the roof.");
-  expect(prompt).toContain("# Activity: Brainstorming");
+  expect(prompt).toContain("# Activity Sheet");
 });
 
 test("shared instructions prohibit assumed pronouns and free-reply claims", () => {
