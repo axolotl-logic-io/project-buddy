@@ -3,9 +3,9 @@ import type { JSX, ReactNode } from "react";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
+import { Icon } from "@/components/ui/icon.tsx";
 import type { Project } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 // The id of a team project's mark, which describes the project's link, so
 // moving from link to link still announces it; undefined for a project no
@@ -38,8 +38,8 @@ function SharedMark({ project }: { readonly project: Project }): ReactNode {
   );
 }
 
-// The projects as cards, each a link to its project named by the project's
-// name alone; the whole card is the link's target. A team project is
+// The projects as compact rows, each named by the project alone; the
+// whole row is the link's target. A team project is
 // marked as shared.
 export function ProjectList({
   projects,
@@ -52,32 +52,36 @@ export function ProjectList({
     return <p className="text-muted">{emptyMessage}</p>;
   }
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="quests-index-list">
       {projects.map((project) => (
-        <li className="link-card flex flex-col gap-1" key={project.id}>
-          <Link
-            aria-describedby={sharedMarkId(project)}
-            className="card-title"
-            href={`/projects/${project.id}`}
-          >
-            {project.name}
-          </Link>
-          <SharedMark project={project} />
-          <span className="text-muted text-sm">
-            {QUEST_STATUS_COPY.labels[project.status]}
+        <li className="quests-index-row" key={project.id}>
+          <span className="quests-index-mark">
+            <Icon name="compass" />
           </span>
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
+            <Link
+              aria-describedby={sharedMarkId(project)}
+              className="card-title quests-index-link"
+              href={`/projects/${project.id}`}
+            >
+              {project.name}
+            </Link>
+            <SharedMark project={project} />
+
+            <span className="text-muted text-sm">
+              <CopyWithTime
+                text={PROJECTS_COPY.created(TIME_SLOT)}
+                dateTime={project.createdAt}
+                detail="day"
+              />
+            </span>
+          </div>
+          <Icon name="chevron-right" />
           {project.status !== "active" && (
-            <div className="relative z-10">
+            <div className="quests-index-restore">
               <QuestStatusControls project={project} restoreOnly={true} />
             </div>
           )}
-          <span className="text-muted text-sm">
-            <CopyWithTime
-              text={PROJECTS_COPY.created(TIME_SLOT)}
-              dateTime={project.createdAt}
-              detail="day"
-            />
-          </span>
         </li>
       ))}
     </ul>

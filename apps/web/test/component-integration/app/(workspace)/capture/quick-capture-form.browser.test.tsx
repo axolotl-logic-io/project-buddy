@@ -233,3 +233,32 @@ test.each(["completed", "abandoned"] as const)(
       .not.toBeInTheDocument();
   },
 );
+
+test("preview retains the draft and saving from it returns to Write with feedback", async () => {
+  actions.saveNoteAction.mockResolvedValue({
+    kind: "saved",
+    projectName: FOX_PROJECT.name,
+  });
+  await renderCapture(FOX_PROJECT.id);
+  await noteField().fill(NOTE);
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
+  await expect
+    .element(page.getByRole("tabpanel", { name: "Preview" }).getByText(NOTE))
+    .toBeVisible();
+  await expect.element(noteField()).not.toBeInTheDocument();
+  await page.getByRole("tab", { name: "Write", exact: true }).click();
+  await expect.element(noteField()).toHaveValue(NOTE);
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
+  await saveButton().click();
+  await expect
+    .element(page.getByRole("tab", { name: "Write", exact: true }))
+    .toHaveAttribute("aria-selected", "true");
+  await expect.element(noteField()).toHaveValue("");
+  await expect.element(noteField()).toHaveFocus();
+  await expect
+    .element(page.getByRole("status"))
+    .toHaveTextContent(QUICK_CAPTURE_COPY.saved(FOX_PROJECT.name));
+  const [, sent] = actions.saveNoteAction.mock.lastCall ?? [];
+  expect(sent?.get("text")).toBe(NOTE);
+  expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
+});

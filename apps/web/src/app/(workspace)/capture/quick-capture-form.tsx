@@ -8,17 +8,21 @@ import {
   useActionState,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
 import { z } from "zod";
 import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import type { ProjectId, UserId } from "@/ids.ts";
 import { dayOf } from "@/notes/note.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { type QuickCaptureState, saveNoteAction } from "./actions.ts";
 
 const IDLE: QuickCaptureState = { kind: "idle" };
@@ -60,11 +64,15 @@ export function QuickCaptureForm({
   projects,
   viewer,
   projectId,
+  workspace = false,
 }: {
+  readonly workspace?: boolean;
   readonly viewer: UserId;
   readonly projects: readonly NoteProject[];
   readonly projectId: ProjectId;
 }): JSX.Element {
+  const formId = useId();
+  const [section, setSection] = useState("write");
   const [state, formAction, pending] = useActionState(saveNoteAction, IDLE);
   const [shownState, setShownState] = useState(state);
   const [chosen, setChosen] = useState<string>(
@@ -134,6 +142,7 @@ export function QuickCaptureForm({
   const submit = useCallback(
     (event: SubmitEvent<HTMLFormElement>): void => {
       event.preventDefault();
+      setSection("write");
       const formData = new FormData(event.currentTarget);
       formData.set("day", dayOf(new Date(), "local"));
       startTransition(() => {
@@ -148,8 +157,9 @@ export function QuickCaptureForm({
     textError = state.message;
   }
 
-  return (
+  const form = (
     <form
+      id={formId}
       action={formAction}
       className="panel flex flex-col gap-4"
       onSubmit={submit}
@@ -179,9 +189,11 @@ export function QuickCaptureForm({
       />
       {state.kind === "failed" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
-        <Button disabled={pending} type="submit">
-          {QUICK_CAPTURE_COPY.save}
-        </Button>
+        {workspace !== true && (
+          <Button disabled={pending} type="submit">
+            {QUICK_CAPTURE_COPY.save}
+          </Button>
+        )}
         <Button disabled={pending} variant="secondary" onClick={discard}>
           {QUICK_CAPTURE_COPY.discard}
         </Button>
@@ -189,4 +201,43 @@ export function QuickCaptureForm({
       </div>
     </form>
   );
+  if (workspace === true) {
+    return (
+      <PageWorkspace
+        title={QUICK_CAPTURE_COPY.heading}
+        intro={QUICK_CAPTURE_COPY.intro}
+        action={
+          <Button type="submit" form={formId} disabled={pending}>
+            {QUICK_CAPTURE_COPY.save}
+          </Button>
+        }
+      >
+        <WorkspaceTabs
+          label={QUICK_CAPTURE_COPY.heading}
+          value={section}
+          onValueChange={setSection}
+          sections={[
+            { id: "write", label: WORKSPACES_COPY.write, content: form },
+            {
+              id: "preview",
+              label: WORKSPACES_COPY.preview,
+              content: (
+                <div className="flex flex-col gap-4">
+                  <p className="wrap-anywhere text-muted">
+                    {projects.find((project) => project.id === chosen)?.name}
+                  </p>
+                  <p className="wrap-anywhere whitespace-pre-line">
+                    {draft.replaceAll("\r", " ").replaceAll("\n", " ") ||
+                      WORKSPACES_COPY.previewEmpty}
+                  </p>
+                  <p className="field-hint">{WORKSPACES_COPY.previewIntro}</p>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </PageWorkspace>
+    );
+  }
+  return form;
 }

@@ -25,7 +25,7 @@ The user reads the quest's Journal.
 - **Steps:**
   - She opens the quest's Journal.
   - The site shows her goals, milestones, progress and preferences as the construct and she have written them.
-- **Outcome:** the page shows the newest version of the Journal, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and who saved it: "you" for her own versions, "a construct" for the construct's, and, in a team quest, another person's name, or their email address when they have none. A version saved before the site recorded who saved it, or by a person whose account is gone, says "a person (name not recorded)". She never sees another person's version as hers. If nothing has been saved yet, the page says so and lets her write the Journal herself.
+- **Outcome:** the page shows the newest version of the Journal, formatted, exactly as it was last saved, with an Edit button and no editor. The Versions selection lists every version, newest first, with when it was made and who saved it: "you" for her own versions, "a construct" for the construct's, and, in a team quest, another person's name, or their email address when they have none. A version saved before the site recorded who saved it, or by a person whose account is gone, says "a person (name not recorded)". She never sees another person's version as hers. If nothing has been saved yet, the page says so and lets her write the Journal herself.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
   - `use_case_undo_memory_change`: roll back a change.
@@ -55,7 +55,7 @@ The user takes back a change to the quest's Journal by restoring an earlier vers
 
 - **Prerequisites:** `use_case_construct_updates_memory` or `use_case_edit_memory`.
 - **Steps:**
-  - She looks at the earlier versions of the Journal.
+  - She chooses Versions in the quest workspace and looks at the earlier versions of the Journal.
   - She picks the version from before the change and restores it.
 - **Outcome:** the Journal shows that earlier version's text again. A confirmation remains visible after the history updates; a later restore attempt replaces that feedback, including when it is refused as outdated. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
 - **Provenance:** future restores label the new version “Restored from version N”. Earlier history remains unchanged with unknown provenance; matching text never implies a historic restore. Owner and member attribution and conflict checks remain in effect.
@@ -110,6 +110,8 @@ The user saves a Quick Note to a quest between sessions, without starting an adv
   - `use_case_view_memory`: see the Quick Note in the Journal.
   - `use_case_delete_note`: take the Quick Note back.
   - [`use_case_send_message`](chats.md#use_case_send_message): talk it over with the construct.
+
+Write and Preview share one retained draft. The heading's Save Quick Note works in either tab and returns to Write with feedback and focus on the text. Preview shows the selected quest and normalizes line breaks to spaces.
 
 ## use_case_delete_note
 

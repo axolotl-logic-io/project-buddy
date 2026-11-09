@@ -28,7 +28,6 @@ import type { getProject } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
@@ -117,10 +116,10 @@ const STANDARD_WIDTH = 768;
 
 const PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
-async function renderProject(): Promise<void> {
+async function renderProject(section = "adventures"): Promise<void> {
   const content = await ProjectPage({
     params: PARAMS,
-    searchParams: Promise.resolve({}),
+    searchParams: Promise.resolve({ section }),
   });
   await render(
     inWorkspace(<ProjectLayout params={PARAMS}>{content}</ProjectLayout>),
@@ -294,7 +293,7 @@ function checkInSetting(): ReturnType<typeof page.getByRole> {
 describe("use_case_set_check_ins", () => {
   test("with check-ins on, the owner's project page has the check-in setting", async () => {
     stores.checkInsAreOn.mockReturnValue(true);
-    await renderProject();
+    await renderProject("members");
 
     await expect.element(checkInSetting()).toBeVisible();
   });
@@ -302,15 +301,17 @@ describe("use_case_set_check_ins", () => {
   test("with check-ins on, a member's view of the project has no check-in setting", async () => {
     stores.checkInsAreOn.mockReturnValue(true);
     stores.getProject.mockResolvedValue(FOX_PROJECT_AS_MEMBER);
-    await renderProject();
+    await renderProject("members");
 
-    await expect.element(chatLink()).toBeVisible();
+    await expect
+      .element(page.getByRole("heading", { name: FOX_PROJECT.name }))
+      .toBeVisible();
     await expect.element(checkInSetting()).not.toBeInTheDocument();
   });
 });
 
 test("an Active quest page offers Quick Note with its quest chosen", async () => {
-  await renderProject();
+  await renderProject("notes");
   await expect
     .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
     .toHaveAttribute("href", `/capture?projectId=${FOX_PROJECT.id}`);
@@ -356,10 +357,10 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       await expect.element(page.getByRole("listitem")).not.toBeInTheDocument();
       const frame = busy.element().parentElement;
       const before = frame?.getBoundingClientRect();
-      const slots = [
-        PROGRESS_TIMELINE_COPY.heading,
-        PROJECT_COPY.chatsHeading,
-      ].map((name) => {
+      const loadingWorkspace = busy
+        .element()
+        .firstElementChild?.getBoundingClientRect();
+      const slots = [PROJECT_COPY.chatsHeading].map((name) => {
         const section = page
           .getByRole("heading", { name, exact: true })
           .element().parentElement;
@@ -382,10 +383,10 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       const workspace = page
         .getByRole("navigation", { name: PROJECT_COPY.navigation })
         .element()
-        .closest("header");
+        .closest("header")?.parentElement;
       expect(workspace?.getBoundingClientRect()).toMatchObject({
-        x: slots[0]?.x,
-        width: slots[0]?.width,
+        x: loadingWorkspace?.x,
+        width: loadingWorkspace?.width,
       });
       expect(title.left).toBeGreaterThan(0);
       expect(title.right).toBeLessThan(viewport.width);
@@ -393,21 +394,14 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
         x: before?.x,
         width: before?.width,
       });
-      for (const name of [
-        PROGRESS_TIMELINE_COPY.heading,
-        PROJECT_COPY.chatsHeading,
-      ]) {
+      for (const name of [PROJECT_COPY.chatsHeading]) {
         const section = page
           .getByRole("heading", { name, exact: true })
           .element().parentElement;
         const box = section?.getBoundingClientRect();
         expect(box?.left).toBe(slots[0]?.x);
         expect(box?.right).toBeLessThan(viewport.width);
-        const reserved = slots.at(
-          [PROGRESS_TIMELINE_COPY.heading, PROJECT_COPY.chatsHeading].indexOf(
-            name,
-          ),
-        );
+        const reserved = slots.at([PROJECT_COPY.chatsHeading].indexOf(name));
         expect(box).toMatchObject({ x: reserved?.x, width: reserved?.width });
         expect(box?.height).toBeGreaterThanOrEqual(
           Number.parseFloat(

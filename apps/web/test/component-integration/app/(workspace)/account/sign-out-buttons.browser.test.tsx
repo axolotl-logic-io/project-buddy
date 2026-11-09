@@ -12,6 +12,8 @@ import type {
   signOutAction,
   signOutEverywhereAction,
 } from "@/app/(workspace)/account/actions.ts";
+import AccountError from "@/app/(workspace)/account/error.tsx";
+import AccountLoading from "@/app/(workspace)/account/loading.tsx";
 import { SignOutButtons } from "@/app/(workspace)/account/sign-out-buttons.tsx";
 import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/account/sign-out-form.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -142,4 +144,30 @@ describe("signing out stops notifications to this browser", () => {
     const [form] = actions.signOutAction.mock.lastCall ?? [];
     expect(form?.get(PUSH_ENDPOINT_FIELD)).toBe(ENDPOINT);
   });
+});
+
+test("Account keeps both sign-out actions while loading or showing a page error", async () => {
+  const screen = await render(<AccountLoading />);
+  await expect.element(signOut).toBeVisible();
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: ACCOUNT_COPY.signOutEverywhere,
+        exact: true,
+      }),
+    )
+    .toBeVisible();
+  const retry = vi.fn<() => void>();
+  await screen.rerender(
+    <AccountError error={new Error("Balance unavailable")} retry={retry} />,
+  );
+  await expect.element(signOut).toBeVisible();
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: ACCOUNT_COPY.signOutEverywhere,
+        exact: true,
+      }),
+    )
+    .toBeVisible();
 });

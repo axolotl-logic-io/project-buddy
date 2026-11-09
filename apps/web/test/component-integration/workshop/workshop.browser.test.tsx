@@ -16,6 +16,7 @@ import {
   type WorkshopRequest,
 } from "@/workshop/protocol.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
+import { tabForward } from "../components/keyboard-test-kit.ts";
 import { refresh } from "../components/router-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -195,7 +196,7 @@ test("test cases and companion changes start a new conversation", async () => {
   await userEvent.keyboard("{ArrowUp}");
   await expect.element(message()).toHaveValue("Unsent follow-up");
   await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
-  await userEvent.tab();
+  await tabForward();
   await expect
     .element(
       page.getByRole("button", {
@@ -209,7 +210,7 @@ test("test cases and companion changes start a new conversation", async () => {
     .element(message())
     .toHaveValue(WORKSHOP_COPY.examples[1].message);
   await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
-  await userEvent.tab();
+  await tabForward();
   await expect
     .element(
       page.getByRole("button", {
@@ -721,7 +722,7 @@ test("failed follow-ups and pending controls remain visible after a long convers
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
   await expect.element(message()).toHaveValue("");
   await message().fill("Keep my failed follow-up");
-  await userEvent.tab();
+  await tabForward();
   await userEvent.keyboard("{Enter}");
   await expect
     .element(page.getByText(WORKSHOP_COPY.pending))
@@ -747,7 +748,7 @@ test("failed follow-ups and pending controls remain visible after a long convers
   expect(refresh).toHaveBeenCalledTimes(2);
   expect(fetchReply).toHaveBeenCalledTimes(2);
   await message().click();
-  await userEvent.tab();
+  await tabForward();
   await userEvent.keyboard("{Enter}");
   await expect
     .element(page.getByText(WORKSHOP_COPY.pending))
