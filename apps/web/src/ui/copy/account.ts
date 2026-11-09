@@ -6,7 +6,7 @@ export const ACCOUNT_COPY = {
   headerLink: "Account",
   homeLink: "Home",
   heading: "Account",
-  loading: "Loading your gold…",
+  loading: "Loading your batteries…",
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
@@ -17,9 +17,9 @@ export const ACCOUNT_COPY = {
   nameTooLong: (maxLength: number): string =>
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
-  goldHeading: "Gold",
-  // Such as "Gold: 87".
-  gold: (gold: number): string => `Gold: ${gold}`,
+  goldHeading: "Batteries",
+  // Such as "Batteries: 87".
+  gold: (gold: number): string => `Batteries: ${gold}`,
   goldHint:
     "What your constructs spend on your replies, adventure names, images and check-ins. It doesn't reset.",
   signOutHeading: "Signing out",
