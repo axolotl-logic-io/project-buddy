@@ -104,6 +104,7 @@ The user saves a Quick Note to a quest between sessions, without starting an adv
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
   - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
   - The Quick Note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.
+  - She opens an Active quest's page: Add a Quick Note opens the Quick Note page with that quest chosen. Completed and Abandoned quest pages have no Add a Quick Note link; their existing Quick Notes remain available to read and delete. Restoring the quest brings the link back.
   - She has no Active quests: the Quick Note page says Quick Notes need a quest and links to her quests.
 - **Next:**
   - `use_case_view_memory`: see the Quick Note in the Journal.

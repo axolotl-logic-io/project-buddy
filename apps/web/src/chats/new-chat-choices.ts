@@ -6,14 +6,12 @@ import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import { activeProjects } from "@/projects/active-projects.ts";
-import type { QuestStatus } from "@/projects/quest-status.ts";
 
 // The form offers accessible Active quests.
 interface NewChatChoices {
   readonly projects: readonly {
     readonly id: ProjectId;
     readonly name: string;
-    readonly status: QuestStatus;
   }[];
   readonly activities: readonly ActivityChoice[];
   readonly userConstructs: readonly OwnConstructChoice[];
@@ -29,7 +27,7 @@ async function newChatChoices(owner: UserId): Promise<NewChatChoices> {
     ownConstructChoices(),
   ]);
   return {
-    projects: projects.map(({ id, name, status }) => ({ id, name, status })),
+    projects: projects.map(({ id, name }) => ({ id, name })),
     activities,
     userConstructs,
   };
