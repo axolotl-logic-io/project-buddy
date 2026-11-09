@@ -97,14 +97,14 @@ The user saves a Quick Note to a quest between sessions, without starting an adv
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project).
 - **Steps:**
   - On any page of the signed-in site, she opens the Quick Note page from the header's **Quick Note** link in one tap.
-  - She chooses the quest, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
+  - She chooses an accessible Active quest, including a team quest, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
 - **Outcome:** the site says the Quick Note is saved to the quest's Journal, clears its text for the next one and keeps the quest chosen. The quest's Journal ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her gold. The quest's page lists the Quick Note among its newest Quick Notes, newest first. Every adventure in the quest works from the Journal with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
-  - She leaves and returns: the chosen accessible quest and its unsaved Quick Note return in this browser. Each quest keeps its own draft; Discard changes removes it.
+  - She leaves and returns: the chosen accessible Active quest and its unsaved Quick Note return in this browser. Each quest keeps its own draft; Discard changes removes it.
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
   - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
   - The Quick Note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.
-  - She has no quests yet: the Quick Note page says Quick Notes need a quest and links to her quests.
+  - She has no Active quests: the Quick Note page says Quick Notes need a quest and links to her quests.
 - **Next:**
   - `use_case_view_memory`: see the Quick Note in the Journal.
   - `use_case_delete_note`: take the Quick Note back.

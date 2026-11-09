@@ -22,6 +22,8 @@ const actions = vi.hoisted(() => ({
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
+const PROJECT_OPTION = /Low-poly fox/u;
+
 const PROJECT = {
   id: projectIdFixture(),
   name: "Low-poly fox",
@@ -189,29 +191,37 @@ describe("use_case_new_project_name_too_long", () => {
   });
 });
 
-test("finished quests stay selectable with explicit status labels", async () => {
-  await render(
-    <NewChatDialog
-      activities={await activityChoices()}
-      projects={[
-        { ...PROJECT, status: "completed" },
-        {
-          ...PROJECT,
-          id: projectIdFixture(),
-          name: "Garden",
-          status: "abandoned",
-        },
-      ]}
-      selectedActivityId={DEFAULT_ACTIVITY_ID}
-      userConstructs={[]}
-    />,
-  );
-  await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
-  await projectField().selectOptions("Low-poly fox (Completed)");
-  await expect.element(projectField()).toHaveValue(PROJECT.id);
-  await projectField().selectOptions("Garden (Abandoned)");
-  await expect.element(projectField()).not.toHaveValue(PROJECT.id);
-});
+test.each(["completed", "abandoned"] as const)(
+  "an unavailable %s selection clears and restoration offers it again",
+  async (status) => {
+    const activities = await activityChoices();
+    const props = {
+      activities,
+      selectedActivityId: DEFAULT_ACTIVITY_ID,
+      selectedProjectId: PROJECT.id,
+      userConstructs: [],
+    };
+    const view = await render(
+      <NewChatDialog {...props} projects={[PROJECT]} />,
+    );
+    await page
+      .getByRole("button", { name: NEW_CHAT_COPY.dialogHeading })
+      .click();
+    await expect.element(projectField()).toHaveValue(PROJECT.id);
+    await view.rerender(
+      <NewChatDialog {...props} projects={[{ ...PROJECT, status }]} />,
+    );
+    await expect.element(projectField()).toHaveValue("");
+    await expect
+      .element(page.getByRole("option", { name: PROJECT_OPTION }))
+      .not.toBeInTheDocument();
+    await projectField().selectOptions(NEW_CHAT_COPY.newProject);
+    await expect.element(projectField()).toHaveValue(NEW_PROJECT);
+    await view.rerender(<NewChatDialog {...props} projects={[PROJECT]} />);
+    await projectField().selectOptions(`${PROJECT.name} (Active)`);
+    await expect.element(projectField()).toHaveValue(PROJECT.id);
+  },
+);
 
 test("fixed activity and construct are named before starting an adventure", async () => {
   await render(

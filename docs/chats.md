@@ -21,7 +21,7 @@ button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
 new-adventure form. The dialog is named "New adventure", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
 in the construct picker's open list closes only the list. That form, like
-the new adventure page at `/chats/new`, offers a quest or "No quest", an
+the new adventure page at `/chats/new`, offers an accessible Active quest or "No quest", an
 activity and a construct, built in or the user's own, with the open adventure and Vellum
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
@@ -152,7 +152,7 @@ newest first by creation time (descending id breaks ties). Each links to its
 existing conversation. There is no adventure-name search or separate No quest
 filter.
 
-Above the list, **Quest** offers **All** and only the viewer's quests by
+Above the list, **Quest** offers **All** and only accessible Active quests by
 name: their own and the team quests they've joined. The page loads the
 viewer's complete adventure list, even when opened with a
 quest filter. Selecting a quest immediately filters those loaded adventures in
@@ -388,3 +388,5 @@ Home explains Project Buddy and offers Start a quest when the account has no adv
 Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
 
 The composer shows the acting user's gold balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
+
+Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
