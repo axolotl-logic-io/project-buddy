@@ -13,7 +13,7 @@ const OPENING_KICKOFF =
 
 export const projectBreakdown: Activity = {
   id: "project-breakdown",
-  name: "Project Breakdown",
+  name: "Break Down a Project",
   description:
     "The construct helps you split a goal into milestones and the next small steps.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },

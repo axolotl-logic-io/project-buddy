@@ -3,9 +3,9 @@
 Quests offers four editable starting points alongside New quest and the existing quest list:
 
 - **Start without inspiration** starts with **Find something to make**.
-- **Design an original character** starts with **Brainstorming**.
-- **Make a tiny game** starts with **Project Breakdown**.
-- **Write a short story** starts with **Brainstorming**.
+- **Design an original character** starts with **Brainstorm**.
+- **Make a tiny game** starts with **Break Down a Project**.
+- **Write a short story** starts with **Brainstorm**.
 
 Choose **Explore quest** to preview its starting Journal and first activity. Change the name, Journal, optional motivation, activity or construct before choosing **Start quest**. The construct starts with the account's New quest construct preference, falling back to Vellum if it is unavailable. Activities and constructs include the user's available own definitions.
 

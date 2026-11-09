@@ -8,7 +8,7 @@ An activity has a prompt and a separate opening request. The prompt guides the c
 
 A spell has a prompt, shown as Instructions, and separate name and when-to-use metadata. The model sees selection metadata before casting. Casting delivers the instructions through the tool result. Reset restores instructions while preserving the name and when-to-use description.
 
-Reset changes the editor draft and offers Undo reset; only Save stores it. Unsaved names, opening requests and when-to-use descriptions are preserved. Bought copies and clones of bought copies have no built-in source and cannot be reset, including through a direct request. They remain editable. For other copies, reset restores the prompt from the built-in source when there is one. Otherwise a construct uses the default construct's prompt, an activity uses the open adventure's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing adventure snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
+Reset changes the editor draft and offers Undo reset; only Save stores it. Unsaved names, opening requests and when-to-use descriptions are preserved. Bought copies and clones of bought copies have no built-in source and cannot be reset, including through a direct request. They remain editable. For other copies, reset restores the prompt from the built-in source when there is one. Otherwise a construct uses the default construct's prompt, an activity uses Chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing adventure snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
 
 ## Workshop
 
@@ -29,6 +29,12 @@ Save stores the current name, conversational prompt and Visual description. It r
 The image provider receives exactly the normalized Visual description as its sole argument. No construct name, conversational text, voice, habits, reference bytes or synthesized creative instructions are sent. Square output settings remain provider parameters; avatar and other framing remain app metadata. Generation is separate from conversation tests. A spinner and accessible status show paid work; text-only saves do not announce image generation.
 
 A durable request UUID is kept before submission. While generation is pending, repeated generation and description-changing saves are disabled. Text-only saves remain available and retain the unresolved request UUID and payload. Check generation status makes a read-only request; reloading recovers pending work without starting another paid generation. A lost response keeps the request unresolved until its status can be read. If the service confirms that the accessible construct has no claim for that request, Resume original request explicitly sends the same UUID and saved payload. It never allocates a second UUID for unresolved work. An inaccessible construct is a different HTTP result and cannot be resumed. Retry after a known terminal failure creates a new UUID and may spend batteries. The page shows per-role states, unavailable generation, lack of batteries, failure and stale results. Successful images replace the previews without resetting the editor. Failure or stale results preserve good old images and drafts. A versioned service fingerprint depends only on the normalized Visual description. Name and conversational edits neither stale artwork nor invalidate a pending completion. Completion locks and re-reads the active source, merges into its latest text, and rejects a changed description or an unavailable source. For older unversioned hashes, an owned immutable generation record supplies the original description when available; otherwise freshness is shown as unknown. Reading freshness changes no text, metadata, paid history or batteries.
+
+## Activity action names
+
+Activities uses each activity’s name directly as its start action. The built-in names are Brainstorm, Chat and Break Down a Project. These names also appear in activity choices and detail page titles. Own activity names are kept as written.
+
+The rename changes display names only. Built-in instruction text (including older headings), opening requests and ids stay unchanged so exact built-in matching, prepared openings and Marketplace restrictions remain compatible. In particular, Chat retains `open-chat`. Saved names, prompts, adventure snapshots and historical content are not rewritten.
 
 ## Storage compatibility
 
@@ -59,7 +65,7 @@ The shared editor refuses a blank or whitespace-only name beside the field and k
 
 ## Quest activities and Journal updates
 
-New quests can start with any activity and construct chosen in an adventure form. The quest creation form defaults to Project Breakdown and its saved New quest construct preference. Quest interview is no longer listed; existing interview snapshots remain readable and older links or activity requests lead to Project Breakdown.
+New quests can start with any activity and construct chosen in an adventure form. The quest creation form defaults to Break Down a Project and its saved New quest construct preference. Quest interview is no longer listed; existing interview snapshots remain readable and older links or activity requests lead to Break Down a Project.
 
 Every quest adventure receives Journal update instructions and the update tool, including when the Journal is empty. Constructs save useful user information and agreed plans without requiring an interview. Empty `oldText` initializes or appends Markdown; replacements preserve unrelated content. Standalone adventures have no Journal. Mock tests verify tool availability, persistence and shared context; whether the model chooses to save information unprompted needs a real-model check.
 

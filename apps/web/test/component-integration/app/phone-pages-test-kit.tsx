@@ -87,7 +87,6 @@ import {
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -751,7 +750,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
-          name: ACTIVITIES_COPY.startLabel("Brainstorming"),
+          name: "Brainstorm",
           exact: true,
         })
         .click();

@@ -58,7 +58,7 @@ function ActivityCard({
             className="card-title self-start text-left text-link"
             type="button"
           >
-            {ACTIVITIES_COPY.startLabel(activity.name)}
+            {activity.name}
           </button>
         }
       />
