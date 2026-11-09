@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import {
   parseReadinessRow,
   type ReadinessRow,
+  type ReadinessSelection,
   validateReadinessRows,
 } from "../../../../scripts/performance/artifacts.ts";
 
@@ -91,4 +92,79 @@ test("repeated observer entries and arbitrary content fields fail validation", (
       ],
     }),
   ).toThrow();
+});
+
+const DISCRETE_EVENT_TYPES = [
+  "auxclick",
+  "dblclick",
+  "mouseenter",
+  "mouseleave",
+  "pointercancel",
+  "gotpointercapture",
+  "lostpointercapture",
+  "touchcancel",
+  "dragstart",
+  "dragend",
+  "dragenter",
+  "dragleave",
+  "dragover",
+  "drop",
+];
+
+test("retains standard discrete Event Timing names and rejects arbitrary text", () => {
+  for (const name of DISCRETE_EVENT_TYPES) {
+    expect(() =>
+      parseReadinessRow({
+        ...HOME,
+        events: [{ name, time: 100, duration: 16, interaction: 0 }],
+      }),
+    ).not.toThrow();
+  }
+  expect(() =>
+    parseReadinessRow({
+      ...HOME,
+      events: [
+        { name: "privateText", time: 100, duration: 16, interaction: 0 },
+      ],
+    }),
+  ).toThrow();
+});
+
+test("focused diagnostics require explicit scope and cannot masquerade as a full matrix", () => {
+  const modes = ["cold-direct", "warm-direct", "client-navigation"] as const;
+  const rows = Array.from({ length: SAMPLES }, (_, index) =>
+    modes.map((mode): ReadinessRow => {
+      const row: ReadinessRow = { ...HOME, sample: index + 1, mode };
+      if (mode === "client-navigation") {
+        row.activated = {
+          region: "route-link",
+          rect: { x: 0, y: 0, width: 10, height: 10 },
+        };
+        row.initialSessionWindowCls = null;
+      }
+      return row;
+    }),
+  ).flat();
+  const selection: ReadinessSelection = {
+    state: HOME.state,
+    profile: HOME.profile,
+    name: HOME.name,
+  };
+  expect(() => validateReadinessRows(rows, SAMPLES)).toThrow(
+    "Incomplete audit matrix",
+  );
+  expect(() => validateReadinessRows(rows, SAMPLES, selection)).not.toThrow();
+  expect(() =>
+    validateReadinessRows(rows.slice(0, -1), SAMPLES, selection),
+  ).toThrow("Incomplete audit matrix");
+  expect(() =>
+    validateReadinessRows(rows, SAMPLES, { ...selection, profile: "phone" }),
+  ).toThrow("outside diagnostic scope");
+  expect(() =>
+    validateReadinessRows([], SAMPLES, {
+      state: "empty",
+      profile: "desktop",
+      name: "editor",
+    }),
+  ).toThrow("Inaccessible diagnostic selection");
 });

@@ -131,6 +131,20 @@ const READINESS = z.strictObject({
       duration: NONNEGATIVE,
       interaction: NONNEGATIVE,
       name: z.enum([
+        "auxclick",
+        "dblclick",
+        "mouseenter",
+        "mouseleave",
+        "pointercancel",
+        "gotpointercapture",
+        "lostpointercapture",
+        "touchcancel",
+        "dragstart",
+        "dragend",
+        "dragenter",
+        "dragleave",
+        "dragover",
+        "drop",
         "pointerover",
         "pointerenter",
         "pointerdown",
@@ -189,17 +203,41 @@ function parseReadinessRow(input: unknown): ReadinessRow {
   return READINESS.parse(input);
 }
 
-// Validates a complete run. Partial/failing cohorts cannot become a successful audit.
+type ReadinessSelection = Pick<ReadinessRow, "state" | "profile" | "name">;
+const SELECTION = READINESS.pick({ state: true, profile: true, name: true });
+function parseReadinessSelection(input: unknown): ReadinessSelection {
+  const selection = SELECTION.parse(input);
+  if (!journeys(selection.state).includes(selection.name)) {
+    throw new Error("Inaccessible diagnostic selection");
+  }
+  return selection;
+}
+
+// Validates a complete planned cohort. Full matrix is the default; a focused
+// diagnostic must explicitly name its state, profile and journey.
 function validateReadinessRows(
   input: unknown,
   samples: number,
+  selection?: ReadinessSelection,
 ): ReadinessRow[] {
   if (!Number.isInteger(samples) || samples < MINIMUM_SAMPLES) {
     throw new Error("At least three samples required");
   }
+  const scope = SELECTION.optional().parse(selection);
+  if (scope !== undefined) {
+    parseReadinessSelection(scope);
+  }
   const rows = z.array(READINESS).parse(input);
   const keys = new Set<string>();
   for (const row of rows) {
+    if (
+      scope !== undefined &&
+      (row.state !== scope.state ||
+        row.profile !== scope.profile ||
+        row.name !== scope.name)
+    ) {
+      throw new Error("Observation outside diagnostic scope");
+    }
     const key = JSON.stringify([
       row.state,
       row.profile,
@@ -264,7 +302,13 @@ function validateReadinessRows(
       for (const name of journeys(state)) {
         for (const mode of MODES) {
           for (let sample = 1; sample <= samples; sample += 1) {
+            const expected =
+              scope === undefined ||
+              (state === scope.state &&
+                profile === scope.profile &&
+                name === scope.name);
             if (
+              expected &&
               !keys.has(JSON.stringify([state, profile, name, mode, sample]))
             ) {
               throw new Error("Incomplete audit matrix");
@@ -329,9 +373,10 @@ function validateFieldMetric(input: unknown): z.infer<typeof FIELD_METRIC> {
   return FIELD_METRIC.parse(input);
 }
 
-export type { ReadinessRow };
+export type { ReadinessRow, ReadinessSelection };
 export {
   parseReadinessRow,
+  parseReadinessSelection,
   validateFieldMetric,
   validateReadinessRows,
   validateTrace,

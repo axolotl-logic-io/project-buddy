@@ -28,3 +28,16 @@ test("schema failures reveal only allowlisted top-level fields", () => {
     fields: ["events"],
   });
 });
+
+test("nested event failures retain a static property name without the rejected value", () => {
+  const result = z
+    .strictObject({
+      events: z.array(z.strictObject({ name: z.literal("click") })),
+    })
+    .safeParse({ events: [{ name: "private text" }] });
+  expect(captureFailure(result.error, "validate-result")).toEqual({
+    phase: "validate-result",
+    kind: "schema",
+    fields: ["events.name"],
+  });
+});

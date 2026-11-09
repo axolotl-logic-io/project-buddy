@@ -31,3 +31,11 @@ The retained failure said only `capture-failed`. It did not retain the underlyin
 This incomplete v3 cohort remains a failed capture, not a passing baseline or evidence of a product defect. New captures must record their own revision/build and cannot pool these partial values into a completed v4 cohort.
 
 Fresh default checks after the v4 change passed: 56 files and 270 tests, including the failure-category privacy tests. Lint, route type generation, TypeScript and script guards passed. These checks do not replace the pending production audit.
+
+## Event Timing schema failure
+
+The v4 invocation at `4c0b5876d676208cab80eed9527d07245fabb20f`, build `DTl7yL9-gBlD8CL0j3wAe`, failed at populated desktop long-adventure sample 1, client navigation. It retained 38 observations and five traces. The diagnostic identifies `validate-result`, `schema`, `events`; it does not identify the rejected property. All 38 retained windows had final quiet intervals. No Lighthouse run or final cohort validation occurred. Cleanup reset the isolated database and closed port 36769.
+
+Inspection against the [Event Timing draft's exposed-event list](https://w3c.github.io/event-timing/#sec-events-exposed) found omitted standard discrete names, including mouse enter/leave, pointer cancellation/capture and drag/drop. The schema now retains those enumerated types while continuing to reject arbitrary text and invalid numbers. Failure diagnostics can identify static event properties without retaining rejected values. A focused diagnostic will exercise the affected journey before another full cohort. A selected diagnostic cannot pass the default full-matrix validator, and is not a completed full audit.
+
+The enumeration and explicit diagnostic-scope changes passed fresh default checks: 56 files and 273 tests, with lint, type generation, TypeScript and script guards passing. Full-matrix validation remains the default; tests verify that selected rows cannot pass it implicitly. The focused ten-sample run remains pending and must not be presented as full-audit acceptance.

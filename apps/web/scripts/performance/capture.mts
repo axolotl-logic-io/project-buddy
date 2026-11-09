@@ -12,7 +12,9 @@ import puppeteer, {
 import { z } from "zod";
 import {
   parseReadinessRow,
+  parseReadinessSelection,
   type ReadinessRow,
+  type ReadinessSelection,
   validateReadinessRows,
   validateTrace,
 } from "./artifacts.ts";
@@ -59,6 +61,7 @@ interface CaptureOptions {
   output: string;
   browserPath: string;
   samples: number;
+  selection?: ReadinessSelection;
 }
 function supports(
   state: ReadinessRow["state"],
@@ -273,6 +276,10 @@ async function captureMatrix(
   options: CaptureOptions,
 ): Promise<ReadinessRow[]> {
   const rows: ReadinessRow[] = [];
+  let selection: ReadinessSelection | undefined;
+  if (options.selection !== undefined) {
+    selection = parseReadinessSelection(options.selection);
+  }
   const journeys: [ReadinessRow["name"], string, string][] = [
     ["home", "/home", "/projects"],
     ["quests", "/projects", "/home"],
@@ -309,7 +316,14 @@ async function captureMatrix(
           }
         }
         for (let sample = 1; sample <= options.samples; sample += 1) {
-          plan.push({ state, profile, name, sample, path, source });
+          if (
+            selection === undefined ||
+            (state === selection.state &&
+              profile === selection.profile &&
+              name === selection.name)
+          ) {
+            plan.push({ state, profile, name, sample, path, source });
+          }
         }
       }
     }
@@ -411,10 +425,10 @@ async function captureMatrix(
         const hostLoad = loadavg();
         prefetchUrls.clear();
         const tracing =
-          state === "populated" &&
-          profile === "desktop" &&
           sample === 1 &&
-          mode === "cold-direct";
+          mode === "cold-direct" &&
+          (selection !== undefined ||
+            (state === "populated" && profile === "desktop"));
         if (tracing) {
           await page.tracing.start({
             screenshots: name === "home",
@@ -707,6 +721,7 @@ async function captureMatrix(
       ).toString("utf8"),
     ),
     options.samples,
+    selection,
   );
 }
 async function openBrowser(path: string): Promise<Browser> {
