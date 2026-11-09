@@ -6,7 +6,7 @@ import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 export default function ProjectLoading(): JSX.Element {
   return (
     <>
-      <div className="page-title-row">
+      <div className="page-title-row flex-col items-stretch">
         <LoadingSkeleton label={PROJECT_COPY.loading} shapes={["heading"]} />
       </div>
       <LoadingSkeleton label={PROJECT_COPY.loading} shapes={["line"]} />
