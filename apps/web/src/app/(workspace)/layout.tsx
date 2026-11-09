@@ -9,7 +9,7 @@ export default function WorkspaceLayout({
   children,
 }: LayoutProps<"/">): JSX.Element {
   return (
-    <div className="page-column">
+    <div className="workspace-frame">
       <BatteryPurchasesAvailable
         available={availableBatteryCatalog().length > 0}
       >
