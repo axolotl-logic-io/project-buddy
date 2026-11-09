@@ -32,4 +32,4 @@ A production implementation should show which draft version each test used and k
 
 Replies and casts are scripted illustrations, independent of prompt text. They do not measure prompt quality or prove spell selection. Sample definitions are shortened for the layouts. Save changes updates only this open mockup's in-memory state. Reloading resets everything. The mockups make no model calls, spend no batteries, write no application data and use no external assets.
 
-Marketplace actions, deletion, full reset confirmation, error states, streaming, cancellation and batteries failures are outside these candidate mockups. The green palette illustrates hierarchy; application implementation should use the site's existing theme contract.
+Marketplace actions, deletion, full reset confirmation, error states, streaming, cancellation and battery failures are outside these candidate mockups. The green palette illustrates hierarchy; application implementation should use the site's existing theme contract.

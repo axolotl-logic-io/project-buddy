@@ -1,6 +1,6 @@
-import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 // The text of chats: the new-chat form, the chat page and its conversation,
 // the construct's tool parts, and chat names.
+import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // The words before the construct's name in a named chat's link, so hiding them

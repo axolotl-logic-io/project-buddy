@@ -2,7 +2,13 @@
 
 Batteries are the model-use balance formerly called gold. Headings and labels use “Batteries”; sentences use “1 battery” and “100 batteries”. Insufficient-balance messages say “You're out of batteries.” The rename changes no balances, starting grants, precision, rates, reservations or charging behavior. A balance displays whole batteries rounded down and clamped at zero; reply costs retain fractions.
 
-Replies, generated adventure openings and names, images and Workshop tests spend the acting user's batteries. Automatic check-ins spend the quest owner's batteries. Existing payer isolation and idempotent accounting apply unchanged. Marketplace orbs are a separate currency, with their accounting and cutover tracked in [#779](https://github.com/axolotl-logic-io/project-buddy/issues/779). There is no conversion between batteries and orbs.
+Replies, generated adventure openings and names, images and Workshop tests spend the acting user's batteries. Automatic check-ins spend the quest owner's batteries. Existing payer isolation and idempotent accounting apply unchanged.
+
+## Marketplace cutover
+
+Before the orb cutover is enabled, the existing gold accounting, now called Batteries for model use, also backs legacy Marketplace transfers. Selling a paid listing can therefore still fund model use. Current help and model guidance must reflect this effective behavior.
+
+After the planned cutover is enabled, Marketplace transfers will use separate orbs, which cannot fund model use. No conversion between batteries and orbs is planned. [#779](https://github.com/axolotl-logic-io/project-buddy/issues/779) owns Marketplace currency, its copy and the operator steps for the cutover. Merging its code alone does not enable the cutover. This rename authorizes no production enablement. [#781](https://github.com/axolotl-logic-io/project-buddy/issues/781) owns the EarnGoldLink copy and target.
 
 ## Compatibility boundaries
 

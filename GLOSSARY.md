@@ -617,10 +617,10 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s batteries. A new adventure's generated opening spends the batteries of the user starting it. An automatic check-in spends the quest owner's batteries.
 
-Batteries fund model use. Marketplace orbs are a separate currency; there is no conversion between them. Users see batteries rather than provider costs.
+Batteries fund model use. Users see batteries rather than provider costs. Until the planned orb cutover is enabled, the existing gold accounting also backs legacy Marketplace transfers. Separate Marketplace orbs, with no conversion to batteries, are planned under [#779](https://github.com/axolotl-logic-io/project-buddy/issues/779); merging its code alone does not enable the cutover.
 
 - **UI:** "Batteries", "1 battery", "100 batteries", "Buy batteries", "You're out of batteries."
-- **Avoid:** "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
+- **Avoid:** "gold" in new model-use copy except compatibility identifiers; "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
 
 ### Battery balance
 
