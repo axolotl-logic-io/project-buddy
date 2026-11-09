@@ -133,12 +133,6 @@ async function claim(
     if (source === undefined || definition === undefined) {
       return result("not-found");
     }
-    if (
-      normalizeVisualDescription(definition.visual?.description ?? "") !==
-      normalizeVisualDescription(request.description)
-    ) {
-      return result("stale");
-    }
     const [pending] = await tx
       .select()
       .from(constructGenerations)
@@ -272,7 +266,10 @@ async function complete(
       source !== undefined &&
       definition !== undefined &&
       normalizeVisualDescription(definition.visual?.description ?? "") ===
-        normalizeVisualDescription(generation.description)
+        normalizeVisualDescription(
+          parseConstructDefinition(generation.sourceParts)?.visual
+            ?.description ?? "",
+        )
     ) {
       const [asset] = await tx
         .insert(constructAssets)
@@ -284,7 +281,7 @@ async function complete(
         .values({ assetId, constructId: source.id });
       visual = {
         version: 1,
-        description: generation.description,
+        description: definition.visual?.description ?? "",
         sourceFingerprint: await visualFingerprint(generation.description),
         sourceFingerprintVersion: 2,
         canonical: { kind: "generated", assetId },

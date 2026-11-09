@@ -24,7 +24,8 @@ function normalizeVisualDescription(description: string): string {
 const FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/u;
 const CONSTRUCT_VISUAL = z.object({
   version: z.literal(1),
-  description: z.string().trim().min(1).max(DESCRIPTION_MAX),
+  // Draft artwork can precede the first explicitly saved description.
+  description: z.string().trim().max(DESCRIPTION_MAX),
   sourceFingerprint: z.string().regex(FINGERPRINT_PATTERN).optional(),
   sourceFingerprintVersion: z.literal(2).optional(),
   canonical: VISUAL_ASSET.optional(),

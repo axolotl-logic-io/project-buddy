@@ -67,6 +67,18 @@ async function show(draft: WorkshopDraft = DRAFT): Promise<void> {
               label: "Prompt",
               help: "Instructions to test.",
             },
+            {
+              name: "whenToUse",
+              text: draft.whenToUse,
+              label: "When to use",
+              help: "Selection",
+            },
+            {
+              name: "openingRequest",
+              text: draft.openingRequest,
+              label: "Opening request",
+              help: "Opening",
+            },
           ]}
         />
       </Workshop>,
@@ -78,6 +90,8 @@ function message(): ReturnType<typeof page.getByRole> {
 }
 afterEach(() => {
   vi.unstubAllGlobals();
+  localStorage.clear();
+  saveAction.mockClear();
 });
 
 test("use_case_workshop_draft", async () => {
@@ -264,3 +278,25 @@ test("a recovered editor draft is used by the first Workshop test", async () => 
   expect(requests.at(-1)?.draft.prompt).toBe("Recovered instructions.");
   expect(requests.at(-1)?.draft.name).toBe("Recovered construct");
 });
+
+test.each(["construct", "activity", "spell"] as const)(
+  "%s tests current kind-specific edits without saving",
+  async (kind) => {
+    installReply();
+    await show({ ...DRAFT, kind });
+    await page
+      .getByRole("textbox", { name: "When to use", exact: true })
+      .fill("Unsaved selection");
+    await page
+      .getByRole("textbox", { name: "Opening request", exact: true })
+      .fill("Unsaved opening");
+    await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+    await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+    expect(requests.at(-1)?.draft).toMatchObject({
+      kind,
+      whenToUse: "Unsaved selection",
+      openingRequest: "Unsaved opening",
+    });
+    expect(saveAction).not.toHaveBeenCalled();
+  },
+);

@@ -24,10 +24,9 @@ const VISUAL_COPY = {
     "The original request has not started. Resume it using its saved description. This can reserve gold once.",
   retry: "Retry generation",
   check: "Check generation status",
-  saveFirst: "Save your changes before generating images.",
-  needsDescription: "Save a Visual description before generating images.",
+  needsDescription: "Enter a Visual description before generating images.",
   explanation:
-    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save generates replacements only when the Visual description changes. Generate Images intentionally regenerates from the current description, even if unchanged. Generation spends gold; name and conversational instructions are never sent to the image model. Existing images stay until a replacement succeeds.",
+    "Generate one image and reuse its framing for the avatar, portrait, opening and working appearance. Save generates replacements only when the Visual description changes. Generate Images uses the current draft Visual description without saving your edits, even if unchanged. Generation spends gold; name and conversational instructions are never sent to the image model. Existing images stay until a replacement succeeds.",
   roles: {
     avatar: "Avatar",
     portrait: "Portrait",

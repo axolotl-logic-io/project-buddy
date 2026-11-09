@@ -7,7 +7,6 @@ import {
   useActionState,
   useCallback,
   useContext,
-  useId,
   useState,
 } from "react";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
@@ -47,7 +46,6 @@ function ConstructEditor({
   readonly construct: OwnConstruct;
 }): JSX.Element {
   const { action, viewer } = editor;
-  const formId = useId();
   const [generatingSave, setGeneratingSave] = useState<boolean>(false);
   const [quote, setQuote] = useState<VisualGenerationQuote>();
   const [generationBlocked, setGenerationBlocked] = useState<boolean>(false);
@@ -144,7 +142,6 @@ function ConstructEditor({
           onSubmitCapture={captureSubmission}
           saveLabel={saveLabel}
           saveHint={saveHint}
-          formId={formId}
           saving={saving}
           disabled={generationBlocked && descriptionChanged}
         />
@@ -156,7 +153,6 @@ function ConstructEditor({
         onQuoteChange={setQuote}
         changed={changed}
         draftDescription={draftDescription}
-        formId={formId}
         saving={saving}
         generating={saving && generatingSave}
       />
