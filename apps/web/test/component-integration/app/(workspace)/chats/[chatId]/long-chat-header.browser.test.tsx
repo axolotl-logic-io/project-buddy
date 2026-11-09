@@ -133,7 +133,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await expect.element(character).toBeVisible();
         const artwork = character.element().querySelector("img");
         expect(new URL(artwork?.src ?? "", location.origin).pathname).toBe(
-          "/constructs/lumen-v1.png",
+          "/constructs/lumen-v1-1024.webp",
         );
         await page
           .getByRole("button", { name: "Close character profile" })

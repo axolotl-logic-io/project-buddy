@@ -33,13 +33,13 @@ function bottomGap(): number {
   );
 }
 
-async function openChat(): Promise<void> {
+async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
   await render(
     <ChatView
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       constructName="Vellum"
-      initialMessages={HISTORY}
+      initialMessages={initialMessages}
     />,
   );
 }
@@ -211,6 +211,61 @@ describe("use_case_follow_latest_messages", () => {
           textContent: LONG_TEXT,
         }),
       );
+      await layoutSettled();
+      expect(bottomGap()).toBeLessThanOrEqual(1);
+    });
+  }
+
+  test("upward input on a short adventure does not disable later following", async () => {
+    await openChat([]);
+    await layoutSettled();
+    expect(window.scrollY).toBe(0);
+    globalThis.dispatchEvent(new WheelEvent("wheel", { deltaY: -120 }));
+    const growth = document.createElement("div");
+    // Controlled late media layout must exceed the viewport, even on wide screens.
+    growth.style.height = `${window.innerHeight * 2}px`;
+    page
+      .getByRole("list", { name: CHAT_COPY.conversationLabel })
+      .element()
+      .append(growth);
+    await layoutSettled();
+    expect(window.scrollY).toBeGreaterThan(0);
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+  });
+
+  for (const navigation of ["scrollbar", "link"]) {
+    test(`${navigation} returning to the bottom after composer focus resumes following`, async () => {
+      await openChat();
+      await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+      await readEarlier();
+      page
+        .getByRole("textbox", { name: CHAT_COPY.messageLabel })
+        .element()
+        .focus({ preventScroll: true });
+      if (navigation === "scrollbar") {
+        document.documentElement.dispatchEvent(
+          new PointerEvent("pointerdown", { bubbles: true }),
+        );
+      } else {
+        const link = document.createElement("a");
+        link.href = "#latest";
+        document.body.append(link);
+        link.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        link.remove();
+      }
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "instant",
+      });
+      await layoutSettled();
+      page
+        .getByRole("list", { name: CHAT_COPY.conversationLabel })
+        .element()
+        .append(
+          Object.assign(document.createElement("div"), {
+            textContent: LONG_TEXT,
+          }),
+        );
       await layoutSettled();
       expect(bottomGap()).toBeLessThanOrEqual(1);
     });
