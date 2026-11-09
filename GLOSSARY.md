@@ -8,7 +8,7 @@ Three concepts shape every adventure:
 
 - A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Constructs page](#constructs-page).
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
-- An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as Project Breakdown, brainstorming or an open adventure. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
+- An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as Brainstorm, Chat or Break Down a Project. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
 
 Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
 
@@ -148,13 +148,13 @@ Habits hold the construct's personal style, which carries across every activity.
 
 ### Activity
 
-What the user and construct are doing together in an adventure, such as brainstorming ideas, breaking down a quest, conducting an interview or having an open adventure. An activity has a [prompt](#prompt) that guides the construct. Users can customize built-in activities or write their own.
+What the user and construct are doing together in an adventure, such as brainstorming ideas, breaking down a quest, conducting an interview or chatting. An activity has a [prompt](#prompt) that guides the construct. Users can customize built-in activities or write their own.
 
 An adventure has one [current activity](#current-activity). Its instructions guide the construct. Changing activities keeps the conversation and construct, but changes those instructions.
 
 Each activity has a name, a prompt and an [opening request](#activity-opening). The user can start an adventure with it from the New adventure modal on Activities or its [start page](#start-page). The adventure saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
 
-The construct chooses from the acting user's built-in and own activities.
+The construct chooses from the acting user's built-in and own activities. Start actions use activity names directly. Display name changes do not rename own activities or rewrite saved snapshots. Built-in instruction text and ids stay compatible, including `open-chat` for Chat.
 
 - **UI:** "Activity", "Activities".
 - **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
@@ -175,7 +175,7 @@ The activity an adventure is in now. The user chooses the starting activity; the
 
 ### Activity session
 
-The stretch of an adventure spent in one activity, from the message where the activity started until the next change or the end of the adventure. An adventure with no session is in the open adventure.
+The stretch of an adventure spent in one activity, from the message where the activity started until the next change or the end of the adventure. An adventure with no session is in Chat.
 
 ### Activity opening
 
@@ -191,15 +191,15 @@ An activity that ships with the site.
 
 A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or crafting one.
 
-### Project Breakdown
+### Break Down a Project
 
 The built-in activity that helps the user split a goal into milestones and small next steps. It can run with no quest, an existing quest or a new quest. The quest creation form defaults to this activity.
 
-- **UI:** "Project Breakdown".
+- **UI:** "Break Down a Project".
 
 ### Interview (retired)
 
-An earlier built-in activity. Existing adventure snapshots keep its instructions. It is no longer offered for new adventures; older links and activity requests lead to Project Breakdown.
+An earlier built-in activity. Existing adventure snapshots keep its instructions. It is no longer offered for new adventures; older links and activity requests lead to Break Down a Project.
 
 ### New quest construct
 
@@ -207,9 +207,17 @@ The account setting that chooses the construct for the quest creation form. It d
 
 - **UI:** "New quest construct".
 
-### Open adventure
+### Brainstorm
 
-The built-in activity with no set scene. It is the default when the user picks no activity.
+The built-in activity for exploring an idea, questioning assumptions and making decisions.
+
+- **UI:** "Brainstorm".
+
+### Chat
+
+The built-in activity with no set scene. It is the default when the user picks no activity. Chat names the `open-chat` activity; the earlier use of chat for an adventure remains only for compatibility.
+
+- **UI:** "Chat".
 
 ## Spells
 
@@ -256,7 +264,7 @@ To make a spell's instructions available to the construct. A cast preserves the 
 One conversation between the user and one [construct](#construct). Every adventure is either a [quest adventure](#quest-adventure) or a [standalone adventure](#standalone-adventure).
 
 - **UI:** "Adventure", "Adventures", "New adventure".
-- **Earlier name:** "Chat" or "Chats".
+- **Earlier name:** "Chat" or "Chats", retained only for compatibility. The current [Chat](#chat) activity is one activity an adventure can use.
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
 
 ### Quest status
@@ -399,7 +407,7 @@ The outcome the user wants to make or learn through a quest.
 
 ### Milestone
 
-A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. Project Breakdown help the user describe planned milestones in the Journal. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
+A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. Break Down a Project helps the user describe planned milestones in the Journal. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
 
 ### Milestone (recorded)
 
@@ -676,7 +684,7 @@ Adventures were previously called chats; the Journal was called quest memory.
 Use Adventure and Journal in new product copy and prompts. The existing
 `chat`/`chats` and `memory` module names, exported identifiers, copy keys,
 route paths, database names, API fields, tool names and prompt boundary tags
-remain compatibility names in this release. The Open adventure activity keeps
+remain compatibility names in this release. The Chat activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
 Quick Note paragraphs and historical migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.

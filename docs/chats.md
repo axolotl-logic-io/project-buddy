@@ -22,7 +22,7 @@ new-adventure form. The dialog is named "New adventure", takes and keeps focus, 
 closes with Escape or its close button, returning focus to the button; Escape
 in the construct picker's open list closes only the list. That form, like
 the new adventure page at `/chats/new`, offers a quest or "No quest", an
-activity and a construct, built in or the user's own, with the open adventure and Vellum
+activity and a construct, built in or the user's own, with Chat and Vellum
 chosen initially. Starting saves the adventure with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
 
@@ -52,7 +52,7 @@ A standalone conversation has no Journal and no [progress timeline](progress-tim
 can't record milestones. Its construct can search and cite the Blender manual, change
 the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
 move the standalone conversation into the quest. The new quest's
-first adventure opens in Project Breakdown through the link the adventure shows.
+first adventure opens in Break Down a Project through the link the adventure shows.
 
 ## Home atlas
 
@@ -95,7 +95,7 @@ column without a refresh; the shared header keeps its styling.
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
 The quest sits below all six destinations. With no quest, the same position
-offers Start a quest, leading to a new quest in Project Breakdown.
+offers Start a quest, leading to a new quest in Break Down a Project.
 The existing site header keeps Quick Note and Menu available; Settings and
 Account also appear below the map. Home reads no new data source, creates
 nothing and makes no model call.
@@ -140,9 +140,9 @@ Find something to make (`find-something-to-make`) helps the user discover a smal
 
 Use it without a quest, in an existing quest or with a new quest through the normal adventure form. Vellum and Lumen have prepared openings; edited definitions and new quests with motivation use generated openings. In a quest, the construct uses its existing Journal and the usual tool rules. A standalone adventure has no Journal or quest progress. Suggested milestones remain plans until meaningful work is reported completed.
 
-Every adventure is in one activity at a time: the open adventure, brainstorming, Project Breakdown, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
+Every adventure is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
 
-Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Project Breakdown. The quest creation form defaults to Project Breakdown. An adventure records each
+Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Break Down a Project. The quest creation form defaults to Break Down a Project. An adventure records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
 `select_activity` tool. Its in-adventure result shows the activity it entered,
 including while the reply streams and after reopening the adventure. Saved activity
@@ -251,7 +251,7 @@ A quest's construct can start an adventure on its own: a check-in. The quest's p
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
 
 1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no adventure started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries. The new adventure is in the open adventure, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries. The new adventure is in Chat, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
 3. Emails the owner the construct's message, with a link to the adventure and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the adventure stays.
 
 When the owner is out of batteries, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
@@ -361,7 +361,7 @@ New quest asks for a quest name and optional motivation: why the user wants to c
 
 New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference used by the dedicated New quest form. Quests created by a construct from an existing adventure keep that adventure's construct.
 
-When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
+When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
 ## Construct presence
 
