@@ -11,6 +11,23 @@ Issue [#796](https://github.com/axolotl-logic-io/project-buddy/issues/796) follo
 
 The baseline includes the twenty integration PRs through #806. The older measured sources `242e3a1` and `9a8ab46` supply historical context only. These measurements describe this pair, not later integration, the Focus + Drawer Workshop branch, or a production release. The [manifest](manifest.json) records build and protocol provenance.
 
+### Integration merge after measurement
+
+The branch later merged integration `b96f3209da5aca10e2675a8f19cf50afc1dd84fe` as `3cec1ac56c0686e05d9675454120159276d5fb47`. That integration adds Focus + Drawer editing (#808), segment route frames and the Home breadcrumb (#795), and server spans with narrower signed-in reads (#794). The merge leaves this branch's renderer diff unchanged; the Workshop keeps its dynamic Markdown boundary inside the Drawer. Nobody re-ran the matched pair on the merged source, so the runtime numbers below still describe only `bb4d213c`→`e99e266d`.
+
+A static build comparison shows where the merged source differs. The merged normal build `1C6gjrpasNdmVYit8F1Gt` keeps the code-highlighting engine chunk byte-identical and outside the client-reference chunks of the editor, adventure, Workshop, Home, spell and activity routes, as in `wZMt37C0myB-rkIq1iLn9`. Integration adds client JavaScript to several routes. On these routes, the only new client module is #795's segment `error.tsx`; the rest of the growth comes from changed integration modules.
+
+| Route | Measured renderer build (gzip -9) | Merged build (gzip -9) | Change |
+| --- | --- | --- | --- |
+| Editor | 148,266 B, 18 chunks | 180,054 B, 22 chunks | +31,788 B |
+| Spell | 127,206 B, 16 chunks | 158,070 B, 20 chunks | +30,864 B |
+| Activity | 181,772 B, 20 chunks | 187,484 B, 24 chunks | +5,712 B |
+| Home | 113,992 B, 14 chunks | 117,934 B, 16 chunks | +3,942 B |
+| Workshop | 161,270 B, 18 chunks | 161,436 B, 18 chunks | +166 B |
+| Adventure | 879,788 B, 26 chunks | 879,832 B, 26 chunks | +44 B |
+
+These sizes are the union of each route's client-reference manifest chunks, compressed locally. They are not transfer measurements, and they don't show whether the cold editor gain holds at the merged source. The absolute editor timings below don't transfer to the merged source.
+
 The optional code-highlighting engine loads when code needs it. Plain code remains readable while the engine loads, and cached highlighting retains its synchronous behavior. Language metadata and theme tokens remain synchronous. Markdown uses stable heading maps and memoization. The complete adventure history stays eager; a memoized presentation component separates it from composer updates.
 
 Definition previews and the Workshop load their Markdown module through Next's documented dynamic import boundary.
@@ -156,9 +173,11 @@ No ten-run confirmation was pursued for a candidate that failed this preservatio
 
 The final renderer source passes the fast check (249 tests), the font-build guard and 116 affected Chromium/WebKit cases across 18 file/browser executions. Nine affected server tests also pass in three files, covering signed-in/signed-out theme/font cookies, private adventure reads/writes/API actions and multi-author rendering data. The server kit resets only this worktree's guarded local database after capture, and the private session file is removed. Coverage includes first-code highlighting, formatted replies, images, tool results, history following/earlier reading, definition drafts and artwork generation, and theme persistence.
 
+The merged source `3cec1ac5` passes the fast check (256 tests in 50 files) and the font-build guard after a normal production build. It also passes 520 Chromium/WebKit cases across 30 file/browser executions and the same nine server tests in three files. The browser set covers this branch's six changed test files and nine more that render code highlighting, Markdown, adventure history, definition previews or the Workshop, including Home, signed-in themes and touch phone pages. The archived checker still passes, rejects its ten negative cases and rejects a tampered summary and matrix.
+
 A focused pass is not a full browser baseline. The canonical shared browser repair is PR #812: 1,232 cases pass on integration `242fda27a3ff8d8ef1e11c7deb88c13bf80495ca`; this branch does not duplicate that full run.
 
-Earlier canonical fixture corrections from PR #808 have provenance: `0de6c80f` for server balance/router boundaries, `508b05a4` plus `29b7f52c` for explicit Generate preserving an unsaved draft, and `5c90bb21` for collection-creation Server Actions. Ordinary editor fields stay direct; drawer-specific clicks are omitted. No Stripe prebundle, generic success stub, timeout increase or assertion weakening is introduced.
+Earlier canonical fixture corrections from PR #808 have provenance: `0de6c80f` for server balance/router boundaries, `508b05a4` plus `29b7f52c` for explicit Generate preserving an unsaved draft, and `5c90bb21` for collection-creation Server Actions. The integration merge resolved the two conflicting test files to integration's versions. Those versions already contained this branch's fixture repairs and add the Focus clicks that #808's editor needs. No Stripe prebundle, generic success stub, timeout increase or assertion weakening is introduced.
 
 Two early symlinked `.next` serving attempts failed the unchanged primary-surface deadline and produced no valid comparison observations. Real copied build directories corrected the topology; those failures remain documented. Initial TypeScript/lint and ordinary-editor fixture failures preceded the final passing validation. An offscreen menu-click driver failed, and a wheel-to-header diagnostic timed out; the corrected programmatic diagnostic is explicitly limited above. A separate mixed-cohort prewarm script failed before any observations by treating native `Response.ok` as a method; the property check corrected the driver.
 
