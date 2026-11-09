@@ -12,6 +12,61 @@
    disabled looks), and every role ships in the stylesheet whether or not a
    page uses it. globals.css imports this file into the components layer. */
 @layer roles {
+  .quest-workspace {
+    @apply min-w-0 rounded-box border border-line bg-surface;
+  }
+
+  .quest-workspace-heading {
+    @apply flex flex-wrap items-start justify-between gap-4 p-4 sm:p-6;
+  }
+
+  .quest-workspace-heading > :first-child {
+    flex: 1 1 20rem;
+  }
+
+  .quest-workspace-status {
+    @apply mt-2 text-muted text-sm;
+  }
+
+  .quest-workspace-rail {
+    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 sm:px-6;
+  }
+
+  .quest-workspace-nav {
+    @apply flex min-w-0 flex-wrap gap-x-4;
+  }
+
+  .quest-workspace-tab {
+    min-block-size: var(--target-size);
+    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-muted;
+  }
+
+  .quest-workspace-tab[aria-current="page"] {
+    @apply border-primary text-foreground;
+  }
+
+  .quest-status-actions {
+    @apply flex flex-wrap items-center gap-2 py-2;
+  }
+
+  .quest-status-completed {
+    @apply border border-line px-3;
+  }
+
+  .quest-status-abandoned {
+    @apply text-danger;
+  }
+
+  .quest-title-edit {
+    min-inline-size: var(--target-size);
+    @apply shrink-0 justify-center;
+  }
+
+  .quest-title-input {
+    min-block-size: var(--target-size);
+    @apply w-full min-w-0 font-heading text-page-heading;
+  }
+
   .construct-generation-spinner {
     @apply inline-block size-5 shrink-0 rounded-full border border-line;
     border-block-start-color: var(--primary);
@@ -647,12 +702,6 @@
 
   html:has(.site-menu[open]) {
     overflow: hidden;
-  }
-
-  /* The name of a group in the menu, such as its links' groups or the
-     theme's choices. */
-  .quest-actions-menu {
-    @apply z-50 max-w-[calc(100vw-2rem)] rounded-box border border-line bg-surface p-2 text-foreground shadow-raised;
   }
 
   .menu-label {

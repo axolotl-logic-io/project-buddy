@@ -30,6 +30,7 @@ import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { FOX_CHAT, FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -40,8 +41,6 @@ import {
   type CheckboxLook,
   checkboxLook,
   fontSize,
-  shareRow,
-  verticalSpan,
 } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
 import { applyTheme } from "./theme-test-kit.ts";
@@ -208,7 +207,7 @@ async function renderMarkdownChat(): Promise<void> {
 // two share a row.
 async function longNameRow(
   theme: ThemeId,
-): Promise<{ length: number; sharesRow: boolean }> {
+): Promise<{ length: number; journalBelowTitle: boolean }> {
   const projectName = LONG_NAME_SOURCE.slice(0, LONG_NAME_LENGTHS[theme]);
   await renderProject(projectName);
   await loadFonts();
@@ -216,10 +215,9 @@ async function longNameRow(
   const link = page.getByRole("link", { name: MEMORY_COPY.link });
   return {
     length: projectName.length,
-    sharesRow: shareRow(
-      verticalSpan(heading.element()),
-      verticalSpan(link.element()),
-    ),
+    journalBelowTitle:
+      link.element().getBoundingClientRect().top >=
+      heading.element().getBoundingClientRect().bottom,
   };
 }
 
@@ -289,10 +287,10 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test('a long project name keeps "Project memory" beside it at 1280 px', async () => {
+      test("a long quest title keeps Journal navigation below it at 1280 px", async () => {
         expect(await longNameRow(id)).toEqual({
           length: LONG_NAME_LENGTHS[id],
-          sharesRow: true,
+          journalBelowTitle: true,
         });
       });
 
@@ -320,4 +318,18 @@ describe("use_case_choose_theme", () => {
       });
     });
   }
+});
+
+test("the Journal selects its workspace link and keeps the quest title", async () => {
+  await renderMilestones();
+  await expect
+    .element(page.getByRole("heading", { name: FOX_PROJECT.name, level: 1 }))
+    .toBeVisible();
+  const nav = page.getByRole("navigation", { name: PROJECT_COPY.navigation });
+  await expect
+    .element(nav.getByRole("link", { name: MEMORY_COPY.link }))
+    .toHaveAttribute("aria-current", "page");
+  await expect
+    .element(nav.getByRole("link", { name: PROJECT_COPY.chatsHeading }))
+    .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
 });

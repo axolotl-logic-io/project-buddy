@@ -365,9 +365,6 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
           .element().parentElement;
         return section?.getBoundingClientRect();
       });
-      const titleBefore = busy
-        .element()
-        .firstElementChild?.getBoundingClientRect();
       expect(before?.width).toBeLessThanOrEqual(STANDARD_WIDTH);
       if (!populated) {
         stores.listChats.mockResolvedValue([]);
@@ -382,9 +379,14 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       const heading = page.getByRole("heading", { name: FOX_PROJECT.name });
       await expect.element(heading).toBeVisible();
       const title = heading.element().getBoundingClientRect();
-      expect(
-        heading.element().parentElement?.getBoundingClientRect(),
-      ).toMatchObject({ x: titleBefore?.x, width: titleBefore?.width });
+      const workspace = page
+        .getByRole("navigation", { name: PROJECT_COPY.navigation })
+        .element()
+        .closest("header");
+      expect(workspace?.getBoundingClientRect()).toMatchObject({
+        x: slots[0]?.x,
+        width: slots[0]?.width,
+      });
       expect(title.left).toBeGreaterThan(0);
       expect(title.right).toBeLessThan(viewport.width);
       expect(frame?.getBoundingClientRect()).toMatchObject({
@@ -399,7 +401,7 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
           .getByRole("heading", { name, exact: true })
           .element().parentElement;
         const box = section?.getBoundingClientRect();
-        expect(box?.left).toBe(title.left);
+        expect(box?.left).toBe(slots[0]?.x);
         expect(box?.right).toBeLessThan(viewport.width);
         const reserved = slots.at(
           [PROGRESS_TIMELINE_COPY.heading, PROJECT_COPY.chatsHeading].indexOf(
@@ -456,4 +458,26 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       await setViewport(LAPTOP_VIEWPORT);
     },
   );
+});
+
+test("the workspace exposes navigation and direct status actions", async () => {
+  await renderProject();
+  const navigation = page.getByRole("navigation", {
+    name: PROJECT_COPY.navigation,
+  });
+  await expect
+    .element(navigation.getByRole("link", { name: PROJECT_COPY.chatsHeading }))
+    .toHaveAttribute("aria-current", "page");
+  await expect
+    .element(navigation.getByRole("link", { name: MEMORY_COPY.link }))
+    .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}/memory`);
+  await expect
+    .element(page.getByRole("button", { name: "Complete", exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: "Abandon", exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: PROJECT_COPY.rename }))
+    .toBeVisible();
 });

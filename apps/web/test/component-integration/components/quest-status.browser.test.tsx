@@ -46,8 +46,8 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("quest actions menu", () => {
-  test("opens with the keyboard, changes status and offers Undo", async () => {
+describe("quest status actions", () => {
+  test("submits with the keyboard, disables pending actions and offers Undo", async () => {
     const saved = Promise.withResolvers<StatusActionState>();
     vi.mocked(changeQuestStatusAction).mockReturnValue(saved.promise);
     const result: StatusActionState = {
@@ -61,18 +61,17 @@ describe("quest actions menu", () => {
       },
     };
     await render(<QuestStatusControls project={FOX_PROJECT} />);
-    page.getByRole("button", { name: "Quest actions" }).element().focus();
-    await userEvent.keyboard("{ArrowDown}");
+    page
+      .getByRole("button", { name: "Complete", exact: true })
+      .element()
+      .focus();
     await userEvent.keyboard("{Enter}");
     await expect
-      .element(page.getByRole("button", { name: "Quest actions" }))
-      .toHaveFocus();
-    expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
-    await userEvent.keyboard("{ArrowDown}");
-    await expect
-      .element(page.getByRole("menuitem", { name: "Mark completed" }))
+      .element(page.getByRole("button", { name: "Complete", exact: true }))
       .toBeDisabled();
-    await userEvent.keyboard("{Enter}{Escape}");
+    await expect
+      .element(page.getByRole("button", { name: "Abandon", exact: true }))
+      .toBeDisabled();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     saved.resolve(result);
     await expect
@@ -106,7 +105,7 @@ describe("quest actions menu", () => {
       <QuestStatusControls project={{ ...FOX_PROJECT, role: "member" }} />,
     );
     await expect
-      .element(page.getByRole("button", { name: "Quest actions" }))
+      .element(page.getByRole("button", { name: "Complete", exact: true }))
       .not.toBeInTheDocument();
   });
 });
