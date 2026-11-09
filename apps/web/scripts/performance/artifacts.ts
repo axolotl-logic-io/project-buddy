@@ -27,6 +27,16 @@ const JOURNEYS = [
   "editor",
 ] as const;
 const MODES = ["cold-direct", "warm-direct", "client-navigation"] as const;
+// v5 adds a per-state content check after observation; v4 cohorts predate it.
+const PROTOCOLS = ["commit-probe-v4", "commit-probe-v5"] as const;
+// How the state's own content was confirmed, without retaining that content.
+const CONTENT_CHECKS = [
+  "fixture-link",
+  "message-count",
+  "no-owned-entities",
+  "listed-activities",
+  "edited-prompt",
+] as const;
 const PROFILES = ["desktop", "phone"] as const;
 const RECT = z.strictObject({
   x: NUMBER,
@@ -111,7 +121,8 @@ const NETWORK_RESOURCE = z.strictObject({
 type NetworkResource = z.infer<typeof NETWORK_RESOURCE>;
 const READINESS = z.strictObject({
   hostLoad: z.tuple([NONNEGATIVE, NONNEGATIVE, NONNEGATIVE]),
-  captureProtocol: z.literal("commit-probe-v4"),
+  captureProtocol: z.enum(PROTOCOLS),
+  contentCheck: z.enum(CONTENT_CHECKS).optional(),
   state: z.enum(["populated", "empty", "empty-detail"]),
   profile: z.enum(PROFILES),
   name: z.enum(JOURNEYS),
@@ -209,6 +220,7 @@ const READINESS = z.strictObject({
   transitionAllShiftSum: NONNEGATIVE,
 });
 type ReadinessRow = z.infer<typeof READINESS>;
+type ContentCheck = (typeof CONTENT_CHECKS)[number];
 
 function journeys(
   state: ReadinessRow["state"],
@@ -251,8 +263,17 @@ function validateReadinessRows(
     parseReadinessSelection(scope);
   }
   const rows = z.array(READINESS).parse(input);
+  if (new Set(rows.map((row) => row.captureProtocol)).size > 1) {
+    throw new Error("Mixed capture protocols");
+  }
   const keys = new Set<string>();
   for (const row of rows) {
+    if (
+      (row.captureProtocol === "commit-probe-v5") !==
+      (row.contentCheck !== undefined)
+    ) {
+      throw new Error("State content check missing");
+    }
     if (
       scope !== undefined &&
       (row.state !== scope.state ||
@@ -396,8 +417,13 @@ function validateFieldMetric(input: unknown): z.infer<typeof FIELD_METRIC> {
   return FIELD_METRIC.parse(input);
 }
 
-export type { NetworkResource, ReadinessRow, ReadinessSelection };
+export type { ContentCheck, NetworkResource, ReadinessRow, ReadinessSelection };
 export {
+  CONTENT_CHECKS,
+  JOURNEYS,
+  journeys,
+  MODES,
+  PROFILES,
   parseReadinessRow,
   parseReadinessSelection,
   validateFieldMetric,

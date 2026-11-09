@@ -225,5 +225,49 @@ function primaryPresent(name: string): boolean {
   return document.querySelector('main button[aria-haspopup="dialog"]') !== null;
 }
 
-export type { AuditObservation };
-export { observe, primaryPresent };
+// What a state's own content must show, named by its check. Serializable so
+// the browser evaluates it; the result is a boolean, never the content.
+type StateContent =
+  | { check: "fixture-link"; href: string }
+  | { check: "message-count"; label: string; count: number }
+  | { check: "no-owned-entities" }
+  | { check: "listed-activities" }
+  | { check: "edited-prompt"; ending: string };
+function statePresent(expected: StateContent): boolean {
+  const IdLength = 36;
+  function owned(href: string): boolean {
+    const [root, kind, id, ...rest] = href.split("/");
+    return (
+      root === "" &&
+      (kind === "projects" || kind === "chats") &&
+      id?.length === IdLength &&
+      rest.length === 0
+    );
+  }
+  const links = Array.from(document.querySelectorAll("main a[href]"));
+  if (expected.check === "fixture-link") {
+    return links.some((link) => link.getAttribute("href") === expected.href);
+  }
+  if (expected.check === "message-count") {
+    const list = Array.from(document.querySelectorAll("ol[aria-label]")).find(
+      (node) => node.getAttribute("aria-label") === expected.label,
+    );
+    return list !== undefined && list.children.length === expected.count;
+  }
+  if (expected.check === "no-owned-entities") {
+    return !links.some((link) => owned(link.getAttribute("href") ?? ""));
+  }
+  if (expected.check === "listed-activities") {
+    return links.some((link) =>
+      (link.getAttribute("href") ?? "").startsWith("/activities/"),
+    );
+  }
+  const prompt = document.querySelector('textarea[name="prompt"]');
+  return (
+    prompt instanceof HTMLTextAreaElement &&
+    prompt.value.trimEnd().endsWith(expected.ending)
+  );
+}
+
+export type { AuditObservation, StateContent };
+export { observe, primaryPresent, statePresent };

@@ -16,13 +16,8 @@ import {
 import type { CaptureOptions, Fixture } from "./capture.mts";
 import { captureMatrix, openBrowser } from "./capture.mts";
 import { captureLighthouse } from "./lighthouse.mts";
-import {
-  byteBuckets,
-  observedStability,
-  STARTUP_WINDOW_MS,
-  sampleRange,
-  startupLongTaskTime,
-} from "./metrics.ts";
+import { MANIFEST_VERSION, parseManifest } from "./manifest.ts";
+import { summarizeAudit } from "./summary.ts";
 import { validateAuditDirectory } from "./validate-output.mts";
 
 const MINIMUM_SAMPLES = 3;
@@ -145,11 +140,26 @@ async function seedFixture(): Promise<Fixture> {
         construct: z.uuid(),
         emptyProject: z.uuid(),
         emptyChat: z.uuid(),
+        counts: z.strictObject({
+          accounts: z.number().int().positive(),
+          quests: z.number().int().positive(),
+          messages: z.number().int().positive(),
+          ownConstructs: z.number().int().positive(),
+          emptyDetailMessages: z.number().int().nonnegative(),
+          editedPromptEnding: z.string().min(1),
+        }),
       })
       .parse(input);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+}
+// The installed version, read from the package itself rather than restated.
+async function installedVersion(directory: string): Promise<string> {
+  const input: unknown = JSON.parse(
+    await readFile(`${directory}/package.json`, "utf8"),
+  );
+  return z.object({ version: z.string() }).parse(input).version;
 }
 async function run(): Promise<void> {
   const { values } = parseArgs({
@@ -214,7 +224,16 @@ async function run(): Promise<void> {
     };
   }
   const preflight = await openBrowser(browserPath);
+  const browserVersion = await preflight.version();
   await preflight.close();
+  const tools = {
+    browser: browserVersion,
+    puppeteerCore: await installedVersion("../../node_modules/puppeteer-core"),
+    lighthouse: await installedVersion("../../node_modules/lighthouse"),
+    lighthousePuppeteerCore: await installedVersion(
+      "../../node_modules/lighthouse/node_modules/puppeteer-core",
+    ),
+  };
   const hostBefore = host();
   const options: CaptureOptions = {
     base: `http://localhost:${readEndToEndPort()}`,
@@ -249,24 +268,16 @@ async function run(): Promise<void> {
     stage = "font-guard";
     await command("npm", ["run", "check:build-fonts"], cancellation.signal);
     const buildId = (await readFile(".next/BUILD_ID", "utf8")).trim();
-    const manifest = {
-      schemaVersion: 2,
+    const manifest = parseManifest({
+      schemaVersion: MANIFEST_VERSION,
       scope,
       selection: selection ?? null,
-      captureProtocol: "commit-probe-v4",
+      captureProtocol: "commit-probe-v5",
       sourceCommit,
       buildId,
       samples,
-      fixture: {
-        accounts: 3,
-        quests: 2,
-        messages: 200,
-        ownConstructs: 1,
-        emptyDetailMessages: 0,
-      },
-      browser: "Chrome156.0.8078.4",
-      puppeteerCore: "24.12.1",
-      lighthouse: "12.8.2",
+      fixture: fixture.counts,
+      tools,
       hostBefore,
       cache:
         "new browser context per journey/sample; cold direct, warm direct then source→client; server/database not reset between cells",
@@ -289,6 +300,8 @@ async function run(): Promise<void> {
           upload: 93_750,
         },
       },
+      lighthouseEmulation:
+        "Lighthouse mobile screen and user agent, applied before each source page loads",
       probeResolutionMs: 100,
       inputCharacters: 42,
       networkAttribution:
@@ -303,7 +316,7 @@ async function run(): Promise<void> {
         manualReviewRequired: true,
       },
       complete: false,
-    };
+    });
     await writeFile(
       `${output}/manifest.json`,
       JSON.stringify(manifest, null, 2),
@@ -324,103 +337,38 @@ async function run(): Promise<void> {
       cancellation.signal.throwIfAborted();
       stage = "matrix";
       const rows = await captureMatrix(browser, fixture, options);
-      const groups = new Map<string, typeof rows>();
-      for (const row of rows) {
-        const key = [row.state, row.profile, row.name, row.mode].join("/");
-        const group = groups.get(key) ?? [];
-        group.push(row);
-        groups.set(key, group);
-      }
-      const summary = Array.from(groups, ([cell, group]) => ({
-        cell,
-        shell: sampleRange(
-          group.map((row) => {
-            let { start: origin } = row.nav;
-            if (row.mode === "client-navigation") {
-              ({ origin } = row);
-            }
-            return row.shell - origin;
-          }),
-        ),
-        stability: group.map((row) => {
-          let { start: origin } = row.nav;
-          if (row.mode === "client-navigation") {
-            ({ origin } = row);
-          }
-          const observed = observedStability(row);
-          let stableUseful: number | null = null;
-          if (observed.quiet) {
-            stableUseful = observed.stableUseful - origin;
-          }
-          return {
-            lastChangeMs: observed.lastChange - origin,
-            quiet: observed.quiet,
-            stableUsefulMs: stableUseful,
-          };
-        }),
-        initialSessionWindowCls: group.map(
-          (row) => row.initialSessionWindowCls,
-        ),
-        allShiftSums: sampleRange(
-          group.map((row) => row.transitionAllShiftSum),
-        ),
-        primary: sampleRange(
-          group.map((row) => {
-            let { start: origin } = row.nav;
-            if (row.mode === "client-navigation") {
-              ({ origin } = row);
-            }
-            return row.primary - origin;
-          }),
-        ),
-        control: sampleRange(
-          group.map((row) => {
-            let { start: origin } = row.nav;
-            if (row.mode === "client-navigation") {
-              ({ origin } = row);
-            }
-            return row.control.confirmed - origin;
-          }),
-        ),
-        startupLongTaskBusyMs: sampleRange(group.map(startupLongTaskTime)),
-        quietWindows: group.filter((row) => observedStability(row).quiet)
-          .length,
-        bytes: group.map(byteBuckets),
-      }));
       await writeFile(
         `${output}/summary.json`,
-        JSON.stringify(
-          {
-            diagnostic:
-              "Median/min–max only; trend warnings, no score gate or field INP inference",
-            startupWindowMs: STARTUP_WINDOW_MS,
-            byteScope:
-              "Resources started and completed within fixed first five seconds; source prefetch before activation separate diagnostic; full variable observation retained in gzip",
-            cells: summary,
-          },
-          null,
-          2,
-        ),
+        JSON.stringify(summarizeAudit(rows), null, 2),
       );
       if (selection === undefined) {
         stage = "lighthouse";
         await captureLighthouse(browser, fixture, options);
-        stage = "validation";
-        await validateAuditDirectory(output, samples);
       }
+      const finished = parseManifest({
+        ...manifest,
+        hostAfter: host(),
+        complete: selection === undefined,
+        diagnosticComplete: selection !== undefined,
+      });
       await writeFile(
         `${output}/manifest.json`,
-        JSON.stringify(
-          {
-            ...manifest,
-            hostAfter: host(),
-            complete: selection === undefined,
-            diagnosticComplete: selection !== undefined,
-          },
-          null,
-          2,
-        ),
+        JSON.stringify(finished, null, 2),
       );
+      if (selection === undefined) {
+        // The validator reads the finished manifest; a rejected cohort is
+        // marked incomplete again rather than left claiming completion.
+        stage = "validation";
+        try {
+          await validateAuditDirectory(output, samples);
+        } catch (error) {
+          await writeFile(
+            `${output}/manifest.json`,
+            JSON.stringify({ ...finished, complete: false }, null, 2),
+          );
+          throw error;
+        }
+      }
     } finally {
       cancellation.signal.removeEventListener("abort", cancelBrowser);
       await browser.close();
