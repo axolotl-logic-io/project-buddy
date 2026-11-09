@@ -1,6 +1,6 @@
 # Controlled server comparison
 
-Values are median [min–max] milliseconds. Initial (n=3) and confirmation (n=10) cohorts are separate. Synthetic extra DB delay: 50 ms per HTTP request. See the capture record for uncertainty and definitions.
+Values are median [min–max] milliseconds. Initial (n=3) and confirmation (n=10) cohorts are separate. Synthetic extra DB delay: 50 ms per HTTP request. The static route name `editor` means the own construct editor only. Activity and spell editors have the same code change but were not measured. See the [capture record](README.md) for uncertainty and definitions.
 
 ## Document transport
 
