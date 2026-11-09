@@ -88,7 +88,7 @@ import {
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
-import { readToday } from "@/today/today-store.ts";
+import { readHomeSummary, readToday } from "@/today/today-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
@@ -650,7 +650,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the atlas before the first quest",
     render: workspacePage(
       () => {
-        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+        vi.mocked(readHomeSummary).mockResolvedValue({
+          latestQuest: undefined,
+          firstVisit: true,
+        });
       },
       () => HomePage(),
     ),
@@ -659,15 +662,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the atlas with a long quest and next step",
     render: workspacePage(
       () => {
-        vi.mocked(readToday).mockResolvedValue({
-          projects: [
-            {
-              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
-              nextStep: LONG_PROJECT_NAME,
-              latestChat: FOX_CHAT.id,
-            },
-          ],
-          chats: [],
+        vi.mocked(readHomeSummary).mockResolvedValue({
+          latestQuest: {
+            project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+            nextStep: LONG_PROJECT_NAME,
+            latestChat: FOX_CHAT.id,
+          },
+          firstVisit: false,
         });
       },
       () => HomePage(),

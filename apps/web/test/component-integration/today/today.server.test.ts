@@ -10,9 +10,10 @@ import { chats } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
+import { removeProjectMember } from "@/projects/members-store.ts";
 import { changeQuestStatus } from "@/projects/quest-status-store.ts";
 import { hasToday } from "@/today/today.ts";
-import { readToday } from "@/today/today-store.ts";
+import { readHomeSummary, readToday } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { teamProject } from "../projects/team-project-test-kit.ts";
@@ -63,6 +64,10 @@ describe("use_case_today_on_landing", () => {
   test("a new user has nothing waiting", async () => {
     const user = await testUser();
     const today = await readToday(user.id);
+    expect(await readHomeSummary(user.id)).toEqual({
+      latestQuest: today.projects[0],
+      firstVisit: today.projects.length === 0 && today.chats.length === 0,
+    });
     expect(today).toEqual({ projects: [], chats: [] });
     expect(hasToday(today)).toBe(false);
   });
@@ -100,6 +105,10 @@ describe("use_case_today_on_landing", () => {
     await data.exchanges(turtleOld, HELLO);
 
     const today = await readToday(user.id);
+    expect(await readHomeSummary(user.id)).toEqual({
+      latestQuest: today.projects[0],
+      firstVisit: today.projects.length === 0 && today.chats.length === 0,
+    });
 
     expect(today.projects).toEqual([
       {
@@ -141,6 +150,10 @@ describe("use_case_today_on_landing", () => {
     );
 
     const today = await readToday(user.id);
+    expect(await readHomeSummary(user.id)).toEqual({
+      latestQuest: today.projects[0],
+      firstVisit: today.projects.length === 0 && today.chats.length === 0,
+    });
 
     expect(today.projects).toEqual([]);
     expect(today.chats.map(({ id }) => id)).toEqual(
@@ -188,4 +201,26 @@ test("Home continues only active quests for owners and members", async () => {
   for (const today of finished) {
     expect(today.projects).toEqual([]);
   }
+});
+
+test("Home forgets membership immediately and keeps first-visit semantics for completed quests", async () => {
+  const team = await teamProject();
+  expect((await readHomeSummary(team.member.id)).latestQuest?.project.id).toBe(
+    team.project.id,
+  );
+  await removeProjectMember(team.owner.id, team.project.id, team.member.id);
+  expect(await readHomeSummary(team.member.id)).toEqual({
+    latestQuest: undefined,
+    firstVisit: true,
+  });
+  await changeQuestStatus(team.owner.id, {
+    projectId: team.project.id,
+    fromStatus: "active",
+    toStatus: "completed",
+    revision: 0,
+  });
+  expect(await readHomeSummary(team.owner.id)).toEqual({
+    latestQuest: undefined,
+    firstVisit: false,
+  });
 });
