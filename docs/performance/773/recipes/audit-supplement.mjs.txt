@@ -33,7 +33,10 @@ const requests=[];
 const listener=r=>requests.push({path:route(r.url()),type:r.resourceType(),timing:r.response()?.timing()});
 page.on('requestfinished',listener);
 const traceRun=state==='populated'&&profile==='phone'&&mode==='cold-direct';
-if(traceRun)await page.tracing.start({screenshots:name==='home',categories:['devtools.timeline','blink.user_timing','disabled-by-default-devtools.timeline','disabled-by-default-devtools.screenshot']});
+const screenshots=name==='home';
+const categories=['devtools.timeline','blink.user_timing','disabled-by-default-devtools.timeline'];
+if(screenshots)categories.push('disabled-by-default-devtools.screenshot');
+if(traceRun)await page.tracing.start({screenshots,categories});
 const before=performance.now();
 if(mode==='client-navigation'){
 await page.evaluate(()=>{window.audit.shifts=[];window.audit.longtasks=[];window.audit.start=performance.now();});
@@ -51,7 +54,7 @@ if(page.url().includes('/login'))throw new Error('Audit hit sign-in page');
 const metrics=await page.evaluate(()=>({url:location.pathname,nav:performance.getEntriesByType('navigation').map(e=>({ttfb:e.responseStart-e.requestStart,dom:e.domContentLoadedEventEnd,bytes:e.transferSize}))[0],paint:performance.getEntriesByType('paint').map(e=>({name:e.name,time:e.startTime})),...window.audit,resources:performance.getEntriesByType('resource').map(e=>({path:e.name.replace(location.origin,'').replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id').split('?')[0],type:e.initiatorType,bytes:e.transferSize,start:e.startTime,duration:e.duration}))}));
 const row={state,profile,name,mode,contentMs:content,url:route(metrics.url),...metrics,url:route(metrics.url),requests};
 rows.push(row);await writeFile(output+'/baseline.json',JSON.stringify(rows,null,2));
-if(traceRun){const raw=JSON.parse(Buffer.from(await page.tracing.stop()).toString());const events=raw.traceEvents.map(e=>({name:e.name,cat:e.cat,ph:e.ph,ts:e.ts,dur:e.dur,pid:e.pid,tid:e.tid,...(e.name==='Screenshot'?{args:e.args}:{})}));await writeFile(output+`/${name}.trace.json`,JSON.stringify({traceEvents:events}));}
+if(traceRun){const raw=JSON.parse(Buffer.from(await page.tracing.stop()).toString());const events=raw.traceEvents.filter(e=>e.name!=='Screenshot'||screenshots).map(e=>({name:e.name,cat:e.cat,ph:e.ph,ts:e.ts,dur:e.dur,pid:e.pid,tid:e.tid,...(e.name==='Screenshot'?{args:e.args}:{})}));await writeFile(output+`/${name}.trace.json`,JSON.stringify({traceEvents:events}));}
 page.off('requestfinished',listener);
 console.log(state,profile,name,mode,Math.round(content));
 }

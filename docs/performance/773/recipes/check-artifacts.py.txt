@@ -1,18 +1,57 @@
-import json,gzip,pathlib,re,hashlib
-root=pathlib.Path('docs/performance/773')
-rows=json.loads((root/'baseline.json').read_text())
-assert len({(r['state'],r['profile'],r['name'],r['mode']) for r in rows})==len(rows)
-assert all('/login' not in r['url'] and r['contentMs']>=0 for r in rows)
-for p in root.glob('*.json'):
- text=p.read_text();json.loads(text)
- for forbidden in ['SESSION_SECRET','Authorization','Cookie','Synthetic answer','definition.prompt']:
-  assert forbidden not in text,(p,forbidden)
- if p.name!='failures.json':assert not re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',text),p
-for p in root.glob('*.trace.json'):
- data=json.loads(p.read_text())
- for e in data['traceEvents']:
-  assert set(e)<=set(['name','cat','ph','ts','dur','pid','tid','args'])
-  if 'args' in e:assert e['name']=='Screenshot'
-for p in [root/'baseline.json',*root.glob('*.trace.json')]:
- with gzip.open(str(p)+'.gz','wb') as f:f.write(p.read_bytes())
-print(f'Artifact validation passed for {len(rows)} unique authenticated scenario observations; JSON parses, UUID templates and payload allowlist checked.')
+"""Validate retained gzip inputs. Optional raw inputs must pass before compression."""
+import gzip
+import json
+import pathlib
+import re
+import sys
+
+root = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path('docs/performance/773')
+screenshot_files = {'home.trace.json.gz', 'stream.trace.json.gz'}
+event_fields = {'name', 'cat', 'ph', 'ts', 'dur', 'pid', 'tid', 'args'}
+uuid = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+
+def validate(path):
+    text = gzip.decompress(path.read_bytes()).decode() if path.suffix == '.gz' else path.read_text()
+    data = json.loads(text)
+    for forbidden in ['SESSION_SECRET', 'Authorization', 'Cookie', 'Synthetic answer', 'definition.prompt']:
+        assert forbidden not in text, (path.name, forbidden)
+    if path.name != 'failures.json':
+        assert not uuid.search(text), path.name
+    if '.trace.json' in path.name:
+        canonical = path.name.removesuffix('.gz') + '.gz'
+        assert set(data) == {'traceEvents'}, path.name
+        for event in data['traceEvents']:
+            assert set(event) <= event_fields, path.name
+            # Reject the entire event, even when its args were already removed.
+            if event['name'] == 'Screenshot':
+                assert canonical in screenshot_files, (path.name, 'forbidden screenshot event')
+            if 'args' in event:
+                assert event['name'] == 'Screenshot', path.name
+                assert set(event['args']) <= {'snapshot', 'expected_display_time', 'frame_sequence', 'source_id'}, path.name
+                assert all(isinstance(value, (int, float)) for key, value in event['args'].items() if key != 'snapshot'), path.name
+                assert isinstance(event['args']['snapshot'], str), path.name
+    return data
+
+# Validate every supplied raw file before writing any gzip output.
+raw = list(root.glob('*.json'))
+for path in raw:
+    validate(path)
+for path in raw:
+    if path.name == 'baseline.json' or path.name.endswith('.trace.json'):
+        path.with_suffix(path.suffix + '.gz').write_bytes(gzip.compress(path.read_bytes(), mtime=0))
+
+# Always validate the shareable compressed inputs, including when no raw copies exist.
+rows = validate(root / 'baseline.json.gz')
+assert len(rows) == 78
+assert len({(r['state'], r['profile'], r['name'], r['mode']) for r in rows}) == len(rows)
+assert all('/login' not in r['url'] and r['contentMs'] >= 0 for r in rows)
+traces = list(root.glob('*.trace.json.gz'))
+assert len(traces) == 9
+counts = {}
+for path in traces:
+    data = validate(path)
+    counts[path.name] = sum(e['name'] == 'Screenshot' for e in data['traceEvents'])
+manifest = validate(root / 'manifest.json')
+assert set(manifest['screenshotPolicy']['allowedFiles']) == screenshot_files
+assert {k: v for k, v in counts.items() if v} == manifest['screenshotPolicy']['retainedCounts']
+print(f'Validated {len(rows)} unique authenticated observations and {len(traces)} gzip traces; screenshot allowlist enforced.')

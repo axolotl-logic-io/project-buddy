@@ -11,5 +11,24 @@
   "productionAccess": false,
   "cache": "fresh browser context per journey; warm direct reuses context; server/database not reset per cell; client transitions include prefetch",
   "sourcePreparation": "first 53 cells use networkidle0; remaining 25 use source content readiness after documented timeout",
-  "privacy": "numeric fields and route templates; stripped trace args except synthetic Home/adventure screenshots; no request headers/bodies/prompts/session files"
+  "privacy": "Trace event fields allowlisted; screenshot events only in home.trace.json.gz and stream.trace.json.gz. Other traces contain no screenshot events. No request headers/bodies/session files. See README for correction of prior public built-in prompt frames.",
+  "screenshotPolicy": {
+    "allowedFiles": [
+      "home.trace.json.gz",
+      "stream.trace.json.gz"
+    ],
+    "retainedCounts": {
+      "stream.trace.json.gz": 49,
+      "home.trace.json.gz": 7
+    },
+    "removedCounts": {
+      "quest.trace.json.gz": 6,
+      "adventures.trace.json.gz": 6,
+      "long-adventure.trace.json.gz": 8,
+      "quests.trace.json.gz": 6,
+      "editor.trace.json.gz": 6,
+      "workshop.trace.json.gz": 10,
+      "activities.trace.json.gz": 6
+    }
+  }
 }
