@@ -1,0 +1,2702 @@
+[
+  {
+    "name": "home",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 26.881697999999997,
+    "firstChunkMs": 39.087785999999994,
+    "shellMarkupMs": 39.087785999999994,
+    "mainMarkupMs": 39.087785999999994,
+    "textareaMarkupMs": null,
+    "completeMs": 54.026167,
+    "documentBytes": 45553,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 28,
+    "spans": [
+      {
+        "startOffsetMs": 28,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 37,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 688
+      },
+      {
+        "startOffsetMs": 37,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 46,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1056
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 2.633889999999994,
+    "firstChunkMs": 63.96832500000001,
+    "shellMarkupMs": 63.96832500000001,
+    "mainMarkupMs": 63.96832500000001,
+    "textareaMarkupMs": null,
+    "completeMs": 177.08563500000002,
+    "documentBytes": 45553,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 227,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 688
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 121,
+        "durationMs": 55,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1056
+      }
+    ]
+  },
+  {
+    "name": "quests",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 2.1943060000000116,
+    "firstChunkMs": 16.295528999999988,
+    "shellMarkupMs": 16.295528999999988,
+    "mainMarkupMs": 16.295528999999988,
+    "textareaMarkupMs": null,
+    "completeMs": 22.92444599999999,
+    "documentBytes": 52738,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 38,
+    "spans": [
+      {
+        "startOffsetMs": 8,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 14,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 14,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 788
+      },
+      {
+        "startOffsetMs": 14,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 14,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 14,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "quests",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 2.0953230000000076,
+    "firstChunkMs": 64.35096800000002,
+    "shellMarkupMs": 64.35096800000002,
+    "mainMarkupMs": 64.35096800000002,
+    "textareaMarkupMs": null,
+    "completeMs": 122.78174899999999,
+    "documentBytes": 52738,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 340,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 788
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "quest",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 2.6169079999999667,
+    "firstChunkMs": 15.794994999999972,
+    "shellMarkupMs": 15.794994999999972,
+    "mainMarkupMs": 15.794994999999972,
+    "textareaMarkupMs": null,
+    "completeMs": 30.517735999999957,
+    "documentBytes": 57317,
+    "dbHttpCount": 9,
+    "dbHttpDurationSumMs": 62,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 14,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 21,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 20,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 557
+      },
+      {
+        "startOffsetMs": 21,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1056
+      },
+      {
+        "startOffsetMs": 21,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 20,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 20,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 677
+      },
+      {
+        "startOffsetMs": 20,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1242
+      }
+    ]
+  },
+  {
+    "name": "quest",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 2.044875999999988,
+    "firstChunkMs": 64.17085800000001,
+    "shellMarkupMs": 64.17085800000001,
+    "mainMarkupMs": 64.17085800000001,
+    "textareaMarkupMs": null,
+    "completeMs": 181.37057500000003,
+    "documentBytes": 57317,
+    "dbHttpCount": 9,
+    "dbHttpDurationSumMs": 519,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 557
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1056
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 677
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1242
+      }
+    ]
+  },
+  {
+    "name": "adventures",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 1.9258129999999483,
+    "firstChunkMs": 12.875349000000028,
+    "shellMarkupMs": 12.875349000000028,
+    "mainMarkupMs": 12.875349000000028,
+    "textareaMarkupMs": null,
+    "completeMs": 18.557875999999965,
+    "documentBytes": 50068,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 28,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 10,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 10,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 10,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      }
+    ]
+  },
+  {
+    "name": "adventures",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 1.9738770000000159,
+    "firstChunkMs": 63.22696399999995,
+    "shellMarkupMs": 63.22696399999995,
+    "mainMarkupMs": 63.22696399999995,
+    "textareaMarkupMs": null,
+    "completeMs": 121.52070600000002,
+    "documentBytes": 50068,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 285,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      }
+    ]
+  },
+  {
+    "name": "long-adventure",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 2.775765999999976,
+    "firstChunkMs": 14.681531000000064,
+    "shellMarkupMs": 14.681531000000064,
+    "mainMarkupMs": 14.681531000000064,
+    "textareaMarkupMs": 137.395267,
+    "completeMs": 139.45263599999998,
+    "documentBytes": 515854,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 29,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 21,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 478
+      },
+      {
+        "startOffsetMs": 20,
+        "durationMs": 9,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 131163
+      }
+    ]
+  },
+  {
+    "name": "long-adventure",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 2.9950730000000476,
+    "firstChunkMs": 64.32160199999998,
+    "shellMarkupMs": 64.32160199999998,
+    "mainMarkupMs": 64.32160199999998,
+    "textareaMarkupMs": 259.92478400000005,
+    "completeMs": 260.08125900000005,
+    "documentBytes": 515811,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 231,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 478
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 60,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 131163
+      }
+    ]
+  },
+  {
+    "name": "activities",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 2.075956000000133,
+    "firstChunkMs": 18.27795200000014,
+    "shellMarkupMs": 18.27795200000014,
+    "mainMarkupMs": 18.27795200000014,
+    "textareaMarkupMs": null,
+    "completeMs": 25.528117000000066,
+    "documentBytes": 58804,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 42,
+    "spans": [
+      {
+        "startOffsetMs": 7,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 15,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      }
+    ]
+  },
+  {
+    "name": "activities",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 3.0781540000000405,
+    "firstChunkMs": 66.23391900000001,
+    "shellMarkupMs": 66.23391900000001,
+    "mainMarkupMs": 66.23391900000001,
+    "textareaMarkupMs": null,
+    "completeMs": 129.55736000000002,
+    "documentBytes": 58847,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 349,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "workshop",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 2.107426999999916,
+    "firstChunkMs": 15.992017999999916,
+    "shellMarkupMs": 15.992017999999916,
+    "mainMarkupMs": 15.992017999999916,
+    "textareaMarkupMs": null,
+    "completeMs": 24.38858099999993,
+    "documentBytes": 66444,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 37,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "workshop",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 2.225104999999985,
+    "firstChunkMs": 70.6057780000001,
+    "shellMarkupMs": 70.6057780000001,
+    "mainMarkupMs": 70.6057780000001,
+    "textareaMarkupMs": null,
+    "completeMs": 125.25125900000012,
+    "documentBytes": 66444,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 288,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 65,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 65,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 65,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 65,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "editor",
+    "sample": 1,
+    "delayMs": 0,
+    "headersMs": 2.369436000000178,
+    "firstChunkMs": 12.916189000000031,
+    "shellMarkupMs": 12.916189000000031,
+    "mainMarkupMs": 12.916189000000031,
+    "textareaMarkupMs": 30.80830100000003,
+    "completeMs": 31.119376000000102,
+    "documentBytes": 74494,
+    "dbHttpCount": 7,
+    "dbHttpDurationSumMs": 37,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 18,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 22,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 22,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 560
+      }
+    ]
+  },
+  {
+    "name": "editor",
+    "sample": 1,
+    "delayMs": 50,
+    "headersMs": 2.454020999999784,
+    "firstChunkMs": 64.52327299999979,
+    "shellMarkupMs": 64.52327299999979,
+    "mainMarkupMs": 64.52327299999979,
+    "textareaMarkupMs": 235.8141529999998,
+    "completeMs": 238.84467399999994,
+    "documentBytes": 74537,
+    "dbHttpCount": 7,
+    "dbHttpDurationSumMs": 394,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 119,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 177,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 177,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 560
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.7914319999999861,
+    "firstChunkMs": 63.52425100000005,
+    "shellMarkupMs": 63.52425100000005,
+    "mainMarkupMs": 63.52425100000005,
+    "textareaMarkupMs": null,
+    "completeMs": 181.4609599999999,
+    "documentBytes": 45553,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 231,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 688
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1056
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 2.0171419999999216,
+    "firstChunkMs": 12.508616999999958,
+    "shellMarkupMs": 12.508616999999958,
+    "mainMarkupMs": 12.508616999999958,
+    "textareaMarkupMs": null,
+    "completeMs": 22.071957999999995,
+    "documentBytes": 45553,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 20,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 688
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1056
+      }
+    ]
+  },
+  {
+    "name": "quests",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.7597710000000006,
+    "firstChunkMs": 65.58550800000012,
+    "shellMarkupMs": 65.58550800000012,
+    "mainMarkupMs": 65.58550800000012,
+    "textareaMarkupMs": null,
+    "completeMs": 124.45989000000031,
+    "documentBytes": 52738,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 349,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 788
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "quests",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 1.8193169999999554,
+    "firstChunkMs": 12.675660999999764,
+    "shellMarkupMs": 12.675660999999764,
+    "mainMarkupMs": 12.675660999999764,
+    "textareaMarkupMs": null,
+    "completeMs": 18.66426300000012,
+    "documentBytes": 52738,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 35,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 788
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      }
+    ]
+  },
+  {
+    "name": "quest",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 2.001100999999835,
+    "firstChunkMs": 62.692004,
+    "shellMarkupMs": 62.692004,
+    "mainMarkupMs": 62.692004,
+    "textareaMarkupMs": null,
+    "completeMs": 180.79001599999992,
+    "documentBytes": 57317,
+    "dbHttpCount": 9,
+    "dbHttpDurationSumMs": 520,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 61,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 119,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 557
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1056
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 119,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 677
+      },
+      {
+        "startOffsetMs": 119,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1242
+      }
+    ]
+  },
+  {
+    "name": "quest",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 2.0590830000001006,
+    "firstChunkMs": 12.558743999999933,
+    "shellMarkupMs": 12.558743999999933,
+    "mainMarkupMs": 12.558743999999933,
+    "textareaMarkupMs": null,
+    "completeMs": 26.42351699999972,
+    "documentBytes": 57317,
+    "dbHttpCount": 9,
+    "dbHttpDurationSumMs": 59,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 677
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 557
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1056
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1242
+      }
+    ]
+  },
+  {
+    "name": "adventures",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.8875490000000354,
+    "firstChunkMs": 64.28264600000011,
+    "shellMarkupMs": 64.28264600000011,
+    "mainMarkupMs": 64.28264600000011,
+    "textareaMarkupMs": null,
+    "completeMs": 125.221,
+    "documentBytes": 50111,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 288,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      }
+    ]
+  },
+  {
+    "name": "adventures",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 1.7515349999998762,
+    "firstChunkMs": 11.45591000000013,
+    "shellMarkupMs": 11.45591000000013,
+    "mainMarkupMs": 11.45591000000013,
+    "textareaMarkupMs": null,
+    "completeMs": 21.54055500000004,
+    "documentBytes": 50111,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 31,
+    "spans": [
+      {
+        "startOffsetMs": 4,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 9,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 9,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 9,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 9,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      }
+    ]
+  },
+  {
+    "name": "long-adventure",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.8719289999999091,
+    "firstChunkMs": 63.44875499999989,
+    "shellMarkupMs": 63.44875499999989,
+    "mainMarkupMs": 63.44875499999989,
+    "textareaMarkupMs": 269.53657999999996,
+    "completeMs": 269.68468699999994,
+    "documentBytes": 515811,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 238,
+    "spans": [
+      {
+        "startOffsetMs": 4,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 478
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 62,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 131163
+      }
+    ]
+  },
+  {
+    "name": "long-adventure",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 2.1788950000000114,
+    "firstChunkMs": 14.788138000000345,
+    "shellMarkupMs": 14.788138000000345,
+    "mainMarkupMs": 14.788138000000345,
+    "textareaMarkupMs": 112.33564999999999,
+    "completeMs": 112.42943300000024,
+    "documentBytes": 515811,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 29,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 19,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 478
+      },
+      {
+        "startOffsetMs": 19,
+        "durationMs": 9,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 131163
+      }
+    ]
+  },
+  {
+    "name": "activities",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.9107450000001336,
+    "firstChunkMs": 63.28593799999999,
+    "shellMarkupMs": 63.28593799999999,
+    "mainMarkupMs": 63.28593799999999,
+    "textareaMarkupMs": null,
+    "completeMs": 121.13196100000005,
+    "documentBytes": 58804,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 339,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 61,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "activities",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 1.934650999999576,
+    "firstChunkMs": 12.74080799999956,
+    "shellMarkupMs": 12.74080799999956,
+    "mainMarkupMs": 12.74080799999956,
+    "textareaMarkupMs": null,
+    "completeMs": 18.908968999999615,
+    "documentBytes": 58804,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 33,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "workshop",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.8075040000003355,
+    "firstChunkMs": 62.89730200000031,
+    "shellMarkupMs": 62.89730200000031,
+    "mainMarkupMs": 62.89730200000031,
+    "textareaMarkupMs": null,
+    "completeMs": 120.03718200000003,
+    "documentBytes": 66444,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 281,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 61,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 61,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 61,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 61,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "workshop",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 2.060805999999957,
+    "firstChunkMs": 12.719857000000047,
+    "shellMarkupMs": 12.719857000000047,
+    "mainMarkupMs": 12.719857000000047,
+    "textareaMarkupMs": null,
+    "completeMs": 18.920321000000058,
+    "documentBytes": 66444,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 25,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      }
+    ]
+  },
+  {
+    "name": "editor",
+    "sample": 2,
+    "delayMs": 50,
+    "headersMs": 1.898450000000139,
+    "firstChunkMs": 62.72785299999987,
+    "shellMarkupMs": 62.72785299999987,
+    "mainMarkupMs": 62.72785299999987,
+    "textareaMarkupMs": 235.71005000000014,
+    "completeMs": 239.96238700000004,
+    "documentBytes": 74537,
+    "dbHttpCount": 7,
+    "dbHttpDurationSumMs": 396,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 119,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 177,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 560
+      },
+      {
+        "startOffsetMs": 177,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "editor",
+    "sample": 2,
+    "delayMs": 0,
+    "headersMs": 1.9509020000000419,
+    "firstChunkMs": 12.564895999999862,
+    "shellMarkupMs": 12.564895999999862,
+    "mainMarkupMs": 12.564895999999862,
+    "textareaMarkupMs": 30.284181999999873,
+    "completeMs": 30.537925000000087,
+    "documentBytes": 74494,
+    "dbHttpCount": 7,
+    "dbHttpDurationSumMs": 40,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 18,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 23,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 560
+      },
+      {
+        "startOffsetMs": 23,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 1.8522510000002512,
+    "firstChunkMs": 12.671704000000318,
+    "shellMarkupMs": 12.671704000000318,
+    "mainMarkupMs": 12.671704000000318,
+    "textareaMarkupMs": null,
+    "completeMs": 23.03374699999995,
+    "documentBytes": 45553,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 22,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 688
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1056
+      }
+    ]
+  },
+  {
+    "name": "home",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 1.9448209999995925,
+    "firstChunkMs": 63.78558999999996,
+    "shellMarkupMs": 63.78558999999996,
+    "mainMarkupMs": 63.78558999999996,
+    "textareaMarkupMs": null,
+    "completeMs": 177.64545399999997,
+    "documentBytes": 45553,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 226,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 688
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 120,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1056
+      }
+    ]
+  },
+  {
+    "name": "quests",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 2.0139949999997953,
+    "firstChunkMs": 14.163082999999915,
+    "shellMarkupMs": 14.163082999999915,
+    "mainMarkupMs": 14.163082999999915,
+    "textareaMarkupMs": null,
+    "completeMs": 20.848869999999806,
+    "documentBytes": 52738,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 39,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 788
+      }
+    ]
+  },
+  {
+    "name": "quests",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 1.9501310000000558,
+    "firstChunkMs": 67.85771600000044,
+    "shellMarkupMs": 67.85771600000044,
+    "mainMarkupMs": 67.85771600000044,
+    "textareaMarkupMs": null,
+    "completeMs": 126.21947100000034,
+    "documentBytes": 52738,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 345,
+    "spans": [
+      {
+        "startOffsetMs": 8,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 67,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 67,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 67,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 66,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 788
+      },
+      {
+        "startOffsetMs": 67,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      }
+    ]
+  },
+  {
+    "name": "quest",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 2.3985029999998915,
+    "firstChunkMs": 13.184820999999829,
+    "shellMarkupMs": 13.184820999999829,
+    "mainMarkupMs": 13.184820999999829,
+    "textareaMarkupMs": null,
+    "completeMs": 27.480842999999822,
+    "documentBytes": 57317,
+    "dbHttpCount": 9,
+    "dbHttpDurationSumMs": 62,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1056
+      },
+      {
+        "startOffsetMs": 18,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 557
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 677
+      },
+      {
+        "startOffsetMs": 17,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1242
+      }
+    ]
+  },
+  {
+    "name": "quest",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 2.46688499999982,
+    "firstChunkMs": 65.82054500000004,
+    "shellMarkupMs": 65.82054500000004,
+    "mainMarkupMs": 65.82054500000004,
+    "textareaMarkupMs": null,
+    "completeMs": 183.37799700000005,
+    "documentBytes": 57317,
+    "dbHttpCount": 9,
+    "dbHttpDurationSumMs": 525,
+    "spans": [
+      {
+        "startOffsetMs": 7,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 65,
+        "durationMs": 56,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 557
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1056
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 677
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 60,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1242
+      }
+    ]
+  },
+  {
+    "name": "adventures",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 2.027661999999964,
+    "firstChunkMs": 12.026519000000008,
+    "shellMarkupMs": 12.026519000000008,
+    "mainMarkupMs": 12.026519000000008,
+    "textareaMarkupMs": null,
+    "completeMs": 21.394590999999764,
+    "documentBytes": 50111,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 33,
+    "spans": [
+      {
+        "startOffsetMs": 4,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 10,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 10,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 10,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      }
+    ]
+  },
+  {
+    "name": "adventures",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 2.0649240000002465,
+    "firstChunkMs": 63.92364799999996,
+    "shellMarkupMs": 63.92364799999996,
+    "mainMarkupMs": 63.92364799999996,
+    "textareaMarkupMs": null,
+    "completeMs": 125.53592299999991,
+    "documentBytes": 50111,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 289,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 62,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      }
+    ]
+  },
+  {
+    "name": "long-adventure",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 1.916345999999976,
+    "firstChunkMs": 12.423942999999781,
+    "shellMarkupMs": 12.423942999999781,
+    "mainMarkupMs": 12.423942999999781,
+    "textareaMarkupMs": 108.18615500000033,
+    "completeMs": 108.3088829999997,
+    "documentBytes": 515811,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 24,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 478
+      },
+      {
+        "startOffsetMs": 16,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 131163
+      }
+    ]
+  },
+  {
+    "name": "long-adventure",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 2.073450999999295,
+    "firstChunkMs": 65.80096799999956,
+    "shellMarkupMs": 65.80096799999956,
+    "mainMarkupMs": 65.80096799999956,
+    "textareaMarkupMs": 258.29946499999915,
+    "completeMs": 258.4008819999999,
+    "documentBytes": 515811,
+    "dbHttpCount": 4,
+    "dbHttpDurationSumMs": 232,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3841
+      },
+      {
+        "startOffsetMs": 121,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 478
+      },
+      {
+        "startOffsetMs": 121,
+        "durationMs": 60,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 131163
+      }
+    ]
+  },
+  {
+    "name": "activities",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 2.262587999999596,
+    "firstChunkMs": 14.126651999999922,
+    "shellMarkupMs": 14.126651999999922,
+    "mainMarkupMs": 14.126651999999922,
+    "textareaMarkupMs": null,
+    "completeMs": 20.76166099999955,
+    "documentBytes": 58804,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 37,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 13,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      }
+    ]
+  },
+  {
+    "name": "activities",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 1.855145999999877,
+    "firstChunkMs": 65.42388399999982,
+    "shellMarkupMs": 65.42388399999982,
+    "mainMarkupMs": 65.42388399999982,
+    "textareaMarkupMs": null,
+    "completeMs": 124.22449199999937,
+    "documentBytes": 58804,
+    "dbHttpCount": 6,
+    "dbHttpDurationSumMs": 351,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 210
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 63,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  },
+  {
+    "name": "workshop",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 1.9211950000008073,
+    "firstChunkMs": 19.628508000000693,
+    "shellMarkupMs": 19.628508000000693,
+    "mainMarkupMs": 19.628508000000693,
+    "textareaMarkupMs": null,
+    "completeMs": 21.40016200000082,
+    "documentBytes": 66444,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 35,
+    "spans": [
+      {
+        "startOffsetMs": 5,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 7,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1028
+      },
+      {
+        "startOffsetMs": 11,
+        "durationMs": 8,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      }
+    ]
+  },
+  {
+    "name": "workshop",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 1.9445200000000114,
+    "firstChunkMs": 65.34999000000062,
+    "shellMarkupMs": 65.34999000000062,
+    "mainMarkupMs": 65.34999000000062,
+    "textareaMarkupMs": null,
+    "completeMs": 124.1421820000005,
+    "documentBytes": 66444,
+    "dbHttpCount": 5,
+    "dbHttpDurationSumMs": 289,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1028
+      }
+    ]
+  },
+  {
+    "name": "editor",
+    "sample": 3,
+    "delayMs": 0,
+    "headersMs": 2.064433000000463,
+    "firstChunkMs": 13.194570000000567,
+    "shellMarkupMs": 13.194570000000567,
+    "mainMarkupMs": 13.194570000000567,
+    "textareaMarkupMs": 31.484777000000577,
+    "completeMs": 31.739442000000054,
+    "documentBytes": 74494,
+    "dbHttpCount": 7,
+    "dbHttpDurationSumMs": 38,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 12,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 19,
+        "durationMs": 4,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 24,
+        "durationMs": 5,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 24,
+        "durationMs": 6,
+        "delayMs": 0,
+        "status": 200,
+        "responseBytes": 560
+      }
+    ]
+  },
+  {
+    "name": "editor",
+    "sample": 3,
+    "delayMs": 50,
+    "headersMs": 2.3133669999997437,
+    "firstChunkMs": 65.17746499999976,
+    "shellMarkupMs": 65.17746499999976,
+    "mainMarkupMs": 65.17746499999976,
+    "textareaMarkupMs": 240.82561600000008,
+    "completeMs": 241.10739399999966,
+    "documentBytes": 74494,
+    "dbHttpCount": 7,
+    "dbHttpDurationSumMs": 406,
+    "spans": [
+      {
+        "startOffsetMs": 6,
+        "durationMs": 57,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1214
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 1430
+      },
+      {
+        "startOffsetMs": 64,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 122,
+        "durationMs": 59,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      },
+      {
+        "startOffsetMs": 181,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 560
+      },
+      {
+        "startOffsetMs": 181,
+        "durationMs": 58,
+        "delayMs": 50,
+        "status": 200,
+        "responseBytes": 3755
+      }
+    ]
+  }
+]

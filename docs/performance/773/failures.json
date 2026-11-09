@@ -1,0 +1,11 @@
+{
+  "buildPilot": "node --env-file invocation compiled then child rejected --env-file in NODE_OPTIONS; normal environment wrapper succeeded",
+  "legacyBrowser": "Chrome 127 Lighthouse navigation audits returned Browser tab has unexpectedly crashed; no paint values accepted",
+  "capturePilot": [
+    "Incorrect request.timing API corrected to response timing",
+    "Hidden duplicate navigation link corrected to visible link selection"
+  ],
+  "matrixInterruption": "53 observations retained; editor client navigation source Workshop exceeded unchanged 30000 ms networkidle0 deadline; missing cells use documented content-ready source preparation",
+  "interpretation": "These failures are not passing measurements. Product check outcomes are reported separately.",
+  "timespanSerializer": "First timespan completed capture but report serializer assumed navigation-only requestedUrl; optional field corrected and flow-only capture supplied. Successful navigation reports preserved."
+}

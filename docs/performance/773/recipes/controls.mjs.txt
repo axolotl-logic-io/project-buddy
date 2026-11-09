@@ -1,0 +1,23 @@
+import puppeteer from 'puppeteer-core';
+import {readFile,writeFile} from 'node:fs/promises';
+const s=JSON.parse(await readFile('/tmp/pb-773-session.json','utf8'));const base='http://localhost:36447';
+const browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});const rows=[];
+try{
+for(const [name,path] of [['home','/home'],['long-adventure',`/chats/${s.chat}`]]){
+const context=await browser.createBrowserContext();const page=await context.newPage();await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1});await page.setCookie({name:'session',value:s.populated,url:base,httpOnly:true,sameSite:'Lax'});const cdp=await page.createCDPSession();await cdp.send('Network.enable');await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750});await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+await page.evaluateOnNewDocument(()=>{
+window.sample={shell:null,primary:null,lastGeometry:null,scroll:[],interactions:[]};let previous='';
+const observer=new PerformanceObserver(list=>{for(const e of list.getEntries())window.sample.interactions.push({name:e.name,start:e.startTime,duration:e.duration,interaction:e.interactionId});});observer.observe({type:'event',durationThreshold:16,buffered:true});
+function frame(){const t=performance.now();if(window.sample.shell===null&&document.querySelector('header a'))window.sample.shell=t;if(window.sample.primary===null&&!document.querySelector('[aria-busy="true"]')&&(document.querySelector('main textarea')||document.querySelector('main a[href="/projects"]')))window.sample.primary=t;const geometry=JSON.stringify([...document.querySelectorAll('body > header,main,textarea')].map(n=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height];}));if(geometry!==previous){previous=geometry;window.sample.lastGeometry=t;}requestAnimationFrame(frame);}requestAnimationFrame(frame);window.addEventListener('scroll',()=>window.sample.scroll.push({time:performance.now(),y:scrollY}),{passive:true});
+});
+await page.goto(base+path,{waitUntil:'networkidle0'});if(page.url().includes('/login'))throw new Error('signed out');
+const start=performance.now();await page.click('header button[aria-haspopup="dialog"]');await page.waitForSelector('dialog[open]');const menuMs=performance.now()-start;await page.keyboard.press('Escape');
+let stream;
+if(name==='long-adventure'){
+await page.focus('textarea[aria-label="Message"]');const inputStart=performance.now();await page.keyboard.type('Synthetic streaming audit');const inputMs=performance.now()-inputStart;await page.tracing.start({screenshots:true,categories:['devtools.timeline','blink.user_timing','disabled-by-default-devtools.screenshot']});const sendStart=performance.now();await page.keyboard.press('Enter');await page.waitForFunction(()=>document.querySelector('main')?.innerText.includes('This is the mock construct.'));
+stream={inputMs,replyTextMs:performance.now()-sendStart};await new Promise(r=>setTimeout(r,2000));const raw=JSON.parse(Buffer.from(await page.tracing.stop()).toString());await writeFile(process.cwd()+'/docs/performance/773/stream.trace.json',JSON.stringify({traceEvents:raw.traceEvents.map(e=>({name:e.name,cat:e.cat,ph:e.ph,ts:e.ts,dur:e.dur,pid:e.pid,tid:e.tid,...(e.name==='Screenshot'?{args:e.args}:{})}))}));
+}
+await new Promise(r=>setTimeout(r,2000));rows.push({name,profile:'phone',menuMs,stream,...await page.evaluate(()=>window.sample)});await context.close();
+}
+await writeFile(process.cwd()+'/docs/performance/773/controls.json',JSON.stringify(rows,null,2));
+}finally{await browser.close();}

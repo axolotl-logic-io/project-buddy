@@ -1,0 +1,29 @@
+import puppeteer from 'puppeteer-core';
+import lighthouse,{startFlow} from 'lighthouse';
+import {readFile,writeFile} from 'node:fs/promises';
+const s=JSON.parse(await readFile('/tmp/pb-773-session.json','utf8'));
+const browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--remote-debugging-port=0']});
+const base='http://localhost:36447';const page=(await browser.pages())[0];
+await page.setCookie({name:'session',value:s.populated,url:base,httpOnly:true,sameSite:'Lax'});
+const reports=[];
+function reduce(lhr){return {version:lhr.lighthouseVersion,requested:lhr.requestedUrl?.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id'),final:lhr.finalDisplayedUrl?.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id'),mode:lhr.gatherMode,warnings:lhr.runWarnings,settings:lhr.configSettings,audits:Object.fromEntries(Object.entries(lhr.audits).map(([k,v])=>[k,{score:v.score,value:v.numericValue,unit:v.numericUnit,display:v.displayValue}]))};}
+try{
+for(const path of ['/home',`/chats/${s.chat}`]){
+await page.goto(base+path,{waitUntil:'networkidle0'});
+if(page.url().includes('login'))throw new Error('Not authenticated');
+const {lhr}=await lighthouse(base+path,{port:Number(new URL(browser.wsEndpoint()).port),disableStorageReset:true,output:'json',logLevel:'error'});
+if(lhr.finalDisplayedUrl.includes('login'))throw new Error('Lighthouse measured sign-in');
+reports.push(reduce(lhr));
+await writeFile(process.cwd()+'/docs/performance/773/lighthouse.json',JSON.stringify(reports,null,2));
+console.log('audited',path.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/g,':id'));
+}
+await page.goto(base+'/home',{waitUntil:'networkidle0'});
+if(page.url()!==base+'/home')throw new Error('Flow did not reach signed-in Home');
+const flow=await startFlow(page,{name:'Authenticated Home to Quests'});
+await flow.startTimespan({stepName:'Client navigation'});
+const links=await page.$$('a[href="/projects"]');for(const link of links){if(await link.isVisible()){await link.click();break;}}
+await page.waitForFunction(()=>location.pathname==='/projects'&&!document.querySelector('[aria-busy="true"]'));
+await flow.endTimespan();
+const result=await flow.createFlowResult();
+await writeFile(process.cwd()+'/docs/performance/773/lighthouse-flow.json',JSON.stringify(result.steps.map(x=>({name:x.name,source:'/home',destination:'/projects',authenticated:page.url()===base+'/projects',...reduce(x.lhr)})),null,2));
+}finally{await browser.close();}
