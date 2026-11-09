@@ -76,15 +76,15 @@ const ICON_PATHS = {
   },
 } as const;
 
-// Keep the existing names so every place symbol shares this mapping,
-// including links outside Home. Named imports include only these six icons.
+// Place symbols share these six named imports. Pencil also marks editing
+// controls and edit summaries throughout the interface.
 const PLACE_ICONS = {
   shield: Shield,
-  flame: MessagesSquare,
-  house: Bot,
-  tools: ListChecks,
+  messages: MessagesSquare,
+  bot: Bot,
+  checklist: ListChecks,
   pencil: Pencil,
-  market: Store,
+  store: Store,
 } as const;
 
 type PlaceIconName = keyof typeof PLACE_ICONS;
