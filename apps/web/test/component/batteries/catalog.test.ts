@@ -30,9 +30,6 @@ test("partial configuration and malformed catalogs fail closed", () => {
 
 test("Stripe test payments cannot credit the shared remote database", () => {
   vi.stubEnv("STRIPE_TEST_SECRET_KEY", "sk_test_fixture");
-  vi.stubEnv(
-    "DATABASE_URL",
-    "postgresql://example:example@remote.invalid/example",
-  );
+  vi.stubEnv("DATABASE_URL", "postgresql://remote.invalid/example");
   expect(() => readBatteryPayments()).toThrow("isolated local database");
 });
