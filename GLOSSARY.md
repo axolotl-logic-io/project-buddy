@@ -617,7 +617,7 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic adventure names spend the [acting user](#acting-user)'s gold. A new adventure's generated opening spends the gold of the user starting it. An automatic check-in spends the quest owner's gold.
 
-Before the orb migration, Marketplace sales transferred gold between users. Current Marketplace sales use separate orbs and do not fund model use. Users see their model-use balance rather than provider costs.
+Before the orb migration, Marketplace sales transferred gold between users. After operator activation, Marketplace sales use separate orbs and do not fund model use. Users see their model-use balance rather than provider costs.
 
 - **UI:** "gold", "You're out of gold."
 - **Avoid:** "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
