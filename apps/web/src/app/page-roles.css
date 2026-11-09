@@ -412,11 +412,26 @@
     border-color: var(--atlas-paper);
   }
 
+  .header-balance {
+    @apply flex shrink-0 flex-col items-center text-sm font-semibold;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    max-inline-size: 7rem;
+  }
+
   .header-quick-note {
     @apply shrink-0 whitespace-nowrap;
   }
 
   @media (width < 32rem) {
+    .site-header:has(.header-balance) .hud-medallion {
+      display: none;
+    }
+
+    .site-header:has(.header-balance) .hud-title {
+      @apply min-h-(--target-size) text-sm;
+    }
+
     .header-quick-note {
       min-inline-size: var(--target-size);
       padding-inline: 0;
