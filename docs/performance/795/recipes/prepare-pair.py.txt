@@ -1,0 +1,32 @@
+"""Prepare immutable local build snapshots and provenance; run under the shared lock."""
+import pathlib,json,shutil,sys,re,hashlib
+repo=pathlib.Path('/home/bestieboots/.t3/worktrees/project-buddy/issues-795-performance')
+temporary=pathlib.Path('/tmp/pb-795')
+config=json.loads(pathlib.Path(sys.argv[1]).read_text())
+mode=config['mode'];assert mode in ['final','home-trail-pilot']
+pilot=mode=='home-trail-pilot';working=temporary/('home-trail-pilot' if pilot else 'v3')
+assert not (working/'cohort-started').exists(),'Existing cohort must not be overwritten or blindly retried'
+output=repo/'docs/performance/795'
+if pilot:output=output/'provisional/home-trail-pilot'
+output.mkdir(parents=True,exist_ok=True)
+manifest=json.loads((repo/'docs/performance/795/manifest.json').read_text())
+for variant in ['before','after']:
+ entry=config[variant];assert re.fullmatch(r'[0-9a-f]{40}',entry['source'])
+ snapshot=pathlib.Path(entry['snapshot']);assert (snapshot/'BUILD_ID').read_text().strip()==entry['buildId']
+ project=temporary/(('pilot-' if pilot else '')+variant+'-app');app=project/'apps/web';app.mkdir(parents=True,exist_ok=True)
+ target=app/'.next'
+ if target.exists():
+  old=(target/'BUILD_ID').read_text().strip();archive=temporary/'snapshot-archive'/f'{mode}-{variant}-{old}'
+  archive.parent.mkdir(parents=True,exist_ok=True);assert not archive.exists(),'Archive already exists; inspect state before repeating preparation'
+  shutil.move(target,archive)
+ shutil.copytree(snapshot,target,symlinks=True)
+ for path,source in [(project/'node_modules',repo/'node_modules'),(app/'public',repo/'apps/web/public')]:
+  if path.is_symlink():assert path.resolve()==source.resolve()
+  else:assert not path.exists();path.symlink_to(source,target_is_directory=True)
+ for source,target in [(repo/'package.json',project/'package.json'),(repo/'apps/web/package.json',app/'package.json'),(repo/'apps/web/next.config.ts',app/'next.config.ts')]:shutil.copyfile(source,target)
+ for link in (app/'.next/node_modules').iterdir():
+  if link.is_symlink():assert link.exists(),'Unresolved runtime module link in preserved snapshot topology'
+ manifest[variant+'Source']=entry['source'];manifest[variant+'BuildId']=entry['buildId']
+manifest.update({'status':'prepared; no captures completed','cohortProtocol':'geometry-commit-probe-v3','sourcePreparation':'visible-shared-menu-state-v2','candidateAcceptanceSatisfied':False,'targetSamplesPerCell':3 if pilot else 10,'targetObservations':24 if pilot else 320,'scope':'Home/Quests client-only footprint pilot' if pilot else 'post-Workshop matched geometry confirmation','recipeSha256':{name:hashlib.sha256((temporary/name).read_bytes()).hexdigest() for name in ['capture.mjs','observe.mjs','start.mjs','cohort.mjs','prepare-pair.py']}})
+(output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+print('Prepared',mode,'snapshot topology and manifest; no server or browser started')

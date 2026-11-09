@@ -130,7 +130,7 @@ def validate(rows,complete=True):
 
 def trace(path,artifact_root=None):
  actual_root=root if artifact_root is None else artifact_root
- permitted={prefix/variant/profile/mode/'home.trace.json.gz' for prefix in [actual_root,actual_root/'checkpoint-traces',actual_root/'provisional/v2-737c914f'] for variant in ['before','after'] for profile in ['desktop','phone'] for mode in ['cold-direct','client-navigation']}
+ permitted={prefix/variant/profile/mode/'home.trace.json.gz' for prefix in [actual_root,actual_root/'checkpoint-traces',actual_root/'provisional/v2-737c914f',actual_root/'provisional/home-trail-pilot'] for variant in ['before','after'] for profile in ['desktop','phone'] for mode in ['cold-direct','client-navigation']}
  assert path in permitted
  data=inspect(path);assert set(data)=={'traceEvents'}
  frames=0
@@ -151,7 +151,7 @@ def negative_cases(rows):
   try:callback()
   except AssertionError:passed.append(label)
   else:raise AssertionError('negative case accepted: '+label)
- for field in ['host','nav','activated','sourcePrep']:
+ for field in ['host','nav','activated','sourcePrep']+(['presence'] if any('presence' in row for row in rows) else []):
   bad=copy.deepcopy(rows);record=next(row for row in bad if row.get(field) is not None);record[field]['text']='forbidden'
   reject(lambda:validate(bad,False),'nested '+field+' unknown field')
  for field in ['geometry','scroll','shifts','longtasks','lcp','events']:
@@ -166,8 +166,10 @@ def negative_cases(rows):
  reject(lambda:validate(bad,False),'row unknown field')
  bad=copy.deepcopy(rows);record=next(row for row in bad if row.get('sourcePrep') is not None);record['timeOrigin']+=1
  reject(lambda:validate(bad,False),'same-document time origin mismatch')
- bad=copy.deepcopy(rows);record=next(row for row in bad if 'initialSessionWindowCls' in row);record['initialSessionWindowCls']+=0.01
- reject(lambda:validate(bad,False),'initial session-window reducer mismatch')
+ bad=copy.deepcopy(rows);record=next((row for row in bad if 'initialSessionWindowCls' in row),None)
+ if record is None:skipped.append('no direct observations for initial reducer negative')
+ else:
+  record['initialSessionWindowCls']+=0.01;reject(lambda:validate(bad,False),'initial session-window reducer mismatch')
  bad=copy.deepcopy(rows);record=next(row for row in bad if 'transitionAllShiftSum' in row);record['transitionAllShiftSum']+=0.01
  reject(lambda:validate(bad,False),'transition all-shift reducer mismatch')
  with tempfile.TemporaryDirectory() as temporary:
@@ -182,13 +184,23 @@ def negative_cases(rows):
  return {'passed':passed,'skipped':skipped}
 
 def main():
- preflight='--preflight' in sys.argv[1:]
- legacy=[('checkpoint',root/'checkpoint.json.gz'),('provisional v2',root/'provisional/v2-737c914f/geometry.json.gz')]
+ preflight='--preflight' in sys.argv[1:];pilot='--pilot' in sys.argv[1:]
+ legacy=[('checkpoint',root/'checkpoint.json.gz'),('provisional v2',root/'provisional/v2-737c914f/geometry.json.gz'),('Home trail pilot',root/'provisional/home-trail-pilot/geometry.json.gz')]
  cohorts={}
  for label,path in legacy:
   if path.exists():
    records=inspect(path);validate(records,False);cohorts[label]={'records':len(records),'captureFailures':sum('failure' in row for row in records)}
- if preflight:
+ if pilot:
+  rows=inspect(root/'provisional/home-trail-pilot/geometry.json.gz');validate(rows,False)
+  manifest=inspect(root/'provisional/home-trail-pilot/manifest.json')
+  assert len(rows)==24 and all(row['captureProtocol']=='geometry-commit-probe-v3' and row['mode']=='client-navigation' and 'failure' not in row for row in rows)
+  for variant in ['before','after']:
+   for profile in ['desktop','phone']:
+    for name in ['home','quests']:
+     cell=[row for row in rows if (row['variant'],row['profile'],row['name'])==(variant,profile,name)]
+     assert {row['sample'] for row in cell}=={1,2,3} and len(cell)==3
+  for row in rows:assert row['buildId']==manifest[row['variant']+'BuildId']
+ elif preflight:
   rows=inspect(root/'provisional/v2-737c914f/geometry.json.gz')
  else:
   rows=inspect(root/'geometry.json.gz');validate(rows)
@@ -199,8 +211,10 @@ def main():
  frames={str(path.relative_to(root)):trace(path) for path in sorted(root.rglob('*.trace.json.gz'))}
  for path in [*root.rglob('*.json.gz'),*root.rglob('manifest.json')]:inspect(path)
  negatives=negative_cases(rows)
- report={'generatedUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'mode':'legacy privacy/schema preflight' if preflight else 'final paired cohort validation','finalCompletenessChecked':not preflight,'finalAcceptanceClaimed':False,'legacyCohorts':cohorts,'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'framesByArtifact':frames,'negativeCases':negatives}
- if preflight:
+ report={'generatedUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'mode':'Home trail pilot validation' if pilot else 'legacy privacy/schema preflight' if preflight else 'final paired cohort validation','finalCompletenessChecked':not(preflight or pilot),'pilotCompletenessChecked':pilot,'finalAcceptanceClaimed':False,'legacyCohorts':cohorts,'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'framesByArtifact':frames,'negativeCases':negatives}
+ if pilot:
+  (root/'provisional/home-trail-pilot/validation.json').write_text(json.dumps(report,indent=2)+'\n')
+ elif preflight:
   (root/'preflight.json').write_text(json.dumps(report,indent=2)+'\n')
- print(json.dumps({'mode':report['mode'],'legacyRecords':sum(value['records'] for value in cohorts.values()),'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'negativeCasesPassed':len(negatives['passed']),'negativeCasesSkipped':len(negatives['skipped']),'finalCompletenessChecked':not preflight}))
+ print(json.dumps({'mode':report['mode'],'legacyRecords':sum(value['records'] for value in cohorts.values()),'traceFiles':len(frames),'screenshotFrames':sum(frames.values()),'negativeCasesPassed':len(negatives['passed']),'negativeCasesSkipped':len(negatives['skipped']),'finalCompletenessChecked':not(preflight or pilot),'pilotCompletenessChecked':pilot}))
 if __name__=='__main__':main()

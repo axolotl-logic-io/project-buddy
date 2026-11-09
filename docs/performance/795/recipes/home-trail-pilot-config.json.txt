@@ -1,0 +1,13 @@
+{
+  "mode": "home-trail-pilot",
+  "before": {
+    "source": "07038f4134bdb7de8adfe46fb820022b736f6283",
+    "buildId": "nZtNbQzEfJ9A7y64XAnmf",
+    "snapshot": "/tmp/pb-795/fix-round-after-next"
+  },
+  "after": {
+    "source": "e6d2ab1e7fa2dbd8cfef5f541a5d0795eb4947e7",
+    "buildId": "HFCEhaMGgdEoEL1HBJT7i",
+    "snapshot": "/tmp/pb-795/home-trail-after-next"
+  }
+}

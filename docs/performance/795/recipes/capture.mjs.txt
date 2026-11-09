@@ -7,22 +7,24 @@ import {loadavg,freemem,cpus} from 'node:os';
 import {gzipSync} from 'node:zlib';
 import {observe,primaryVisible} from './observe.mjs';
 const root='/home/bestieboots/.t3/worktrees/project-buddy/issues-795-performance';
-const output=root+'/docs/performance/795',working='/tmp/pb-795/v3';await mkdir(output,{recursive:true});await mkdir(working,{recursive:true});
+const [variant,sampleText,stage='exploration',cohort='final']=process.argv.slice(2);const sample=Number(sampleText);
+if(!['final','home-trail-pilot'].includes(cohort))throw new Error('Unknown capture cohort');
+const pilot=cohort==='home-trail-pilot';const output=root+'/docs/performance/795'+(pilot?'/provisional/home-trail-pilot':''),working=pilot?'/tmp/pb-795/home-trail-pilot':'/tmp/pb-795/v3';await mkdir(output,{recursive:true});await mkdir(working,{recursive:true});
 const session=JSON.parse(await readFile('/tmp/pb-795/session.json','utf8'));
 const base='http://localhost:35841';
 const journeys=[['home','/home','/projects','quests'],['quests','/projects','/home','home'],['quest',`/projects/${session.project}`,'/projects','quests'],['editor',`/constructs/${session.construct}`,'/workshop','workshop']];
-const [variant,sampleText,stage='exploration']=process.argv.slice(2);const sample=Number(sampleText);
-const buildId=(await readFile(`/tmp/pb-795/${variant}-app/apps/web/.next/BUILD_ID`,'utf8')).trim();
+const snapshot=`/tmp/pb-795/${pilot?'pilot-':''}${variant}-app/apps/web`;
+const buildId=(await readFile(snapshot+'/.next/BUILD_ID','utf8')).trim();
 let rows=[];try{rows=JSON.parse(await readFile(working+'/geometry.json','utf8'));}catch{}
 async function firstVisible(page,selector){for(const node of await page.$$(selector))if(await node.evaluate(element=>element.checkVisibility({visibilityProperty:true,opacityProperty:true,contentVisibilityAuto:true})))return node;return null;}
-const server=spawn(process.execPath,['/tmp/pb-795/start.mjs',`/tmp/pb-795/${variant}-app/apps/web`],{stdio:['ignore','pipe','pipe']});
+const server=spawn(process.execPath,['/tmp/pb-795/start.mjs',snapshot],{stdio:['ignore','pipe','pipe']});
 let browser;
 try{
  let ready='',deadline;
  try{await Promise.race([new Promise((resolve,reject)=>{server.stdout.on('data',chunk=>{ready+=chunk;if(ready.includes('Ready in'))resolve();});server.on('exit',()=>reject(new Error('Capture server exited before ready')));}),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(new Error('Capture server readiness deadline')),30000);})]);}finally{clearTimeout(deadline);}
  browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  const browserVersion=await browser.version();
- for(const profile of ['desktop','phone'])for(const [name,path,source,sourceName] of journeys)for(const mode of ['cold-direct','client-navigation']){
+ for(const profile of ['desktop','phone'])for(const [name,path,source,sourceName] of journeys.filter(journey=>!pilot||['home','quests'].includes(journey[0])))for(const mode of (pilot?['client-navigation']:['cold-direct','client-navigation'])){
   const host={load:loadavg(),freeMemory:freemem(),cpuCount:cpus().length};
   const context=await browser.createBrowserContext();const page=await context.newPage();let phase='setup';
   try{

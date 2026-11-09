@@ -1,7 +1,8 @@
 {
-  "generatedUtc": "2026-11-09T12:37:00.920582+00:00",
+  "generatedUtc": "2026-11-09T13:02:50.625389+00:00",
   "mode": "legacy privacy/schema preflight",
   "finalCompletenessChecked": false,
+  "pilotCompletenessChecked": false,
   "finalAcceptanceClaimed": false,
   "legacyCohorts": {
     "checkpoint": {
@@ -11,15 +12,23 @@
     "provisional v2": {
       "records": 48,
       "captureFailures": 0
+    },
+    "Home trail pilot": {
+      "records": 24,
+      "captureFailures": 0
     }
   },
-  "traceFiles": 12,
-  "screenshotFrames": 93,
+  "traceFiles": 16,
+  "screenshotFrames": 106,
   "framesByArtifact": {
     "checkpoint-traces/before/desktop/client-navigation/home.trace.json.gz": 0,
     "checkpoint-traces/before/desktop/cold-direct/home.trace.json.gz": 8,
     "checkpoint-traces/before/phone/client-navigation/home.trace.json.gz": 0,
     "checkpoint-traces/before/phone/cold-direct/home.trace.json.gz": 7,
+    "provisional/home-trail-pilot/after/desktop/client-navigation/home.trace.json.gz": 2,
+    "provisional/home-trail-pilot/after/phone/client-navigation/home.trace.json.gz": 5,
+    "provisional/home-trail-pilot/before/desktop/client-navigation/home.trace.json.gz": 2,
+    "provisional/home-trail-pilot/before/phone/client-navigation/home.trace.json.gz": 4,
     "provisional/v2-737c914f/after/desktop/client-navigation/home.trace.json.gz": 17,
     "provisional/v2-737c914f/after/desktop/cold-direct/home.trace.json.gz": 13,
     "provisional/v2-737c914f/after/phone/client-navigation/home.trace.json.gz": 21,

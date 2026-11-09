@@ -1,20 +1,25 @@
 """Describe matched geometry runs without population percentile or no-regression claims."""
 import json,gzip,pathlib,statistics,collections,sys
+pilot='--pilot' in sys.argv[1:]
+arguments=[value for value in sys.argv[1:] if not value.startswith('--')]
 root=pathlib.Path('docs/performance/795')
-working=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else pathlib.Path('/tmp/pb-795/v3/geometry.json')
+if pilot:root=root/'provisional/home-trail-pilot'
+working=pathlib.Path(arguments[0]) if arguments else pathlib.Path('/tmp/pb-795/home-trail-pilot/geometry.json' if pilot else '/tmp/pb-795/v3/geometry.json')
 rows=json.loads(working.read_text())
 (root/'geometry.json.gz').write_bytes(gzip.compress(json.dumps(rows,separators=(',',':')).encode(),mtime=0))
 def median_range(values):return f'{statistics.median(values):.5f} [{min(values):.5f}–{max(values):.5f}]' if values else 'not observed'
 def quartiles(values):
  if len(values)<2:return None
  q1,_,q3=statistics.quantiles(values,n=4,method='inclusive');return q1,q3
-lines=['# Paired geometry observations','','Both variants use the same synthetic fixture, browser/profile, light theme, cache protocol, source preparation and observed-primary-presence +2 s window. Direct loads use fresh contexts. Client source preparation proves the visible menu opens/closes, and unchanged time origin proves a same-document transition. Warm direct loads are outside this cohort.','','Initial-load session-window CLS excludes recent input. Transition all-shift sum includes recent-input shifts and is **not official CLS**. Values are median [min–max]; IQR is the descriptive interquartile range width. Candidate limits are direct ≤0.1 and transition ≤0.05. No observation is removed because it is an outlier or follows a click.','','| Profile | Journey | Mode | Before n | Before | Before IQR | After n | After | After IQR | After within limit |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+lines=['# Paired geometry observations' if not pilot else '# Home trail pilot observations','','Both variants use the same synthetic fixture, browser/profile, light theme, cache protocol, source preparation and observed-primary-presence +2 s window. Direct loads use fresh contexts. Client source preparation proves the visible menu opens/closes, and unchanged time origin proves a same-document transition. Warm direct loads are outside this cohort.','','Initial-load session-window CLS excludes recent input. Transition all-shift sum includes recent-input shifts and is **not official CLS**. Values are median [min–max]; IQR is the descriptive interquartile range width. Candidate limits are direct ≤0.1 and transition ≤0.05. No observation is removed because it is an outlier or follows a click.','','| Profile | Journey | Mode | Before n | Before | Before IQR | After n | After | After IQR | After within limit |','| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+if pilot:lines[1:1]=['','This three-pair pilot compares the fresh fix-round build with the actual current-page Home breadcrumb alternative. It is isolated from final confirmation and does not establish final acceptance or post-Workshop-editor behavior.']
 paired=['','## Paired differences','','Differences are after minus before for the same sample number. Negative/zero/positive counts, IQR and ranges describe this finite matched cohort; they are not confidence intervals or population bounds. Zero observed spread does not establish no regression under other conditions.','','| Profile | Journey | Mode | Pairs | Difference median [min–max] | Difference IQR | Negative / zero / positive |','| --- | --- | --- | --- | --- | --- | --- |']
 headers=['','## Observed header geometry','','Header samples must actually exist; absent data never passes as a zero-sized invariant. Width and height ranges include deliberate breadcrumb-row changes during transitions. They are not claims that the header stays the same size across routes.','','| Variant | Profile | Journey | Mode | Header observed | Width range | Height range |','| --- | --- | --- | --- | --- | --- | --- |']
+direct_diagnostics=['','## Direct-load all-shift diagnostics','','These sums include recent-input entries, unlike the initial CLS column. They preserve visible movement even when the browser flags it as recent input. They are lab diagnostics, not an official metric.','','| Variant | Profile | Journey | n | All-shift median [min–max] | Recent-input / total shift entries |','| --- | --- | --- | --- | --- | --- |']
 outliers=[]
 for profile in ['desktop','phone']:
- for name in ['home','quests','quest','editor']:
-  for mode in ['cold-direct','client-navigation']:
+ for name in (['home','quests'] if pilot else ['home','quests','quest','editor']):
+  for mode in (['client-navigation'] if pilot else ['cold-direct','client-navigation']):
    metric='initialSessionWindowCls' if mode=='cold-direct' else 'transitionAllShiftSum'
    groups={variant:[row for row in rows if (row['variant'],row['profile'],row['name'],row['mode'])==(variant,profile,name,mode) and 'failure' not in row] for variant in ['before','after']}
    values={variant:[row[metric] for row in group] for variant,group in groups.items()}
@@ -27,6 +32,10 @@ for profile in ['desktop','phone']:
    differences=[indexed['after'][sample][metric]-indexed['before'][sample][metric] for sample in samples]
    paired.append(f'| {profile} | {name} | {mode} | {len(samples)} | {median_range(differences)} | {iqr(differences)} | {sum(value<0 for value in differences)} / {sum(value==0 for value in differences)} / {sum(value>0 for value in differences)} |')
    for variant,group in groups.items():
+    if mode=='cold-direct':
+     sums=[sum(entry['value'] for entry in row['shifts']) for row in group]
+     entries=[entry for row in group for entry in row['shifts']]
+     direct_diagnostics.append(f'| {variant} | {profile} | {name} | {len(group)} | {median_range(sums)} | {sum(entry["recentInput"] for entry in entries)} / {len(entries)} |')
     samples_with_headers=0;width=[];height=[]
     for row in group:
      parts=[part for event in row['geometry'] for part in event['parts'] if part['region']=='header']
@@ -42,7 +51,7 @@ for profile in ['desktop','phone']:
        sources=collections.Counter(source.get('tag','unknown') for shift in row['shifts'] for source in shift['sources'])
        outliers.append(f'- {variant}, {profile}, {name}, {mode}, sample {row["sample"]}: {row[metric]:.8f}; affected source tags {dict(sources)}; host one-minute load {row["host"]["load"][0]:.2f}. Retained in every summary. Source rectangles identify the movement; this load value does not establish a cause.')
 failures=[row for row in rows if 'failure' in row]
-lines+=paired+headers+['','## Outlier and uncertainty notes','','The descriptive 1.5-IQR fence identifies samples for inspection; it is not a rejection rule. Small samples and tied values can make this fence sensitive to minor differences.']
+lines+=paired+headers+([] if pilot else direct_diagnostics)+['','## Outlier and uncertainty notes','','The descriptive 1.5-IQR fence identifies samples for inspection; it is not a rejection rule. Small samples and tied values can make this fence sensitive to minor differences.']
 lines+=outliers or ['','No observation lies outside its cell’s descriptive 1.5-IQR fence. This does not establish permanent stability or future no regression.']
 loads=[row['host']['load'][0] for row in rows]
 lines+=['',f'Capture failures retained: {len(failures)}. One-minute host load across starts: {min(loads):.2f}–{max(loads):.2f}.' if loads else 'No completed host-load observations.','','These observations establish finite-window behavior for one synthetic fixture on this host, not field percentiles, interaction to next paint (INP), or permanent stability. Server/database caches are not reset between paired batches. Alternating pair order controls one simple ordering trend; it does not remove every host or scheduling effect.','','Source rectangles retain raw viewport geometry and observer-delivery scroll offset; derived document coordinates during scrolling are approximate. Sampled regions use document coordinates. Activated-link geometry is recorded separately from affected rectangles. Column-node replacement is labelled separately from movement of the same node, and never removes any browser shift from the transition sum.','']

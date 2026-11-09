@@ -70,3 +70,63 @@ To repeat that light preflight, copy `recipes/validate.py.txt` to a temporary `.
 For new captures, provision the worktree's guarded environment and existing #773 synthetic seed kits. Keep sessions private. Build each supplied revision with that environment, preserving separate snapshots with the original monorepo topology. Correct absolute recipe paths and unique port/database when reproducing elsewhere. Copy archived recipes without `.txt` into a private temporary directory.
 
 Run every expensive build/server/browser/capture stage sequentially under `flock /tmp/project-buddy-unattended-full-suite.lock`, including server lifetime. Follow coordinator reservations before queueing work. The prepared controller stops after a completed pass when requested, stops on capture failure, and refuses to overwrite an existing cohort. No blind retries are permitted. After capture, run the reducer and compressed-artifact validator, stop owned servers/browsers, remove the private session file and reset only the guarded worktree database once the parent no longer needs it. No hosted telemetry or collection endpoint is introduced.
+
+## Parent handoff
+
+The preparation subtask is complete. No helper process or queued expensive stage remains, and the helper made no commits. The parent owns the remaining pilot and final capture. The scripts below are saved both under `/tmp/pb-795/` and as `.txt` recipes here. They use this worktree's private session file and environment, local port 35841, and the already seeded fixture. Never print or commit either private file, and do not reset this database while capturing. If a local server suite reset the database during the hold, reseed through the existing guarded seed kit before either side of a new pair; stale sessions must not be treated as a capture retry.
+
+The ready pilot compares fix source `07038f4134bdb7de8adfe46fb820022b736f6283`, build `nZtNbQzEfJ9A7y64XAnmf`, snapshot `/tmp/pb-795/fix-round-after-next`, with current-page Home breadcrumb source `e6d2ab1e7fa2dbd8cfef5f541a5d0795eb4947e7`, build `HFCEhaMGgdEoEL1HBJT7i`, snapshot `/tmp/pb-795/home-trail-after-next`. Its exact configuration is archived in `recipes/home-trail-pilot-config.json.txt` and already exists at `/tmp/pb-795/home-trail-pilot-config.json`.
+
+From the repository root, the parent can run these stages sequentially when ordinary host locking permits:
+
+```sh
+flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/prepare-pair.py /tmp/pb-795/home-trail-pilot-config.json
+flock /tmp/project-buddy-unattended-full-suite.lock node /tmp/pb-795/cohort.mjs home-trail-pilot
+flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/summarize.py --pilot
+flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/validate.py --pilot
+```
+
+This is 24 observations: before/after × desktop/phone × Home/Quests × client navigation × three samples. It excludes direct loads and editors and cannot establish final acceptance. Output is isolated in `provisional/home-trail-pilot/`; working data/stop controls live in `/tmp/pb-795/home-trail-pilot/`. All pilot screenshots still require manual frame-by-frame privacy review and counts in its manifest. Source pixels must be removed and documented if found. The automated validator does not inspect pixel meaning.
+
+`prepare-pair.py` verifies supplied build IDs, preserves original monorepo topology, copies immutable `.next` snapshots, and writes provenance without starting a server. Pilot apps are `/tmp/pb-795/pilot-before-app/apps/web` and `/tmp/pb-795/pilot-after-app/apps/web`. Each project root has a `node_modules` symlink; each app has `package.json`, `next.config.ts` and `public`. `start.mjs` sets cwd to that app and loads only the private worktree `.env.test`. No environment file is copied into a snapshot. Existing temporary snapshots are archived, not deleted. Existing cohort start markers cause refusal rather than overwrite/retry.
+
+For final confirmation, the parent must first complete the actual repair/Workshop merge and its authorized integration dependency sync. Build a matched **integration-with-Workshop-without-#795** before snapshot and **the same lineage plus final #795** after snapshot through the parent's source-restore/build/trap procedure. Do not use the old `bb4d213c` or any provisional build as the final before. Create `/tmp/pb-795/final-pair-config.json` using this shape, replacing every placeholder with the actual full SHA, build ID and preserved `.next` directory:
+
+```json
+{
+  "mode": "final",
+  "before": {
+    "source": "INTEGRATION_808_FULL_SHA",
+    "buildId": "MATCHED_BEFORE_BUILD_ID",
+    "snapshot": "/tmp/pb-795/MATCHED_BEFORE_NEXT"
+  },
+  "after": {
+    "source": "FINAL_795_FULL_SHA",
+    "buildId": "MATCHED_AFTER_BUILD_ID",
+    "snapshot": "/tmp/pb-795/MATCHED_AFTER_NEXT"
+  }
+}
+```
+
+Then run the same stages without the pilot flags:
+
+```sh
+flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/prepare-pair.py /tmp/pb-795/final-pair-config.json
+flock /tmp/project-buddy-unattended-full-suite.lock node /tmp/pb-795/cohort.mjs
+flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/summarize.py
+flock /tmp/project-buddy-unattended-full-suite.lock python /tmp/pb-795/validate.py
+```
+
+Final apps are `/tmp/pb-795/before-app/apps/web` and `/tmp/pb-795/after-app/apps/web`, with working data in `/tmp/pb-795/v3/`. The plan is ten alternating samples per cell, 320 observations. Preparation updates `beforeSource`, `afterSource`, both build IDs, recipe hashes, protocol, scope and target count in the corresponding manifest. After validation and manual frame review, the parent must set a truthful capture status and report threshold failures rather than setting acceptance automatically. The script deliberately leaves `candidateAcceptanceSatisfied` false. Preserve all checkpoint/provisional cohorts and their identities.
+
+To stop either controller deliberately, create `stop-after-pass` in that cohort's working directory. It closes the current browser/server normally, writes progress and stops before another pass. A capture failure also stops the controller and must be diagnosed, not retried blindly. For a privacy/schema check of all retained nonfinal artifacts without asserting a final cohort, run `python /tmp/pb-795/validate.py --preflight`.
+
+## Home location-row pilot
+
+The isolated [pilot results](provisional/home-trail-pilot/results.md) compare reviewed fix source `07038f4`, build `nZtNbQzEfJ9A7y64XAnmf`, with location-row source `e6d2ab1e`, build `HFCEhaMGgdEoEL1HBJT7i`. All 24 planned observations completed: three alternating pairs for desktop/phone Home-to-Quests and Quests-to-Home client navigation. No direct-load or editor result is inferred.
+
+The after variant has zero recorded shifts in each of its twelve observations. The control retains the breadcrumb-removal/insertion shifts, including phone totals above the 0.05 candidate limit. This supports the location-row mechanism; three tied samples do not establish population uncertainty, no regression or permanent stability. The final ten-run post-Workshop cohort remains required.
+
+Every retained Home client screenshot was inspected: two before-desktop, four before-phone, two after-desktop and five after-phone frames. Only synthetic Home and header content is visible. The source-page and earliest transition interval remain numeric-only, as declared by the matched primary-content pixel-start protocol.
+
+Preparation failed once before controller/browser startup because Python's default copier dereferenced relative runtime-module symlinks in a flat snapshot. `prepare-pair.py` now preserves symlinks and verifies that runtime links resolve in the copied monorepo layout. The incomplete copy was archived, not served; [the setup record](provisional/home-trail-pilot/preparation-failure.json) claims zero observations. The corrected capture has no failures. The final completeness validator has not run against a final cohort.

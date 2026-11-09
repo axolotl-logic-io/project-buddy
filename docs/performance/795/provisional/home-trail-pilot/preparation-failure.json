@@ -1,0 +1,8 @@
+{
+  "phase": "snapshot preparation",
+  "observations": 0,
+  "controllerStarted": false,
+  "cause": "Default copytree dereferenced relative runtime module links while the source snapshot was flat.",
+  "correction": "Preserve relative links while copying, then require runtime module links to resolve in the copied monorepo topology.",
+  "result": "Preparation stopped before capture. Original partial snapshot archived on corrected preparation; no product or capture outcome claimed."
+}

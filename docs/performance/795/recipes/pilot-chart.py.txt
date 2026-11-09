@@ -1,0 +1,27 @@
+# Extends the #773 local matplotlib chart recipe for the isolated geometry pilot.
+import gzip,json,pathlib,statistics
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+root=pathlib.Path('docs/performance/795/provisional/home-trail-pilot')
+rows=json.loads(gzip.decompress((root/'geometry.json.gz').read_bytes()))
+cells=[('desktop','home'),('desktop','quests'),('phone','home'),('phone','quests')]
+labels=['Desktop: Quests → Home','Desktop: Home → Quests','Phone: Quests → Home','Phone: Home → Quests']
+fig,ax=plt.subplots(figsize=(9,4.5),layout='constrained')
+for variant,offset,color in [('before',-.16,'#526782'),('after',.16,'#15836a')]:
+ values=[]
+ for profile,name in cells:
+  group=[row['transitionAllShiftSum'] for row in rows if (row['variant'],row['profile'],row['name'])==(variant,profile,name)]
+  assert len(group)==3
+  values.append(statistics.median(group))
+ y=[index+offset for index in range(len(cells))]
+ ax.barh(y,values,height=.27,label=variant.capitalize(),color=color)
+ ax.scatter(values,y,s=18,color=color,zorder=3)
+ for value,position in zip(values,y):ax.text(value+.001,position,f'{value:.4f}',va='center',fontsize=9)
+ax.axvline(.05,color='#ad4a36',linestyle='--',label='Candidate transition limit 0.05')
+ax.set_yticks(range(len(cells)),labels);ax.invert_yaxis();ax.set_xlim(-.001,.073)
+ax.set_xlabel('All-shift transition sum, including recent input (not official CLS)')
+ax.set_title('Home location-row pilot: three alternating pairs per cell',loc='left')
+ax.spines[['top','right','left']].set_visible(False);ax.grid(axis='x',alpha=.2);ax.set_axisbelow(True)
+ax.legend(loc='lower right',frameon=False,fontsize=8)
+fig.savefig(root/'home-trail-pilot.png',dpi=160)
