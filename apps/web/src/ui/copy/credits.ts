@@ -17,6 +17,15 @@ export const CREDITS_COPY = {
     licenseLink,
     ".",
   ],
+  iconCredit: (libraryLink: ReactNode, licenseLink: ReactNode): ReactNode[] => [
+    "Place icons by ",
+    libraryLink,
+    ", licensed under the ",
+    licenseLink,
+    ".",
+  ],
+  iconLibrary: "Lucide",
+  iconLicense: "ISC License",
   manual: "Blender Reference Manual",
   license: "CC BY-SA 4.0",
 } as const;
