@@ -5,7 +5,6 @@ import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
@@ -36,13 +35,10 @@ function SpellHeading({
   readonly intro: string;
 }): JSX.Element {
   return (
-    <>
-      <BackLink href="/spellbook">{SPELL_COPY.spellbookLink}</BackLink>
-      <div className="flex flex-col gap-2">
-        <h1 className="page-heading wrap-anywhere">{name}</h1>
-        <p className="text-muted">{intro}</p>
-      </div>
-    </>
+    <div className="flex flex-col gap-2">
+      <h1 className="page-heading wrap-anywhere">{name}</h1>
+      <p className="text-muted">{intro}</p>
+    </div>
   );
 }
 
