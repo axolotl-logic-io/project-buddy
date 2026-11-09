@@ -98,7 +98,7 @@ The user generates images for an own construct in the Workshop.
 
 - **Prerequisites:** `use_case_edit_construct`.
 - **Steps:**
-  - The user edits a Visual description. Save stores current edits and generates replacement images only when that normalized description differs from the saved one. Generate Images intentionally regenerates from the current description even when unchanged.
+  - The user edits a Visual description. Save stores current edits and generates replacement images only when that normalized description differs from the saved one. Generate Images uses the current unsaved Visual description, including recovered browser drafts, even when unchanged. It preserves unsaved name and prompt edits and never saves them as a prerequisite.
   - The Save and generate images action explains the paid replacement and current gold reservation before submission, including at 320 px and through its accessible description. When the description is unchanged, edited then restored, or absent, the action is Save and requests no generation; name and prompt edits preserve artwork and spend no generation gold. The Visuals section also shows whether generation is available.
   - While generation runs, a spinner and accessible loading status are visible; repeated generation and description-changing saves are disabled, while text-only saves remain available without replacing the unresolved UUID. Avatar, portrait, opening and working previews show each role’s state.
   - While a request is pending, the user can check its status or reload without starting another paid request.

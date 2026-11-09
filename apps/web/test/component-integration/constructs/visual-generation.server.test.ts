@@ -289,19 +289,6 @@ describe("use_case_generate_construct_visual", () => {
       ).status,
     ).toBe("unavailable");
     expect(
-      (
-        await generateConstructVisual(
-          user.id,
-          {
-            ...request,
-            requestId: crypto.randomUUID(),
-            description: "unsaved",
-          },
-          provider,
-        )
-      ).status,
-    ).toBe("stale");
-    expect(
       (await getOwnConstruct(user.id, construct.id))?.definition.visual,
     ).toEqual(first.visual);
     expect(await goldSpent(user)).toBe(COST + IMAGE_RESERVATION_MICRO_USD * 2);
@@ -849,4 +836,49 @@ test("recovery on a bought copy restores its original image identity without cha
       assetId(first),
     ),
   ).toBeDefined();
+});
+
+test("draft artwork preserves saved text and replays the paid request once", async () => {
+  const { user, construct, request, provider } = await setup();
+  const draft = { ...request, description: "An unsaved silver owl." };
+  const generated = await generateConstructVisual(user.id, draft, provider);
+  expect(generated.status).toBe("generated");
+  expect(provider.generate.mock.calls).toEqual([[draft.description]]);
+  expect(await getOwnConstruct(user.id, construct.id)).toMatchObject({
+    name: construct.name,
+    definition: {
+      prompt: construct.definition.prompt,
+      visual: { description: DESCRIPTION },
+    },
+  });
+  expect(await generateConstructVisual(user.id, draft, provider)).toEqual(
+    generated,
+  );
+  expect(provider.generate).toHaveBeenCalledTimes(1);
+  expect(await goldSpent(user)).toBe(COST);
+  expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+    outdated: true,
+  });
+});
+
+test("first draft artwork does not persist a description or conversational edits", async () => {
+  const { user, provider } = await setup();
+  const construct = await createConstruct(user.id, {
+    name: "No appearance",
+    definition: { prompt: "Saved instructions" },
+  });
+  const request = {
+    constructId: construct.id,
+    requestId: crypto.randomUUID(),
+    description: "A draft paper bird",
+  };
+  const generated = await generateConstructVisual(user.id, request, provider);
+  expect(generated.status).toBe("generated");
+  expect(await getOwnConstruct(user.id, construct.id)).toMatchObject({
+    name: "No appearance",
+    definition: {
+      prompt: "Saved instructions",
+      visual: { description: "", canonical: generated.visual?.canonical },
+    },
+  });
 });

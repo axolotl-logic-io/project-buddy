@@ -48,7 +48,6 @@ function ConstructVisualGeneration({
   construct,
   viewer,
   changed,
-  formId,
   draftDescription,
   saving = false,
   generating = saving,
@@ -56,7 +55,6 @@ function ConstructVisualGeneration({
   onQuoteChange,
 }: {
   readonly onQuoteChange?: (quote: VisualGenerationQuote) => void;
-  readonly formId?: string;
   readonly draftDescription?: string;
   readonly saving?: boolean;
   readonly generating?: boolean;
@@ -92,7 +90,8 @@ function ConstructVisualGeneration({
   }, [busy, request, onBlockedChange]);
   const lockedRef = useRef<boolean>(false);
   const hintId = useId();
-  const description = construct.definition.visual?.description ?? "";
+  const savedDescription = construct.definition.visual?.description ?? "";
+  const description = draftDescription ?? savedDescription;
   const needsDescription = (draftDescription ?? description).trim() === "";
   const apply = useCallback(
     (next: VisualGenerationResult): void => {
@@ -143,7 +142,7 @@ function ConstructVisualGeneration({
         let recovered: VisualGenerationRequest = {
           constructId: construct.id,
           requestId: next.pendingRequestId,
-          description: next.pendingDescription ?? description,
+          description: next.pendingDescription ?? savedDescription,
         };
         if (
           unresolved?.requestId === next.pendingRequestId &&
@@ -155,7 +154,7 @@ function ConstructVisualGeneration({
         keepLocalDraft(requestKey, recovered);
       }
     },
-    [construct.id, description, requestKey, apply, onQuoteChange],
+    [construct.id, savedDescription, requestKey, apply, onQuoteChange],
   );
   const read = useCallback(
     async (unresolved?: VisualGenerationRequest): Promise<void> => {
@@ -204,12 +203,9 @@ function ConstructVisualGeneration({
     }
   }, [read, request]);
   const generate = useCallback(async (): Promise<void> => {
-    if (formId !== undefined && request === undefined) {
-      return;
-    }
     if (
       lockedRef.current ||
-      changed ||
+      saving === true ||
       (request !== undefined && !unclaimed) ||
       quote?.available !== true ||
       description === ""
@@ -263,8 +259,7 @@ function ConstructVisualGeneration({
       setBusy(false);
     }
   }, [
-    formId,
-    changed,
+    saving,
     request,
     unclaimed,
     quote,
@@ -306,12 +301,6 @@ function ConstructVisualGeneration({
       setBusy(false);
     }
   }, [changed, saving, request, construct.id, read]);
-  let submitForm: string | undefined;
-  let submitType: "submit" | "button" = "button";
-  if (formId !== undefined && request === undefined) {
-    submitForm = formId;
-    submitType = "submit";
-  }
   let label = VISUAL_COPY.generate;
   if (
     result !== undefined &&
@@ -334,9 +323,7 @@ function ConstructVisualGeneration({
     status = VISUAL_COPY.unknown;
   }
   let saveHint = "";
-  if (changed && formId === undefined) {
-    saveHint = VISUAL_COPY.saveFirst;
-  } else if (needsDescription) {
+  if (needsDescription) {
     saveHint = VISUAL_COPY.needsDescription;
   }
   return (
@@ -361,14 +348,12 @@ function ConstructVisualGeneration({
       <div className="flex flex-wrap gap-3">
         <Button
           aria-describedby={hintId}
-          form={submitForm}
-          type={submitType}
+          type="button"
           name="generateImages"
           value="true"
           disabled={
             busy ||
             saving === true ||
-            (changed && formId === undefined) ||
             (request !== undefined && !unclaimed) ||
             quote?.available !== true ||
             needsDescription ||
