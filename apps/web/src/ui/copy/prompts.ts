@@ -15,6 +15,8 @@ export const PROMPT_COPY = {
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",
+  sections: "Editor sections",
+  sectionError: " — Needs attention",
   promptHeading: "Prompt",
   namePlaceholderHint:
     "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",

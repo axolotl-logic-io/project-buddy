@@ -1,0 +1,375 @@
+diff --git a/apps/web/biome.jsonc b/apps/web/biome.jsonc
+index f75fac43..920fd215 100644
+--- a/apps/web/biome.jsonc
++++ b/apps/web/biome.jsonc
+@@ -10,6 +10,12 @@
+     "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
+   },
+   "overrides": [
++    // Server audit attribution needs Node's async context across parallel
++    // database work. This is the only platform boundary for that context.
++    {
++      "includes": ["src/performance/server-spans.ts"],
++      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
++    },
+     // The deterministic Stripe gateway runs one loopback HTTP server per file.
+     {
+       "includes": [
+diff --git a/apps/web/src/app/(workspace)/activities/[activityId]/page.tsx b/apps/web/src/app/(workspace)/activities/[activityId]/page.tsx
+index 455d5927..4e903919 100644
+--- a/apps/web/src/app/(workspace)/activities/[activityId]/page.tsx
++++ b/apps/web/src/app/(workspace)/activities/[activityId]/page.tsx
+@@ -1,3 +1,4 @@
++import { measureServerOperation } from "@/performance/server-spans.ts";
+ import type { Metadata } from "next";
+ import { notFound, redirect } from "next/navigation";
+ import type { JSX } from "react";
+@@ -153,7 +154,7 @@ export async function generateMetadata({
+   if (isActivityId(activityId)) {
+     ({ name } = getActivity(activityId));
+   } else {
+-    name = (await getOwnActivity(user.id, activityId))?.name;
++    name = (await measureServerOperation("activity-metadata", () => getOwnActivity(user.id, activityId)))?.name;
+   }
+   return { title: pageTitle(name ?? "Activity") };
+ }
+@@ -194,7 +195,7 @@ export default async function ActivityPage({
+       </Workshop>
+     );
+   }
+-  const activity = await getOwnActivity(user.id, activityId);
++  const activity = await measureServerOperation("activity-data", () => getOwnActivity(user.id, activityId));
+   if (activity === undefined) {
+     const retired = await getRetiredDefinition(user.id, activityId);
+     if (retired?.kind === "activity") {
+diff --git a/apps/web/src/app/(workspace)/constructs/[constructId]/page.tsx b/apps/web/src/app/(workspace)/constructs/[constructId]/page.tsx
+index de9d45dd..93f67c19 100644
+--- a/apps/web/src/app/(workspace)/constructs/[constructId]/page.tsx
++++ b/apps/web/src/app/(workspace)/constructs/[constructId]/page.tsx
+@@ -1,3 +1,4 @@
++import { measureServerOperation } from "@/performance/server-spans.ts";
+ import type { Metadata } from "next";
+ import { notFound, redirect } from "next/navigation";
+ import type { JSX } from "react";
+@@ -175,7 +176,7 @@ export async function generateMetadata({
+   if (isConstructId(constructId)) {
+     ({ name } = getConstruct(constructId));
+   } else {
+-    name = (await getOwnConstruct(user.id, constructId))?.name;
++    name = (await measureServerOperation("construct-metadata", () => getOwnConstruct(user.id, constructId)))?.name;
+   }
+   return { title: pageTitle(name ?? "Construct") };
+ }
+@@ -206,7 +207,7 @@ export default async function ConstructPage({
+       </Workshop>
+     );
+   }
+-  const construct = await getOwnConstruct(user.id, constructId);
++  const construct = await measureServerOperation("construct-data", () => getOwnConstruct(user.id, constructId));
+   if (construct === undefined) {
+     const retired = await getRetiredDefinition(user.id, constructId);
+     if (retired?.kind === "construct") {
+diff --git a/apps/web/src/app/(workspace)/spellbook/[spellId]/page.tsx b/apps/web/src/app/(workspace)/spellbook/[spellId]/page.tsx
+index 664c213e..d8fd1452 100644
+--- a/apps/web/src/app/(workspace)/spellbook/[spellId]/page.tsx
++++ b/apps/web/src/app/(workspace)/spellbook/[spellId]/page.tsx
+@@ -1,3 +1,4 @@
++import { measureServerOperation } from "@/performance/server-spans.ts";
+ import type { Metadata } from "next";
+ import { notFound, redirect } from "next/navigation";
+ import type { JSX } from "react";
+@@ -137,7 +138,7 @@ export async function generateMetadata({
+   if (isSpellId(spellId)) {
+     ({ name } = getSpell(spellId));
+   } else {
+-    name = (await getOwnSpell(user.id, spellId))?.name;
++    name = (await measureServerOperation("spell-metadata", () => getOwnSpell(user.id, spellId)))?.name;
+   }
+   return { title: pageTitle(name ?? "Spell") };
+ }
+@@ -168,7 +169,7 @@ export default async function SpellPage({
+       </Workshop>
+     );
+   }
+-  const spell = await getOwnSpell(user.id, spellId);
++  const spell = await measureServerOperation("spell-data", () => getOwnSpell(user.id, spellId));
+   if (spell === undefined) {
+     const retired = await getRetiredDefinition(user.id, spellId);
+     if (retired?.kind === "spell") {
+diff --git a/apps/web/src/auth/current-user.ts b/apps/web/src/auth/current-user.ts
+index dd2c3396..fc134e50 100644
+--- a/apps/web/src/auth/current-user.ts
++++ b/apps/web/src/auth/current-user.ts
+@@ -9,6 +9,7 @@ import { cache } from "react";
+ import { readSessionUser, type User } from "@/accounts/users-store.ts";
+ import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+ import { readSessionSecret } from "@/env.ts";
++import { measureServerOperation } from "@/performance/server-spans.ts";
+ import { SIGN_IN_PATH } from "@/routes.ts";
+ 
+ // The signed-in user, or undefined when the request has no valid session.
+@@ -21,15 +22,17 @@ const currentUser: () => Promise<User | undefined> = cache(
+   async (): Promise<User | undefined> => {
+     const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+     await connection();
+-    const session = await readSessionToken(
+-      token,
+-      readSessionSecret(),
+-      new Date(),
+-    );
+-    if (session === undefined) {
+-      return undefined;
+-    }
+-    return readSessionUser(session.id, session.sessionEpoch);
++    return measureServerOperation("current-user", async () => {
++      const session = await readSessionToken(
++        token,
++        readSessionSecret(),
++        new Date(),
++      );
++      if (session === undefined) {
++        return undefined;
++      }
++      return readSessionUser(session.id, session.sessionEpoch);
++    });
+   },
+ );
+ 
+diff --git a/apps/web/src/db/client.ts b/apps/web/src/db/client.ts
+index 45de57d6..7c89f081 100644
+--- a/apps/web/src/db/client.ts
++++ b/apps/web/src/db/client.ts
+@@ -15,6 +15,7 @@ import {
+   type NeonDatabase,
+ } from "drizzle-orm/neon-serverless";
+ import { readDatabaseUrl } from "../env.ts";
++import { countServerQuery } from "../performance/server-spans.ts";
+ 
+ // Hosts of a database on this machine: the end-to-end test database, which
+ // runs in Docker behind Neon's local proxy (compose.test-db.yml). The proxy
+@@ -81,7 +82,10 @@ export function isOnThisMachine(host: string): boolean {
+ // Created on first use rather than at import, so `next build` succeeds
+ // without DATABASE_URL as long as no page queries the database.
+ export function getDb(): Database {
+-  database ??= drizzle({ client: neon(readDatabaseUrl()) });
++  database ??= drizzle({
++    client: neon(readDatabaseUrl()),
++    logger: { logQuery: countServerQuery },
++  });
+   return database;
+ }
+ 
+@@ -106,7 +110,9 @@ export async function inTransaction<T>(
+ ): Promise<T> {
+   const pool = openPool(readDatabaseUrl());
+   try {
+-    return await drizzleOverPool(pool).transaction(work);
++    return await drizzleOverPool(pool, {
++      logger: { logQuery: countServerQuery },
++    }).transaction(work);
+   } finally {
+     await pool.end();
+   }
+diff --git a/apps/web/src/env.ts b/apps/web/src/env.ts
+index 5e5171ff..9fba6bd9 100644
+--- a/apps/web/src/env.ts
++++ b/apps/web/src/env.ts
+@@ -14,6 +14,29 @@ const SET_VALUE = z.string().trim().min(1);
+ // The highest valid port.
+ const HIGHEST_PORT = 65_535;
+ const PORT_NUMBER = z.coerce.number().int().positive().max(HIGHEST_PORT);
++const WORKTREE_DATABASE = /^\/pb_wt_[a-z0-9_]+$/u;
++
++// Local audit spans are off unless explicitly selected. Refuse hosted runs
++// and shared databases, even when somebody copies the opt-in setting there.
++function readServerSpans(): boolean {
++  const mode = readIfSet("PERF_SERVER_SPANS");
++  if (mode === undefined) {
++    return false;
++  }
++  if (mode !== "local") {
++    throw new Error('PERF_SERVER_SPANS must be unset or "local".');
++  }
++  const database = new URL(readDatabaseUrl());
++  if (
++    readIfSet("VERCEL_ENV") !== undefined ||
++    readIfSet("VERCEL") !== undefined ||
++    (database.hostname !== "localhost" && database.hostname !== "127.0.0.1") ||
++    !WORKTREE_DATABASE.test(database.pathname)
++  ) {
++    throw new Error("Server spans require an isolated local worktree database.");
++  }
++  return true;
++}
+ 
+ // The variable's trimmed value, or undefined when it is unset or blank.
+ function readIfSet(name: string): string | undefined {
+@@ -292,6 +315,7 @@ export {
+   readPushEndpoints,
+   readResendApiKey,
+   readSessionSecret,
++  readServerSpans,
+   readTestDatabaseUrl,
+   readVapidKeysIfSet,
+   readVercelBypassSecretIfSet,
+diff --git a/apps/web/src/errors/error-log.ts b/apps/web/src/errors/error-log.ts
+index 5b813f78..f53a4c50 100644
+--- a/apps/web/src/errors/error-log.ts
++++ b/apps/web/src/errors/error-log.ts
+@@ -11,6 +11,13 @@ import {
+   databaseErrorDetails,
+   describeDatabaseQuery,
+ } from "@/errors/neon-errors.ts";
++import type { ServerSpan } from "@/performance/server-spans.ts";
++
++// Only the local opt-in recorder calls this. Never include operation input,
++// results, errors, SQL, session data or request identifiers in audit output.
++export function logServerSpan(span: ServerSpan): void {
++  console.info("[server-span]", JSON.stringify(span));
++}
+ 
+ type ErrorDetails = Readonly<Record<string, unknown>>;
+ 
+diff --git a/apps/web/src/today/today-store.ts b/apps/web/src/today/today-store.ts
+index 6f8baca5..3a270d38 100644
+--- a/apps/web/src/today/today-store.ts
++++ b/apps/web/src/today/today-store.ts
+@@ -21,6 +21,7 @@ import {
+   type UserId,
+ } from "@/ids.ts";
+ import { readMemory } from "@/memory/memory-store.ts";
++import { measureServerOperation } from "@/performance/server-spans.ts";
+ import { nextStepOf } from "@/memory/next-step.ts";
+ import type { Today } from "@/today/today.ts";
+ 
+@@ -93,7 +94,7 @@ async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
+ 
+ // What is waiting for the owner today.
+ function readToday(owner: UserId): Promise<Today> {
+-  return withAppErrors("readToday", async () => {
++  return measureServerOperation("today", () => withAppErrors("readToday", async () => {
+     const [shown, recentChats] = await Promise.all([
+       activeProjects(owner, TODAY_PROJECT_COUNT),
+       activeChats(owner, TODAY_PROJECT_COUNT + TODAY_CHAT_COUNT),
+@@ -110,7 +111,7 @@ function readToday(owner: UserId): Promise<Today> {
+         .filter(({ id }) => !continued.has(id))
+         .slice(0, TODAY_CHAT_COUNT),
+     };
+-  });
++  }));
+ }
+ 
+ export { readToday };
+diff --git a/apps/web/src/workshop/options.ts b/apps/web/src/workshop/options.ts
+index b6dac011..d1049102 100644
+--- a/apps/web/src/workshop/options.ts
++++ b/apps/web/src/workshop/options.ts
+@@ -2,20 +2,23 @@ import { activityChoices } from "@/activities/activity-choices.ts";
+ import { listConstructs } from "@/constructs/construct-store.ts";
+ import { listConstructs as builtInConstructs } from "@/constructs/index.ts";
+ import type { UserId } from "@/ids.ts";
++import { measureServerOperation } from "@/performance/server-spans.ts";
+ import type { WorkshopOptions } from "@/workshop/protocol.ts";
+ 
+ async function workshopOptions(owner: UserId): Promise<WorkshopOptions> {
+-  const [own, activities] = await Promise.all([
+-    listConstructs(owner),
+-    activityChoices(owner),
+-  ]);
+-  return {
+-    constructs: [...builtInConstructs(), ...own].map(({ id, name }) => ({
+-      id,
+-      name,
+-    })),
+-    activities: activities.map(({ id, name }) => ({ id, name })),
+-  };
++  return measureServerOperation("workshop-options", async () => {
++    const [own, activities] = await Promise.all([
++      listConstructs(owner),
++      activityChoices(owner),
++    ]);
++    return {
++      constructs: [...builtInConstructs(), ...own].map(({ id, name }) => ({
++        id,
++        name,
++      })),
++      activities: activities.map(({ id, name }) => ({ id, name })),
++    };
++  });
+ }
+ 
+ export { workshopOptions };
+--- /dev/null
++++ b/apps/web/src/performance/server-spans.ts
+@@ -0,0 +1,71 @@
++// Local audit only. Each span owns its count; nested operations contribute
++// to their ancestors, while concurrent sibling operations remain separate.
++import { AsyncLocalStorage } from "node:async_hooks";
++import { z } from "zod";
++import { readServerSpans } from "../env.ts";
++import { logServerSpan } from "../errors/error-log.ts";
++
++const SERVER_OPERATIONS = z.enum([
++  "current-user",
++  "today",
++  "home-summary",
++  "workshop-options",
++  "construct-metadata",
++  "construct-data",
++  "activity-metadata",
++  "activity-data",
++  "spell-metadata",
++  "spell-data",
++]);
++
++type ServerOperation = z.infer<typeof SERVER_OPERATIONS>;
++
++interface ServerSpan {
++  readonly operation: ServerOperation;
++  readonly durationMs: number;
++  readonly queryCount: number;
++}
++
++interface QueryCounter {
++  count: number;
++}
++
++const counters = new AsyncLocalStorage<readonly QueryCounter[]>();
++
++// Counts executions, including failed queries. Drizzle may pass SQL and
++// parameters to its logger; this callback deliberately accepts neither.
++function countServerQuery(): void {
++  for (const counter of counters.getStore() ?? []) {
++    counter.count += 1;
++  }
++}
++
++// Preserves the operation's return value or error. Outputs only its static
++// name, elapsed milliseconds and inclusive query count. Counts are not
++// serial cost: simultaneous queries overlap within the elapsed duration.
++async function measureServerOperation<T>(
++  operation: ServerOperation,
++  work: () => Promise<T>,
++  now: () => number = performance.now.bind(performance),
++): Promise<T> {
++  if (!readServerSpans()) {
++    return work();
++  }
++  const name = SERVER_OPERATIONS.parse(operation);
++  const counter: QueryCounter = { count: 0 };
++  const start = now();
++  return counters.run([...(counters.getStore() ?? []), counter], async () => {
++    try {
++      return await work();
++    } finally {
++      logServerSpan({
++        operation: name,
++        durationMs: now() - start,
++        queryCount: counter.count,
++      });
++    }
++  });
++}
++
++export { countServerQuery, measureServerOperation };
++export type { ServerOperation, ServerSpan };

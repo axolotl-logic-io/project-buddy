@@ -8,7 +8,7 @@ import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { HomeFrame } from "@/components/ui/page-frame.tsx";
-import type { Today, TodayProject } from "@/today/today.ts";
+import type { TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -37,7 +37,15 @@ import { inSiteFrame } from "../../site-frame-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 import { FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
 
-const stores = vi.hoisted(() => ({ readToday: vi.fn<() => Promise<Today>>() }));
+const stores = vi.hoisted(() => ({
+  readHomeSummary:
+    vi.fn<
+      () => Promise<{
+        latestQuest: TodayProject | undefined;
+        firstVisit: boolean;
+      }>
+    >(),
+}));
 vi.mock("@/today/today-store.ts", () => stores);
 vi.mock(
   "@/auth/current-user.ts",
@@ -70,7 +78,10 @@ const DESTINATIONS = [
 beforeEach(() => {
   applyTheme("parchment");
   signInAs(SIGNED_IN_USER);
-  stores.readToday.mockResolvedValue({ projects: [], chats: [] });
+  stores.readHomeSummary.mockResolvedValue({
+    latestQuest: undefined,
+    firstVisit: true,
+  });
 });
 afterEach(async () => {
   await commands.emulateColorScheme("light");
@@ -583,13 +594,16 @@ describe("use_case_home_atlas", () => {
   test("requires sign-in before reading recent work", async () => {
     signOut();
     await expect(HomePage()).rejects.toThrow(SIGNED_OUT_REDIRECT);
-    expect(stores.readToday).not.toHaveBeenCalled();
+    expect(stores.readHomeSummary).not.toHaveBeenCalled();
   });
 });
 
 describe("use_case_today_on_landing", () => {
   test("continues the most recent quest's real chat and next step", async () => {
-    stores.readToday.mockResolvedValue({ projects: [LATEST], chats: [] });
+    stores.readHomeSummary.mockResolvedValue({
+      latestQuest: LATEST,
+      firstVisit: false,
+    });
     await render(inWorkspace(await HomePage()));
     await expect
       .element(

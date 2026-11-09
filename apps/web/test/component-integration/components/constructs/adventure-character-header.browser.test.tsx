@@ -9,6 +9,8 @@ import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
 import { tabForward } from "../keyboard-test-kit.ts";
 
+const PROFILE_VISUAL_PATH =
+  /^\/constructs\/vellum-v1-(?:64|128|256|512|1024)\.webp$/u;
 const PRIVATE_TEXT = "Private instructions that must stay hidden";
 const OWN: ConstructSnapshot = {
   name: "Lumen",
@@ -31,9 +33,10 @@ describe("use_case_view_character_profile", () => {
       .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.approach))
       .toBeVisible();
     const image = dialog.element().querySelector("img");
-    expect(new URL(image?.src ?? "", globalThis.location.href).pathname).toBe(
-      "/constructs/vellum-v1.png",
-    );
+    const source = new URL(image?.src ?? "", globalThis.location.href);
+    expect(source.origin).toBe(globalThis.location.origin);
+    expect(source.pathname).toMatch(PROFILE_VISUAL_PATH);
+    expect(image?.getAttribute("srcset")).toBeTruthy();
     await tabForward();
     expect(dialog.element().contains(document.activeElement)).toBe(true);
     await userEvent.keyboard("{Escape}");
