@@ -21,9 +21,9 @@ export const SPELLBOOK_COPY = {
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
   noOwn:
-    "No spells of your own yet. Customize one above, or choose New spell to write one from scratch.",
-  newSpell: "Write new spell",
-  // The name of a spell written from scratch, until the user renames it.
+    "No spells of your own yet. Customize one above, or choose Craft spell to make one without copying another.",
+  newSpell: "Craft spell",
+  // The name of a crafted spell, until the user renames it.
   newSpellName: "New spell",
   customize: "Customize",
   customizeLabel: (name: string): string =>
@@ -57,6 +57,6 @@ export const SPELL_DEFINITION_COPY: Readonly<
   },
   prompt: {
     label: "Instructions",
-    help: "What your construct does once it casts the spell. It reaches your construct only in the adventures that cast it.",
+    help: "The name identifies the spell; the Spell Sheet contains its instructions. These reach your construct only in adventures that cast it.",
   },
 };

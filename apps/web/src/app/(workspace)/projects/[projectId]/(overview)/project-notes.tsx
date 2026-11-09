@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Note } from "@/notes/note.ts";
+import type { QuestStatus } from "@/projects/quest-status.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { type DeleteNoteState, deleteNoteAction } from "./actions.ts";
 
@@ -38,15 +39,17 @@ function noteKeys(notes: readonly Note[]): string[] {
 }
 
 // A project's newest notes, newest first, each with a button that deletes
-// it, and a link to quick capture with the project chosen. A delete's button
-// is disabled while it runs, and is gone with its note, so afterwards focus
+// it, and, for an Active quest, a link to Quick Note with the quest chosen.
+// A delete's button is disabled while it runs, and is gone with its note, so focus
 // moves to the section's heading. The status line says a note was deleted;
 // an alert says why nothing was, when nothing was.
 export function ProjectNotes({
   projectId,
+  status: questStatus,
   notes,
 }: {
   readonly projectId: ProjectId;
+  readonly status: QuestStatus;
   readonly notes: readonly Note[];
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(deleteNoteAction, IDLE);
@@ -80,11 +83,13 @@ export function ProjectNotes({
         >
           {PROJECT_NOTES_COPY.heading}
         </h2>
-        <Button asChild={true} variant="secondary">
-          <Link href={`/capture?projectId=${projectId}`}>
-            {PROJECT_NOTES_COPY.addLink}
-          </Link>
-        </Button>
+        {questStatus === "active" && (
+          <Button asChild={true} variant="secondary">
+            <Link href={`/capture?projectId=${projectId}`}>
+              {PROJECT_NOTES_COPY.addLink}
+            </Link>
+          </Button>
+        )}
       </div>
       <p className="text-muted">{PROJECT_NOTES_COPY.intro}</p>
       {notes.length === 0 && (

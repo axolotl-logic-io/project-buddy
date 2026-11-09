@@ -1,6 +1,6 @@
 // Her spells, from the Spellbook pages' forms, in the test database:
-// customizing a built-in spell makes a copy of her own, and New spell writes
-// one from scratch, which she edits within its limits, clones, resets,
+// customizing a built-in spell makes a copy of her own, and Craft spell makes
+// one, which she edits within its limits, clones, resets,
 // deletes and has the construct cast; the built-in spells and other users'
 // spells are never changed.
 import { getToolName, isToolUIPart } from "ai";
@@ -92,14 +92,14 @@ async function customize(user: User): Promise<OwnSpell> {
   return copy;
 }
 
-// Writes a new spell, as the New spell button does, and returns it: her
+// Crafts a spell, as the Craft spell button does, and returns it: her
 // newest spell.
 async function writeNew(user: User): Promise<OwnSpell> {
   const writing = newSpellAction();
   await Promise.allSettled([writing]);
   const spell = (await listOwnSpells(user.id)).at(-1);
   if (spell === undefined) {
-    throw new Error("New spell made no spell");
+    throw new Error("Craft spell made no spell");
   }
   await expectRedirect(() => writing, `/spellbook/${spell.id}`);
   return spell;
@@ -240,7 +240,7 @@ describe("use_case_customize_spell", () => {
 });
 
 describe("use_case_new_spell", () => {
-  test("a new spell starts with default instructions, and each New spell makes another", async () => {
+  test("a new spell starts with default instructions, and each Craft spell makes another", async () => {
     const user = await signedInUser();
 
     const spell = await writeNew(user);

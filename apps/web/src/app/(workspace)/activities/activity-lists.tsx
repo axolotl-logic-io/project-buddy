@@ -1,7 +1,7 @@
 // The activities list, shared by the Activities page and the Workshop: the
 // built-in activities, each of which she can start or customize, and her
 // own, oldest first, each of which she can start, tweak or clone, with a
-// button that writes a new one from scratch.
+// button that crafts a new one.
 import Link from "next/link";
 import type { JSX } from "react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
@@ -58,7 +58,7 @@ function ActivityCard({
             className="card-title self-start text-left text-link"
             type="button"
           >
-            {ACTIVITIES_COPY.startLabel(activity.name)}
+            {activity.name}
           </button>
         }
       />
