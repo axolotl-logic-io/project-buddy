@@ -1,0 +1,42 @@
+[
+  {
+    "case": "private UUID in categorical path",
+    "rejected": true
+  },
+  {
+    "case": "raw resource URL",
+    "rejected": true
+  },
+  {
+    "case": "unknown prompt payload",
+    "rejected": true
+  },
+  {
+    "case": "request headers",
+    "rejected": true
+  },
+  {
+    "case": "wrong build",
+    "rejected": true
+  },
+  {
+    "case": "unknown event name",
+    "rejected": true
+  },
+  {
+    "case": "screenshot with arguments",
+    "rejected": true
+  },
+  {
+    "case": "screenshot without arguments",
+    "rejected": true
+  },
+  {
+    "case": "screenshot category",
+    "rejected": true
+  },
+  {
+    "case": "moved visible reading anchor",
+    "rejected": true
+  }
+]

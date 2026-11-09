@@ -1,0 +1,45 @@
+{
+  "measuredSource": "e99e266d4410adb9b596a909df55f325dce64ddd",
+  "fastCheck": {
+    "status": "pass",
+    "tests": 249,
+    "files": 48
+  },
+  "fontBuildGuard": {
+    "status": "pass",
+    "stylesheets": 1
+  },
+  "affectedBrowser": {
+    "status": "pass",
+    "tests": 116,
+    "fileBrowserExecutions": 18,
+    "engines": [
+      "Chromium",
+      "WebKit"
+    ],
+    "durationSeconds": 10.4
+  },
+  "affectedServer": {
+    "status": "pass",
+    "tests": 9,
+    "files": 3,
+    "durationSeconds": 2.7,
+    "subjects": [
+      "themes/save-theme-choice-action",
+      "accounts/private-data-chats",
+      "chats/message-authors"
+    ]
+  },
+  "fullSharedBrowser": {
+    "status": "external-baseline-not-duplicated",
+    "pullRequest": 812,
+    "integrationSource": "242fda27a3ff8d8ef1e11c7deb88c13bf80495ca",
+    "tests": 1232,
+    "passed": 1232
+  },
+  "artifactValidator": "pass",
+  "negativeCasesRejected": 10,
+  "requiredExactHeadCi": "tracked-on-pull-request",
+  "independentReview": "tracked-on-pull-request",
+  "productionRelease": "not-authorized"
+}

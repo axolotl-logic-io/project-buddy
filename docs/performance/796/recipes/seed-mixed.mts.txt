@@ -1,0 +1,19 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {testUser} from './test/support/test-database/user-test-kit.ts';
+import {testData} from './test/support/test-database/data-test-kit.ts';
+import {milestoneIdFixture} from './test/support/id-fixtures.ts';
+import {markdownReplyText} from './test/component-integration/replies/mock-markdown-test-kit.ts';
+import {createSessionToken} from './src/auth/session-token.ts';
+import {readSessionSecret} from './src/env.ts';
+import {checkTestEnvironment} from './scripts/test-db/test-database.ts';
+import {RECORD_MILESTONE_TOOL} from './src/replies/tools/record-milestone-contract.ts';
+checkTestEnvironment();
+const user=await testUser();const kit=testData(user);const project=await kit.project('Synthetic mixed quest');const chat=await kit.chat(project);
+const replies=Array.from({length:10},(_,index)=>{
+ let reply: import('ai').UIMessage['parts']=[{type:'text',text:`Synthetic answer ${index}. `+'A synthetic paragraph for repeatable rendering. '.repeat(20)}];
+ if(index===0)reply=[{type:'text',text:markdownReplyText()+'\n\n![Synthetic image](/constructs/vellum-v1-512.webp)'}];
+ if(index===1)reply=[{type:'text',text:'Synthetic tool result.'},{type:`tool-${RECORD_MILESTONE_TOOL}`,toolCallId:'synthetic-call',state:'output-available',input:{text:'Synthetic milestone'},output:{status:'recorded',milestoneId:milestoneIdFixture(),projectId:project.id,text:'Synthetic milestone',recordedAt:'2026-11-09T00:00:00.000Z'}}];
+ return {message:`Synthetic question ${index}.`,reply};
+});
+await kit.exchanges(chat,replies);
+const s=JSON.parse(await readFile('/tmp/pb-796/session.json','utf8'));await writeFile('/tmp/pb-796/session.json',JSON.stringify({...s,medium:await createSessionToken(user,readSessionSecret(),new Date()),mediumProject:project.id,mediumChat:chat.id}),{mode:0o600});

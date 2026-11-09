@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd apps/web
+npm run test:server -- test/component-integration/themes/save-theme-choice-action.server.test.ts test/component-integration/accounts/private-data-chats.server.test.ts test/component-integration/chats/message-authors.server.test.ts

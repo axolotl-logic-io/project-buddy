@@ -42,6 +42,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Signed-in performance assessment](performance-assessment.md): exploratory production-build evidence, validation limits and systemic follow-ups.
 
+- [Adventure and editor client work](performance/796/README.md): matched renderer experiments, cold editor gains, rejected startup designs and remaining responsiveness limits.
+
 - [Use case completeness assessment](use-case-assessment.md): the current inventory, reconciled gaps and validation limits.
 
 - [Quest practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
