@@ -207,6 +207,25 @@
     @apply text-muted text-sm;
   }
 
+  /* Shared page feedback and static state. Words carry purpose and severity;
+     an opaque surface, outline and spacing group it without colour alone. */
+  .notice {
+    @apply min-w-0 rounded-box border border-line bg-surface px-4 py-3 text-foreground text-sm;
+    overflow-wrap: anywhere;
+  }
+
+  .notice.error-text {
+    @apply text-danger;
+  }
+
+  .notice:empty {
+    @apply border-0 p-0;
+  }
+
+  .notice a {
+    @apply inline-flex min-h-(--target-size) max-w-full items-center underline underline-offset-4;
+  }
+
   /* A raised surface that groups a page's part, such as a form. */
   .panel {
     @apply rounded-box border border-line bg-surface p-5 shadow-raised sm:p-6;
