@@ -35,3 +35,5 @@ The user permanently removes a retired definition.
 - **Outcome:** cancellation keeps the definition. Confirmation permanently removes the original; snapshots and past casts stay intact. An active definition cannot be deleted by this action, including after restoration while the dialog is open. A repeated or unknown-id request changes nothing. Another user cannot delete the original. Listings remain available until unlisted separately. Permanent deletion gives no refund; buying another copy may cost gold.
 
 Retirement dates use the browser’s local day. On phones, names use the card width and actions wrap below them. Search uses a labelled text field with the shared input styling and touch target.
+
+Retirement, restoration and permanent-deletion feedback uses the shared page notice treatment, distinct from explanatory copy. Retirement completion retains keyboard focus after its card disappears. Notices persist, wrap at 320 px in Light and Dark modes, and keep links and actions keyboard-accessible. Static fallback state is a notice without a live announcement.
