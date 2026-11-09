@@ -1,11 +1,11 @@
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 // The Marketplace against the test database: selling an own construct,
 // activity or spell from its page, what other users see of a listing,
-// buying it for gold or for free, and the seller's listings, with real
-// users, sessions and gold.
+// buying it for orbs or for free, and the seller's listings, with real
+// users, sessions and orbs.
 
 import { eq, sql } from "drizzle-orm";
-import { describe, expect, test, vi } from "vitest";
+import { beforeAll, describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneActivity,
@@ -29,10 +29,9 @@ import {
   updateConstruct,
 } from "@/constructs/construct-store.ts";
 import { getDb } from "@/db/client.ts";
-import { goldBalances } from "@/db/tables/gold.ts";
-import { listings } from "@/db/tables/listings.ts";
-import { wholeGold } from "@/gold/gold.ts";
-import { chargeGold, readGoldBalance } from "@/gold/gold-store.ts";
+import { listings, purchases } from "@/db/tables/listings.ts";
+import { marketplaceCutover, orbBalances } from "@/db/tables/orbs.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { ListingId } from "@/ids.ts";
 import { type BuyOutcome, buyListing } from "@/marketplace/buy-listing.ts";
 import { PURCHASES_PER_HOUR } from "@/marketplace/listing.ts";
@@ -46,6 +45,11 @@ import {
   unlistListing,
   updateListing,
 } from "@/marketplace/listing-store.ts";
+import {
+  grantStartingOrbs,
+  readOrbsBalance,
+  readOrbsLedger,
+} from "@/orbs/orb-store.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import {
@@ -62,6 +66,13 @@ import {
 import { signIn } from "../test-database/session-test-kit.ts";
 import { deleteAccount } from "../test-database/two-users-test-kit.ts";
 
+beforeAll(async () => {
+  await getDb()
+    .update(marketplaceCutover)
+    .set({ enabled: true })
+    .where(eq(marketplaceCutover.id, 1));
+});
+
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
   refresh: (): void => {
@@ -69,19 +80,17 @@ vi.mock("next/cache", async (importOriginal) => ({
   },
 }));
 
-// Gold in micro-USD, as balances are stored.
-const MICRO_USD_PER_GOLD = 10_000;
-const STARTING_GOLD = 100;
-const PRICE = 25;
-const SHORT_GOLD = 12;
+// Marketplace balances and prices are whole orbs.
+const STARTING_ORBS = 100;
+const PRICE = 3;
+const SHORT_ORBS = 2;
 const DESCRIPTION_MAX = 500;
-const PRICE_MAX = 10_000;
+const PRICE_MAX = 5;
 const CHANGES_PER_HOUR = 20;
-// Two buys of 60 with 100 gold: only one can be paid.
-const RACING_PRICE = 60;
+// Two buys of 4 with 5 orbs: only one can be paid.
+const RACING_PRICE = 4;
 const BUYS_AT_ONCE = 4;
-const CALL_COST_MICRO_USD = 300_000;
-const RAISED_PRICE = 90;
+const RAISED_PRICE = 5;
 // Each race of a purchase and its seller's deletion has two outcomes;
 // enough of them that a lock-order deadlock would show.
 const SELLER_DELETION_RACES = 8;
@@ -160,6 +169,7 @@ async function listed(
 async function buyAsShown(user: User, listing: string): Promise<BuyOutcome> {
   const shown = await getListing(user.id, listing);
   return await buyListing(user.id, {
+    currency: "orbs",
     listingId: listing,
     price: shown?.price ?? 0,
   });
@@ -174,19 +184,18 @@ async function setListedAt(listing: string, at: string): Promise<void> {
     .where(eq(listings.id, listing));
 }
 
-// The user's gold as they see it.
-async function goldOf(user: User): Promise<number> {
-  return wholeGold(await readGoldBalance(user.id));
+// The user's orbs as they see them.
+async function orbsOf(user: User): Promise<number> {
+  return await readOrbsBalance(user.id);
 }
 
-// Sets the user's gold, which the site only changes by spending and
-// transfers, so this names the table.
-async function setGold(user: User, gold: number): Promise<void> {
-  await readGoldBalance(user.id);
+// Sets the user's orbs for insufficient-balance scenarios.
+async function setOrbs(user: User, orbs: number): Promise<void> {
+  await readOrbsBalance(user.id);
   await getDb()
-    .update(goldBalances)
-    .set({ microUsd: gold * MICRO_USD_PER_GOLD })
-    .where(eq(goldBalances.userId, user.id));
+    .update(orbBalances)
+    .set({ orbs })
+    .where(eq(orbBalances.userId, user.id));
 }
 
 // Sells the seller's own prompt of the kind from its page, checks the site
@@ -199,7 +208,13 @@ async function sellFromPage(
   const promptId = await ownPromptOf(seller, kind);
   const selling = sellListingAction(
     { kind: "idle" },
-    form({ kind, promptId, description: DESCRIPTION, price: "25" }),
+    form({
+      currency: "orbs",
+      kind,
+      promptId,
+      description: DESCRIPTION,
+      price: "3",
+    }),
   );
   await Promise.allSettled([selling]);
   const sale = await readSaleState(seller.id, { kind, promptId });
@@ -230,23 +245,27 @@ async function buyWhileSellerGoes(): Promise<{
   const [seller, buyer] = await Promise.all([testUser(), testUser()]);
   const listing = await listed(seller, await ownConstruct(seller));
   const [bought, deleted] = await Promise.allSettled([
-    buyListing(buyer.id, { listingId: listing, price: PRICE }),
+    buyListing(buyer.id, {
+      currency: "orbs",
+      listingId: listing,
+      price: PRICE,
+    }),
     deleteAccount(seller),
   ]);
-  const [copies, gold] = await Promise.all([
+  const [copies, orbs] = await Promise.all([
     listConstructs(buyer.id),
-    goldOf(buyer),
+    orbsOf(buyer),
   ]);
   const paid =
     bought.status === "fulfilled" &&
     bought.value.kind === "bought" &&
     copies.length === 1 &&
-    gold === STARTING_GOLD - PRICE;
+    orbs === STARTING_ORBS - PRICE;
   const refused =
     bought.status === "fulfilled" &&
     bought.value.kind === "not-found" &&
     copies.length === 0 &&
-    gold === STARTING_GOLD;
+    orbs === STARTING_ORBS;
   return {
     deleted: deleted.status === "fulfilled",
     consistent: paid || refused,
@@ -282,7 +301,13 @@ describe("use_case_sell_in_marketplace", () => {
     function sell(description: string, price: string): Promise<unknown> {
       return sellListingAction(
         { kind: "idle" },
-        form({ kind: "construct", promptId, description, price }),
+        form({
+          currency: "orbs",
+          kind: "construct",
+          promptId,
+          description,
+          price,
+        }),
       );
     }
 
@@ -559,7 +584,7 @@ describe("use_case_buy_listing", () => {
 
     const buying = buyListingAction(
       { kind: "idle" },
-      form({ listingId: listing, price: String(PRICE) }),
+      form({ currency: "orbs", listingId: listing, price: String(PRICE) }),
     );
     await Promise.allSettled([buying]);
     const [copy] = await listConstructs(buyer.id);
@@ -572,39 +597,39 @@ describe("use_case_buy_listing", () => {
       boughtFrom: listing,
       definition: expect.objectContaining({ prompt: VOICE }),
     });
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE);
-    expect(await goldOf(seller)).toBe(STARTING_GOLD + PRICE);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS - PRICE);
+    expect(await orbsOf(seller)).toBe(STARTING_ORBS + PRICE);
     expect(await getListing(buyer.id, listing)).toMatchObject({
       viewer: "buyer",
       copy: copy.id,
     });
   });
 
-  test("with too little gold nothing moves and the page says how much is needed", async () => {
+  test("with too few orbs nothing moves and the page says how much is needed", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);
-    await setGold(buyer, SHORT_GOLD);
+    await setOrbs(buyer, SHORT_ORBS);
     const listing = await listed(seller, await ownConstruct(seller));
 
     expect(
       await buyListingAction(
         { kind: "idle" },
-        form({ listingId: listing, price: String(PRICE) }),
+        form({ currency: "orbs", listingId: listing, price: String(PRICE) }),
       ),
     ).toEqual({
       kind: "refused",
-      message: "You need 25 gold. You have 12.",
-      earnGold: true,
+      message: "You need 3 orbs. You have 2.",
+      earnGold: false,
     });
     expect(await listConstructs(buyer.id)).toEqual([]);
-    expect(await goldOf(buyer)).toBe(SHORT_GOLD);
-    expect(await goldOf(seller)).toBe(STARTING_GOLD);
+    expect(await orbsOf(buyer)).toBe(SHORT_ORBS);
+    expect(await orbsOf(seller)).toBe(STARTING_ORBS);
     expect(await listOwnListings(seller.id)).toMatchObject([
       { buyers: 0, goldEarned: 0 },
     ]);
   });
 
-  test("a free listing moves no gold, and a bought spell joins the buyer's Spellbook", async () => {
+  test("a free listing moves no orbs, and a bought spell joins the buyer's Spellbook", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     const listing = await listed(
       seller,
@@ -618,8 +643,8 @@ describe("use_case_buy_listing", () => {
     const spells = await listOwnSpells(buyer.id);
     expect(spells).toHaveLength(1);
     expect(spells[0]?.definition.prompt).toBe("Ask about wood grain.");
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
-    expect(await goldOf(seller)).toBe(STARTING_GOLD);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS);
+    expect(await orbsOf(seller)).toBe(STARTING_ORBS);
   });
 
   test("buying twice at once charges once, and buying again after deleting the copy charges again", async () => {
@@ -635,7 +660,7 @@ describe("use_case_buy_listing", () => {
     );
     const copies = await listConstructs(buyer.id);
     expect(copies).toHaveLength(1);
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS - PRICE);
 
     const [copy] = copies;
     if (copy === undefined) {
@@ -646,32 +671,31 @@ describe("use_case_buy_listing", () => {
     expect(await buyAsShown(buyer, listing)).toMatchObject({
       kind: "bought",
     });
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE - PRICE);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS - PRICE - PRICE);
     expect(await listOwnListings(seller.id)).toMatchObject([
       { buyers: 1, goldEarned: PRICE + PRICE },
     ]);
   });
 
-  test("a purchase is all or nothing when the buyer's gold is spent at the same time", async () => {
+  test("a purchase is all or nothing when the buyer's orbs are spent at the same time", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     const [first, second] = await Promise.all([
       listed(seller, await ownConstruct(seller, "First"), RACING_PRICE),
       listed(seller, await ownConstruct(seller, "Second"), RACING_PRICE),
     ]);
 
+    await setOrbs(buyer, RAISED_PRICE);
+    const before = await readGoldBalance(buyer.id);
     const [one, two] = await Promise.all([
       buyAsShown(buyer, first),
       buyAsShown(buyer, second),
-      chargeGold(buyer.id, CALL_COST_MICRO_USD),
     ]);
     const kinds = [one?.kind, two?.kind].toSorted();
-    expect(kinds).toEqual(["bought", "too-little-gold"]);
+    expect(kinds).toEqual(["bought", "too-little-orbs"]);
     expect(await listConstructs(buyer.id)).toHaveLength(1);
-    const spent = RACING_PRICE * MICRO_USD_PER_GOLD + CALL_COST_MICRO_USD;
-    expect(await readGoldBalance(buyer.id)).toBe(
-      STARTING_GOLD * MICRO_USD_PER_GOLD - spent,
-    );
-    expect(await goldOf(seller)).toBe(STARTING_GOLD + RACING_PRICE);
+    expect(await orbsOf(buyer)).toBe(1);
+    expect(await readGoldBalance(buyer.id)).toBe(before);
+    expect(await orbsOf(seller)).toBe(STARTING_ORBS + RACING_PRICE);
   });
 
   test("a price changed since the page showed it charges nothing and says the price now", async () => {
@@ -688,18 +712,25 @@ describe("use_case_buy_listing", () => {
     expect(
       await buyListingAction(
         { kind: "idle" },
-        form({ listingId: listing, price: String(shown?.price) }),
+        form({
+          currency: "orbs",
+          listingId: listing,
+          price: String(shown?.price),
+        }),
       ),
     ).toEqual({
       kind: "refused",
-      message: "The price is now 90 gold.",
+      message: "The price is now 5 orbs.",
       earnGold: false,
     });
     expect(await listConstructs(buyer.id)).toEqual([]);
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
-    expect(await goldOf(seller)).toBe(STARTING_GOLD);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS);
+    expect(await orbsOf(seller)).toBe(STARTING_ORBS);
     await expectNotFound(() =>
-      buyListingAction({ kind: "idle" }, form({ listingId: listing })),
+      buyListingAction(
+        { kind: "idle" },
+        form({ currency: "orbs", listingId: listing }),
+      ),
     );
   });
 
@@ -717,16 +748,20 @@ describe("use_case_buy_listing", () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     const listing = await listed(seller, await ownConstruct(seller), 0);
     const tries = Array.from({ length: PURCHASES_PER_HOUR }, () =>
-      buyListing(buyer.id, { listingId: listing, price: 0 }),
+      buyListing(buyer.id, { currency: "orbs", listingId: listing, price: 0 }),
     );
     const outcomes = await Promise.all(tries);
     expect(outcomes.filter(({ kind }) => kind === "limited")).toEqual([]);
     expect(
-      await buyListing(buyer.id, { listingId: listing, price: 0 }),
+      await buyListing(buyer.id, {
+        currency: "orbs",
+        listingId: listing,
+        price: 0,
+      }),
     ).toEqual({ kind: "limited" });
   });
 
-  test("deleting the seller while their listing is bought is all or nothing, and moves no gold beyond the price", async () => {
+  test("deleting the seller while their listing is bought is all or nothing, and moves no orbs beyond the price", async () => {
     const outcomes = await Promise.all(
       Array.from({ length: SELLER_DELETION_RACES }, () => buyWhileSellerGoes()),
     );
@@ -759,7 +794,7 @@ describe("use_case_buy_listing", () => {
 
     expect(await buyAsShown(buyer, listing)).toEqual({ kind: "not-found" });
     expect(await listOwnSpells(buyer.id)).toEqual([]);
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS);
     expect(await listOwnListings(seller.id)).toMatchObject([{ buyers: 0 }]);
   });
 
@@ -774,12 +809,16 @@ describe("use_case_buy_listing", () => {
     await unlistListing(seller.id, listing);
     expect(await buyAsShown(buyer, listing)).toEqual({ kind: "not-found" });
     expect(
-      await buyListing(buyer.id, { listingId: "not-a-listing", price: 0 }),
+      await buyListing(buyer.id, {
+        currency: "orbs",
+        listingId: "not-a-listing",
+        price: 0,
+      }),
     ).toEqual({
       kind: "not-found",
     });
     await expectNotFound(() => buyListingAction({ kind: "idle" }, form({})));
-    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS);
   });
 
   test("deleting the seller's account deletes their listings, and buyers keep their copies", async () => {
@@ -825,6 +864,7 @@ describe("use_case_manage_listings", () => {
       await updateListingAction(
         { kind: "idle" },
         form({
+          currency: "orbs",
           listingId: listing,
           kind: "activity",
           description: "New words",
@@ -855,7 +895,7 @@ describe("use_case_manage_listings", () => {
       throw new Error("The listing was not bought");
     }
 
-    await unlistListingAction(form({ listingId: listing }));
+    await unlistListingAction(form({ currency: "orbs", listingId: listing }));
     expect(await listOwnListings(seller.id)).toEqual([
       {
         id: listing,
@@ -880,7 +920,7 @@ describe("use_case_manage_listings", () => {
       await updateListing(other.id, listing, { description: "Mine", price: 0 }),
     ).toEqual({ kind: "not-found" });
     expect(await unlistListing(other.id, listing)).toBe(false);
-    await unlistListingAction(form({ listingId: listing }));
+    await unlistListingAction(form({ currency: "orbs", listingId: listing }));
     expect(await getListing(other.id, listing)).toMatchObject({
       description: DESCRIPTION,
       price: PRICE,
@@ -902,5 +942,115 @@ describe("use_case_manage_listings", () => {
     expect(
       await updateListing(seller.id, listing, { description: "", price: 0 }),
     ).toEqual({ kind: "source-gone" });
+  });
+});
+
+describe("orb rollout", () => {
+  test("new accounts and repeated concurrent grants receive 100 orbs only once", async () => {
+    const user = await testUser();
+    expect(await readOrbsBalance(user.id)).toBe(STARTING_ORBS);
+    await Promise.all([grantStartingOrbs(user.id), grantStartingOrbs(user.id)]);
+    await setOrbs(user, SHORT_ORBS);
+    await grantStartingOrbs(user.id);
+    expect(await readOrbsBalance(user.id)).toBe(SHORT_ORBS);
+    expect(await readOrbsLedger(user.id)).toMatchObject([
+      { reason: "starting-grant", orbs: STARTING_ORBS },
+    ]);
+  });
+  test("a legacy listing and a stale currency-free request cannot charge", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(seller, await ownConstruct(seller));
+    expect(
+      await buyListing(buyer.id, { listingId: listing, price: PRICE }),
+    ).toEqual({ kind: "not-found" });
+    await getDb()
+      .update(listings)
+      .set({ currency: "gold", price: PRICE_MAX + 1 })
+      .where(eq(listings.id, listing));
+    expect(await buyAsShown(buyer, listing)).toEqual({ kind: "not-found" });
+    expect(await orbsOf(buyer)).toBe(STARTING_ORBS);
+    expect(await listConstructs(buyer.id)).toHaveLength(0);
+    expect(await listOwnListings(seller.id)).toMatchObject([
+      { legacy: true, goldEarned: 0 },
+    ]);
+    expect(await listListings(buyer.id, {})).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: listing })]),
+    );
+    await updateListing(seller.id, listing, {
+      description: "Explicit orb price",
+      price: PRICE,
+    });
+    expect((await buyAsShown(buyer, listing)).kind).toBe("bought");
+  });
+  test("server store refuses fractional, negative and over-cap prices", async () => {
+    const seller = await testUser();
+    const source = {
+      kind: "construct",
+      promptId: await ownConstruct(seller),
+    } as const;
+    const fractional = 0.5;
+    const badPrices = [-1, fractional, PRICE_MAX + 1];
+    const published = await Promise.all(
+      badPrices.map((price) =>
+        publishListing(seller.id, source, { description: "", price }),
+      ),
+    );
+    expect(published).toEqual(badPrices.map(() => ({ kind: "not-found" })));
+    const listing = await listed(seller, source.promptId);
+    const updated = await Promise.all(
+      badPrices.map((price) =>
+        updateListing(seller.id, listing, { description: "", price }),
+      ),
+    );
+    expect(updated).toEqual(badPrices.map(() => ({ kind: "not-found" })));
+    const tooLong = {
+      description: "x".repeat(DESCRIPTION_MAX + 1),
+      price: PRICE,
+    };
+    expect(await publishListing(seller.id, source, tooLong)).toEqual({
+      kind: "not-found",
+    });
+    expect(await updateListing(seller.id, listing, tooLong)).toEqual({
+      kind: "not-found",
+    });
+    expect(await getListing(seller.id, listing)).toMatchObject({
+      price: PRICE,
+    });
+  });
+  test("paid and free purchases preserve Batteries balances and audit only orb transfers", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const before = await Promise.all([
+      readGoldBalance(buyer.id),
+      readGoldBalance(seller.id),
+    ]);
+    const paid = await listed(seller, await ownConstruct(seller));
+    const free = await listed(seller, await ownConstruct(seller, "Free"), 0);
+    await buyAsShown(buyer, paid);
+    await buyAsShown(buyer, free);
+    expect(
+      await Promise.all([
+        readGoldBalance(buyer.id),
+        readGoldBalance(seller.id),
+      ]),
+    ).toEqual(before);
+    expect(await readOrbsLedger(buyer.id)).toMatchObject([
+      { reason: "starting-grant" },
+      { reason: "marketplace-purchase", orbs: -PRICE },
+    ]);
+    expect(await readOrbsLedger(seller.id)).toMatchObject([
+      { reason: "starting-grant" },
+      { reason: "marketplace-sale", orbs: PRICE },
+    ]);
+    expect(
+      await getDb()
+        .select({ currency: purchases.currency, price: purchases.price })
+        .from(purchases)
+        .where(eq(purchases.buyerId, buyer.id)),
+    ).toEqual(
+      expect.arrayContaining([
+        { currency: "orbs", price: PRICE },
+        { currency: "orbs", price: 0 },
+      ]),
+    );
   });
 });

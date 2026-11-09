@@ -1,5 +1,5 @@
 // Her constructs, from the constructs pages' forms, in the test database with the
-// mock construct: what customizing, writing from scratch, cloning, saving and
+// mock construct: what customizing, crafting, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
 import { and, eq } from "drizzle-orm";
 import sharp from "sharp";
@@ -134,14 +134,14 @@ async function customize(
   return clone;
 }
 
-// Writes a new construct from scratch, from the New construct button; checks it
+// Crafts a construct from the Craft construct button; checks it
 // opened the page of the construct it made, and returns that construct.
 async function writeNew(user: User): Promise<OwnConstruct> {
   const writing = newConstructAction();
   await Promise.allSettled([writing]);
   const construct = (await listOwnConstructs(user.id)).at(-1);
   if (construct === undefined) {
-    throw new Error("New construct made no construct");
+    throw new Error("Craft construct made no construct");
   }
   await expectRedirect(() => writing, `/constructs/${construct.id}`);
   return construct;
@@ -175,7 +175,7 @@ describe("use_case_customize_construct", () => {
 });
 
 describe("use_case_new_construct", () => {
-  test("a new construct starts with default instructions, and each New construct makes another", async () => {
+  test("a new construct starts with default instructions, and each Craft construct makes another", async () => {
     const user = await signedInUser();
 
     const construct = await writeNew(user);

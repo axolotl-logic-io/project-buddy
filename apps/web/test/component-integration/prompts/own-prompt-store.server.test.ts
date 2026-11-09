@@ -1,4 +1,4 @@
-// Own prompts written from scratch, against the test database: a new
+// Own crafted prompts, against the test database: a new
 // prompt has the name and parts it was written with and no source, is its
 // owner's alone, and is found only as its own kind.
 import { expect, test } from "vitest";
@@ -28,7 +28,7 @@ const SCRATCH_ACTIVITY: NamedDefinition<ActivityDefinition> = {
   definition: getActivity("brainstorming").definition,
 };
 
-test("a prompt written from scratch has its name and parts and no source", async () => {
+test("a crafted prompt has its name and parts and no source", async () => {
   const { id: owner } = await testUser();
 
   const construct = await createConstruct(owner, SCRATCH_CONSTRUCT);
@@ -46,7 +46,7 @@ test("a prompt written from scratch has its name and parts and no source", async
   expect(await getOwnActivity(owner, activity.id)).toEqual(activity);
 });
 
-test("a prompt written from scratch is its owner's alone", async () => {
+test("a crafted prompt is its owner's alone", async () => {
   const [her, other] = await Promise.all([testUser(), testUser()]);
 
   const construct = await createConstruct(her.id, SCRATCH_CONSTRUCT);
@@ -61,7 +61,7 @@ test("a prompt written from scratch is its owner's alone", async () => {
   expect(otherConstructs).toEqual([]);
 });
 
-test("a prompt written from scratch is found only as its own kind", async () => {
+test("a crafted prompt is found only as its own kind", async () => {
   const { id: owner } = await testUser();
 
   const [construct, activity] = await Promise.all([

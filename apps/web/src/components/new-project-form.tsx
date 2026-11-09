@@ -1,62 +1,72 @@
 "use client";
 
-import { type JSX, useActionState } from "react";
+import { Dialog } from "radix-ui";
+import {
+  type JSX,
+  type SubmitEvent,
+  startTransition,
+  useActionState,
+} from "react";
 import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
+import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { TextAreaField, TextField } from "@/components/ui/field.tsx";
+import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
+import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// The quest creation form uses the account's new quest construct.
-export function NewProjectForm(): JSX.Element {
+// Manual dispatch keeps the entered reason and picker selection after failures.
+function submitQuest(
+  pending: boolean,
+  start: (data: FormData) => void,
+  event: SubmitEvent<HTMLFormElement>,
+): void {
+  event.preventDefault();
+  if (pending) {
+    return;
+  }
+  const data = new FormData(event.currentTarget);
+  startTransition(() => start(data));
+}
+
+export function NewProjectForm({
+  choices,
+  cancel = false,
+}: {
+  readonly choices?:
+    | Pick<QuestCreationChoices, "userConstructs" | "preferredConstructId">
+    | undefined;
+  readonly cancel?: boolean;
+}): JSX.Element {
   const [state, formAction, pending] = useActionState(
     createProjectAction,
     IDLE,
   );
-  // The status line, empty except while the project is being created.
+  const onSubmit = submitQuest.bind(null, pending, formAction);
   let status = "";
   if (pending) {
     status = PROJECTS_COPY.creating;
   }
-  let name = "";
-  let motivation = "";
-  if (
-    state.kind === "claudeUnavailable" ||
-    state.kind === "invalidName" ||
-    state.kind === "outOfGold"
-  ) {
-    ({ name, motivation } = state);
-  }
-  let nameError: string | undefined;
-  if (state.kind === "invalidName") {
-    ({ message: nameError } = state);
-  }
   return (
-    <form action={formAction} className="flex flex-col gap-5">
-      <TextField
-        defaultValue={name}
-        error={nameError}
-        label={PROJECTS_COPY.nameLabel}
-        maxLength={PROJECT_NAME_MAX_LENGTH}
-        name="name"
-        required={true}
-        type="text"
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      <ConstructPicker
+        defaultConstructId={choices?.preferredConstructId ?? "vellum"}
+        userConstructs={choices?.userConstructs ?? []}
+        hint={PROJECTS_COPY.constructHint}
       />
       <TextAreaField
-        defaultValue={motivation}
-        label={PROJECTS_COPY.motivationLabel}
+        label={PROJECTS_COPY.whyLabel}
         hint={PROJECTS_COPY.motivationHint}
         name="motivation"
         rows={3}
       />
-      {state.kind !== "idle" && state.kind !== "invalidName" && (
+      {state.kind !== "idle" && (
         <Alert>
           <span>{state.message}</span>
           {state.kind === "outOfGold" && <EarnGoldLink />}
@@ -66,6 +76,13 @@ export function NewProjectForm(): JSX.Element {
         <Button disabled={pending} type="submit">
           {PROJECTS_COPY.create}
         </Button>
+        {cancel === true && (
+          <Dialog.Close asChild={true}>
+            <Button type="button" variant="secondary">
+              {PROJECTS_COPY.cancel}
+            </Button>
+          </Dialog.Close>
+        )}
         <FormStatus>{status}</FormStatus>
       </div>
     </form>

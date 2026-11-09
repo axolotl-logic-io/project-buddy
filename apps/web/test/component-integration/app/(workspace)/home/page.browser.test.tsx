@@ -1,7 +1,9 @@
+import { wcagContrast, wcagLuminance } from "culori";
 import React, { type JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import HomeLoading from "@/app/(workspace)/home/loading.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import { HomeAtlas } from "@/components/home-atlas.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
@@ -10,6 +12,7 @@ import { HOME_COPY } from "@/ui/copy/home.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -17,7 +20,11 @@ import {
   signOut,
 } from "../../../auth/current-user-test-kit.ts";
 import { tabForward } from "../../../components/keyboard-test-kit.ts";
-import { openMenu } from "../../../components/site-menu-test-kit.ts";
+import {
+  choose,
+  closeMenu,
+  openMenu,
+} from "../../../components/site-menu-test-kit.ts";
 import { applyTheme } from "../../../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
@@ -36,7 +43,14 @@ vi.mock(
   () => import("../../../auth/current-user-test-kit.ts"),
 );
 
+// Cookie persistence and next-paint restoration have their own appearance
+// tests; this browser integration exercises the visible Home palette.
+vi.mock("@/themes/save-theme-choice-action.ts", () => ({
+  saveThemeChoiceAction: vi.fn().mockResolvedValue(undefined),
+}));
+
 const TOUCH_TARGET_PX = 44;
+const TEXT_CONTRAST = 4.5;
 
 const LATEST: TodayProject = {
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
@@ -57,7 +71,8 @@ beforeEach(() => {
   signInAs(SIGNED_IN_USER);
   stores.readToday.mockResolvedValue({ projects: [], chats: [] });
 });
-afterEach(() => {
+afterEach(async () => {
+  await commands.emulateColorScheme("light");
   vi.clearAllMocks();
 });
 
@@ -151,6 +166,21 @@ describe("use_case_home_atlas", () => {
       const places = page.getByRole("navigation", {
         name: HOME_COPY.placesLabel,
       });
+      await Promise.all(
+        DESTINATIONS.map(async ({ name }) => {
+          const link = places.getByRole("link", { name, exact: true });
+          await expect.element(link).toBeVisible();
+          const icon = link.element().querySelector("svg");
+          expect(icon).not.toBeNull();
+          expect(icon?.getAttribute("aria-hidden")).toBe("true");
+          expect(icon?.getAttribute("focusable")).toBe("false");
+          expect(icon?.getBoundingClientRect().width).toBe(24);
+          expect(icon?.getBoundingClientRect().height).toBe(24);
+          expect(icon && getComputedStyle(icon).stroke).toBe(
+            getComputedStyle(link.element()).color,
+          );
+        }),
+      );
       const boxes = places
         .getByRole("link")
         .all()
@@ -389,6 +419,122 @@ describe("use_case_home_atlas", () => {
       headingBox.toJSON(),
     );
   });
+
+  test("keeps the header rectangle and main origin stable from loading to Home", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    const screen = await render(
+      await inSiteFrame(
+        <div className="page-column">
+          <HomeLoading />
+        </div>,
+      ),
+    );
+    const headerBox = page
+      .getByRole("banner")
+      .element()
+      .getBoundingClientRect()
+      .toJSON();
+    const main = page.getByRole("main").element();
+    const { x, y, width } = main.getBoundingClientRect();
+    await screen.rerender(
+      await inSiteFrame(
+        <div className="page-column">
+          <HomeAtlas latestQuest={undefined} />
+        </div>,
+      ),
+    );
+    expect(
+      page.getByRole("banner").element().getBoundingClientRect().toJSON(),
+    ).toEqual(headerBox);
+    expect(main.getBoundingClientRect()).toMatchObject({ x, y, width });
+    // Content height and the inner column differ between loading and Home (#795).
+  });
+
+  test.each(["light", "dark"])(
+    "keeps the HUD background, border and focus identical on both pages in %s mode",
+    async (mode) => {
+      await setViewport(LAPTOP_VIEWPORT);
+      const screen = await render(await cachedPages(true));
+      function hudAppearance(): {
+        background: string;
+        border: string;
+        focus: string;
+      } {
+        const header = page.getByRole("banner").element();
+        const title = page
+          .getByRole("link", { name: SITE_COPY.name })
+          .element();
+        title.focus();
+        const style = getComputedStyle(header);
+        return {
+          background: style.backgroundColor,
+          border: style.borderBottom,
+          focus: getComputedStyle(title).outline,
+        };
+      }
+      const expected = hudAppearance();
+      expect(expected.focus).toContain("3px");
+      applyTheme("parchment", mode);
+      expect(hudAppearance()).toEqual(expected);
+      await screen.rerender(await cachedPages(false));
+      expect(hudAppearance()).toEqual(expected);
+      await screen.rerender(await cachedPages(true));
+      expect(hudAppearance()).toEqual(expected);
+    },
+  );
+
+  test.each([NARROWEST_VIEWPORT, LAPTOP_VIEWPORT])(
+    "updates the map palette and destination text from the menu at $width px",
+    async (viewport) => {
+      await setViewport(viewport);
+      const screen = await render(await cachedPages(true));
+      const places = page.getByRole("navigation", {
+        name: HOME_COPY.placesLabel,
+      });
+      const destination = places.getByRole("link", {
+        name: "Quests",
+        exact: true,
+      });
+      const lightArt = getComputedStyle(document.body).backgroundImage;
+      const lightPaper = getComputedStyle(document.body).backgroundColor;
+      await openMenu();
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+      await closeMenu();
+      const darkPaper = getComputedStyle(document.body).backgroundColor;
+      const darkArt = getComputedStyle(document.body).backgroundImage;
+      expect(wcagLuminance(darkPaper)).toBeLessThan(wcagLuminance(lightPaper));
+      expect(darkArt).not.toBe(lightArt);
+      expect(darkArt).toContain("parchment.webp");
+      const label = getComputedStyle(destination.element());
+      expect(wcagContrast(label.color, darkPaper)).toBeGreaterThanOrEqual(
+        TEXT_CONTRAST,
+      );
+      expect(document.body.scrollWidth).toBeLessThanOrEqual(viewport.width);
+      expect(destinationLinks()).toEqual(DESTINATIONS);
+
+      // Explicit Dark wins even when the browser requests Light.
+      await commands.emulateColorScheme("light");
+      expect(getComputedStyle(document.body).backgroundColor).toBe(darkPaper);
+      await screen.rerender(await cachedPages(false));
+      await screen.rerender(await cachedPages(true));
+      expect(getComputedStyle(document.body).backgroundColor).toBe(darkPaper);
+
+      await openMenu();
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes.system);
+      await closeMenu();
+      expect(getComputedStyle(document.body).backgroundColor).toBe(lightPaper);
+      await commands.emulateColorScheme("dark");
+      expect(getComputedStyle(document.body).backgroundColor).toBe(darkPaper);
+      expect(getComputedStyle(document.body).backgroundImage).toBe(darkArt);
+      await commands.emulateColorScheme("light");
+      expect(getComputedStyle(document.body).backgroundColor).toBe(lightPaper);
+      await openMenu();
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes.light);
+      await closeMenu();
+      await commands.emulateColorScheme("dark");
+      expect(getComputedStyle(document.body).backgroundColor).toBe(lightPaper);
+    },
+  );
 
   test("requires sign-in before reading recent work", async () => {
     signOut();

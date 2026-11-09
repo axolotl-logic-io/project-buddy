@@ -5,12 +5,15 @@ import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { wholeGold } from "@/gold/gold.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -53,6 +56,23 @@ function Breadcrumbs({
         ))}
       </ol>
     </nav>
+  );
+}
+
+// Uses Account's rounding; absence means unavailable, never an empty account.
+function HeaderBalance({
+  microUsd,
+}: {
+  readonly microUsd: number | undefined;
+}): JSX.Element {
+  let amount: string = HEADER_BALANCE_COPY.unavailable;
+  if (microUsd !== undefined) {
+    amount = String(wholeGold(microUsd));
+  }
+  return (
+    <p className="header-balance" role="status">
+      <span>{HEADER_BALANCE_COPY.label}</span> <span>{amount}</span>
+    </p>
   );
 }
 
@@ -128,9 +148,11 @@ async function SignedInLinks({
   if (user === undefined) {
     return <SiteMenu links={null} />;
   }
+  const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
       {place !== undefined && <p className="hud-place">{place}</p>}
+      <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} shortcuts={true} />
       {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
     </>
@@ -162,4 +184,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, Breadcrumbs, SignedInLinks, SiteHeader };
+export { AccountLinks, Breadcrumbs, HeaderBalance, SignedInLinks, SiteHeader };

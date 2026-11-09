@@ -1,15 +1,11 @@
-// The Projects page's "New project" dialog in Chromium and WebKit.
-// "use_case_view_projects" in use-cases/projects.md: the page shows a "New
-// project" button rather than the form; the button opens a modal dialog,
-// named "New project", that takes focus and keeps it, holds the
-// new-quest form with name and motivation fields, and closes with Escape or its close
-// button, giving focus back to the button. Opening and closing it sends nothing.
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { NewProjectDialog } from "@/components/new-project-dialog.tsx";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { userConstructIdFixture } from "../../support/id-fixtures.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
 
 const actions = vi.hoisted(() => ({
@@ -22,11 +18,17 @@ async function renderDialog(): Promise<void> {
 }
 
 function newProjectButton(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("button", { name: PROJECTS_COPY.newHeading });
+  return page.getByRole("button", {
+    name: PROJECTS_COPY.newHeading,
+    exact: true,
+  });
 }
 
 function dialog(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("dialog", { name: PROJECTS_COPY.newHeading });
+  return page.getByRole("dialog", {
+    name: PROJECTS_COPY.newHeading,
+    exact: true,
+  });
 }
 
 // Whether the focused element is inside the open dialog.
@@ -48,11 +50,16 @@ describe("use_case_view_projects", () => {
       .toHaveAttribute("aria-haspopup", "dialog");
     await expect.element(dialog()).not.toBeInTheDocument();
     await expect
-      .element(page.getByRole("button", { name: PROJECTS_COPY.create }))
+      .element(
+        dialog().getByRole("button", {
+          name: PROJECTS_COPY.create,
+          exact: true,
+        }),
+      )
       .not.toBeInTheDocument();
   });
 
-  test("the button opens a named dialog with the name and motivation fields", async () => {
+  test("the button opens a named dialog with the Construct and Why fields", async () => {
     await renderDialog();
 
     await newProjectButton().click();
@@ -60,18 +67,24 @@ describe("use_case_view_projects", () => {
     await expect.element(dialog()).toBeVisible();
     expect(focusInDialog()).toBe(true);
     await expect
-      .element(page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
+      .element(page.getByRole("group", { name: "Construct" }))
       .toBeVisible();
     await expect
-      .element(
-        page.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
-      )
+      .element(page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("textbox", { name: PROJECTS_COPY.whyLabel }))
       .toBeVisible();
     await expect
       .element(page.getByRole("button", { name: "Choose construct" }))
       .not.toBeInTheDocument();
     await expect
-      .element(page.getByRole("button", { name: PROJECTS_COPY.create }))
+      .element(
+        dialog().getByRole("button", {
+          name: PROJECTS_COPY.create,
+          exact: true,
+        }),
+      )
       .toBeVisible();
   });
 
@@ -80,7 +93,10 @@ describe("use_case_view_projects", () => {
     await newProjectButton().click();
     await expect.element(dialog()).toBeVisible();
 
-    page.getByRole("button", { name: PROJECTS_COPY.create }).element().focus();
+    dialog()
+      .getByRole("button", { name: PROJECTS_COPY.create, exact: true })
+      .element()
+      .focus();
     await tabForward();
 
     // Chromium wraps round to the first control; WebKit's Option+Tab keeps
@@ -112,4 +128,45 @@ describe("use_case_view_projects", () => {
     await expect.element(newProjectButton()).toHaveFocus();
     expect(actions.createProjectAction).not.toHaveBeenCalled();
   });
+});
+
+test("Cancel closes without creating a quest", async () => {
+  await renderDialog();
+  await newProjectButton().click();
+  await page.getByRole("button", { name: PROJECTS_COPY.cancel }).click();
+  await expect.element(dialog()).not.toBeInTheDocument();
+  await expect.element(newProjectButton()).toHaveFocus();
+  expect(actions.createProjectAction).not.toHaveBeenCalled();
+});
+
+test("the saved preference and own constructs reach the Start Quest dialog", async () => {
+  const own = { id: userConstructIdFixture(), name: "Pip" };
+  actions.createProjectAction.mockResolvedValue({
+    kind: "invalid",
+    message: "Try again",
+  });
+  await render(
+    <NewProjectDialog
+      choices={{ preferredConstructId: own.id, userConstructs: [own] }}
+    />,
+  );
+  await newProjectButton().click();
+  await expect
+    .element(dialog().getByText(own.name, { exact: true }))
+    .toBeVisible();
+  await dialog()
+    .getByRole("button", { name: PROJECTS_COPY.create, exact: true })
+    .click();
+  await expect
+    .element(dialog().getByText("Try again", { exact: true }))
+    .toBeVisible();
+  const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
+  expect(sent?.get("constructId")).toBe(own.id);
+  // The saved own choice is last; moving forward wraps to the built-in default.
+  await dialog()
+    .getByRole("button", { name: NEW_CHAT_COPY.nextConstruct })
+    .click();
+  await expect
+    .element(dialog().getByText("Vellum", { exact: true }))
+    .toBeVisible();
 });

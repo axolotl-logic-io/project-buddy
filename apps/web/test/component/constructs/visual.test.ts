@@ -78,6 +78,9 @@ test("visual edits survive storage compatibility without changing prepared openi
 
 test("unsafe or future visual metadata falls back without losing conversational text", () => {
   expect(
+    CONSTRUCT_VISUAL.safeParse({ ...GENERATED, description: "" }).success,
+  ).toBe(false);
+  expect(
     CONSTRUCT_VISUAL.safeParse({
       ...GENERATED,
       canonical: {
