@@ -1,0 +1,7 @@
+{
+  "file": "home.trace.json.gz",
+  "sha256": "aeae0cf049aec58de4901a3e2fe8c34ce5669fce036aeb7d38b4249cc732b62a",
+  "framesReviewed": 14,
+  "review": "All frames reviewed as a contact sheet; representative menu and final frames inspected at native resolution. Only synthetic Home/loading/menu content is present. No definition prompt, message body, account identifier or session credential was visible.",
+  "otherTraceScreenshots": 0
+}

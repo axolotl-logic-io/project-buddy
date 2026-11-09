@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 2,
+  "scope": "full",
+  "selection": null,
+  "captureProtocol": "commit-probe-v4",
+  "sourceCommit": "c8dce5343b497433b20396af46b0ea2e95fb7799",
+  "buildId": "PkT8vZ5MahrNg6PMY7tZJ",
+  "samples": 3,
+  "fixture": {
+    "accounts": 3,
+    "quests": 2,
+    "messages": 200,
+    "ownConstructs": 1,
+    "emptyDetailMessages": 0
+  },
+  "browser": "Chrome156.0.8078.4",
+  "puppeteerCore": "24.12.1",
+  "lighthouse": "12.8.2",
+  "hostBefore": {
+    "name": "giffany",
+    "cpuCount": 32,
+    "memoryBytes": 32707588096,
+    "load": [
+      3.47,
+      2.59,
+      2.28
+    ]
+  },
+  "cache": "new browser context per journey/sample; cold direct, warm direct then source→client; server/database not reset between cells",
+  "theme": "parchment/light",
+  "profiles": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "cpuRate": 1,
+      "latency": 0,
+      "download": -1,
+      "upload": -1
+    },
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "cpuRate": 4,
+      "latency": 150,
+      "download": 200000,
+      "upload": 93750
+    }
+  },
+  "probeResolutionMs": 100,
+  "inputCharacters": 42,
+  "networkAttribution": "Completed CDP requests; initiator category only, no stacks or URLs; early means started by primary presence, not essential payload",
+  "minimumWindowMs": 5000,
+  "postControlWindowMs": 2000,
+  "quietWindowMs": 500,
+  "productionAccess": false,
+  "fieldCollection": false,
+  "screenshotPolicy": {
+    "allowedFiles": [
+      "home.trace.json.gz",
+      "stream.trace.json.gz"
+    ],
+    "manualReviewRequired": true
+  },
+  "complete": true,
+  "hostAfter": {
+    "name": "giffany",
+    "cpuCount": 32,
+    "memoryBytes": 32707588096,
+    "load": [
+      1.75,
+      2.18,
+      2.08
+    ]
+  },
+  "diagnosticComplete": false
+}
