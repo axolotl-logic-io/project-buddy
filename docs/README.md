@@ -4,7 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
-- [Batteries](batteries.md): model-use terminology, accounting compatibility and planned purchase surfaces.
+- [Battery purchases](battery-purchases.md): test-mode Stripe Checkout, payment audit, launch blockers and replay.
+- [Batteries](batteries.md): model-use terminology, accounting compatibility and purchase availability.
 
 - [Premade quests](premade-quests.md): the Quest library, editable starting Journals and ordinary quest creation.
 

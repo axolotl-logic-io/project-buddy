@@ -10,6 +10,41 @@
     "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
   },
   "overrides": [
+    // The deterministic Stripe gateway runs one loopback HTTP server per file.
+    {
+      "includes": [
+        "test/component-integration/batteries/checkout.server.test.ts"
+      ],
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
+    },
+
+    // Stripe's wire fields are snake_case. Keep the documented names at
+    // the provider boundary and in its payment fixtures.
+    {
+      "includes": [
+        "src/batteries/purchases.ts",
+        "test/component-integration/batteries/purchases.server.test.ts",
+        "test/component-integration/batteries/checkout.server.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "has_more|unit_amount|adaptive_pricing|automatic_tax|payment_status|amount_total|client_reference_id|payment_intent|allowed_payment_method_types|line_items|success_url|cancel_url|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
     // The overrides below are the only exceptions to the policy. Each covers a
     // pattern that the framework or tool documents as the way to use it, and
     // names the exact files that need it.

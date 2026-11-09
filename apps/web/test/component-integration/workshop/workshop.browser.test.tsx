@@ -5,7 +5,7 @@ import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -195,15 +195,11 @@ test("gold failures preserve the test message for retry", async () => {
   await expect
     .element(page.getByRole("alert"))
     .toHaveTextContent(
-      `${userMessage("out-of-gold")} ${MARKETPLACE_COPY.earnGold}`,
+      `${userMessage("out-of-gold")} ${BATTERY_PURCHASES_COPY.unavailable}`,
     );
   await expect
-    .element(
-      page
-        .getByRole("alert")
-        .getByRole("link", { name: MARKETPLACE_COPY.earnGold }),
-    )
-    .toHaveAttribute("href", "/marketplace#your-listings");
+    .element(page.getByRole("alert").getByRole("link"))
+    .not.toBeInTheDocument();
   await expect
     .element(message())
     .toHaveValue(WORKSHOP_COPY.examples[0].message);
