@@ -85,8 +85,8 @@ interface NavigationWitness {
   readonly url: string;
   readonly sourceTimeOrigin: number;
   readonly auditedTimeOrigin: number;
+  readonly checkedTimeOrigin: number;
   readonly mainFrameUrls: readonly string[];
-  readonly navigationsAfterAudit: number;
   readonly pageUrl: string;
   readonly content: boolean;
 }
@@ -159,7 +159,7 @@ function verifiedNavigation(
   if (
     witness.auditedTimeOrigin <= witness.sourceTimeOrigin ||
     witness.mainFrameUrls.at(-1) !== witness.url ||
-    witness.navigationsAfterAudit !== 0
+    witness.checkedTimeOrigin !== witness.auditedTimeOrigin
   ) {
     throw new Error("Lighthouse did not navigate the checked tab");
   }

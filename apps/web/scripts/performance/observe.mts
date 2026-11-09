@@ -231,7 +231,7 @@ type StateContent =
   | { check: "fixture-link"; href: string }
   | { check: "message-count"; label: string; count: number }
   | { check: "no-owned-entities" }
-  | { check: "listed-activities" }
+  | { check: "built-in-activities-only" }
   | { check: "edited-prompt"; ending: string };
 function statePresent(expected: StateContent): boolean {
   const IdLength = 36;
@@ -257,9 +257,14 @@ function statePresent(expected: StateContent): boolean {
   if (expected.check === "no-owned-entities") {
     return !links.some((link) => owned(link.getAttribute("href") ?? ""));
   }
-  if (expected.check === "listed-activities") {
-    return links.some((link) =>
-      (link.getAttribute("href") ?? "").startsWith("/activities/"),
+  if (expected.check === "built-in-activities-only") {
+    // Built-in cards offer a new-adventure dialog; only own ones link to
+    // their editor.
+    return (
+      document.querySelector('main button[aria-haspopup="dialog"]') !== null &&
+      !links.some((link) =>
+        (link.getAttribute("href") ?? "").startsWith("/activities/"),
+      )
     );
   }
   const prompt = document.querySelector('textarea[name="prompt"]');

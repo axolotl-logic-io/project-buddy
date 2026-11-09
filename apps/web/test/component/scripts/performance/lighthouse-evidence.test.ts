@@ -77,7 +77,7 @@ describe("a Lighthouse navigation is evidence only for the tab it audited", () =
     for (const witness of [
       { ...navigationWitness(HOME), auditedTimeOrigin: 1000 },
       { ...navigationWitness(HOME), mainFrameUrls: [] },
-      { ...navigationWitness(HOME), navigationsAfterAudit: 1 },
+      { ...navigationWitness(HOME), checkedTimeOrigin: 3000 },
     ]) {
       expect(() =>
         verifiedNavigation(
