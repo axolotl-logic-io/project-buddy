@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
+import { cache } from "react";
 import {
   getOwnActivity,
   type OwnActivity,
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { measureServerOperation } from "@/performance/server-spans.ts";
 import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
@@ -144,6 +146,9 @@ function OwnActivityForm({
   );
 }
 
+// Shared only within one React server request; acting user remains part of the key.
+const readOwnDefinition = cache(getOwnActivity);
+
 export async function generateMetadata({
   params,
 }: PageProps<"/activities/[activityId]">): Promise<Metadata> {
@@ -153,7 +158,11 @@ export async function generateMetadata({
   if (isActivityId(activityId)) {
     ({ name } = getActivity(activityId));
   } else {
-    name = (await getOwnActivity(user.id, activityId))?.name;
+    name = (
+      await measureServerOperation("activity-metadata", () =>
+        readOwnDefinition(user.id, activityId),
+      )
+    )?.name;
   }
   return { title: pageTitle(name ?? "Activity") };
 }
@@ -165,8 +174,8 @@ export default async function ActivityPage({
   const { activityId } = await params;
   const { saved } = await searchParams;
   const user = await requireUser();
-  const options = await workshopOptions(user.id);
   if (isActivityId(activityId)) {
+    const options = await workshopOptions(user.id);
     const activity = getActivity(activityId);
     const [chatChoices, questChoices] = await Promise.all([
       newChatChoices(user.id),
@@ -194,7 +203,12 @@ export default async function ActivityPage({
       </Workshop>
     );
   }
-  const activity = await getOwnActivity(user.id, activityId);
+  const [activity, options] = await Promise.all([
+    measureServerOperation("activity-data", () =>
+      readOwnDefinition(user.id, activityId),
+    ),
+    workshopOptions(user.id),
+  ]);
   if (activity === undefined) {
     const retired = await getRetiredDefinition(user.id, activityId);
     if (retired?.kind === "activity") {

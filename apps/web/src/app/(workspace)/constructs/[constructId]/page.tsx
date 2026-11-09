@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
+import { cache } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
@@ -20,6 +21,7 @@ import {
   isConstructId,
 } from "@/constructs/index.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 import {
@@ -166,6 +168,9 @@ function OwnConstructForm({
   );
 }
 
+// Shared only within one React server request; acting user remains part of the key.
+const readOwnDefinition = cache(getOwnConstruct);
+
 export async function generateMetadata({
   params,
 }: PageProps<"/constructs/[constructId]">): Promise<Metadata> {
@@ -175,7 +180,11 @@ export async function generateMetadata({
   if (isConstructId(constructId)) {
     ({ name } = getConstruct(constructId));
   } else {
-    name = (await getOwnConstruct(user.id, constructId))?.name;
+    name = (
+      await measureServerOperation("construct-metadata", () =>
+        readOwnDefinition(user.id, constructId),
+      )
+    )?.name;
   }
   return { title: pageTitle(name ?? "Construct") };
 }
@@ -187,8 +196,8 @@ export default async function ConstructPage({
   const { constructId } = await params;
   const { saved } = await searchParams;
   const user = await requireUser();
-  const options = await workshopOptions(user.id);
   if (isConstructId(constructId)) {
+    const options = await workshopOptions(user.id);
     const construct = getConstruct(constructId);
     return (
       <Workshop
@@ -206,7 +215,12 @@ export default async function ConstructPage({
       </Workshop>
     );
   }
-  const construct = await getOwnConstruct(user.id, constructId);
+  const [construct, options] = await Promise.all([
+    measureServerOperation("construct-data", () =>
+      readOwnDefinition(user.id, constructId),
+    ),
+    workshopOptions(user.id),
+  ]);
   if (construct === undefined) {
     const retired = await getRetiredDefinition(user.id, constructId);
     if (retired?.kind === "construct") {
