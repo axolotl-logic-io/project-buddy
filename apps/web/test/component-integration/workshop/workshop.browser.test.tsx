@@ -234,9 +234,13 @@ test.each([WORKSHOP_COPY.fresh, WORKSHOP_COPY.cancel])(
   "%s stops waiting and announces the possible spend",
   async (label) => {
     const completed = Promise.withResolvers<Response>();
+    let signal: AbortSignal | null | undefined;
     vi.stubGlobal(
       "fetch",
-      vi.fn(() => completed.promise),
+      vi.fn((_url: string, init: RequestInit): Promise<Response> => {
+        ({ signal } = init);
+        return completed.promise;
+      }),
     );
     await show();
     await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
