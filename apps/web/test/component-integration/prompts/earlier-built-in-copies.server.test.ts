@@ -253,8 +253,22 @@ test("an edited copy put back to a built-in one's text is stored in the earlier 
 });
 
 test("an unchanged named-heading copy reads as today's built-in one, can't be listed and keeps its prepared openings", async () => {
-  const { vellum: namedConstruct } = NAMED_SHEET_BUILT_INS.constructs;
-  const { interview: namedActivity } = NAMED_SHEET_BUILT_INS.activities;
+  const namedConstruct = Object.entries(NAMED_SHEET_BUILT_INS.constructs).find(
+    ([id]) => id === "vellum",
+  )?.[1];
+  const namedActivity = Object.entries(NAMED_SHEET_BUILT_INS.activities).find(
+    ([id]) => id === "interview",
+  )?.[1];
+  const namedSpell = Object.entries(NAMED_SHEET_BUILT_INS.spells).find(
+    ([id]) => id === "blender-manual-lookup",
+  )?.[1];
+  if (
+    namedConstruct === undefined ||
+    namedActivity === undefined ||
+    namedSpell === undefined
+  ) {
+    throw new Error("The named built-in definitions were not recorded");
+  }
   const { id: owner } = await testUser();
   const vellumId = await earlierRow(owner, "buddy", "vellum", {
     voice: namedConstruct.prompt,
@@ -265,8 +279,8 @@ test("an unchanged named-heading copy reads as today's built-in one, can't be li
     openingKickoff: namedActivity.openingRequest,
   });
   const blenderId = await earlierRow(owner, "spell", "blender-manual-lookup", {
-    whenToUse: NAMED_SHEET_BUILT_INS.spells["blender-manual-lookup"].whenToUse,
-    instructions: NAMED_SHEET_BUILT_INS.spells["blender-manual-lookup"].prompt,
+    whenToUse: namedSpell.whenToUse,
+    instructions: namedSpell.prompt,
   });
 
   const vellum = await getOwnConstruct(owner, vellumId);

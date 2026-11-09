@@ -1,14 +1,11 @@
 // Canonical definitions before generic sheet headings (#778). Keep these texts unchanged.
-import type { ActivityDefinition, ActivityId } from "@/activities/activity.ts";
-import type {
-  ConstructDefinition,
-  ConstructId,
-} from "@/constructs/construct.ts";
-import type { SpellDefinition, SpellId } from "@/spells/spell.ts";
+import type { ActivityDefinition } from "@/activities/activity.ts";
+import type { ConstructDefinition } from "@/constructs/construct.ts";
+import type { SpellDefinition } from "@/spells/spell.ts";
 export const NAMED_SHEET_BUILT_INS: {
-  readonly constructs: Readonly<Record<ConstructId, ConstructDefinition>>;
-  readonly activities: Readonly<Record<ActivityId, ActivityDefinition>>;
-  readonly spells: Readonly<Record<SpellId, SpellDefinition>>;
+  readonly constructs: Readonly<Record<string, ConstructDefinition>>;
+  readonly activities: Readonly<Record<string, ActivityDefinition>>;
+  readonly spells: Readonly<Record<string, SpellDefinition>>;
 } = {
   constructs: {
     vellum: {

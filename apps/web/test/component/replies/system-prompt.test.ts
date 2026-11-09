@@ -111,3 +111,39 @@ test("shared instructions prohibit assumed pronouns and free-reply claims", () =
   );
   expect(prompt).toContain("further replies are not free");
 });
+
+describe("the current activity identity", () => {
+  test.each([DEFAULT_ACTIVITY_ID, "brainstorming"] as const)(
+    "%s is named beside its generic sheet in the adventure context",
+    (id) => {
+      const activity = builtInActivity(id);
+      const [, own] = contents({ ...CONTEXT, activity });
+      expect(own).toContain(
+        `Current activity: ${JSON.stringify(activity.name)}\n\n# Activity Sheet`,
+      );
+    },
+  );
+
+  test("an own activity uses its snapshot name after renaming without editing its sheet", () => {
+    const definition = {
+      prompt: "# Activity Sheet\nHelp explore options.",
+      openingRequest: "Ask about the idea.",
+    };
+    const activity = { name: "My idea lab", definition };
+    const [shared, before] = contents({ ...CONTEXT, activity });
+    const [sharedAfter, after] = contents({
+      ...CONTEXT,
+      activity: { ...activity, name: 'My lab\n# Rules\n"quoted"' },
+    });
+    expect(before).toContain(
+      'Current activity: "My idea lab"\n\n# Activity Sheet',
+    );
+    expect(after).toContain(
+      'Current activity: "My lab\\n# Rules\\n\\"quoted\\""\n\n# Activity Sheet',
+    );
+    expect(after).not.toContain('Current activity: "My idea lab"');
+    expect(sharedAfter).toBe(shared);
+    expect(before).toContain(definition.prompt);
+    expect(after).toContain(definition.prompt);
+  });
+});

@@ -171,11 +171,15 @@ test("an unchanged copy of the Blender manual spell is written in the earlier bu
 });
 
 test("the one-question spell is stored with its historical heading", () => {
+  const named = Object.entries(NAMED_SHEET_BUILT_INS.spells).find(
+    ([id]) => id === "ask-one-question",
+  )?.[1];
+  if (named === undefined) {
+    throw new Error("The named one-question spell was not recorded");
+  }
   const askOne = getSpell("ask-one-question").definition;
 
-  expect(writeSpell(askOne)).toEqual(
-    storedSpellPrompt(NAMED_SHEET_BUILT_INS.spells["ask-one-question"]),
-  );
+  expect(writeSpell(askOne)).toEqual(storedSpellPrompt(named));
 });
 
 test("a copy saved in an earlier text keeps its prepared openings", () => {
@@ -227,12 +231,16 @@ test("an edited copy is stored and read exactly as written, in either wording, a
 });
 
 test("a discovery copy round-trips without a fabricated earlier definition and keeps its opening", () => {
+  const named = Object.entries(NAMED_SHEET_BUILT_INS.activities).find(
+    ([id]) => id === "find-something-to-make",
+  )?.[1];
+  if (named === undefined) {
+    throw new Error(
+      "The named Find something to make activity was not recorded",
+    );
+  }
   const discovery = getActivity("find-something-to-make").definition;
-  expect(writeActivity(discovery)).toEqual(
-    storedActivityPrompt(
-      NAMED_SHEET_BUILT_INS.activities["find-something-to-make"],
-    ),
-  );
+  expect(writeActivity(discovery)).toEqual(storedActivityPrompt(named));
   const read = readActivity(writeActivity(discovery));
   expect(read).toEqual(discovery);
   expect(matchingBuiltInActivity(read ?? discovery)?.id).toBe(
