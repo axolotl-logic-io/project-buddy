@@ -1,0 +1,7 @@
+{
+  "file": "home.trace.json.gz",
+  "sha256": "7ec77e3d716bd83ad96ea5b136e4d85cd3a45ee99e16c16c9a9596416dd52111",
+  "framesReviewed": 19,
+  "review": "All 19 frames reviewed as a contact sheet; the first atlas, menu-opening and menu-open frames inspected at native resolution. Only a blank first frame, loading skeletons, the Home atlas with the synthetic quest name, the battery balance and the site menu are present. No definition prompt, message body, account identifier or session credential was visible.",
+  "otherTraceScreenshots": 0
+}

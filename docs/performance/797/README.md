@@ -110,3 +110,40 @@ The smoke ran one Lighthouse sample against a throwaway build. It was a pre-flig
 The first corrected invocation used clean source `9a3b231f90deb8c0b1503ca32704205c05e711a0`, production build `B8rBwMYULlijrBg6DRi5S`, with tools and fixture counts read from the installation and seed. It retained nine observations (populated desktop Home, all samples and modes) and the Home trace, then stopped at populated desktop Quests, sample 1, cold direct: phase `state-content`, kind `content-absent`. No Lighthouse run or final validation occurred. Cleanup reset the isolated database, closed port 36769 and removed private fixture directories. The [failure record](attempt-4.failure.json) is retained.
 
 The check was wrong, not the page. The Quests probe confirms readiness by selecting the second status tab, so after observation the page correctly shows that tab, not the active quest. The pre-flight smoke loaded each page without running probes, so it could not catch this. The Quests check now runs before the probe, as the editor's already did, because both probes change what the page shows. Every other probe opens and closes a menu or dialog or types into the composer, leaving the checked content in place. This attempt is not retried as a measurement; the next invocation records its own source and build.
+
+## Corrected cohort
+
+The [corrected audit](corrected/manifest.json) completed once at clean source `782210baecd5b5ce493d1e0aa6ecffb14d8d2514`, production build `EsiYBEB-wlJ-cTqSlnkBH`, with exit 0. That source contains integration `48649a73`, including #796's renderer runtime. It used Chrome 156.0.8078.4, root puppeteer-core 24.12.1, Lighthouse 12.8.2 and its nested puppeteer-core 24.43.1. The fixture had 3 accounts, 2 quests, 200 messages and 1 own construct.
+
+- **Readiness**: 270 of 270 v5 observations, three per cell. Every row passed its state content check: 108 fixture links, 72 empty accounts without owned entities, 36 exact message counts, 36 built-in-only Activities pages and 18 edited prompts. All 270 have a geometry-quiet final 500 ms.
+- **Traces**: eight sanitized traces. Home holds 19 Screenshot frames and the other seven hold none. All 19 frames were reviewed manually: a blank first frame, loading skeletons, the Home atlas with the synthetic quest, the battery balance and the site menu. No prompt, message, identifier or credential was visible. The [review record](corrected/filmstrip-review.json) binds that review to the trace's hash.
+- **Lighthouse**: six navigations (Home and the long adventure, three samples each) and three Home-to-Quests timespans. Every report is verified as the same tab or same document with its content. All six navigation CLS values are 0, and so are all three flow CLS values; the pre-fix cohort's 0.0538 flow CLS does not recur once the emulation is applied before the source loads. That supports, but does not prove, the emulation explanation. Navigation and timespan results are lab values, not field INP or percentiles.
+- **Validation**: `audit:validate` passed on the run's output and passes in the repository test on the committed files. It covers the gzip cohort, the strict manifest, the reproduced summary and every Lighthouse report.
+
+Cleanup reset the isolated database, closed port 36769 and removed private fixture directories. This one corrected cohort supersedes the pre-fix Lighthouse reports. It is not a before/after experiment, a product improvement or a regression verdict.
+
+### Prefetch storm at the corrected source
+
+The burst tracked in [#819](https://github.com/axolotl-logic-io/project-buddy/issues/819) persists at this source. 79,428 of 91,473 completed requests (86.8%) belong to 23 of 270 rows, all desktop: empty Workshop 9 of 9, populated Workshop 8 of 9, empty-detail quest 5 of 9 and populated quest 1 of 9, across all cache modes. Each affected row has 2,834–3,762 requests and 8.9–12.0 MB, nearly all prefetches of `/workshop` (57,798) or the categorical `/other` (20,753). Bursts start 127–208 ms after the dialog probe confirms and closes, and run until the window ends. Phone rows have 33–79 requests (median 47); other desktop rows 32–134 (median 45).
+
+Per-cell ranges from [the summary](corrected/summary.json) for the cells where any row had more than 150 requests or was still starting requests in the final 500 ms:
+
+| Cell | Requests min / median / max | Prefetch min–max | MB min–max | Rows starting requests in final 500 ms |
+| --- | --- | --- | --- | --- |
+| populated desktop quest, client | 49 / 49 / 3,073 | 11–3,035 | 0.13–9.09 | 1 |
+| populated desktop Workshop, cold | 2,834 / 3,291 / 3,425 | 2,800–3,391 | 8.87–10.63 | 3 |
+| populated desktop Workshop, warm | 3,452 / 3,511 / 3,559 | 3,418–3,525 | 10.29–10.61 | 3 |
+| populated desktop Workshop, client | 134 / 3,520 / 3,578 | 81–3,538 | 1.18–11.50 | 2 |
+| empty desktop Workshop, cold | 3,041 / 3,363 / 3,393 | 3,011–3,363 | 9.47–10.52 | 3 |
+| empty desktop Workshop, warm | 3,373 / 3,650 / 3,656 | 3,343–3,627 | 10.07–10.92 | 3 |
+| empty desktop Workshop, client | 3,481 / 3,617 / 3,748 | 3,446–3,713 | 11.21–12.01 | 3 |
+| empty-detail desktop quest, cold | 42 / 43 / 3,328 | 10–3,296 | 0.50–10.23 | 1 |
+| empty-detail desktop quest, warm | 46 / 3,379 / 3,689 | 14–3,658 | 0.08–10.88 | 2 |
+| empty-detail desktop quest, client | 49 / 3,705 / 3,762 | 11–3,724 | 0.13–11.13 | 2 |
+| populated phone Workshop, cold | 46 / 46 / 54 | 12–20 | 0.51–0.54 | 1 |
+| empty phone Workshop, cold | 48 / 48 / 49 | 18–19 | 0.50–0.50 | 3 |
+| empty phone Workshop, warm | 63 / 63 / 63 | 33–33 | 0.15–0.15 | 3 |
+| empty phone Workshop, client | 71 / 71 / 71 | 34–34 | 1.00–1.00 | 3 |
+| empty-detail phone quest, client | 56 / 57 / 79 | 17–41 | 0.14–0.19 | 1 |
+
+Phone Workshop rows still start a few requests in the final 500 ms without a burst. The cause stays unknown and #819 owns it; this tooling change makes no product fix.
