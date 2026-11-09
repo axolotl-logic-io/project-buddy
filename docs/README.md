@@ -4,6 +4,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Library](library.md): in-site learning books, model-input source map and content maintenance.
 - [Battery purchases](battery-purchases.md): test-mode Stripe Checkout, payment audit, launch blockers and replay.
 - [Batteries](batteries.md): model-use terminology, accounting compatibility and purchase availability.
 
