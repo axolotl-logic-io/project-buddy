@@ -10,10 +10,15 @@ def union(intervals):
 
 def length(intervals):return sum(b-a for a,b in union(intervals))
 
+root=Path(__file__).resolve().parent
+if root.name=='recipes':root=root.parent
+metadata={}
+if (root/'trace-metadata.json.gz').exists():metadata={m['variant']:m for m in json.loads(gzip.decompress((root/'trace-metadata.json.gz').read_bytes()))}
 rows=[]
 for variant in ['before','renderer']:
- meta=json.loads(Path(f'/tmp/pb-796/{variant}-cold-metadata.json').read_text())
- data=json.loads(gzip.decompress(Path(f'/tmp/pb-796/{variant}-cold.trace.json.gz').read_bytes()))
+ meta=metadata.get(variant)
+ if meta is None:meta=json.loads((root/f'{variant}-cold-metadata.json').read_text())
+ data=json.loads(gzip.decompress((root/f'{variant}-cold.trace.json.gz').read_bytes()))
  candidates={(x['pid'],x['tid']) for x in meta['mainThreads']};counts={key:sum(e['name']=='EventDispatch' and (e['pid'],e['tid'])==key for e in data['traceEvents']) for key in candidates};active=max(counts,key=counts.get);main={active};origin=meta['traceOrigin']*1000
  intervals={key:[] for key in ['script','layoutStyle','paint','events']}
  for e in data['traceEvents']:
@@ -26,5 +31,5 @@ for variant in ['before','renderer']:
   if e['name']=='EventDispatch':intervals['events'].append((start,end))
  row={'variant':variant,'buildId':meta['buildId'],'windowMs':8000,'diagnosticSamples':1,'activeRenderer':{'pid':active[0],'tid':active[1]},'selection':'most-event-dispatches','traceOrigin':meta['traceOrigin'],'coverageMs':{k:round(length(v),3) for k,v in intervals.items()}}
  rows.append(row)
-Path('/tmp/pb-796/attribution.json').write_text(json.dumps(rows,indent=2))
+(root/'attribution.json').write_text(json.dumps(rows,indent=2))
 print(json.dumps(rows,indent=2))
