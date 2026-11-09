@@ -1,4 +1,4 @@
-// The activities page's New activity button, with her own activities and
+// The activities page's Craft activity button, with her own activities and
 // with none: it sits among her own, follows the built-in activities in
 // keyboard order, and Enter crafts a new activity.
 import { beforeEach, expect, test, vi } from "vitest";
@@ -38,7 +38,7 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn<typeof startChatAction>(),
 }));
 
-// Listing exposes these actions; only New activity is submitted, from the
+// Listing exposes these actions; only Craft activity is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),

@@ -28,7 +28,7 @@ vi.mock(
 vi.mock("@/constructs/construct-store.ts", () => ({
   listConstructs: vi.fn<typeof listConstructs>(),
 }));
-// Listing exposes these actions; only New construct is submitted, from the
+// Listing exposes these actions; only Craft construct is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   cloneConstructAction: vi.fn(),
@@ -306,13 +306,13 @@ test("crafting a construct is distinct from starting with an own construct named
     name: CONSTRUCTS_COPY.startLabel("New construct"),
     exact: true,
   });
-  const write = own.getByRole("button", {
+  const craft = own.getByRole("button", {
     name: "Craft construct",
     exact: true,
   });
   await expect.element(start).toBeVisible();
-  await expect.element(write).toBeVisible();
+  await expect.element(craft).toBeVisible();
   expect(start.element().getAttribute("aria-haspopup")).toBe("dialog");
-  expect(write.element()).toHaveAttribute("type", "submit");
-  expect(write.element().textContent).not.toBe(start.element().textContent);
+  expect(craft.element()).toHaveAttribute("type", "submit");
+  expect(craft.element().textContent).not.toBe(start.element().textContent);
 });
