@@ -1,109 +1,118 @@
 import Link from "next/link";
 import type { JSX } from "react";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { LIBRARY_COPY, type LibraryBook } from "@/ui/copy/library.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 
 function LibraryIndex(): JSX.Element {
-  return (
-    <>
-      <h1 className="page-heading">{LIBRARY_COPY.heading}</h1>
-      <p>{LIBRARY_COPY.intro}</p>
-      <ul className="flex min-w-0 flex-col gap-4">
-        {LIBRARY_COPY.books.map((book) => (
-          <li className="card min-w-0" key={book.id}>
-            <h2 className="section-heading">
-              <Link
-                className="inline-flex min-h-(--target-size) items-center text-link"
-                href={`/library/${book.id}`}
-              >
-                {book.title}
-              </Link>
-            </h2>
-            <p>{book.intro}</p>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
+  const [book] = LIBRARY_COPY.books;
+  if (book === undefined) {
+    return (
+      <PageWorkspace title={LIBRARY_COPY.heading} intro={LIBRARY_COPY.intro}>
+        <div />
+      </PageWorkspace>
+    );
+  }
+  return <LibraryReader book={book} index={true} />;
 }
 
-function LibraryReader({ book }: { readonly book: LibraryBook }): JSX.Element {
+function LibraryReader({
+  book,
+  index = false,
+}: {
+  readonly book: LibraryBook;
+  readonly index?: boolean;
+}): JSX.Element {
+  let { title } = book;
+  if (index === true) {
+    title = LIBRARY_COPY.heading;
+  }
   return (
-    <article className="flex min-w-0 flex-col gap-4 break-words">
-      <Link
-        className="inline-flex min-h-(--target-size) items-center text-link"
-        href="/library"
-      >
-        {LIBRARY_COPY.heading}
-      </Link>
-      <h1 className="page-heading">{book.title}</h1>
-      <p>{book.intro}</p>
-      <nav aria-label={LIBRARY_COPY.contents}>
-        <h2 className="section-heading">{LIBRARY_COPY.contents}</h2>
-        <ol className="flex flex-col gap-2">
-          {book.chapters.map((chapter) => (
-            <li key={chapter.id}>
+    <PageWorkspace title={title} intro={book.intro}>
+      <nav className="workspace-rail" aria-label={WORKSPACES_COPY.books}>
+        <div className="workspace-tablist">
+          {LIBRARY_COPY.books.map((candidate) => {
+            let current: "page" | undefined;
+            if (candidate.id === book.id) {
+              current = "page";
+            }
+            return (
               <Link
-                className="inline-flex min-h-(--target-size) items-center text-link"
-                href={`#${chapter.id}`}
+                className="workspace-tab"
+                aria-current={current}
+                key={candidate.id}
+                href={`/library/${candidate.id}`}
               >
-                {chapter.title}
+                {candidate.title}
               </Link>
-            </li>
-          ))}
-        </ol>
+            );
+          })}
+        </div>
       </nav>
-      {book.chapters.map((chapter) => (
-        <section
-          className="flex min-w-0 flex-col gap-3"
-          aria-labelledby={chapter.id}
-          key={chapter.id}
-        >
-          <h2 className="section-heading" id={chapter.id} tabIndex={-1}>
-            {chapter.title}
-          </h2>
-          {chapter.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-          {chapter.links.length > 0 && (
-            <ul className="flex flex-col gap-2">
-              {chapter.links.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    className="inline-flex min-h-(--target-size) items-center text-link"
-                    href={link.href}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ))}
-      <Link
-        className="inline-flex min-h-(--target-size) items-center text-link"
-        href={book.action.href}
-      >
-        {book.action.label}
-      </Link>
-      <nav aria-label={LIBRARY_COPY.related}>
-        <h2 className="section-heading">{LIBRARY_COPY.related}</h2>
-        <ul className="flex flex-col gap-2">
-          {LIBRARY_COPY.books
-            .filter((related) => related.id !== book.id)
-            .map((related) => (
-              <li key={related.id}>
-                <Link
-                  className="inline-flex min-h-(--target-size) items-center text-link"
-                  href={`/library/${related.id}`}
-                >
-                  {related.title}
+      <article className="workspace-reader break-words">
+        <nav className="workspace-chapters" aria-label={LIBRARY_COPY.contents}>
+          <h2 className="section-heading">{LIBRARY_COPY.contents}</h2>
+          <ol className="flex flex-col gap-2">
+            {book.chapters.map((chapter) => (
+              <li key={chapter.id}>
+                <Link className="back-link" href={`#${chapter.id}`}>
+                  {chapter.title}
                 </Link>
               </li>
             ))}
-        </ul>
-      </nav>
-    </article>
+          </ol>
+        </nav>
+        <div className="workspace-reading">
+          {book.chapters.map((chapter) => (
+            <section
+              className="flex min-w-0 flex-col gap-3"
+              aria-labelledby={chapter.id}
+              key={chapter.id}
+            >
+              <h2 className="section-heading" id={chapter.id} tabIndex={-1}>
+                {chapter.title}
+              </h2>
+              {chapter.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+              {chapter.links.length > 0 && (
+                <ul className="flex flex-col gap-2">
+                  {chapter.links.map((link) => (
+                    <li key={link.href}>
+                      <Link className="back-link" href={link.href}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+          <Link className="back-link" href={book.action.href}>
+            {book.action.label}
+          </Link>
+          {index !== true && (
+            <nav aria-label={LIBRARY_COPY.related}>
+              <h2 className="section-heading">{LIBRARY_COPY.related}</h2>
+              <ul className="flex flex-col gap-2">
+                {LIBRARY_COPY.books
+                  .filter((related) => related.id !== book.id)
+                  .map((related) => (
+                    <li key={related.id}>
+                      <Link
+                        className="back-link"
+                        href={`/library/${related.id}`}
+                      >
+                        {related.title}
+                      </Link>
+                    </li>
+                  ))}
+              </ul>
+            </nav>
+          )}
+        </div>
+      </article>
+    </PageWorkspace>
   );
 }
 

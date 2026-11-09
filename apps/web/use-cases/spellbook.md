@@ -2,6 +2,8 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
+Spellbook groups Built-in, Yours and Retired spells into underlined tabs. Craft spell stays in the page heading. Retired spells retain their restore and delete controls. Workshop keeps its existing list and editor layouts.
+
 A spell is a set of instructions the construct loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every adventure's instructions list her spells by name and when-to-use line, and the construct casts a spell when it fits, which gives it the spell's instructions. The site has two built-in spells:
 
 - **Ask one question at a time:** the construct interviews her step by step, one short question per message.
