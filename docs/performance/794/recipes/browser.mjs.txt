@@ -1,0 +1,30 @@
+import puppeteer from '/tmp/pb-773-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js';
+import {readFile,writeFile} from 'node:fs/promises';
+import {loadavg,cpus} from 'node:os';
+import {globSync} from 'node:fs';
+const s=JSON.parse(await readFile('/tmp/pb-794/session.json','utf8'));
+const executablePath=globSync('/home/bestieboots/.cache/ms-playwright/chromium-*/chrome-linux64/chrome').at(-1);
+if(!executablePath)throw Error('browser missing');
+const browser=await puppeteer.launch({executablePath,headless:true,args:['--no-sandbox']});
+const rows=[];
+try{
+for(let sample=1;sample<=13;sample++)for(const profile of ['desktop','phone'])for(const [name,path,selector] of [['home','/home','.atlas-continue'],['editor',`/constructs/${s.construct}`,'textarea']])for(const variant of sample%2?['before','after']:['after','before']){
+const port=variant==='before'?37601:37602;const base=`http://localhost:${port}`;
+const context=await browser.createBrowserContext();const page=await context.newPage();
+await page.setViewport(profile==='phone'?{width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:1}:{width:1440,height:900,deviceScaleFactor:1});
+await page.evaluateOnNewDocument(()=>{ window.__audit={}; const observe=()=>{for(const [name,selector] of [['shellMs','header.site-header'],['primaryMs','textarea,.atlas-continue']])if(window.__audit[name]===undefined&&document.querySelector(selector))window.__audit[name]=performance.now();};new MutationObserver(observe).observe(document,{childList:true,subtree:true}); });
+await page.emulateMediaFeatures([{name:'prefers-color-scheme',value:'light'}]);
+await context.setCookie({name:'session',value:s.populated,url:base});
+const cdp=await page.createCDPSession();await cdp.send('Emulation.setCPUThrottlingRate',{rate:profile==='phone'?4:1});await cdp.send('Network.enable');if(profile==='phone')await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:1600000/8,uploadThroughput:750000/8});
+for(const cache of ['cold','warm']){
+const rawBefore=await readFile(`/tmp/pb-794/${variant}-server.log`,'utf8');const hostLoad=loadavg();
+const response=await page.goto(base+path,{waitUntil:'load',timeout:30000});if(!response?.ok())throw Error('non2xx');await page.waitForSelector(selector,{timeout:30000});
+// Fixed capture window, not deterministic test synchronization.
+await new Promise(r=>setTimeout(r,2000));
+const metrics=await page.evaluate((sel)=>{const n=performance.getEntriesByType('navigation')[0];return {...window.__audit,headersMs:n.responseStart,requestToHeadersMs:n.responseStart-n.requestStart,documentCompleteMs:n.responseEnd,domContentLoadedMs:n.domContentLoadedEventEnd,primaryPresent:!!document.querySelector(sel),resources:performance.getEntriesByType('resource').map(r=>({kind:r.initiatorType,startTime:r.startTime,duration:r.duration,transferSize:r.transferSize}))};},selector);
+const rawAfter=await readFile(`/tmp/pb-794/${variant}-server.log`,'utf8');const spans=rawAfter.slice(rawBefore.length).split('\n').filter(x=>x.startsWith('[server-span] ')).map(x=>JSON.parse(x.slice(14)));
+rows.push({sample,phase:sample<=3?'initial':'confirmation',profile,name,variant,cache,hostLoad,logicalCpus:cpus().length,...metrics,spans});await writeFile('/tmp/pb-794/browser.json',JSON.stringify({browser:await browser.version(),rows},null,2));
+}
+await context.close();console.log(sample,profile,name,variant);
+}
+}finally{await browser.close();}

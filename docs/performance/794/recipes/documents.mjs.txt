@@ -1,0 +1,8 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {loadavg} from 'node:os';
+const s=JSON.parse(await readFile('/tmp/pb-794/session.json','utf8'));const rows=[];
+const routes=[['home','/home','class="atlas-continue"'],['editor',`/constructs/${s.construct}`,'<textarea']];
+for(let sample=1;sample<=13;sample++)for(const [name,path,primary] of routes)for(const variant of sample%2?['before','after']:['after','before']){
+const log=`/tmp/pb-794/${variant}-server.log`;const rawBefore=await readFile(log,'utf8');const hostLoad=loadavg();const start=performance.now();const response=await fetch(`http://localhost:${variant==='before'?37601:37602}${path}`,{headers:{cookie:`session=${s.populated}`},redirect:'manual'});const headersMs=performance.now()-start;if(!response.ok)throw Error('non2xx');let tail='',shellMarkupMs=null,primaryMarkupMs=null;const decoder=new TextDecoder();for await(const chunk of response.body){const text=tail+decoder.decode(chunk,{stream:true});if(shellMarkupMs===null&&text.includes('<header class="site-header"'))shellMarkupMs=performance.now()-start;if(primaryMarkupMs===null&&text.includes(primary))primaryMarkupMs=performance.now()-start;tail=text.slice(-250);}const completeMs=performance.now()-start;
+const after=await readFile(log,'utf8');const spans=after.slice(rawBefore.length).split('\n').filter(x=>x.startsWith('[server-span] ')).map(x=>JSON.parse(x.slice(14)));rows.push({sample,phase:sample<=3?'initial':'confirmation',name,variant,hostLoad,headersMs,shellMarkupMs,primaryMarkupMs,completeMs,spans});await writeFile('/tmp/pb-794/documents.json',JSON.stringify(rows,null,2));
+}

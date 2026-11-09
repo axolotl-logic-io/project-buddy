@@ -22,6 +22,11 @@ import {
 } from "../../../auth/current-user-test-kit.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
+vi.mock(
+  "next/navigation",
+  () => import("../../../components/router-test-kit.ts"),
+);
+
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],

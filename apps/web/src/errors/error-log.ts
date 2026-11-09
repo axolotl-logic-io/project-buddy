@@ -11,6 +11,7 @@ import {
   databaseErrorDetails,
   describeDatabaseQuery,
 } from "@/errors/neon-errors.ts";
+import type { ServerSpan } from "@/performance/server-spans.ts";
 
 type ErrorDetails = Readonly<Record<string, unknown>>;
 
@@ -266,4 +267,10 @@ export interface ModelCallSpend {
 // made the call.
 export function logModelCallSpend(spend: ModelCallSpend): void {
   console.info("[model-call-spend]", JSON.stringify(spend));
+}
+
+// Only the local opt-in recorder calls this. Never include operation input,
+// results, errors, SQL, session data or request identifiers in audit output.
+export function logServerSpan(span: ServerSpan): void {
+  console.info("[server-span]", JSON.stringify(span));
 }
