@@ -20,6 +20,8 @@ interface Pair {
   readonly minimum: number;
 }
 
+const TOKEN_REFERENCE = /^var\(--(?<token>[\w-]+)\)$/u;
+
 const MODES = ["light", "dark"] as const;
 
 // WCAG AA: body text, and large text or the boundary of a control.
@@ -84,11 +86,20 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
   });
 });
 
-// The illustrated atlas keeps a paper-and-ink palette across theme modes.
+// The illustrated atlas follows the active semantic palette.
 // Check opaque fallback paper and tinted paper over the darkest and lightest
 // possible artwork, so readability never depends on blur support.
-describe("the atlas material", () => {
-  const values = contractTokens();
+describe.each(MODES)("the atlas material in %s mode", (mode) => {
+  const palette = themeTokens("parchment");
+  const values = new Map(
+    [...contractTokens()].map(([name, value]) => {
+      const { token } = TOKEN_REFERENCE.exec(value)?.groups ?? {};
+      if (token !== undefined) {
+        return [name, palette.get(`${mode}-${token}`) ?? ""];
+      }
+      return [name, value];
+    }),
+  );
   const paper = values.get("atlas-paper") ?? "";
   test.each([
     { token: "atlas-ink", minimum: TEXT_CONTRAST },
@@ -135,11 +146,23 @@ describe("the atlas material", () => {
     },
   );
 
-  // Ink Continue buttons and the HUD retain their known contrast.
+  test("the Continue button remains readable", () => {
+    expect(
+      wcagContrast(
+        values.get("atlas-paper") ?? "",
+        values.get("atlas-ink") ?? "",
+      ),
+    ).toBeGreaterThanOrEqual(TEXT_CONTRAST);
+  });
+});
+
+// The shared HUD keeps a separate stable palette in both modes.
+describe("the shared HUD", () => {
+  const values = themeTokens("parchment");
   test.each([
-    { front: "atlas-paper", back: "atlas-ink", minimum: TEXT_CONTRAST },
-    { front: "atlas-gold", back: "atlas-ink", minimum: TEXT_CONTRAST },
-    { front: "atlas-ink", back: "atlas-gold", minimum: TEXT_CONTRAST },
+    { front: "header-paper", back: "header-ink", minimum: TEXT_CONTRAST },
+    { front: "header-gold", back: "header-ink", minimum: TEXT_CONTRAST },
+    { front: "header-ink", back: "header-gold", minimum: TEXT_CONTRAST },
   ])("$front is readable on $back", ({ front, back, minimum }) => {
     expect(
       wcagContrast(values.get(front) ?? "", values.get(back) ?? ""),
