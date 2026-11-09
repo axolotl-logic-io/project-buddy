@@ -174,7 +174,7 @@ test("the one-question spell is stored with its historical heading", () => {
   const askOne = getSpell("ask-one-question").definition;
 
   expect(writeSpell(askOne)).toEqual(
-    storedSpellPrompt(EARLIER_BUILT_INS.spells["ask-one-question"]),
+    storedSpellPrompt(NAMED_SHEET_BUILT_INS.spells["ask-one-question"]),
   );
 });
 
