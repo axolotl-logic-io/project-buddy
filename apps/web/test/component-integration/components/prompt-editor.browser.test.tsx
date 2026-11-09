@@ -472,7 +472,6 @@ test("Save and generate images saves the edited description and shows loading", 
       visual: { version: 1, description: "A brass guide" },
     },
   });
-  await button("Visual description").click();
   await field("Visual description").fill(edited);
   await expect.element(button("Generate Images")).toBeEnabled();
   const saveButton = button(VISUAL_COPY.saveAndGenerate);
@@ -602,8 +601,7 @@ test.each(["A brass guide", "A silver fox with a blue cloak"])(
         visual: { version: 1, description: "A brass guide" },
       },
     });
-    await button("Visual description").click();
-    await field("Visual description").fill(description);
+      await field("Visual description").fill(description);
     await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
     await button(VISUAL_COPY.generate).click();
     await expect

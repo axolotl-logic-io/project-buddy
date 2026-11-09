@@ -46,7 +46,6 @@ async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
       initialMessages={initialMessages}
     />,
   );
-
 }
 
 // Cross both the render and resize-observer phases before checking that an
@@ -142,7 +141,7 @@ describe("use_case_follow_latest_messages", () => {
 
   test("content shrink at the bottom keeps following subsequent growth", async () => {
     await openChat();
-      await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
     await layoutSettled();
     const conversation = page
@@ -338,7 +337,7 @@ describe("use_case_follow_latest_messages", () => {
 
   test("browser PageUp navigation survives content growth and composer focus", async () => {
     await openChat();
-      await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
     await document.fonts.ready;
     await layoutSettled();
@@ -371,7 +370,7 @@ describe("use_case_follow_latest_messages", () => {
 
   test("browser wheel navigation survives content growth and composer focus", async () => {
     await openChat();
-      await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
     await document.fonts.ready;
     await layoutSettled();
@@ -408,7 +407,7 @@ describe("use_case_follow_latest_messages", () => {
     await page.viewport(PHONE_VIEWPORT.width, PHONE_VIEWPORT.height);
     await layoutSettled();
     await openChat();
-      await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
     expect(window.scrollY).toBeGreaterThan(0);
     await page.getByRole("textbox", { name: CHAT_COPY.messageLabel }).click();
@@ -443,7 +442,7 @@ describe("use_case_follow_latest_messages", () => {
     vi.stubGlobal("visualViewport", viewport);
     const scroll = vi.spyOn(globalThis, "scrollTo");
     await openChat();
-      await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
     const input = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
     await input.click();
@@ -478,7 +477,7 @@ describe("use_case_follow_latest_messages", () => {
     });
     vi.stubGlobal("visualViewport", viewport);
     await openChat();
-      await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
     await layoutSettled();
     // Firefox's wheel scrolling: the visual viewport's scroll, a fraction
