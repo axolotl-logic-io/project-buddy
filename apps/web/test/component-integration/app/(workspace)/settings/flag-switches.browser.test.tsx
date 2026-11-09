@@ -99,6 +99,7 @@ describe("use_case_hide_extras", () => {
         <p {...extraTag("working-notes")}>{WORKING_NOTE}</p>
       </>,
     );
+    await page.getByRole("tab", { name: "Extras", exact: true }).click();
     const control = page.getByRole("switch", {
       name: FLAG_COPY.workingNotes.label,
     });
@@ -117,6 +118,7 @@ describe("use_case_hide_extras", () => {
     test(`Settings fits the narrowest screen, with switches easy to tap, in ${theme}`, async () => {
       document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
       await render(await SettingsPage());
+      await page.getByRole("tab", { name: "Extras", exact: true }).click();
       await expect.element(page.getByRole("switch").last()).toBeVisible();
       await resize(NARROWEST_VIEWPORT);
 

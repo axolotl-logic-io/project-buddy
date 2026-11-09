@@ -26,6 +26,12 @@ vi.mock("@/app/(workspace)/projects/status-actions.ts", () => ({
   readQuestStatusApprovalAction: vi.fn(() => Promise.resolve(undefined)),
 }));
 
+vi.mock("@/projects/rename-project-action.ts", () => ({
+  renameProjectAction: vi.fn(() => {
+    throw new Error("Mock the quest rename action in this test");
+  }),
+}));
+
 // A WebKit error's stack lists only its frames, without the "Name: message"
 // line Chromium's starts with, and reporters that print an error's stack
 // rather than its message, such as the JSON reporter, then show a failure as
@@ -116,4 +122,13 @@ vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
 // as the workspace kit, without importing server configuration or logging.
 vi.mock("@/batteries/catalog.ts", () => ({
   availableBatteryCatalog: vi.fn(() => []),
+}));
+
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  listRetiredDefinitions: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+  restoreDefinitionAction: vi.fn(),
+  deleteRetiredDefinitionAction: vi.fn(),
 }));

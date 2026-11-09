@@ -46,6 +46,8 @@ async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
       initialMessages={initialMessages}
     />,
   );
+  await document.fonts.ready;
+  await layoutSettled();
 }
 
 // Cross both the render and resize-observer phases before checking that an
@@ -53,6 +55,16 @@ async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
 async function layoutSettled(): Promise<void> {
   await new Promise<number>(requestAnimationFrame);
   await new Promise<number>(requestAnimationFrame);
+}
+
+// WebKit emits scrollend during keyboard-scroll animation, not just after it.
+// Measure preservation only once the browser's own navigation has stopped.
+async function finishBrowserScroll(): Promise<void> {
+  const before = window.scrollY;
+  await layoutSettled();
+  if (window.scrollY !== before) {
+    await finishBrowserScroll();
+  }
 }
 
 async function readEarlier(): Promise<number> {
@@ -347,6 +359,7 @@ describe("use_case_follow_latest_messages", () => {
     );
     await userEvent.keyboard("{PageUp}");
     await ended;
+    await finishBrowserScroll();
     await expect.poll(() => window.scrollY).toBeLessThan(bottom);
     await layoutSettled();
     const readingY = window.scrollY;

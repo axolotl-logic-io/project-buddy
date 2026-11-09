@@ -148,7 +148,7 @@ function QuestLibrary({
   const headingId = useId();
   return (
     <section className="flex flex-col gap-4" aria-labelledby={headingId}>
-      <h2 className="section-heading" id={headingId}>
+      <h2 className="sr-only" id={headingId}>
         {QUEST_LIBRARY_COPY.heading}
       </h2>
       <p className="text-muted">{QUEST_LIBRARY_COPY.intro}</p>

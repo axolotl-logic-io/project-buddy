@@ -25,6 +25,9 @@ export const PROJECTS_COPY = {
     "Choose an available construct for your first adventure.",
   cancel: "Cancel",
   creating: "Creating the quest and its first adventure…",
+  exploreFirst: "Explore before starting a quest",
+  newestFirst: "Your quests, newest first",
+  findStartingPoint: "Find a starting point",
   allProjectsLink: "All quests",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
@@ -36,6 +39,12 @@ export const PROJECTS_COPY = {
 } as const;
 
 export const PROJECT_COPY = {
+  navigation: "Quest workspace",
+  rename: "Edit quest title",
+  titleLabel: "Quest title",
+  saveTitle: "Save title",
+  cancelTitle: "Cancel title edit",
+  titleSaved: "Quest title saved.",
   loading: "Loading quest…",
   chatsHeading: "Adventures",
   noChats: "No adventures yet.",
