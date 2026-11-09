@@ -40,7 +40,7 @@ export const FLAG_COPY = {
   },
   usageMeter: {
     label: "Batteries balance",
-    hint: "How much batteries you have left for your constructs, on your account page.",
+    hint: "How many batteries you have left for your constructs, on your account page.",
   },
 } as const;
 

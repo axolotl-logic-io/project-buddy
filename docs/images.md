@@ -28,7 +28,7 @@ Images belong to their source adventure. Database cascades delete image bytes an
 
 ## Validation
 
-Tests use fake generation providers and the guarded local test database. Never use the shared database to test generation. Automated tests always use fake providers. A person may explicitly authorize paid manual checking in an isolated local database; keep provider credentials separate from shared-database configuration and clean up local fixtures. The server suite covers tool calls, persistence, delivery, batteries reservation under concurrency, replay and owner isolation. Browser tests cover progress, errors, gallery links and phone layout.
+Tests use fake generation providers and the guarded local test database. Never use the shared database to test generation. Automated tests always use fake providers. A person may explicitly authorize paid manual checking in an isolated local database; keep provider credentials separate from shared-database configuration and clean up local fixtures. The server suite covers tool calls, persistence, delivery, battery reservation under concurrency, replay and owner isolation. Browser tests cover progress, errors, gallery links and phone layout.
 
 ## Provider references
 
@@ -36,7 +36,7 @@ Configuration and rates were checked on 2026-10-30 against the [OpenAI image gen
 
 ## Construct artwork
 
-Construct artwork uses the same swappable image provider and batteries reservation machinery as adventure generation, through a separate service in `src/constructs/visual-generation.ts`. It creates no adventure and never enters the image gallery. Workshop conversation tests cannot call it. Generation is explicit; built-in presentation uses the committed artwork until the user customizes and requests generation.
+Construct artwork uses the same swappable image provider and battery reservation machinery as adventure generation, through a separate service in `src/constructs/visual-generation.ts`. It creates no adventure and never enters the image gallery. Workshop conversation tests cannot call it. Generation is explicit; built-in presentation uses the committed artwork until the user customizes and requests generation.
 
 `GET /api/constructs/visuals/generate?constructId=<UUID>&requestId=<optional UUID>` reads a quote and status without generation. `VisualGenerationQuote` reports `reservationGold`, `available`, `outdated`, optional `pendingRequestId`, its immutable `pendingDescription`, and optional `result`. Without a request UUID it recovers the latest pending request. Store a new UUID before submitting; after a lost connection use GET to recover status. For an accessible construct and an explicit request UUID with no claim, GET returns HTTP 200 with `result.status: "not-found"`. This differs from HTTP 404 for a missing or foreign construct. The UI may offer an explicit retry of the same UUID and payload, which remains safe if the original POST arrives late; it must not allocate a fresh UUID while resolving that request. A pending claim can remain pending after process interruption and is never automatically restarted.
 
