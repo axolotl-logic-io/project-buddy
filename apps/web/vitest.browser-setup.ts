@@ -81,3 +81,11 @@ vi.mock("@/chats/quest-transfer-action.ts", () => ({
 vi.mock("@/accounts/refresh-preferences-action.ts", () => ({
   refreshPreferencesAction: vi.fn(() => Promise.resolve(undefined)),
 }));
+
+// The header reads its balance on the server. Keep component fixtures out of
+// Postgres and server logging/payment imports; tests needing a balance set it.
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn(() =>
+    Promise.reject(new Error("Mock the balance reader in this test")),
+  ),
+}));
