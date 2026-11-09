@@ -4,7 +4,7 @@ A quest starts Active. Its owner can mark it Completed or Abandoned through the 
 
 Quests has Active, Completed and Abandoned tabs, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the quest page offers the same action. Restoring returns the quest to Active. Check-ins stay off until the owner turns them on. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
-Home features only Active quests. New adventure keeps Completed and Abandoned quests available and labels each quest option with its status. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
+Home features only Active quests. Quest dropdowns offer only accessible Active quests, including team quests: this applies to the Adventures filter, New adventure and activity forms, and Quick Note selection. Completing or abandoning removes a quest from subsequent choices; restoring it makes it available again. An unavailable selection falls back to All quests in the filter, no quest in New adventure, or the newest Active quest in Quick Note. Existing adventures remain available to continue, including in Completed and Abandoned quests. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
 
 ## Construct approval
 

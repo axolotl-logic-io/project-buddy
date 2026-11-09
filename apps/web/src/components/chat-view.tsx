@@ -19,6 +19,7 @@ import {
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -326,11 +327,11 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      {reattach && <p role="status">{CHAT_COPY.reattach}</p>}
+      {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}
       {replyingElsewhere === true && (
-        <p role="status" className="text-muted">
+        <Notice role="status">
           {CHAT_COPY.replyingElsewhere(constructName)}
-        </p>
+        </Notice>
       )}
       {(chat.status === "streaming" ||
         chat.status === "submitted" ||
@@ -339,7 +340,7 @@ export function ChatView({
           {CHAT_COPY.stop}
         </Button>
       )}
-      {stopStatus !== "" && <p role="status">{stopStatus}</p>}
+      {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
       <ChatThread
         goldBalance={gold?.balance}
         replyCosts={replyCosts}
