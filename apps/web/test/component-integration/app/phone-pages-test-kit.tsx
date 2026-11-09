@@ -29,6 +29,8 @@ import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
+import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
+import LibraryPage from "@/app/(workspace)/library/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
 import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
 import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
@@ -89,6 +91,7 @@ import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -429,6 +432,24 @@ function workshopPage(
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
+  {
+    name: "Library",
+    render: workspacePage(
+      () => {
+        /* Reading needs no store fixtures. */
+      },
+      () => LibraryPage(),
+    ),
+  },
+  ...LIBRARY_COPY.books.map((book) => ({
+    name: `Library: ${book.title}`,
+    render: workspacePage(
+      () => {
+        /* Reading needs no store fixtures. */
+      },
+      () => BookPage({ params: Promise.resolve({ book: book.id }) }),
+    ),
+  })),
   {
     name: "Retirement",
     render: workspacePage(

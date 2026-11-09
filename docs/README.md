@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Library](library.md): in-site learning books, model-input source map and content maintenance.
+
 - [Premade quests](premade-quests.md): the Quest library, editable starting Journals and ordinary quest creation.
 
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
