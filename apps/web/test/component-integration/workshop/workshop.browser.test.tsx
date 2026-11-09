@@ -67,7 +67,24 @@ async function show(draft: WorkshopDraft = DRAFT): Promise<void> {
               label: "Prompt",
               help: "Instructions to test.",
             },
-          ]}
+            {
+              name: "whenToUse",
+              text: draft.whenToUse,
+              label: "When to use",
+              help: "Selection",
+            },
+            {
+              name: "openingRequest",
+              text: draft.openingRequest,
+              label: "Opening request",
+              help: "Opening",
+            },
+          ].filter(
+            (field) =>
+              field.name === "prompt" ||
+              (field.name === "whenToUse" && draft.kind === "spell") ||
+              (field.name === "openingRequest" && draft.kind === "activity"),
+          )}
         />
       </Workshop>,
     ),
@@ -78,6 +95,8 @@ function message(): ReturnType<typeof page.getByRole> {
 }
 afterEach(() => {
   vi.unstubAllGlobals();
+  localStorage.clear();
+  saveAction.mockClear();
 });
 
 test("use_case_workshop_draft", async () => {
@@ -264,3 +283,43 @@ test("a recovered editor draft is used by the first Workshop test", async () => 
   expect(requests.at(-1)?.draft.prompt).toBe("Recovered instructions.");
   expect(requests.at(-1)?.draft.name).toBe("Recovered construct");
 });
+
+test.each(["construct", "activity", "spell"] as const)(
+  "%s tests current kind-specific edits without saving",
+  async (kind) => {
+    installReply();
+    await show({ ...DRAFT, kind });
+    await page
+      .getByRole("textbox", { name: "Name", exact: true })
+      .fill("Unsaved name");
+    await page
+      .getByRole("textbox", { name: "Prompt", exact: true })
+      .fill("Unsaved prompt");
+    if (kind === "spell") {
+      await page
+        .getByRole("textbox", { name: "When to use", exact: true })
+        .fill("Unsaved selection");
+    }
+    if (kind === "activity") {
+      await page
+        .getByRole("textbox", { name: "Opening request", exact: true })
+        .fill("Unsaved opening");
+    }
+    await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+    await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+    expect(requests.at(-1)?.draft).toMatchObject({
+      kind,
+      name: "Unsaved name",
+      prompt: "Unsaved prompt",
+    });
+    const expected: Partial<WorkshopDraft> = {};
+    if (kind === "spell") {
+      expected.whenToUse = "Unsaved selection";
+    }
+    if (kind === "activity") {
+      expected.openingRequest = "Unsaved opening";
+    }
+    expect(requests.at(-1)?.draft).toMatchObject(expected);
+    expect(saveAction).not.toHaveBeenCalled();
+  },
+);

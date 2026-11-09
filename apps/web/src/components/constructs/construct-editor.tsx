@@ -7,7 +7,6 @@ import {
   useActionState,
   useCallback,
   useContext,
-  useId,
   useState,
 } from "react";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
@@ -27,6 +26,7 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 function generationRequested(
   form: FormData,
   savedDescription: string,
+  artworkDescription?: string,
 ): boolean {
   const value = form.get("visualDescription");
   if (typeof value !== "string") {
@@ -35,7 +35,8 @@ function generationRequested(
   const description = normalizeVisualDescription(value);
   return (
     description !== "" &&
-    (description !== normalizeVisualDescription(savedDescription) ||
+    ((description !== normalizeVisualDescription(savedDescription) &&
+      description !== artworkDescription) ||
       form.get("generateImages") === "true")
   );
 }
@@ -47,7 +48,6 @@ function ConstructEditor({
   readonly construct: OwnConstruct;
 }): JSX.Element {
   const { action, viewer } = editor;
-  const formId = useId();
   const [generatingSave, setGeneratingSave] = useState<boolean>(false);
   const [quote, setQuote] = useState<VisualGenerationQuote>();
   const [generationBlocked, setGenerationBlocked] = useState<boolean>(false);
@@ -61,6 +61,7 @@ function ConstructEditor({
       const generate = generationRequested(
         form,
         construct.definition.visual?.description ?? "",
+        quote?.artworkDescription,
       );
       // A text-only save must not put an older tab's unchanged appearance
       // over a newer saved description or unexpectedly start paid work.
@@ -93,10 +94,11 @@ function ConstructEditor({
         generationRequested(
           new FormData(event.currentTarget, event.nativeEvent.submitter),
           construct.definition.visual?.description ?? "",
+          quote?.artworkDescription,
         ),
       );
     },
-    [construct],
+    [construct, quote?.artworkDescription],
   );
   const report = useContext(PromptDraftContext);
   // Start disabled until the editor has checked this browser's recovered draft.
@@ -125,6 +127,8 @@ function ConstructEditor({
     normalizeVisualDescription(construct.definition.visual?.description ?? "");
   if (
     descriptionChanged &&
+    normalizeVisualDescription(draftDescription) !==
+      quote?.artworkDescription &&
     normalizeVisualDescription(draftDescription) !== ""
   ) {
     saveLabel = VISUAL_COPY.saveAndGenerate;
@@ -144,7 +148,6 @@ function ConstructEditor({
           onSubmitCapture={captureSubmission}
           saveLabel={saveLabel}
           saveHint={saveHint}
-          formId={formId}
           saving={saving}
           disabled={generationBlocked && descriptionChanged}
         />
@@ -156,7 +159,6 @@ function ConstructEditor({
         onQuoteChange={setQuote}
         changed={changed}
         draftDescription={draftDescription}
-        formId={formId}
         saving={saving}
         generating={saving && generatingSave}
       />
