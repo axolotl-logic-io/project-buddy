@@ -119,7 +119,7 @@ The user finds the site's places on an illustrated parchment atlas.
   - Following a link away from Home restores the destination's header and content column without a refresh. Returning to Home restores the map layout, including with browser back and forward.
   - Before the first quest, Start a quest opens Project Breakdown with a new quest selected.
   - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
-  - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
+  - The six place icons come from one library and stay decorative, with visible destination names and no duplicate screen-reader announcement in Light and Dark modes, including at 320 px. The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
   - A signed-out visitor is sent to sign in before any recent work is read.
 
 ## use_case_today_on_landing

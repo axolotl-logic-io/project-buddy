@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: CREDITS_COPY.title,
 };
 
-// Public attribution for content adapted from the Blender Reference Manual.
+// Public attribution for adapted content and place icons.
 export default function CreditsPage(): JSX.Element {
   return (
     <div className="page-column">
@@ -27,6 +27,21 @@ export default function CreditsPage(): JSX.Element {
             rel="license"
           >
             {CREDITS_COPY.license}
+          </a>,
+        )}
+      </p>
+      <p>
+        {CREDITS_COPY.iconCredit(
+          <a className="text-link" href="https://lucide.dev" key="lucide">
+            {CREDITS_COPY.iconLibrary}
+          </a>,
+          <a
+            className="text-link"
+            href="/licenses/lucide.txt"
+            key="isc"
+            rel="license"
+          >
+            {CREDITS_COPY.iconLicense}
           </a>,
         )}
       </p>

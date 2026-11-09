@@ -21,6 +21,7 @@ const PREBUNDLED_DEPS: string[] = [
   "drizzle-orm/neon-http",
   "drizzle-orm/neon-serverless",
   "drizzle-orm/pg-core",
+  "lucide-react",
   "next/cache",
   "next/headers",
   "next/image",
