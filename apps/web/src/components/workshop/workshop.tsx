@@ -7,6 +7,7 @@ import { Dialog } from "radix-ui";
 import {
   type ChangeEvent,
   type JSX,
+  type MouseEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -159,9 +160,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
     setError(undefined);
   }, [cancel]);
   const selectCase = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>): void => {
+    (event: MouseEvent<HTMLButtonElement>): void => {
       fresh();
-      setMessage(event.target.value);
+      setMessage(event.currentTarget.value);
     },
     [fresh],
   );
@@ -326,6 +327,8 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
               </Dialog.Close>
             </div>
             <div className="workshop-test-content" ref={scrollResults}>
+              <p className="text-muted text-sm">{WORKSHOP_COPY.temporary}</p>
+              <p className="text-muted text-sm">{WORKSHOP_COPY.gold}</p>
               <div className="flex justify-end">
                 <Button onClick={fresh} variant="quiet">
                   {WORKSHOP_COPY.fresh}
@@ -336,21 +339,26 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
                   {WORKSHOP_COPY.settings}
                 </summary>
                 <div className="flex flex-col gap-3">
-                  <SelectField
-                    label={WORKSHOP_COPY.cases}
-                    onChange={selectCase}
-                    value=""
-                    hint={WORKSHOP_COPY.caseHint}
-                  >
-                    <option value="" disabled={true}>
-                      {WORKSHOP_COPY.chooseCase}
-                    </option>
-                    {WORKSHOP_COPY.examples.map((example) => (
-                      <option key={example.name} value={example.message}>
-                        {example.name}
-                      </option>
-                    ))}
-                  </SelectField>
+                  <fieldset className="flex flex-col gap-2">
+                    <legend className="field-label">
+                      {WORKSHOP_COPY.cases}
+                    </legend>
+                    <p className="text-muted text-sm">
+                      {WORKSHOP_COPY.caseHint}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {WORKSHOP_COPY.examples.map((example) => (
+                        <Button
+                          key={example.name}
+                          value={example.message}
+                          onClick={selectCase}
+                          variant="quiet"
+                        >
+                          {example.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </fieldset>
                   {draft.kind !== "construct" && (
                     <SelectField
                       label={WORKSHOP_COPY.construct}
@@ -438,6 +446,8 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
                   );
                 })}
               </div>
+            </div>
+            <div className="workshop-feedback">
               <FormStatus>{status}</FormStatus>
               {pending === true && (
                 <p className="text-muted text-sm">{WORKSHOP_COPY.cancelHint}</p>
@@ -450,7 +460,6 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
               )}
             </div>
             <div className="workshop-composer">
-              <p className="text-muted text-sm">{WORKSHOP_COPY.gold}</p>
               <TextAreaField
                 label={WORKSHOP_COPY.message}
                 value={message}

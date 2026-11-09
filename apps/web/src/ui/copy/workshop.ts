@@ -10,10 +10,9 @@ const WORKSHOP_COPY = {
   test: "Try your draft",
   close: "Back to editing",
   settings: "Test settings",
-  chooseCase: "Choose an example…",
   limitsHeading: "Test limits · Only spell casting is available",
   cases: "Test cases",
-  caseHint: "Choose a starting point or write your own message.",
+  caseHint: "Start a new test with an example, or write your own message.",
   examples: [
     {
       name: "A new idea",
@@ -51,8 +50,9 @@ const WORKSHOP_COPY = {
   stale:
     "The draft or test settings changed. Your next test starts a fresh conversation.",
   gold: "Tests use batteries, just like adventure replies.",
+  temporary: "Tests disappear when you leave or reload this page.",
   limits:
-    "Only spell casting is available here. Tests cannot search the Blender manual, change activities, create quests, update Journal, record milestones or generate images. Tests disappear when you leave this page.",
+    "Tests cannot search the Blender manual, change activities, create quests, update Journal, record milestones or generate images.",
   you: "You",
   reply: "Construct",
   cast: (name: string): string => `Cast ${name}`,
