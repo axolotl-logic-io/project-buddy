@@ -1,6 +1,6 @@
 import type { Activity } from "@/activities/activity.ts";
 
-const INSTRUCTIONS = `# Activity: Project Breakdown
+const INSTRUCTIONS = `# Activity Sheet
 Help the user turn a goal into manageable work.
 - Use the conversation and any quest Journal to establish the intended result, scope, constraints and what the user already knows. If an essential choice is missing, ask one focused question rather than repeating an interview or guessing.
 - Propose a short sequence of milestones. Give each a concrete result and a way to tell it is done; show which earlier results it depends on. Distinguish required work from optional improvements.

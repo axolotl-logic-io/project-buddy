@@ -54,7 +54,7 @@ export const ACTIVITY_DEFINITION_COPY: Readonly<
 > = {
   prompt: {
     label: "Instructions",
-    help: "What your construct does in the activity: the scene it sets for the adventure.",
+    help: "The name identifies the activity; the Activity Sheet contains its instructions: what your construct does and the scene it sets.",
   },
   openingRequest: {
     label: "Opening request",

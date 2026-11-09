@@ -57,6 +57,6 @@ export const SPELL_DEFINITION_COPY: Readonly<
   },
   prompt: {
     label: "Instructions",
-    help: "What your construct does once it casts the spell. It reaches your construct only in the adventures that cast it.",
+    help: "The name identifies the spell; the Spell Sheet contains its instructions. These reach your construct only in adventures that cast it.",
   },
 };

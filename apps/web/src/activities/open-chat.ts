@@ -1,7 +1,7 @@
 import type { Activity } from "@/activities/activity.ts";
 
 const INSTRUCTIONS = [
-  "# Activity: Open adventure",
+  "# Activity Sheet",
   "There is no set scene: follow the user's lead. Answer what they ask, and help with whatever they bring up.",
 ].join("\n");
 
