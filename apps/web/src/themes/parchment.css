@@ -76,11 +76,21 @@
     --card-title-size: 1.125rem;
 
     /* The map stays visible under a palette-coloured wash in either mode,
-       with no large bright field when the active palette is dark. */
+       preserving the parchment artwork while keeping outside focus rings
+       readable over dark marks in Light and bright marks in Dark. */
+    --home-wash-opacity: 75%;
     --home-decoration:
       linear-gradient(
-        color-mix(in srgb, var(--background) 75%, transparent),
-        color-mix(in srgb, var(--background) 75%, transparent)
+        color-mix(
+          in srgb,
+          var(--background) var(--home-wash-opacity),
+          transparent
+        ),
+        color-mix(
+          in srgb,
+          var(--background) var(--home-wash-opacity),
+          transparent
+        )
       ),
       url("/atlas/parchment.webp");
     --header-ink: oklch(25% 0.04 60);

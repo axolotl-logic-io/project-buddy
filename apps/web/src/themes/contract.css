@@ -227,7 +227,7 @@
     --atlas-muted: var(--muted);
     --atlas-line: var(--line);
     --atlas-focus: var(--focus);
-    --atlas-font: var(--heading-font);
+    --atlas-font: Georgia, "Times New Roman", serif;
     --atlas-art: var(--home-decoration);
     /* The shared HUD is always ink and gold, independent of Home's paper. */
     --hud-ink: var(--header-ink);

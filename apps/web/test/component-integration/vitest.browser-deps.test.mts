@@ -15,9 +15,9 @@ const ROOT: string = decodeURIComponent(
 // One of the app's own files, as the importer.
 const APP_FILE = `${ROOT}/src/x.tsx`;
 // This installed entry point is not imported by browser tests or pre-bundled.
-const UNLISTED_PACKAGE = "culori/fn";
+const UNLISTED_PACKAGE = "memfs";
 const MISSING_DEP_ERROR =
-  /"culori\/fn", imported by src\/x\.tsx.+vitest\.browser-deps\.mts/u;
+  /"memfs", imported by src\/x\.tsx.+vitest\.browser-deps\.mts/u;
 
 type ViteServer = Awaited<ReturnType<typeof createViteServer>>;
 
