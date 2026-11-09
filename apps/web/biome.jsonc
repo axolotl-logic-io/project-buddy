@@ -10,6 +10,81 @@
     "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
   },
   "overrides": [
+    // TypeScript globalThis augmentation requires ambient var declarations inside
+    // declare global. They emit no runtime declarations to hoist.
+    {
+      "includes": ["scripts/performance/observe.mts"],
+      "linter": { "rules": { "nursery": { "useVarsOnTop": "off" } } }
+    },
+    // The capture uses Puppeteer ElementHandles; Playwright's locator API is different.
+    {
+      "includes": ["scripts/performance/capture.mts"],
+      "linter": {
+        "rules": { "nursery": { "noPlaywrightElementHandle": "off" } }
+      }
+    },
+
+    // The opt-in audit owns local child processes, browser traces and artifacts.
+    // These command boundaries use Node filesystem/process APIs and print only progress.
+    {
+      "includes": [
+        "scripts/performance/run.mts",
+        "scripts/performance/capture.mts",
+        "scripts/performance/lighthouse.mts",
+        "scripts/performance/validate.mts",
+        "scripts/performance/validate-output.mts",
+        "test/component-integration/scripts/performance/compressed.test.mts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" },
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    // Screenshot arguments use the DevTools trace wire field names.
+    {
+      "includes": ["scripts/performance/capture.mts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "expected_display_time|frame_sequence|source_id|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // DevTools screenshot metadata uses these wire names in archived traces.
+    {
+      "includes": ["scripts/performance/artifacts.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "expected_display_time|frame_sequence|source_id|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     // The deterministic Stripe gateway runs one loopback HTTP server per file.
     {
       "includes": [
@@ -346,7 +421,8 @@
     // which only node:child_process can start.
     {
       "includes": [
-        "test/component-integration/scripts/test-db/reset-refusals.test.ts"
+        "test/component-integration/scripts/test-db/reset-refusals.test.ts",
+        "test/component-integration/scripts/performance/archives.test.ts"
       ],
       "linter": {
         "rules": {
