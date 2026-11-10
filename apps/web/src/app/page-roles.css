@@ -934,7 +934,8 @@
   }
 
   .atlas-introduction {
-    @apply mt-2 text-sm;
+    @apply mx-auto mt-2 text-pretty text-sm;
+    max-inline-size: 60ch;
     color: var(--atlas-muted);
   }
 
@@ -947,8 +948,9 @@
     padding-inline: var(--atlas-gutter);
   }
 
+  /* The same eyebrow face as the current quest's label. */
   .atlas-places-heading {
-    @apply mb-2 w-fit rounded-control border px-2 py-1 font-bold text-xs uppercase tracking-wider;
+    @apply mb-2 w-fit rounded-control border px-2 py-1 font-body font-bold text-xs uppercase tracking-wider;
     background: var(--atlas-paper);
     border-color: var(--atlas-line);
   }
@@ -1028,8 +1030,9 @@
     @apply max-sm:grow;
   }
 
+  /* Full width on phones, as Continue is. */
   .atlas-start {
-    @apply w-fit max-w-full;
+    @apply w-fit max-w-full max-sm:w-auto;
     margin-inline: var(--atlas-gutter);
   }
 
@@ -1047,10 +1050,23 @@
     min-block-size: var(--target-size);
   }
 
+  /* Upright: the heading face ships no italic, so one would be faked. */
   .atlas-footer p {
-    @apply text-sm italic;
+    @apply text-sm;
     color: var(--atlas-muted);
     font-family: var(--atlas-font);
+  }
+
+  /* Home's loading tiles and quest panel, where the destinations and the
+     current quest will be. */
+  .atlas-skeleton {
+    @apply h-full rounded-box;
+    min-block-size: calc(var(--target-size) * 2);
+  }
+
+  .atlas-skeleton-panel {
+    @apply h-24 rounded-box;
+    margin-inline: var(--atlas-gutter);
   }
 
   /* Opaque paper is the fallback. Tint, as well as blur, protects contrast
@@ -1075,8 +1091,14 @@
       @apply grid-cols-3;
     }
 
+    /* Top-aligned, so icons and names line up across a row however many
+       lines each description takes. */
     .atlas-destination {
-      @apply p-4;
+      @apply justify-start p-4;
+      min-block-size: calc(var(--target-size) * 3);
+    }
+
+    .atlas-skeleton {
       min-block-size: calc(var(--target-size) * 3);
     }
 
