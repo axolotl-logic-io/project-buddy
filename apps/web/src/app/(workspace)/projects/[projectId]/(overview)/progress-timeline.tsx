@@ -30,7 +30,10 @@ export function ProgressTimeline({
             milestoneId={milestone.id}
             text={milestone.text}
             chatLink={
-              <Link className="text-link" href={`/chats/${milestone.chatId}`}>
+              <Link
+                className="text-link inline-flex min-h-(--target-size) items-center"
+                href={`/chats/${milestone.chatId}`}
+              >
                 {PROGRESS_TIMELINE_COPY.openChat}
               </Link>
             }
