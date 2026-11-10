@@ -573,8 +573,10 @@
     }
   }
 
+  /* A long unbroken name breaks, so the clamp ends it with an ellipsis
+     rather than cutting it off at the column's edge. */
   .chat-header-name {
-    @apply line-clamp-(--chat-header-name-lines);
+    @apply wrap-anywhere line-clamp-(--chat-header-name-lines);
   }
 
   .chat-header-construct {
@@ -661,8 +663,10 @@
     @apply min-w-(--target-size) max-w-full underline underline-offset-4;
   }
 
+  /* The words, not their flex box, are shortened: text-overflow draws no
+     ellipsis for a flex container's own text. */
   .header-breadcrumbs a > span,
-  .header-breadcrumbs [aria-current] {
+  .header-breadcrumbs [aria-current] > span {
     @apply truncate;
   }
 
@@ -674,8 +678,10 @@
     --focus-outline: 3px solid var(--hud-gold);
   }
 
+  /* The title pushes the controls to the right edge, or the place beside
+     it does where it shows (from a 40rem header, below). */
   .hud-title {
-    @apply inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
+    @apply mr-auto inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
 
   .hud-medallion {
@@ -691,11 +697,6 @@
     @apply hidden border-l-2 pl-3 font-semibold;
     border-color: var(--hud-line);
     font-family: var(--atlas-font);
-  }
-
-  .site-header:not(:has(> .hud-place)) > .hud-title,
-  .site-header > .hud-place {
-    @apply mr-auto;
   }
 
   .site-header > .button-secondary {
@@ -738,7 +739,7 @@
       padding-inline: 0;
     }
 
-    /* The label is read, not shown; the icon stays visible. */
+    /* Its words, not its icon (the Icon's own span). */
     .header-quick-note > span:not(.icon) {
       @apply sr-only;
     }
@@ -747,6 +748,11 @@
   @container (min-width: 40rem) {
     .hud-place {
       display: block;
+      @apply mr-auto;
+    }
+
+    .site-header:has(> .hud-place) > .hud-title {
+      @apply mr-0;
     }
   }
 
@@ -881,10 +887,9 @@
     @apply min-w-0 p-4 text-center sm:p-6;
   }
 
-  /* Home's type is the theme's own self-hosted heading face, as on every
-     other page. */
   .atlas-heading {
-    @apply font-heading font-semibold text-page-heading;
+    @apply font-semibold text-page-heading;
+    font-family: var(--atlas-font);
     overflow-wrap: anywhere;
   }
 
@@ -933,7 +938,8 @@
   }
 
   .atlas-label {
-    @apply max-w-full break-words font-heading font-semibold;
+    @apply max-w-full break-words font-semibold;
+    font-family: var(--atlas-font);
     overflow-wrap: anywhere;
   }
 
@@ -961,8 +967,8 @@
   .atlas-quest-name {
     @apply inline-flex max-w-full items-center break-words font-semibold text-section-heading underline underline-offset-4;
     min-block-size: var(--target-size);
-    @apply font-heading;
     overflow-wrap: anywhere;
+    font-family: var(--atlas-font);
   }
 
   .atlas-next-step {
@@ -1004,10 +1010,11 @@
     min-block-size: var(--target-size);
   }
 
-  /* Upright: the heading face has no italic to draw. */
+  /* Upright: the heading face ships no italic, so one would be faked. */
   .atlas-footer p {
-    @apply font-heading text-sm;
+    @apply text-sm;
     color: var(--atlas-muted);
+    font-family: var(--atlas-font);
   }
 
   /* Home's loading tiles and quest panel, where the destinations and the
@@ -1142,7 +1149,7 @@
   .workspace-tab {
     min-inline-size: var(--target-size);
     min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-left text-muted text-sm;
+    @apply inline-flex items-center justify-center gap-2 border-transparent border-b-2 py-3 text-left text-muted text-sm;
   }
 
   .workspace-tab[data-state="active"],
