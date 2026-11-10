@@ -40,8 +40,8 @@ export default async function SetupPage({
   }
   return (
     <SignInPanel intro={SETUP_COPY.intro}>
-      <form action={confirmSetupAction} className="flex flex-col">
-        <p className="mb-4 break-words">{email}</p>
+      <form action={confirmSetupAction} className="flex flex-col gap-4">
+        <p className="break-words text-center font-semibold">{email}</p>
         <input name="token" type="hidden" value={token} />
         <Button type="submit">{SETUP_COPY.confirm}</Button>
       </form>

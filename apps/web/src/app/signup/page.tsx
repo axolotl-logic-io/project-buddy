@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 export default function SignUpPage(): JSX.Element {
   return (
     <SignInPanel intro={SIGNUP_COPY.intro}>
-      <p className="text-center text-muted">
+      <p className="text-balance text-center text-muted">
         {SIGNUP_COPY.signInPrompt}{" "}
-        <Link className="text-link" href="/login">
+        <Link className="whitespace-nowrap text-link" href="/login">
           {SIGNUP_COPY.signInLink}
         </Link>
       </p>
