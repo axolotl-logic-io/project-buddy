@@ -42,7 +42,8 @@ interface ListedConstruct extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its name, which opens New chat, then its actions.
+// A construct as a card: its name, which opens New chat, then its actions
+// in a row along its foot, so a long name keeps the card's whole width.
 function ConstructCard({
   construct,
   actions,
@@ -53,8 +54,8 @@ function ConstructCard({
   readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
-    <li className="card flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-1 items-start gap-3">
+    <li className="card flex min-w-0 flex-col gap-3">
+      <div className="flex min-w-0 items-start gap-3">
         <ConstructAvatar
           destination={{ kind: "construct", id: construct.id }}
           construct={construct}
@@ -76,7 +77,7 @@ function ConstructCard({
           </p>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      <div className="card-actions">{actions}</div>
     </li>
   );
 }
