@@ -89,7 +89,10 @@ describe("use_case_send_message", () => {
     // She types her next message before the reply finishes.
     await box.fill(NEXT_MESSAGE);
     await expect.element(box).toHaveValue(NEXT_MESSAGE);
-    await expect.element(send).toBeDisabled();
+    await expect.element(send).not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("button", { name: CHAT_COPY.stop }))
+      .toBeVisible();
 
     // The reply finishes, and her message is still there to send.
     heldFinish.release();
