@@ -58,18 +58,22 @@ export function ProjectInvite({
           {copy.revoked(revoked)}
         </Notice>
       )}
-      <LinkRequestForm
-        key={revision}
-        action={inviteToProjectAction}
-        clearOnSent={true}
-        words={{
-          emailLabel: copy.emailLabel,
-          send: copy.send,
-          sending: copy.sending,
-        }}
-      >
-        <input name="projectId" type="hidden" value={projectId} />
-      </LinkRequestForm>
+      {/* The button keeps its own width, like the workspace's other form
+          buttons, rather than the sign-in form's full width. */}
+      <div className="[&>form>button]:self-start">
+        <LinkRequestForm
+          key={revision}
+          action={inviteToProjectAction}
+          clearOnSent={true}
+          words={{
+            emailLabel: copy.emailLabel,
+            send: copy.send,
+            sending: copy.sending,
+          }}
+        >
+          <input name="projectId" type="hidden" value={projectId} />
+        </LinkRequestForm>
+      </div>
       <h3 className="card-title" id={PENDING_HEADING_ID}>
         {copy.pendingHeading}
       </h3>
