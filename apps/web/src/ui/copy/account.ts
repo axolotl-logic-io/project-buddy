@@ -18,8 +18,6 @@ export const ACCOUNT_COPY = {
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
   goldHeading: "Batteries",
-  // Such as "Batteries: 87".
-  gold: (gold: number): string => `Batteries: ${gold}`,
   goldHint:
     "What your constructs spend on your replies, adventure names, images and check-ins. It doesn't reset.",
   signOutHeading: "Signing out",

@@ -14,6 +14,7 @@ import {
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { paintOf, tokenColor } from "../components/ui/button-fill-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import { pageScrollWidth } from "../touch-targets-test-kit.ts";
 import {
@@ -91,6 +92,7 @@ test("Delete forever names the definition, supports cancellation, and submits on
     submitted.resolve(form);
     return new Promise<never>(() => undefined);
   });
+  applyTheme("parchment");
   await renderRetirement();
   const trigger = page.getByRole("button", {
     name: RETIREMENT_COPY.deleteLabel(RETIRED_CONSTRUCT.name),
@@ -110,9 +112,12 @@ test("Delete forever names the definition, supports cancellation, and submits on
   await expect
     .element(dialog.getByText(RETIREMENT_COPY.marketplace, { exact: false }))
     .toBeVisible();
-  await dialog
-    .getByRole("button", { name: RETIREMENT_COPY.delete, exact: true })
-    .click();
+  const deleteForever = dialog.getByRole("button", {
+    name: RETIREMENT_COPY.delete,
+    exact: true,
+  });
+  expect(paintOf(deleteForever.element()).fill).toBe(tokenColor("danger"));
+  await deleteForever.click();
   expect((await submitted.promise).get("promptId")).toBe(RETIRED_CONSTRUCT.id);
 });
 

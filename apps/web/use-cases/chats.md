@@ -452,8 +452,8 @@ The user follows a link to a quest or adventure that does not exist.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens an old, mistyped or garbled link to a quest or adventure, or an address the site does not have.
-  - The site says the quest or adventure cannot be found.
-- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. Her quests and adventures are unchanged.
+  - The site says the quest or adventure cannot be found, or, for any other address, that the page cannot be found.
+- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. A missing quest, Journal or adventure is named as a quest or adventure; any other page that isn't found, such as an unknown address or Invitations for an ordinary user, is named only as a page. Her quests and adventures are unchanged.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): find what she was looking for.
 

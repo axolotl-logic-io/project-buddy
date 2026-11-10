@@ -60,7 +60,9 @@ function Breadcrumbs({
   );
 }
 
-// Uses Account's rounding; absence means unavailable, never an empty account.
+// A HUD counter: a battery and the number, on one line. "Batteries:" is
+// there for assistive technology, which skips the icon. Uses Account's
+// rounding; absence means unavailable, never an empty account.
 function HeaderBalance({
   microUsd,
 }: {
@@ -72,7 +74,9 @@ function HeaderBalance({
   }
   return (
     <p className="header-balance" role="status">
-      <span>{HEADER_BALANCE_COPY.label}</span> <span>{amount}</span>
+      <Icon name="battery" />
+      <span className="sr-only">{HEADER_BALANCE_COPY.label} </span>
+      <span>{amount}</span>
     </p>
   );
 }
