@@ -3,15 +3,18 @@
 import { ComposerPrimitive, useAui, useAuiState } from "@assistant-ui/react";
 import {
   type ChangeEvent,
+  type FocusEvent,
   type JSX,
   type RefObject,
   useCallback,
+  useEffect,
   useId,
   useRef,
 } from "react";
 import { optionId } from "@/components/chat/chat-commands.ts";
 import { CommandMenu } from "@/components/chat/command-menu.tsx";
 import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
+import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { useComposerCommands } from "@/components/chat/use-composer-commands.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
@@ -30,16 +33,45 @@ const MOST_MESSAGE_ROWS = 12;
 
 // The box the user writes a message in, with its Send button. Enter sends
 // and Shift+Enter starts a new line, as the hint under the box says. Send is
-// disabled while the message is empty or the construct is replying. While the
+// disabled while the message is empty or the construct is replying. While a
+// reply runs, stop is given, and Stop reply takes Send's place; when the
+// reply ends and Stop goes, focus on it moves to the message box. While the
 // message has focus, the whole box shows it, Send included. inputRef, if
 // given, holds the message box, so the thread can move focus to it. In an
 // adventure with commands (chat-commands.ts), typing "/" lists them above the
 // box, and a command runs at once instead of going to the construct.
 export function ChatComposer({
   inputRef,
+  stop,
 }: {
   readonly inputRef?: RefObject<HTMLTextAreaElement | null>;
+  readonly stop?: ReplyStop | undefined;
 }): JSX.Element {
+  // Whether focus left Stop reply for another element, or was never on it;
+  // a Stop that goes when the reply ends leaves focus nowhere instead.
+  const stopMovedOnRef = useRef(true);
+  const onStopFocus = useCallback((): void => {
+    stopMovedOnRef.current = false;
+  }, []);
+  const onStopBlur = useCallback(
+    (event: FocusEvent<HTMLButtonElement>): void => {
+      stopMovedOnRef.current = event.relatedTarget !== null;
+    },
+    [],
+  );
+  const running = stop !== undefined;
+  useEffect(() => {
+    if (running || stopMovedOnRef.current) {
+      return;
+    }
+    stopMovedOnRef.current = true;
+    if (
+      document.activeElement === null ||
+      document.activeElement === document.body
+    ) {
+      inputRef?.current?.focus();
+    }
+  }, [running, inputRef]);
   const hintId = useId();
   const menuId = useId();
   const problemId = useId();
@@ -126,16 +158,30 @@ export function ChatComposer({
           name="message"
           ref={inputRef}
         />
-        <ComposerPrimitive.Send
-          asChild={true}
-          disabled={blocked || commands.running}
-          onClick={commands.intercept}
-        >
-          <Button>
-            <Icon name="send" />
-            <span className="sr-only sm:not-sr-only">{CHAT_COPY.send}</span>
+        {stop !== undefined && (
+          <Button
+            variant="secondary"
+            onClick={stop.onStop}
+            disabled={stop.stopping}
+            onFocus={onStopFocus}
+            onBlur={onStopBlur}
+          >
+            <Icon name="stop" />
+            <span className="sr-only sm:not-sr-only">{CHAT_COPY.stop}</span>
           </Button>
-        </ComposerPrimitive.Send>
+        )}
+        {stop === undefined && (
+          <ComposerPrimitive.Send
+            asChild={true}
+            disabled={blocked || commands.running}
+            onClick={commands.intercept}
+          >
+            <Button>
+              <Icon name="send" />
+              <span className="sr-only sm:not-sr-only">{CHAT_COPY.send}</span>
+            </Button>
+          </ComposerPrimitive.Send>
+        )}
       </div>
       {commands.problem !== undefined && (
         <Alert id={problemId}>{commands.problem}</Alert>

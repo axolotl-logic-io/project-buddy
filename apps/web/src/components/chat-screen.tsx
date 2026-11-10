@@ -60,44 +60,46 @@ function ChatScreen({
         </div>
       </header>
       <nav
-        className="workspace-tablist adventure-workspace-nav"
+        className="adventure-workspace-nav"
         aria-label={WORKSPACES_COPY.conversation}
       >
-        <Link
-          className="workspace-tab"
-          aria-current="page"
-          href={`/chats/${chat.id}`}
-        >
-          {WORKSPACES_COPY.conversation}
-        </Link>
-        {chat.project !== undefined && (
-          <>
-            <Link
-              className="workspace-tab"
-              href={`/projects/${chat.project.id}/memory`}
-            >
-              {MEMORY_COPY.link}
-            </Link>
-            <Link
-              className="workspace-tab"
-              href={`/projects/${chat.project.id}?section=plan`}
-            >
-              {PLAN_COPY.heading}
-            </Link>
-            <Link
-              className="workspace-tab"
-              href={`/projects/${chat.project.id}?section=notes`}
-            >
-              {PROJECT_NOTES_COPY.heading}
-            </Link>
-            <Link
-              className="workspace-tab"
-              href={`/projects/${chat.project.id}?section=progress`}
-            >
-              {PROGRESS_TIMELINE_COPY.heading}
-            </Link>
-          </>
-        )}
+        <div className="workspace-tablist">
+          <Link
+            className="workspace-tab"
+            aria-current="page"
+            href={`/chats/${chat.id}`}
+          >
+            {WORKSPACES_COPY.conversation}
+          </Link>
+          {chat.project !== undefined && (
+            <>
+              <Link
+                className="workspace-tab"
+                href={`/projects/${chat.project.id}/memory`}
+              >
+                {MEMORY_COPY.link}
+              </Link>
+              <Link
+                className="workspace-tab"
+                href={`/projects/${chat.project.id}?section=plan`}
+              >
+                {PLAN_COPY.heading}
+              </Link>
+              <Link
+                className="workspace-tab"
+                href={`/projects/${chat.project.id}?section=notes`}
+              >
+                {PROJECT_NOTES_COPY.heading}
+              </Link>
+              <Link
+                className="workspace-tab"
+                href={`/projects/${chat.project.id}?section=progress`}
+              >
+                {PROGRESS_TIMELINE_COPY.heading}
+              </Link>
+            </>
+          )}
+        </div>
       </nav>
       <ChatView
         viewer={viewer}

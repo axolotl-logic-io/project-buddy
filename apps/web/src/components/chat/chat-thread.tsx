@@ -5,8 +5,10 @@ import { type JSX, useCallback, useRef } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { ChatHistory } from "@/components/chat/chat-history.tsx";
+import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
+import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
 import type { ReplyCost } from "@/replies/reply-accounting.ts";
@@ -14,7 +16,9 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure or a reply that stopped before it was
 // made, with a way to retry it, and the composer, docked at the bottom of
-// the window (chat.css's .chat-composer-dock). Retry reply moves focus to the
+// the window (chat.css's .chat-composer-dock). While a reply runs, stop holds
+// Stop reply, which the composer shows in Send's place, and stopStatus what
+// came of choosing it, shown above the box. Retry reply moves focus to the
 // message box, since the button goes once the reply starts. It scrolls to follow a
 // streaming reply unless the user has scrolled up. A user message that
 // authorNames holds shows its author's name; every other one is the
@@ -29,6 +33,8 @@ export function ChatThread({
   error,
   replyStopped,
   onRetry,
+  stop,
+  stopStatus = "",
 }: {
   goldBalance?: number | undefined;
   replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
@@ -39,6 +45,8 @@ export function ChatThread({
   error: Error | undefined;
   replyStopped?: boolean | undefined;
   onRetry?: (() => void) | undefined;
+  stop?: ReplyStop | undefined;
+  stopStatus?: string;
 }): JSX.Element {
   const scrollRef = useChatScroll();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -83,7 +91,8 @@ export function ChatThread({
             {goldBalance === undefined && CHAT_COPY.balanceUnknown}
             {goldBalance !== undefined && CHAT_COPY.balance(goldBalance)}
           </p>
-          <ChatComposer inputRef={inputRef} />
+          {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
+          <ChatComposer inputRef={inputRef} stop={stop} />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>
