@@ -35,7 +35,7 @@ The adventure shows each call as a **Plan change** with Undo (`src/components/ch
 
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
-- The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo.
+- The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
 - The **Plan panel** beside a quest adventure: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the adventure's last message awaits a reply: while one runs, here or for another member, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 

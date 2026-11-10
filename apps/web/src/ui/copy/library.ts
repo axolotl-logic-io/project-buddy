@@ -87,6 +87,7 @@ const LIBRARY_COPY: {
             "Workshop is where you edit and test. Edit one section of the instructions at a time, then choose Try your draft to test it in a drawer before you save. Back to editing or Escape closes the drawer, and reopening it brings your test back. Tests disappear when you leave or reload the page.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a test sends to the model.",
             "Batteries pay for model use: replies, generated openings, automatic adventure names, Workshop tests and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
+            "Under each reply, the adventure shows what it cost you, to one decimal place. That cost includes any retries, images and automatic adventure name the reply needed. Your balance shows whole batteries.",
             "Account shows your name under Profile, your balance and whether you can buy more batteries under Batteries, and the sign-out controls under Security. Settings holds General, Appearance, Extras and Notifications.",
             "In the Marketplace, people share copies of their own constructs, activities and spells, and buy them with orbs. Orbs are separate from batteries: you can’t turn one into the other, and selling never earns batteries. The Marketplace says whether buying is open.",
           ],

@@ -490,7 +490,7 @@ Home explains Project Buddy and offers Start a quest when the account has no adv
 
 While a reply runs, Stop reply takes Send's place in the composer dock, so it stays in view at the foot of the conversation. Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
 
-The composer shows the acting user's battery balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
+The composer shows the acting user's battery balance. A reply's cost shows one decimal place and includes retries, image charges and any automatic adventure name; the Library's Getting Started book says so, rather than every reply. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
 
 ## Header navigation
 

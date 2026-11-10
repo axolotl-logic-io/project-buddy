@@ -70,6 +70,9 @@ export const STANDALONE_CHATS_COPY = {
   backLink: "Adventures",
   listHeading: "Previous adventures",
   noChats: "No adventures yet. Choose New adventure to start one.",
+  emptyHeading: "No adventures yet",
+  emptyIntro:
+    "An adventure is a conversation with a construct, on its own or in one of your quests. Start your first one here.",
   loading: "Loading adventures…",
   projectFilterLabel: "Show adventures from",
   allProjects: "All",
@@ -78,11 +81,10 @@ export const STANDALONE_CHATS_COPY = {
 export const CHAT_COPY = {
   balance: (gold: number): string => `Batteries balance: ${gold}`,
   balanceUnknown: "Batteries balance unavailable",
-  costPending:
-    "Reply cost pending, including any image and automatic adventure name.",
+  costPending: "Reply cost pending.",
   costUnknown: "Reply cost unavailable; this does not mean zero batteries.",
   replyCost: (gold: number): string =>
-    `Reply cost: ${BATTERIES_COPY.amount(gold)} (including retries, images and any automatic adventure name).`,
+    `Reply cost: ${BATTERIES_COPY.tenths(gold)}.`,
   stop: "Stop reply",
   stopping: "Stop requested. Waiting for the server…",
   stopFailed:

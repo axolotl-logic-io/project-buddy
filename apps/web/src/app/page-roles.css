@@ -1363,6 +1363,18 @@
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
 
+  /* The Adventures page before the first adventure: a construct's
+     portrait over a short welcome and New adventure, centred under the
+     page's heading, ruled off from it as tabs would be. */
+  .no-adventures {
+    @apply flex flex-col items-center gap-4 border-line border-t px-4 py-8 text-center sm:px-6 sm:py-12;
+  }
+
+  .no-adventures-art {
+    inline-size: calc(var(--target-size) * 3);
+    @apply overflow-hidden rounded-box border border-line shadow-raised;
+  }
+
   .workspace-content[hidden] {
     display: none;
   }
