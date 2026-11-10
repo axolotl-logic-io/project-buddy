@@ -34,6 +34,8 @@ export function PromptNameField({
 }
 
 // Shared Markdown/source rendering; each page names its own concrete fields.
+// Read-only text renders as Markdown on the field surface, so it reads as a
+// document rather than as part of the page.
 export function PromptText({
   text,
   label,
@@ -81,7 +83,9 @@ export function PromptText({
       <p className="field-hint" id={helpId}>
         {hint}
       </p>
-      <Markdown running={false} text={text} topHeadingLevel={4} />
+      <div className="prompt-sheet">
+        <Markdown running={false} text={text} topHeadingLevel={4} />
+      </div>
     </section>
   );
 }

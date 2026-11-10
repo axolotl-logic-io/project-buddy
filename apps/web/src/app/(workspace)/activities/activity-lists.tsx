@@ -217,11 +217,7 @@ async function ActivityLists({
               label: WORKSPACES_COPY.retired,
               content: (
                 <div className="flex flex-col gap-4">
-                  <RetirementList
-                    definitions={retired.filter(
-                      (definition) => definition.kind === "activity",
-                    )}
-                  />
+                  <RetirementList definitions={retired} kind="activity" />
                 </div>
               ),
             },
