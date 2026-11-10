@@ -53,14 +53,14 @@ function ActivityCard({
   readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   return (
-    <li className="card flex flex-col gap-2">
+    <li className="card flex min-w-0 flex-col gap-2">
       <NewChatDialog
         {...choices}
         fixedActivity={true}
         selectedActivityId={activity.id}
         trigger={
           <button
-            className="card-title self-start text-left text-link"
+            className="card-title wrap-anywhere self-start text-left text-link"
             type="button"
           >
             {activity.name}
@@ -68,9 +68,11 @@ function ActivityCard({
         }
       />
       {activity.description !== undefined && (
-        <p className="text-muted text-sm">{activity.description}</p>
+        <p className="wrap-anywhere text-muted text-sm">
+          {activity.description}
+        </p>
       )}
-      <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      <div className="card-actions">{actions}</div>
       <ActivityQuestEntry activityId={activity.id} choices={choices} />
     </li>
   );
@@ -86,7 +88,7 @@ function BuiltInActivityCards({
   readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {activities.map((activity) => (
         <ActivityCard
           actions={
@@ -124,7 +126,7 @@ function OwnActivityCards({
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
   }
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {activities.map((activity) => (
         <ActivityCard
           actions={
@@ -215,11 +217,7 @@ async function ActivityLists({
               label: WORKSPACES_COPY.retired,
               content: (
                 <div className="flex flex-col gap-4">
-                  <RetirementList
-                    definitions={retired.filter(
-                      (definition) => definition.kind === "activity",
-                    )}
-                  />
+                  <RetirementList definitions={retired} kind="activity" />
                 </div>
               ),
             },

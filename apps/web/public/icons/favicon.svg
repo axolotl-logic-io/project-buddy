@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <title>Project Buddy</title>
+  <!-- The favicon: app-icon.svg's compass as large as a browser tab's
+       square allows, on a rounded square of the header's ink brown.
+       src/app/favicon.ico is rendered from this file at 16, 32 and 48 px. -->
+  <rect width="16" height="16" rx="3" fill="rgb(48 29 13)"/>
+  <g transform="translate(8 8) scale(0.95) translate(-8 -8)" fill="none" stroke="rgb(227 173 75)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6.5"/>
+    <path d="M10.75 5.25 9 9l-3.75 1.75L7 7z" fill="rgb(227 173 75)"/>
+  </g>
+</svg>

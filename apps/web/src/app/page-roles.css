@@ -21,7 +21,7 @@
   }
 
   .quests-index-invitations {
-    @apply px-4 sm:px-6;
+    @apply flex flex-col gap-4 px-4 sm:px-6;
   }
 
   .quests-index-invitations:has(section) {
@@ -100,13 +100,9 @@
     @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 sm:px-6;
   }
 
-  .quest-workspace-nav {
-    @apply flex min-w-0 flex-wrap gap-x-4;
-  }
-
   .quest-workspace-tab {
     min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-muted;
+    @apply inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-muted text-sm;
   }
 
   .quest-workspace-tab[aria-current="page"],
@@ -122,8 +118,27 @@
     @apply flex flex-wrap items-center gap-2 py-2;
   }
 
-  .quest-status-completed {
+  /* The status action a quest's state leads to next: Complete while it is
+     Active, Restore quest once it is Completed or Abandoned. */
+  .quest-status-next {
     @apply border border-line px-3;
+  }
+
+  /* A status change's result and its Undo, side by side, under the
+     workspace or inside the Quests list's frame. */
+  .quest-status-feedback {
+    @apply grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4;
+  }
+
+  /* With nothing to say, it leaves the flow, as an empty .notice does, so
+     it adds no gap to the column around it; its empty status region stays
+     mounted for announcements. */
+  .quest-status-feedback:has(> .notice:empty) {
+    @apply absolute;
+  }
+
+  .quests-index .quest-status-feedback:has(> .notice:not(:empty)) {
+    @apply px-4 pb-4 sm:px-6;
   }
 
   .quest-status-abandoned {
@@ -135,9 +150,11 @@
     @apply shrink-0 justify-center;
   }
 
+  /* Smaller than the title on a phone, so a long name shows more than a
+     fragment while it is edited. */
   .quest-title-input {
     min-block-size: var(--target-size);
-    @apply w-full min-w-0 font-heading text-page-heading;
+    @apply w-full min-w-0 font-heading text-section-heading sm:text-page-heading;
   }
 
   .construct-generation-spinner {
@@ -207,8 +224,11 @@
     inset-block-start: var(--workshop-visible-top);
   }
 
+  /* The drawer's title, with New test and Back to editing at its end, in
+     one row: the title wraps before the actions do, so the header stays
+     short on a phone. */
   .workshop-drawer-header {
-    @apply flex shrink-0 flex-wrap items-center justify-between gap-2 border-line border-b p-4;
+    @apply flex shrink-0 items-center justify-between gap-3 border-line border-b px-4 py-2;
   }
 
   .workshop-test-content {
@@ -221,13 +241,34 @@
   }
 
   .workshop-test-settings > summary {
-    @apply cursor-pointer;
+    @apply flex cursor-pointer items-center gap-2;
+    list-style: none;
     min-block-size: var(--target-size);
+  }
+
+  .workshop-test-settings > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Without its list-item display, a summary loses its marker: draw it. */
+  .workshop-test-settings > summary::before {
+    content: "▸";
+    @apply text-muted;
+  }
+
+  .workshop-test-settings[open] > summary::before {
+    content: "▾";
   }
 
   .workshop-feedback {
     @apply flex shrink-0 flex-col gap-2 overflow-y-auto px-4;
     max-block-size: calc(var(--workshop-visible-height) * 0.3);
+  }
+
+  /* Ruled off from the results above it, and clear of the composer, only
+     while it shows a notice or hint: an empty status region takes no room. */
+  .workshop-feedback:has(> :not(:empty)) {
+    @apply border-line border-t py-3;
   }
 
   .workshop-composer {
@@ -243,8 +284,20 @@
     @apply flex min-w-0 flex-col gap-4;
   }
 
+  /* Save, with the hint that says what it costs above it and the status
+     line below: what the Workshop pins while the form scrolls. The other
+     actions, Reset and Discard changes, follow it at the form's end, so
+     the pinned bar is one short row on a phone. */
   .prompt-editor-actions {
-    @apply flex flex-col gap-3;
+    @apply flex flex-col gap-2;
+  }
+
+  .prompt-editor-save-hint {
+    @apply text-sm sm:text-base;
+  }
+
+  .prompt-editor-more {
+    @apply flex flex-wrap items-center gap-x-5;
   }
 
   .prompt-editor[data-focus="true"] {
@@ -256,12 +309,14 @@
     @apply flex flex-wrap gap-2;
   }
 
+  /* The chosen section is marked, not filled: Save stays the editor's
+     strongest control. */
   .prompt-editor-nav button {
-    @apply text-left;
+    @apply rounded-none border-transparent border-l-2 ps-3 text-left;
   }
 
   .prompt-editor-nav [aria-pressed="true"] {
-    @apply bg-primary text-on-primary;
+    @apply border-primary bg-surface text-foreground;
   }
 
   .prompt-editor[data-focus="true"] .prompt-editor-field textarea {
@@ -269,7 +324,7 @@
   }
 
   .prompt-editor[data-focus="true"] .prompt-editor-actions {
-    @apply sticky bottom-0 z-10 border-line border-t bg-background py-3;
+    @apply sticky bottom-0 z-10 border-line border-t bg-background py-2;
   }
 
   /* Short windows need editing space more than pinned form controls. */
@@ -287,7 +342,8 @@
 
     .prompt-editor-name,
     .prompt-editor-heading,
-    .prompt-editor-actions {
+    .prompt-editor-actions,
+    .prompt-editor-more {
       grid-column: 1 / -1;
     }
 
@@ -310,11 +366,12 @@
     @apply font-heading font-semibold text-site-title tracking-tight sm:text-site-title-wide;
   }
 
-  /* The heading of a page. */
+  /* The heading of a page, a size smaller on a phone so a long title
+     leaves room for the page below it. */
   .page-heading {
     overflow-wrap: anywhere;
     min-inline-size: 0;
-    @apply font-heading font-semibold text-page-heading tracking-tight;
+    @apply font-heading font-semibold text-page-heading-phone tracking-tight sm:text-page-heading;
   }
 
   /* A heading inside a page, such as a project's chat list. */
@@ -352,7 +409,8 @@
      target's height and keeps one border, so buttons of different weights
      line up in a row. */
   .button-primary,
-  .button-secondary {
+  .button-secondary,
+  .button-danger {
     @apply inline-flex min-h-(--target-size) items-center justify-center gap-2 rounded-control border px-4 py-2 font-medium shadow-control transition-shadow hover:shadow-raised disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none motion-safe:active:translate-y-px;
   }
 
@@ -364,6 +422,24 @@
   /* Another action beside the main one. */
   .button-secondary {
     @apply border-line bg-surface text-foreground;
+  }
+
+  /* The main action when it removes something for good, such as a confirm
+     dialog's Delete forever: the primary button's shape in the danger
+     colour. */
+  .button-danger {
+    @apply border-transparent bg-danger text-on-danger;
+  }
+
+  /* A balance shown as a figure, such as Account's batteries: a small label
+     over the number, which is the focal point. */
+  .balance-label {
+    @apply font-semibold text-muted text-sm;
+  }
+
+  .balance-amount {
+    @apply font-heading font-semibold text-5xl leading-none;
+    font-variant-numeric: tabular-nums;
   }
 
   /* A small action inside a list or a form, such as restoring a version:
@@ -381,6 +457,13 @@
   /* A field's label, or the name of a group of choices. */
   .field-label {
     @apply font-medium text-sm;
+  }
+
+  /* A read-only prompt's rendered Markdown, such as a built-in construct's
+     instructions: set on the field surface, as the editable text is, so it
+     reads as one document rather than as part of the page. */
+  .prompt-sheet {
+    @apply min-w-0 rounded-box border border-line bg-field px-4 py-3;
   }
 
   /* A field's hint: what to write, or what the value does. */
@@ -458,8 +541,10 @@
     @apply border-danger text-danger;
   }
 
+  /* An empty status region stays mounted for its announcements but takes
+     no room, not even a flex or grid gap of its own. */
   .notice:empty {
-    @apply border-0 p-0;
+    @apply absolute border-0 p-0;
   }
 
   .notice a {
@@ -471,21 +556,50 @@
     @apply rounded-box border border-line bg-surface p-5 shadow-raised sm:p-6;
   }
 
-  /* One item of a list, such as a project or a version of the memory. */
-  .card,
-  .link-card {
+  /* One item of a list, such as an activity or a Marketplace listing. */
+  .card {
     @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
   }
 
-  /* A card that is one link, such as a project in the list: the card's one
-     link stretches over the whole card, so a click anywhere on it follows
-     the link, while the link's own words stay its accessible name. */
-  .link-card {
-    @apply relative hover:border-primary;
+  /* A list whose items are rows divided by rules rather than cards, as the
+     Quests index lists its quests: a quest's adventures, milestones, Quick
+     Notes and Journal versions, and every other list of adventures. Inside
+     a framed workspace, a card for each item would stack a second layer of
+     borders. */
+  .divided-rows {
+    @apply flex min-w-0 flex-col;
   }
 
-  .link-card a {
-    @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
+  .divided-rows > li {
+    @apply flex min-w-0 flex-col gap-2 border-line border-b py-4 first:pt-0 last:border-b-0 last:pb-0;
+  }
+
+  /* A card's actions, in a row along its foot: cards in a grid row share
+     a height, so their action rows line up. */
+  .card-actions {
+    @apply mt-auto flex flex-wrap items-center gap-x-3 gap-y-1;
+  }
+
+  /* The quest an activity's card offers, set off below the card's own
+     actions. Its list keeps each card's own height, so the offer doesn't
+     stretch the card beside it into an empty box. */
+  .activity-quest-entry {
+    @apply flex flex-col items-start gap-3 border-line border-t pt-3;
+  }
+
+  ul:has(> .card > .activity-quest-entry) {
+    @apply items-start;
+  }
+
+  /* A row that is one link, such as an adventure in a list: the row's one
+     link stretches over the whole row, so a click anywhere on it follows
+     the link, while the link's own words stay its accessible name. */
+  .link-row {
+    @apply relative;
+  }
+
+  .link-row a {
+    @apply after:absolute after:inset-0 hover:text-primary;
   }
 
   /* The chosen construct's card between bars to the previous and next
@@ -573,8 +687,10 @@
     }
   }
 
+  /* A long unbroken name breaks, so the clamp ends it with an ellipsis
+     rather than cutting it off at the column's edge. */
   .chat-header-name {
-    @apply line-clamp-(--chat-header-name-lines);
+    @apply wrap-anywhere line-clamp-(--chat-header-name-lines);
   }
 
   .chat-header-construct {
@@ -661,8 +777,10 @@
     @apply min-w-(--target-size) max-w-full underline underline-offset-4;
   }
 
+  /* The words, not their flex box, are shortened: text-overflow draws no
+     ellipsis for a flex container's own text. */
   .header-breadcrumbs a > span,
-  .header-breadcrumbs [aria-current] {
+  .header-breadcrumbs [aria-current] > span {
     @apply truncate;
   }
 
@@ -674,8 +792,10 @@
     --focus-outline: 3px solid var(--hud-gold);
   }
 
+  /* The title pushes the controls to the right edge, or the place beside
+     it does where it shows (from a 40rem header, below). */
   .hud-title {
-    @apply inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
+    @apply mr-auto inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
 
   .hud-medallion {
@@ -693,11 +813,6 @@
     font-family: var(--atlas-font);
   }
 
-  .site-header:not(:has(> .hud-place)) > .hud-title,
-  .site-header > .hud-place {
-    @apply mr-auto;
-  }
-
   .site-header > .button-secondary {
     flex-shrink: 0;
     @apply rounded-control border-2 shadow-none;
@@ -713,11 +828,17 @@
     border-color: var(--hud-paper);
   }
 
+  /* The battery balance, as a HUD counter: a gold battery and the number
+     beside it. */
   .header-balance {
-    @apply flex shrink-0 flex-col items-center text-sm font-semibold;
+    @apply flex shrink-0 items-center gap-1.5 font-semibold;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
     max-inline-size: 7rem;
+  }
+
+  .header-balance > .icon {
+    color: var(--hud-gold);
   }
 
   .header-quick-note {
@@ -730,7 +851,7 @@
     }
 
     .site-header:has(.header-balance) .hud-title {
-      @apply min-h-(--target-size) text-sm;
+      @apply min-h-(--target-size);
     }
 
     .header-quick-note {
@@ -738,14 +859,28 @@
       padding-inline: 0;
     }
 
-    .header-quick-note > span {
+    /* Its words, not its icon (the Icon's own span). */
+    .header-quick-note > span:not(.icon) {
       @apply sr-only;
+    }
+  }
+
+  /* Narrower than a 360 px phone, the site's name steps down a size so the
+     balance and both buttons still fit beside it on one row. */
+  @media (width < 22.5rem) {
+    .site-header:has(.header-balance) .hud-title {
+      @apply text-base;
     }
   }
 
   @container (min-width: 40rem) {
     .hud-place {
       display: block;
+      @apply mr-auto;
+    }
+
+    .site-header:has(> .hud-place) > .hud-title {
+      @apply mr-0;
     }
   }
 
@@ -881,13 +1016,14 @@
   }
 
   .atlas-heading {
-    @apply font-semibold text-page-heading;
+    @apply font-semibold text-page-heading-phone sm:text-page-heading;
     font-family: var(--atlas-font);
     overflow-wrap: anywhere;
   }
 
   .atlas-introduction {
-    @apply mt-2 text-sm;
+    @apply mx-auto mt-2 text-pretty text-sm;
+    max-inline-size: 60ch;
     color: var(--atlas-muted);
   }
 
@@ -900,8 +1036,9 @@
     padding-inline: var(--atlas-gutter);
   }
 
+  /* The same eyebrow face as the current quest's label. */
   .atlas-places-heading {
-    @apply mb-2 w-fit rounded-control border px-2 py-1 font-bold text-xs uppercase tracking-wider;
+    @apply mb-2 w-fit rounded-control border px-2 py-1 font-body font-bold text-xs uppercase tracking-wider;
     background: var(--atlas-paper);
     border-color: var(--atlas-line);
   }
@@ -981,8 +1118,9 @@
     @apply max-sm:grow;
   }
 
+  /* Full width on phones, as Continue is. */
   .atlas-start {
-    @apply w-fit max-w-full;
+    @apply w-fit max-w-full max-sm:w-auto;
     margin-inline: var(--atlas-gutter);
   }
 
@@ -1000,10 +1138,23 @@
     min-block-size: var(--target-size);
   }
 
+  /* Upright: the heading face ships no italic, so one would be faked. */
   .atlas-footer p {
-    @apply text-sm italic;
+    @apply text-sm;
     color: var(--atlas-muted);
     font-family: var(--atlas-font);
+  }
+
+  /* Home's loading tiles and quest panel, where the destinations and the
+     current quest will be. */
+  .atlas-skeleton {
+    @apply h-full rounded-box;
+    min-block-size: calc(var(--target-size) * 2);
+  }
+
+  .atlas-skeleton-panel {
+    @apply h-24 rounded-box;
+    margin-inline: var(--atlas-gutter);
   }
 
   /* Opaque paper is the fallback. Tint, as well as blur, protects contrast
@@ -1028,8 +1179,14 @@
       @apply grid-cols-3;
     }
 
+    /* Top-aligned, so icons and names line up across a row however many
+       lines each description takes. */
     .atlas-destination {
-      @apply p-4;
+      @apply justify-start p-4;
+      min-block-size: calc(var(--target-size) * 3);
+    }
+
+    .atlas-skeleton {
       min-block-size: calc(var(--target-size) * 3);
     }
 
@@ -1058,17 +1215,29 @@
 
 @layer components {
   /* One square canonical composition; only the avatar uses a face crop. */
+  /* Without artwork, or while it loads, the frame shows the construct's
+     initials as a seal: the accent colour, with letters scaled to the
+     frame, so a 32 px avatar and a full portrait read alike. */
   .construct-visual {
     position: relative;
     display: inline-grid;
     place-items: center;
+    container-type: inline-size;
     inline-size: 100%;
     max-inline-size: 100%;
     aspect-ratio: 1;
     overflow: hidden;
-    background: var(--surface);
-    color: var(--foreground);
+    background: var(--accent);
+    color: var(--on-accent);
     font-family: var(--heading-font);
+    line-height: 1;
+    @apply font-semibold;
+  }
+
+  /* The initials. Container units resolve against the frame only from
+     inside it. */
+  .construct-visual > span {
+    font-size: 36cqi;
   }
 
   .construct-visual img {
@@ -1113,14 +1282,80 @@
     @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
   }
 
-  .workspace-tablist {
-    @apply flex min-w-0 flex-wrap gap-x-4;
+  /* A row of tabs: the shared workspace tabs, a quest's sections and an
+     adventure's. It stays one row, and on a narrow screen scrolls sideways
+     inside itself rather than wrapping. Where tabs lie past an edge, that
+     edge fades (scroll-driven, where the browser supports it), so the row
+     shows there is more of it. A focused tab scrolls clear of the fade. */
+  .workspace-tablist,
+  .quest-workspace-nav {
+    --tablist-fade: --spacing(8);
+    scroll-padding-inline: var(--tablist-fade);
+    overscroll-behavior-inline: contain;
+    @apply flex min-w-0 max-w-full gap-x-4 overflow-x-auto;
+  }
+
+  @supports (scrollbar-width: none) {
+    .workspace-tablist,
+    .quest-workspace-nav {
+      scrollbar-width: none;
+    }
+  }
+
+  .workspace-tablist > *,
+  .quest-workspace-nav > * {
+    @apply shrink-0;
+  }
+
+  /* The scrolling row would clip a ring drawn outside a tab, so a tab's
+     ring sits just inside its own edge. */
+  .workspace-tablist :focus-visible,
+  .quest-workspace-nav :focus-visible {
+    outline-offset: calc(-1 * var(--focus-offset));
+  }
+
+  /* The fades, by how far the row has scrolled: the end edge at the start,
+     both edges in between and the start edge at the end. A row with
+     nothing to scroll has no timeline, so it never fades. */
+  @supports (animation-timeline: scroll()) and (mask-image: none) {
+    .workspace-tablist,
+    .quest-workspace-nav {
+      animation: tablist-fade linear both;
+      animation-timeline: scroll(self inline);
+    }
+
+    @keyframes tablist-fade {
+      0% {
+        mask-image: linear-gradient(
+          to right,
+          black calc(100% - var(--tablist-fade)),
+          transparent
+        );
+      }
+      2%,
+      98% {
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black var(--tablist-fade),
+          black calc(100% - var(--tablist-fade)),
+          transparent
+        );
+      }
+      100% {
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black var(--tablist-fade)
+        );
+      }
+    }
   }
 
   .workspace-tab {
     min-inline-size: var(--target-size);
     min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-left text-muted text-sm;
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-left text-muted text-sm;
   }
 
   .workspace-tab[data-state="active"],
@@ -1128,8 +1363,28 @@
     @apply border-primary text-foreground;
   }
 
+  /* A tab focused by a click shows no focus ring beside its underline;
+     keyboard focus keeps it (src/components/tab-pointer-focus.ts). */
+  .workspace-tab[data-pointer-focus]:focus-visible,
+  .quest-workspace-tab[data-pointer-focus]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
   .workspace-content {
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
+  }
+
+  /* The Adventures page before the first adventure: a construct's
+     portrait over a short welcome and New adventure, centred under the
+     page's heading, ruled off from it as tabs would be. */
+  .no-adventures {
+    @apply flex flex-col items-center gap-4 border-line border-t px-4 py-8 text-center sm:px-6 sm:py-12;
+  }
+
+  .no-adventures-art {
+    inline-size: calc(var(--target-size) * 3);
+    @apply overflow-hidden rounded-box border border-line shadow-raised;
   }
 
   .workspace-content[hidden] {
@@ -1141,8 +1396,31 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
+  /* Parts of one tab that would each be a panel elsewhere, such as
+     Account's balance and purchases, flattened and divided by a rule. */
+  .workspace-content > .workspace-part + .workspace-part {
+    @apply border-line border-t pt-4;
+  }
+
+  /* Built-in or own constructs, activities or spells: two columns from sm
+     up, or one column of rows inside a tabbed page (workspace-rows). */
+  .definition-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
   .workspace-rows > ul {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A construct in a list: its avatar, then a column with its name,
+     temperament and actions, so actions never squeeze the name. The column
+     takes the card's height, so its card-actions row sits at the foot. */
+  .construct-card {
+    @apply grid grid-cols-[auto_minmax(0,1fr)] gap-3;
+  }
+
+  .construct-card > :first-child {
+    @apply self-start;
   }
 
   .workspace-rows > ul > .card {
@@ -1168,6 +1446,14 @@
     @apply flex min-w-0 flex-col gap-6;
   }
 
+  /* A link in a Library book: a chapter, a page it points to or a related
+     book. A target's height, underlined like a link in text. */
+  .library-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
+    @apply inline-flex min-h-(--target-size) items-center self-start rounded-control text-sm underline decoration-(length:--line-width) underline-offset-4 hover:text-primary hover:decoration-primary;
+  }
+
   .workspace-reading > section {
     scroll-margin-block-start: var(--site-header-height);
   }
@@ -1182,9 +1468,314 @@
     @apply justify-start gap-3 rounded-control border border-line px-3;
   }
 
+  /* The radio keeps a target's size; the ring drawn in it takes the row's
+     colour, so it reads on the chosen row's primary fill as on the others. */
   .appearance-setting-input {
     inline-size: var(--target-size);
     block-size: var(--target-size);
-    @apply shrink-0;
+    @apply -ms-3 grid shrink-0 cursor-pointer appearance-none place-content-center;
+  }
+
+  .appearance-setting-input::before {
+    content: "";
+    @apply size-5 rounded-full border-2 border-current bg-clip-content p-1;
+  }
+
+  .appearance-setting-input:checked::before {
+    @apply bg-current;
+  }
+
+  /* .menu-mode:has(:focus-visible) rings the whole row instead. */
+  .appearance-setting-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  /* A quest's plan (src/components/plan/plan-steps.tsx): the next step on its
+     own, the open steps in order with their controls, the form for a new
+     step and the done steps, folded away. */
+  .plan {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+
+  .plan-next {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-box border border-primary bg-surface px-4 py-3 shadow-control;
+  }
+
+  .plan-next-label {
+    @apply font-semibold text-primary text-xs uppercase tracking-wide;
+  }
+
+  .plan-next-text {
+    @apply wrap-anywhere font-heading font-semibold;
+  }
+
+  .plan-steps {
+    @apply flex flex-col;
+  }
+
+  /* A step: its checkbox, number and text, with its buttons on a row of
+     their own under the text, so a long step keeps the width it needs on a
+     phone. From sm the buttons sit at the end of the step's own row, except
+     in the Plan panel's narrow column. */
+  .plan-step {
+    @apply grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-line/40 border-b py-1 last:border-b-0;
+  }
+
+  .plan-step-check {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply flex items-center justify-center;
+  }
+
+  /* The checkbox is drawn as the Markdown's task-list checkbox is
+     (src/components/chat/chat.css), which sizes it in em: 1em here is
+     1.5rem, at least WCAG 2.5.8's 24 px, inside the step's 44 px target. */
+  .plan-step-check input {
+    font-size: 1.5rem;
+    @apply m-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .plan-step-check input:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  /* Wide enough for "#10" whatever the step, so every step's text starts in
+     one column. */
+  .plan-step-number {
+    min-inline-size: 3ch;
+    @apply text-end text-muted text-xs tabular-nums;
+  }
+
+  .plan-step-text {
+    @apply wrap-anywhere min-w-0;
+  }
+
+  .plan-done .plan-step-text {
+    @apply text-muted line-through;
+  }
+
+  .plan-step-actions {
+    @apply col-span-full flex flex-wrap justify-end;
+  }
+
+  .plan-step-actions .button-quiet {
+    min-inline-size: var(--target-size);
+    @apply justify-center;
+  }
+
+  @media (width >= --theme(--breakpoint-sm)) {
+    .plan-step {
+      @apply grid-cols-[auto_auto_minmax(0,1fr)_auto];
+    }
+
+    .plan-step-actions {
+      @apply col-span-1;
+    }
+  }
+
+  @media (width >= --theme(--breakpoint-xl)) {
+    .adventure-plan .plan-step {
+      @apply grid-cols-[auto_auto_minmax(0,1fr)];
+    }
+
+    .adventure-plan .plan-step-actions {
+      @apply col-span-full;
+    }
+  }
+
+  .plan-step-form {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* The field waits with its buttons, as they do while the construct
+     replies. */
+  .plan-step-form .input-field {
+    @apply min-w-0 flex-[1_1_10rem] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  /* A step being edited keeps its place: the form takes the text's column
+     and the buttons', under no number of its own. */
+  .plan-step > .plan-step-form {
+    @apply col-start-3 -col-end-1;
+  }
+
+  .plan-step-problem {
+    @apply basis-full text-sm;
+  }
+
+  .plan-done > summary {
+    min-block-size: var(--target-size);
+    list-style: none;
+    @apply flex cursor-pointer items-center gap-2 self-start text-muted text-sm hover:text-foreground;
+  }
+
+  .plan-done > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Without its list-item display, a summary loses its marker: draw it, as
+     the Workshop's test settings do. */
+  .plan-done > summary::before {
+    content: "▸";
+  }
+
+  .plan-done[open] > summary::before {
+    content: "▾";
+  }
+
+  /* The plan as the Journal page shows it (plan-in-journal.tsx): its open
+     steps under the numbers the plan and the commands name them by. */
+  .plan-journal-steps > li {
+    @apply flex items-baseline gap-2;
+  }
+
+  /* A plan change in an adventure (src/components/chat/plan-change-part.tsx):
+     what the construct or a person changed, set apart from the words around
+     it as the adventure's other notes are (.card), with Undo. */
+  .plan-change {
+    @apply flex flex-col gap-2 rounded-box border border-line bg-surface px-4 py-3 text-sm shadow-control;
+  }
+
+  .plan-change-heading {
+    @apply flex flex-wrap items-center justify-between gap-x-3;
+  }
+
+  /* Undo keeps its 44 px target without making the title's row taller than
+     a line. */
+  .plan-change-heading .button-quiet {
+    margin-block: calc((1lh - var(--target-size)) / 2);
+  }
+
+  .plan-change-lines {
+    @apply flex flex-col gap-1;
+  }
+
+  .plan-change-lines > li {
+    @apply wrap-anywhere;
+  }
+
+  /* The plan as a card in the conversation, and on the Journal page. */
+  .plan-card {
+    @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+  }
+
+  /* A person's plan message, inside their message's own frame: the command
+     they typed, ruled off from the change or card it made, which need no
+     frame of their own there. */
+  .plan-message {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  .plan-message .plan-change,
+  .plan-message .plan-card {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  /* The command a person typed, ruled off from the change or card it
+     made. */
+  .plan-command {
+    @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
+  }
+
+  /* An adventure in a quest with its Plan panel (src/components/chat-view.tsx
+     and plan-panel.tsx): above the conversation on a narrower screen, where
+     a button opens it, and a sticky column beside it on a wide one, where
+     the page's column widens to hold both. */
+  .adventure-layout {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .adventure-main {
+    @apply flex min-w-0 flex-col gap-8;
+  }
+
+  .adventure-plan-toggle {
+    @apply w-full justify-start;
+  }
+
+  .adventure-plan-next {
+    @apply min-w-0 truncate font-normal text-muted;
+  }
+
+  /* The toggle's chevron, at its end, turns as the plan opens. */
+  .adventure-plan-chevron {
+    @apply ms-auto text-muted motion-safe:transition-transform;
+  }
+
+  .adventure-plan-toggle[aria-expanded="true"] .adventure-plan-chevron {
+    @apply rotate-180;
+  }
+
+  .adventure-plan-body {
+    @apply hidden;
+  }
+
+  .adventure-plan-body-open {
+    @apply mt-3 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+  }
+
+  .adventure-plan-heading {
+    @apply sr-only;
+  }
+
+  @media (width >= --theme(--breakpoint-xl)) {
+    .page-column:has(.adventure-layout) {
+      @apply max-w-6xl;
+    }
+
+    .adventure-layout {
+      @apply grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8;
+    }
+
+    .adventure-main {
+      @apply col-start-1 row-start-1;
+    }
+
+    .adventure-plan {
+      inset-block-start: calc(var(--site-header-height) + 6rem);
+      max-block-size: calc(100dvh - var(--site-header-height) - 8rem);
+      @apply sticky col-start-2 row-start-1 overflow-y-auto;
+    }
+
+    .adventure-plan-toggle {
+      @apply hidden;
+    }
+
+    .adventure-plan-body,
+    .adventure-plan-body-open {
+      @apply mt-0 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+    }
+
+    .adventure-plan-heading {
+      @apply not-sr-only font-heading font-semibold text-section-heading;
+    }
+  }
+
+  /* The composer's command list (src/components/chat/command-menu.tsx),
+     above the message box: the commands scroll, and the hint under them
+     stays in view. Each command's usage sits over its description on a
+     phone, and from sm in a column of its own, so the descriptions line
+     up. */
+  .command-menu {
+    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-2 rounded-box border border-line bg-surface p-2 shadow-raised;
+  }
+
+  .command-list {
+    @apply grid min-h-0 grid-cols-[minmax(0,1fr)] gap-y-1 overflow-y-auto sm:grid-cols-[auto_minmax(0,1fr)];
+  }
+
+  .command-option {
+    min-block-size: var(--target-size);
+    @apply col-span-full flex w-full flex-col justify-center rounded-control px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
+  }
+
+  .command-option > code {
+    @apply font-semibold text-primary;
+  }
+
+  .command-hint {
+    @apply shrink-0 border-line/40 border-t px-2 pt-2 text-muted text-xs;
   }
 }

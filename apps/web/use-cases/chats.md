@@ -34,7 +34,7 @@ The user starts or reopens a standalone adventure, without choosing a quest.
 - **Steps:**
   - She signs in and lands on Home as always, not in an adventure.
   - She opens Adventures from Home, beside Quests, or from any signed-in page's header.
-  - The Adventures page leads with her previous adventures, standalone and quest adventures together, newest first, and their quest filter (`use_case_list_all_chats`). The new-adventure form isn't on the page itself: a "New adventure" button opens it in a dialog named "New adventure". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
+  - The Adventures page leads with her previous adventures, standalone and quest adventures together, newest first, and their quest filter (`use_case_list_all_chats`). The new-adventure form isn't on the page itself: a "New adventure" button, in the heading or, before the first adventure, in the page's welcome, opens it in a dialog named "New adventure". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
   - In the dialog, she leaves the quest at "No quest", and chooses an activity and a construct, built in or one of her own, and starts an adventure. Chat and Vellum are chosen initially.
   - The picker shows one construct at a time: its name, its place in the order, such as "1 of 7", and a short description. Bars on either side step to the previous and next construct, through the built-in constructs and then her own, and wrap round at either end. The keyboard alone can use both bars.
   - The site starts the adventure, at once with a built-in construct and activity (`use_case_prepared_opening`). The conversation opens at its own `/chats/[chatId]` URL, with the construct's opening, which asks what she would like to work on or talk about. Starting it makes no quest.
@@ -117,6 +117,7 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Adventures, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Adventures have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
 - **Variations:**
   - Following a link away from Home restores the destination's page background and content column without a refresh, with the same shared header. Returning to Home restores the map layout, including with browser back and forward.
+  - While Home loads, it shows its heading, a tile where each place will be and the map's artwork, so the background doesn't change when Home arrives.
   - Before the first quest, Start a quest opens Break Down a Project with a new quest selected.
   - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
   - The six place icons come from one library and stay decorative, with visible destination names and no duplicate screen-reader announcement in Light and Dark modes, including at 320 px. The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
@@ -129,7 +130,7 @@ The user returns to the quest they were most recently working on.
 - **Prerequisites:** a signed-in account with a quest adventure.
 - **Steps:**
   - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from the Journal, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
+- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
   - The new adventure page at `/chats/new` retains Today above its form: up to three recent Active quests with their next steps and Continue links, plus up to three other recent adventures. With no recent work, it shows the form alone.
@@ -146,6 +147,8 @@ The user looks for an adventure on the Adventures page, wherever it is: in a que
 - **Steps:**
   - The user opens Adventures, from Home or from any signed-in page's header. All adventures is selected by default; Quest adventures excludes standalone conversations, and Standalone shows only conversations without a quest. New adventure stays in the heading.
 - **Outcome:** each adventure with a saved activity session shows its current activity by name. The list holds every adventure of theirs, those in their quests and those in none together, newest first. It holds no other user's adventure. Each adventure links to its conversation, as on its quest's page. A quest's own page still lists only that quest's adventures.
+- **Variations:**
+  - Before their first adventure, even with quests, the page shows no tabs or quest selector. It welcomes them instead, with a construct's portrait, a line on what an adventure is and the New adventure button, which moves there from the heading. Opening the page creates nothing.
 - **Next:**
   - `use_case_filter_chats_by_project`: narrow the list to one quest's adventures.
   - `use_case_chat_project_badge`: tell a quest's adventures from the ones in no quest.
@@ -362,7 +365,7 @@ The user turns off a quest's check-ins from a check-in email.
 - **Steps:**
   - She follows the email's link to turn check-ins off. She needn't be signed in.
   - The page names the quest and asks her to confirm, and she does.
-- **Outcome:** the page says the quest's check-ins are off, and the quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing and says it doesn't work.
+- **Outcome:** the page says the quest's check-ins are off, with the quest's name in semibold, and links to the quest. The quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing, says it doesn't work and links to Home.
 - **Next:**
   - [`use_case_set_check_ins`](projects.md#use_case_set_check_ins): turn them on again later.
 
@@ -452,8 +455,8 @@ The user follows a link to a quest or adventure that does not exist.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens an old, mistyped or garbled link to a quest or adventure, or an address the site does not have.
-  - The site says the quest or adventure cannot be found.
-- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. Her quests and adventures are unchanged.
+  - The site says the quest or adventure cannot be found, or, for any other address, that the page cannot be found.
+- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. A missing quest, Journal or adventure is named as a quest or adventure; any other page that isn't found, such as an unknown address or Invitations for an ordinary user, is named only as a page. Her quests and adventures are unchanged.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): find what she was looking for.
 
@@ -513,6 +516,6 @@ The user recognizes the adventure's construct while reading and waiting for repl
 The user stops a reply that is still running.
 
 - **Prerequisites:** signed in, with current access to the adventure.
-- **Steps:** choose Stop reply and wait for the server to confirm it.
-- **Outcome:** the server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
+- **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
+- **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
 - **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

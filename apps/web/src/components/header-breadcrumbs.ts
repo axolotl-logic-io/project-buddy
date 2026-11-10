@@ -85,7 +85,7 @@ async function headerBreadcrumbs(
   }
   if (section === "chats") {
     if (id === "new") {
-      return [HOME, QUESTS, { label: NEW_CHAT_COPY.heading }];
+      return [HOME, ADVENTURES, { label: NEW_CHAT_COPY.heading }];
     }
     if (path.length !== DETAIL_DEPTH) {
       return [];

@@ -2,6 +2,7 @@
 
 import { Tabs } from "radix-ui";
 import { type JSX, type ReactNode, useState } from "react";
+import { POINTER_FOCUS_HANDLERS } from "@/components/tab-pointer-focus.ts";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 
 // Panels stay mounted so switching sections preserves drafts and pending forms.
@@ -38,6 +39,7 @@ function WorkspaceTabs({
               key={section.id}
               value={section.id}
               className="workspace-tab"
+              {...POINTER_FOCUS_HANDLERS}
             >
               {section.label}
             </Tabs.Trigger>

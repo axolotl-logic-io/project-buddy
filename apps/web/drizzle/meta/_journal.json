@@ -351,6 +351,13 @@
       "when": 1794192691774,
       "tag": "0049_ordinary_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1794329714244,
+      "tag": "0050_mysterious_vampiro",
+      "breakpoints": true
     }
   ]
 }

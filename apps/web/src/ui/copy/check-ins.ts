@@ -4,6 +4,14 @@
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { pageTitle } from "./site.ts";
 
+// A sentence that names a quest, in its parts, so a page can set the
+// quest's name apart from the words around it.
+interface QuestSentence {
+  readonly before: string;
+  readonly quest: string;
+  readonly after: string;
+}
+
 export const CHECK_IN_SETTING_COPY = {
   heading: "Check-ins",
   intro:
@@ -30,16 +38,26 @@ export const CHECK_IN_EMAIL_COPY = {
 
 export const CHECK_INS_OFF_COPY = {
   title: pageTitle("Turn off check-ins"),
-  intro: (projectName: string): string =>
-    `Your construct checks in on ${projectName} and emails you each check-in. Turn them off?`,
+  intro: (projectName: string): QuestSentence => ({
+    before: "Your construct checks in on ",
+    quest: projectName,
+    after: " and emails you each check-in. Turn them off?",
+  }),
   confirm: "Turn off check-ins",
-  done: (projectName: string): string =>
-    `Check-ins for ${projectName} are off. You can turn them on again on the quest's page.`,
+  done: (projectName: string): QuestSentence => ({
+    before: "Check-ins for ",
+    quest: projectName,
+    after: " are off. You can turn them on again on the quest's page.",
+  }),
+  questLink: "Go to the quest",
   unusable:
     "This link doesn't work. Turn check-ins off on the quest's page instead.",
+  homeLink: "Go to Home",
   loading: "Checking your link…",
 } as const;
 
 export const UNREAD_COPY = {
   mark: "Unread",
 } as const;
+
+export type { QuestSentence };

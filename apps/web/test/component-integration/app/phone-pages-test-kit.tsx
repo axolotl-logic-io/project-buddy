@@ -1011,6 +1011,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     "Quest adventures",
     "Standalone",
   ]),
+  { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
   { name: "a quest's Quick Notes", render: projectPageFor("notes") },
   {

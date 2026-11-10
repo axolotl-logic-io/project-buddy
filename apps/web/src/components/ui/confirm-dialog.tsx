@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button.tsx";
 // before it runs. trigger (a Button) opens the dialog. The dialog says what
 // will happen, focuses the cancel button first, and calls onConfirm only when
 // the user confirms; Escape, the cancel button or a click outside cancels.
+// The confirm button is primary, or danger for a removal, such as deleting
+// or revoking something.
 export function ConfirmDialog({
   trigger,
   title,
@@ -17,6 +19,7 @@ export function ConfirmDialog({
   onConfirm,
   confirmFocusId,
   focusHandledOnConfirm,
+  variant = "primary",
 }: {
   readonly trigger: ReactElement;
   readonly title: string;
@@ -26,6 +29,7 @@ export function ConfirmDialog({
   readonly onConfirm: () => void;
   readonly confirmFocusId?: string;
   readonly focusHandledOnConfirm?: boolean;
+  readonly variant?: "primary" | "danger";
 }): JSX.Element {
   const confirmedRef = useRef<boolean>(false);
   const confirm = useCallback((): void => {
@@ -64,12 +68,14 @@ export function ConfirmDialog({
           <AlertDialog.Description className="text-muted">
             {description}
           </AlertDialog.Description>
-          <div className="mt-2 flex flex-wrap justify-end gap-3">
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
             <AlertDialog.Cancel asChild={true}>
               <Button variant="secondary">{cancelLabel}</Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild={true}>
-              <Button onClick={confirm}>{confirmLabel}</Button>
+              <Button onClick={confirm} variant={variant}>
+                {confirmLabel}
+              </Button>
             </AlertDialog.Action>
           </div>
         </AlertDialog.Content>

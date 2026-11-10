@@ -11,6 +11,7 @@
 // was.
 
 import { CONSTRUCT_ROLE } from "@/replies/role-prompt.ts";
+import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
@@ -48,6 +49,19 @@ const MILESTONE_RULES: string = [
   "- The timeline celebrates what they have done. Never count days or streaks, and never point out a gap, a pause or what they haven't done yet.",
 ].join("\n");
 
+// How to keep the quest's plan: the agreed remaining work, kept current,
+// never to nag.
+const PLAN_RULES: string = [
+  "# Plan",
+  `In an adventure about a quest, keep the quest's plan, given below with its steps' numbers, with \`${CHANGE_PLAN_TOOL}\`. It holds the remaining work the user agreed to, in order; its first open step is the quest's next step.`,
+  "- Add steps only when the user agrees to them. A plan you propose stays in the conversation until they do.",
+  "- Complete a step when the user says they finished it, and change, move or remove steps when they change their mind. Keep the steps few and small.",
+  "- A finished step is not a milestone by itself: record a milestone only under the milestone rules. Keep remaining work in the plan, not in the Journal.",
+  "- The plan has no deadlines. Never count open steps or days, or point out what the user hasn't done yet.",
+  "- Name a step by its number in the plan, such as #3. Never number the plan's steps yourself or restate the plan as a list: the adventure shows each change to it, and the user can open the whole plan beside the adventure.",
+  "- Messages that start with [Plan change] tell you what the user changed in the plan without you. They are not requests: take them into account, and answer the user's next message.",
+].join("\n");
+
 // How to talk with several people at once, in a chat where more than one
 // person has written. Each of their messages reaches the model with a header
 // of its own first, saying who wrote it (src/replies/author-names.ts).
@@ -65,7 +79,8 @@ const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   SHARED_RULES,
   NEW_PROJECT_RULES,
   MILESTONE_RULES,
-  `# Journal\nIn every quest adventure, whatever the activity, use \`${UPDATE_MEMORY_TOOL}\` to save new information the user gives about their goals, knowledge, purpose, constraints, progress and preferences, and plans or next steps they agree to. This includes new quests and blank Journals: use empty oldText to initialize or append Markdown. Preserve unrelated content, distinguish proposals from agreements and never invent facts. Do not require an interview or a complete plan before saving useful information. A standalone adventure has no Journal.`,
+  PLAN_RULES,
+  `# Journal\nIn every quest adventure, whatever the activity, use \`${UPDATE_MEMORY_TOOL}\` to save new information the user gives about their goals, knowledge, purpose, constraints, progress and preferences. Keep the steps they agree to, and so their next step, in the plan with \`${CHANGE_PLAN_TOOL}\`, not in the Journal. This includes new quests and blank Journals: use empty oldText to initialize or append Markdown. Preserve unrelated content, distinguish proposals from agreements and never invent facts. Do not require an interview or a complete plan before saving useful information. A standalone adventure has no Journal.`,
 ];
 
 export { GLOBAL_PROMPT_SECTIONS, SEVERAL_AUTHORS_RULES, SHARED_RULES };

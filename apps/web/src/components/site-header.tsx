@@ -50,7 +50,7 @@ function Breadcrumbs({
             )}
             {item.href === undefined && (
               <span aria-current="page" title={item.label}>
-                {item.label}
+                <span>{item.label}</span>
               </span>
             )}
           </li>
@@ -60,7 +60,9 @@ function Breadcrumbs({
   );
 }
 
-// Uses Account's rounding; absence means unavailable, never an empty account.
+// A HUD counter: a battery and the number, on one line. "Batteries:" is
+// there for assistive technology, which skips the icon. Uses Account's
+// rounding; absence means unavailable, never an empty account.
 function HeaderBalance({
   microUsd,
 }: {
@@ -72,7 +74,9 @@ function HeaderBalance({
   }
   return (
     <p className="header-balance" role="status">
-      <span>{HEADER_BALANCE_COPY.label}</span> <span>{amount}</span>
+      <Icon name="battery" />
+      <span className="sr-only">{HEADER_BALANCE_COPY.label} </span>
+      <span>{amount}</span>
     </p>
   );
 }
@@ -133,7 +137,6 @@ function AccountLinks(): JSX.Element {
           <MenuLink href="/account">{ACCOUNT_COPY.headerLink}</MenuLink>
         </li>
       </ul>
-      <hr className="menu-rule" />
     </nav>
   );
 }

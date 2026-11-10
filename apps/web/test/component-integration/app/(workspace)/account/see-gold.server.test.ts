@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 // "use_case_see_gold" in use-cases/accounts.md: her account page states her
-// gold, in whole gold rounded down, and her balance falls as the construct
-// replies. The extra that hides it is checked in hide-extras.browser.test.tsx.
+// batteries, in whole batteries rounded down, as a number under its
+// "Batteries" label, and her balance falls as the construct replies. The
+// extra that hides it is checked in hide-extras.browser.test.tsx.
 import { afterEach, expect, test, vi } from "vitest";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -13,6 +14,9 @@ import {
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
+
+// The balance Account shows: the number under its "Batteries" label.
+const BALANCE = /Batteries<\/h2><p[^>]*>(?<amount>[^<]*)<\/p>/u;
 
 const SELECTED_TAB =
   /<button\b(?=[^>]*role="tab")(?=[^>]*aria-selected="true")[^>]*>(?<label>[^<]+)<\/button>/u;
@@ -26,23 +30,34 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+// The number markup shows under Account's "Batteries" label.
+function balanceIn(markup: string): string | undefined {
+  const { amount } = BALANCE.exec(markup)?.groups ?? {};
+  return amount;
+}
+
+// The number Account's Batteries tab shows.
+async function balanceShown(): Promise<string | undefined> {
+  return balanceIn(renderToStaticMarkup(await AccountPage()));
+}
+
 test("use_case_see_gold", async () => {
   const user = await testUser();
   const data = testData(user);
   const chat = await data.chat(await data.project());
 
   await signIn(user);
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 100");
+  expect(await balanceShown()).toBe("100");
 
   await spendGold(user, THIRTEEN_GOLD);
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 87");
+  expect(await balanceShown()).toBe("87");
 
   const { status } = await sendChatMessage(chat.id, MESSAGE);
 
   expect(status).toBe(HTTP_STATUS.ok);
   // A reply from the mock construct costs a fraction of a gold, which the page
   // rounds down.
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 86");
+  expect(await balanceShown()).toBe("86");
 });
 
 test("a balance below 0 shows as 0", async () => {
@@ -52,7 +67,7 @@ test("a balance below 0 shows as 0", async () => {
 
   await signIn(user);
 
-  expect(renderToStaticMarkup(await AccountPage())).toContain("Batteries: 0");
+  expect(await balanceShown()).toBe("0");
 });
 
 test.each(["disabled", "production", "malformed"])(
@@ -71,7 +86,7 @@ test.each(["disabled", "production", "malformed"])(
       vi.stubEnv("VERCEL_ENV", "production");
     }
     const markup = renderToStaticMarkup(await AccountPage());
-    expect(markup).toContain("Batteries: 100");
+    expect(balanceIn(markup)).toBe("100");
     expect(markup).not.toContain('id="buy-batteries"');
   },
 );

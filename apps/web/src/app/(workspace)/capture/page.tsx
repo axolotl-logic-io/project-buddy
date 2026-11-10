@@ -29,7 +29,7 @@ export default async function QuickCapturePage({
           title={QUICK_CAPTURE_COPY.heading}
           intro={QUICK_CAPTURE_COPY.intro}
         >
-          <div className="workspace-content flex flex-col items-start gap-4">
+          <div className="workspace-content items-start border-line border-t">
             <p>{QUICK_CAPTURE_COPY.noProjects}</p>
             <Button asChild={true} variant="secondary">
               <Link href="/projects">{QUICK_CAPTURE_COPY.noProjectsLink}</Link>

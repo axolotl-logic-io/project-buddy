@@ -51,6 +51,14 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT, STANDALONE_CHAT } from "../../page-fixtures.ts";
 
+vi.mock(
+  "@/plan/plan-actions.ts",
+  () => import("../../../../plan/plan-actions-test-kit.ts"),
+);
+vi.mock(
+  "@/plan/plan-store.ts",
+  () => import("../../../../plan/plan-store-test-kit.ts"),
+);
 vi.mock("@/gold/gold-store.ts", () => ({
   readGoldBalance: vi.fn().mockResolvedValue(0),
 }));
@@ -500,7 +508,10 @@ describe("use_case_send_message", () => {
       await expect
         .element(page.getByText("Let's explore your ideas.", { exact: true }))
         .toBeVisible();
-      await expect.element(send).toBeDisabled();
+      await expect.element(send).not.toBeInTheDocument();
+      await expect
+        .element(page.getByRole("button", { name: CHAT_COPY.stop }))
+        .toBeVisible();
       await expect.element(page.getByRole("combobox")).not.toBeInTheDocument();
       await expect
         .element(page.getByText("Activity", { exact: true }))

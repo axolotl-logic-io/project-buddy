@@ -61,12 +61,10 @@ function CheckInSetting({
             </option>
           ))}
         </SelectField>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button disabled={pending} type="submit">
-            {CHECK_IN_SETTING_COPY.save}
-          </Button>
-          <FormStatus>{status}</FormStatus>
-        </div>
+        <Button className="self-start" disabled={pending} type="submit">
+          {CHECK_IN_SETTING_COPY.save}
+        </Button>
+        <FormStatus>{status}</FormStatus>
       </form>
     </section>
   );

@@ -42,7 +42,8 @@ const HEADING_COMPONENTS = HEADING_TAGS.map((_, index) =>
 // unfinished Markdown, such as an open code fence, renders as if it were
 // closed, and a caret marks where the text will continue. Links open in a
 // new tab. Inside a page that already has headings, topHeadingLevel puts
-// the text's headings below them, so the page keeps a single h1.
+// the text's headings below them, so the page keeps a single h1. A table
+// shows all its rows, with no scroll box of its own (tableMaxHeight 0).
 function MarkdownContent({
   text,
   running,
@@ -63,6 +64,7 @@ function MarkdownContent({
       isAnimating={running}
       linkSafety={LINK_SAFETY}
       plugins={STREAMDOWN_PLUGINS}
+      tableMaxHeight={0}
     >
       {text}
     </Streamdown>

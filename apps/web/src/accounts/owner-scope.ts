@@ -61,6 +61,7 @@ import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { orbBalances, orbLedger } from "@/db/tables/orbs.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
+import { planVersions } from "@/db/tables/plan-versions.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -151,6 +152,11 @@ function memoryVersionOpenTo(user: UserId): SQL {
 // A `milestones` row of a project open to user.
 function milestoneOpenTo(user: UserId): SQL {
   return inArray(milestones.projectId, openProjectIds(user));
+}
+
+// A `plan_versions` row of a project open to user.
+function planVersionOpenTo(user: UserId): SQL {
+  return inArray(planVersions.projectId, openProjectIds(user));
 }
 
 // True when the project is open to user, whatever table the query reads:
@@ -385,6 +391,7 @@ export {
   orbBalancesOfTransfer,
   orbLedgerOwnedBy,
   ownPromptOwnedBy,
+  planVersionOpenTo,
   projectInvitationOwnedBy,
   projectInvitationTo,
   projectJoinableBy,

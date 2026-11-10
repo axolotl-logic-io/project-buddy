@@ -41,9 +41,9 @@ export function MemoryHistory({
     return <p className="text-muted">{MEMORY_COPY.noHistory}</p>;
   }
   return (
-    <ol aria-label={MEMORY_COPY.historyHeading} className="flex flex-col gap-3">
+    <ol aria-label={MEMORY_COPY.historyHeading} className="divided-rows">
       {history.map((entry) => (
-        <li className="card flex flex-col gap-2" key={entry.version}>
+        <li key={entry.version}>
           <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <p>
               <span className="font-semibold">
@@ -74,7 +74,7 @@ export function MemoryHistory({
               />
               {MEMORY_COPY.showText}
             </summary>
-            <p className="mt-2 whitespace-pre-wrap rounded-control bg-code-surface p-3 font-mono">
+            <p className="wrap-anywhere mt-2 whitespace-pre-wrap rounded-control bg-code-surface p-3 font-mono">
               {entry.text}
             </p>
           </details>

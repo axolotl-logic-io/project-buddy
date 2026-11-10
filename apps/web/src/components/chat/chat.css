@@ -149,10 +149,12 @@
   /* A task list's checkboxes in the contract's colours rather than the
      browser's: a field in the line colour, filled with primary and checked
      in on-primary when done. They stay read-only, as the Markdown renders
-     them. The check is two strokes, each the diagonal of a square
+     them. A plan step's checkbox (page-roles.css's .plan-step-check) is
+     drawn the same way, at its own size. The check is two strokes, each the diagonal of a square
      background, which meet at a right angle; sizes are in em, so the box
      follows the text. */
-  .markdown input[type="checkbox"] {
+  .markdown input[type="checkbox"],
+  .plan-step-check input[type="checkbox"] {
     appearance: none;
     inline-size: 1em;
     block-size: 1em;
@@ -162,7 +164,8 @@
     background-color: var(--field);
   }
 
-  .markdown input[type="checkbox"]:checked {
+  .markdown input[type="checkbox"]:checked,
+  .plan-step-check input[type="checkbox"]:checked {
     --check-stroke:
       transparent calc(50% - 0.07em),
       var(--on-primary) calc(50% - 0.07em) calc(50% + 0.07em),
@@ -264,14 +267,22 @@
     flex-shrink: 0;
   }
 
+  /* An image in the chat, 18rem tall and as wide as its shape makes it
+     (its width and height attributes until it loads, so the box never
+     collapses), within the column. It starts where the text does rather
+     than floating in a wider box. */
   .chat-image {
     max-inline-size: 100%;
-    max-block-size: 18rem;
-    block-size: auto;
+    inline-size: auto;
+    block-size: 18rem;
+    align-self: flex-start;
     object-fit: contain;
   }
 
+  /* An unsent image's thumbnail is always 5rem tall, even from a small
+     image, so every draft reads as one row of previews. */
   .chat-image-draft {
+    block-size: 5rem;
     max-block-size: 5rem;
   }
 }
@@ -279,7 +290,27 @@
 @layer components {
   .generated-image-link {
     display: block;
+    align-self: flex-start;
+    max-inline-size: 100%;
     min-block-size: var(--target-size);
+  }
+
+  /* A generated image that fills its card's width, as the gallery shows it:
+     a sunken slot, square until the image arrives (its width and height
+     attributes), then the image's own shape, so a wide image is never
+     letterboxed. The chat keeps .chat-image's 18rem height. */
+  .generated-image-fill {
+    align-self: stretch;
+    overflow: hidden;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--box-radius);
+    background-color: var(--field);
+  }
+
+  .chat-image-fill {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
   }
 }
 

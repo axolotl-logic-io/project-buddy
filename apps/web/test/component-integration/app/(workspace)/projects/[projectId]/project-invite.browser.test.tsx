@@ -14,7 +14,12 @@ import type {
 import { ProjectInvite } from "@/app/(workspace)/projects/[projectId]/(overview)/project-invite.tsx";
 import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
 import { projectInvitationIdFixture } from "../../../../../support/id-fixtures.ts";
+import {
+  paintOf,
+  tokenColor,
+} from "../../../../components/ui/button-fill-test-kit.ts";
 import { SENT_INVITATION } from "../../../../projects/project-invitations-test-kit.ts";
+import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import { FOX_PROJECT } from "../../page-fixtures.ts";
 
 const actions = vi.hoisted(() => ({
@@ -136,6 +141,7 @@ describe("use_case_invite_to_project", () => {
   });
 
   test("lists each pending invitation with a Revoke button named for its address", async () => {
+    applyTheme("parchment");
     const screen = await render(
       <ProjectInvite
         invitations={[SENT_INVITATION]}
@@ -160,9 +166,12 @@ describe("use_case_invite_to_project", () => {
       .click();
     expect(actions.revokeProjectInvitationAction).not.toHaveBeenCalled();
     await revoke.click();
-    await dialog
-      .getByRole("button", { name: PROJECT_INVITE_COPY.revoke, exact: true })
-      .click();
+    const confirm = dialog.getByRole("button", {
+      name: PROJECT_INVITE_COPY.revoke,
+      exact: true,
+    });
+    expect(paintOf(confirm.element()).fill).toBe(tokenColor("danger"));
+    await confirm.click();
     await screen.rerender(
       <ProjectInvite invitations={[]} projectId={FOX_PROJECT.id} />,
     );

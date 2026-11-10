@@ -7,6 +7,7 @@ import {
   restoreDefinitionAction,
 } from "@/app/(workspace)/retirement/actions.ts";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
+import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
 import {
   getRetiredDefinition,
   listRetiredDefinitions,
@@ -14,6 +15,7 @@ import {
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { paintOf, tokenColor } from "../components/ui/button-fill-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import { pageScrollWidth } from "../touch-targets-test-kit.ts";
 import {
@@ -85,12 +87,34 @@ test("use_case_view_retirement", async () => {
     .toHaveAttribute("href", `/retirement/${RETIRED_CONSTRUCT.id}`);
 });
 
+test("a definition page's Retired tab lists its own kind with no kind filter", async () => {
+  await render(
+    inWorkspace(
+      <RetirementList definitions={RETIRED_DEFINITIONS} kind="construct" />,
+    ),
+  );
+  expect(page.getByRole("listitem").elements()).toHaveLength(
+    RETIRED_DEFINITIONS.filter((definition) => definition.kind === "construct")
+      .length,
+  );
+  await expect
+    .element(page.getByText(RETIRED_CONSTRUCT.name, { exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: RETIREMENT_COPY.allKinds }))
+    .not.toBeInTheDocument();
+  await expect
+    .element(page.getByRole("group", { name: RETIREMENT_COPY.kindFilter }))
+    .not.toBeInTheDocument();
+});
+
 test("Delete forever names the definition, supports cancellation, and submits only after confirmation", async () => {
   const submitted = Promise.withResolvers<FormData>();
   vi.mocked(deleteRetiredDefinitionAction).mockImplementation((form) => {
     submitted.resolve(form);
     return new Promise<never>(() => undefined);
   });
+  applyTheme("parchment");
   await renderRetirement();
   const trigger = page.getByRole("button", {
     name: RETIREMENT_COPY.deleteLabel(RETIRED_CONSTRUCT.name),
@@ -110,9 +134,12 @@ test("Delete forever names the definition, supports cancellation, and submits on
   await expect
     .element(dialog.getByText(RETIREMENT_COPY.marketplace, { exact: false }))
     .toBeVisible();
-  await dialog
-    .getByRole("button", { name: RETIREMENT_COPY.delete, exact: true })
-    .click();
+  const deleteForever = dialog.getByRole("button", {
+    name: RETIREMENT_COPY.delete,
+    exact: true,
+  });
+  expect(paintOf(deleteForever.element()).fill).toBe(tokenColor("danger"));
+  await deleteForever.click();
   expect((await submitted.promise).get("promptId")).toBe(RETIRED_CONSTRUCT.id);
 });
 

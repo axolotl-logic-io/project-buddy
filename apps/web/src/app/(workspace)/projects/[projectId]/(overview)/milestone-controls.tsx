@@ -114,6 +114,7 @@ function DeleteMilestoneForm({
         description={PROGRESS_TIMELINE_COPY.deleteDescription(text)}
         onConfirm={confirm}
         title={PROGRESS_TIMELINE_COPY.deleteTitle}
+        variant="danger"
         trigger={
           <Button
             aria-label={PROGRESS_TIMELINE_COPY.deleteLabel(text)}
@@ -163,8 +164,8 @@ export function MilestoneControls({
   }
   return (
     <>
-      <p className="font-medium">{text}</p>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <p className="wrap-anywhere font-medium">{text}</p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         {chatLink}
         <Button
           aria-label={PROGRESS_TIMELINE_COPY.editLabel(text)}

@@ -1,6 +1,8 @@
 import type { ActivityId } from "@/activities/activity.ts";
 
 // Starting points only: saved quests retain no connection to this catalog.
+// A journal holds no next step: the plan keeps the steps the user agrees to
+// (docs/quest-plan.md), and the opening adventure starts on them.
 interface PremadeQuest {
   readonly id: string;
   readonly name: string;
@@ -22,10 +24,7 @@ Discover and make something that feels like my own. The medium, tools and subjec
 ## Possible milestones (planned)
 - Find an idea I want to try.
 - Make a small first version.
-- Refine it and decide when it feels finished.
-
-## Next step
-Explore my interests, available materials and energy with my construct.`,
+- Refine it and decide when it feels finished.`,
   },
   {
     id: "design-an-original-character",
@@ -39,10 +38,7 @@ Develop a character I want to bring to life. The medium, tools and level of deta
 ## Possible milestones (planned)
 - Explore a personality, appearance or small detail.
 - Make a first version in a medium I choose.
-- Refine the character and decide what feels complete.
-
-## Next step
-Explore a character idea and a scope that fits my experience and energy.`,
+- Refine the character and decide what feels complete.`,
   },
   {
     id: "make-a-tiny-game",
@@ -56,10 +52,7 @@ Make a small playable game. The format, tools and kind of play are open.
 ## Possible milestones (planned)
 - Choose one playful idea and a manageable scope.
 - Make a first playable version.
-- Try it, refine it and decide when it is finished.
-
-## Next step
-Explore what I enjoy playing and choose a small first experiment that fits my experience.`,
+- Try it, refine it and decide when it is finished.`,
   },
   {
     id: "write-a-short-story",
@@ -73,10 +66,7 @@ Write a short story I want to tell. The genre, tools, length and starting idea a
 ## Possible milestones (planned)
 - Find a character, place or event to explore.
 - Make a first draft at a manageable length.
-- Revise it and decide when it feels finished.
-
-## Next step
-Explore a story seed and a way to begin that fits my experience and energy.`,
+- Revise it and decide when it feels finished.`,
   },
 ];
 

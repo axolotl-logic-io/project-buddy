@@ -226,7 +226,7 @@ function ChatMessage({
             </>
           )}
         </div>
-        {role === "assistant" && opening !== true && (
+        {role === "assistant" && opening !== true && progress === "done" && (
           <ReplyCostLabel cost={cost} />
         )}
       </li>
