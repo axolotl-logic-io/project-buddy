@@ -102,6 +102,24 @@ function themeChoiceSetCookie(choice: ThemeChoice): {
   };
 }
 
+// Applies the saved choice to the page, as THEME_PRE_PAINT_SCRIPT does,
+// for a page React rendered in the browser from nothing: when a page fails
+// while rendering, Next sends a bare document without <head>'s scripts, so
+// the pre-paint script never runs (PageError calls this). With no cookie,
+// the default stays.
+function applySavedThemeChoice(): void {
+  const prefix = `${COOKIE_NAME}=`;
+  const saved = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(prefix));
+  if (saved === undefined) {
+    return;
+  }
+  const choice = parseThemeChoiceCookie(saved.slice(prefix.length));
+  document.documentElement.setAttribute(THEME_ATTRIBUTE, choice.theme);
+  document.documentElement.setAttribute(MODE_ATTRIBUTE, choice.mode);
+}
+
 // For useThemeChoice: calls onChange whenever the applied choice changes, and
 // returns the function that stops it.
 function subscribeToThemeChoice(onChange: () => void): () => void {
@@ -124,6 +142,7 @@ function readAppliedMode(): string | null {
 }
 
 export {
+  applySavedThemeChoice,
   COOKIE_NAME as THEME_COOKIE_NAME,
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
