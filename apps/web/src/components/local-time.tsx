@@ -6,10 +6,10 @@ import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 // The zone of the time the server renders, the same on every server.
 const SERVER_TIME_ZONE = "UTC";
 
-// Set in the theme's monospace font with tabular figures, so two times of the
-// same length are the same width, and kept on one line, so a narrow column
+// Set in the theme's body font, as the text around it, with tabular figures,
+// so every digit is the same width, and kept on one line, so a narrow column
 // never breaks a time apart ("11:38 / AM").
-const TIME_CLASS = "font-mono tabular-nums whitespace-nowrap";
+const TIME_CLASS = "font-body tabular-nums whitespace-nowrap";
 
 function subscribeToNothing(): () => void {
   return (): void => {
@@ -28,8 +28,9 @@ function notHydrated(): boolean {
 // An instant in the zone of the browser that shows it. The server renders it
 // in UTC but unseen, so it keeps its room in the line without showing a
 // wrong time; once hydrated, it shows the browser's time. The placeholder is
-// as wide as the local time: both are fixed-length and set in the theme's
-// monospace font, so the line does not shift on hydration.
+// about as wide as the local time: both have the same format and tabular
+// figures, so the line shifts on hydration by no more than the difference
+// between two words, such as "AM" and "PM", a few pixels at most.
 function LocalTime({
   dateTime,
   detail,

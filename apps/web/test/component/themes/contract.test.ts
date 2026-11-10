@@ -31,6 +31,8 @@ const HEADING_SIZE_TOKENS = [
   "section-heading-size",
 ] as const;
 const WIDE_SITE_TITLE_TOKEN = "site-title-wide-size";
+// A page's heading has a smaller size for phones, below sm.
+const PHONE_PAGE_HEADING_TOKEN = "page-heading-phone-size";
 
 // A page's heading stands clearly above a section's heading: at least this
 // many times its size.
@@ -87,6 +89,7 @@ describe("contract.css", () => {
       expect.arrayContaining([
         ...HEADING_SIZE_TOKENS,
         WIDE_SITE_TITLE_TOKEN,
+        PHONE_PAGE_HEADING_TOKEN,
         HEADER_TITLE_TOKEN,
         CARD_TITLE_TOKEN,
       ]),
@@ -143,6 +146,15 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
     expect(
       remSize(tokens.get("page-heading-size")) /
         remSize(tokens.get("section-heading-size")),
+    ).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
+  });
+
+  test("sets a page's heading on a phone no larger, and still clearly above a section's", () => {
+    const tokens = themeTokens(themeId);
+    const phone = remSize(tokens.get(PHONE_PAGE_HEADING_TOKEN));
+    expect(phone).toBeLessThanOrEqual(remSize(tokens.get("page-heading-size")));
+    expect(
+      phone / remSize(tokens.get("section-heading-size")),
     ).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
   });
 

@@ -39,7 +39,10 @@
 //                   item of a menu
 //   on-accent                                          text-on-accent
 //   danger          errors, as text and as the border  text-danger,
-//                   of an error's box or field         border-danger
+//                   of an error's box or field; also   border-danger,
+//                   the fill of a button that removes  bg-danger
+//                   something for good
+//   on-danger                                          text-on-danger
 //   focus           the focus outline (contract.css    outline-focus,
 //                   draws it on every :focus-visible)  ring-focus
 //   shadow          the colour of shadows, used by     (no utility)
@@ -72,6 +75,9 @@
 //   --site-title-wide-size  the same from sm up, at   text-site-title-wide
 //                           least as large
 //   --page-heading-size     a page's heading          text-page-heading
+//   --page-heading-phone-size  the same below sm, at  text-page-heading-phone
+//                           most as large, and still
+//                           clearly above a section's
 //   --section-heading-size  a heading inside a page   text-section-heading
 // Title sizes, one value for both modes, each in rem, for titles that
 // aren't a page's headings (contract.test.ts checks each sits below the
