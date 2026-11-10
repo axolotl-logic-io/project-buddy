@@ -34,6 +34,18 @@ Both expose the construct name as the accessible image name. Set `decorative` be
 
 The supplied avatar frames focus on Lumen's smiling light and Vellum's brass face at small sizes. Other roles retain the supplied composition.
 
+## Avatar framing of generated artwork
+
+Generated artwork gets its `avatar` frame from the image when it is generated, so a 40 px avatar shows the character's head rather than a fixed slice of the sheet. Built-in artwork keeps its hand-chosen frames and is never framed this way.
+
+`apps/web/src/constructs/avatar-frame.ts` owns the framing. After the image provider returns the canonical image and the service decodes it, `complete` in `visual-generation.ts` asks the framer before it opens its transaction. The framer sends a 512 px copy of the image, and a fixed question, to Claude Haiku through the AI SDK. The model returns two boxes as fractions of the image: the character's face, and its whole head, including anything on it such as hair, ears, a hat or leaves. For a character whose body is its head, the head box is the whole body.
+
+`frameAroundHead` turns the boxes into the frame. It centres the frame on the box that holds both, makes it 1.2 times that box's larger side, at least a fifth of the image, and moves it to stay inside the image. Only `avatar` is set; `portrait`, `opening` and `working` keep the whole image.
+
+The framer never fails a generation. Under the mock model, without Claude's credential, or when the call fails or returns no usable head box, the avatar keeps the centre frame `{ x: 0.5, y: 0.5, size: 0.5 }`, as generated artwork had before. The framing model sees only the generated picture: no name, Visual description, prompt or reference image.
+
+The frame is stored in the visual metadata like any other, so snapshots, clones, bought copies, listings, draft artwork and previous-artwork recovery carry it unchanged. Framing never re-runs on existing artwork. A later refinement could let the owner nudge the frame in the Workshop.
+
 ## Storage and snapshots
 
 The existing JSON definition fields store metadata with the prompt; no schema migration is needed. `parseConstructDefinition` accepts current prompt and legacy voice/habits forms. Invalid or future visual metadata is ignored without losing valid conversational text. `storedConstructPrompt` writes the legacy-compatible voice/habits form plus visual metadata. Older readers ignore the new property; older writers can drop it during rollback. Re-save art after such a rollback if necessary.

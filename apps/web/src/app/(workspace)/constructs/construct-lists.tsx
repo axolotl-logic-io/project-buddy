@@ -230,11 +230,7 @@ async function ConstructLists({
               label: WORKSPACES_COPY.retired,
               content: (
                 <div className="flex flex-col gap-4">
-                  <RetirementList
-                    definitions={retired.filter(
-                      (definition) => definition.kind === "construct",
-                    )}
-                  />
+                  <RetirementList definitions={retired} kind="construct" />
                 </div>
               ),
             },

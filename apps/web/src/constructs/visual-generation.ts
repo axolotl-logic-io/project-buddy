@@ -7,6 +7,11 @@ import {
   ownPromptOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import {
+  type AvatarFramer,
+  avatarFramer,
+  CENTRE_AVATAR_FRAME,
+} from "@/constructs/avatar-frame.ts";
+import {
   parseConstructDefinition,
   storedConstructPrompt,
 } from "@/constructs/construct-definition.ts";
@@ -223,10 +228,15 @@ async function recoverableVisual(
   return CONSTRUCT_VISUAL.safeParse(original?.visual).data ?? visual ?? null;
 }
 
+// Stores the generated image and attaches it, with its avatar frame chosen
+// from the image by framer (avatar-frame.ts), or the centre when framer is
+// undefined or finds no head. The image's and the framing's costs settle the
+// reservation together.
 async function complete(
   owner: UserId,
   id: string,
   image: GeneratedImage,
+  framer: AvatarFramer | undefined,
 ): Promise<VisualGenerationResult> {
   IMAGE_MEDIA_TYPE.parse(image.mediaType);
   if (image.bytes.length === 0 || image.bytes.length > MAX_IMAGE_BYTES) {
@@ -248,7 +258,10 @@ async function complete(
   if (bytes.length > MAX_IMAGE_BYTES) {
     throw new Error("Image too large");
   }
-  const cost = COST.parse(image.costMicroUsd);
+  // Framed before the transaction, so no lock waits on the model.
+  const framing = await framer?.frame(new Uint8Array(bytes));
+  const avatar = framing?.frame ?? CENTRE_AVATAR_FRAME;
+  const cost = COST.parse(image.costMicroUsd + (framing?.costMicroUsd ?? 0));
   return await inTransaction(async (tx) => {
     await lockGold(owner, tx);
     const [generation] = await tx
@@ -304,7 +317,7 @@ async function complete(
         sourceFingerprint: await visualFingerprint(generation.description),
         sourceFingerprintVersion: 2,
         canonical: { kind: "generated", assetId },
-        frames: { avatar: { x: 0.5, y: 0.5, size: 0.5 } },
+        frames: { avatar },
       };
       // Unsaved artwork has its own compatible snapshot; Save alone changes text.
       if (
@@ -345,15 +358,22 @@ async function complete(
     return result(status, visual);
   });
 }
+// How a generation runs: whether it is Save's (saved) and regenerates an
+// unchanged appearance, and the framer that chooses its avatar frame
+// (avatar-frame.ts's by default).
+interface GenerationOptions {
+  readonly saved: boolean;
+  readonly regenerate: boolean;
+  readonly framer?: AvatarFramer | undefined;
+}
+
 async function generateConstructVisual(
   owner: UserId,
   input: VisualGenerationRequest,
   provider: ImageProvider | undefined = imageProvider(),
-  options: { readonly saved: boolean; readonly regenerate: boolean } = {
-    saved: false,
-    regenerate: false,
-  },
+  options: GenerationOptions = { saved: false, regenerate: false },
 ): Promise<VisualGenerationResult> {
+  const { framer = avatarFramer() } = options;
   const request = VISUAL_GENERATION_REQUEST.parse(input);
   const claimed = await claim(owner, request, provider !== undefined, options);
   if ("status" in claimed) {
@@ -367,6 +387,7 @@ async function generateConstructVisual(
       owner,
       claimed.id,
       await provider.generate(claimed.description),
+      framer,
     );
   } catch {
     // An unknown billed failure retains the reservation. No automatic paid retry.

@@ -199,11 +199,7 @@ async function SpellLists({
               label: WORKSPACES_COPY.retired,
               content: (
                 <div className="flex flex-col gap-4">
-                  <RetirementList
-                    definitions={retired.filter(
-                      (definition) => definition.kind === "spell",
-                    )}
-                  />
+                  <RetirementList definitions={retired} kind="spell" />
                 </div>
               ),
             },
