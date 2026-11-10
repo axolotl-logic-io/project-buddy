@@ -17,6 +17,7 @@ import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {
   type CreateProjectOutput,
@@ -95,7 +96,10 @@ function QuestTransferForm({
   }
   return (
     <form action={confirm} className="card flex flex-col gap-3">
-      <p>{CREATE_PROJECT_COPY.review(proposal.name)}</p>
+      <p className="icon-line font-medium">
+        <Icon name="plus" />
+        {CREATE_PROJECT_COPY.review(proposal.name)}
+      </p>
       <p className="field-hint">{CREATE_PROJECT_COPY.summaryHint}</p>
       <input name="id" type="hidden" value={proposal.proposalId} />
       <TextAreaField
@@ -116,7 +120,7 @@ function QuestTransferForm({
         maxLength={TRANSFER_MOTIVATION_MAX}
         rows={2}
       />
-      <Button type="submit" disabled={pending}>
+      <Button className="self-start" type="submit" disabled={pending}>
         {CREATE_PROJECT_COPY.confirm}
       </Button>
       {pending === true && <p role="status">{CREATE_PROJECT_COPY.creating}</p>}

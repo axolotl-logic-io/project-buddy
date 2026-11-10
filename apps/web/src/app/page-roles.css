@@ -573,8 +573,10 @@
     }
   }
 
+  /* A long unbroken name breaks, so the clamp ends it with an ellipsis
+     rather than cutting it off at the column's edge. */
   .chat-header-name {
-    @apply line-clamp-(--chat-header-name-lines);
+    @apply wrap-anywhere line-clamp-(--chat-header-name-lines);
   }
 
   .chat-header-construct {
