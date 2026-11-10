@@ -55,7 +55,7 @@ function BuiltInSpellCards({
   readonly spells: readonly SpellChoice[];
 }): JSX.Element {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {spells.map((spell) => (
         <SpellCard
           actions={
@@ -91,7 +91,7 @@ function OwnSpellCards({
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
   }
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {spells.map((spell) => (
         <SpellCard
           actions={
