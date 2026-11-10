@@ -149,10 +149,12 @@
   /* A task list's checkboxes in the contract's colours rather than the
      browser's: a field in the line colour, filled with primary and checked
      in on-primary when done. They stay read-only, as the Markdown renders
-     them. The check is two strokes, each the diagonal of a square
+     them. A plan step's checkbox (page-roles.css's .plan-step-check) is
+     drawn the same way, at its own size. The check is two strokes, each the diagonal of a square
      background, which meet at a right angle; sizes are in em, so the box
      follows the text. */
-  .markdown input[type="checkbox"] {
+  .markdown input[type="checkbox"],
+  .plan-step-check input[type="checkbox"] {
     appearance: none;
     inline-size: 1em;
     block-size: 1em;
@@ -162,7 +164,8 @@
     background-color: var(--field);
   }
 
-  .markdown input[type="checkbox"]:checked {
+  .markdown input[type="checkbox"]:checked,
+  .plan-step-check input[type="checkbox"]:checked {
     --check-stroke:
       transparent calc(50% - 0.07em),
       var(--on-primary) calc(50% - 0.07em) calc(50% + 0.07em),

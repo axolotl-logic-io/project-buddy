@@ -54,7 +54,12 @@ function CommandMenu({
 }): JSX.Element {
   return (
     <div className="command-menu">
-      <div id={id} role="listbox" aria-label={CHAT_COMMANDS_COPY.listLabel}>
+      <div
+        id={id}
+        role="listbox"
+        aria-label={CHAT_COMMANDS_COPY.listLabel}
+        className="command-list"
+      >
         {listings.map((listing, index) => (
           <CommandOption
             key={listing.command}
@@ -65,7 +70,7 @@ function CommandMenu({
           />
         ))}
       </div>
-      <p className="text-muted text-xs">{CHAT_COMMANDS_COPY.hint}</p>
+      <p className="command-hint">{CHAT_COMMANDS_COPY.hint}</p>
     </div>
   );
 }
