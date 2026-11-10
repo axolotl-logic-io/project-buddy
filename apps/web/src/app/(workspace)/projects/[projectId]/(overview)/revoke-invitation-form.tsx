@@ -28,6 +28,7 @@ export function RevokeInvitationForm({
       cancelLabel={PROJECT_INVITE_COPY.keepInvitation}
       onConfirm={confirm}
       focusHandledOnConfirm={true}
+      variant="danger"
       trigger={
         <Button
           aria-label={PROJECT_INVITE_COPY.revokeLabel(email)}

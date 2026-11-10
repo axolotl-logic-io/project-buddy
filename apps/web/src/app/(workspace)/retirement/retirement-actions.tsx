@@ -47,6 +47,7 @@ function RetirementActions({
           description={description}
           onConfirm={confirm}
           title={RETIREMENT_COPY.deleteTitle(definition.name)}
+          variant="danger"
           trigger={
             <Button
               aria-label={RETIREMENT_COPY.deleteLabel(definition.name)}

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { userMessage } from "@/errors/app-error.ts";
 import { goldOfMicroUsd, wholeGold } from "@/gold/gold.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
@@ -37,16 +36,10 @@ describe("battery amounts", () => {
   });
 
   test("balance presentation keeps existing accounting precision and rounding", () => {
-    expect(ACCOUNT_COPY.gold(wholeGold(STARTING_MICRO_USD))).toBe(
-      "Batteries: 100",
-    );
-    expect(ACCOUNT_COPY.gold(wholeGold(ONE_BATTERY_MICRO_USD))).toBe(
-      "Batteries: 1",
-    );
-    expect(ACCOUNT_COPY.gold(wholeGold(BELOW_ONE_BATTERY))).toBe(
-      "Batteries: 0",
-    );
-    expect(ACCOUNT_COPY.gold(wholeGold(-1))).toBe("Batteries: 0");
+    expect(wholeGold(STARTING_MICRO_USD)).toBe(STARTING_BALANCE);
+    expect(wholeGold(ONE_BATTERY_MICRO_USD)).toBe(1);
+    expect(wholeGold(BELOW_ONE_BATTERY)).toBe(0);
+    expect(wholeGold(-1)).toBe(0);
     expect(CHAT_COPY.replyCost(goldOfMicroUsd(1))).toContain(
       "0.0001 batteries",
     );

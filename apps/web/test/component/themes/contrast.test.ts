@@ -52,6 +52,7 @@ const PAIRS: readonly Pair[] = [
   ...pairs("danger", TEXT_SURFACES, TEXT_CONTRAST),
   ...pairs("primary", ["background", "surface"], TEXT_CONTRAST),
   ...pairs("on-primary", ["primary"], TEXT_CONTRAST),
+  ...pairs("on-danger", ["danger"], TEXT_CONTRAST),
   ...pairs("on-accent", ["accent"], TEXT_CONTRAST),
   // The highlighted item of a menu stands out from the menu.
   ...pairs("accent", ["surface"], BOUNDARY_CONTRAST),
