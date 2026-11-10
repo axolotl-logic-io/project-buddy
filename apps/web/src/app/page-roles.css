@@ -1127,17 +1127,29 @@
 
 @layer components {
   /* One square canonical composition; only the avatar uses a face crop. */
+  /* Without artwork, or while it loads, the frame shows the construct's
+     initials as a seal: the accent colour, with letters scaled to the
+     frame, so a 32 px avatar and a full portrait read alike. */
   .construct-visual {
     position: relative;
     display: inline-grid;
     place-items: center;
+    container-type: inline-size;
     inline-size: 100%;
     max-inline-size: 100%;
     aspect-ratio: 1;
     overflow: hidden;
-    background: var(--surface);
-    color: var(--foreground);
+    background: var(--accent);
+    color: var(--on-accent);
     font-family: var(--heading-font);
+    line-height: 1;
+    @apply font-semibold;
+  }
+
+  /* The initials. Container units resolve against the frame only from
+     inside it. */
+  .construct-visual > span {
+    font-size: 36cqi;
   }
 
   .construct-visual img {
@@ -1210,8 +1222,25 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
+  /* Built-in or own constructs, activities or spells: two columns from sm
+     up, or one column of rows inside a tabbed page (workspace-rows). */
+  .definition-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
   .workspace-rows > ul {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A construct in a list: its avatar, then a column with its name,
+     temperament and actions, so actions never squeeze the name. The column
+     takes the card's height, so its card-actions row sits at the foot. */
+  .construct-card {
+    @apply grid grid-cols-[auto_minmax(0,1fr)] gap-3;
+  }
+
+  .construct-card > :first-child {
+    @apply self-start;
   }
 
   .workspace-rows > ul > .card {
@@ -1235,6 +1264,14 @@
 
   .workspace-reading {
     @apply flex min-w-0 flex-col gap-6;
+  }
+
+  /* A link in a Library book: a chapter, a page it points to or a related
+     book. A target's height, underlined like a link in text. */
+  .library-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
+    @apply inline-flex min-h-(--target-size) items-center self-start rounded-control text-sm underline decoration-(length:--line-width) underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
   .workspace-reading > section {
