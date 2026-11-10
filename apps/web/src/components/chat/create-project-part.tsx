@@ -28,10 +28,13 @@ export function CreateProjectPart({
       return (
         <div className="card flex flex-col gap-2 text-sm">
           <p className="icon-line font-medium">
-            <Icon name="pencil" />
+            <Icon name="check" />
             {CREATE_PROJECT_COPY.created(result.name)}
           </p>
-          <Link className="text-link" href={`/chats/${result.interviewChatId}`}>
+          <Link
+            className="self-start text-link"
+            href={`/chats/${result.interviewChatId}`}
+          >
             {CREATE_PROJECT_COPY.openInterview}
           </Link>
         </div>
