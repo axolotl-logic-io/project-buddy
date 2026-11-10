@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { availableBatteryCatalog } from "@/batteries/catalog.ts";
 import { readBatteryPurchases } from "@/batteries/purchases.ts";
+import { Button } from "@/components/ui/button.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -39,22 +40,27 @@ export default async function AccountPage({
         {
           id: "profile",
           label: WORKSPACES_COPY.profile,
+          // Fragments, so .workspace-content > .panel flattens each part.
           content: (
-            <div className="flex flex-col gap-4">
-              {user.role === "admin" && (
-                <Link className="back-link" href="/invitations">
-                  {INVITATIONS_COPY.heading}
-                </Link>
-              )}
+            <>
               <NameForm name={user.name} />
-            </div>
+              {user.role === "admin" && (
+                <Button
+                  asChild={true}
+                  className="self-start"
+                  variant="secondary"
+                >
+                  <Link href="/invitations">{INVITATIONS_COPY.heading}</Link>
+                </Button>
+              )}
+            </>
           ),
         },
         {
           id: "batteries",
           label: ACCOUNT_COPY.goldHeading,
           content: (
-            <div className="flex flex-col gap-4">
+            <>
               <GoldBalance microUsd={gold} />
               {(catalog.length > 0 || purchases.length > 0) && (
                 <BatteryPurchases
@@ -63,7 +69,7 @@ export default async function AccountPage({
                   purchases={purchases}
                 />
               )}
-            </div>
+            </>
           ),
         },
         {

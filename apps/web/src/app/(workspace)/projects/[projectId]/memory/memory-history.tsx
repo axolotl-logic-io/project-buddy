@@ -74,7 +74,7 @@ export function MemoryHistory({
               />
               {MEMORY_COPY.showText}
             </summary>
-            <p className="mt-2 whitespace-pre-wrap rounded-control bg-code-surface p-3 font-mono">
+            <p className="wrap-anywhere mt-2 whitespace-pre-wrap rounded-control bg-code-surface p-3 font-mono">
               {entry.text}
             </p>
           </details>

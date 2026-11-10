@@ -21,7 +21,7 @@
   }
 
   .quests-index-invitations {
-    @apply px-4 sm:px-6;
+    @apply flex flex-col gap-4 px-4 sm:px-6;
   }
 
   .quests-index-invitations:has(section) {
@@ -106,7 +106,7 @@
 
   .quest-workspace-tab {
     min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-muted;
+    @apply inline-flex items-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-muted text-sm;
   }
 
   .quest-workspace-tab[aria-current="page"],
@@ -122,8 +122,27 @@
     @apply flex flex-wrap items-center gap-2 py-2;
   }
 
-  .quest-status-completed {
+  /* The status action a quest's state leads to next: Complete while it is
+     Active, Restore quest once it is Completed or Abandoned. */
+  .quest-status-next {
     @apply border border-line px-3;
+  }
+
+  /* A status change's result and its Undo, side by side, under the
+     workspace or inside the Quests list's frame. */
+  .quest-status-feedback {
+    @apply grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4;
+  }
+
+  /* With nothing to say, it leaves the flow, as an empty .notice does, so
+     it adds no gap to the column around it; its empty status region stays
+     mounted for announcements. */
+  .quest-status-feedback:has(> .notice:empty) {
+    @apply absolute;
+  }
+
+  .quests-index .quest-status-feedback:has(> .notice:not(:empty)) {
+    @apply px-4 pb-4 sm:px-6;
   }
 
   .quest-status-abandoned {
@@ -135,9 +154,11 @@
     @apply shrink-0 justify-center;
   }
 
+  /* Smaller than the title on a phone, so a long name shows more than a
+     fragment while it is edited. */
   .quest-title-input {
     min-block-size: var(--target-size);
-    @apply w-full min-w-0 font-heading text-page-heading;
+    @apply w-full min-w-0 font-heading text-section-heading sm:text-page-heading;
   }
 
   .construct-generation-spinner {
@@ -481,8 +502,10 @@
     @apply border-danger text-danger;
   }
 
+  /* An empty status region stays mounted for its announcements but takes
+     no room, not even a flex or grid gap of its own. */
   .notice:empty {
-    @apply border-0 p-0;
+    @apply absolute border-0 p-0;
   }
 
   .notice a {
@@ -934,7 +957,8 @@
   }
 
   .atlas-introduction {
-    @apply mt-2 text-sm;
+    @apply mx-auto mt-2 text-pretty text-sm;
+    max-inline-size: 60ch;
     color: var(--atlas-muted);
   }
 
@@ -947,8 +971,9 @@
     padding-inline: var(--atlas-gutter);
   }
 
+  /* The same eyebrow face as the current quest's label. */
   .atlas-places-heading {
-    @apply mb-2 w-fit rounded-control border px-2 py-1 font-bold text-xs uppercase tracking-wider;
+    @apply mb-2 w-fit rounded-control border px-2 py-1 font-body font-bold text-xs uppercase tracking-wider;
     background: var(--atlas-paper);
     border-color: var(--atlas-line);
   }
@@ -1028,8 +1053,9 @@
     @apply max-sm:grow;
   }
 
+  /* Full width on phones, as Continue is. */
   .atlas-start {
-    @apply w-fit max-w-full;
+    @apply w-fit max-w-full max-sm:w-auto;
     margin-inline: var(--atlas-gutter);
   }
 
@@ -1047,10 +1073,23 @@
     min-block-size: var(--target-size);
   }
 
+  /* Upright: the heading face ships no italic, so one would be faked. */
   .atlas-footer p {
-    @apply text-sm italic;
+    @apply text-sm;
     color: var(--atlas-muted);
     font-family: var(--atlas-font);
+  }
+
+  /* Home's loading tiles and quest panel, where the destinations and the
+     current quest will be. */
+  .atlas-skeleton {
+    @apply h-full rounded-box;
+    min-block-size: calc(var(--target-size) * 2);
+  }
+
+  .atlas-skeleton-panel {
+    @apply h-24 rounded-box;
+    margin-inline: var(--atlas-gutter);
   }
 
   /* Opaque paper is the fallback. Tint, as well as blur, protects contrast
@@ -1075,8 +1114,14 @@
       @apply grid-cols-3;
     }
 
+    /* Top-aligned, so icons and names line up across a row however many
+       lines each description takes. */
     .atlas-destination {
-      @apply p-4;
+      @apply justify-start p-4;
+      min-block-size: calc(var(--target-size) * 3);
+    }
+
+    .atlas-skeleton {
       min-block-size: calc(var(--target-size) * 3);
     }
 
@@ -1105,17 +1150,29 @@
 
 @layer components {
   /* One square canonical composition; only the avatar uses a face crop. */
+  /* Without artwork, or while it loads, the frame shows the construct's
+     initials as a seal: the accent colour, with letters scaled to the
+     frame, so a 32 px avatar and a full portrait read alike. */
   .construct-visual {
     position: relative;
     display: inline-grid;
     place-items: center;
+    container-type: inline-size;
     inline-size: 100%;
     max-inline-size: 100%;
     aspect-ratio: 1;
     overflow: hidden;
-    background: var(--surface);
-    color: var(--foreground);
+    background: var(--accent);
+    color: var(--on-accent);
     font-family: var(--heading-font);
+    line-height: 1;
+    @apply font-semibold;
+  }
+
+  /* The initials. Container units resolve against the frame only from
+     inside it. */
+  .construct-visual > span {
+    font-size: 36cqi;
   }
 
   .construct-visual img {
@@ -1188,8 +1245,31 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
+  /* Parts of one tab that would each be a panel elsewhere, such as
+     Account's balance and purchases, flattened and divided by a rule. */
+  .workspace-content > .workspace-part + .workspace-part {
+    @apply border-line border-t pt-4;
+  }
+
+  /* Built-in or own constructs, activities or spells: two columns from sm
+     up, or one column of rows inside a tabbed page (workspace-rows). */
+  .definition-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
   .workspace-rows > ul {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A construct in a list: its avatar, then a column with its name,
+     temperament and actions, so actions never squeeze the name. The column
+     takes the card's height, so its card-actions row sits at the foot. */
+  .construct-card {
+    @apply grid grid-cols-[auto_minmax(0,1fr)] gap-3;
+  }
+
+  .construct-card > :first-child {
+    @apply self-start;
   }
 
   .workspace-rows > ul > .card {
@@ -1215,6 +1295,14 @@
     @apply flex min-w-0 flex-col gap-6;
   }
 
+  /* A link in a Library book: a chapter, a page it points to or a related
+     book. A target's height, underlined like a link in text. */
+  .library-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
+    @apply inline-flex min-h-(--target-size) items-center self-start rounded-control text-sm underline decoration-(length:--line-width) underline-offset-4 hover:text-primary hover:decoration-primary;
+  }
+
   .workspace-reading > section {
     scroll-margin-block-start: var(--site-header-height);
   }
@@ -1229,10 +1317,27 @@
     @apply justify-start gap-3 rounded-control border border-line px-3;
   }
 
+  /* The radio keeps a target's size; the ring drawn in it takes the row's
+     colour, so it reads on the chosen row's primary fill as on the others. */
   .appearance-setting-input {
     inline-size: var(--target-size);
     block-size: var(--target-size);
-    @apply shrink-0;
+    @apply -ms-3 grid shrink-0 cursor-pointer appearance-none place-content-center;
+  }
+
+  .appearance-setting-input::before {
+    content: "";
+    @apply size-5 rounded-full border-2 border-current bg-clip-content p-1;
+  }
+
+  .appearance-setting-input:checked::before {
+    @apply bg-current;
+  }
+
+  /* .menu-mode:has(:focus-visible) rings the whole row instead. */
+  .appearance-setting-input:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 
   /* A quest's plan (src/components/plan/plan-steps.tsx): the next step on its

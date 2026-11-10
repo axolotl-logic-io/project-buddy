@@ -176,7 +176,7 @@ export function QuickCaptureForm({
           </option>
         ))}
       </SelectField>
-      <p className="text-muted">{QUICK_CAPTURE_COPY.draftHint}</p>
+      <p className="field-hint">{QUICK_CAPTURE_COPY.draftHint}</p>
       <TextAreaField
         className="min-h-24"
         error={textError}

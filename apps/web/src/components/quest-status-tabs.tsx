@@ -41,9 +41,12 @@ function QuestStatusTabs({
     selectStatus(setStatus, "premade");
     premadeRef.current?.focus();
   }, []);
-  let footer: string = PROJECTS_COPY.newestFirst;
+  // The list's order says nothing while the selected tab lists no quests.
+  let footer: string | undefined;
   if (status === "premade") {
     footer = PROJECTS_COPY.exploreFirst;
+  } else if (projects.some((project) => project.status === status)) {
+    footer = PROJECTS_COPY.newestFirst;
   }
   const onValueChange = selectStatus.bind(null, setStatus);
   return (
@@ -101,7 +104,7 @@ function QuestStatusTabs({
           </Tabs.Content>
         )}
         <footer className="quests-index-footer">
-          <p>{footer}</p>
+          {footer !== undefined && <p>{footer}</p>}
           {premade !== undefined && status !== "premade" && (
             <button
               className="button-quiet"

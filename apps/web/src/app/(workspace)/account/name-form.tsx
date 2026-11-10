@@ -69,12 +69,10 @@ export function NameForm({
           type="text"
           value={draft}
         />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button disabled={pending} type="submit">
-            {ACCOUNT_COPY.saveName}
-          </Button>
-          <FormStatus>{status}</FormStatus>
-        </div>
+        <Button className="self-start" disabled={pending} type="submit">
+          {ACCOUNT_COPY.saveName}
+        </Button>
+        <FormStatus>{status}</FormStatus>
       </form>
     </section>
   );
