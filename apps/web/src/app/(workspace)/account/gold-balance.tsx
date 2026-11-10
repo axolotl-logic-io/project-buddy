@@ -16,7 +16,7 @@ export function GoldBalance({
   return (
     <section
       aria-labelledby={GOLD_HEADING_ID}
-      className="panel flex flex-col gap-3"
+      className="panel workspace-part flex flex-col gap-3"
       {...extraTag("usage-meter")}
     >
       <h2 className="section-heading" id={GOLD_HEADING_ID}>
