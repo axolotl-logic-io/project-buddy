@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useId, useLayoutEffect, useRef } from "react";
+import {
+  type JSX,
+  type ReactNode,
+  useId,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { Icon } from "@/components/ui/icon.tsx";
 import { ATLAS_PLACES } from "@/home/places.ts";
 import type { TodayProject } from "@/today/today.ts";
@@ -54,6 +60,31 @@ function ContinueQuest({
   );
 }
 
+// Home's frame, which dresses the page in the map's artwork while it is on
+// screen: Home and Home while it loads, so the artwork is already there
+// when Home arrives. Next retains visited pages in hidden Activities. Their
+// layout effects disconnect while hidden, so only the visible atlas can
+// dress the shell.
+function AtlasShell({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  const atlasRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const atlas = atlasRef.current;
+    atlas?.removeAttribute("data-inactive");
+    return (): void => {
+      atlas?.setAttribute("data-inactive", "");
+    };
+  }, []);
+  return (
+    <div className="atlas" data-inactive="" ref={atlasRef}>
+      {children}
+    </div>
+  );
+}
+
 // The map is decoration; ordinary links provide the same navigation and
 // keyboard order in the two-column phone and three-column wide layouts.
 function HomeAtlas({
@@ -64,18 +95,8 @@ function HomeAtlas({
   readonly firstVisit?: boolean;
 }): JSX.Element {
   const placesId = useId();
-  const atlasRef = useRef<HTMLDivElement>(null);
-  // Next retains visited pages in hidden Activities. Their layout effects
-  // disconnect while hidden, so only the visible atlas can dress the shell.
-  useLayoutEffect(() => {
-    const atlas = atlasRef.current;
-    atlas?.removeAttribute("data-inactive");
-    return (): void => {
-      atlas?.setAttribute("data-inactive", "");
-    };
-  }, []);
   return (
-    <div className="atlas" data-inactive="" ref={atlasRef}>
+    <AtlasShell>
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
@@ -124,8 +145,8 @@ function HomeAtlas({
         </div>
         <p>{HOME_COPY.openPlaces}</p>
       </footer>
-    </div>
+    </AtlasShell>
   );
 }
 
-export { HomeAtlas };
+export { AtlasShell, HomeAtlas };

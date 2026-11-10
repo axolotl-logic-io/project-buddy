@@ -70,8 +70,9 @@ function UnreadMark({ chat }: { readonly chat: Chat }): ReactNode {
   );
 }
 
-// Chats as cards, each a link to its conversation named by its title
-// alone, then when it started; the whole card is the link's target. An
+// Chats as rows divided by rules, each a link to its conversation named by
+// its title alone, then when it started; the whole row is the link's
+// target. An
 // unread chat, such as a new check-in, is marked. With showProjectNames, a
 // project chat also carries its project's name.
 function ChatList({
@@ -87,9 +88,9 @@ function ChatList({
     return <p className="text-muted">{emptyMessage}</p>;
   }
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="divided-rows">
       {chats.map((chat) => (
-        <li className="link-card flex flex-col gap-0.5" key={chat.id}>
+        <li className="link-row gap-0.5" key={chat.id}>
           <Link
             aria-describedby={unreadMarkId(chat)}
             className="wrap-anywhere font-semibold"
