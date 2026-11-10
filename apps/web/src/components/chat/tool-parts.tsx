@@ -11,10 +11,12 @@ import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
+import { PlanChangeToolPart } from "@/components/chat/plan-change-part.tsx";
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
 import { SelectActivityPart } from "@/components/chat/select-activity-part.tsx";
 import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
+import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
@@ -115,6 +117,17 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
         <MemoryChangePart part={part} />
       ),
       failure: TOOL_FAILURES_COPY.updateMemory,
+      placement: "inline",
+      textBefore: "prose",
+    },
+  ],
+  [
+    CHANGE_PLAN_TOOL,
+    {
+      render: (part: ToolCallPart): JSX.Element | null => (
+        <PlanChangeToolPart part={part} />
+      ),
+      failure: TOOL_FAILURES_COPY.changePlan,
       placement: "inline",
       textBefore: "prose",
     },

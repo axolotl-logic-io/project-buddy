@@ -51,6 +51,14 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT, STANDALONE_CHAT } from "../../page-fixtures.ts";
 
+vi.mock(
+  "@/plan/plan-actions.ts",
+  () => import("../../../../plan/plan-actions-test-kit.ts"),
+);
+vi.mock(
+  "@/plan/plan-store.ts",
+  () => import("../../../../plan/plan-store-test-kit.ts"),
+);
 vi.mock("@/gold/gold-store.ts", () => ({
   readGoldBalance: vi.fn().mockResolvedValue(0),
 }));

@@ -366,7 +366,7 @@ A user in someone else's [team quest](#team-quest), who works in it as the owner
 
 ### Journal
 
-One editable Markdown document per quest, shared by all its adventures. It holds the quest's goals, milestones, progress, preferences and Quick Notes. The user and the construct can both change it.
+One editable Markdown document per quest, shared by all its adventures. It holds the quest's goals, milestones, progress, preferences and Quick Notes. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
 
 - **UI:** "Journal", "Quest Journal".
 - **Earlier name:** "Memory" or "Quest memory".
@@ -420,16 +420,44 @@ A quest's collection of recorded milestones. It celebrates what the user has don
 
 ### Next step
 
-The one small thing the user means to do next in a quest, kept in its [Journal](#journal). It is the first action toward a planned milestone. The construct keeps it current, and the user can edit it.
+The one small thing the user means to do next in a quest: the first open [step](#step) of its [plan](#plan). It is the first action toward a planned milestone. A quest whose plan has no steps yet falls back to its Journal's line that starts "Next step:", which the construct kept before plans.
 
 - **UI:** "Next step".
 - **Avoid:** "todo", "task", "action item" as names for this concept.
+
+### Plan
+
+A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Plan section, in the Plan panel beside an adventure, or with [commands](#command). Every change is saved as a version and can be undone. The plan has no deadlines and never counts open steps or days.
+
+- **UI:** "Plan", "Plan panel".
+- **Avoid:** "todo list", "task list", "backlog", "roadmap".
+
+### Step
+
+One piece of remaining work in a [plan](#plan): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done step isn't a [recorded milestone](#milestone-recorded).
+
+- **UI:** "Step", "#3", "Done".
+- **Avoid:** "todo", "task", "item", "action item".
+
+### Plan change
+
+A note in an adventure that the construct or a person changed the quest's [plan](#plan): what each operation did, with Undo. A person's plan change, made with the Plan panel or a command, spends no batteries; the construct reads it on its next reply.
+
+- **UI:** "Plan change", "Undid a plan change".
+- **Avoid:** "Plan change card", "plan update".
+
+### Command
+
+A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The plan commands keep the plan without a model call. With the mock model, its own `/mock-…` commands still go to it as messages. In a standalone adventure only the plan commands' names are commands, and they say they need a quest; any other "/word" message goes to the construct.
+
+- **UI:** "Commands", "/plan", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
+- **Avoid:** "slash command" in UI copy.
 
 ## Tools
 
 ### Tool
 
-A function the model can call during a reply. Tools are available across activities, subject to their requirements: updating Journal and recording a milestone require a quest adventure. An activity guides what the user and construct are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
+A function the model can call during a reply. Tools are available across activities, subject to their requirements: updating Journal, changing the plan and recording a milestone require a quest adventure. An activity guides what the user and construct are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
 
 ### Tool part
 

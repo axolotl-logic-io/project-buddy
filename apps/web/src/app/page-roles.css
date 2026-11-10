@@ -1404,4 +1404,292 @@
     outline: none;
     box-shadow: none;
   }
+
+  /* A quest's plan (src/components/plan/plan-steps.tsx): the next step on its
+     own, the open steps in order with their controls, the form for a new
+     step and the done steps, folded away. */
+  .plan {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+
+  .plan-next {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-box border border-primary bg-surface px-4 py-3 shadow-control;
+  }
+
+  .plan-next-label {
+    @apply font-semibold text-primary text-xs uppercase tracking-wide;
+  }
+
+  .plan-next-text {
+    @apply wrap-anywhere font-heading font-semibold;
+  }
+
+  .plan-steps {
+    @apply flex flex-col;
+  }
+
+  /* A step: its checkbox, number and text, with its buttons on a row of
+     their own under the text, so a long step keeps the width it needs on a
+     phone. From sm the buttons sit at the end of the step's own row, except
+     in the Plan panel's narrow column. */
+  .plan-step {
+    @apply grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-line/40 border-b py-1 last:border-b-0;
+  }
+
+  .plan-step-check {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply flex items-center justify-center;
+  }
+
+  /* The checkbox is drawn as the Markdown's task-list checkbox is
+     (src/components/chat/chat.css), which sizes it in em: 1em here is
+     1.5rem, at least WCAG 2.5.8's 24 px, inside the step's 44 px target. */
+  .plan-step-check input {
+    font-size: 1.5rem;
+    @apply m-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .plan-step-check input:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  /* Wide enough for "#10" whatever the step, so every step's text starts in
+     one column. */
+  .plan-step-number {
+    min-inline-size: 3ch;
+    @apply text-end text-muted text-xs tabular-nums;
+  }
+
+  .plan-step-text {
+    @apply wrap-anywhere min-w-0;
+  }
+
+  .plan-done .plan-step-text {
+    @apply text-muted line-through;
+  }
+
+  .plan-step-actions {
+    @apply col-span-full flex flex-wrap justify-end;
+  }
+
+  .plan-step-actions .button-quiet {
+    min-inline-size: var(--target-size);
+    @apply justify-center;
+  }
+
+  @media (width >= --theme(--breakpoint-sm)) {
+    .plan-step {
+      @apply grid-cols-[auto_auto_minmax(0,1fr)_auto];
+    }
+
+    .plan-step-actions {
+      @apply col-span-1;
+    }
+  }
+
+  @media (width >= --theme(--breakpoint-xl)) {
+    .adventure-plan .plan-step {
+      @apply grid-cols-[auto_auto_minmax(0,1fr)];
+    }
+
+    .adventure-plan .plan-step-actions {
+      @apply col-span-full;
+    }
+  }
+
+  .plan-step-form {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* The field waits with its buttons, as they do while the construct
+     replies. */
+  .plan-step-form .input-field {
+    @apply min-w-0 flex-[1_1_10rem] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  /* A step being edited keeps its place: the form takes the text's column
+     and the buttons', under no number of its own. */
+  .plan-step > .plan-step-form {
+    @apply col-start-3 -col-end-1;
+  }
+
+  .plan-step-problem {
+    @apply basis-full text-sm;
+  }
+
+  .plan-done > summary {
+    min-block-size: var(--target-size);
+    list-style: none;
+    @apply flex cursor-pointer items-center gap-2 self-start text-muted text-sm hover:text-foreground;
+  }
+
+  .plan-done > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Without its list-item display, a summary loses its marker: draw it, as
+     the Workshop's test settings do. */
+  .plan-done > summary::before {
+    content: "▸";
+  }
+
+  .plan-done[open] > summary::before {
+    content: "▾";
+  }
+
+  /* The plan as the Journal page shows it (plan-in-journal.tsx): its open
+     steps under the numbers the plan and the commands name them by. */
+  .plan-journal-steps > li {
+    @apply flex items-baseline gap-2;
+  }
+
+  /* A plan change in an adventure (src/components/chat/plan-change-part.tsx):
+     what the construct or a person changed, set apart from the words around
+     it as the adventure's other notes are (.card), with Undo. */
+  .plan-change {
+    @apply flex flex-col gap-2 rounded-box border border-line bg-surface px-4 py-3 text-sm shadow-control;
+  }
+
+  .plan-change-heading {
+    @apply flex flex-wrap items-center justify-between gap-x-3;
+  }
+
+  /* Undo keeps its 44 px target without making the title's row taller than
+     a line. */
+  .plan-change-heading .button-quiet {
+    margin-block: calc((1lh - var(--target-size)) / 2);
+  }
+
+  .plan-change-lines {
+    @apply flex flex-col gap-1;
+  }
+
+  .plan-change-lines > li {
+    @apply wrap-anywhere;
+  }
+
+  /* The plan as a card in the conversation, and on the Journal page. */
+  .plan-card {
+    @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+  }
+
+  /* A person's plan message, inside their message's own frame: the command
+     they typed, ruled off from the change or card it made, which need no
+     frame of their own there. */
+  .plan-message {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  .plan-message .plan-change,
+  .plan-message .plan-card {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  /* The command a person typed, ruled off from the change or card it
+     made. */
+  .plan-command {
+    @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
+  }
+
+  /* An adventure in a quest with its Plan panel (src/components/chat-view.tsx
+     and plan-panel.tsx): above the conversation on a narrower screen, where
+     a button opens it, and a sticky column beside it on a wide one, where
+     the page's column widens to hold both. */
+  .adventure-layout {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .adventure-main {
+    @apply flex min-w-0 flex-col gap-8;
+  }
+
+  .adventure-plan-toggle {
+    @apply w-full justify-start;
+  }
+
+  .adventure-plan-next {
+    @apply min-w-0 truncate font-normal text-muted;
+  }
+
+  /* The toggle's chevron, at its end, turns as the plan opens. */
+  .adventure-plan-chevron {
+    @apply ms-auto text-muted motion-safe:transition-transform;
+  }
+
+  .adventure-plan-toggle[aria-expanded="true"] .adventure-plan-chevron {
+    @apply rotate-180;
+  }
+
+  .adventure-plan-body {
+    @apply hidden;
+  }
+
+  .adventure-plan-body-open {
+    @apply mt-3 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+  }
+
+  .adventure-plan-heading {
+    @apply sr-only;
+  }
+
+  @media (width >= --theme(--breakpoint-xl)) {
+    .page-column:has(.adventure-layout) {
+      @apply max-w-6xl;
+    }
+
+    .adventure-layout {
+      @apply grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8;
+    }
+
+    .adventure-main {
+      @apply col-start-1 row-start-1;
+    }
+
+    .adventure-plan {
+      inset-block-start: calc(var(--site-header-height) + 6rem);
+      max-block-size: calc(100dvh - var(--site-header-height) - 8rem);
+      @apply sticky col-start-2 row-start-1 overflow-y-auto;
+    }
+
+    .adventure-plan-toggle {
+      @apply hidden;
+    }
+
+    .adventure-plan-body,
+    .adventure-plan-body-open {
+      @apply mt-0 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+    }
+
+    .adventure-plan-heading {
+      @apply not-sr-only font-heading font-semibold text-section-heading;
+    }
+  }
+
+  /* The composer's command list (src/components/chat/command-menu.tsx),
+     above the message box: the commands scroll, and the hint under them
+     stays in view. Each command's usage sits over its description on a
+     phone, and from sm in a column of its own, so the descriptions line
+     up. */
+  .command-menu {
+    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-2 rounded-box border border-line bg-surface p-2 shadow-raised;
+  }
+
+  .command-list {
+    @apply grid min-h-0 grid-cols-[minmax(0,1fr)] gap-y-1 overflow-y-auto sm:grid-cols-[auto_minmax(0,1fr)];
+  }
+
+  .command-option {
+    min-block-size: var(--target-size);
+    @apply col-span-full flex w-full flex-col justify-center rounded-control px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
+  }
+
+  .command-option > code {
+    @apply font-semibold text-primary;
+  }
+
+  .command-hint {
+    @apply shrink-0 border-line/40 border-t px-2 pt-2 text-muted text-xs;
+  }
 }

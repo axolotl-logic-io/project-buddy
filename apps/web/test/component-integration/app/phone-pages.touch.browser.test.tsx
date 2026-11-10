@@ -69,6 +69,10 @@ import { GOLD_BALANCE } from "./phone-pages-fixtures.ts";
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
+vi.mock(
+  "@/plan/plan-actions.ts",
+  () => import("../plan/plan-actions-test-kit.ts"),
+);
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
@@ -119,6 +123,7 @@ vi.mock("@/memory/memory-store.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
+vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
 vi.mock(
   "@/projects/project-invitations.ts",
   () => import("../projects/project-invitations-test-kit.ts"),

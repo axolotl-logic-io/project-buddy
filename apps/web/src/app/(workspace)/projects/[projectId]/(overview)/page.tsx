@@ -16,16 +16,24 @@ import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
+import {
+  changePlanAction,
+  runChatCommandAction,
+  undoPlanChangeAction,
+} from "@/plan/plan-actions.ts";
+import { readPlanState } from "@/plan/plan-store.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import { listSentProjectInvitations } from "@/projects/project-invitations.ts";
 import { getProject, type Project } from "@/projects/store.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectMembers } from "./project-members.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
+import { QuestPlan } from "./quest-plan.tsx";
 
 // The project's check-in frequency for its setting, off when unsaved, or
 // null, which hides the setting, while check-ins are off for the site or
@@ -45,7 +53,7 @@ async function checkInSetting(
 }
 
 // A project's page: its name, a link to its memory, the New chat button,
-// whose dialog starts chats in the project, its progress timeline, its chats, its newest notes,
+// whose dialog starts chats in the project, its plan, its progress timeline, its chats, its newest notes,
 // its members, and, for its owner, the invite form with its pending
 // invitations and its check-in setting, once check-ins are on for the site.
 export default async function ProjectPage({
@@ -54,8 +62,14 @@ export default async function ProjectPage({
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
   const { projectId } = await params;
   const { section } = await searchParams;
-  let current: "adventures" | "progress" | "notes" | "members" = "adventures";
-  if (section === "progress" || section === "notes" || section === "members") {
+  let current: "adventures" | "plan" | "progress" | "notes" | "members" =
+    "adventures";
+  if (
+    section === "plan" ||
+    section === "progress" ||
+    section === "notes" ||
+    section === "members"
+  ) {
     current = section;
   }
   const user = await requireUser();
@@ -72,6 +86,7 @@ export default async function ProjectPage({
     members,
     invitations,
     frequency,
+    plan,
   ] = await Promise.all([
     listMilestones(user.id, project.id),
     listChats(user.id, project.id),
@@ -81,6 +96,7 @@ export default async function ProjectPage({
     listProjectMembers(user.id, project.id),
     listSentProjectInvitations(user.id, project.id),
     checkInSetting(user.id, project),
+    readPlanState(user.id, project.id),
   ]);
 
   return (
@@ -98,6 +114,23 @@ export default async function ProjectPage({
     >
       {project.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
+      )}
+      {current === "plan" && plan !== undefined && (
+        <section className="page-slot">
+          <div className="flex flex-col gap-2">
+            <h2 className="section-heading">{PLAN_COPY.heading}</h2>
+            <p className="text-muted">{PLAN_COPY.intro}</p>
+          </div>
+          <QuestPlan
+            projectId={project.id}
+            plan={plan}
+            actions={{
+              change: changePlanAction,
+              undo: undoPlanChangeAction,
+              command: runChatCommandAction,
+            }}
+          />
+        </section>
       )}
       {current === "progress" && (
         <section className="page-slot">

@@ -10,6 +10,7 @@
 // together, in one transaction, so a failure leaves no chat without its
 // opening and no project without its chat. A check-in (startCheckIn) starts
 // the same way, but the construct starts it on a schedule, not the user.
+
 import { readUserName } from "@/accounts/users-store.ts";
 import {
   DEFAULT_ACTIVITY_ID,
@@ -44,6 +45,7 @@ import {
 import type { Transaction } from "@/db/client.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 import type { Project } from "@/projects/store.ts";
@@ -209,7 +211,7 @@ async function startProject(
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => Promise.resolve({ name, memory, milestones: [] }),
+    () => Promise.resolve({ name, memory, plan: EMPTY_PLAN, milestones: [] }),
     { construct, activity, kickoff },
   );
   if (opening === undefined) {

@@ -1,12 +1,14 @@
-// A project's next step: the one small thing the user means to do next in
-// the project, as its memory records it on a line of its own that starts
-// "Next step:". The construct keeps that line current (the update_memory tool's
-// description asks it to), and the user may write or edit it on the memory
-// page. Reading it takes no model call. It imports nothing from the server,
-// so pages, prompts and tests can use it.
+// A quest's next step: the one small thing the user means to do next. It is
+// the first open step of the quest's plan (src/plan/plan.ts). A quest whose
+// plan has never had a step, such as one from before plans, falls back to
+// its Journal's own line that starts "Next step:", which the construct and
+// the user used to keep there. Once the plan has had a step, it alone says:
+// a plan emptied, or with every step done, has no next step. Reading it takes no model call. It imports
+// nothing from the server, so pages, prompts and tests can use it.
 import type { Memory } from "@/memory/memory.ts";
+import { nextPlanStep, type Plan } from "@/plan/plan.ts";
 
-// What starts the line, as the construct is asked to write it.
+// What starts the Journal's line, as the construct was asked to write it.
 const NEXT_STEP_LABEL = "Next step:";
 
 // A line holding the next step, written as the construct is asked to, or as a
@@ -27,4 +29,14 @@ function nextStepOf(memory: Memory): string | undefined {
   return step;
 }
 
-export { NEXT_STEP_LABEL, nextStepOf };
+// The quest's next step: its plan's first open step; or, while the plan has
+// never had a step (the first one added is numbered 1), its memory's; or
+// undefined if neither has one.
+function nextStepOfQuest(memory: Memory, plan: Plan): string | undefined {
+  if (plan.nextNumber === 1) {
+    return nextStepOf(memory);
+  }
+  return nextPlanStep(plan)?.text;
+}
+
+export { NEXT_STEP_LABEL, nextStepOf, nextStepOfQuest };

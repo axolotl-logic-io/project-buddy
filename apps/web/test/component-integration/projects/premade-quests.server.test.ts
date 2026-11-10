@@ -16,7 +16,16 @@ import { formOf } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
+// A Journal's next step, which the plan keeps instead.
+const NEXT_STEP = /next step/iu;
+
 describe("use_case_start_premade_quest", () => {
+  test("no premade Journal holds a next step, which the plan keeps", () => {
+    for (const quest of PREMADE_QUESTS) {
+      expect(quest.journal).not.toMatch(NEXT_STEP);
+    }
+  });
+
   test.each(PREMADE_QUESTS)(
     "$name creates an ordinary private quest with editable plans and the selected activity",
     async (quest) => {
