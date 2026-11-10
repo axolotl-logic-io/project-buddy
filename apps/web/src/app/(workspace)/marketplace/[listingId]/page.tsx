@@ -14,23 +14,17 @@ import { unlistListingAction, updateListingAction } from "../actions.ts";
 import { BuyForm } from "../buy-form.tsx";
 import { ListingTermsForm } from "../listing-terms-form.tsx";
 
-function listingPrice(listing: ListingView): string {
-  if (listing.legacy === true) {
-    return LISTING_COPY.legacy;
-  }
-  return MARKETPLACE_COPY.price(listing.price);
-}
-
 const UPDATE_HEADING_ID = "update-listing-heading";
 
-// What a buyer can do: open the copy they have, or buy one.
+// What a buyer can do: open the copy they have, or buy one. A legacy
+// listing offers nothing; the page's notice says why.
 function BuyerPart({
   listing,
   enabled,
 }: {
   readonly listing: ListingView & { readonly viewer: "buyer" };
   readonly enabled: boolean;
-}): JSX.Element {
+}): JSX.Element | null {
   if (listing.copy !== undefined) {
     return (
       <div className="flex flex-col gap-3">
@@ -44,16 +38,16 @@ function BuyerPart({
     );
   }
   if (listing.legacy === true) {
-    return <p>{LISTING_COPY.legacy}</p>;
+    return null;
   }
   if (!enabled) {
-    return <p>{MARKETPLACE_COPY.paused}</p>;
+    return <Notice>{MARKETPLACE_COPY.paused}</Notice>;
   }
   return <BuyForm listingId={listing.id} price={listing.price} />;
 }
 
-// What the seller can do: open the prompt it was published from, update
-// the listing from it and unlist it, while each is possible.
+// The listing's price as the update form starts it: none for a legacy
+// listing, whose seller must choose one.
 function orbPrice(listing: ListingView): number | undefined {
   if (listing.legacy === true) {
     return undefined;
@@ -61,6 +55,24 @@ function orbPrice(listing: ListingView): number | undefined {
   return listing.price;
 }
 
+// The form that unlists the listing.
+function UnlistForm({
+  listing,
+}: {
+  readonly listing: ListingView;
+}): JSX.Element {
+  return (
+    <form action={unlistListingAction}>
+      <input name="listingId" type="hidden" value={listing.id} />
+      <Button type="submit" variant="secondary">
+        {LISTING_COPY.unlist}
+      </Button>
+    </form>
+  );
+}
+
+// What the seller can do: open the prompt it was published from, update
+// the listing from it and unlist it, while each is possible.
 function SellerPart({
   listing,
 }: {
@@ -82,47 +94,48 @@ function SellerPart({
       </>
     );
   }
+  if (listing.source === undefined) {
+    return (
+      <>
+        <Notice>{LISTING_COPY.yours}</Notice>
+        <Notice>{LISTING_COPY.sourceGone(listing.kind)}</Notice>
+        <UnlistForm listing={listing} />
+      </>
+    );
+  }
   return (
     <>
-      <p>{LISTING_COPY.yours}</p>
-      {listing.source === undefined && (
-        <Notice>{LISTING_COPY.sourceGone(listing.kind)}</Notice>
-      )}
-      {listing.source !== undefined && (
-        <section
-          aria-labelledby={UPDATE_HEADING_ID}
-          className="panel flex flex-col gap-3"
+      <Notice>{LISTING_COPY.yours}</Notice>
+      <section
+        aria-labelledby={UPDATE_HEADING_ID}
+        className="panel flex flex-col gap-3"
+      >
+        <h2 className="section-heading" id={UPDATE_HEADING_ID}>
+          {LISTING_COPY.updateHeading}
+        </h2>
+        <p className="text-muted">{LISTING_COPY.updateIntro(listing.kind)}</p>
+        <Link
+          className="self-start text-link"
+          href={ownPromptPath(listing.kind, listing.source)}
         >
-          <h2 className="section-heading" id={UPDATE_HEADING_ID}>
-            {LISTING_COPY.updateHeading}
-          </h2>
-          <p className="text-muted">{LISTING_COPY.updateIntro(listing.kind)}</p>
-          <Link
-            className="self-start text-link"
-            href={ownPromptPath(listing.kind, listing.source)}
-          >
-            {LISTING_COPY.openSource(listing.kind)}
-          </Link>
-          <ListingTermsForm
-            action={updateListingAction}
-            description={listing.description}
-            price={orbPrice(listing)}
-            words={{
-              submit: LISTING_COPY.update,
-              pending: LISTING_COPY.updating,
-            }}
-          >
-            <input name="listingId" type="hidden" value={listing.id} />
-            <input name="kind" type="hidden" value={listing.kind} />
-          </ListingTermsForm>
-        </section>
-      )}
-      <form action={unlistListingAction}>
-        <input name="listingId" type="hidden" value={listing.id} />
-        <Button type="submit" variant="secondary">
-          {LISTING_COPY.unlist}
-        </Button>
-      </form>
+          {LISTING_COPY.openSource(listing.kind)}
+        </Link>
+        <ListingTermsForm
+          action={updateListingAction}
+          description={listing.description}
+          price={orbPrice(listing)}
+          words={{
+            submit: LISTING_COPY.update,
+            pending: LISTING_COPY.updating,
+          }}
+        >
+          <input name="listingId" type="hidden" value={listing.id} />
+          <input name="kind" type="hidden" value={listing.kind} />
+        </ListingTermsForm>
+        <div className="border-line border-t pt-4">
+          <UnlistForm listing={listing} />
+        </div>
+      </section>
     </>
   );
 }
@@ -143,33 +156,46 @@ export default async function ListingPage({
   if (listing === undefined) {
     notFound();
   }
+  const balance = (
+    <p className="text-muted text-sm">{MARKETPLACE_COPY.orbBalance(orbs)}</p>
+  );
   return (
     <>
-      <div className="flex flex-col gap-2">
+      <header className="flex flex-col gap-2">
         <h1 className="page-heading wrap-anywhere">{listing.name}</h1>
         <p className="wrap-anywhere text-muted">
           {LISTING_COPY.kindAndSeller(listing.kind, listing.sellerName)}
         </p>
-      </div>
-      <p>{MARKETPLACE_COPY.orbBalance(orbs)}</p>
-      <dl className="flex flex-wrap gap-2">
-        <dt className="font-semibold">{LISTING_COPY.priceLabel}</dt>
-        <dd>{listingPrice(listing)}</dd>
-      </dl>
+        {listing.legacy !== true && (
+          <dl className="flex flex-wrap items-baseline gap-x-2">
+            <dt className="text-muted text-sm">{LISTING_COPY.priceLabel}</dt>
+            <dd className="font-heading font-semibold text-section-heading">
+              {MARKETPLACE_COPY.price(listing.price)}
+            </dd>
+          </dl>
+        )}
+      </header>
+      {listing.legacy === true && <Notice>{LISTING_COPY.legacy}</Notice>}
       {listing.description !== "" && (
         <p className="wrap-anywhere whitespace-pre-line">
           {listing.description}
         </p>
       )}
       {listing.viewer === "buyer" && (
-        <>
-          <p className="text-muted">
+        <div className="panel flex flex-col gap-4">
+          <p className="text-muted text-sm">
             {LISTING_COPY.writtenByAnother(listing.kind)}
           </p>
           <BuyerPart listing={listing} enabled={enabled} />
+          {balance}
+        </div>
+      )}
+      {listing.viewer === "seller" && (
+        <>
+          <SellerPart listing={listing} />
+          {balance}
         </>
       )}
-      {listing.viewer === "seller" && <SellerPart listing={listing} />}
     </>
   );
 }
