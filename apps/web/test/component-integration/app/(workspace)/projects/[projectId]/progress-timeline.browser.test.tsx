@@ -11,6 +11,10 @@ import type {
 } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
 import { ProgressTimeline } from "@/app/(workspace)/projects/[projectId]/(overview)/progress-timeline.tsx";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import {
+  paintOf,
+  tokenColor,
+} from "../../../../components/ui/button-fill-test-kit.ts";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   FOX_BODY_MILESTONE,
@@ -156,6 +160,7 @@ describe("use_case_edit_milestone", () => {
 
   test("deletes a milestone only once she confirms", async () => {
     actions.deleteMilestoneAction.mockResolvedValue();
+    applyTheme("parchment");
     await renderTimeline();
     const deleteButton = page.getByRole("button", {
       name: PROGRESS_TIMELINE_COPY.deleteLabel(NEWEST_TEXT),
@@ -167,9 +172,11 @@ describe("use_case_edit_milestone", () => {
       .click();
     expect(actions.deleteMilestoneAction).not.toHaveBeenCalled();
     await deleteButton.click();
-    await page
-      .getByRole("button", { name: PROGRESS_TIMELINE_COPY.deleteConfirm })
-      .click();
+    const confirm = page.getByRole("button", {
+      name: PROGRESS_TIMELINE_COPY.deleteConfirm,
+    });
+    expect(paintOf(confirm.element()).fill).toBe(tokenColor("danger"));
+    await confirm.click();
 
     await vi.waitFor(() => {
       expect(actions.deleteMilestoneAction).toHaveBeenCalledOnce();

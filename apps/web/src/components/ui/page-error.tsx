@@ -15,7 +15,9 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // What any page or Server Action that failed shows instead: the failure's
 // case message, read from the digest an AppError carries (see app-error.ts),
-// or the unknown message for any other error. A digest that names a case
+// under the heading "Something went wrong". Any other error says only to
+// try again later, so the page doesn't say twice that something went
+// wrong. A digest that names a case
 // this build doesn't know came from a newer build, mid-deploy: the page
 // reloads once to pick that build up, and shows the unknown message if it
 // already did within the last minute (newer-build-reload.ts).
@@ -34,11 +36,16 @@ function PageError({
     }
   }, [error.digest]);
 
+  const errorCase = readAppErrorCase(error.digest);
+  let message = userMessage(errorCase);
+  if (errorCase === "unknown") {
+    message = PROBLEMS_COPY.unknownError;
+  }
   return (
     <div className="panel flex flex-col gap-4">
       <SavedChoices />
       <h1 className="page-heading">{PROBLEMS_COPY.errorHeading}</h1>
-      <Alert>{userMessage(readAppErrorCase(error.digest))}</Alert>
+      <Alert>{message}</Alert>
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={retry}>{PROBLEMS_COPY.retry}</Button>
         <Button asChild={true} variant="secondary">

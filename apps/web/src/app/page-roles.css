@@ -354,11 +354,12 @@
     @apply font-heading font-semibold text-site-title tracking-tight sm:text-site-title-wide;
   }
 
-  /* The heading of a page. */
+  /* The heading of a page, a size smaller on a phone so a long title
+     leaves room for the page below it. */
   .page-heading {
     overflow-wrap: anywhere;
     min-inline-size: 0;
-    @apply font-heading font-semibold text-page-heading tracking-tight;
+    @apply font-heading font-semibold text-page-heading-phone tracking-tight sm:text-page-heading;
   }
 
   /* A heading inside a page, such as a project's chat list. */
@@ -396,7 +397,8 @@
      target's height and keeps one border, so buttons of different weights
      line up in a row. */
   .button-primary,
-  .button-secondary {
+  .button-secondary,
+  .button-danger {
     @apply inline-flex min-h-(--target-size) items-center justify-center gap-2 rounded-control border px-4 py-2 font-medium shadow-control transition-shadow hover:shadow-raised disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none motion-safe:active:translate-y-px;
   }
 
@@ -408,6 +410,24 @@
   /* Another action beside the main one. */
   .button-secondary {
     @apply border-line bg-surface text-foreground;
+  }
+
+  /* The main action when it removes something for good, such as a confirm
+     dialog's Delete forever: the primary button's shape in the danger
+     colour. */
+  .button-danger {
+    @apply border-transparent bg-danger text-on-danger;
+  }
+
+  /* A balance shown as a figure, such as Account's batteries: a small label
+     over the number, which is the focal point. */
+  .balance-label {
+    @apply font-semibold text-muted text-sm;
+  }
+
+  .balance-amount {
+    @apply font-heading font-semibold text-5xl leading-none;
+    font-variant-numeric: tabular-nums;
   }
 
   /* A small action inside a list or a form, such as restoring a version:
@@ -777,11 +797,17 @@
     border-color: var(--hud-paper);
   }
 
+  /* The battery balance, as a HUD counter: a gold battery and the number
+     beside it. */
   .header-balance {
-    @apply flex shrink-0 flex-col items-center text-sm font-semibold;
+    @apply flex shrink-0 items-center gap-1.5 font-semibold;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
     max-inline-size: 7rem;
+  }
+
+  .header-balance > .icon {
+    color: var(--hud-gold);
   }
 
   .header-quick-note {
@@ -794,7 +820,7 @@
     }
 
     .site-header:has(.header-balance) .hud-title {
-      @apply min-h-(--target-size) text-sm;
+      @apply min-h-(--target-size);
     }
 
     .header-quick-note {
@@ -805,6 +831,14 @@
     /* Its words, not its icon (the Icon's own span). */
     .header-quick-note > span:not(.icon) {
       @apply sr-only;
+    }
+  }
+
+  /* Narrower than a 360 px phone, the site's name steps down a size so the
+     balance and both buttons still fit beside it on one row. */
+  @media (width < 22.5rem) {
+    .site-header:has(.header-balance) .hud-title {
+      @apply text-base;
     }
   }
 
@@ -951,7 +985,7 @@
   }
 
   .atlas-heading {
-    @apply font-semibold text-page-heading;
+    @apply font-semibold text-page-heading-phone sm:text-page-heading;
     font-family: var(--atlas-font);
     overflow-wrap: anywhere;
   }
@@ -1230,6 +1264,14 @@
   .workspace-tab[data-state="active"],
   .workspace-tab[aria-current="page"] {
     @apply border-primary text-foreground;
+  }
+
+  /* A tab focused by a click shows no focus ring beside its underline;
+     keyboard focus keeps it (src/components/tab-pointer-focus.ts). */
+  .workspace-tab[data-pointer-focus]:focus-visible,
+  .quest-workspace-tab[data-pointer-focus]:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 
   .workspace-content {

@@ -114,6 +114,7 @@ function DeleteMilestoneForm({
         description={PROGRESS_TIMELINE_COPY.deleteDescription(text)}
         onConfirm={confirm}
         title={PROGRESS_TIMELINE_COPY.deleteTitle}
+        variant="danger"
         trigger={
           <Button
             aria-label={PROGRESS_TIMELINE_COPY.deleteLabel(text)}
