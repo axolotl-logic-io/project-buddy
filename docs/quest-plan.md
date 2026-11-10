@@ -27,7 +27,7 @@ An undo (`applyPlanUndo`) keeps the changes made since. It skips an operation on
 
 ## The construct
 
-Every quest adventure's prompt lists the plan beside the Journal, between `<quest_plan>` tags, one step per line with its number and done steps marked (`src/replies/plan-prompt.ts`). The `change_plan` tool (`src/replies/tools/change-plan.ts`) takes a batch of operations and returns the plan after it, or the plan as it is and why nothing changed. The global prompt's plan rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, and never to count open steps or days. `update_memory`'s description now sends remaining work and the next step to the plan.
+Every quest adventure's prompt lists the plan beside the Journal, between `<quest_plan>` tags, one step per line with its number and done steps marked (`src/replies/plan-prompt.ts`). The `change_plan` tool (`src/replies/tools/change-plan.ts`) takes a batch of operations and returns the plan after it, or the plan as it is and why nothing changed. The global prompt's plan rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, never to count open steps or days, and to name steps by their `#` numbers rather than restate the plan as a list with its own numbering. `update_memory`'s description now sends remaining work and the next step to the plan.
 
 The adventure shows each call as a **Plan change** with Undo (`src/components/chat/plan-change-part.tsx`), while the reply streams and after the user reopens the adventure. The tool is active only in quest adventures.
 

@@ -115,6 +115,16 @@ test("shared instructions prohibit assumed pronouns and free-reply claims", () =
   expect(prompt).toContain("further replies are not free");
 });
 
+// #884: the construct restated the plan as its own 1–n list beside the
+// plan's own step numbers.
+test("the plan rules name steps by the plan's numbers, not a list of the construct's own", () => {
+  const prompt = contents(CONTEXT).join("\n");
+  expect(prompt).toContain("Name a step by its number in the plan, such as #3");
+  expect(prompt).toContain(
+    "Never number the plan's steps yourself or restate the plan as a list",
+  );
+});
+
 describe("the current activity identity", () => {
   test.each([DEFAULT_ACTIVITY_ID, "brainstorming"] as const)(
     "%s is named beside its generic sheet in the adventure context",
