@@ -133,7 +133,7 @@ export function ChatComposer({
         >
           <Button>
             <Icon name="send" />
-            {CHAT_COPY.send}
+            <span className="sr-only sm:not-sr-only">{CHAT_COPY.send}</span>
           </Button>
         </ComposerPrimitive.Send>
       </div>
