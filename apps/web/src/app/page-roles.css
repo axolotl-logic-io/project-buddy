@@ -1363,6 +1363,10 @@
     @apply flex flex-col;
   }
 
+  /* A step: its checkbox, number and text, with its buttons on a row of
+     their own under the text, so a long step keeps the width it needs on a
+     phone. From sm the buttons sit at the end of the step's own row, except
+     in the Plan panel's narrow column. */
   .plan-step {
     @apply grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-line/40 border-b py-1 last:border-b-0;
   }
@@ -1373,12 +1377,24 @@
     @apply flex items-center justify-center;
   }
 
+  /* The checkbox is drawn as the Markdown's task-list checkbox is
+     (src/components/chat/chat.css), which sizes it in em: 1em here is
+     1.5rem, at least WCAG 2.5.8's 24 px, inside the step's 44 px target. */
   .plan-step-check input {
-    @apply size-6 cursor-pointer disabled:cursor-not-allowed;
+    font-size: 1.5rem;
+    @apply m-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60;
   }
 
+  .plan-step-check input:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  /* Wide enough for "#10" whatever the step, so every step's text starts in
+     one column. */
   .plan-step-number {
-    @apply text-muted text-xs tabular-nums;
+    min-inline-size: 3ch;
+    @apply text-end text-muted text-xs tabular-nums;
   }
 
   .plan-step-text {
@@ -1389,8 +1405,6 @@
     @apply text-muted line-through;
   }
 
-  /* The step's buttons sit on a row of their own under its text, so a long
-     step keeps the width it needs on a phone. */
   .plan-step-actions {
     @apply col-span-full flex flex-wrap justify-end;
   }
@@ -1400,12 +1414,40 @@
     @apply justify-center;
   }
 
-  .plan-step-form {
-    @apply col-span-full flex flex-wrap items-center gap-2;
+  @media (width >= --theme(--breakpoint-sm)) {
+    .plan-step {
+      @apply grid-cols-[auto_auto_minmax(0,1fr)_auto];
+    }
+
+    .plan-step-actions {
+      @apply col-span-1;
+    }
   }
 
+  @media (width >= --theme(--breakpoint-xl)) {
+    .adventure-plan .plan-step {
+      @apply grid-cols-[auto_auto_minmax(0,1fr)];
+    }
+
+    .adventure-plan .plan-step-actions {
+      @apply col-span-full;
+    }
+  }
+
+  .plan-step-form {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* The field waits with its buttons, as they do while the construct
+     replies. */
   .plan-step-form .input-field {
-    @apply min-w-0 flex-[1_1_12rem];
+    @apply min-w-0 flex-[1_1_10rem] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  /* A step being edited keeps its place: the form takes the text's column
+     and the buttons', under no number of its own. */
+  .plan-step > .plan-step-form {
+    @apply col-start-3 -col-end-1;
   }
 
   .plan-step-problem {
@@ -1414,18 +1456,45 @@
 
   .plan-done > summary {
     min-block-size: var(--target-size);
-    @apply flex cursor-pointer items-center text-muted text-sm;
+    list-style: none;
+    @apply flex cursor-pointer items-center gap-2 self-start text-muted text-sm hover:text-foreground;
+  }
+
+  .plan-done > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Without its list-item display, a summary loses its marker: draw it, as
+     the Workshop's test settings do. */
+  .plan-done > summary::before {
+    content: "▸";
+  }
+
+  .plan-done[open] > summary::before {
+    content: "▾";
+  }
+
+  /* The plan as the Journal page shows it (plan-in-journal.tsx): its open
+     steps under the numbers the plan and the commands name them by. */
+  .plan-journal-steps > li {
+    @apply flex items-baseline gap-2;
   }
 
   /* A plan change in an adventure (src/components/chat/plan-change-part.tsx):
      what the construct or a person changed, set apart from the words around
-     it, with Undo. */
+     it as the adventure's other notes are (.card), with Undo. */
   .plan-change {
-    @apply flex flex-col gap-2 rounded-box border border-line border-l-4 border-l-primary bg-surface px-4 py-3 text-sm;
+    @apply flex flex-col gap-2 rounded-box border border-line bg-surface px-4 py-3 text-sm shadow-control;
   }
 
   .plan-change-heading {
-    @apply flex flex-wrap items-center justify-between gap-2;
+    @apply flex flex-wrap items-center justify-between gap-x-3;
+  }
+
+  /* Undo keeps its 44 px target without making the title's row taller than
+     a line. */
+  .plan-change-heading .button-quiet {
+    margin-block: calc((1lh - var(--target-size)) / 2);
   }
 
   .plan-change-lines {
@@ -1436,13 +1505,27 @@
     @apply wrap-anywhere;
   }
 
-  /* The command a person typed, over the change or card it made. */
-  .plan-command {
-    @apply wrap-anywhere text-muted text-sm;
+  /* The plan as a card in the conversation, and on the Journal page. */
+  .plan-card {
+    @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
   }
 
-  .plan-card {
-    @apply rounded-box border border-line bg-surface p-3;
+  /* A person's plan message, inside their message's own frame: the command
+     they typed, ruled off from the change or card it made, which need no
+     frame of their own there. */
+  .plan-message {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  .plan-message .plan-change,
+  .plan-message .plan-card {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  /* The command a person typed, ruled off from the change or card it
+     made. */
+  .plan-command {
+    @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
   }
 
   /* An adventure in a quest with its Plan panel (src/components/chat-view.tsx
@@ -1463,6 +1546,15 @@
 
   .adventure-plan-next {
     @apply min-w-0 truncate font-normal text-muted;
+  }
+
+  /* The toggle's chevron, at its end, turns as the plan opens. */
+  .adventure-plan-chevron {
+    @apply ms-auto text-muted motion-safe:transition-transform;
+  }
+
+  .adventure-plan-toggle[aria-expanded="true"] .adventure-plan-chevron {
+    @apply rotate-180;
   }
 
   .adventure-plan-body {
@@ -1511,17 +1603,28 @@
   }
 
   /* The composer's command list (src/components/chat/command-menu.tsx),
-     above the message box. */
+     above the message box: the commands scroll, and the hint under them
+     stays in view. Each command's usage sits over its description on a
+     phone, and from sm in a column of its own, so the descriptions line
+     up. */
   .command-menu {
-    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-1 overflow-y-auto rounded-box border border-line bg-surface p-2 shadow-raised;
+    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-2 rounded-box border border-line bg-surface p-2 shadow-raised;
+  }
+
+  .command-list {
+    @apply grid min-h-0 grid-cols-[minmax(0,1fr)] gap-y-1 overflow-y-auto sm:grid-cols-[auto_minmax(0,1fr)];
   }
 
   .command-option {
     min-block-size: var(--target-size);
-    @apply flex w-full flex-wrap items-baseline gap-x-3 rounded-control px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field;
+    @apply col-span-full flex w-full flex-col justify-center rounded-control px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
   }
 
   .command-option > code {
     @apply font-semibold text-primary;
+  }
+
+  .command-hint {
+    @apply shrink-0 border-line/40 border-t px-2 pt-2 text-muted text-xs;
   }
 }

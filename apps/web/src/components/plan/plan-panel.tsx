@@ -42,6 +42,7 @@ function PlanPanel(): JSX.Element | null {
             {PLAN_PANEL_COPY.next(next.text)}
           </span>
         )}
+        <Icon name="chevron-down" className="adventure-plan-chevron" />
       </Button>
       <div id={bodyId} className={look}>
         <h2 className="adventure-plan-heading">{PLAN_COPY.heading}</h2>

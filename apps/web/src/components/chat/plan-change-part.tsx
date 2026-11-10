@@ -141,8 +141,8 @@ function PlanCard(): JSX.Element {
 }
 
 // A plan message's part (src/plan/plan-message.ts): a person's plan change,
-// with the command they typed for it, or a plan card. Any other data part
-// shows nothing.
+// with the command they typed for it, or a plan card, inside the frame of
+// their message. Any other data part shows nothing.
 function PlanDataPart({
   name,
   data,
@@ -156,15 +156,15 @@ function PlanDataPart({
   }
   if (part.kind === "card") {
     return (
-      <>
+      <div className="plan-message">
         <p className="plan-command">{part.data.command}</p>
         <PlanCard />
-      </>
+      </div>
     );
   }
   const { command, version, lines, undoesVersion } = part.data;
   return (
-    <>
+    <div className="plan-message">
       {command !== undefined && <p className="plan-command">{command}</p>}
       <PlanChangeCard
         version={version}
@@ -172,7 +172,7 @@ function PlanDataPart({
         byPerson={true}
         undoesVersion={undoesVersion}
       />
-    </>
+    </div>
   );
 }
 
