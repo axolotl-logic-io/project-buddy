@@ -264,14 +264,14 @@
     flex-shrink: 0;
   }
 
-  /* An image in the chat at its own shape, as large as fits within the
-     column and 18rem tall, so it starts where the text does rather than
-     floating in a wider box. */
+  /* An image in the chat, 18rem tall and as wide as its shape makes it
+     (its width and height attributes until it loads, so the box never
+     collapses), within the column. It starts where the text does rather
+     than floating in a wider box. */
   .chat-image {
     max-inline-size: 100%;
-    max-block-size: 18rem;
     inline-size: auto;
-    block-size: auto;
+    block-size: 18rem;
     align-self: flex-start;
     object-fit: contain;
   }
