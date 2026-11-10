@@ -82,7 +82,7 @@ function BuiltInConstruct({
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.constructFieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -130,7 +130,7 @@ function OwnConstructForm({
             constructResetPrompt(construct.clonedFrom).prompt) ||
           undefined
         }
-        heading={PROMPT_COPY.promptHeading}
+        heading={PROMPT_COPY.constructFieldsHeading}
         idName="constructId"
         key={draftRevision}
         kind="construct"

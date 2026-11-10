@@ -7,6 +7,7 @@ import {
   restoreDefinitionAction,
 } from "@/app/(workspace)/retirement/actions.ts";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
+import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
 import {
   getRetiredDefinition,
   listRetiredDefinitions,
@@ -84,6 +85,27 @@ test("use_case_view_retirement", async () => {
       }),
     )
     .toHaveAttribute("href", `/retirement/${RETIRED_CONSTRUCT.id}`);
+});
+
+test("a definition page's Retired tab lists its own kind with no kind filter", async () => {
+  await render(
+    inWorkspace(
+      <RetirementList definitions={RETIRED_DEFINITIONS} kind="construct" />,
+    ),
+  );
+  expect(page.getByRole("listitem").elements()).toHaveLength(
+    RETIRED_DEFINITIONS.filter((definition) => definition.kind === "construct")
+      .length,
+  );
+  await expect
+    .element(page.getByText(RETIRED_CONSTRUCT.name, { exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: RETIREMENT_COPY.allKinds }))
+    .not.toBeInTheDocument();
+  await expect
+    .element(page.getByRole("group", { name: RETIREMENT_COPY.kindFilter }))
+    .not.toBeInTheDocument();
 });
 
 test("Delete forever names the definition, supports cancellation, and submits only after confirmation", async () => {

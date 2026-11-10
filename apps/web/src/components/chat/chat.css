@@ -294,6 +294,24 @@
     max-inline-size: 100%;
     min-block-size: var(--target-size);
   }
+
+  /* A generated image that fills its card's width, as the gallery shows it:
+     a sunken slot, square until the image arrives (its width and height
+     attributes), then the image's own shape, so a wide image is never
+     letterboxed. The chat keeps .chat-image's 18rem height. */
+  .generated-image-fill {
+    align-self: stretch;
+    overflow: hidden;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--box-radius);
+    background-color: var(--field);
+  }
+
+  .chat-image-fill {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+  }
 }
 
 @layer chat {

@@ -16,17 +16,22 @@ import type { RetiredDefinition } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { RetirementActions } from "./retirement-actions.tsx";
 
-// The retired definitions, filtered by kind in the workspace's tab rail and
-// by a name search, as rows; children close the list, such as its notes.
+// The retired definitions, filtered by a name search, as rows; children close
+// the list, such as its notes. Given a kind, it lists only that kind, for a
+// page that has already chosen one; otherwise the user filters by kind in
+// the workspace's tab rail.
 function RetirementList({
   definitions,
+  kind: fixedKind,
   children,
 }: {
   readonly definitions: readonly RetiredDefinition[];
+  readonly kind?: PromptKind;
   readonly children?: ReactNode;
 }): JSX.Element {
   const [search, setSearch] = useState("");
-  const [kind, setKind] = useState<PromptKind | undefined>();
+  const [chosenKind, setKind] = useState<PromptKind | undefined>();
+  const kind = fixedKind ?? chosenKind;
   const changeSearch = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
       setSearch(event.currentTarget.value);
@@ -36,39 +41,42 @@ function RetirementList({
   const filterAll = useCallback((): void => {
     setKind(undefined);
   }, []);
-  const filtered = definitions.filter(
-    (definition) =>
-      (kind === undefined || definition.kind === kind) &&
-      definition.name
-        .toLocaleLowerCase()
-        .includes(search.trim().toLocaleLowerCase()),
+  const ofKind = definitions.filter(
+    (definition) => kind === undefined || definition.kind === kind,
+  );
+  const filtered = ofKind.filter((definition) =>
+    definition.name
+      .toLocaleLowerCase()
+      .includes(search.trim().toLocaleLowerCase()),
   );
   let emptyMessage: string = RETIREMENT_COPY.noMatches;
-  if (definitions.length === 0) {
+  if (ofKind.length === 0) {
     emptyMessage = RETIREMENT_COPY.empty;
   }
   return (
     <>
-      <div className="workspace-rail">
-        <fieldset
-          aria-label={RETIREMENT_COPY.kindFilter}
-          className="workspace-tablist"
-        >
-          <KindTab
-            label={RETIREMENT_COPY.allKinds}
-            onClick={filterAll}
-            selected={kind === undefined}
-          />
-          {PROMPT_KINDS.map((option) => (
-            <KindFilter
-              current={kind}
-              key={option}
-              kind={option}
-              select={setKind}
+      {fixedKind === undefined && (
+        <div className="workspace-rail">
+          <fieldset
+            aria-label={RETIREMENT_COPY.kindFilter}
+            className="workspace-tablist"
+          >
+            <KindTab
+              label={RETIREMENT_COPY.allKinds}
+              onClick={filterAll}
+              selected={kind === undefined}
             />
-          ))}
-        </fieldset>
-      </div>
+            {PROMPT_KINDS.map((option) => (
+              <KindFilter
+                current={kind}
+                key={option}
+                kind={option}
+                select={setKind}
+              />
+            ))}
+          </fieldset>
+        </div>
+      )}
       <div className="workspace-content workspace-rows">
         <TextField
           className="min-h-(--target-size)"
