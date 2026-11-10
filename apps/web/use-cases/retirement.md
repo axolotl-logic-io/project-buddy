@@ -16,7 +16,7 @@ The user finds a retired definition across all three kinds.
 
 - **Prerequisites:** the user is signed in.
 - **Steps:** open Retirement from the site menu or a collection page. Filter by kind, search by name, and choose View.
-- **Outcome:** the page lists only the user's retired definitions, most recently retired first. Filters combine with the name search. Empty collections and searches with no matches are explained. View shows saved instructions as read-only text.
+- **Outcome:** the page lists only the user's retired definitions, most recently retired first. Filters combine with the name search. Empty collections and searches with no matches are explained. View shows saved instructions as read-only text. The Retired tab of Constructs, Activities or Spellbook lists only that kind, with the name search and no kind filter.
 
 ## use_case_restore_retired_definition
 
