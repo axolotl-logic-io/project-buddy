@@ -4,6 +4,7 @@ import { Tabs } from "radix-ui";
 import { type JSX, type ReactNode, useCallback, useRef, useState } from "react";
 import { ProjectList } from "@/components/project-list.tsx";
 import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
+import { POINTER_FOCUS_HANDLERS } from "@/components/tab-pointer-focus.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import { PREMADE_QUESTS } from "@/projects/premade-quests.ts";
 import { QUEST_INDEX_TAB, type QuestIndexTab } from "@/projects/quest-index.ts";
@@ -65,6 +66,7 @@ function QuestStatusTabs({
               key={choice}
               value={choice}
               className="quest-workspace-tab"
+              {...POINTER_FOCUS_HANDLERS}
             >
               {QUEST_STATUS_COPY.labels[choice]}
               <span aria-hidden="true" className="quests-index-count">
@@ -77,6 +79,7 @@ function QuestStatusTabs({
               value="premade"
               ref={premadeRef}
               className="quest-workspace-tab quests-index-premade"
+              {...POINTER_FOCUS_HANDLERS}
             >
               <Icon name="book" />
               {QUEST_LIBRARY_COPY.heading}
