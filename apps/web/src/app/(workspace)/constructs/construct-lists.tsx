@@ -42,7 +42,8 @@ interface ListedConstruct extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its name, which opens New chat, then its actions.
+// A construct as a card: its avatar beside its name, which opens New chat,
+// its temperament and its actions, in one column.
 function ConstructCard({
   construct,
   actions,
@@ -53,30 +54,31 @@ function ConstructCard({
   readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
-    <li className="card flex flex-wrap items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-1 items-start gap-3">
-        <ConstructAvatar
-          destination={{ kind: "construct", id: construct.id }}
-          construct={construct}
-          decorative={true}
+    <li className="card construct-card">
+      <ConstructAvatar
+        destination={{ kind: "construct", id: construct.id }}
+        construct={construct}
+        decorative={true}
+      />
+      <div className="flex min-w-0 flex-col gap-2">
+        <NewChatDialog
+          {...choices}
+          fixedConstructId={construct.id}
+          selectedActivityId={DEFAULT_ACTIVITY_ID}
+          trigger={
+            <button
+              className="card-title wrap-anywhere self-start text-left text-link"
+              type="button"
+            >
+              {CONSTRUCTS_COPY.startLabel(construct.name)}
+            </button>
+          }
         />
-        <div className="wrap-anywhere min-w-0">
-          <NewChatDialog
-            {...choices}
-            fixedConstructId={construct.id}
-            selectedActivityId={DEFAULT_ACTIVITY_ID}
-            trigger={
-              <button className="card-title text-left text-link" type="button">
-                {CONSTRUCTS_COPY.startLabel(construct.name)}
-              </button>
-            }
-          />
-          <p className="text-muted text-sm">
-            {constructPersonality(construct).temperament}
-          </p>
-        </div>
+        <p className="wrap-anywhere text-muted text-sm">
+          {constructPersonality(construct).temperament}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">{actions}</div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">{actions}</div>
     </li>
   );
 }
@@ -91,7 +93,7 @@ function BuiltInConstructCards({
   readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {constructs.map((construct) => (
         <ConstructCard
           actions={
@@ -125,7 +127,7 @@ function OwnConstructList({
   readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {constructs.map((construct) => (
         <ConstructCard
           actions={
@@ -206,7 +208,7 @@ async function ConstructLists({
               id: "built-in",
               label: WORKSPACES_COPY.builtIn,
               content: (
-                <div className="">
+                <div className="workspace-rows">
                   <BuiltInConstructCards
                     constructs={listBuiltInConstructs()}
                     choices={choices}
@@ -218,7 +220,7 @@ async function ConstructLists({
               id: "yours",
               label: WORKSPACES_COPY.yours,
               content: (
-                <div className="">
+                <div className="workspace-rows">
                   <OwnConstructCards constructs={own} choices={choices} />
                 </div>
               ),
