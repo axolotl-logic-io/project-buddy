@@ -1,7 +1,7 @@
 // Reads Today (today.ts) for the owner. A chat is active when it starts or
 // gains a message; a project is as active as its most active chat. Reading
-// makes no model call: the next step is whatever the project's memory
-// records. It reads only the projects, chats and memory open to the user:
+// makes no model call: the next step is whatever the project's plan or
+// memory records (nextStepOfQuest). It reads only the projects, chats and memory open to the user:
 // their own, and those of team projects they are a member of.
 import { and, desc, eq, isNotNull, type SQL, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
@@ -16,13 +16,16 @@ import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ChatId,
+  type ProjectId,
   parseChatId,
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import { nextStepOf } from "@/memory/next-step.ts";
+import { nextStepOfQuest } from "@/memory/next-step.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
+import { EMPTY_PLAN } from "@/plan/plan.ts";
+import { readPlan } from "@/plan/plan-store.ts";
 import type { Today, TodayProject } from "@/today/today.ts";
 
 // How many projects and other recent chats Today shows at most.
@@ -92,6 +95,18 @@ async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
   );
 }
 
+// The project's next step, from its plan and memory read together.
+async function readNextStep(
+  owner: UserId,
+  projectId: ProjectId,
+): Promise<string | undefined> {
+  const [memory, plan] = await Promise.all([
+    readMemory(owner, projectId),
+    readPlan(owner, projectId),
+  ]);
+  return nextStepOfQuest(memory, plan ?? EMPTY_PLAN);
+}
+
 // What is waiting for the owner today.
 function readToday(owner: UserId): Promise<Today> {
   return measureServerOperation("today", () =>
@@ -105,7 +120,7 @@ function readToday(owner: UserId): Promise<Today> {
         projects: await Promise.all(
           shown.map(async (entry) => ({
             ...entry,
-            nextStep: nextStepOf(await readMemory(owner, entry.project.id)),
+            nextStep: await readNextStep(owner, entry.project.id),
           })),
         ),
         chats: recentChats
@@ -136,7 +151,7 @@ function readHomeSummary(owner: UserId): Promise<{
         return {
           latestQuest: {
             ...latest,
-            nextStep: nextStepOf(await readMemory(owner, latest.project.id)),
+            nextStep: await readNextStep(owner, latest.project.id),
           },
           firstVisit: false,
         };

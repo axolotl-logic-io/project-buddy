@@ -9,6 +9,7 @@ import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getChat, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import type { ChatId } from "@/ids.ts";
+import { awaitsReply } from "@/plan/plan-message.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { chatNameModel } from "@/replies/model.ts";
 
@@ -43,8 +44,9 @@ const NAMING_INSTRUCTIONS = [
 
 const NAMING_REQUEST = "Name this adventure.";
 
+// The user's messages that a reply answers; plan messages don't count.
 function herMessageCount(conversation: readonly UIMessage[]): number {
-  return conversation.filter(({ role }) => role === "user").length;
+  return conversation.filter(awaitsReply).length;
 }
 
 // The conversation's text as Haiku reads it, without tool calls, results or

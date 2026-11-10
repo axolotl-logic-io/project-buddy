@@ -42,6 +42,7 @@ import { withAuthorNames } from "@/replies/author-names.ts";
 import type { ChatRequest } from "@/replies/chat-protocol.ts";
 import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
 import { replyModel } from "@/replies/model.ts";
+import { planPartForModel } from "@/replies/plan-message-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import {
   completeReplyAccounting,
@@ -252,6 +253,7 @@ async function streamAndSaveReply(
       await hydrateImages(actingUser, chat.id, named.messages),
       {
         tools: chatTools(chat.project?.id),
+        convertDataPart: planPartForModel,
       },
     );
     const stream = createUIMessageStream({

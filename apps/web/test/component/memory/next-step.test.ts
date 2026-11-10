@@ -2,7 +2,12 @@
 // model call, as the landing page's Today section shows it.
 import { describe, expect, test } from "vitest";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { NEXT_STEP_LABEL, nextStepOf } from "@/memory/next-step.ts";
+import {
+  NEXT_STEP_LABEL,
+  nextStepOf,
+  nextStepOfQuest,
+} from "@/memory/next-step.ts";
+import { EMPTY_PLAN } from "@/plan/plan.ts";
 
 function nextStepIn(text: string): string | undefined {
   return nextStepOf({ text, version: MEMORY_VERSION_NUMBER.parse(1) });
@@ -64,5 +69,37 @@ describe("a project's next step", () => {
     ["a label with unmatched emphasis", "**Next step: pick a bed layout"],
   ])("is missing from %s", (_kind, text) => {
     expect(nextStepIn(text)).toBeUndefined();
+  });
+});
+
+describe("a quest's next step", () => {
+  const memory = {
+    text: `${NEXT_STEP_LABEL} retopo the flipper`,
+    version: MEMORY_VERSION_NUMBER.parse(1),
+  };
+
+  test("is its plan's first open step", () => {
+    expect(
+      nextStepOfQuest(memory, {
+        steps: [
+          { number: 1, text: "Block out the shell", done: true },
+          { number: 2, text: "Bake the normal map", done: false },
+        ],
+        nextNumber: 3,
+      }),
+    ).toBe("Bake the normal map");
+  });
+
+  test("is the Journal's line while the plan has no steps", () => {
+    expect(nextStepOfQuest(memory, EMPTY_PLAN)).toBe("retopo the flipper");
+  });
+
+  test("is none once every step is done, whatever the Journal says", () => {
+    expect(
+      nextStepOfQuest(memory, {
+        steps: [{ number: 1, text: "Block out the shell", done: true }],
+        nextNumber: 2,
+      }),
+    ).toBeUndefined();
   });
 });

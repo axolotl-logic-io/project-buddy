@@ -20,6 +20,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Adventures](chats.md): the all-adventures hub, owner-specific quest filters, standalone conversations, activities, check-ins and unread adventures.
 - [Spellbook](spellbook.md): spells, the instructions the construct casts when they fit, the Spellbook pages, and how casts are kept.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
+- [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in the Journal, and the quest page's recent Quick Notes.
 - [Team quests](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 - [Quest invitations](project-invitations.md): inviting someone to a quest by address, the invitation email, joining and declining, and the send limits.
@@ -35,6 +36,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Plans
 
+- [Quest plan design](design/quest-plan.md): the three ways into the plan, the phases that move the Journal to typed sections, and the decisions taken.
 - [API access proposal](api-access-plan.md): operation inventory, candidate permissions, unresolved decisions and future test evidence for command utilities and external agents; no API implementation or approved release contract.
 
 ## Practices

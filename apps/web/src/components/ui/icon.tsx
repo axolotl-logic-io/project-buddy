@@ -23,6 +23,9 @@ const ICON_PATHS = {
   },
   // A checkmark for confirming an edit.
   check: { stroke: "M3 8l3 3 7-7" },
+  // Arrows for moving an item up or down a list, such as a plan's steps.
+  "arrow-up": { stroke: "M8 13V3M4 7l4-4 4 4" },
+  "arrow-down": { stroke: "M8 3v10M4 9l4 4 4-4" },
   // A circle, half filled: light and dark, for the site's appearance.
   appearance: {
     stroke: "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z",

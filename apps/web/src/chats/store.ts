@@ -52,6 +52,7 @@ import {
   parseUserId,
   type UserId,
 } from "@/ids.ts";
+import { awaitsReply } from "@/plan/plan-message.ts";
 import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 
 interface MessageRow {
@@ -257,7 +258,8 @@ export async function listMessages(
 // or a request that stopped; the browser may send it again to be answered
 // (src/replies/conversation-to-answer.ts). Undefined while a reply to it is
 // being made, when the last message is the construct's, for an empty chat, and
-// for another user's chat.
+// for another user's chat. A plan message, which no reply answers, is never
+// a stopped reply's.
 export async function readStoppedReply(
   owner: UserId,
   chatId: ChatId,
@@ -267,6 +269,7 @@ export async function readStoppedReply(
       .select({
         id: messages.id,
         role: messages.role,
+        parts: messages.parts,
         unclaimed: sql<boolean>`coalesce(${replyUnclaimed()}, false)`,
       })
       .from(messages)
@@ -274,10 +277,38 @@ export async function readStoppedReply(
       .orderBy(desc(messages.createdAt), desc(messages.id))
       .limit(1),
   );
-  if (last?.role !== "user" || !last.unclaimed) {
+  if (last === undefined || !last.unclaimed) {
+    return undefined;
+  }
+  const message = await toMessage(last);
+  if (message === undefined || !awaitsReply(message)) {
     return undefined;
   }
   return last.id;
+}
+
+// Saves a plan message (src/plan/plan-message.ts) in the owner's chat,
+// written by the owner, after every message saved so far, with no reply
+// claimed or to be made to it, and says whether it did. Nothing is saved in
+// a chat that isn't open to the owner.
+export async function savePlanMessage(
+  owner: UserId,
+  chatId: ChatId,
+  message: UIMessage,
+): Promise<boolean> {
+  const saved = await withAppErrors("savePlanMessage", () =>
+    getDb()
+      .insert(messages)
+      .select(
+        new QueryBuilder()
+          .select(messageColumns(chatId, message, { author: owner }))
+          .from(chats)
+          .where(openChat(owner, chatId)),
+      )
+      .onConflictDoNothing()
+      .returning({ id: messages.id }),
+  );
+  return saved.length > 0;
 }
 
 // The user as the author of the messages they send, or undefined if they no

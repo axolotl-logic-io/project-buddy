@@ -46,6 +46,10 @@ import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
 import { applyTheme } from "./theme-test-kit.ts";
 
 vi.mock(
+  "@/plan/plan-actions.ts",
+  () => import("../plan/plan-actions-test-kit.ts"),
+);
+vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
@@ -71,6 +75,7 @@ vi.mock("@/projects/store.ts", () => stores.projects);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
+vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));
