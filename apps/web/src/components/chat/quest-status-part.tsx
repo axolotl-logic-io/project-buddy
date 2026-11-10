@@ -10,6 +10,7 @@ import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { UndoStatusChange } from "@/components/quest-status-controls.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import type {
   StatusActionState,
   StatusApproval,
@@ -64,7 +65,10 @@ function ApprovalCard({
       aria-label={QUEST_STATUS_COPY.approvalHeading}
       className="card flex flex-col gap-3 text-sm"
     >
-      <p className="font-medium">{QUEST_STATUS_COPY.approvalHeading}</p>
+      <p className="icon-line font-medium">
+        <Icon name="compass" />
+        {QUEST_STATUS_COPY.approvalHeading}
+      </p>
       <p>{details.name}</p>
       <p>
         {QUEST_STATUS_COPY.change(
