@@ -10,7 +10,8 @@ import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 // A chat's link text: its name and construct, or before it has a name, its
 // construct alone. The name's part is the chat-names extra, so a user who hides
-// it sees every chat as an unnamed one.
+// it sees every chat as an unnamed one. Beside a name, the construct's name
+// is quieter, so the chat's own name leads.
 function ChatTitle({ chat }: { readonly chat: Chat }): ReactNode {
   const constructName = chat.construct.name;
   if (chat.name === undefined) {
@@ -19,9 +20,12 @@ function ChatTitle({ chat }: { readonly chat: Chat }): ReactNode {
   return (
     <>
       <span {...extraTag("chat-names")}>
-        {CHAT_NAME_COPY.listNamePrefix(chat.name)}
+        {chat.name}{" "}
+        <span className="font-normal text-muted">
+          {CHAT_NAME_COPY.listNameJoin}
+        </span>
       </span>{" "}
-      {constructName}
+      <span className="font-normal text-muted">{constructName}</span>
     </>
   );
 }
@@ -88,7 +92,7 @@ function ChatList({
         <li className="link-card flex flex-col gap-0.5" key={chat.id}>
           <Link
             aria-describedby={unreadMarkId(chat)}
-            className="font-semibold"
+            className="wrap-anywhere font-semibold"
             href={`/chats/${chat.id}`}
           >
             <ChatTitle chat={chat} />
