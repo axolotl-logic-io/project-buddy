@@ -9,6 +9,8 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 const STARTING_BALANCE = 100;
 const TINY_COST = 0.000_001;
 const FRACTIONAL_COST = 1.25;
+const REPLY_COST = 4.6807;
+const NEARLY_ONE = 0.96;
 const STARTING_MICRO_USD = 1_000_000;
 const ONE_BATTERY_MICRO_USD = 10_000;
 const BELOW_ONE_BATTERY = 9999;
@@ -22,8 +24,18 @@ describe("battery amounts", () => {
     [FRACTIONAL_COST, "1.25 batteries"],
   ])("names %s in sentences", (amount, words) => {
     expect(BATTERIES_COPY.amount(amount)).toBe(words);
-    expect(CHAT_COPY.replyCost(amount)).toContain(`Reply cost: ${words} (`);
     expect(VISUAL_COPY.reservation(amount)).toContain(`${words} before`);
+  });
+
+  test.each([
+    [0, "0 batteries"],
+    [1, "1 battery"],
+    [REPLY_COST, "4.7 batteries"],
+    [NEARLY_ONE, "1 battery"],
+    [FRACTIONAL_COST, "1.3 batteries"],
+    [TINY_COST, "less than 0.1 batteries"],
+  ])("a reply that cost %s shows one decimal place", (amount, words) => {
+    expect(CHAT_COPY.replyCost(amount)).toBe(`Reply cost: ${words}.`);
   });
 
   test("reservation refusal names each amount independently", () => {
@@ -40,9 +52,7 @@ describe("battery amounts", () => {
     expect(wholeGold(ONE_BATTERY_MICRO_USD)).toBe(1);
     expect(wholeGold(BELOW_ONE_BATTERY)).toBe(0);
     expect(wholeGold(-1)).toBe(0);
-    expect(CHAT_COPY.replyCost(goldOfMicroUsd(1))).toContain(
-      "0.0001 batteries",
-    );
+    expect(BATTERIES_COPY.amount(goldOfMicroUsd(1))).toBe("0.0001 batteries");
   });
 
   test("compatibility refusal code shows current terminology", () => {

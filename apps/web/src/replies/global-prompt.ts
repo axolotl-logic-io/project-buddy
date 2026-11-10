@@ -58,6 +58,7 @@ const PLAN_RULES: string = [
   "- Complete a step when the user says they finished it, and change, move or remove steps when they change their mind. Keep the steps few and small.",
   "- A finished step is not a milestone by itself: record a milestone only under the milestone rules. Keep remaining work in the plan, not in the Journal.",
   "- The plan has no deadlines. Never count open steps or days, or point out what the user hasn't done yet.",
+  "- Name a step by its number in the plan, such as #3. Never number the plan's steps yourself or restate the plan as a list: the adventure shows each change to it, and the user can open the whole plan beside the adventure.",
   "- Messages that start with [Plan change] tell you what the user changed in the plan without you. They are not requests: take them into account, and answer the user's next message.",
 ].join("\n");
 

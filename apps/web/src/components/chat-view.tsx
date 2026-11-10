@@ -23,13 +23,13 @@ import {
 } from "@/components/chat/chat-commands.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
+import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { PlanPanel } from "@/components/plan/plan-panel.tsx";
 import {
   type PlanActions,
   PlanContext,
   usePlanController,
 } from "@/components/plan/use-plan.ts";
-import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
@@ -476,6 +476,11 @@ export function ChatView({
       setStopStatus(CHAT_COPY.stopFailed);
     }
   }, [chat.messages, chatId, router]);
+  // While a reply runs, here or elsewhere, Stop takes Send's place.
+  let replyStop: ReplyStop | undefined;
+  if (replying || replyingElsewhere) {
+    replyStop = { stopping, onStop: stop };
+  }
   let openingMessageId: string | undefined;
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
@@ -488,19 +493,6 @@ export function ChatView({
           {CHAT_COPY.replyingElsewhere(constructName)}
         </Notice>
       )}
-      {(chat.status === "streaming" ||
-        chat.status === "submitted" ||
-        replyingElsewhere) && (
-        <Button
-          className="self-start"
-          onClick={stop}
-          disabled={stopping}
-          variant="secondary"
-        >
-          {CHAT_COPY.stop}
-        </Button>
-      )}
-      {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
       <ChatThread
         goldBalance={gold?.balance}
         replyCosts={replyCosts}
@@ -513,6 +505,8 @@ export function ChatView({
         }
         openingMessageId={openingMessageId}
         authorNames={authorNames}
+        stop={replyStop}
+        stopStatus={stopStatus}
       />
     </>
   );

@@ -2,7 +2,8 @@
 // in Chromium and WebKit with touch (the browser-touch project in
 // vitest.config.mts). At 320 and 390 CSS px wide nothing scrolls sideways
 // (1.4.10, Reflow), and every visible control is at least 24×24 CSS px
-// (2.5.8, Target Size (Minimum)). Each page is checked in every theme,
+// (2.5.8, Target Size (Minimum)). A row of tabs stays one row, and scrolls
+// sideways inside itself if it must (#845). Each page is checked in every theme,
 // because each theme sets its own spacing and fonts, which move the sizes.
 // The pages are rendered from fixed data, in their layouts and the site's
 // frame (phone-pages-test-kit.tsx), with the site's stylesheet
@@ -46,6 +47,12 @@ import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readHomeSummary, readToday } from "@/today/today-store.ts";
+import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -273,6 +280,51 @@ interface PhoneMeasures {
   // sideways inside the page.
   readonly wideDialogs: readonly string[];
   readonly targets: readonly MeasuredTarget[];
+  // The rows of tabs whose tabs don't all sit on one line.
+  readonly wrappedTabRows: readonly string[];
+}
+
+// The rows of tabs a page may have, besides its tab lists: a quest's
+// sections, an adventure's, the Workshop's kinds, the Marketplace's, the
+// Library's books and the Retirement filter. The Quests list's status tabs
+// are a grid of two columns on a phone by design, so they aren't one.
+const TAB_ROW_NAVIGATIONS: readonly string[] = [
+  PROJECT_COPY.navigation,
+  WORKSPACES_COPY.conversation,
+  WORKSHOP_PAGE_COPY.kindsLabel,
+  MARKETPLACE_COPY.filterLabel,
+  WORKSPACES_COPY.books,
+];
+
+function tabRows(): Element[] {
+  return [
+    ...page
+      .getByRole("tablist")
+      .elements()
+      .filter(
+        (row) => row.getAttribute("aria-label") !== QUEST_STATUS_COPY.tabs,
+      ),
+    ...TAB_ROW_NAVIGATIONS.flatMap((name) =>
+      page.getByRole("navigation", { name, exact: true }).elements(),
+    ),
+    ...page
+      .getByRole("group", { name: RETIREMENT_COPY.kindFilter, exact: true })
+      .elements(),
+  ];
+}
+
+// The names of the rows of tabs whose tabs don't all share one line.
+function measureWrappedTabRows(): string[] {
+  return tabRows()
+    .filter((row) => {
+      const tops = new Set(
+        Array.from(row.querySelectorAll("a, button"), (tab) =>
+          Math.round(tab.getBoundingClientRect().top),
+        ),
+      );
+      return tops.size > 1;
+    })
+    .map((row) => row.getAttribute("aria-label") ?? row.tagName);
 }
 
 // Waits until the page shows its heading and each button laid out only
@@ -312,6 +364,7 @@ async function measureOnPhone(
     scrollWidth: pageScrollWidth(),
     wideDialogs: measureWideDialogs(),
     targets: await measureTargets(),
+    wrappedTabRows: measureWrappedTabRows(),
   };
 }
 
@@ -341,11 +394,8 @@ describe("use_case_use_on_phone", () => {
       for (const theme of THEME_IDS) {
         for (const phonePage of PHONE_PAGES) {
           test(`${phonePage.name} in ${theme}`, async () => {
-            const { scrollWidth, wideDialogs, targets } = await measureOnPhone(
-              phonePage,
-              viewport,
-              theme,
-            );
+            const { scrollWidth, wideDialogs, targets, wrappedTabRows } =
+              await measureOnPhone(phonePage, viewport, theme);
 
             // Compared with the width set, as a phone zooms out to fit
             // content wider than its screen.
@@ -353,6 +403,7 @@ describe("use_case_use_on_phone", () => {
               viewport.width,
             );
             expect(wideDialogs, "no sideways scroll in a dialog").toEqual([]);
+            expect(wrappedTabRows, "each row of tabs is one row").toEqual([]);
             expect(
               smallTargets(targets),
               `every control at least ${MINIMUM_TARGET_PX}×${MINIMUM_TARGET_PX} px`,

@@ -31,6 +31,11 @@ const PROJECT_FILTER = /<select\b[^>]*name="project"[^>]*>.*?<\/select>/su;
 const NEW_CHAT_FIELD = /name="(?:activityId|projectId|constructId)"/u;
 const NEW_CHAT_BUTTON =
   /<button\b[^>]*aria-haspopup="dialog"[^>]*>.*?New adventure<\/button>/su;
+const NEW_CHAT_BUTTONS =
+  /<button\b[^>]*aria-haspopup="dialog"[^>]*>.*?New adventure<\/button>/gsu;
+// The All adventures tab, chosen, which the list's tabs lead with.
+const ALL_ADVENTURES_SELECTED =
+  /<button\b[^>]*role="tab"[^>]*aria-selected="true"[^>]*>All adventures<\/button>/u;
 const SELECTED_ALL = /<option value="" selected="">All<\/option>/u;
 const OLDEST = new Date("2026-01-01T00:00:00Z");
 const OLDER_PROJECT = new Date("2026-01-02T00:00:00Z");
@@ -159,21 +164,47 @@ describe("use_case_list_all_chats", () => {
     const html = await pageHtml();
     expect(html).toMatch(NEW_CHAT_BUTTON);
     expect(html).not.toMatch(NEW_CHAT_FIELD);
-    expect(html).toContain(STANDALONE_CHATS_COPY.listHeading);
+    expect(html).toMatch(ALL_ADVENTURES_SELECTED);
     expect(chatLinks(html)).toEqual(fixture.newestFirst);
   });
 
-  test("an empty list does not create a conversation", async () => {
-    const { her } = await twoUsers();
+  test("before the first adventure, the page welcomes her with New adventure and no filters, and creates nothing", async () => {
+    const { her, herData } = await twoUsers();
     const html = await pageHtml();
-    expect(chatLinks(html)).toEqual([]);
-    expect(html).toMatch(SELECTED_ALL);
-    expect(filterOptions(html)).toHaveLength(1);
-    expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
+    expect(welcomeOf(html)).toEqual(WELCOME);
     expect(await listProjects(her.id)).toEqual([]);
+    expect(await listStandaloneChats(her.id)).toEqual([]);
+
+    const quest = await herData.project("Quest with no adventures yet");
+    const withQuest = await pageHtml();
+    expect(welcomeOf(withQuest)).toEqual(WELCOME);
+    expect(withQuest).not.toContain(quest.name);
     expect(await listStandaloneChats(her.id)).toEqual([]);
   });
 });
+
+// What the page shows of the welcome before the user's first adventure: it
+// should have its heading and one New adventure button, and no list, tabs,
+// quest selector or new-adventure fields outside the dialog.
+function welcomeOf(html: string): Record<string, unknown> {
+  return {
+    links: chatLinks(html),
+    heading: html.includes(STANDALONE_CHATS_COPY.emptyHeading),
+    filter: PROJECT_FILTER.test(html),
+    tabs: html.includes('role="tablist"'),
+    newAdventureButtons: html.match(NEW_CHAT_BUTTONS)?.length ?? 0,
+    fields: NEW_CHAT_FIELD.test(html),
+  };
+}
+
+const WELCOME = {
+  links: [],
+  heading: true,
+  filter: false,
+  tabs: false,
+  newAdventureButtons: 1,
+  fields: false,
+};
 
 test("an owner with no data sees an empty All view even through a foreign filter URL", async () => {
   const { her, other, otherData } = await twoUsers();
@@ -184,14 +215,10 @@ test("an owner with no data sees an empty All view even through a foreign filter
   const all = await pageHtml();
   const shared = await pageHtml(foreign.id);
   for (const html of [all, shared]) {
-    expect(chatLinks(html)).toEqual([]);
-    expect(html).toMatch(SELECTED_ALL);
-    expect(filterOptions(html)).toHaveLength(1);
-    expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
+    expect(welcomeOf(html)).toEqual(WELCOME);
     expect(html).not.toContain(foreign.id);
     expect(html).not.toContain(foreign.name);
   }
-  expect(filterOptions(shared)).toEqual(filterOptions(all));
   expect(await listProjects(her.id)).toEqual([]);
   expect(await listStandaloneChats(her.id)).toEqual([]);
 });
@@ -311,7 +338,6 @@ test("a shared project URL does not transfer access to the receiving user", asyn
   expect(shared).toMatch(SELECTED_ALL);
   expect(chatLinks(shared)).toEqual(chatLinks(all));
   expect(chatLinks(shared)).toHaveLength(2);
-  expect(filterOptions(shared)).toEqual(filterOptions(all));
   expect(shared).toContain(fixture.foreignProject.name);
   for (const project of [fixture.project, fixture.secondProject]) {
     expect(shared).not.toContain(project.id);

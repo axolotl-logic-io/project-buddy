@@ -34,7 +34,7 @@ The user starts or reopens a standalone adventure, without choosing a quest.
 - **Steps:**
   - She signs in and lands on Home as always, not in an adventure.
   - She opens Adventures from Home, beside Quests, or from any signed-in page's header.
-  - The Adventures page leads with her previous adventures, standalone and quest adventures together, newest first, and their quest filter (`use_case_list_all_chats`). The new-adventure form isn't on the page itself: a "New adventure" button opens it in a dialog named "New adventure". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
+  - The Adventures page leads with her previous adventures, standalone and quest adventures together, newest first, and their quest filter (`use_case_list_all_chats`). The new-adventure form isn't on the page itself: a "New adventure" button, in the heading or, before the first adventure, in the page's welcome, opens it in a dialog named "New adventure". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
   - In the dialog, she leaves the quest at "No quest", and chooses an activity and a construct, built in or one of her own, and starts an adventure. Chat and Vellum are chosen initially.
   - The picker shows one construct at a time: its name, its place in the order, such as "1 of 7", and a short description. Bars on either side step to the previous and next construct, through the built-in constructs and then her own, and wrap round at either end. The keyboard alone can use both bars.
   - The site starts the adventure, at once with a built-in construct and activity (`use_case_prepared_opening`). The conversation opens at its own `/chats/[chatId]` URL, with the construct's opening, which asks what she would like to work on or talk about. Starting it makes no quest.
@@ -147,6 +147,8 @@ The user looks for an adventure on the Adventures page, wherever it is: in a que
 - **Steps:**
   - The user opens Adventures, from Home or from any signed-in page's header. All adventures is selected by default; Quest adventures excludes standalone conversations, and Standalone shows only conversations without a quest. New adventure stays in the heading.
 - **Outcome:** each adventure with a saved activity session shows its current activity by name. The list holds every adventure of theirs, those in their quests and those in none together, newest first. It holds no other user's adventure. Each adventure links to its conversation, as on its quest's page. A quest's own page still lists only that quest's adventures.
+- **Variations:**
+  - Before their first adventure, even with quests, the page shows no tabs or quest selector. It welcomes them instead, with a construct's portrait, a line on what an adventure is and the New adventure button, which moves there from the heading. Opening the page creates nothing.
 - **Next:**
   - `use_case_filter_chats_by_project`: narrow the list to one quest's adventures.
   - `use_case_chat_project_badge`: tell a quest's adventures from the ones in no quest.
@@ -514,6 +516,6 @@ The user recognizes the adventure's construct while reading and waiting for repl
 The user stops a reply that is still running.
 
 - **Prerequisites:** signed in, with current access to the adventure.
-- **Steps:** choose Stop reply and wait for the server to confirm it.
-- **Outcome:** the server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
+- **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
+- **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
 - **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

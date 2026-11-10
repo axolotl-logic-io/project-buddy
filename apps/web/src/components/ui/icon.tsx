@@ -73,6 +73,8 @@ const ICON_PATHS = {
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
   // A paper plane, for sending a message.
   send: { stroke: "M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7" },
+  // A filled square, for stopping a reply that runs.
+  stop: { stroke: "M4.5 4.5h7v7h-7z", fill: "M4.5 4.5h7v7h-7z" },
   // A cog, for the site's settings.
   gear: {
     stroke:
