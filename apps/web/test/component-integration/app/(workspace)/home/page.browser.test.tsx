@@ -433,7 +433,7 @@ describe("use_case_home_atlas", () => {
   });
 
   test.each(["loading", "atlas"])(
-    "leaves body paper and art unchanged with a first-mounted hidden %s",
+    "dresses the page in the map only while a first-mounted %s is visible",
     async (kind) => {
       await setViewport(LAPTOP_VIEWPORT);
       function cached(mode: "visible" | "hidden"): Promise<JSX.Element> {
@@ -459,12 +459,45 @@ describe("use_case_home_atlas", () => {
       await expect
         .element(page.getByRole("heading", { name: HOME_COPY.heading }))
         .toBeVisible();
-      expect(getComputedStyle(document.body).backgroundImage === art).toBe(
-        kind === "loading",
-      );
+      expect(getComputedStyle(document.body).backgroundImage).not.toBe(art);
       await screen.rerender(await cached("hidden"));
       expect(getComputedStyle(document.body).backgroundColor).toBe(paper);
       expect(getComputedStyle(document.body).backgroundImage).toBe(art);
+    },
+  );
+
+  test.each(["light", "dark"])(
+    "shows the map's artwork while Home loads, unchanged when Home arrives, in %s mode",
+    async (mode) => {
+      applyTheme("parchment", mode);
+      await setViewport(LAPTOP_VIEWPORT);
+      const screen = await render(
+        await inSiteFrame(
+          <HomeFrame>
+            <HomeLoading />
+          </HomeFrame>,
+        ),
+      );
+      await expect
+        .element(page.getByText(HOME_COPY.loading, { exact: true }))
+        .toBeInTheDocument();
+      const loadingArt = getComputedStyle(document.body).backgroundImage;
+      const loadingPaper = getComputedStyle(document.body).backgroundColor;
+      expect(loadingArt).toContain("parchment.webp");
+      await screen.rerender(
+        await inSiteFrame(
+          <HomeFrame>
+            <HomeAtlas latestQuest={undefined} />
+          </HomeFrame>,
+        ),
+      );
+      await expect
+        .element(page.getByRole("navigation", { name: HOME_COPY.placesLabel }))
+        .toBeVisible();
+      expect(getComputedStyle(document.body).backgroundImage).toBe(loadingArt);
+      expect(getComputedStyle(document.body).backgroundColor).toBe(
+        loadingPaper,
+      );
     },
   );
 

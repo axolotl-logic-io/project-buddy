@@ -556,10 +556,22 @@
     @apply rounded-box border border-line bg-surface p-5 shadow-raised sm:p-6;
   }
 
-  /* One item of a list, such as a project or a version of the memory. */
-  .card,
-  .link-card {
+  /* One item of a list, such as an activity or a Marketplace listing. */
+  .card {
     @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+  }
+
+  /* A list whose items are rows divided by rules rather than cards, as the
+     Quests index lists its quests: a quest's adventures, milestones, Quick
+     Notes and Journal versions, and every other list of adventures. Inside
+     a framed workspace, a card for each item would stack a second layer of
+     borders. */
+  .divided-rows {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .divided-rows > li {
+    @apply flex min-w-0 flex-col gap-2 border-line border-b py-4 first:pt-0 last:border-b-0 last:pb-0;
   }
 
   /* A card's actions, in a row along its foot: cards in a grid row share
@@ -579,15 +591,15 @@
     @apply items-start;
   }
 
-  /* A card that is one link, such as a project in the list: the card's one
-     link stretches over the whole card, so a click anywhere on it follows
+  /* A row that is one link, such as an adventure in a list: the row's one
+     link stretches over the whole row, so a click anywhere on it follows
      the link, while the link's own words stay its accessible name. */
-  .link-card {
-    @apply relative hover:border-primary;
+  .link-row {
+    @apply relative;
   }
 
-  .link-card a {
-    @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
+  .link-row a {
+    @apply after:absolute after:inset-0 hover:text-primary;
   }
 
   /* The chosen construct's card between bars to the previous and next

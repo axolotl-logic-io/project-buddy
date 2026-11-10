@@ -111,7 +111,7 @@ The user saves a Quick Note to a quest between sessions, without starting an adv
   - `use_case_delete_note`: take the Quick Note back.
   - [`use_case_send_message`](chats.md#use_case_send_message): talk it over with the construct.
 
-Write and Preview share one retained draft. The heading's Save Quick Note works in either tab and returns to Write with feedback and focus on the text. Preview shows the selected quest and normalizes line breaks to spaces.
+Write and Preview share one retained draft. The heading's Save Quick Note works in either tab and returns to Write with feedback and focus on the text. Preview shows the selected quest's name as a small label above the Quick Note, and the Quick Note as the dated line it will become in the Journal, such as "Note (2026-11-02): try a subdivision cage on the shell", with its line breaks and runs of spaces made single spaces, as saving makes them.
 
 ## use_case_delete_note
 

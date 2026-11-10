@@ -66,6 +66,17 @@ function paragraphOf({ day, text }: Note): string {
   return `Note (${day}): ${text}`;
 }
 
+// The line the user's typed text will be in the memory as a note of day:
+// tidied to one line, as saving tidies it. Undefined for text with nothing
+// in it but spaces.
+function noteLine(day: NoteDay, typed: string): string | undefined {
+  const text = typed.replace(SPACES, " ").trim();
+  if (text === "") {
+    return undefined;
+  }
+  return paragraphOf({ day, text });
+}
+
 function twoDigits(value: number): string {
   return String(value).padStart(2, "0");
 }
@@ -153,6 +164,7 @@ export {
   NOTE_MAX_LENGTH,
   NOTE_TEXT,
   noteDay,
+  noteLine,
   notesIn,
   withNote,
   withoutNote,
