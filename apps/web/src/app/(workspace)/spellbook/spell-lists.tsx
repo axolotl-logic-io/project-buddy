@@ -44,7 +44,7 @@ function SpellCard({
         {spell.name}
       </Link>
       <p className="wrap-anywhere text-muted text-sm">{spell.whenToUse}</p>
-      <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      <div className="card-actions">{actions}</div>
     </li>
   );
 }
@@ -55,7 +55,7 @@ function BuiltInSpellCards({
   readonly spells: readonly SpellChoice[];
 }): JSX.Element {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {spells.map((spell) => (
         <SpellCard
           actions={
@@ -91,7 +91,7 @@ function OwnSpellCards({
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
   }
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="definition-grid">
       {spells.map((spell) => (
         <SpellCard
           actions={

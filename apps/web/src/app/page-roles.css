@@ -235,13 +235,34 @@
   }
 
   .workshop-test-settings > summary {
-    @apply cursor-pointer;
+    @apply flex cursor-pointer items-center gap-2;
+    list-style: none;
     min-block-size: var(--target-size);
+  }
+
+  .workshop-test-settings > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Without its list-item display, a summary loses its marker: draw it. */
+  .workshop-test-settings > summary::before {
+    content: "▸";
+    @apply text-muted;
+  }
+
+  .workshop-test-settings[open] > summary::before {
+    content: "▾";
   }
 
   .workshop-feedback {
     @apply flex shrink-0 flex-col gap-2 overflow-y-auto px-4;
     max-block-size: calc(var(--workshop-visible-height) * 0.3);
+  }
+
+  /* Ruled off from the results above it, and clear of the composer, only
+     while it shows a notice or hint: an empty status region takes no room. */
+  .workshop-feedback:has(> :not(:empty)) {
+    @apply border-line border-t py-3;
   }
 
   .workshop-composer {
@@ -270,12 +291,14 @@
     @apply flex flex-wrap gap-2;
   }
 
+  /* The chosen section is marked, not filled: Save stays the editor's
+     strongest control. */
   .prompt-editor-nav button {
-    @apply text-left;
+    @apply rounded-none border-transparent border-l-2 ps-3 text-left;
   }
 
   .prompt-editor-nav [aria-pressed="true"] {
-    @apply bg-primary text-on-primary;
+    @apply border-primary bg-surface text-foreground;
   }
 
   .prompt-editor[data-focus="true"] .prompt-editor-field textarea {
@@ -491,6 +514,23 @@
     @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
   }
 
+  /* A card's actions, in a row along its foot: cards in a grid row share
+     a height, so their action rows line up. */
+  .card-actions {
+    @apply mt-auto flex flex-wrap items-center gap-x-3 gap-y-1;
+  }
+
+  /* The quest an activity's card offers, set off below the card's own
+     actions. Its list keeps each card's own height, so the offer doesn't
+     stretch the card beside it into an empty box. */
+  .activity-quest-entry {
+    @apply flex flex-col items-start gap-3 border-line border-t pt-3;
+  }
+
+  ul:has(> .card > .activity-quest-entry) {
+    @apply items-start;
+  }
+
   /* A card that is one link, such as a project in the list: the card's one
      link stretches over the whole card, so a click anywhere on it follows
      the link, while the link's own words stay its accessible name. */
@@ -587,8 +627,10 @@
     }
   }
 
+  /* A long unbroken name breaks, so the clamp ends it with an ellipsis
+     rather than cutting it off at the column's edge. */
   .chat-header-name {
-    @apply line-clamp-(--chat-header-name-lines);
+    @apply wrap-anywhere line-clamp-(--chat-header-name-lines);
   }
 
   .chat-header-construct {
@@ -906,7 +948,8 @@
   }
 
   .atlas-introduction {
-    @apply mt-2 text-sm;
+    @apply mx-auto mt-2 text-pretty text-sm;
+    max-inline-size: 60ch;
     color: var(--atlas-muted);
   }
 
@@ -919,8 +962,9 @@
     padding-inline: var(--atlas-gutter);
   }
 
+  /* The same eyebrow face as the current quest's label. */
   .atlas-places-heading {
-    @apply mb-2 w-fit rounded-control border px-2 py-1 font-bold text-xs uppercase tracking-wider;
+    @apply mb-2 w-fit rounded-control border px-2 py-1 font-body font-bold text-xs uppercase tracking-wider;
     background: var(--atlas-paper);
     border-color: var(--atlas-line);
   }
@@ -1000,8 +1044,9 @@
     @apply max-sm:grow;
   }
 
+  /* Full width on phones, as Continue is. */
   .atlas-start {
-    @apply w-fit max-w-full;
+    @apply w-fit max-w-full max-sm:w-auto;
     margin-inline: var(--atlas-gutter);
   }
 
@@ -1019,10 +1064,23 @@
     min-block-size: var(--target-size);
   }
 
+  /* Upright: the heading face ships no italic, so one would be faked. */
   .atlas-footer p {
-    @apply text-sm italic;
+    @apply text-sm;
     color: var(--atlas-muted);
     font-family: var(--atlas-font);
+  }
+
+  /* Home's loading tiles and quest panel, where the destinations and the
+     current quest will be. */
+  .atlas-skeleton {
+    @apply h-full rounded-box;
+    min-block-size: calc(var(--target-size) * 2);
+  }
+
+  .atlas-skeleton-panel {
+    @apply h-24 rounded-box;
+    margin-inline: var(--atlas-gutter);
   }
 
   /* Opaque paper is the fallback. Tint, as well as blur, protects contrast
@@ -1047,8 +1105,14 @@
       @apply grid-cols-3;
     }
 
+    /* Top-aligned, so icons and names line up across a row however many
+       lines each description takes. */
     .atlas-destination {
-      @apply p-4;
+      @apply justify-start p-4;
+      min-block-size: calc(var(--target-size) * 3);
+    }
+
+    .atlas-skeleton {
       min-block-size: calc(var(--target-size) * 3);
     }
 
@@ -1077,17 +1141,29 @@
 
 @layer components {
   /* One square canonical composition; only the avatar uses a face crop. */
+  /* Without artwork, or while it loads, the frame shows the construct's
+     initials as a seal: the accent colour, with letters scaled to the
+     frame, so a 32 px avatar and a full portrait read alike. */
   .construct-visual {
     position: relative;
     display: inline-grid;
     place-items: center;
+    container-type: inline-size;
     inline-size: 100%;
     max-inline-size: 100%;
     aspect-ratio: 1;
     overflow: hidden;
-    background: var(--surface);
-    color: var(--foreground);
+    background: var(--accent);
+    color: var(--on-accent);
     font-family: var(--heading-font);
+    line-height: 1;
+    @apply font-semibold;
+  }
+
+  /* The initials. Container units resolve against the frame only from
+     inside it. */
+  .construct-visual > span {
+    font-size: 36cqi;
   }
 
   .construct-visual img {
@@ -1160,8 +1236,25 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
+  /* Built-in or own constructs, activities or spells: two columns from sm
+     up, or one column of rows inside a tabbed page (workspace-rows). */
+  .definition-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
   .workspace-rows > ul {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A construct in a list: its avatar, then a column with its name,
+     temperament and actions, so actions never squeeze the name. The column
+     takes the card's height, so its card-actions row sits at the foot. */
+  .construct-card {
+    @apply grid grid-cols-[auto_minmax(0,1fr)] gap-3;
+  }
+
+  .construct-card > :first-child {
+    @apply self-start;
   }
 
   .workspace-rows > ul > .card {
@@ -1185,6 +1278,14 @@
 
   .workspace-reading {
     @apply flex min-w-0 flex-col gap-6;
+  }
+
+  /* A link in a Library book: a chapter, a page it points to or a related
+     book. A target's height, underlined like a link in text. */
+  .library-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
+    @apply inline-flex min-h-(--target-size) items-center self-start rounded-control text-sm underline decoration-(length:--line-width) underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
   .workspace-reading > section {
