@@ -311,7 +311,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
           </Dialog.Trigger>
         </header>
         <div className="flex min-w-0 flex-col gap-4">
-          <p className="section-heading">{WORKSHOP_COPY.edit}</p>
+          <p className="font-medium text-muted text-sm">{WORKSHOP_COPY.edit}</p>
           <PromptDraftContext value={reportDraft}>
             {children}
           </PromptDraftContext>
@@ -357,7 +357,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
                           key={example.name}
                           value={example.message}
                           onClick={selectCase}
-                          variant="quiet"
+                          variant="secondary"
                         >
                           {example.name}
                         </Button>
@@ -418,7 +418,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
                 </p>
               )}
               {run !== undefined && (
-                <p className="font-mono text-muted text-sm">
+                <p className="text-muted text-sm tabular-nums">
                   {WORKSHOP_COPY.version(run.version)}
                 </p>
               )}

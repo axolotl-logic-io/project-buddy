@@ -70,7 +70,7 @@ function ActivityCard({
       {activity.description !== undefined && (
         <p className="text-muted text-sm">{activity.description}</p>
       )}
-      <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      <div className="card-actions">{actions}</div>
       <ActivityQuestEntry activityId={activity.id} choices={choices} />
     </li>
   );
