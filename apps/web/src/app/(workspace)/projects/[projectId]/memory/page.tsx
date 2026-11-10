@@ -10,10 +10,13 @@ import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
+import { EMPTY_PLAN } from "@/plan/plan.ts";
+import { readPlan } from "@/plan/plan-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { MemoryHistory } from "./memory-history.tsx";
 import { MemoryView } from "./memory-view.tsx";
+import { PlanInJournal } from "./plan-in-journal.tsx";
 
 export const metadata: Metadata = { title: MEMORY_COPY.title };
 
@@ -32,10 +35,11 @@ export default async function MemoryPage({
   if (project === undefined) {
     notFound();
   }
-  const [history, activities, userConstructs] = await Promise.all([
+  const [history, activities, userConstructs, plan] = await Promise.all([
     readMemoryHistory(user.id, project.id),
     activityChoices(user.id),
     ownConstructChoices(),
+    readPlan(user.id, project.id),
   ]);
   const memory = history[0] ?? EMPTY_MEMORY;
 
@@ -58,6 +62,7 @@ export default async function MemoryPage({
             <h2 className="section-heading">{MEMORY_COPY.heading}</h2>
             <p className="text-muted">{MEMORY_COPY.intro}</p>
           </div>
+          <PlanInJournal projectId={project.id} plan={plan ?? EMPTY_PLAN} />
           <MemoryView
             viewer={user.id}
             memory={{ text: memory.text, version: memory.version }}

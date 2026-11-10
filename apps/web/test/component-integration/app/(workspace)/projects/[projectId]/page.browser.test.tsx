@@ -52,6 +52,10 @@ import {
 const actions = vi.hoisted(() => ({
   startChatAction: vi.fn<typeof startChatAction>(),
 }));
+vi.mock(
+  "@/plan/plan-actions.ts",
+  () => import("../../../../plan/plan-actions-test-kit.ts"),
+);
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 vi.mock(
   "@/auth/current-user.ts",
@@ -74,6 +78,10 @@ vi.mock("@/chats/store.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: () => Promise.resolve([]),
 }));
+vi.mock(
+  "@/plan/plan-store.ts",
+  () => import("../../../../plan/plan-store-test-kit.ts"),
+);
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));

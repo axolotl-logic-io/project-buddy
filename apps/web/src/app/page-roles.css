@@ -1187,4 +1187,189 @@
     block-size: var(--target-size);
     @apply shrink-0;
   }
+
+  /* A quest's plan (src/components/plan/plan-steps.tsx): the next step on its
+     own, the open steps in order with their controls, the form for a new
+     step and the done steps, folded away. */
+  .plan {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+
+  .plan-next {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-box border border-primary bg-surface px-4 py-3 shadow-control;
+  }
+
+  .plan-next-label {
+    @apply font-semibold text-primary text-xs uppercase tracking-wide;
+  }
+
+  .plan-next-text {
+    @apply wrap-anywhere font-heading font-semibold;
+  }
+
+  .plan-steps {
+    @apply flex flex-col;
+  }
+
+  .plan-step {
+    @apply grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-line/40 border-b py-1 last:border-b-0;
+  }
+
+  .plan-step-check {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply flex items-center justify-center;
+  }
+
+  .plan-step-check input {
+    @apply size-6 cursor-pointer disabled:cursor-not-allowed;
+  }
+
+  .plan-step-number {
+    @apply text-muted text-xs tabular-nums;
+  }
+
+  .plan-step-text {
+    @apply wrap-anywhere min-w-0;
+  }
+
+  .plan-done .plan-step-text {
+    @apply text-muted line-through;
+  }
+
+  /* The step's buttons sit on a row of their own under its text, so a long
+     step keeps the width it needs on a phone. */
+  .plan-step-actions {
+    @apply col-span-full flex flex-wrap justify-end;
+  }
+
+  .plan-step-actions .button-quiet {
+    min-inline-size: var(--target-size);
+    @apply justify-center;
+  }
+
+  .plan-step-form {
+    @apply col-span-full flex flex-wrap items-center gap-2;
+  }
+
+  .plan-step-form .input-field {
+    @apply min-w-0 flex-[1_1_12rem];
+  }
+
+  .plan-step-problem {
+    @apply basis-full text-sm;
+  }
+
+  .plan-done > summary {
+    min-block-size: var(--target-size);
+    @apply flex cursor-pointer items-center text-muted text-sm;
+  }
+
+  /* A plan change in an adventure (src/components/chat/plan-change-part.tsx):
+     what the construct or a person changed, set apart from the words around
+     it, with Undo. */
+  .plan-change {
+    @apply flex flex-col gap-2 rounded-box border border-line border-l-4 border-l-primary bg-surface px-4 py-3 text-sm;
+  }
+
+  .plan-change-heading {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+
+  .plan-change-lines {
+    @apply flex flex-col gap-1;
+  }
+
+  .plan-change-lines > li {
+    @apply wrap-anywhere;
+  }
+
+  /* The command a person typed, over the change or card it made. */
+  .plan-command {
+    @apply wrap-anywhere text-muted text-sm;
+  }
+
+  .plan-card {
+    @apply rounded-box border border-line bg-surface p-3;
+  }
+
+  /* An adventure in a quest with its Plan panel (src/components/chat-view.tsx
+     and plan-panel.tsx): above the conversation on a narrower screen, where
+     a button opens it, and a sticky column beside it on a wide one, where
+     the page's column widens to hold both. */
+  .adventure-layout {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .adventure-main {
+    @apply flex min-w-0 flex-col gap-8;
+  }
+
+  .adventure-plan-toggle {
+    @apply w-full justify-start;
+  }
+
+  .adventure-plan-next {
+    @apply min-w-0 truncate font-normal text-muted;
+  }
+
+  .adventure-plan-body {
+    @apply hidden;
+  }
+
+  .adventure-plan-body-open {
+    @apply mt-3 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+  }
+
+  .adventure-plan-heading {
+    @apply sr-only;
+  }
+
+  @media (width >= --theme(--breakpoint-xl)) {
+    .page-column:has(.adventure-layout) {
+      @apply max-w-6xl;
+    }
+
+    .adventure-layout {
+      @apply grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8;
+    }
+
+    .adventure-main {
+      @apply col-start-1 row-start-1;
+    }
+
+    .adventure-plan {
+      inset-block-start: calc(var(--site-header-height) + 6rem);
+      max-block-size: calc(100dvh - var(--site-header-height) - 8rem);
+      @apply sticky col-start-2 row-start-1 overflow-y-auto;
+    }
+
+    .adventure-plan-toggle {
+      @apply hidden;
+    }
+
+    .adventure-plan-body,
+    .adventure-plan-body-open {
+      @apply mt-0 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+    }
+
+    .adventure-plan-heading {
+      @apply not-sr-only font-heading font-semibold text-section-heading;
+    }
+  }
+
+  /* The composer's command list (src/components/chat/command-menu.tsx),
+     above the message box. */
+  .command-menu {
+    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-1 overflow-y-auto rounded-box border border-line bg-surface p-2 shadow-raised;
+  }
+
+  .command-option {
+    min-block-size: var(--target-size);
+    @apply flex w-full flex-wrap items-baseline gap-x-3 rounded-control px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field;
+  }
+
+  .command-option > code {
+    @apply font-semibold text-primary;
+  }
 }

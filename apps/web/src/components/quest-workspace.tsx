@@ -10,6 +10,7 @@ import type { Project } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
+import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -24,6 +25,7 @@ function QuestWorkspace({
   readonly current:
     | "adventures"
     | "journal"
+    | "plan"
     | "progress"
     | "notes"
     | "versions"
@@ -45,6 +47,11 @@ function QuestWorkspace({
       id: "journal",
       label: MEMORY_COPY.link,
       href: `/projects/${project.id}/memory`,
+    },
+    {
+      id: "plan",
+      label: PLAN_COPY.heading,
+      href: `/projects/${project.id}?section=plan`,
     },
     {
       id: "progress",

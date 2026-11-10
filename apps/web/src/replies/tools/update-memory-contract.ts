@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { MEMORY_EDIT_FAILURES } from "@/memory/memory-edit.ts";
 import { NEXT_STEP_LABEL } from "@/memory/next-step.ts";
+import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 
 const UPDATE_MEMORY_TOOL = "update_memory";
 
@@ -12,7 +13,7 @@ const UPDATE_MEMORY_DESCRIPTION = [
   "Change the quest's Journal: the Markdown document, shown in your instructions, that every adventure in this quest shares and reads.",
   "This works in every activity, including a new quest with an empty Journal. Initialize an empty Journal with empty oldText and Markdown in newText. Append with empty oldText, or replace an exact passage; preserve unrelated content.",
   "Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference.",
-  `Keep one line that starts "${NEXT_STEP_LABEL}" with the one small thing the user means to do next, and change that line when they agree on a new next step or finish this one. The site shows it to the user as the quest's next step.`,
+  `Keep remaining work and the next step in the quest's plan with ${CHANGE_PLAN_TOOL}, not here. An older Journal may hold a line that starts "${NEXT_STEP_LABEL}": when you next change the plan, add that step to it if it is still to do, and remove the line.`,
   "Each call replaces oldText with newText and saves a new version, which the user sees in the adventure and can undo.",
   "If oldText is not in the Journal exactly once, for example because the user changed the Journal meanwhile, nothing is saved and the result gives the Journal as it is now.",
 ].join(" ");

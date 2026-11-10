@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Buddy · Quest plan mockups</title>
+<style>
+:root{--foreground:#fae5b9;--muted-foreground:#d1b284;--background:#241b13;--card:#312418;--secondary:#422f1f;--primary:#edbe6a;--primary-foreground:#2d1e10;--border:#ad8752;--ring:#fad58b;--destructive:#ffa183;--success:#a8d08d;--flash:#5a4120;--radius:12px;--font-sans:system-ui,sans-serif;--font-serif:Georgia,serif;--font-mono:ui-monospace,monospace}
+@media(prefers-color-scheme:light){:root{--foreground:#352111;--muted-foreground:#674828;--background:#efd093;--card:#fae5b9;--secondary:#f4dcad;--primary:#5c3716;--primary-foreground:#fff0cb;--border:#866032;--ring:#734112;--destructive:#8b291b;--success:#2f5d1c;--flash:#f0cf8a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--background);color:var(--foreground);font:15px/1.5 var(--font-sans)}
+h1,h2,h3,h4,p{margin:0}
+h1{font:600 30px/1.2 var(--font-serif);margin:4px 0 8px}
+h2{font:600 24px/1.2 var(--font-serif)}
+h3{font:600 19px/1.3 var(--font-serif)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;min-height:44px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+button:hover{background:var(--secondary)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,[draggable]:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--secondary);border-color:var(--primary);font-weight:650}
+input[type=text]{min-height:44px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--background);width:100%;min-width:0}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--primary);margin:0;cursor:pointer;flex:none}
+.primary{background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+.primary:hover{background:var(--primary);filter:brightness(1.08)}
+.quiet{border-color:transparent;background:transparent;text-decoration:underline;text-underline-offset:3px;padding:7px 8px}
+.icon{min-width:44px;padding:6px;border-color:transparent;background:transparent;color:var(--muted-foreground)}
+.icon:hover{color:var(--foreground)}
+.icon.danger:hover{color:var(--destructive)}
+.eyebrow{font:600 11px/1.5 var(--font-mono);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted-foreground)}
+.muted{color:var(--muted-foreground)}
+.small{font-size:13px}
+.page{max-width:1120px;margin:0 auto;padding:24px 16px 80px}
+.top .intro{color:var(--muted-foreground);max-width:720px}
+.controls{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin:16px 0 20px}
+.group{display:flex;flex-wrap:wrap;gap:6px}
+.frame{container-type:inline-size;margin:0 auto;transition:max-width .2s}
+.frame.phone{max-width:390px}
+.screen{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-width:0}
+.screen + .screen,.stack > * + *{margin-top:16px}
+.caption{margin:22px 0 8px}
+.caption p{color:var(--muted-foreground);font-size:13px;max-width:680px}
+
+/* Quest workspace */
+.ws-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.ws-head .crumb{font-size:13px;color:var(--muted-foreground)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:16px;scrollbar-width:thin}
+.tabs button{padding:7px 11px;font-size:13px;white-space:nowrap;flex:none}
+.tabs .new{font-size:10px;font:600 10px var(--font-mono);color:var(--primary);margin-left:4px;letter-spacing:.8px}
+
+/* Plan list */
+.plan h3{margin-bottom:4px}
+.next{border:1px solid var(--primary);background:var(--secondary);border-radius:var(--radius);padding:12px 14px;margin:10px 0 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.next .label{font:600 11px/1.4 var(--font-mono);letter-spacing:1px;text-transform:uppercase;color:var(--primary)}
+.next .text{font:600 17px/1.35 var(--font-serif)}
+.steps{list-style:none;margin:0;padding:0}
+.step{display:grid;grid-template-columns:auto auto auto 1fr auto;gap:4px 10px;align-items:center;padding:6px 4px;border-bottom:1px solid color-mix(in srgb,var(--border) 45%,transparent);border-radius:8px}
+.step:last-child{border-bottom:0}
+.step .handle{cursor:grab;color:var(--muted-foreground);font-size:18px;width:20px;text-align:center;user-select:none}
+.step .num{font:600 12px var(--font-mono);color:var(--muted-foreground);min-width:18px;text-align:right}
+.step .txt{min-width:0;overflow-wrap:anywhere}
+.step.is-next .txt{font-weight:650}
+.step .acts{display:flex;gap:0;flex-wrap:nowrap}
+.step.dragging{opacity:.4}
+.step.drop-before{box-shadow:inset 0 3px 0 var(--primary)}
+.step.flash{animation:flash 1.6s ease-out}
+@keyframes flash{from{background:var(--flash)}to{background:transparent}}
+.step form{display:flex;gap:6px;grid-column:4/6;flex-wrap:wrap}
+.step form input{flex:1 1 160px}
+.add{display:flex;gap:8px;margin-top:10px}
+details.done{margin-top:14px;border-top:1px solid var(--border);padding-top:8px}
+details.done summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--muted-foreground);font-size:14px}
+.done .step .txt{text-decoration:line-through;color:var(--muted-foreground)}
+.empty{color:var(--muted-foreground);font-size:14px;padding:8px 0}
+@container (max-width:560px){
+  .step{grid-template-columns:auto auto 1fr}
+  .step .acts{grid-column:1/-1;justify-content:flex-end;margin-top:-6px}
+  .step form{grid-column:1/-1}
+  .step .num{display:none}
+}
+
+/* Journal */
+.jsec{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-top:12px}
+.jsec header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.badge{font:600 10px/1.4 var(--font-mono);letter-spacing:.8px;text-transform:uppercase;border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--muted-foreground)}
+.badge.typed{border-color:var(--primary);color:var(--primary)}
+.jsec ol{margin:4px 0 0;padding-left:22px}
+.jsec li.done{text-decoration:line-through;color:var(--muted-foreground)}
+textarea{width:100%;min-height:120px;border:1px solid var(--border);border-radius:var(--radius);background:var(--background);padding:10px 12px;font:13px/1.5 var(--font-mono);resize:vertical}
+
+/* Today */
+.today{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.today .q{font:600 17px var(--font-serif)}
+
+/* Thread */
+.thread{display:flex;flex-direction:column;gap:12px;min-width:0}
+.msg{max-width:88%;padding:10px 14px;border-radius:var(--radius);overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--secondary);border:1px solid var(--border)}
+.msg.construct{align-self:flex-start;border:1px solid transparent;padding-left:0}
+.msg .who{font:600 12px var(--font-mono);letter-spacing:.6px;color:var(--primary);display:block;margin-bottom:2px}
+.msg.working{color:var(--muted-foreground);font-style:italic}
+.change{align-self:stretch;border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:var(--radius);padding:10px 12px;background:var(--background);font-size:14px}
+.change.by-you{border-left-color:var(--muted-foreground)}
+.change.undone{opacity:.6}
+.change header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.change header strong{display:flex;gap:6px;align-items:center}
+.change ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}
+.change li{display:grid;grid-template-columns:22px 1fr;gap:4px;overflow-wrap:anywhere}
+.change li .g{font:600 14px var(--font-mono);text-align:center}
+.g.add{color:var(--success)}.g.remove{color:var(--destructive)}.g.complete{color:var(--success)}.g.update,.g.move,.g.reopen{color:var(--primary)}
+.change .free{font:600 10px var(--font-mono);letter-spacing:.8px;text-transform:uppercase;color:var(--muted-foreground)}
+.composer{border:1px solid var(--border);border-radius:var(--radius);background:var(--background);padding:8px;margin-top:14px;position:relative}
+.composer form{display:flex;gap:8px;align-items:flex-end}
+.composer input[type=text]{border:0;background:transparent;padding-left:6px}
+.composer input[type=text]:focus-visible{outline:none}
+.composer:focus-within{outline:2px solid var(--ring);outline-offset:1px}
+.hint{font-size:12px;color:var(--muted-foreground);margin:6px 6px 0}
+.hint kbd{font:12px var(--font-mono);border:1px solid var(--border);border-radius:4px;padding:0 4px}
+.error{color:var(--destructive);font-size:13px;margin:6px 6px 0}
+
+/* Candidate B */
+.b-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.b-main{min-width:0}
+.b-toggle{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left}
+.b-toggle .nx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--muted-foreground)}
+.b-panel{display:none;border:1px solid var(--border);border-radius:var(--radius);padding:12px;background:var(--background)}
+.b-panel.open{display:block}
+@container (min-width:760px){
+  .b-layout{grid-template-columns:minmax(0,1fr) 330px;align-items:start}
+  .b-tog-wrap{display:none}
+  .b-main{order:1}
+  .b-panel{display:block;position:sticky;top:12px;order:2}
+  .b-panel .step{grid-template-columns:auto auto 1fr}
+  .b-panel .step .num{display:none}
+  .b-panel .step .acts{grid-column:1/-1;justify-content:flex-end;margin-top:-8px}
+  .b-panel .step form{grid-column:1/-1}
+}
+
+/* Candidate C */
+.chip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 6px 6px 12px;border:1px solid var(--primary);border-radius:999px;background:var(--secondary);margin-top:14px;font-size:14px;flex-wrap:wrap}
+.chip .nx{min-width:0;overflow-wrap:anywhere}
+.chip .nx b{font:600 11px var(--font-mono);letter-spacing:.8px;text-transform:uppercase;color:var(--primary);margin-right:6px}
+.chip button{min-height:36px;padding:4px 12px;border-radius:999px}
+.menu{position:absolute;left:8px;right:8px;bottom:calc(100% + 6px);background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:6px;box-shadow:0 8px 24px rgb(0 0 0 / .3);z-index:5}
+.menu button{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:10px;width:100%;text-align:left;border-color:transparent;background:transparent;min-height:40px}
+.menu button:hover,.menu button.hl{background:var(--secondary)}
+.menu code{font:13px var(--font-mono);color:var(--primary)}
+.menu span{font-size:13px;color:var(--muted-foreground)}
+.plancard{align-self:stretch;border:1px solid var(--border);border-radius:var(--radius);padding:12px;background:var(--background)}
+.plancard.stale{padding:8px 12px;font-size:13px;color:var(--muted-foreground)}
+.cmd{align-self:flex-end;font:13px var(--font-mono);color:var(--muted-foreground);border:1px dashed var(--border);border-radius:var(--radius);padding:4px 10px}
+
+#toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);max-width:min(560px,calc(100vw - 32px));background:var(--card);border:1px solid var(--primary);border-radius:var(--radius);padding:8px 8px 8px 14px;display:flex;gap:8px;align-items:center;box-shadow:0 8px 24px rgb(0 0 0 / .35);z-index:10}
+#toast:empty{display:none}
+#toast button{min-height:36px}
+@media (prefers-reduced-motion:reduce){.step.flash{animation:none;background:var(--flash)}.frame{transition:none}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <p class="eyebrow">Design mockups · Quest plan</p>
+    <h1>A plan you and the construct both keep</h1>
+    <p class="intro">Three ways a quest's plan could fit into Project Buddy. All three share one plan and one set of operations: add, change, check off, reopen, move and remove. Change it in one candidate, then switch to see it in another. Construct replies are scripted and play in order.</p>
+  </header>
+  <div class="controls">
+    <div class="group" role="group" aria-label="Candidate">
+      <button type="button" data-cand="a" aria-pressed="true">01 · Plan section</button>
+      <button type="button" data-cand="b" aria-pressed="false">02 · Side panel</button>
+      <button type="button" data-cand="c" aria-pressed="false">03 · Commands and cards</button>
+    </div>
+    <div class="group">
+      <div class="group" role="group" aria-label="Preview width">
+        <button type="button" data-width="desk" aria-pressed="true">Desktop</button>
+        <button type="button" data-width="phone" aria-pressed="false">Phone</button>
+      </div>
+      <button type="button" class="quiet" id="reset">Reset mockup</button>
+    </div>
+  </div>
+  <div class="frame" id="frame">
+    <section id="cand-a" aria-label="Candidate 01, Plan section"></section>
+    <section id="cand-b" aria-label="Candidate 02, Side panel" hidden></section>
+    <section id="cand-c" aria-label="Candidate 03, Commands and cards" hidden></section>
+  </div>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const CONSTRUCT = "Vellum";
+const QUEST = "Clockwork owl figurine";
+
+const SCRIPT = [
+  { user: "Finished the blockout! I think the head needs retopology before I sculpt.",
+    reply: "*tick* The blockout is charted ground now. I have checked it off, and set retopology ahead of the feather plates, so the sculpt has clean topology under it.",
+    ops: [{ op: "complete", id: "s2" }, { op: "add", text: "Retopologize the head", before: "s3" }] },
+  { user: "Let's skip the display stand. I'll render the owl floating.",
+    reply: "Struck from the map. The turntable now shows the owl floating, as you want it.",
+    ops: [{ op: "remove", id: "s5" }, { op: "update", id: "s6", text: "Render a floating turntable" }] },
+  { user: "Could texturing be two steps? Brass first, then the enamel eyes.",
+    reply: "Two roads instead of one: the brass plates first, then the enamel eyes, both before the turntable.",
+    ops: [{ op: "update", id: "s4", text: "Texture the brass plates" }, { op: "add", text: "Paint the enamel eyes", before: "s6" }] },
+];
+const FALLBACK = { user: "What should I do next?",
+  reply: "The plan stands as it is. Tell me when a step is done or the road changes, and I will ink it in.", ops: [] };
+
+const COMMANDS = [
+  ["/plan", "Show the plan as a card"],
+  ["/add TEXT", "Add a step at the end"],
+  ["/done N", "Check off step N"],
+  ["/edit N TEXT", "Change step N's text"],
+  ["/move N M", "Move step N to place M"],
+  ["/drop N", "Remove step N"],
+  ["/undo", "Undo your last plan change"],
+];
+
+let S;
+function fresh() {
+  S = { steps: [], nextId: 1, changes: [], thread: [], script: 0, cand: S ? S.cand : "a",
+        width: S ? S.width : "desk", editing: null, aTab: "plan", bOpen: false, flash: new Set(),
+        cError: "", menuHl: 0 };
+  S.thread.push({ kind: "user", text: "Can we break the owl into steps? I want it on my desk by spring." });
+  S.thread.push({ kind: "construct", text: "Let us unroll a fresh sheet. Here is the road as we agreed it, from reference to turntable. You already have the reference photos, so I have marked that one done." });
+  applyOps("construct", [
+    { op: "add", text: "Gather reference photos of brass owls" },
+    { op: "add", text: "Block out the body and wings" },
+    { op: "add", text: "Sculpt the feather plates" },
+    { op: "add", text: "Texture the brass and enamel" },
+    { op: "add", text: "Model a display stand" },
+    { op: "add", text: "Render a turntable" },
+    { op: "complete", id: "s1" },
+  ], "adventure");
+  S.flash.clear();
+}
+
+/* ---------- Operations: the one module both the construct and the user call ---------- */
+const idx = (id) => S.steps.findIndex((s) => s.id === id);
+const q = (t) => `“${t}”`;
+function insertBefore(step, before) {
+  const j = before ? idx(before) : -1;
+  if (j < 0) S.steps.push(step); else S.steps.splice(j, 0, step);
+}
+function nameOf(id) { const s = S.steps[idx(id)]; return s ? q(s.text) : "the end"; }
+function applyOne(op) {
+  const i = op.id ? idx(op.id) : -1;
+  const st = S.steps[i];
+  switch (op.op) {
+    case "add": {
+      const step = { id: op.id || "s" + S.nextId++, text: op.text, done: !!op.done };
+      insertBefore(step, op.before);
+      S.flash.add(step.id);
+      return { line: ["add", "+", `Added ${q(step.text)}` + (op.before && idx(op.before) >= 0 ? ` before ${nameOf(op.before)}` : "")],
+               inverse: { op: "remove", id: step.id } };
+    }
+    case "remove": {
+      if (!st) return null;
+      const before = S.steps[i + 1] ? S.steps[i + 1].id : null;
+      S.steps.splice(i, 1);
+      return { line: ["remove", "×", `Removed ${q(st.text)}`],
+               inverse: { op: "add", id: st.id, text: st.text, done: st.done, before } };
+    }
+    case "complete":
+      if (!st || st.done) return null;
+      st.done = true; S.flash.add(st.id);
+      return { line: ["complete", "✓", `Checked off ${q(st.text)}`], inverse: { op: "reopen", id: st.id } };
+    case "reopen":
+      if (!st || !st.done) return null;
+      st.done = false; S.flash.add(st.id);
+      return { line: ["reopen", "↺", `Reopened ${q(st.text)}`], inverse: { op: "complete", id: st.id } };
+    case "update": {
+      const text = (op.text || "").trim();
+      if (!st || !text || st.text === text) return null;
+      const old = st.text; st.text = text; S.flash.add(st.id);
+      return { line: ["update", "✎", `Changed ${q(old)} to ${q(text)}`], inverse: { op: "update", id: st.id, text: old } };
+    }
+    case "move": {
+      if (!st || op.before === op.id) return null;
+      const oldBefore = S.steps[i + 1] ? S.steps[i + 1].id : null;
+      if (oldBefore === op.before) return null;
+      S.steps.splice(i, 1);
+      insertBefore(st, op.before);
+      S.flash.add(st.id);
+      const where = op.before && idx(op.before) >= 0 ? `before ${nameOf(op.before)}` : "to the end";
+      return { line: ["move", "↕", `Moved ${q(st.text)} ${where}`], inverse: { op: "move", id: st.id, before: oldBefore } };
+    }
+  }
+  return null;
+}
+// Applies a batch; returns the change, or null when nothing changed.
+// source "adventure" posts the change into the adventure; "quest" keeps it on the quest page.
+function applyOps(author, ops, source, title) {
+  S.flash.clear();
+  const lines = [], inverse = [];
+  for (const op of ops) {
+    const r = applyOne(op);
+    if (r) { lines.push(r.line); inverse.unshift(r.inverse); }
+  }
+  if (!lines.length) return null;
+  // A person's back-to-back changes in an adventure merge into one Plan change.
+  const last = S.thread[S.thread.length - 1];
+  if (source === "adventure" && author === "you" && !title && last && last.kind === "change"
+      && last.change.author === "you" && !last.change.undone && !last.change.title) {
+    last.change.lines.push(...lines);
+    last.change.inverse.unshift(...inverse);
+    return last.change;
+  }
+  const change = { id: S.changes.length + 1, author, lines, inverse, undone: false, source, title };
+  S.changes.push(change);
+  if (source === "adventure") S.thread.push({ kind: "change", change });
+  return change;
+}
+function undo(changeId, source) {
+  const ch = S.changes.find((c) => c.id === changeId);
+  if (!ch || ch.undone) return;
+  ch.undone = true;
+  const who = ch.author === "construct" ? `${CONSTRUCT}'s` : "your";
+  applyOps("you", ch.inverse, source, `You undid ${who} plan change`);
+}
+const openSteps = () => S.steps.filter((s) => !s.done);
+const doneSteps = () => S.steps.filter((s) => s.done);
+const nextStep = () => openSteps()[0];
+
+/* ---------- Rendering ---------- */
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function planList(src, { showNext = true, heading = true } = {}) {
+  const open = openSteps(), done = doneSteps(), nx = open[0];
+  const row = (s, n, isDone) => {
+    const key = `${src}:${s.id}`;
+    const editing = S.editing === key;
+    const flash = S.flash.has(s.id) ? " flash" : "";
+    const nxt = !isDone && n === 1 ? " is-next" : "";
+    const body = editing
+      ? `<form data-form="edit" data-src="${src}" data-id="${s.id}">
+           <input type="text" id="e-${key}" name="text" maxlength="200" value="${esc(s.text)}" aria-label="Step text" data-key="${key}:input">
+           <button class="primary" type="submit">Save</button>
+           <button type="button" class="quiet" data-act="cancel" data-src="${src}" data-id="${s.id}">Cancel</button>
+         </form>`
+      : `<span class="txt">${esc(s.text)}</span>
+         <span class="acts">${isDone
+           ? `<button type="button" class="quiet small" data-act="progress" data-src="${src}" data-id="${s.id}" data-key="${key}:progress">Add to progress</button>`
+           : `<button type="button" class="icon" aria-label="Move up: ${esc(s.text)}" data-act="up" data-src="${src}" data-id="${s.id}" data-key="${key}:up" ${n === 1 ? "disabled" : ""}>↑</button>
+              <button type="button" class="icon" aria-label="Move down: ${esc(s.text)}" data-act="down" data-src="${src}" data-id="${s.id}" data-key="${key}:down" ${n === open.length ? "disabled" : ""}>↓</button>
+              <button type="button" class="icon" aria-label="Edit: ${esc(s.text)}" data-act="edit" data-src="${src}" data-id="${s.id}" data-key="${key}:edit">✎</button>`}
+           <button type="button" class="icon danger" aria-label="Remove: ${esc(s.text)}" data-act="del" data-src="${src}" data-id="${s.id}" data-key="${key}:del">×</button>
+         </span>`;
+    return `<li class="step${flash}${nxt}" ${isDone ? "" : `draggable="true" data-drag="${s.id}" data-src="${src}"`}>
+      ${isDone ? `<span></span>` : `<span class="handle" aria-hidden="true" title="Drag to reorder">⠿</span>`}
+      <input type="checkbox" ${isDone ? "checked" : ""} aria-label="${isDone ? "Done" : "Check off"}: ${esc(s.text)}" data-act="toggle" data-src="${src}" data-id="${s.id}" data-key="${key}:toggle">
+      <span class="num" aria-hidden="true">${isDone ? "" : n}</span>
+      ${body}
+    </li>`;
+  };
+  return `<div class="plan">
+    ${heading ? `<h3>Plan</h3>` : ""}
+    ${showNext && nx ? `<div class="next"><div><div class="label">Next step</div><div class="text">${esc(nx.text)}</div></div>
+       <button type="button" data-act="toggle" data-src="${src}" data-id="${nx.id}" data-key="${src}:nextdone">✓ Done</button></div>` : ""}
+    ${open.length ? `<ol class="steps">${open.map((s, i) => row(s, i + 1, false)).join("")}</ol>`
+                  : `<p class="empty">No open steps. Add one, or ask ${CONSTRUCT} to plan the next stretch with you.</p>`}
+    <form class="add" data-form="add" data-src="${src}">
+      <input type="text" name="text" maxlength="200" placeholder="Add a step" aria-label="New step" data-key="${src}:add">
+      <button type="submit">Add</button>
+    </form>
+    ${done.length ? `<details class="done" ${S["open_" + src] ? "open" : ""} data-details="${src}"><summary>Done (${done.length})</summary>
+       <ol class="steps">${done.map((s) => row(s, 0, true)).join("")}</ol></details>` : ""}
+  </div>`;
+}
+
+function changePart(ch, src) {
+  const by = ch.author === "construct" ? CONSTRUCT : "you";
+  const title = ch.title || `Plan change by ${by}`;
+  return `<aside class="change ${ch.author === "you" ? "by-you" : ""} ${ch.undone ? "undone" : ""}" aria-label="Plan change">
+    <header><strong>☰ ${esc(title)}</strong>
+      ${ch.undone ? `<span class="muted small">Undone</span>`
+        : src ? `<button type="button" class="quiet small" data-act="undo" data-src="${src}" data-change="${ch.id}" data-key="${src}:undo${ch.id}">Undo</button>` : ""}</header>
+    <ul>${ch.lines.map(([k, g, t]) => `<li><span class="g ${k}" aria-hidden="true">${g}</span><span>${esc(t)}</span></li>`).join("")}</ul>
+    ${ch.author === "you" && !ch.title ? `<p class="free">No batteries spent · ${CONSTRUCT} reads this on its next reply</p>` : ""}
+  </aside>`;
+}
+
+function threadHtml(src, { cards = false } = {}) {
+  const lastCard = S.thread.map((t) => t.kind).lastIndexOf("plancard");
+  return S.thread.map((t, i) => {
+    if (t.kind === "user") return `<div class="msg user">${esc(t.text)}</div>`;
+    if (t.kind === "construct") return `<div class="msg construct"><span class="who">${CONSTRUCT}</span>${esc(t.text)}</div>`;
+    if (t.kind === "working") return `<div class="msg construct working"><span class="who">${CONSTRUCT}</span>Inking the map…</div>`;
+    if (t.kind === "change") return changePart(t.change, src);
+    if (t.kind === "cmd") return cards ? `<div class="cmd">${esc(t.text)}</div>` : "";
+    if (t.kind === "plancard") {
+      if (!cards) return "";
+      if (i !== lastCard) return `<div class="plancard stale">Plan card · the plan is shown again below</div>`;
+      return `<div class="plancard">${planList(src, { showNext: false })}</div>`;
+    }
+    return "";
+  }).join("");
+}
+
+function suggestion() { return (SCRIPT[S.script] || FALLBACK).user; }
+
+function composer(src, extra = "") {
+  return `<div class="composer">
+    ${extra}
+    <form data-form="send" data-src="${src}">
+      <input type="text" name="text" aria-label="Message ${CONSTRUCT}" placeholder="${esc(suggestion())}" data-key="${src}:composer" autocomplete="off">
+      <button class="primary" type="submit">Send</button>
+    </form>
+  </div>`;
+}
+
+function renderA() {
+  const tabs = [["adventures", "Adventures"], ["journal", "Journal"], ["plan", "Plan"], ["progress", "Progress"], ["notes", "Quick Notes"], ["versions", "Versions"], ["members", "Members"]];
+  const nx = nextStep();
+  const journal = `<div class="stack">
+    <p class="muted small">The Journal page shows typed sections above the free notes. The construct changes each typed section with its own tool; it edits only the free notes with <code>update_memory</code>.</p>
+    <div class="jsec"><header><h3>Goal</h3><span class="badge">Free notes today · typed in phase 5</span></header>
+      <p>A brass clockwork owl figurine, sculpted and textured in Blender, rendered as a turntable by spring.</p></div>
+    <div class="jsec"><header><h3>Plan</h3><span class="badge typed">Typed · change_plan</span></header>
+      <ol>${S.steps.map((s) => `<li class="${s.done ? "done" : ""}">${esc(s.text)}</li>`).join("")}</ol>
+      <button type="button" class="quiet small" data-act="tab" data-tab="plan">Change the plan</button></div>
+    <div class="jsec"><header><h3>Notes</h3><span class="badge">Free Markdown · update_memory</span></header>
+      <textarea aria-label="Journal notes">## Preferences
+- Likes stylized forms more than realism.
+- Works in short evening sessions.
+
+Note (2026-11-02): try a subdivision cage on the shell</textarea></div>
+  </div>`;
+  const panel = S.aTab === "plan" ? planList("quest") : S.aTab === "journal" ? journal : "";
+  return `
+  <div class="caption"><p class="eyebrow">Quest page</p><p>The plan gets its own section in the quest workspace and on the Journal page. The user changes it here. In an adventure, the construct changes it and the user can undo, but can't edit it there.</p></div>
+  <div class="screen">
+    <div class="ws-head"><div><div class="crumb">Quests ›</div><h2>${QUEST}</h2></div><button type="button" class="primary" data-act="noop">New adventure</button></div>
+    <nav class="tabs" aria-label="Quest sections">${tabs.map(([id, label]) =>
+      `<button type="button" data-act="tab" data-tab="${id}" aria-pressed="${S.aTab === id}" data-key="tab:${id}">${label}${id === "plan" ? `<span class="new">NEW</span>` : ""}</button>`).join("")}</nav>
+    ${panel || `<p class="empty">This section isn't part of the mockup. Choose Plan or Journal.</p>`}
+  </div>
+  <div class="caption"><p class="eyebrow">Today page</p><p>The next step is the plan's first open step, so Today and check-in openings read it without parsing the Journal.</p></div>
+  <div class="screen today"><div><div class="q">${QUEST}</div><div class="muted small">Next step</div><div>${nx ? esc(nx.text) : "No open steps"}</div></div><button type="button" data-act="noop">Continue</button></div>
+  <div class="caption"><p class="eyebrow">In an adventure</p><p>Each call to <code>change_plan</code> shows as a Plan change under the reply, with Undo. Play the scripted replies to watch the plan above change.</p></div>
+  <div class="screen"><div class="thread">${threadHtml("adv-a")}</div>
+    <div class="composer"><form data-form="send" data-src="adv-a"><input type="text" name="text" aria-label="Message ${CONSTRUCT}" placeholder="${esc(suggestion())}" data-key="adv-a:composer" autocomplete="off"><button class="primary" type="submit">Send</button></form></div>
+    <p class="hint">Send with an empty box to use the suggested line.</p></div>`;
+}
+
+function renderB() {
+  const nx = nextStep();
+  return `
+  <div class="caption"><p class="eyebrow">Adventure with a Plan panel</p><p>The plan sits beside the conversation and changes as the construct calls the tool. The user checks off, edits, drags or adds steps in the panel; those changes go into the adventure as one Plan change by them, which the construct reads next. On a phone, the panel is a drawer above the conversation.</p></div>
+  <div class="screen">
+    <div class="b-layout">
+      <div class="b-tog-wrap">
+        <button type="button" class="b-toggle" aria-expanded="${S.bOpen}" aria-controls="b-panel" data-act="btoggle" data-key="btoggle">
+          <span><strong>☰ Plan</strong> <span class="nx">${nx ? "· Next: " + esc(nx.text) : ""}</span></span><span aria-hidden="true">${S.bOpen ? "▴" : "▾"}</span></button>
+      </div>
+      <aside id="b-panel" class="b-panel ${S.bOpen ? "open" : ""}" aria-label="Plan">${planList("adv-b")}</aside>
+      <div class="b-main">
+        <div class="thread">${threadHtml("adv-b")}</div>
+        ${composer("adv-b")}
+        <p class="hint">Send with an empty box to use the suggested line.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderC() {
+  const nx = nextStep();
+  const typed = S.cDraft || "";
+  const showMenu = typed.startsWith("/") && !typed.includes(" ");
+  const matches = showMenu ? COMMANDS.filter(([c]) => c.split(" ")[0].startsWith(typed)) : [];
+  const menu = matches.length ? `<div class="menu" role="listbox" aria-label="Plan commands">${matches.map(([c, d], i) =>
+    `<button type="button" role="option" class="${i === S.menuHl ? "hl" : ""}" aria-selected="${i === S.menuHl}" data-act="pick" data-cmd="${c.split(" ")[0]}"><code>${esc(c)}</code><span>${esc(d)}</span></button>`).join("")}</div>` : "";
+  return `
+  <div class="caption"><p class="eyebrow">Adventure with commands and plan cards</p><p>Type <code>/</code> in the composer for plan commands. They run at once, without a model call, and show as a Plan change. <code>/plan</code> posts a live plan card. The next step stays pinned above the composer.</p></div>
+  <div class="screen">
+    <div class="thread">${threadHtml("adv-c", { cards: true })}</div>
+    ${nx ? `<div class="chip"><span class="nx"><b>Next step</b>${esc(nx.text)}</span><button type="button" data-act="toggle" data-src="adv-c" data-id="${nx.id}" data-key="adv-c:chipdone">✓ Done</button></div>` : ""}
+    <div class="composer">${menu}
+      <form data-form="send" data-src="adv-c">
+        <input type="text" name="text" aria-label="Message ${CONSTRUCT}, or type / for plan commands" placeholder="${esc(suggestion())}" data-key="adv-c:composer" autocomplete="off" value="${esc(typed)}" ${matches.length ? `aria-expanded="true"` : ""}>
+        <button class="primary" type="submit">Send</button>
+      </form>
+    </div>
+    ${S.cError ? `<p class="error" role="alert">${esc(S.cError)}</p>` : ""}
+    <p class="hint">Try <kbd>/plan</kbd>, <kbd>/done 1</kbd>, <kbd>/add Bake the normal map</kbd> or <kbd>/move 3 1</kbd>. Step numbers are the open steps' places. Send with an empty box to use the suggested line.</p>
+  </div>`;
+}
+
+function render() {
+  const active = document.activeElement;
+  const key = active && active.dataset ? active.dataset.key : null;
+  const caret = active && active.selectionStart != null ? active.selectionStart : null;
+  for (const c of ["a", "b", "c"]) {
+    const el = document.getElementById("cand-" + c);
+    el.hidden = S.cand !== c;
+    if (S.cand === c) el.innerHTML = { a: renderA, b: renderB, c: renderC }[c]();
+  }
+  document.querySelectorAll("[data-cand]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.cand === S.cand));
+  document.querySelectorAll("[data-width]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.width === S.width));
+  document.getElementById("frame").classList.toggle("phone", S.width === "phone");
+  const editInput = S.editing && document.querySelector(`[data-key="${S.editing}:input"]`);
+  if (editInput) { editInput.focus(); editInput.select(); return; }
+  if (key) {
+    const again = document.querySelector(`[data-key="${CSS.escape(key)}"]`);
+    if (again) { again.focus(); if (caret != null && again.setSelectionRange) again.setSelectionRange(caret, caret); }
+  }
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(text, changeId) {
+  const t = document.getElementById("toast");
+  t.innerHTML = `<span>${esc(text)}</span>${changeId ? `<button type="button" data-act="undo" data-src="quest" data-change="${changeId}">Undo</button>` : ""}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.innerHTML = ""; }, 6000);
+}
+
+/* ---------- User operations ---------- */
+const sourceOf = (src) => (src === "quest" ? "quest" : "adventure");
+function userOps(src, ops) {
+  const ch = applyOps("you", ops, sourceOf(src));
+  if (ch && src === "quest") toast(ch.lines[ch.lines.length - 1][2], ch.id);
+  render();
+  return ch;
+}
+function moveBy(src, id, delta) {
+  const open = openSteps(), k = open.findIndex((s) => s.id === id);
+  if (k < 0) return;
+  let before;
+  if (delta < 0) { if (k === 0) return; before = open[k - 1].id; }
+  else { if (k === open.length - 1) return; before = open[k + 2] ? open[k + 2].id : null; }
+  userOps(src, [{ op: "move", id, before }]);
+}
+
+/* ---------- Construct (scripted) ---------- */
+let busy = false;
+function send(src, text) {
+  if (busy) return;
+  const turn = SCRIPT[S.script] || FALLBACK;
+  S.thread.push({ kind: "user", text: text || turn.user });
+  S.thread.push({ kind: "working" });
+  busy = true; render();
+  setTimeout(() => {
+    S.thread.pop();
+    S.thread.push({ kind: "construct", text: turn.reply });
+    if (turn.ops.length) applyOps("construct", turn.ops, "adventure");
+    if (S.script < SCRIPT.length) S.script++;
+    busy = false; render();
+  }, 700);
+}
+
+/* ---------- Commands (candidate 03) ---------- */
+function runCommand(line) {
+  const [cmd, ...rest] = line.trim().split(/\s+/);
+  const open = openSteps();
+  const step = (n) => open[Number(n) - 1];
+  const bad = (msg) => { S.cError = msg; render(); };
+  S.cError = "";
+  const known = COMMANDS.map(([c]) => c.split(" ")[0]);
+  if (!known.includes(cmd)) return bad(`There's no ${cmd} command. Type / to see the plan commands.`);
+  S.thread.push({ kind: "cmd", text: line.trim() });
+  switch (cmd) {
+    case "/plan": S.thread.push({ kind: "plancard" }); render(); return;
+    case "/add": {
+      const text = rest.join(" ").trim();
+      if (!text) { S.thread.pop(); return bad("Write the step after /add."); }
+      if (text.length > 200) { S.thread.pop(); return bad("A step fits in 200 characters."); }
+      userOps("adv-c", [{ op: "add", text }]); return;
+    }
+    case "/done": case "/drop": {
+      const s = step(rest[0]);
+      if (!s) { S.thread.pop(); return bad(`There's no open step ${rest[0] || ""}. Type /plan to see the numbers.`); }
+      userOps("adv-c", [{ op: cmd === "/done" ? "complete" : "remove", id: s.id }]); return;
+    }
+    case "/edit": {
+      const s = step(rest[0]); const text = rest.slice(1).join(" ").trim();
+      if (!s || !text) { S.thread.pop(); return bad("Write /edit, the step's number, then its new text."); }
+      userOps("adv-c", [{ op: "update", id: s.id, text }]); return;
+    }
+    case "/move": {
+      const s = step(rest[0]); const to = Number(rest[1]);
+      if (!s || !Number.isInteger(to) || to < 1 || to > open.length) { S.thread.pop(); return bad(`Write /move, the step's number, then its new place from 1 to ${open.length}.`); }
+      const others = open.filter((o) => o.id !== s.id);
+      const before = others[to - 1] ? others[to - 1].id : null;
+      if (!userOps("adv-c", [{ op: "move", id: s.id, before }])) { S.thread.pop(); bad("That step is already there."); } return;
+    }
+    case "/undo": {
+      const mine = [...S.changes].reverse().find((c) => c.author === "you" && !c.undone && !c.title && c.source === "adventure");
+      if (!mine) { S.thread.pop(); return bad("You have no plan change here to undo."); }
+      undo(mine.id, "adventure"); render(); return;
+    }
+  }
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act],[data-cand],[data-width],#reset");
+  if (!b || b.type === "checkbox" && b.dataset.act === "toggle") return;
+  if (b.id === "reset") { fresh(); document.getElementById("toast").innerHTML = ""; render(); return; }
+  if (b.dataset.cand) { S.cand = b.dataset.cand; S.editing = null; S.flash.clear(); render(); return; }
+  if (b.dataset.width) { S.width = b.dataset.width; render(); return; }
+  const { act, src, id } = b.dataset;
+  switch (act) {
+    case "toggle": { const s = S.steps[idx(id)]; if (s) userOps(src, [{ op: s.done ? "reopen" : "complete", id }]); break; }
+    case "up": moveBy(src, id, -1); break;
+    case "down": moveBy(src, id, 1); break;
+    case "del": userOps(src, [{ op: "remove", id }]); break;
+    case "edit": S.editing = `${src}:${id}`; render(); break;
+    case "cancel": S.editing = null; render(); document.querySelector(`[data-key="${src}:${id}:edit"]`)?.focus(); break;
+    case "undo": undo(Number(b.dataset.change), sourceOf(src)); if (src === "quest") document.getElementById("toast").innerHTML = ""; render(); break;
+    case "progress": toast("Opens the milestone form with this step, to put in the past tense, such as “Blocked out the body and wings”."); break;
+    case "tab": S.aTab = b.dataset.tab; S.flash.clear(); render(); break;
+    case "btoggle": S.bOpen = !S.bOpen; render(); break;
+    case "pick": S.cDraft = b.dataset.cmd + " "; S.menuHl = 0; render(); document.querySelector('[data-key="adv-c:composer"]')?.focus(); break;
+    case "noop": toast("Outside this mockup."); break;
+  }
+});
+document.addEventListener("change", (e) => {
+  const c = e.target;
+  if (c.type === "checkbox" && c.dataset.act === "toggle") {
+    const s = S.steps[idx(c.dataset.id)];
+    if (s) userOps(c.dataset.src, [{ op: s.done ? "reopen" : "complete", id: s.id }]);
+  }
+});
+document.addEventListener("toggle", (e) => {
+  if (e.target.matches && e.target.matches("details[data-details]")) S["open_" + e.target.dataset.details] = e.target.open;
+}, true);
+document.addEventListener("submit", (e) => {
+  const f = e.target; e.preventDefault();
+  const src = f.dataset.src, text = (f.elements.text?.value || "").trim();
+  if (f.dataset.form === "add") { if (text) { userOps(src, [{ op: "add", text }]); document.querySelector(`[data-key="${src}:add"]`)?.focus(); } }
+  else if (f.dataset.form === "edit") { const id = f.dataset.id; S.editing = null; if (!userOps(src, [{ op: "update", id, text }])) render(); document.querySelector(`[data-key="${src}:${id}:edit"]`)?.focus(); }
+  else if (f.dataset.form === "send") {
+    if (src === "adv-c" && text.startsWith("/")) { S.cDraft = ""; runCommand(text); return; }
+    S.cDraft = ""; S.cError = ""; send(src, text);
+  }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.dataset.key === "adv-c:composer") {
+    const before = S.cDraft || "";
+    S.cDraft = e.target.value;
+    const menuWas = before.startsWith("/") && !before.includes(" ");
+    const menuNow = S.cDraft.startsWith("/") && !S.cDraft.includes(" ");
+    if (menuWas || menuNow) { S.menuHl = 0; render(); }
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target.dataset.key === "adv-c:composer" && document.querySelector(".menu")) {
+    const opts = [...document.querySelectorAll(".menu [data-cmd]")];
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); S.menuHl = (S.menuHl + (e.key === "ArrowDown" ? 1 : -1) + opts.length) % opts.length; render(); }
+    else if (e.key === "Enter" && opts.length && !["/plan", "/undo"].includes(e.target.value.trim())) { e.preventDefault(); S.cDraft = opts[S.menuHl].dataset.cmd + " "; S.menuHl = 0; render(); }
+    else if (e.key === "Tab" && opts.length) { e.preventDefault(); S.cDraft = opts[S.menuHl].dataset.cmd + " "; S.menuHl = 0; render(); }
+    else if (e.key === "Escape") { S.cDraft = ""; render(); }
+  }
+  if (e.key === "Escape" && S.editing) { S.editing = null; render(); }
+});
+/* Drag and drop among open steps */
+let dragId = null;
+document.addEventListener("dragstart", (e) => { const li = e.target.closest?.("[data-drag]"); if (!li) return; dragId = li.dataset.drag; li.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId); });
+document.addEventListener("dragend", () => { dragId = null; document.querySelectorAll(".dragging,.drop-before").forEach((n) => n.classList.remove("dragging", "drop-before")); });
+document.addEventListener("dragover", (e) => {
+  if (!dragId) return; const li = e.target.closest("[data-drag]"); const list = e.target.closest(".steps");
+  if (!li && !list) return; e.preventDefault();
+  document.querySelectorAll(".drop-before").forEach((n) => n.classList.remove("drop-before"));
+  if (li && li.dataset.drag !== dragId) li.classList.add("drop-before");
+});
+document.addEventListener("drop", (e) => {
+  if (!dragId) return; const li = e.target.closest("[data-drag]"); const list = e.target.closest(".steps");
+  if (!li && !list) return; e.preventDefault();
+  const src = (li || list.querySelector("[data-drag]"))?.dataset.src; if (!src) return;
+  const before = li ? li.dataset.drag : null;
+  if (before !== dragId) userOps(src, [{ op: "move", id: dragId, before }]);
+  dragId = null;
+});
+
+S = null; fresh(); render();
+</script>
+</body>
+</html>

@@ -135,19 +135,20 @@ it starts or gains a message, and a quest is as active as its most active
 adventure:
 
 - **Your quests:** up to three quests. Each shows its name, linking to
-  the quest, its next step if its Journal records one, and a Continue link
+  the quest, its next step if it has one, and a Continue link
   to its most recently active adventure. Each Continue link's accessible name
   includes the quest's name, such as "Continue Sea turtle model".
 - **Recent adventures:** up to three other adventures, quest or standalone, each
   linking to its conversation with its quest's badge. An adventure that a
   Continue link already opens isn't listed again.
 
-The next step is the Journal's first line that starts "Next step:",
-read by `nextStepOf` in `src/memory/next-step.ts`. List markers, headings
-and bold around the label are allowed. A Journal without such a line shows
-the quest without a next step. The `update_memory` tool's description asks
-the construct to keep one current "Next step:" line, and the user can write or
-edit it on the Journal page.
+The next step is the first open step of the quest's
+[plan](quest-plan.md), read by `nextStepOfQuest` in
+`src/memory/next-step.ts`. A quest whose plan has no steps yet, such as one
+from before plans, falls back to its Journal's first line that starts
+"Next step:" (`nextStepOf`); list markers, headings and bold around the label
+are allowed. A plan whose steps are all done, or a Journal without such a
+line, shows the quest without a next step.
 
 The page stays a Server Component. `readToday` in
 `src/today/today-store.ts` reads Today with owner-scoped queries, which
