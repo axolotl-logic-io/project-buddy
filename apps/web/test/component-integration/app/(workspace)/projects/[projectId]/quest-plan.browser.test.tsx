@@ -166,4 +166,29 @@ describe("use_case_change_plan", () => {
     });
     await expect.element(openSteps()).toMatchTextContent(BRASS);
   });
+
+  test("a change that couldn't be saved is an alert, and a refused one a routine status", async () => {
+    actions.changePlanAction.mockRejectedValueOnce(new Error("Offline"));
+    await render(
+      <QuestPlan projectId={PROJECT_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
+    );
+    const moveUp = page.getByRole("button", { name: PLAN_COPY.moveUp(SCULPT) });
+
+    await userEvent.click(moveUp);
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent(PLAN_COPY.failed["not-saved"]);
+    await expect.element(page.getByRole("status")).toHaveTextContent("");
+
+    actions.changePlanAction.mockResolvedValueOnce({
+      kind: "failed",
+      reason: "too-many-steps",
+      state: PLAN,
+    });
+    await userEvent.click(moveUp);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(PLAN_COPY.failed["too-many-steps"]);
+    await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
+  });
 });

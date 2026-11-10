@@ -32,10 +32,13 @@ interface PlanActions {
 
 // What the last change from these controls said: a line to show, and the
 // version it saved, which Undo undoes, when it changed the plan outside an
-// adventure.
+// adventure. failed is true when the change failed, as when it couldn't be
+// saved or the quest is gone, rather than being refused with a reason, such
+// as the 30-step limit.
 interface PlanFeedback {
   readonly text: string;
   readonly undoVersion?: number | undefined;
+  readonly failed?: boolean;
 }
 
 // One quest's plan as the page shows it, and the changes the user can make
@@ -115,7 +118,7 @@ function feedbackOf(
     case "problem":
       return { text: result.text };
     case "not-found":
-      return { text: PLAN_COPY.failed["not-found"] };
+      return { text: PLAN_COPY.failed["not-found"], failed: true };
     default:
       return result satisfies never;
   }
@@ -169,7 +172,7 @@ function usePlanController({
       try {
         settle(await action());
       } catch {
-        setFeedback({ text: PLAN_COPY.failed["not-saved"] });
+        setFeedback({ text: PLAN_COPY.failed["not-saved"], failed: true });
       } finally {
         setPending(false);
       }
