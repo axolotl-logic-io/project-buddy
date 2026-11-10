@@ -484,7 +484,12 @@ export function ChatView({
       {(chat.status === "streaming" ||
         chat.status === "submitted" ||
         replyingElsewhere) && (
-        <Button onClick={stop} disabled={stopping} variant="secondary">
+        <Button
+          className="self-start"
+          onClick={stop}
+          disabled={stopping}
+          variant="secondary"
+        >
           {CHAT_COPY.stop}
         </Button>
       )}

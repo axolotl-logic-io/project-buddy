@@ -3,10 +3,13 @@
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
+// The word joining a named chat's name to its construct's in its link.
+const LIST_NAME_JOIN = "with";
+
 // The words before the construct's name in a named chat's link, so hiding them
 // (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
 function listNamePrefix(name: string): string {
-  return `${name} with`;
+  return `${name} ${LIST_NAME_JOIN}`;
 }
 
 export const NEW_CHAT_COPY = {
@@ -157,7 +160,7 @@ export const CREATE_PROJECT_COPY = {
 
 export const CHAT_NAME_COPY = {
   fallback: "New adventure",
-  listNamePrefix,
+  listNameJoin: LIST_NAME_JOIN,
   // What a named chat's link reads.
   listTitle: (name: string, constructName: string): string =>
     `${listNamePrefix(name)} ${constructName}`,
