@@ -10,7 +10,7 @@ The construct records goals, knowledge, purpose, constraints, progress, preferen
 - **Steps:**
   - She says something worth remembering, such as "I finished the roof" or "I'd rather use keyboard shortcuts".
   - The construct updates the quest's Journal and shows the change in the adventure.
-- **Outcome:** the adventure shows a notice, set apart from the construct's words, with what changed in the Journal. The quest's Journal shows the change, and its history lists it as a new version made by the construct. Every adventure in the quest, present and future, works from the changed Journal from its next reply on (see `use_case_ask_whats_next`). When she agrees on a next step, or finishes the one recorded, the construct keeps one line starting "Next step:" in the Journal, which the landing page shows as the quest's next step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)) *(checked by the real-Claude smoke test)*.
+- **Outcome:** the adventure shows a notice, set apart from the construct's words, with what changed in the Journal. The quest's Journal shows the change, and its history lists it as a new version made by the construct. Every adventure in the quest, present and future, works from the changed Journal from its next reply on (see `use_case_ask_whats_next`). Steps she agrees to, and so her next step, go into the quest's plan rather than the Journal ([`use_case_construct_changes_plan`](#use_case_construct_changes_plan)).
 - **Variations:**
   - The construct's edit is malformed: the adventure shows that the Journal update failed, and the Journal is unchanged.
 - **Next:**
@@ -123,3 +123,59 @@ The user deletes a Quick Note she no longer needs.
 - **Outcome:** the Quick Note is gone from the quest's Quick Notes and from its Journal, and the rest of the Journal is as it was. The Journal's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the quest's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
 - **Next:**
   - `use_case_quick_note`: write a better one.
+
+## use_case_construct_changes_plan
+
+The construct keeps the quest's plan: the steps she agreed to, in order.
+
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure in one of her quests.
+- **Steps:**
+  - She agrees to the next stretch of work, or tells the construct she finished a step or changed her mind.
+  - The construct changes the plan: it adds, checks off, changes, moves or removes steps.
+- **Outcome:** the adventure shows a Plan change, set apart from the construct's words, with what each operation did and Undo, as soon as the construct makes it and again when she reopens the adventure. Every adventure in the quest gets the plan in its instructions from its next reply on, each step with its number and the done ones marked. The quest's next step, on the landing page and the quest's Plan section, is the plan's first open step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)); a quest whose plan has never had a step still shows its Journal's "Next step:" line, but once it has had one, a plan emptied or with every step done has no next step. The construct adds only steps she agreed to, checks off a step when she says she finished it, and never counts open steps or days *(checked by the real-Claude smoke test)*.
+- **Variations:**
+  - The construct names a step that is gone, such as one she removed meanwhile: nothing changes, and the construct gets the plan as it is to try again.
+  - In an adventure with no quest, the construct has no plan to change.
+- **Next:**
+  - `use_case_change_plan`: change the plan herself.
+  - `use_case_plan_panel`: keep it beside the adventure.
+
+## use_case_change_plan
+
+The user changes the quest's plan herself, without the construct.
+
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
+- **Steps:**
+  - She opens the quest's Plan section.
+  - She checks off a step, reopens a done one, adds one, edits one, moves one up or down, or removes one.
+- **Outcome:** the next step shows on its own above the open steps, each numbered. Each change is saved at once, makes no model call and spends no batteries, and the page says what changed, with Undo. Undo puts the plan back as it would be without that change, keeping later ones: a step edited again since keeps its newer text, a step removed since stays removed, and a step whose old neighbour was removed since goes back at the end. When nothing that change did is left to undo, Undo says so and changes nothing. A step must be one line of at most 200 characters; empty text is refused with the reason, and her text stays in the field. The plan holds at most 30 open steps, counted on the plan a change leaves, so one change may add a step and remove another at the limit. Done steps fold away under Done. The Journal page shows the open steps above the Journal, with a link to the Plan section. In a team quest, every member can change the plan; anyone else's quest looks exactly like one that doesn't exist.
+- **Next:**
+  - `use_case_construct_changes_plan`: the construct works from the changed plan on its next reply.
+
+## use_case_plan_panel
+
+The user keeps the plan beside an adventure.
+
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure in one of her quests.
+- **Steps:**
+  - On a wide screen, the Plan panel sits beside the conversation. On a narrower one, she opens it with the Plan button above the conversation, which names the next step.
+  - She changes the plan there, as on the Plan section.
+- **Outcome:** each change shows in the adventure as a Plan change by her, which says it spent no batteries, with Undo; the construct reads it on its next reply. The panel follows the construct's changes as they arrive. While the construct replies, here or for another member, the panel's controls wait for the reply to end. While her last message has no reply because its reply failed or stopped, they wait too and say why, so that Retry or "send again" still answers that message; she can change the plan on the quest's page meanwhile.
+- **Next:**
+  - `use_case_plan_commands`: change it from the message box.
+
+## use_case_plan_commands
+
+The user keeps the plan with commands in the message box, without the construct.
+
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure in one of her quests.
+- **Steps:**
+  - She types "/" in the message box. A list of the commands shows above it, each with how to write it and what it does; she moves through it with the arrow keys and picks one with Tab, Enter or a click.
+  - She sends a command, such as `/done`, `/add Paint the eyes`, `/move 4 1` or `/plan`.
+- **Outcome:** the command runs at once, makes no model call and spends no batteries. The adventure shows what she typed and the Plan change it made, or, for `/plan`, the plan as a card with every control; only the newest card holds the controls. `/undo` undoes her last plan change in this adventure that has something left to undo, passing over one whose steps were all changed or removed since. The message box empties. The construct reads each change on its next reply, as a note rather than a request. A step is named by its number, as the plan shows it. With the mock model, the list also shows its `/mock-…` commands, which still go to the construct.
+- **Variations:**
+  - An unknown command, a missing step, text that's too long or a place out of range: nothing changes, the site says why under the message box, and her text stays there.
+  - While her last message awaits a reply, because one is running or it failed or stopped: a plan command changes nothing and says why, so Retry and "send again" still answer that message.
+  - In an adventure with no quest, plan commands say they need a quest. Any other message that starts with "/", such as "/shrug ok", goes to the construct as written, and typing "/" lists no plan commands.
+- **Next:**
+  - `use_case_change_plan`: see the whole plan on the quest's page.

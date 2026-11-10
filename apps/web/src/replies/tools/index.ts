@@ -1,7 +1,7 @@
 // The tools the construct may call while it replies, the context they get, and
 // the model calls that send them. Every chat has the same tools, though a
-// standalone chat has no project, so update_memory, record_milestone and
-// request_quest_status are not active there. The
+// standalone chat has no project, so update_memory, change_plan,
+// record_milestone and request_quest_status are not active there. The
 // only module that knows the tool set. To add a tool:
 // 1. Put its name and the zod schema of its output in a contract file,
 //    `<tool>-contract.ts`, such as `search-tool-contract.ts` holding
@@ -50,6 +50,8 @@ import type { MessageId, ProjectId, UserId } from "@/ids.ts";
 import { generateImageTool } from "@/images/generate-tool.ts";
 import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
+import { changePlanTool } from "@/replies/tools/change-plan.ts";
+import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
@@ -71,6 +73,7 @@ type ChatTools = Readonly<{
   [CAST_SPELL_TOOL]: typeof castSpellTool;
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
+  [CHANGE_PLAN_TOOL]: typeof changePlanTool;
   [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
   [QUEST_STATUS_TOOL]: typeof questStatusTool;
 }>;
@@ -96,7 +99,8 @@ function withSettings<ChatTool extends Tool>(
 }
 
 // The tools a chat in a project, or in none when projectId is undefined, can
-// call: every tool, but update_memory and record_milestone only in a project.
+// call: every tool, but update_memory, change_plan, record_milestone and
+// request_quest_status only in a project.
 function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
     GENERATE_IMAGE_TOOL,
@@ -107,7 +111,12 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
     CREATE_PROJECT_TOOL,
   ];
   if (projectId !== undefined) {
-    tools.push(UPDATE_MEMORY_TOOL, RECORD_MILESTONE_TOOL, QUEST_STATUS_TOOL);
+    tools.push(
+      UPDATE_MEMORY_TOOL,
+      CHANGE_PLAN_TOOL,
+      RECORD_MILESTONE_TOOL,
+      QUEST_STATUS_TOOL,
+    );
   }
   return tools;
 }
@@ -157,6 +166,10 @@ function chatTools(projectId: ProjectId | undefined): ChatTools {
     [UPDATE_MEMORY_TOOL]: withSettings(
       updateMemoryTool,
       breakpointOn(UPDATE_MEMORY_TOOL, active),
+    ),
+    [CHANGE_PLAN_TOOL]: withSettings(
+      changePlanTool,
+      breakpointOn(CHANGE_PLAN_TOOL, active),
     ),
     [RECORD_MILESTONE_TOOL]: withSettings(
       recordMilestoneTool,
@@ -228,6 +241,7 @@ function streamChatToolCalls(
       [CAST_SPELL_TOOL]: context,
       [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
+      [CHANGE_PLAN_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,
       [QUEST_STATUS_TOOL]: context,
     },

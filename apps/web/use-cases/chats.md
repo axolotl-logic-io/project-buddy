@@ -129,7 +129,7 @@ The user returns to the quest they were most recently working on.
 - **Prerequisites:** a signed-in account with a quest adventure.
 - **Steps:**
   - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from the Journal, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
+- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
   - The new adventure page at `/chats/new` retains Today above its form: up to three recent Active quests with their next steps and Continue links, plus up to three other recent adventures. With no recent work, it shows the form alone.

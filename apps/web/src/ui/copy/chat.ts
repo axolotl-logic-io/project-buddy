@@ -128,6 +128,7 @@ export const TOOL_FAILURES_COPY = {
   selectActivity: "Your construct couldn't change the adventure's activity.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
+  changePlan: "Your construct couldn't change the quest's plan.",
 } as const;
 
 // The activity change shown in the construct's reply.
