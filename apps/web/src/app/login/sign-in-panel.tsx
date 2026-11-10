@@ -8,7 +8,7 @@ export function SignInPanel({
   intro,
   children,
 }: {
-  readonly intro: string;
+  readonly intro: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {
   return (

@@ -20,7 +20,7 @@ import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import type { ProjectId, UserId } from "@/ids.ts";
-import { dayOf } from "@/notes/note.ts";
+import { dayOf, type NoteDay, noteLine } from "@/notes/note.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { type QuickCaptureState, saveNoteAction } from "./actions.ts";
@@ -54,6 +54,31 @@ function sentBack(
   return undefined;
 }
 
+// The Quick Note as it will be saved: its quest's name as a small label,
+// over the dated line the Quick Note will be in the quest's Journal.
+function NotePreview({
+  projectName,
+  line,
+}: {
+  readonly projectName: string | undefined;
+  readonly line: string | undefined;
+}): JSX.Element {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <p className="wrap-anywhere font-semibold text-muted text-sm">
+          {projectName}
+        </p>
+        {line === undefined && (
+          <p className="text-muted">{WORKSPACES_COPY.previewEmpty}</p>
+        )}
+        {line !== undefined && <p className="wrap-anywhere">{line}</p>}
+      </div>
+      <p className="field-hint">{WORKSPACES_COPY.previewIntro}</p>
+    </div>
+  );
+}
+
 // The quick-capture form: a project and the note's text. The note is dated
 // with the browser's own day. A saved note clears the text, ready for the
 // next one, and keeps the project; a refused or failed one keeps both, so
@@ -73,6 +98,16 @@ export function QuickCaptureForm({
 }): JSX.Element {
   const formId = useId();
   const [section, setSection] = useState("write");
+  // The day Preview dates the note with: the browser's day when Preview
+  // last opened, as saving dates it. Read on opening rather than while
+  // rendering, so the server's day never shows.
+  const [previewDay, setPreviewDay] = useState<NoteDay | undefined>();
+  const chooseSection = useCallback((id: string): void => {
+    if (id === "preview") {
+      setPreviewDay(dayOf(new Date(), "local"));
+    }
+    setSection(id);
+  }, []);
   const [state, formAction, pending] = useActionState(saveNoteAction, IDLE);
   const [shownState, setShownState] = useState(state);
   const [chosen, setChosen] = useState<string>(
@@ -152,6 +187,11 @@ export function QuickCaptureForm({
     [formAction],
   );
 
+  let previewLine: string | undefined;
+  if (previewDay !== undefined) {
+    previewLine = noteLine(previewDay, draft);
+  }
+
   let textError: string | undefined;
   if (state.kind === "invalid") {
     textError = state.message;
@@ -215,23 +255,19 @@ export function QuickCaptureForm({
         <WorkspaceTabs
           label={QUICK_CAPTURE_COPY.heading}
           value={section}
-          onValueChange={setSection}
+          onValueChange={chooseSection}
           sections={[
             { id: "write", label: WORKSPACES_COPY.write, content: form },
             {
               id: "preview",
               label: WORKSPACES_COPY.preview,
               content: (
-                <div className="flex flex-col gap-4">
-                  <p className="wrap-anywhere text-muted">
-                    {projects.find((project) => project.id === chosen)?.name}
-                  </p>
-                  <p className="wrap-anywhere whitespace-pre-line">
-                    {draft.replaceAll("\r", " ").replaceAll("\n", " ") ||
-                      WORKSPACES_COPY.previewEmpty}
-                  </p>
-                  <p className="field-hint">{WORKSPACES_COPY.previewIntro}</p>
-                </div>
+                <NotePreview
+                  projectName={
+                    projects.find((project) => project.id === chosen)?.name
+                  }
+                  line={previewLine}
+                />
               ),
             },
           ]}

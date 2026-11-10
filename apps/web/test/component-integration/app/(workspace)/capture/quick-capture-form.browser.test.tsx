@@ -16,6 +16,7 @@ import { userMessage } from "@/errors/app-error.ts";
 import { dayOf } from "@/notes/note.ts";
 import type { listProjects } from "@/projects/store.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { projectIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
@@ -234,6 +235,33 @@ test.each(["completed", "abandoned"] as const)(
   },
 );
 
+test("preview labels the Quick Note with its quest and shows the dated line the Journal will hold", async () => {
+  await renderCapture(FOX_PROJECT.id);
+  await noteField().fill(`  ${NOTE}\n\nby  Friday `);
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
+  const preview = page.getByRole("tabpanel", { name: "Preview" });
+  const quest = preview.getByText(FOX_PROJECT.name, { exact: true });
+  const line = preview.getByText(
+    `Note (${dayOf(new Date(), "local")}): ${NOTE} by Friday`,
+    { exact: true },
+  );
+  await expect.element(quest).toBeVisible();
+  await expect.element(line).toBeVisible();
+  const questBox = quest.element().getBoundingClientRect();
+  const lineBox = line.element().getBoundingClientRect();
+  expect(questBox.bottom).toBeLessThanOrEqual(lineBox.top);
+  expect(
+    Number.parseFloat(getComputedStyle(quest.element()).fontSize),
+  ).toBeLessThan(Number.parseFloat(getComputedStyle(line.element()).fontSize));
+
+  await page.getByRole("tab", { name: "Write", exact: true }).click();
+  await noteField().fill("   ");
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
+  await expect
+    .element(preview.getByText(WORKSPACES_COPY.previewEmpty))
+    .toBeVisible();
+});
+
 test("preview retains the draft and saving from it returns to Write with feedback", async () => {
   actions.saveNoteAction.mockResolvedValue({
     kind: "saved",
@@ -243,7 +271,11 @@ test("preview retains the draft and saving from it returns to Write with feedbac
   await noteField().fill(NOTE);
   await page.getByRole("tab", { name: "Preview", exact: true }).click();
   await expect
-    .element(page.getByRole("tabpanel", { name: "Preview" }).getByText(NOTE))
+    .element(
+      page
+        .getByRole("tabpanel", { name: "Preview" })
+        .getByText(`Note (${dayOf(new Date(), "local")}): ${NOTE}`),
+    )
     .toBeVisible();
   await expect.element(noteField()).not.toBeInTheDocument();
   await page.getByRole("tab", { name: "Write", exact: true }).click();
