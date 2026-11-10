@@ -12,4 +12,4 @@ The user learns how to start and resume work, craft definitions and understand m
   - Choose Getting Started, Constructs, Spells, Activities or Model context from the underlined book rail. The index initially opens Getting Started. Chapters appear beside the reading on wide screens and above it on phones.
   - Follow chapter links and related books.
   - Follow the book's action link to Adventures, Constructs, Spellbook, Activities or Workshop.
-- **Outcome:** stable book routes and chapter anchors expose practical guides, worked examples and the conditional model-input inventory. Reading makes no model call or data change. Signed-out readers must sign in. The index and books fit phones and both appearance modes.
+- **Outcome:** stable book routes and chapter anchors expose practical guides, worked examples and the conditional model-input inventory. The books describe the site as the reader finds it, without change or migration history. Reading makes no model call or data change. Signed-out readers must sign in. The index and books fit phones and both appearance modes.

@@ -84,7 +84,7 @@ const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
 };
 
 // The editor of one of the user's own constructs, activities or spells: its
-// name, then its texts under the Prompt heading, with Save. Nothing changes
+// name, then its texts under its instructions heading, with Save. Nothing changes
 // the saved prompt but Save.
 // - Save refuses a name that is empty or only spaces, saying so beside the
 //   name, which gets focus; what she typed stays.
@@ -392,17 +392,30 @@ function PromptEditor({
         );
       })}
       <div className="prompt-editor-actions">
-        {saveHint !== undefined && <p id={saveHintId}>{saveHint}</p>}
+        {saveHint !== undefined && (
+          <p className="prompt-editor-save-hint" id={saveHintId}>
+            {saveHint}
+          </p>
+        )}
+        <Button
+          aria-describedby={(saveHint !== undefined && saveHintId) || undefined}
+          className="self-start"
+          disabled={saving === true || disabled === true}
+          type="submit"
+        >
+          {saveLabel}
+        </Button>
         <div className="flex flex-wrap items-center gap-3">
-          <Button
-            aria-describedby={
-              (saveHint !== undefined && saveHintId) || undefined
-            }
-            disabled={saving === true || disabled === true}
-            type="submit"
-          >
-            {saveLabel}
-          </Button>
+          <FormStatus>{NOTICE_TEXTS[notice]}</FormStatus>
+          {beforeReset !== undefined && (
+            <Button onClick={undoReset} variant="secondary">
+              {PROMPT_COPY.undoReset}
+            </Button>
+          )}
+        </div>
+      </div>
+      {(defaultPrompt !== undefined || changed) && (
+        <div className="prompt-editor-more">
           {defaultPrompt !== undefined && (
             <Button onClick={reset} variant="quiet">
               {PROMPT_COPY.resetPrompt}
@@ -414,15 +427,7 @@ function PromptEditor({
             </Button>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <FormStatus>{NOTICE_TEXTS[notice]}</FormStatus>
-          {beforeReset !== undefined && (
-            <Button onClick={undoReset} variant="secondary">
-              {PROMPT_COPY.undoReset}
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
     </form>
   );
 }

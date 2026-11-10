@@ -16,14 +16,31 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  type ChatCommands,
+  ChatCommandsContext,
+  type CommandListing,
+} from "@/components/chat/chat-commands.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
-import { Button } from "@/components/ui/button.tsx";
+import type { ReplyStop } from "@/components/chat/reply-stop.ts";
+import { PlanPanel } from "@/components/plan/plan-panel.tsx";
+import {
+  type PlanActions,
+  PlanContext,
+  usePlanController,
+} from "@/components/plan/use-plan.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
-import type { ChatId, UserId } from "@/ids.ts";
+import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
+import type { PlanState } from "@/plan/plan.ts";
+import {
+  PLAN_COMMAND_NAMES,
+  PLAN_COMMAND_USAGE,
+} from "@/plan/plan-commands.ts";
+import { awaitsReply, PLAN_CARD_PART } from "@/plan/plan-message.ts";
 import {
   CHAT_TRANSPORT,
   chatFailureCase,
@@ -32,7 +49,16 @@ import {
 import type { ReplyCost } from "@/replies/reply-accounting.ts";
 import { replyGoldAction } from "@/replies/reply-gold-action.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
+import {
+  CHANGE_PLAN_OUTPUT,
+  CHANGE_PLAN_TOOL,
+} from "@/replies/tools/change-plan-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import {
+  CHAT_COMMANDS_COPY,
+  PLAN_COPY,
+  PLAN_PANEL_COPY,
+} from "@/ui/copy/plan.ts";
 
 function pairedReplyCosts(
   messages: readonly UIMessage[],
@@ -42,7 +68,7 @@ function pairedReplyCosts(
   const byMessage = new Map(charged?.map((cost) => [cost.messageId, cost]));
   let answeredId: string | undefined;
   for (const message of messages) {
-    if (message.role === "user") {
+    if (awaitsReply(message)) {
       answeredId = message.id;
     }
     if (message.role === "assistant" && answeredId !== undefined) {
@@ -109,6 +135,46 @@ function takeBackRefusedMessage(
   }
 }
 
+// The built-in plan commands as the composer lists them.
+const PLAN_COMMAND_LISTINGS: readonly CommandListing[] = PLAN_COMMAND_NAMES.map(
+  (name) => ({
+    command: `/${name}`,
+    usage: PLAN_COMMAND_USAGE[name],
+    description: CHAT_COMMANDS_COPY.description(name),
+  }),
+);
+
+const NO_COMMANDS: readonly CommandListing[] = [];
+
+// The newest plan the construct's change_plan calls in the messages saved,
+// or undefined if none did.
+function planFromConstruct(
+  messages: readonly UIMessage[],
+): Pick<PlanState, "version" | "plan"> | undefined {
+  let newest: Pick<PlanState, "version" | "plan"> | undefined;
+  for (const message of messages) {
+    for (const part of message.parts) {
+      if (part.type === `tool-${CHANGE_PLAN_TOOL}` && "output" in part) {
+        const output = CHANGE_PLAN_OUTPUT.safeParse(part.output).data;
+        if (
+          output?.status === "changed" &&
+          output.version > (newest?.version ?? 0)
+        ) {
+          newest = { version: output.version, plan: output.plan };
+        }
+      }
+    }
+  }
+  return newest;
+}
+
+// The id of the newest message holding a plan card, if any.
+function newestPlanCard(messages: readonly UIMessage[]): string | undefined {
+  return messages.findLast((message) =>
+    message.parts.some((part) => part.type === PLAN_CARD_PART),
+  )?.id;
+}
+
 // A chat with the construct: the saved conversation, then each new message and
 // its streamed reply. A refusal for being out of gold is kept in the view's own
 // state, not as the chat's error: while the chat has an error and no last
@@ -135,6 +201,10 @@ export function ChatView({
   initialMessages,
   stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
+  projectId,
+  initialPlan,
+  planActions,
+  mockCommands = NO_COMMANDS,
 }: {
   chatId: ChatId;
   viewer: UserId;
@@ -143,6 +213,14 @@ export function ChatView({
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
+  // The chat's quest and its plan as the page read it; undefined in a
+  // standalone chat.
+  projectId?: ProjectId | undefined;
+  initialPlan?: PlanState | undefined;
+  // The plan's Server Actions, which the page hands over in a quest chat.
+  planActions?: PlanActions | undefined;
+  // The mock model's commands, which the composer lists too while it runs.
+  mockCommands?: readonly CommandListing[] | undefined;
 }): JSX.Element {
   const router = useRouter();
   const replyCompletedRef = useRef(false);
@@ -270,16 +348,102 @@ export function ChatView({
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
   const reattach = useComposerDraft(runtime, { viewer, chatId });
+  const replying = chat.status === "streaming" || chat.status === "submitted";
+  const lastSaved = initialMessages.at(-1);
+  const replyingElsewhere =
+    lastSaved !== undefined &&
+    awaitsReply(lastSaved) &&
+    stoppedReplyId === undefined &&
+    chat.status === "ready";
+  const shownError = refusal ?? chat.error;
+  const replyStopped =
+    stoppedReplyId !== undefined &&
+    shownError === undefined &&
+    chat.status === "ready" &&
+    chat.messages.at(-1)?.id === stoppedReplyId;
+  const replyFailed = chat.status === "error" && refusal === undefined;
+  // The plan's controls here wait while the newest message awaits a reply:
+  // a plan message saved after it would end the conversation its reply, a
+  // retry or "send again" answers. The server refuses one too
+  // (src/chats/store.ts, chatAwaitsReply).
+  let planDisabledNote: string | undefined;
+  if (replying || replyingElsewhere) {
+    planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
+  } else if (replyFailed || replyStopped) {
+    planDisabledNote = PLAN_PANEL_COPY.unanswered;
+  }
+  const { setMessages } = chat;
+  const addMessage = useCallback(
+    (message: UIMessage): void => {
+      setMessages((messages) => [...messages, message]);
+    },
+    [setMessages],
+  );
+  const observed = useMemo(
+    () => planFromConstruct(chat.messages),
+    [chat.messages],
+  );
+  const plan = usePlanController({
+    projectId,
+    actions: planActions,
+    chatId,
+    initialState: initialPlan,
+    disabledNote: planDisabledNote,
+    newestCardId: newestPlanCard(chat.messages),
+    observed,
+    onMessage: addMessage,
+  });
+  const receivePlan = plan?.receive;
+  const runCommand = useCallback(
+    async (text: string): Promise<string | undefined> => {
+      const result = await planActions?.command({ chatId, text });
+      if (result === undefined) {
+        return CHAT_COMMANDS_COPY.failed;
+      }
+      switch (result.kind) {
+        case "problem":
+          return result.text;
+        case "not-found":
+          return PLAN_COPY.failed["not-found"];
+        case "failed":
+          receivePlan?.(result.state);
+          return PLAN_COPY.failed[result.reason];
+        case "changed":
+        case "shown":
+          receivePlan?.(result.state);
+          if (result.message !== undefined) {
+            addMessage(result.message);
+          }
+          return undefined;
+        default:
+          return result satisfies never;
+      }
+    },
+    [addMessage, chatId, planActions, receivePlan],
+  );
+  // Without the plan's actions, as in a test of the conversation alone, the
+  // composer runs no commands and sends every message.
+  const commands = useMemo((): ChatCommands | undefined => {
+    if (planActions === undefined) {
+      return undefined;
+    }
+    let listings: readonly CommandListing[] = mockCommands;
+    if (projectId !== undefined) {
+      listings = [...PLAN_COMMAND_LISTINGS, ...mockCommands];
+    }
+    return {
+      listings,
+      mockCommands: mockCommands.length > 0,
+      inQuest: projectId !== undefined,
+      run: runCommand,
+    };
+  }, [mockCommands, planActions, projectId, runCommand]);
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
-  const replyingElsewhere =
-    initialMessages.at(-1)?.role === "user" &&
-    stoppedReplyId === undefined &&
-    chat.status === "ready";
   useEffect(() => {
     if (!replyingElsewhere) {
       return;
@@ -291,9 +455,7 @@ export function ChatView({
     return (): void => globalThis.clearInterval(refresh);
   }, [replyingElsewhere, router]);
   const stop = useCallback(async (): Promise<void> => {
-    const message = [...chat.messages]
-      .reverse()
-      .find((entry) => entry.role === "user");
+    const message = [...chat.messages].reverse().find(awaitsReply);
     if (message === undefined) {
       return;
     }
@@ -314,33 +476,23 @@ export function ChatView({
       setStopStatus(CHAT_COPY.stopFailed);
     }
   }, [chat.messages, chatId, router]);
+  // While a reply runs, here or elsewhere, Stop takes Send's place.
+  let replyStop: ReplyStop | undefined;
+  if (replying || replyingElsewhere) {
+    replyStop = { stopping, onStop: stop };
+  }
   let openingMessageId: string | undefined;
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
   }
-  const shownError = refusal ?? chat.error;
-  const replyStopped =
-    stoppedReplyId !== undefined &&
-    shownError === undefined &&
-    chat.status === "ready" &&
-    chat.messages.at(-1)?.id === stoppedReplyId;
-
-  return (
-    <AssistantRuntimeProvider runtime={runtime}>
+  const conversation = (
+    <>
       {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}
       {replyingElsewhere === true && (
         <Notice role="status">
           {CHAT_COPY.replyingElsewhere(constructName)}
         </Notice>
       )}
-      {(chat.status === "streaming" ||
-        chat.status === "submitted" ||
-        replyingElsewhere) && (
-        <Button onClick={stop} disabled={stopping} variant="secondary">
-          {CHAT_COPY.stop}
-        </Button>
-      )}
-      {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
       <ChatThread
         goldBalance={gold?.balance}
         replyCosts={replyCosts}
@@ -353,7 +505,24 @@ export function ChatView({
         }
         openingMessageId={openingMessageId}
         authorNames={authorNames}
+        stop={replyStop}
+        stopStatus={stopStatus}
       />
+    </>
+  );
+  return (
+    <AssistantRuntimeProvider runtime={runtime}>
+      <PlanContext.Provider value={plan}>
+        <ChatCommandsContext.Provider value={commands}>
+          {plan === undefined && conversation}
+          {plan !== undefined && (
+            <div className="adventure-layout">
+              <PlanPanel />
+              <div className="adventure-main">{conversation}</div>
+            </div>
+          )}
+        </ChatCommandsContext.Provider>
+      </PlanContext.Provider>
     </AssistantRuntimeProvider>
   );
 }

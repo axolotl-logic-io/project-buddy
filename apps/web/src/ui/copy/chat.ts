@@ -3,10 +3,13 @@
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
+// The word joining a named chat's name to its construct's in its link.
+const LIST_NAME_JOIN = "with";
+
 // The words before the construct's name in a named chat's link, so hiding them
 // (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
 function listNamePrefix(name: string): string {
-  return `${name} with`;
+  return `${name} ${LIST_NAME_JOIN}`;
 }
 
 export const NEW_CHAT_COPY = {
@@ -67,6 +70,9 @@ export const STANDALONE_CHATS_COPY = {
   backLink: "Adventures",
   listHeading: "Previous adventures",
   noChats: "No adventures yet. Choose New adventure to start one.",
+  emptyHeading: "No adventures yet",
+  emptyIntro:
+    "An adventure is a conversation with a construct, on its own or in one of your quests. Start your first one here.",
   loading: "Loading adventures…",
   projectFilterLabel: "Show adventures from",
   allProjects: "All",
@@ -75,11 +81,10 @@ export const STANDALONE_CHATS_COPY = {
 export const CHAT_COPY = {
   balance: (gold: number): string => `Batteries balance: ${gold}`,
   balanceUnknown: "Batteries balance unavailable",
-  costPending:
-    "Reply cost pending, including any image and automatic adventure name.",
+  costPending: "Reply cost pending.",
   costUnknown: "Reply cost unavailable; this does not mean zero batteries.",
   replyCost: (gold: number): string =>
-    `Reply cost: ${BATTERIES_COPY.amount(gold)} (including retries, images and any automatic adventure name).`,
+    `Reply cost: ${BATTERIES_COPY.tenths(gold)}.`,
   stop: "Stop reply",
   stopping: "Stop requested. Waiting for the server…",
   stopFailed:
@@ -125,6 +130,7 @@ export const TOOL_FAILURES_COPY = {
   selectActivity: "Your construct couldn't change the adventure's activity.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
+  changePlan: "Your construct couldn't change the quest's plan.",
 } as const;
 
 // The activity change shown in the construct's reply.
@@ -156,7 +162,7 @@ export const CREATE_PROJECT_COPY = {
 
 export const CHAT_NAME_COPY = {
   fallback: "New adventure",
-  listNamePrefix,
+  listNameJoin: LIST_NAME_JOIN,
   // What a named chat's link reads.
   listTitle: (name: string, constructName: string): string =>
     `${listNamePrefix(name)} ${constructName}`,

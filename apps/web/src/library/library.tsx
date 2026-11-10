@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import { LIBRARY_COPY, type LibraryBook } from "@/ui/copy/library.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 
@@ -52,10 +53,10 @@ function LibraryReader({
       <article className="workspace-reader break-words">
         <nav className="workspace-chapters" aria-label={LIBRARY_COPY.contents}>
           <h2 className="section-heading">{LIBRARY_COPY.contents}</h2>
-          <ol className="flex flex-col gap-2">
+          <ol className="flex flex-col">
             {book.chapters.map((chapter) => (
               <li key={chapter.id}>
-                <Link className="back-link" href={`#${chapter.id}`}>
+                <Link className="library-link" href={`#${chapter.id}`}>
                   {chapter.title}
                 </Link>
               </li>
@@ -76,10 +77,10 @@ function LibraryReader({
                 <p key={paragraph}>{paragraph}</p>
               ))}
               {chapter.links.length > 0 && (
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col">
                   {chapter.links.map((link) => (
                     <li key={link.href}>
-                      <Link className="back-link" href={link.href}>
+                      <Link className="library-link" href={link.href}>
                         {link.label}
                       </Link>
                     </li>
@@ -88,19 +89,19 @@ function LibraryReader({
               )}
             </section>
           ))}
-          <Link className="back-link" href={book.action.href}>
-            {book.action.label}
-          </Link>
+          <Button asChild={true} className="self-start" variant="secondary">
+            <Link href={book.action.href}>{book.action.label}</Link>
+          </Button>
           {index !== true && (
             <nav aria-label={LIBRARY_COPY.related}>
               <h2 className="section-heading">{LIBRARY_COPY.related}</h2>
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col">
                 {LIBRARY_COPY.books
                   .filter((related) => related.id !== book.id)
                   .map((related) => (
                     <li key={related.id}>
                       <Link
-                        className="back-link"
+                        className="library-link"
                         href={`/library/${related.id}`}
                       >
                         {related.title}

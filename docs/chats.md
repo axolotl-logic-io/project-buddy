@@ -135,19 +135,20 @@ it starts or gains a message, and a quest is as active as its most active
 adventure:
 
 - **Your quests:** up to three quests. Each shows its name, linking to
-  the quest, its next step if its Journal records one, and a Continue link
+  the quest, its next step if it has one, and a Continue link
   to its most recently active adventure. Each Continue link's accessible name
   includes the quest's name, such as "Continue Sea turtle model".
 - **Recent adventures:** up to three other adventures, quest or standalone, each
   linking to its conversation with its quest's badge. An adventure that a
   Continue link already opens isn't listed again.
 
-The next step is the Journal's first line that starts "Next step:",
-read by `nextStepOf` in `src/memory/next-step.ts`. List markers, headings
-and bold around the label are allowed. A Journal without such a line shows
-the quest without a next step. The `update_memory` tool's description asks
-the construct to keep one current "Next step:" line, and the user can write or
-edit it on the Journal page.
+The next step is the first open step of the quest's
+[plan](quest-plan.md), read by `nextStepOfQuest` in
+`src/memory/next-step.ts`. A quest whose plan has no steps yet, such as one
+from before plans, falls back to its Journal's first line that starts
+"Next step:" (`nextStepOf`); list markers, headings and bold around the label
+are allowed. A plan whose steps are all done, or a Journal without such a
+line, shows the quest without a next step.
 
 The page stays a Server Component. `readToday` in
 `src/today/today-store.ts` reads Today with owner-scoped queries, which
@@ -487,9 +488,9 @@ Home explains Project Buddy and offers Start a quest when the account has no adv
 
 ## Reply control and batteries
 
-Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
+While a reply runs, Stop reply takes Send's place in the composer dock, so it stays in view at the foot of the conversation. Stop reply requests cancellation on the server, which passes cancellation to the provider and checks it before later model and tool steps. It saves available partial text and completed tool results, and records the final outcome. A pending or failed Stop never claims successful cancellation. Already-started tool effects can remain or finish, and charged use is not refunded. An ordinary disconnect still permits background completion.
 
-The composer shows the acting user's battery balance. Reply costs retain fractions and include retries, image charges and any automatic adventure name. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
+The composer shows the acting user's battery balance. A reply's cost shows one decimal place and includes retries, image charges and any automatic adventure name; the Library's Getting Started book says so, rather than every reply. Only the payer sees their costs. Pending and unknown costs have explicit labels; old replies have unknown costs. Model charges associated with a reply settle idempotently with their durable accounting operation. Provider details stay out of product copy.
 
 ## Header navigation
 

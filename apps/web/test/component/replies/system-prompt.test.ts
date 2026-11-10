@@ -3,6 +3,7 @@
 // has written, and every other chat's prompt is exactly what it was, with
 // the shared, cached part unchanged in both. The user's spells go in the
 // shared, cached part, one line each, with {{name}} as the user's name.
+
 import { describe, expect, test } from "vitest";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
@@ -12,6 +13,7 @@ import {
   snapshotOf,
 } from "@/constructs/index.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type ReplyPromptContext,
@@ -92,6 +94,7 @@ test("unrelated requests take precedence in a quest Brainstorming adventure with
         text: "Next step: Assemble the roof.",
         version: MEMORY_VERSION_NUMBER.parse(1),
       },
+      plan: EMPTY_PLAN,
       milestones: [],
     },
   }).join("\n");
@@ -110,6 +113,16 @@ test("shared instructions prohibit assumed pronouns and free-reply claims", () =
     "Do not infer a person’s gender or pronouns from their name",
   );
   expect(prompt).toContain("further replies are not free");
+});
+
+// #884: the construct restated the plan as its own 1–n list beside the
+// plan's own step numbers.
+test("the plan rules name steps by the plan's numbers, not a list of the construct's own", () => {
+  const prompt = contents(CONTEXT).join("\n");
+  expect(prompt).toContain("Name a step by its number in the plan, such as #3");
+  expect(prompt).toContain(
+    "Never number the plan's steps yourself or restate the plan as a list",
+  );
 });
 
 describe("the current activity identity", () => {

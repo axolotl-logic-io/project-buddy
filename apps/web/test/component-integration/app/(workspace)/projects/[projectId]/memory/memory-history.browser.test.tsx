@@ -16,6 +16,11 @@ import {
   type MemoryVersion,
 } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import {
+  paintOf,
+  tokenColor,
+} from "../../../../../components/ui/button-fill-test-kit.ts";
+import { applyTheme } from "../../../../../themes/theme-test-kit.ts";
 import { FOX_PROJECT } from "../../../page-fixtures.ts";
 
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
@@ -64,6 +69,7 @@ describe("use_case_view_memory", () => {
 test("restoring keeps its confirmation and focus when the history updates", async () => {
   const action = Promise.withResolvers<MemoryFormState>();
   vi.mocked(restoreMemoryAction).mockReturnValue(action.promise);
+  applyTheme("parchment");
   const screen = await render(
     <MemoryHistory history={HISTORY} projectId={FOX_PROJECT.id} />,
   );
@@ -72,10 +78,13 @@ test("restoring keeps its confirmation and focus when the history updates", asyn
     exact: true,
   });
   await trigger.click();
-  await page
+  const confirm = page
     .getByRole("alertdialog")
-    .getByRole("button", { name: MEMORY_COPY.restore(1), exact: true })
-    .click();
+    .getByRole("button", { name: MEMORY_COPY.restore(1), exact: true });
+  // Restoring replaces the Journal but keeps every version, so it confirms
+  // with the primary button, not in the danger colour.
+  expect(paintOf(confirm.element()).fill).toBe(tokenColor("primary"));
+  await confirm.click();
   await expect.element(trigger).toBeDisabled();
   const newest: MemoryVersion = {
     version: MEMORY_VERSION_NUMBER.parse(HISTORY.length + 1),

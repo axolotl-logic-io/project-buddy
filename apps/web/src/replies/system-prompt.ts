@@ -27,6 +27,8 @@ import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
+import { EMPTY_PLAN, type Plan } from "@/plan/plan.ts";
+import { readPlan } from "@/plan/plan-store.ts";
 import type { QuestStatus, StatusApproval } from "@/projects/quest-status.ts";
 import { readLatestStatusApproval } from "@/projects/quest-status-store.ts";
 import { getProject } from "@/projects/store.ts";
@@ -39,6 +41,7 @@ import {
   MILESTONES_IN_PROMPT,
   milestonesPromptSection,
 } from "@/replies/milestones-prompt.ts";
+import { planPromptSection } from "@/replies/plan-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
@@ -70,14 +73,15 @@ interface ReplyPromptContext {
   readonly severalAuthors?: boolean | undefined;
 }
 
-// A chat's project as its prompt reads it: its name, its memory and its
-// newest milestones, newest first, as they were read once for the whole
-// prompt, so every section sees the same version.
+// A chat's project as its prompt reads it: its name, its memory, its plan
+// and its newest milestones, newest first, as they were read once for the
+// whole prompt, so every section sees the same version.
 interface PromptProject {
   readonly status?: QuestStatus | undefined;
   readonly latestApproval?: StatusApproval | undefined;
   readonly name: string;
   readonly memory: Memory;
+  readonly plan: Plan;
   readonly milestones: readonly Milestone[];
 }
 
@@ -180,6 +184,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   },
   severalAuthorsSection,
   memoryPromptSection,
+  planPromptSection,
   milestonesPromptSection,
   activitySection,
   ({ construct }: ReplyPromptContext): string => construct.definition.prompt,
@@ -236,18 +241,25 @@ function renderReplyInstructions(
   ];
 }
 
-// The acting user's project as a chat's prompt reads it, with its memory and
-// newest milestones as they are now.
+// The acting user's project as a chat's prompt reads it, with its memory,
+// plan and newest milestones as they are now.
 async function readPromptProject(
   actingUser: UserId,
   project: { readonly id: ProjectId; readonly name: string },
 ): Promise<PromptProject> {
-  const [quest, memory, milestones] = await Promise.all([
+  const [quest, memory, plan, milestones] = await Promise.all([
     getProject(actingUser, project.id),
     readMemory(actingUser, project.id),
+    readPlan(actingUser, project.id),
     listMilestones(actingUser, project.id, MILESTONES_IN_PROMPT),
   ]);
-  return { name: project.name, memory, milestones, status: quest?.status };
+  return {
+    name: project.name,
+    memory,
+    plan: plan ?? EMPTY_PLAN,
+    milestones,
+    status: quest?.status,
+  };
 }
 
 // The chat's project as its prompt reads it; undefined in a standalone chat.

@@ -50,6 +50,57 @@ test("built-in prompt is read-only Markdown with its placeholder intact", async 
   expect(page.getByRole("textbox").elements()).toHaveLength(0);
 });
 
+// The colour an element is painted on: its own background, or the nearest
+// ancestor's that has one.
+function paintedBackground(element: Element): string {
+  let current: Element | null = element;
+  while (current !== null) {
+    const { backgroundColor } = getComputedStyle(current);
+    if (backgroundColor !== "rgba(0, 0, 0, 0)") {
+      return backgroundColor;
+    }
+    current = current.parentElement;
+  }
+  return "";
+}
+
+test.each(["light", "dark"] as const)(
+  "read-only prompt Markdown sits on the field surface, as an editable prompt does, in %s mode",
+  async (mode) => {
+    applyTheme("parchment", mode);
+    await render(
+      <div className="flex flex-col gap-4 bg-background p-4">
+        <PromptText
+          editable={false}
+          text={READ_ONLY_TEXT}
+          label="Prompt"
+          help="Voice and habits."
+          name="prompt"
+        />
+        <PromptText
+          editable={true}
+          text="Editable"
+          label="Editable prompt"
+          help="Voice and habits."
+          name="editable"
+        />
+      </div>,
+    );
+    const sheet = paintedBackground(
+      page.getByRole("heading", { name: "Greeting" }).element(),
+    );
+    const label = paintedBackground(
+      page.getByRole("heading", { name: "Prompt", exact: true }).element(),
+    );
+    expect(sheet).toBe(
+      getComputedStyle(
+        page.getByRole("textbox", { name: "Editable prompt" }).element(),
+      ).backgroundColor,
+    );
+    expect(sheet).not.toBe(label);
+  },
+);
+
 const LONG_WORD_REPETITIONS = 100;
 
 for (const theme of THEME_IDS) {

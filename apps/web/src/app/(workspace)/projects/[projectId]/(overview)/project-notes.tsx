@@ -12,6 +12,7 @@ import {
 import { formatTime } from "@/components/time-format.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Note } from "@/notes/note.ts";
 import type { QuestStatus } from "@/projects/quest-status.ts";
@@ -96,31 +97,32 @@ export function ProjectNotes({
         <p className="text-muted">{PROJECT_NOTES_COPY.none}</p>
       )}
       {notes.length > 0 && (
-        <ul aria-labelledby={headingId} className="flex flex-col gap-3">
+        <ul aria-labelledby={headingId} className="divided-rows">
           {notes.map((note, index) => (
-            <li
-              className="panel flex flex-wrap items-start justify-between gap-3"
-              key={keys[index]}
-            >
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <time className="text-muted text-sm" dateTime={note.day}>
+            <li key={keys[index]}>
+              <div className="flex flex-wrap items-center justify-between gap-x-3 text-sm">
+                <time
+                  className="font-mono text-muted tabular-nums"
+                  dateTime={note.day}
+                >
                   {writtenDay(note.day)}
                 </time>
-                <p className="break-words">{note.text}</p>
+                <form action={formAction}>
+                  <input name="projectId" type="hidden" value={projectId} />
+                  <input name="day" type="hidden" value={note.day} />
+                  <input name="text" type="hidden" value={note.text} />
+                  <Button
+                    aria-label={PROJECT_NOTES_COPY.deleteLabel(note.text)}
+                    disabled={pending}
+                    type="submit"
+                    variant="quiet"
+                  >
+                    <Icon name="trash" />
+                    {PROJECT_NOTES_COPY.delete}
+                  </Button>
+                </form>
               </div>
-              <form action={formAction}>
-                <input name="projectId" type="hidden" value={projectId} />
-                <input name="day" type="hidden" value={note.day} />
-                <input name="text" type="hidden" value={note.text} />
-                <Button
-                  aria-label={PROJECT_NOTES_COPY.deleteLabel(note.text)}
-                  disabled={pending}
-                  type="submit"
-                  variant="secondary"
-                >
-                  {PROJECT_NOTES_COPY.delete}
-                </Button>
-              </form>
+              <p className="wrap-anywhere">{note.text}</p>
             </li>
           ))}
         </ul>

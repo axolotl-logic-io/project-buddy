@@ -12,8 +12,10 @@ const APP_COLORS = {
   darkBackground: "rgb(36, 27, 19)",
 } as const;
 
-// The icons in public/icons/. Each keeps its picture inside the middle 80%,
-// so the large one serves as a maskable icon too.
+// The icons in public/icons/: the header's gold compass on its ink brown,
+// rendered from app-icon.svg there, as notifications show it too. Each
+// keeps its picture inside the middle 80%, so the large one serves as a
+// maskable icon too.
 const APP_ICONS = {
   small: { src: "/icons/icon-192.png", size: 192 },
   large: { src: "/icons/icon-512.png", size: 512 },
