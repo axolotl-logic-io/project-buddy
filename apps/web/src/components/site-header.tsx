@@ -50,7 +50,7 @@ function Breadcrumbs({
             )}
             {item.href === undefined && (
               <span aria-current="page" title={item.label}>
-                {item.label}
+                <span>{item.label}</span>
               </span>
             )}
           </li>
@@ -133,7 +133,6 @@ function AccountLinks(): JSX.Element {
           <MenuLink href="/account">{ACCOUNT_COPY.headerLink}</MenuLink>
         </li>
       </ul>
-      <hr className="menu-rule" />
     </nav>
   );
 }
