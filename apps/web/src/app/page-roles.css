@@ -502,8 +502,10 @@
     @apply border-danger text-danger;
   }
 
+  /* An empty status region stays mounted for its announcements but takes
+     no room, not even a flex or grid gap of its own. */
   .notice:empty {
-    @apply border-0 p-0;
+    @apply absolute border-0 p-0;
   }
 
   .notice a {
@@ -1243,6 +1245,12 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
+  /* Parts of one tab that would each be a panel elsewhere, such as
+     Account's balance and purchases, flattened and divided by a rule. */
+  .workspace-content > .workspace-part + .workspace-part {
+    @apply border-line border-t pt-4;
+  }
+
   /* Built-in or own constructs, activities or spells: two columns from sm
      up, or one column of rows inside a tabbed page (workspace-rows). */
   .definition-grid {
@@ -1309,9 +1317,26 @@
     @apply justify-start gap-3 rounded-control border border-line px-3;
   }
 
+  /* The radio keeps a target's size; the ring drawn in it takes the row's
+     colour, so it reads on the chosen row's primary fill as on the others. */
   .appearance-setting-input {
     inline-size: var(--target-size);
     block-size: var(--target-size);
-    @apply shrink-0;
+    @apply -ms-3 grid shrink-0 cursor-pointer appearance-none place-content-center;
+  }
+
+  .appearance-setting-input::before {
+    content: "";
+    @apply size-5 rounded-full border-2 border-current bg-clip-content p-1;
+  }
+
+  .appearance-setting-input:checked::before {
+    @apply bg-current;
+  }
+
+  /* .menu-mode:has(:focus-visible) rings the whole row instead. */
+  .appearance-setting-input:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 }
