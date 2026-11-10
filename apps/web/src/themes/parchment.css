@@ -21,6 +21,7 @@
     --light-accent: rgb(128 75 17);
     --light-on-accent: rgb(255 244 220);
     --light-danger: rgb(139 41 27);
+    --light-on-danger: rgb(255 240 203);
     --light-focus: rgb(115 65 18);
     --light-shadow: rgb(70 43 19);
     --light-code-comment: rgb(112 76 43);
@@ -41,6 +42,7 @@
     --dark-accent: rgb(216 164 82);
     --dark-on-accent: rgb(42 28 15);
     --dark-danger: rgb(255 161 131);
+    --dark-on-danger: rgb(45 30 16);
     --dark-focus: rgb(250 213 139);
     --dark-shadow: rgb(12 8 4);
     --dark-code-comment: rgb(194 166 125);
@@ -67,10 +69,12 @@
 
     /* Tailwind's text-4xl and text-5xl, text-3xl and text-xl, and for the
        header's and a card's titles text-xl and text-lg, as the site had
-       before themes. */
+       before themes. A page's heading steps down to text-2xl on a phone,
+       so a long title leaves room for the page below it. */
     --site-title-size: 2.25rem;
     --site-title-wide-size: 3rem;
     --page-heading-size: 1.875rem;
+    --page-heading-phone-size: 1.5rem;
     --section-heading-size: 1.25rem;
     --header-title-size: 1.25rem;
     --card-title-size: 1.125rem;
