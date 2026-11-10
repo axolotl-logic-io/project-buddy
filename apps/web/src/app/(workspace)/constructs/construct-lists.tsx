@@ -77,7 +77,7 @@ function ConstructCard({
         <p className="wrap-anywhere text-muted text-sm">
           {constructPersonality(construct).temperament}
         </p>
-        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+        <div className="card-actions">{actions}</div>
       </div>
     </li>
   );
