@@ -21,6 +21,7 @@ import {
   DEFAULT_HIDDEN_FLAGS,
   FLAG_IDS,
   type FlagId,
+  hiddenFromSwitched,
   knownFlags,
   switchedFromHidden,
 } from "@/flags/flags.ts";
@@ -113,8 +114,28 @@ function applyHiddenFlags(hidden: readonly FlagId[]): void {
   );
 }
 
+// Applies the saved choice to the page, as FLAGS_PRE_PAINT_SCRIPT does, for
+// a page React rendered in the browser from nothing, where the pre-paint
+// script never ran (see applySavedThemeChoice, src/themes/theme-choice.ts).
+// With no cookie, the default stays.
+function applySavedHiddenFlags(): void {
+  const prefix = `${COOKIE_NAME}=`;
+  const saved = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(prefix));
+  if (saved === undefined) {
+    return;
+  }
+  applyHiddenFlags(
+    hiddenFromSwitched(
+      saved.slice(prefix.length).split(COOKIE_VALUE_SEPARATOR),
+    ),
+  );
+}
+
 export {
   applyHiddenFlags,
+  applySavedHiddenFlags,
   DEFAULT_FLAG_ATTRIBUTES,
   FLAGS_PRE_PAINT_SCRIPT,
   HIDE_ATTRIBUTE,
