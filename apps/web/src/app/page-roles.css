@@ -21,7 +21,7 @@
   }
 
   .quests-index-invitations {
-    @apply px-4 sm:px-6;
+    @apply flex flex-col gap-4 px-4 sm:px-6;
   }
 
   .quests-index-invitations:has(section) {
@@ -106,7 +106,7 @@
 
   .quest-workspace-tab {
     min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-2 border-transparent border-b-2 py-3 text-muted;
+    @apply inline-flex items-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-muted text-sm;
   }
 
   .quest-workspace-tab[aria-current="page"],
@@ -122,8 +122,27 @@
     @apply flex flex-wrap items-center gap-2 py-2;
   }
 
-  .quest-status-completed {
+  /* The status action a quest's state leads to next: Complete while it is
+     Active, Restore quest once it is Completed or Abandoned. */
+  .quest-status-next {
     @apply border border-line px-3;
+  }
+
+  /* A status change's result and its Undo, side by side, under the
+     workspace or inside the Quests list's frame. */
+  .quest-status-feedback {
+    @apply grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4;
+  }
+
+  /* With nothing to say, it leaves the flow, as an empty .notice does, so
+     it adds no gap to the column around it; its empty status region stays
+     mounted for announcements. */
+  .quest-status-feedback:has(> .notice:empty) {
+    @apply absolute;
+  }
+
+  .quests-index .quest-status-feedback:has(> .notice:not(:empty)) {
+    @apply px-4 pb-4 sm:px-6;
   }
 
   .quest-status-abandoned {
@@ -135,9 +154,11 @@
     @apply shrink-0 justify-center;
   }
 
+  /* Smaller than the title on a phone, so a long name shows more than a
+     fragment while it is edited. */
   .quest-title-input {
     min-block-size: var(--target-size);
-    @apply w-full min-w-0 font-heading text-page-heading;
+    @apply w-full min-w-0 font-heading text-section-heading sm:text-page-heading;
   }
 
   .construct-generation-spinner {
