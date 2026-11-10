@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useEffect } from "react";
+import { type JSX, useEffect, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import {
@@ -10,6 +10,8 @@ import {
   userMessage,
 } from "@/errors/app-error.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
+import { applySavedHiddenFlags } from "@/flags/flag-choice.ts";
+import { applySavedThemeChoice } from "@/themes/theme-choice.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // What any page or Server Action that failed shows instead: the failure's
@@ -18,6 +20,9 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 // this build doesn't know came from a newer build, mid-deploy: the page
 // reloads once to pick that build up, and shows the unknown message if it
 // already did within the last minute (newer-build-reload.ts).
+// A page that failed while rendering arrives without <head>'s pre-paint
+// scripts, so before the first paint this applies the saved theme and
+// hidden extras itself; on any other page they are already applied.
 function PageError({
   error,
   retry,
@@ -25,6 +30,11 @@ function PageError({
   error: Error & { digest?: string };
   retry: () => void;
 }): JSX.Element {
+  useLayoutEffect(() => {
+    applySavedThemeChoice();
+    applySavedHiddenFlags();
+  }, []);
+
   useEffect(() => {
     if (isUnrecognisedCaseName(error.digest)) {
       reloadForNewerBuild();
