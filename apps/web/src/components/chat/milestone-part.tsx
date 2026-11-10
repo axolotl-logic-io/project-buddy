@@ -23,7 +23,7 @@ export function MilestonePart({
       aria-label={MILESTONE_COPY.recordedLabel}
       className="card flex flex-col gap-2 text-sm"
     >
-      <p className="icon-line text-muted">
+      <p className="icon-line font-medium">
         <Icon name="flag" />
         {MILESTONE_COPY.recorded}
       </p>

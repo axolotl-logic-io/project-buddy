@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -14,19 +15,27 @@ async function RetirementPage({
   const { restored, deleted } = await searchParams;
   const definitions = await listRetiredDefinitions(user.id);
   return (
-    <>
-      <h1 className="page-heading">{RETIREMENT_COPY.heading}</h1>
-      <p className="text-muted">{RETIREMENT_COPY.intro}</p>
-      {restored === "1" && (
-        <Notice role="status">{RETIREMENT_COPY.restored}</Notice>
+    <PageWorkspace
+      title={RETIREMENT_COPY.heading}
+      intro={RETIREMENT_COPY.intro}
+    >
+      {(restored === "1" || deleted === "1") && (
+        <div className="workspace-content">
+          {restored === "1" && (
+            <Notice role="status">{RETIREMENT_COPY.restored}</Notice>
+          )}
+          {deleted === "1" && (
+            <Notice role="status">{RETIREMENT_COPY.deleted}</Notice>
+          )}
+        </div>
       )}
-      {deleted === "1" && (
-        <Notice role="status">{RETIREMENT_COPY.deleted}</Notice>
-      )}
-      <RetirementList definitions={definitions} />
-      <p className="text-muted text-sm">{RETIREMENT_COPY.help}</p>
-      <p className="text-muted text-sm">{RETIREMENT_COPY.marketplace}</p>
-    </>
+      <RetirementList definitions={definitions}>
+        <footer className="flex flex-col gap-2 text-muted text-sm">
+          <p>{RETIREMENT_COPY.help}</p>
+          <p>{RETIREMENT_COPY.marketplace}</p>
+        </footer>
+      </RetirementList>
+    </PageWorkspace>
   );
 }
 
