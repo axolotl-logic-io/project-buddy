@@ -5,6 +5,8 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import {
   GALLERY_PAGE_SIZE,
   GENERATION_ID,
@@ -15,6 +17,10 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
 const CURSOR = z.object({ before: z.iso.datetime(), beforeId: GENERATION_ID });
 const metadata: Metadata = { title: GENERATION_COPY.title };
+
+// A failed generation shows the alert icon; one that may still finish, the
+// image icon, where its picture would be.
+const STATUS_ICONS = { pending: "image", failed: "alert" } as const;
 
 async function GalleryPage({
   searchParams,
@@ -33,8 +39,10 @@ async function GalleryPage({
   const last = images.at(-1);
   return (
     <>
-      <h1 className="page-heading">{GENERATION_COPY.heading}</h1>
-      <p className="text-muted text-sm">{GENERATION_COPY.context}</p>
+      <div className="flex flex-col gap-2">
+        <h1 className="page-heading">{GENERATION_COPY.heading}</h1>
+        <p className="text-muted">{GENERATION_COPY.context}</p>
+      </div>
       {images.length === 0 && <p>{GENERATION_COPY.empty}</p>}
       <ul className="grid min-w-0 gap-4 sm:grid-cols-2">
         {images.map((image) => (
@@ -52,24 +60,32 @@ async function GalleryPage({
             )}
             {image.status !== "generated" && (
               <>
-                <p className="break-words">{image.prompt}</p>
-                <p role="status">{GENERATION_COPY[image.status]}</p>
+                <p className="break-words text-muted text-sm">{image.prompt}</p>
+                <p className="icon-line text-sm" role="status">
+                  <Icon name={STATUS_ICONS[image.status]} />
+                  <span>{GENERATION_COPY[image.status]}</span>
+                </p>
               </>
             )}
-            <LocalTime dateTime={image.createdAt} detail="minute" />
-            <Link className="text-link" href={`/chats/${image.chatId}`}>
-              {GENERATION_COPY.source}
-            </Link>
+            <div className="card-actions">
+              <span className="text-muted text-sm">
+                <LocalTime dateTime={image.createdAt} detail="minute" />
+              </span>
+              <Link className="text-link" href={`/chats/${image.chatId}`}>
+                {GENERATION_COPY.source}
+              </Link>
+            </div>
           </li>
         ))}
       </ul>
       {images.length === GALLERY_PAGE_SIZE && last !== undefined && (
-        <Link
-          className="text-link"
-          href={`/gallery?before=${encodeURIComponent(last.createdAt.toISOString())}&beforeId=${last.id}`}
-        >
-          {GENERATION_COPY.older}
-        </Link>
+        <Button asChild={true} className="self-start" variant="secondary">
+          <Link
+            href={`/gallery?before=${encodeURIComponent(last.createdAt.toISOString())}&beforeId=${last.id}`}
+          >
+            {GENERATION_COPY.older}
+          </Link>
+        </Button>
       )}
     </>
   );
