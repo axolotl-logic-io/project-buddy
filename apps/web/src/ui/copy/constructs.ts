@@ -21,7 +21,7 @@ export const CONSTRUCTS_COPY = {
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
-    "No constructs of your own yet. Customize one above, or choose Craft construct to make one without copying another.",
+    "No constructs of your own yet. Customize a built-in one, or choose Craft construct to make one without copying another.",
   newConstruct: "Craft construct",
   // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",

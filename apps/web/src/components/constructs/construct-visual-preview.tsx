@@ -1,8 +1,5 @@
 import type { JSX } from "react";
-import {
-  ConstructAvatar,
-  ConstructIllustration,
-} from "@/components/constructs/construct-visual.tsx";
+import { ConstructIllustration } from "@/components/constructs/construct-visual.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import {
   VISUAL_ROLE,
@@ -11,6 +8,11 @@ import {
 } from "@/constructs/visual.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 
+// The widest a preview frame gets: a quarter of the editor's column.
+const PREVIEW_WIDTH = 224;
+
+// Each role's framing at one size, side by side, so the avatar's crop can be
+// compared with the other roles. The avatar keeps its circle.
 function ConstructVisualPreview({
   construct,
   destination,
@@ -23,7 +25,7 @@ function ConstructVisualPreview({
     | undefined;
 }): JSX.Element {
   return (
-    <div className="grid min-w-0 grid-cols-2 gap-4">
+    <div className="grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-4">
       {VISUAL_ROLE.options.map((role) => (
         <figure className="flex min-w-0 flex-col gap-2" key={role}>
           <figcaption className="field-label">
@@ -34,16 +36,12 @@ function ConstructVisualPreview({
               {VISUAL_COPY.roleStates[roles[role]]}
             </p>
           )}
-          {role === "avatar" && (
-            <ConstructAvatar construct={construct} destination={destination} />
-          )}
-          {role !== "avatar" && (
-            <ConstructIllustration
-              construct={construct}
-              destination={destination}
-              visualRole={role}
-            />
-          )}
+          <ConstructIllustration
+            construct={construct}
+            destination={destination}
+            displayWidth={PREVIEW_WIDTH}
+            visualRole={role}
+          />
         </figure>
       ))}
     </div>
