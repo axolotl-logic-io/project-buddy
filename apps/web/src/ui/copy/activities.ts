@@ -21,7 +21,7 @@ export const ACTIVITIES_COPY = {
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
   noOwn:
-    "No activities of your own yet. Customize one above, or choose Craft activity to make one without copying another.",
+    "No activities of your own yet. Customize a built-in one, or choose Craft activity to make one without copying another.",
   newActivity: "Craft activity",
   // The name of a crafted activity, until the user renames it.
   newActivityName: "New activity",
