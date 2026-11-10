@@ -81,9 +81,18 @@ function QuestTransferForm({
     created.status === "created"
   ) {
     return (
-      <Link className="text-link" href={`/chats/${created.interviewChatId}`}>
-        {CREATE_PROJECT_COPY.openInterview}
-      </Link>
+      <div className="card flex flex-col gap-2 text-sm">
+        <p className="icon-line font-medium">
+          <Icon name="check" />
+          {CREATE_PROJECT_COPY.created(created.name)}
+        </p>
+        <Link
+          className="self-start text-link"
+          href={`/chats/${created.interviewChatId}`}
+        >
+          {CREATE_PROJECT_COPY.openInterview}
+        </Link>
+      </div>
     );
   }
   let failure: string = CREATE_PROJECT_COPY.creationFailed;
