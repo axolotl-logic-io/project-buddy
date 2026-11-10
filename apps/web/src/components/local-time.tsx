@@ -7,8 +7,9 @@ import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 const SERVER_TIME_ZONE = "UTC";
 
 // Set in the theme's monospace font with tabular figures, so two times of the
-// same length are the same width.
-const TIME_CLASS = "font-mono tabular-nums";
+// same length are the same width, and kept on one line, so a narrow column
+// never breaks a time apart ("11:38 / AM").
+const TIME_CLASS = "font-mono tabular-nums whitespace-nowrap";
 
 function subscribeToNothing(): () => void {
   return (): void => {
