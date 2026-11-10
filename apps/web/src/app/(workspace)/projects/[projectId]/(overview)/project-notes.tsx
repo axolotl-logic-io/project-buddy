@@ -97,9 +97,9 @@ export function ProjectNotes({
         <p className="text-muted">{PROJECT_NOTES_COPY.none}</p>
       )}
       {notes.length > 0 && (
-        <ul aria-labelledby={headingId} className="flex flex-col gap-3">
+        <ul aria-labelledby={headingId} className="divided-rows">
           {notes.map((note, index) => (
-            <li className="card flex flex-col gap-2" key={keys[index]}>
+            <li key={keys[index]}>
               <div className="flex flex-wrap items-center justify-between gap-x-3 text-sm">
                 <time
                   className="font-mono text-muted tabular-nums"

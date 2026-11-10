@@ -17,12 +17,9 @@ export function ProgressTimeline({
     return <p className="text-muted">{PROGRESS_TIMELINE_COPY.none}</p>;
   }
   return (
-    <ol
-      aria-label={PROGRESS_TIMELINE_COPY.heading}
-      className="flex flex-col gap-3"
-    >
+    <ol aria-label={PROGRESS_TIMELINE_COPY.heading} className="divided-rows">
       {milestones.map((milestone) => (
-        <li className="card flex flex-col gap-2" key={milestone.id}>
+        <li key={milestone.id}>
           <p className="text-muted text-sm">
             <LocalTime dateTime={milestone.recordedAt} detail="day" />
           </p>
