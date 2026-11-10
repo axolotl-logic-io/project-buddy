@@ -435,6 +435,30 @@ test.each([LAPTOP_VIEWPORT, NARROWEST_VIEWPORT, PHONE_VIEWPORT])(
   },
 );
 
+test.each([LAPTOP_VIEWPORT, NARROWEST_VIEWPORT, PHONE_VIEWPORT])(
+  "New test sits beside Back to editing in the drawer's header at $width px",
+  async (viewport) => {
+    await setViewport(viewport);
+    await show();
+    const fresh = page
+      .getByRole("button", { name: WORKSHOP_COPY.fresh, exact: true })
+      .element()
+      .getBoundingClientRect();
+    const close = page
+      .getByRole("button", { name: WORKSHOP_COPY.close })
+      .element()
+      .getBoundingClientRect();
+    const note = page
+      .getByText(WORKSHOP_COPY.temporary)
+      .element()
+      .getBoundingClientRect();
+    expect(fresh.top).toBeLessThan(close.bottom);
+    expect(close.top).toBeLessThan(fresh.bottom);
+    expect(fresh.right).toBeLessThanOrEqual(close.left);
+    expect(fresh.bottom).toBeLessThanOrEqual(note.top);
+  },
+);
+
 const EDITOR_SECTIONS: ComponentProps<typeof PromptEditor>["texts"] = [
   {
     name: "prompt",
@@ -700,6 +724,37 @@ test.each([
         ),
       )
       .toBe(prompt.element());
+  },
+);
+
+// From Save's top to the screen's foot: a target's height, with the empty
+// status line's gap and the bar's padding.
+const PHONE_SAVE_BAR_MAX_PX = 64;
+
+test.each([{ width: 360, height: 700 }, NARROWEST_VIEWPORT])(
+  "a phone pins Save in one short row, with Reset and Discard below it, while editing at $width px",
+  async (viewport) => {
+    await setViewport(viewport);
+    await show(DRAFT, undefined, true);
+    await closeTests();
+    const prompt = page.getByRole("textbox", { name: "Prompt", exact: true });
+    await prompt.fill("An edited prompt");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    await expect.poll(() => window.scrollY).toBe(0);
+    const save = page
+      .getByRole("button", { name: PROMPT_COPY.save, exact: true })
+      .element()
+      .getBoundingClientRect();
+    expect(save.bottom).toBeLessThanOrEqual(window.innerHeight);
+    expect(window.innerHeight - save.top).toBeLessThanOrEqual(
+      PHONE_SAVE_BAR_MAX_PX,
+    );
+    for (const name of [PROMPT_COPY.resetPrompt, PROMPT_COPY.discard]) {
+      expect(
+        page.getByRole("button", { name }).element().getBoundingClientRect()
+          .top,
+      ).toBeGreaterThanOrEqual(window.innerHeight);
+    }
   },
 );
 

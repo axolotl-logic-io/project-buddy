@@ -88,7 +88,7 @@ The user customizes a built-in construct from its page: she can't change it, so 
 
 - **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - She opens a built-in construct's page from the Constructs page. Its name, Visual description and artwork show read-only. Its prompt appears as rendered Markdown with headings and help text, and the Markdown's own headings sit below the prompt's heading; literal placeholders such as `{{name}}` stay visible.
+  - She opens a built-in construct's page from the Constructs page. Its name, Visual description and artwork show read-only. Its prompt appears under the Instructions heading as rendered Markdown with help text, set on the field surface so it reads as one document, and the Markdown's own headings sit below the Instructions heading; literal placeholders such as `{{name}}` stay visible.
   - She chooses to customize it.
 - **Outcome:** the site makes a construct of hers named as the built-in one with " (clone)" after, as customizing from the Constructs page does, and opens its page to edit the original Markdown source in one textarea. The built-in construct is unchanged.
 - **Next:**

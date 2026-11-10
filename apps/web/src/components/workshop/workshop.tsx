@@ -324,21 +324,21 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
             aria-describedby={undefined}
           >
             <div className="workshop-drawer-header">
-              <Dialog.Title className="section-heading">
+              <Dialog.Title className="section-heading min-w-0">
                 {WORKSHOP_COPY.test}
               </Dialog.Title>
-              <Dialog.Close asChild={true}>
-                <Button variant="quiet">{WORKSHOP_COPY.close}</Button>
-              </Dialog.Close>
+              <div className="flex shrink-0 items-center gap-3">
+                <Button onClick={fresh} variant="quiet">
+                  {WORKSHOP_COPY.fresh}
+                </Button>
+                <Dialog.Close asChild={true}>
+                  <Button variant="quiet">{WORKSHOP_COPY.close}</Button>
+                </Dialog.Close>
+              </div>
             </div>
             <div className="workshop-test-content" ref={scrollResults}>
               <p className="text-muted text-sm">{WORKSHOP_COPY.temporary}</p>
               <p className="text-muted text-sm">{WORKSHOP_COPY.gold}</p>
-              <div className="flex justify-end">
-                <Button onClick={fresh} variant="quiet">
-                  {WORKSHOP_COPY.fresh}
-                </Button>
-              </div>
               <details className="workshop-test-settings" open={true}>
                 <summary className="field-label">
                   {WORKSHOP_COPY.settings}
