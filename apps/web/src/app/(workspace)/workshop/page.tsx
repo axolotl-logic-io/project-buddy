@@ -24,8 +24,11 @@ function workshopPath(kind: PromptKind): Route {
 // other tabs.
 function KindTabs({ shown }: { readonly shown: PromptKind }): JSX.Element {
   return (
-    <nav aria-label={WORKSHOP_PAGE_COPY.kindsLabel}>
-      <ul className="workspace-tablist border-line border-b">
+    <nav
+      aria-label={WORKSHOP_PAGE_COPY.kindsLabel}
+      className="border-line border-b"
+    >
+      <ul className="workspace-tablist">
         {PROMPT_KINDS.map((kind) => {
           let current: "page" | undefined;
           if (kind === shown) {

@@ -11,7 +11,7 @@ import {
 } from "react";
 import { type PlanController, usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { FormStatus } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import {
   doneSteps,
@@ -288,6 +288,9 @@ function NextStep({
   );
 }
 
+// What the last change said: a routine line, with Undo, or why nothing
+// changed, in the status region, which stays mounted; or, when the change
+// failed, an alert.
 function Feedback({ plan }: { readonly plan: PlanController }): JSX.Element {
   const { feedback, undo } = plan;
   const undoVersion = feedback?.undoVersion;
@@ -297,24 +300,31 @@ function Feedback({ plan }: { readonly plan: PlanController }): JSX.Element {
     }
     return undo(undoVersion);
   }, [undo, undoVersion]);
+  let routine = feedback;
+  if (feedback?.failed === true) {
+    routine = undefined;
+  }
   return (
-    <FormStatus>
-      {feedback !== undefined && (
-        <span className="flex flex-wrap items-center gap-2">
-          <span>{feedback.text}</span>
-          {undoVersion !== undefined &&
-            !plan.state.undone.includes(undoVersion) && (
-              <Button
-                variant="quiet"
-                onClick={undoLast}
-                disabled={plan.pending}
-              >
-                {PLAN_COPY.undo}
-              </Button>
-            )}
-        </span>
-      )}
-    </FormStatus>
+    <>
+      <FormStatus>
+        {routine !== undefined && (
+          <span className="flex flex-wrap items-center gap-2">
+            <span>{routine.text}</span>
+            {undoVersion !== undefined &&
+              !plan.state.undone.includes(undoVersion) && (
+                <Button
+                  variant="quiet"
+                  onClick={undoLast}
+                  disabled={plan.pending}
+                >
+                  {PLAN_COPY.undo}
+                </Button>
+              )}
+          </span>
+        )}
+      </FormStatus>
+      {feedback?.failed === true && <Alert>{feedback.text}</Alert>}
+    </>
   );
 }
 

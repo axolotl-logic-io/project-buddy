@@ -508,7 +508,10 @@ describe("use_case_send_message", () => {
       await expect
         .element(page.getByText("Let's explore your ideas.", { exact: true }))
         .toBeVisible();
-      await expect.element(send).toBeDisabled();
+      await expect.element(send).not.toBeInTheDocument();
+      await expect
+        .element(page.getByRole("button", { name: CHAT_COPY.stop }))
+        .toBeVisible();
       await expect.element(page.getByRole("combobox")).not.toBeInTheDocument();
       await expect
         .element(page.getByText("Activity", { exact: true }))

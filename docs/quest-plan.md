@@ -27,7 +27,7 @@ An undo (`applyPlanUndo`) keeps the changes made since. It skips an operation on
 
 ## The construct
 
-Every quest adventure's prompt lists the plan beside the Journal, between `<quest_plan>` tags, one step per line with its number and done steps marked (`src/replies/plan-prompt.ts`). The `change_plan` tool (`src/replies/tools/change-plan.ts`) takes a batch of operations and returns the plan after it, or the plan as it is and why nothing changed. The global prompt's plan rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, and never to count open steps or days. `update_memory`'s description now sends remaining work and the next step to the plan.
+Every quest adventure's prompt lists the plan beside the Journal, between `<quest_plan>` tags, one step per line with its number and done steps marked (`src/replies/plan-prompt.ts`). The `change_plan` tool (`src/replies/tools/change-plan.ts`) takes a batch of operations and returns the plan after it, or the plan as it is and why nothing changed. The global prompt's plan rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, never to count open steps or days, and to name steps by their `#` numbers rather than restate the plan as a list with its own numbering. `update_memory`'s description now sends remaining work and the next step to the plan.
 
 The adventure shows each call as a **Plan change** with Undo (`src/components/chat/plan-change-part.tsx`), while the reply streams and after the user reopens the adventure. The tool is active only in quest adventures.
 
@@ -35,7 +35,7 @@ The adventure shows each call as a **Plan change** with Undo (`src/components/ch
 
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
-- The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo.
+- The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
 - The **Plan panel** beside a quest adventure: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the adventure's last message awaits a reply: while one runs, here or for another member, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
