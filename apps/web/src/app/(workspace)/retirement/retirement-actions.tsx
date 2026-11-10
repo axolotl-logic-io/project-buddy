@@ -10,10 +10,14 @@ import {
   restoreDefinitionAction,
 } from "./actions.ts";
 
+// Restore and Delete forever for a retired definition. restore is the
+// Restore button's variant: quiet in a list's row, secondary on its page.
 function RetirementActions({
   definition,
+  restore = "secondary",
 }: {
   readonly definition: RetiredDefinition;
+  readonly restore?: "secondary" | "quiet";
 }): JSX.Element {
   const formRef = useRef<HTMLFormElement>(null);
   const confirm = useCallback((): void => {
@@ -24,13 +28,13 @@ function RetirementActions({
     description += ` ${RETIREMENT_COPY.bought}`;
   }
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       <form action={restoreDefinitionAction}>
         <input name="promptId" type="hidden" value={definition.id} />
         <Button
           aria-label={RETIREMENT_COPY.restoreLabel(definition.name)}
           type="submit"
-          variant="secondary"
+          variant={restore}
         >
           {RETIREMENT_COPY.restore}
         </Button>
