@@ -8,7 +8,7 @@
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, not, sql } from "drizzle-orm";
+import { and, asc, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import {
   chatOpenTo,
@@ -52,7 +52,11 @@ import {
   parseUserId,
   type UserId,
 } from "@/ids.ts";
-import { awaitsReply } from "@/plan/plan-message.ts";
+import {
+  awaitsReply,
+  PLAN_CARD_PART,
+  PLAN_CHANGE_PART,
+} from "@/plan/plan-message.ts";
 import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 
 interface MessageRow {
@@ -287,10 +291,42 @@ export async function readStoppedReply(
   return last.id;
 }
 
+// True unless the chat's newest message awaits a reply: a user message that
+// isn't a plan message (src/plan/plan-message.ts, awaitsReply), whether its
+// reply is being made, here or elsewhere, failed or stopped. Nothing may
+// come after such a message but its reply, which a retry or "send again"
+// asks for with the conversation that ends in it.
+export function noReplyAwaited(chatId: ChatId): SQL {
+  const newest = new QueryBuilder()
+    .select({ role: messages.role, parts: messages.parts })
+    .from(messages)
+    .where(eq(messages.chatId, chatId))
+    .orderBy(desc(messages.createdAt), desc(messages.id))
+    .limit(1)
+    .as("newest");
+  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${PLAN_CHANGE_PART}, ${PLAN_CARD_PART}))))`;
+}
+
+// Whether the owner's chat's newest message awaits a reply (noReplyAwaited);
+// false for a chat not open to them.
+export async function chatAwaitsReply(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<boolean> {
+  const rows = await withAppErrors("chatAwaitsReply", () =>
+    getDb()
+      .select({ id: chats.id })
+      .from(chats)
+      .where(and(openChat(owner, chatId), not(noReplyAwaited(chatId)))),
+  );
+  return rows.length > 0;
+}
+
 // Saves a plan message (src/plan/plan-message.ts) in the owner's chat,
 // written by the owner, after every message saved so far, with no reply
 // claimed or to be made to it, and says whether it did. Nothing is saved in
-// a chat that isn't open to the owner.
+// a chat that isn't open to the owner, or whose newest message awaits a
+// reply (noReplyAwaited).
 export async function savePlanMessage(
   owner: UserId,
   chatId: ChatId,
@@ -303,7 +339,7 @@ export async function savePlanMessage(
         new QueryBuilder()
           .select(messageColumns(chatId, message, { author: owner }))
           .from(chats)
-          .where(openChat(owner, chatId)),
+          .where(and(openChat(owner, chatId), noReplyAwaited(chatId))),
       )
       .onConflictDoNothing()
       .returning({ id: messages.id }),

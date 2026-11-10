@@ -25,6 +25,7 @@ import {
   CHAT_COMMANDS_COPY,
   PLAN_CHANGE_COPY,
   PLAN_COPY,
+  PLAN_PANEL_COPY,
 } from "@/ui/copy/plan.ts";
 import {
   chatIdFixture,
@@ -107,6 +108,50 @@ async function openChat(
   );
 }
 
+// A standalone adventure: no quest and no plan, though the page still hands
+// over the plan's actions, which run the commands.
+async function openStandaloneChat(): Promise<void> {
+  await render(
+    <ChatView
+      chatId={CHAT_ID}
+      viewer={userIdFixture()}
+      constructName={getConstruct("vellum").name}
+      initialMessages={[]}
+      planActions={PLAN_ACTIONS}
+    />,
+  );
+}
+
+// A quest adventure whose last message has no reply, with the Plan panel
+// open at a phone's width: its reply stopped, or, without stoppedReplyId,
+// is being made elsewhere.
+async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
+  await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
+  await render(
+    <ChatView
+      chatId={CHAT_ID}
+      viewer={userIdFixture()}
+      constructName={getConstruct("vellum").name}
+      initialMessages={[
+        {
+          id: "m1",
+          role: "user",
+          parts: [{ type: "text", text: "Help me plan the wings" }],
+        },
+      ]}
+      stoppedReplyId={stoppedReplyId}
+      projectId={PROJECT_ID}
+      initialPlan={PLAN}
+      planActions={PLAN_ACTIONS}
+    />,
+  );
+  await userEvent.click(
+    page
+      .getByRole("complementary", { name: PLAN_COPY.heading, exact: true })
+      .getByRole("button", { expanded: false }),
+  );
+}
+
 function messageBox(): ReturnType<typeof page.getByRole> {
   return page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
 }
@@ -186,6 +231,33 @@ describe("use_case_plan_commands", () => {
     await expect.element(messageBox()).toHaveValue("/done 9");
   });
 
+  test("in an adventure with no quest, any other /word goes to the construct", async () => {
+    const fetchMock = answerChat(new Response(null));
+    await openStandaloneChat();
+    await userEvent.type(messageBox(), "/");
+    await expect.element(commandList()).not.toBeInTheDocument();
+
+    await userEvent.type(messageBox(), "shrug ok let's go{Enter}");
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(actions.runChatCommandAction).not.toHaveBeenCalled();
+  });
+
+  test("in an adventure with no quest, a plan command says it needs a quest", async () => {
+    const fetchMock = answerChat(new Response(null));
+    actions.runChatCommandAction.mockResolvedValue({
+      kind: "problem",
+      text: CHAT_COMMANDS_COPY.noPlan,
+    });
+    await openStandaloneChat();
+    await userEvent.type(messageBox(), "/add Sketch wings{Enter}");
+
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent(CHAT_COMMANDS_COPY.noPlan);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   test("the mock model's commands go to the construct", async () => {
     const fetchMock = answerChat(new Response(null));
     await openChat([], MOCK_COMMANDS);
@@ -198,6 +270,41 @@ describe("use_case_plan_commands", () => {
 });
 
 describe("use_case_plan_panel", () => {
+  test("waits, saying why, while the last message's reply stopped, so it can still be sent again", async () => {
+    await openAwaitingChat("m1");
+    const panel = page.getByRole("complementary", {
+      name: PLAN_COPY.heading,
+      exact: true,
+    });
+
+    await expect.element(panel).toMatchTextContent(PLAN_PANEL_COPY.unanswered);
+    await expect
+      .element(
+        panel.getByRole("checkbox", { name: PLAN_COPY.checkOff(BLOCK_OUT) }),
+      )
+      .toBeDisabled();
+    await expect
+      .element(panel.getByRole("button", { name: PLAN_COPY.add }))
+      .toBeDisabled();
+  });
+
+  test("waits while a reply is made elsewhere, such as for another member", async () => {
+    await openAwaitingChat();
+    const panel = page.getByRole("complementary", {
+      name: PLAN_COPY.heading,
+      exact: true,
+    });
+
+    await expect
+      .element(panel)
+      .toMatchTextContent(PLAN_PANEL_COPY.busy(getConstruct("vellum").name));
+    await expect
+      .element(
+        panel.getByRole("checkbox", { name: PLAN_COPY.checkOff(BLOCK_OUT) }),
+      )
+      .toBeDisabled();
+  });
+
   test("shows the next step and changes the plan from beside the conversation", async () => {
     actions.changePlanAction.mockResolvedValue({
       kind: "changed",

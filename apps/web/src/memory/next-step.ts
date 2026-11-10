@@ -1,8 +1,9 @@
 // A quest's next step: the one small thing the user means to do next. It is
 // the first open step of the quest's plan (src/plan/plan.ts). A quest whose
-// plan has no steps yet, such as one from before plans, falls back to its
-// Journal's own line that starts "Next step:", which the construct and the
-// user used to keep there. Reading it takes no model call. It imports
+// plan has never had a step, such as one from before plans, falls back to
+// its Journal's own line that starts "Next step:", which the construct and
+// the user used to keep there. Once the plan has had a step, it alone says:
+// a plan emptied, or with every step done, has no next step. Reading it takes no model call. It imports
 // nothing from the server, so pages, prompts and tests can use it.
 import type { Memory } from "@/memory/memory.ts";
 import { nextPlanStep, type Plan } from "@/plan/plan.ts";
@@ -29,9 +30,10 @@ function nextStepOf(memory: Memory): string | undefined {
 }
 
 // The quest's next step: its plan's first open step; or, while the plan has
-// no steps, its memory's; or undefined if neither has one.
+// never had a step (the first one added is numbered 1), its memory's; or
+// undefined if neither has one.
 function nextStepOfQuest(memory: Memory, plan: Plan): string | undefined {
-  if (plan.steps.length === 0) {
+  if (plan.nextNumber === 1) {
     return nextStepOf(memory);
   }
   return nextPlanStep(plan)?.text;

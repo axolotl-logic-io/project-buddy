@@ -4,9 +4,9 @@ Each quest has a plan: its ordered steps of remaining work, which the construct 
 
 ## Steps
 
-A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps. Done steps keep their places, and the site shows them folded away under **Done**.
+A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the plan's first open step. Today, the landing page and check-in openings read it through `nextStepOfQuest` in `src/memory/next-step.ts`. A quest whose plan has no steps yet falls back to its Journal's line that starts "Next step:", which the construct kept before plans.
+The next step is the plan's first open step. Today, the landing page and check-in openings read it through `nextStepOfQuest` in `src/memory/next-step.ts`. A quest whose plan has never had a step falls back to its Journal's line that starts "Next step:", which the construct kept before plans. Once the plan has had one, it alone says: an emptied plan, or one with every step done, has no next step. The premade quests' Journals hold no next step.
 
 ## Operations
 
@@ -21,7 +21,9 @@ The next step is the plan's first open step. Today, the landing page and check-i
 | `move` | step, optional `before` step | Moves the step before another, or to the end. |
 | `remove` | step | Deletes the step. |
 
-A batch applies all or none. It saves nothing if a step it names isn't there, if the plan would hold more than 30 open steps, or if no operation changes anything; an operation that changes nothing, such as completing a done step, is skipped. Each change records what each operation did, in words, and the operations that undo it. An undo of a removal that went before a step since removed puts the step back at the end.
+A batch applies all or none. It saves nothing if a step it names isn't there, if the plan it leaves would hold more than 30 open steps, or if no operation changes anything; an operation that changes nothing, such as completing a done step, is skipped. So a batch may add a step and remove another at the limit. Each change records what each operation did, in words, and the operations that undo it.
+
+An undo (`applyPlanUndo`) keeps the changes made since. It skips an operation on a step removed since, and reverts a text only while the step still has the text the change set, so a newer edit stays. A removal or a move whose old neighbour was removed since goes back at the end. An undo with nothing left to do saves nothing and says so (`nothing-to-undo`).
 
 ## The construct
 
@@ -34,7 +36,7 @@ The adventure shows each call as a **Plan change** with Undo (`src/components/ch
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
 - The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo.
-- The **Plan panel** beside a quest adventure: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the construct replies.
+- The **Plan panel** beside a quest adventure: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the adventure's last message awaits a reply: while one runs, here or for another member, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |
@@ -46,11 +48,11 @@ People change the plan through the Server Actions in `src/plan/plan-actions.ts`.
 | `/edit STEP TEXT` | Changes a step's text. |
 | `/move STEP PLACE` | Moves an open step to a place among the open steps, 1 being first. |
 | `/drop STEP` | Removes a step. |
-| `/undo` | Undoes the user's last plan change in this adventure. |
+| `/undo` | Undoes the user's last plan change in this adventure that has something left to undo. |
 
-`STEP` is the step's number, with or without "#". Any message that starts with "/" and a name runs as a command: an unknown one says so under the message box and keeps the text. While the mock model runs, its own `/mock-…` commands are listed too and still go to it as messages (`src/replies/mock-command-listings.ts`), so tests can drive `change_plan` with `/mock-tool change_plan …`.
+`STEP` is the step's number, with or without "#". In a quest adventure, any message that starts with "/" and a name runs as a command: an unknown one says so under the message box and keeps the text. In a standalone adventure, only a plan command's name runs, and says it needs a quest; any other "/word" message goes to the construct as written. While the mock model runs, its own `/mock-…` commands are listed too and still go to it as messages (`src/replies/mock-command-listings.ts`), so tests can drive `change_plan` with `/mock-tool change_plan …`.
 
-A change made in an adventure, by the panel, a card or a command, is saved to the adventure as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, an adventure's naming or a reply's cost. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. A change made on the quest's page adds no message.
+A change made in an adventure, by the panel, a card or a command, is saved to the adventure as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, an adventure's naming or a reply's cost. None is saved while the adventure's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. A change made on the quest's page adds no message.
 
 In a [team quest](team-projects.md), every member can change the plan and undo anyone's change. Each change records its author.
 

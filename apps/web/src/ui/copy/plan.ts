@@ -92,6 +92,10 @@ export const PLAN_COPY = {
     unchanged: "Nothing changed.",
     "already-undone": "That change was undone already.",
     "no-such-change": "There's no change to undo.",
+    "nothing-to-undo":
+      "Everything that change did was changed or removed since, so there's nothing left to undo.",
+    "awaiting-reply":
+      "Your last message is waiting for a reply. Change the plan here once it has one, or on the quest's page now.",
     "not-found": "This quest isn't available any more.",
     "not-saved": "The plan couldn't be saved. Try again.",
   },
@@ -117,6 +121,8 @@ export const PLAN_PANEL_COPY = {
   next: (text: string): string => `Next: ${text}`,
   busy: (constructName: string): string =>
     `${constructName} is replying. You can change the plan once the reply ends.`,
+  unanswered:
+    "Your last message has no reply yet. Retry it or send another message, then change the plan here. You can change it on the quest's page now.",
   questPage: "Open the quest's plan",
 } as const;
 

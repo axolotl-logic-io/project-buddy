@@ -90,8 +90,14 @@ describe("a quest's next step", () => {
     ).toBe("Bake the normal map");
   });
 
-  test("is the Journal's line while the plan has no steps", () => {
+  test("is the Journal's line while the plan has never had a step", () => {
     expect(nextStepOfQuest(memory, EMPTY_PLAN)).toBe("retopo the flipper");
+  });
+
+  test("is none once the plan is emptied, whatever the Journal says", () => {
+    expect(
+      nextStepOfQuest(memory, { steps: [], nextNumber: 3 }),
+    ).toBeUndefined();
   });
 
   test("is none once every step is done, whatever the Journal says", () => {

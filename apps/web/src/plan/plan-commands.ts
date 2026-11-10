@@ -79,15 +79,27 @@ function commandNameOf(text: string): string | undefined {
   return name;
 }
 
+// Where a message is typed: whether the mock model runs, and whether the
+// adventure is in a quest.
+interface CommandPlace {
+  readonly mockCommands: boolean;
+  readonly inQuest: boolean;
+}
+
 // Whether the site runs text as a command rather than sending it to the
-// construct: any message that starts with "/" and a name, except, while the
-// mock model runs, its own `/mock-…` commands.
-function isChatCommand(text: string, mockCommands: boolean): boolean {
+// construct. In a quest's adventure that is any message that starts with
+// "/" and a name, except, while the mock model runs, its own `/mock-…`
+// commands. In a standalone adventure it is only a plan command's name,
+// which says it needs a quest; any other goes to the construct as written.
+function isChatCommand(text: string, place: CommandPlace): boolean {
   const name = commandNameOf(text);
   if (name === undefined) {
     return false;
   }
-  return !(mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
+  if (!place.inQuest) {
+    return PLAN_COMMAND_NAME.safeParse(name).success;
+  }
+  return !(place.mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
 }
 
 function problem(found: CommandProblem): PlanCommand {
