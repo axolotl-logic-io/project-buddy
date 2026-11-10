@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import { LISTING_ID } from "@/ids.ts";
 import { orbPurchasesEnabled } from "@/marketplace/cutover.ts";
 import { MARKETPLACE_PAGE_SIZE } from "@/marketplace/listing.ts";
@@ -119,14 +120,14 @@ function ListingCardItem({
 }): JSX.Element {
   return (
     <li className="card flex min-w-0 flex-col gap-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex items-baseline justify-between gap-3">
         <Link
-          className="card-title wrap-anywhere text-link"
+          className="card-title wrap-anywhere min-w-0 text-link"
           href={`/marketplace/${listing.id}`}
         >
           {listing.name}
         </Link>
-        <span className="font-semibold">
+        <span className="shrink-0 whitespace-nowrap font-semibold">
           {MARKETPLACE_COPY.price(listing.price)}
         </span>
       </div>
@@ -165,7 +166,7 @@ function OwnListingItem({
         {YOUR_LISTINGS_COPY.summary(listing)}
       </p>
       {listing.listed === true && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-5">
           <Button asChild={true} variant="quiet">
             <Link
               aria-label={YOUR_LISTINGS_COPY.updateLabel(listing.name)}
@@ -225,63 +226,59 @@ async function MarketplacePage({
         </Button>
       }
     >
-      <div className="workspace-content flex flex-col gap-2">
-        {!enabled && <p role="status">{MARKETPLACE_COPY.paused}</p>}
+      <div className="workspace-content">
+        {!enabled && <Notice>{MARKETPLACE_COPY.paused}</Notice>}
         <p>{MARKETPLACE_COPY.orbBalance(orbs)}</p>
       </div>
       <KindFilter shown={kind} yours={yours} />
       {!yours && (
-        <div className="workspace-content workspace-rows">
-          <section
-            aria-labelledby={LISTINGS_HEADING_ID}
-            className="flex flex-col gap-4"
-          >
-            <h2 className="section-heading" id={LISTINGS_HEADING_ID}>
-              {MARKETPLACE_COPY.listingsHeading}
-            </h2>
-            {shown.length === 0 && (
-              <p className="text-muted">{MARKETPLACE_COPY.empty}</p>
-            )}
-            {shown.length > 0 && (
-              <ul className="flex min-w-0 flex-col gap-3">
-                {shown.map((listing) => (
-                  <ListingCardItem key={listing.id} listing={listing} />
-                ))}
-              </ul>
-            )}
-            {shown.length === MARKETPLACE_PAGE_SIZE && last !== undefined && (
-              <Link
-                className="self-start text-link"
-                href={marketplacePath(kind, last)}
-              >
-                {MARKETPLACE_COPY.older}
-              </Link>
-            )}
-          </section>
-        </div>
+        <section
+          aria-labelledby={LISTINGS_HEADING_ID}
+          className="workspace-content workspace-rows"
+        >
+          <h2 className="section-heading" id={LISTINGS_HEADING_ID}>
+            {MARKETPLACE_COPY.listingsHeading}
+          </h2>
+          {shown.length === 0 && (
+            <p className="text-muted">{MARKETPLACE_COPY.empty}</p>
+          )}
+          {shown.length > 0 && (
+            <ul className="grid min-w-0">
+              {shown.map((listing) => (
+                <ListingCardItem key={listing.id} listing={listing} />
+              ))}
+            </ul>
+          )}
+          {shown.length === MARKETPLACE_PAGE_SIZE && last !== undefined && (
+            <Link
+              className="self-start text-link"
+              href={marketplacePath(kind, last)}
+            >
+              {MARKETPLACE_COPY.older}
+            </Link>
+          )}
+        </section>
       )}
       {yours && (
-        <div className="workspace-content workspace-rows">
-          <section
-            aria-labelledby={YOUR_LISTINGS_HEADING_ID}
-            className="flex flex-col gap-4"
-            id={YOUR_LISTINGS_ID}
-          >
-            <h2 className="section-heading" id={YOUR_LISTINGS_HEADING_ID}>
-              {YOUR_LISTINGS_COPY.heading}
-            </h2>
-            {own.length === 0 && (
-              <p className="text-muted">{YOUR_LISTINGS_COPY.none}</p>
-            )}
-            {own.length > 0 && (
-              <ul className="flex min-w-0 flex-col gap-3">
-                {own.map((listing) => (
-                  <OwnListingItem key={listing.id} listing={listing} />
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
+        <section
+          aria-labelledby={YOUR_LISTINGS_HEADING_ID}
+          className="workspace-content workspace-rows"
+          id={YOUR_LISTINGS_ID}
+        >
+          <h2 className="section-heading" id={YOUR_LISTINGS_HEADING_ID}>
+            {YOUR_LISTINGS_COPY.heading}
+          </h2>
+          {own.length === 0 && (
+            <p className="text-muted">{YOUR_LISTINGS_COPY.none}</p>
+          )}
+          {own.length > 0 && (
+            <ul className="grid min-w-0">
+              {own.map((listing) => (
+                <OwnListingItem key={listing.id} listing={listing} />
+              ))}
+            </ul>
+          )}
+        </section>
       )}
     </PageWorkspace>
   );
