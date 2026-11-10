@@ -182,7 +182,7 @@ function ActivityQuestEntry({
     return null;
   }
   return (
-    <div className="flex flex-col items-start gap-3">
+    <div className="activity-quest-entry">
       <h3 className="card-title">{quest.name}</h3>
       <p className="text-muted">{QUEST_LIBRARY_COPY.activityIntro}</p>
       <PremadeQuestPreview quest={quest} choices={choices} />
