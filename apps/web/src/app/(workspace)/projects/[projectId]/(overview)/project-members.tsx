@@ -25,7 +25,8 @@ function labelOf({ name, email }: ProjectMember): string {
 }
 
 // A form with a button that opens a confirm dialog and, once the user
-// confirms, submits the form.
+// confirms, submits the form. Both of its uses take someone out of the
+// quest, removing a member or leaving, so it confirms in the danger colour.
 function ConfirmedForm({
   action,
   fields,
@@ -62,6 +63,7 @@ function ConfirmedForm({
         onConfirm={confirm}
         title={title}
         trigger={trigger}
+        variant="danger"
       />
     </form>
   );

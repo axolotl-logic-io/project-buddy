@@ -60,6 +60,12 @@ const ICON_PATHS = {
   search: {
     stroke: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.5 10.5l3 3",
   },
+  // A battery, part charged, for the user's batteries.
+  battery: {
+    stroke:
+      "M2.5 4.5h9a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1zM14.5 7v2",
+    fill: "M3.5 6.5h5v3h-5z",
+  },
   // A bin, for deleting something.
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
   // A paper plane, for sending a message.

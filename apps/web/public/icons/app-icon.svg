@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Project Buddy</title>
+  <!-- Project Buddy's app icon: the header's compass, in its gold, on its
+       ink brown (the parchment theme's --header-gold and --header-ink, in
+       rgb). The compass is drawn on the header icon's 16-unit grid, scaled
+       20 times about the middle, so it stays inside the middle 80% that a
+       maskable icon keeps. public/icons/*.png are rendered from this file,
+       and the favicon from favicon.svg beside it. -->
+  <rect width="512" height="512" fill="rgb(48 29 13)"/>
+  <g transform="translate(256 256) scale(20) translate(-8 -8)" fill="none" stroke="rgb(227 173 75)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6.5"/>
+    <path d="M10.75 5.25 9 9l-3.75 1.75L7 7z" fill="rgb(227 173 75)"/>
+  </g>
+</svg>

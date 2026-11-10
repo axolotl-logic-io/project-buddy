@@ -607,6 +607,15 @@ describe("header battery balance", () => {
     },
   );
 
+  test("shows the balance on one line, named for screen readers", async () => {
+    await render(<HeaderBalance microUsd={870_001} />);
+    const balance = page.getByRole("status");
+    await expect.element(balance).toHaveTextContent("Batteries: 87");
+    const element = balance.element();
+    const line = Number.parseFloat(getComputedStyle(element).lineHeight);
+    expect(element.getBoundingClientRect().height).toBeLessThan(line * 2);
+  });
+
   test("unavailable is distinct from zero", async () => {
     await render(<HeaderBalance microUsd={undefined} />);
     await expect

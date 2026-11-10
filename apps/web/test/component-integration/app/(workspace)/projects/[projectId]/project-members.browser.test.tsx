@@ -12,6 +12,11 @@ import type {
 import { ProjectMembers } from "@/app/(workspace)/projects/[projectId]/(overview)/project-members.tsx";
 import { PROJECT_MEMBERS_COPY } from "@/ui/copy/projects.ts";
 import { tabForward } from "../../../../components/keyboard-test-kit.ts";
+import {
+  paintOf,
+  tokenColor,
+} from "../../../../components/ui/button-fill-test-kit.ts";
+import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import { FOX_MEMBER, FOX_OWNER, FOX_PROJECT } from "../../page-fixtures.ts";
 
 const actions = vi.hoisted(() => ({
@@ -76,6 +81,7 @@ describe("use_case_team_project_access", () => {
 describe("use_case_remove_member", () => {
   test("the owner removes a member once they confirm, and focus moves to the heading", async () => {
     actions.removeMemberAction.mockResolvedValue(undefined);
+    applyTheme("parchment");
     const screen = await render(<ProjectMembers {...AS_OWNER} />);
     await expect.element(leaveButton()).not.toBeInTheDocument();
 
@@ -92,9 +98,11 @@ describe("use_case_remove_member", () => {
     expect(actions.removeMemberAction).not.toHaveBeenCalled();
 
     await removeButton().click();
-    await page
-      .getByRole("button", { name: PROJECT_MEMBERS_COPY.removeConfirm })
-      .click();
+    const removeMember = page.getByRole("button", {
+      name: PROJECT_MEMBERS_COPY.removeConfirm,
+    });
+    expect(paintOf(removeMember.element()).fill).toBe(tokenColor("danger"));
+    await removeMember.click();
     await vi.waitFor(() => {
       expect(actions.removeMemberAction).toHaveBeenCalledOnce();
     });
@@ -125,6 +133,7 @@ describe("use_case_leave_project", () => {
         // Never settles.
       }),
     );
+    applyTheme("parchment");
     await render(<ProjectMembers {...AS_MEMBER} />);
     await expect.element(removeButton()).not.toBeInTheDocument();
 
@@ -140,11 +149,11 @@ describe("use_case_leave_project", () => {
       )
       .toHaveFocus();
     await tabForward();
-    await expect
-      .element(
-        dialog.getByRole("button", { name: PROJECT_MEMBERS_COPY.leaveConfirm }),
-      )
-      .toHaveFocus();
+    const leave = dialog.getByRole("button", {
+      name: PROJECT_MEMBERS_COPY.leaveConfirm,
+    });
+    await expect.element(leave).toHaveFocus();
+    expect(paintOf(leave.element()).fill).toBe(tokenColor("danger"));
     await userEvent.keyboard("{Enter}");
 
     await vi.waitFor(() => {

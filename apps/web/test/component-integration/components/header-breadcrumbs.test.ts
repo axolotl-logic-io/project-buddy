@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
 import { parseUserId } from "@/ids.ts";
-import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const stores = vi.hoisted(() => ({
   getChat: vi.fn(),
@@ -69,6 +69,17 @@ describe("header navigation hierarchy", () => {
     ]);
     expect(await headerBreadcrumbs(USER, ["home"])).toEqual([
       { label: "Home" },
+    ]);
+  });
+
+  test("puts a new adventure under Adventures", async () => {
+    if (USER === undefined) {
+      throw new Error("Invalid fixture user");
+    }
+    expect(await headerBreadcrumbs(USER, ["chats", "new"])).toEqual([
+      { label: "Home", href: "/home" },
+      { label: "Adventures", href: "/chat" },
+      { label: NEW_CHAT_COPY.heading },
     ]);
   });
 
