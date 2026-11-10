@@ -16,6 +16,7 @@ import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import {
   QUEST_STATUSES,
+  type QuestStatus,
   type StatusActionState,
   type StatusChange,
 } from "@/projects/quest-status.ts";
@@ -59,15 +60,17 @@ function QuestStatusFeedback({
   return (
     <StatusFeedbackContext.Provider value={publish}>
       {children}
-      <Notice role="status" tabIndex={-1} ref={resultRef}>
-        {state.message}
-      </Notice>
-      {state.change !== undefined && (
-        <UndoStatusChange
-          key={`${state.change.projectId}-${state.change.revision}`}
-          change={state.change}
-        />
-      )}
+      <div className="quest-status-feedback">
+        <Notice role="status" tabIndex={-1} ref={resultRef}>
+          {state.message}
+        </Notice>
+        {state.change !== undefined && (
+          <UndoStatusChange
+            key={`${state.change.projectId}-${state.change.revision}`}
+            change={state.change}
+          />
+        )}
+      </div>
     </StatusFeedbackContext.Provider>
   );
 }
@@ -86,7 +89,7 @@ function UndoControl({
     return null;
   }
   return (
-    <form action={action} className="flex flex-col gap-2">
+    <form action={action}>
       <input type="hidden" name="projectId" value={change.projectId} />
       <input type="hidden" name="fromStatus" value={change.toStatus} />
       <input type="hidden" name="toStatus" value={change.fromStatus} />
@@ -96,6 +99,17 @@ function UndoControl({
       </Button>
     </form>
   );
+}
+
+// The rail's status actions are quiet, except the one the quest's state
+// leads to next, which is boxed: Complete while it is Active, Restore quest
+// once it is closed. Abandon keeps the danger colour.
+function statusActionClass(current: QuestStatus, action: QuestStatus): string {
+  const classes = [`quest-status-${action}`];
+  if (action === "active" || (current === "active" && action === "completed")) {
+    classes.push("quest-status-next");
+  }
+  return classes.join(" ");
 }
 
 function StatusControls({
@@ -137,7 +151,7 @@ function StatusControls({
               name="toStatus"
               value={status}
               variant="quiet"
-              className={`quest-status-${status}`}
+              className={statusActionClass(project.status, status)}
               disabled={pending}
             >
               {status === "completed" && <Icon name="check" />}

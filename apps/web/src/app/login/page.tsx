@@ -16,9 +16,9 @@ export default function LoginPage(): JSX.Element {
   return (
     <SignInPanel intro={LOGIN_COPY.intro}>
       <LinkRequestForm action={requestSignInLinkAction} words={LOGIN_COPY} />
-      <p className="text-center text-muted">
+      <p className="text-balance text-center text-muted">
         {LOGIN_COPY.signUpPrompt}{" "}
-        <Link className="text-link" href="/signup">
+        <Link className="whitespace-nowrap text-link" href="/signup">
           {LOGIN_COPY.signUpLink}
         </Link>
       </p>

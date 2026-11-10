@@ -1,5 +1,7 @@
 import type { JSX } from "react";
 import type { BatteryPackage } from "@/batteries/catalog.ts";
+import { Button } from "@/components/ui/button.tsx";
+import { Notice } from "@/components/ui/form-message.tsx";
 import type { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 import { buyBatteries, refreshBatteryPayments } from "./battery-actions.ts";
@@ -18,6 +20,15 @@ function money(amount: number, currency: string): string {
   return formatter.format(amount / 10 ** digits);
 }
 
+// What came of a purchase, by its status, as its history line says it. A
+// status this build doesn't know says nothing.
+const PURCHASE_STATUS: ReadonlyMap<string, string> = new Map([
+  ["fulfilled", BATTERY_PURCHASES_COPY.fulfilled],
+  ["pending", BATTERY_PURCHASES_COPY.pending],
+  ["expired", BATTERY_PURCHASES_COPY.expired],
+  ["failed", BATTERY_PURCHASES_COPY.failed],
+]);
+
 export function BatteryPurchases({
   result,
   catalog,
@@ -29,7 +40,7 @@ export function BatteryPurchases({
 }): JSX.Element {
   return (
     <section
-      className="panel flex flex-col gap-3"
+      className="panel workspace-part flex flex-col gap-3"
       id={PURCHASES_ANCHOR}
       aria-labelledby={PURCHASES_HEADING}
     >
@@ -39,54 +50,54 @@ export function BatteryPurchases({
       {catalog.length === 0 && <p>{BATTERY_PURCHASES_COPY.unavailable}</p>}
       {catalog.length > 0 && <p>{BATTERY_PURCHASES_COPY.testOnly}</p>}
       {result === "canceled" && (
-        <p role="status">{BATTERY_PURCHASES_COPY.canceled}</p>
+        <Notice role="status">{BATTERY_PURCHASES_COPY.canceled}</Notice>
       )}
       {result === "returned" && (
-        <p role="status">{BATTERY_PURCHASES_COPY.returned}</p>
+        <Notice role="status">{BATTERY_PURCHASES_COPY.returned}</Notice>
       )}
-      {catalog.map((offer) => (
-        <form
-          action={buyBatteries}
-          key={offer.id}
-          className="flex flex-col gap-3"
-        >
-          <p>
-            {BATTERY_PURCHASES_COPY.package(
-              offer.batteries,
-              money(offer.amount, offer.currency),
-            )}
-          </p>
-          <input type="hidden" name="package" value={offer.id} />
-          <button className="button-primary" type="submit">
-            {BATTERY_PURCHASES_COPY.buy}
-          </button>
-        </form>
-      ))}
+      {catalog.length > 0 && (
+        <ul className="flex flex-col divide-y divide-line">
+          {catalog.map((offer) => (
+            <li key={offer.id}>
+              <form
+                action={buyBatteries}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <p>
+                  {BATTERY_PURCHASES_COPY.package(
+                    offer.batteries,
+                    money(offer.amount, offer.currency),
+                  )}
+                </p>
+                <input type="hidden" name="package" value={offer.id} />
+                <Button type="submit">{BATTERY_PURCHASES_COPY.buy}</Button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
       {purchases.length > 0 && (
         <>
           <h3 className="section-heading">{BATTERY_PURCHASES_COPY.history}</h3>
-          <ul>
+          <ul className="flex flex-col divide-y divide-line">
             {purchases.map((purchase) => (
-              <li key={purchase.id}>
-                {BATTERY_PURCHASES_COPY.package(
-                  purchase.batteries,
-                  money(purchase.amount, purchase.currency),
-                )}
-                {BATTERY_PURCHASES_COPY.separator}
-                {purchase.status === "fulfilled" &&
-                  BATTERY_PURCHASES_COPY.fulfilled}
-                {purchase.status === "pending" &&
-                  BATTERY_PURCHASES_COPY.pending}
-                {purchase.status === "expired" &&
-                  BATTERY_PURCHASES_COPY.expired}
-                {purchase.status === "failed" && BATTERY_PURCHASES_COPY.failed}
+              <li className="flex flex-col gap-1 py-3" key={purchase.id}>
+                <span>
+                  {BATTERY_PURCHASES_COPY.package(
+                    purchase.batteries,
+                    money(purchase.amount, purchase.currency),
+                  )}
+                </span>
+                <span className="field-hint">
+                  {PURCHASE_STATUS.get(purchase.status)}
+                </span>
               </li>
             ))}
           </ul>
           <form action={refreshBatteryPayments}>
-            <button type="submit" className="button-secondary">
+            <Button type="submit" variant="secondary">
               {BATTERY_PURCHASES_COPY.refresh}
-            </button>
+            </Button>
           </form>
         </>
       )}
