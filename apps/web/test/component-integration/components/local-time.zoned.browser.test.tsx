@@ -259,13 +259,22 @@ describe("use_case_view_memory", () => {
   });
 });
 
-// The fixed-width-times decision: reserve precisely the hydrated text width.
-test("hydrating a time keeps its reserved width", async () => {
+// Times are set in the body face with tabular figures (#843), so the
+// placeholder may differ from the local time by a word's width, such as
+// "AM" and "PM": a few pixels, never the room of a character more.
+test("hydrating a time keeps about its reserved width, in the body face", async () => {
   serverRenderThenHydrate(<LocalTime dateTime={INSTANT} detail="minute" />);
   await expect.element(page.getByText(zoneTimes().minute)).toBeVisible();
-  expect(container?.querySelector("time")?.getBoundingClientRect().width).toBe(
-    reservedWidth,
-  );
+  const time = container?.querySelector("time");
+  if (time === null || time === undefined) {
+    throw new Error("No time was rendered");
+  }
+  const look = getComputedStyle(time);
+  expect(look.fontFamily).toBe(getComputedStyle(document.body).fontFamily);
+  expect(look.fontVariantNumeric).toBe("tabular-nums");
+  expect(
+    Math.abs(time.getBoundingClientRect().width - reservedWidth),
+  ).toBeLessThan(Number.parseFloat(look.fontSize));
 });
 
 vi.mock(
