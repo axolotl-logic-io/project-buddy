@@ -100,13 +100,9 @@
     @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 sm:px-6;
   }
 
-  .quest-workspace-nav {
-    @apply flex min-w-0 flex-wrap gap-x-4;
-  }
-
   .quest-workspace-tab {
     min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-muted text-sm;
+    @apply inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-muted text-sm;
   }
 
   .quest-workspace-tab[aria-current="page"],
@@ -1274,14 +1270,80 @@
     @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
   }
 
-  .workspace-tablist {
-    @apply flex min-w-0 flex-wrap gap-x-4;
+  /* A row of tabs: the shared workspace tabs, a quest's sections and an
+     adventure's. It stays one row, and on a narrow screen scrolls sideways
+     inside itself rather than wrapping. Where tabs lie past an edge, that
+     edge fades (scroll-driven, where the browser supports it), so the row
+     shows there is more of it. A focused tab scrolls clear of the fade. */
+  .workspace-tablist,
+  .quest-workspace-nav {
+    --tablist-fade: --spacing(8);
+    scroll-padding-inline: var(--tablist-fade);
+    overscroll-behavior-inline: contain;
+    @apply flex min-w-0 max-w-full gap-x-4 overflow-x-auto;
+  }
+
+  @supports (scrollbar-width: none) {
+    .workspace-tablist,
+    .quest-workspace-nav {
+      scrollbar-width: none;
+    }
+  }
+
+  .workspace-tablist > *,
+  .quest-workspace-nav > * {
+    @apply shrink-0;
+  }
+
+  /* The scrolling row would clip a ring drawn outside a tab, so a tab's
+     ring sits just inside its own edge. */
+  .workspace-tablist :focus-visible,
+  .quest-workspace-nav :focus-visible {
+    outline-offset: calc(-1 * var(--focus-offset));
+  }
+
+  /* The fades, by how far the row has scrolled: the end edge at the start,
+     both edges in between and the start edge at the end. A row with
+     nothing to scroll has no timeline, so it never fades. */
+  @supports (animation-timeline: scroll()) and (mask-image: none) {
+    .workspace-tablist,
+    .quest-workspace-nav {
+      animation: tablist-fade linear both;
+      animation-timeline: scroll(self inline);
+    }
+
+    @keyframes tablist-fade {
+      0% {
+        mask-image: linear-gradient(
+          to right,
+          black calc(100% - var(--tablist-fade)),
+          transparent
+        );
+      }
+      2%,
+      98% {
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black var(--tablist-fade),
+          black calc(100% - var(--tablist-fade)),
+          transparent
+        );
+      }
+      100% {
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black var(--tablist-fade)
+        );
+      }
+    }
   }
 
   .workspace-tab {
     min-inline-size: var(--target-size);
     min-block-size: var(--target-size);
-    @apply inline-flex items-center justify-center gap-2 border-transparent border-b-2 py-3 text-left text-muted text-sm;
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-left text-muted text-sm;
   }
 
   .workspace-tab[data-state="active"],
