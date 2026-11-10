@@ -202,6 +202,11 @@ describe("use_case_use_on_phone", () => {
             buttonBox.height,
           );
           expect(noteBox.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+          const noteIcon = noteLink().element().querySelector(".icon");
+          expect(
+            noteIcon?.getBoundingClientRect().width,
+            "Quick Note shows its icon at every width",
+          ).toBeGreaterThan(1);
           expect(titleBox.right).toBeLessThanOrEqual(noteBox.left);
           expect(noteBox.right).toBeLessThanOrEqual(buttonBox.left);
           expect(
@@ -481,6 +486,19 @@ describe("breadcrumbs in the shared header", () => {
         navigation.element().querySelector('[aria-current="page"]')
           ?.textContent,
       ).toBe(longName);
+      const currentWords = navigation
+        .element()
+        .querySelector('[aria-current="page"] > span');
+      if (currentWords === null) {
+        throw new Error("The current page's words are missing");
+      }
+      expect(
+        getComputedStyle(currentWords).textOverflow,
+        "the shortened current page ends in an ellipsis",
+      ).toBe("ellipsis");
+      expect(currentWords.scrollWidth).toBeGreaterThan(
+        currentWords.clientWidth,
+      );
       const parent = navigation.getByRole("link", { name: longName });
       parent.element().focus();
       await expect.element(parent).toHaveFocus();
