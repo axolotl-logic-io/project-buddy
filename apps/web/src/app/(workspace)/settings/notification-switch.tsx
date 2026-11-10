@@ -2,7 +2,7 @@
 
 import { type JSX, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
 import { SettingSwitch } from "@/components/ui/setting-switch.tsx";
 import { sendTestNotificationAction } from "@/push/notification-actions.ts";
 import {
@@ -107,10 +107,10 @@ function DeviceNotifications({
   );
 
   if (state === "unsupported") {
-    return <p className="field-hint">{NOTIFICATIONS_COPY.unsupported}</p>;
+    return <Notice>{NOTIFICATIONS_COPY.unsupported}</Notice>;
   }
   if (state === "blocked") {
-    return <p className="field-hint">{NOTIFICATIONS_COPY.blocked}</p>;
+    return <Notice>{NOTIFICATIONS_COPY.blocked}</Notice>;
   }
   let hint: string = NOTIFICATIONS_COPY.switchHint;
   if (state === "checking") {

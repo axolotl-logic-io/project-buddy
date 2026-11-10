@@ -1,7 +1,6 @@
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 
 const BATTERY_PURCHASES_COPY = {
-  separator: " — ",
   heading: "Buy batteries",
   testOnly:
     "Stripe test mode: no real money is charged. Batteries fund model use. Marketplace orbs are separate and cannot fund model use.",
