@@ -17,7 +17,7 @@ export const PROMPT_COPY = {
   nameLabel: "Name",
   sections: "Editor sections",
   sectionError: " — Needs attention",
-  promptHeading: "Prompt",
+  constructFieldsHeading: "Instructions",
   namePlaceholderHint:
     "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
   limit: (max: number): string =>

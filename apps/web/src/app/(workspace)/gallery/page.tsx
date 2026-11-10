@@ -49,6 +49,7 @@ async function GalleryPage({
           <li className="card flex min-w-0 flex-col gap-3" key={image.id}>
             {image.status === "generated" && (
               <GeneratedImagePart
+                fillWidth={true}
                 part={{
                   result: {
                     status: "generated",

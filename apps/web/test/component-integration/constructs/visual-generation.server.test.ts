@@ -3,6 +3,7 @@ import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 import { createChat } from "@/chats/new-chat-store.ts";
+import type { AvatarFramer } from "@/constructs/avatar-frame.ts";
 import {
   cloneConstruct,
   createConstruct,
@@ -52,6 +53,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 const INITIAL_RESERVATIONS = 3;
 const LEGACY_DIGEST_LENGTH = 64;
 const COST = 10_000;
+const FRAMING_COST = 120;
 const DESCRIPTION = "A friendly brass owl with a round face and blue wings.";
 const DEFINITION = {
   prompt: "Speak calmly.",
@@ -191,6 +193,40 @@ describe("use_case_generate_construct_visual", () => {
       reservationGold: 25,
     });
   });
+  test.each([
+    {
+      found: { x: 0.4, y: 0.3, size: 0.35 },
+      avatar: { x: 0.4, y: 0.3, size: 0.35 },
+    },
+    { found: undefined, avatar: { x: 0.5, y: 0.5, size: 0.5 } },
+  ])(
+    "the avatar frame is chosen from the generated image, and framing joins its charge",
+    async ({ found, avatar }) => {
+      const { user, construct, provider, request } = await setup();
+      const framer = {
+        frame: vi.fn<AvatarFramer["frame"]>(async () => ({
+          frame: found,
+          costMicroUsd: FRAMING_COST,
+        })),
+      };
+      const generated = await generateConstructVisual(
+        user.id,
+        request,
+        provider,
+        { saved: false, regenerate: false, framer },
+      );
+      expect(generated.visual?.frames).toEqual({ avatar });
+      expect(
+        (await getOwnConstruct(user.id, construct.id))?.definition.visual
+          ?.frames,
+      ).toEqual({ avatar });
+      expect(framer.frame).toHaveBeenCalledTimes(1);
+      expect(
+        (await sharp(framer.frame.mock.calls[0]?.[0]).metadata()).format,
+      ).toBe("webp");
+      expect(await goldSpent(user)).toBe(COST + FRAMING_COST);
+    },
+  );
   test("read-only recovery and concurrent replay make no paid call; stale completion keeps prior art", async () => {
     const { user, construct, request, provider: initial } = await setup();
     const first = await generateConstructVisual(user.id, request, initial);

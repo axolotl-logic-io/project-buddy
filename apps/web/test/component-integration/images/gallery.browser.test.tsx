@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
@@ -11,6 +11,12 @@ import {
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
+  PHONE_VIEWPORT,
+  setViewport,
+} from "../viewports-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -26,22 +32,28 @@ const IMAGE_RESERVATION_GOLD = 25;
 const AVAILABLE_GOLD = 20;
 const PROMPT = "A blue bird above a forest";
 
+const IMAGE = {
+  id: ID,
+  chatId: CHAT,
+  prompt: PROMPT,
+  imageUrl: "/api/images/private",
+  status: "generated",
+  createdAt: new Date(0),
+} as const;
+// The chat's images are 18rem tall (chat.css), at the 16px root size.
+const CHAT_IMAGE_HEIGHT_PX = 288;
+
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
 });
 
+afterEach(async () => {
+  await setViewport(LAPTOP_VIEWPORT);
+});
+
 describe("image gallery", () => {
   test("use_case_image_gallery", async () => {
-    vi.mocked(listGeneratedImages).mockResolvedValue([
-      {
-        id: ID,
-        chatId: CHAT,
-        prompt: PROMPT,
-        imageUrl: "/api/images/private",
-        status: "generated",
-        createdAt: new Date(0),
-      },
-    ]);
+    vi.mocked(listGeneratedImages).mockResolvedValue([IMAGE]);
     await render(await GalleryPage({ searchParams: Promise.resolve({}) }));
     await expect
       .element(page.getByRole("heading", { name: GENERATION_COPY.heading }))
@@ -66,6 +78,39 @@ describe("image gallery", () => {
     expect(document.querySelector("time")?.dateTime).toBe(
       new Date(0).toISOString(),
     );
+  });
+
+  test.each([LAPTOP_VIEWPORT, PHONE_VIEWPORT, NARROWEST_VIEWPORT])(
+    "a card's image fills the card's text width in a square slot until it loads at $width px",
+    async (viewport) => {
+      await setViewport(viewport);
+      vi.mocked(listGeneratedImages).mockResolvedValue([IMAGE]);
+      await render(await GalleryPage({ searchParams: Promise.resolve({}) }));
+      const slot = page
+        .getByRole("link", { name: GENERATION_COPY.view })
+        .element()
+        .getBoundingClientRect();
+      const caption = page
+        .getByText(PROMPT, { exact: true })
+        .element()
+        .getBoundingClientRect();
+      expect(slot.left).toBeCloseTo(caption.left, 0);
+      expect(slot.width).toBeCloseTo(caption.width, 0);
+      expect(slot.height).toBeCloseTo(slot.width, 0);
+    },
+  );
+
+  test("an adventure's generated image keeps its fixed height", async () => {
+    await render(
+      <GeneratedImagePart
+        part={{ result: { status: "generated", id: ID, prompt: PROMPT } }}
+      />,
+    );
+    const image = page
+      .getByRole("link", { name: GENERATION_COPY.view })
+      .element()
+      .querySelector("img");
+    expect(image?.getBoundingClientRect().height).toBe(CHAT_IMAGE_HEIGHT_PX);
   });
 
   test("explains how to create the first image", async () => {
