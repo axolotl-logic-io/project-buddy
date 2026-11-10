@@ -5,10 +5,11 @@
 // shows. How the plan looks is the browser tests'.
 import { describe, expect, test, vi } from "vitest";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { listMessages, readStoppedReply } from "@/chats/store.ts";
+import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
+import { MOST_OPEN_STEPS } from "@/plan/plan.ts";
 import {
   changePlanAction,
   type PlanActionResult,
@@ -30,6 +31,8 @@ import {
   constructPrompt,
   constructReply,
   messageText,
+  newMessageId,
+  question,
   sendChatMessage,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
@@ -48,6 +51,9 @@ const RENDER = "Render a turntable";
 
 // How many commands the commands test runs.
 const COMMANDS_RUN = 5;
+
+// A message whose reply fails at once with the mock model.
+const FAILING = "/mock-error overloaded_error";
 
 function changeCommand(input: unknown): string {
   return `/mock-tool ${CHANGE_PLAN_TOOL} ${JSON.stringify(input)}`;
@@ -293,7 +299,7 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
   });
 
-  test("Today's next step is the plan's first open step, or the Journal's line before the plan has steps", async () => {
+  test("Today's next step is the plan's first open step, or the Journal's line before the plan has had a step", async () => {
     const { user, chat } = await signedInChat();
     await sendChatMessage(chat.id, "Hello");
     await saveMemory(user.id, {
@@ -308,5 +314,177 @@ describe("a quest's plan, changed without the construct", () => {
     await laidOut(chat.project.id);
     const after = await readToday(user.id);
     expect(after.projects[0]?.nextStep).toBe(BLOCK_OUT);
+
+    // An emptied plan has no next step, whatever the Journal still says.
+    await changePlanAction({
+      projectId: chat.project.id,
+      operations: [
+        { op: "remove", step: 1 },
+        { op: "remove", step: 2 },
+        { op: "remove", step: 3 },
+      ],
+    });
+    const emptied = await readToday(user.id);
+    expect(emptied.projects[0]?.nextStep).toBeUndefined();
+  });
+
+  test(`a change may add a step and remove another at the ${MOST_OPEN_STEPS}-step limit`, async () => {
+    const { user, chat } = await signedInChat();
+    await changePlanAction({
+      projectId: chat.project.id,
+      operations: Array.from({ length: MOST_OPEN_STEPS }, (_, index) => ({
+        op: "add" as const,
+        text: `Study ${index + 1}`,
+      })),
+    });
+    expect(
+      await changePlanAction({
+        projectId: chat.project.id,
+        operations: [{ op: "add", text: "One study more" }],
+      }),
+    ).toMatchObject({ kind: "failed", reason: "too-many-steps" });
+    expect(await command(chat.id, "/add Study 31")).toMatchObject({
+      kind: "failed",
+      reason: "too-many-steps",
+    });
+    expect(
+      await changePlanAction({
+        projectId: chat.project.id,
+        operations: [
+          { op: "add", text: "One study more" },
+          { op: "remove", step: 1 },
+        ],
+      }),
+    ).toMatchObject({ kind: "changed" });
+    expect(await openTexts(user.id, chat.project.id)).toHaveLength(
+      MOST_OPEN_STEPS,
+    );
+  });
+
+  test("undoing an older change keeps a newer edit of the same step", async () => {
+    const { user, chat } = await signedInChat();
+    await laidOut(chat.project.id);
+    const first = await changePlanAction({
+      projectId: chat.project.id,
+      operations: [{ op: "change", step: 2, text: "Sculpt the brass plates" }],
+    });
+    await changePlanAction({
+      projectId: chat.project.id,
+      operations: [{ op: "change", step: 2, text: "Sculpt the copper plates" }],
+    });
+    if (first.kind !== "changed") {
+      throw new Error("The first edit wasn't saved");
+    }
+
+    expect(
+      await undoPlanChangeAction({
+        projectId: chat.project.id,
+        version: first.version,
+      }),
+    ).toMatchObject({ kind: "failed", reason: "nothing-to-undo" });
+    expect(await openTexts(user.id, chat.project.id)).toEqual([
+      BLOCK_OUT,
+      "Sculpt the copper plates",
+      RENDER,
+    ]);
+  });
+});
+
+describe("use_case_plan_commands", () => {
+  test("after a failed reply, plan changes in the adventure wait, so the message can still be sent again", async () => {
+    const { user, chat } = await signedInChat();
+    await laidOut(chat.project.id);
+    await sendChatMessage(chat.id, FAILING);
+    const failed = (await listMessages(user.id, chat.id)).at(-1);
+
+    expect(await command(chat.id, "/add Sketch wings")).toMatchObject({
+      kind: "failed",
+      reason: "awaiting-reply",
+    });
+    expect(await command(chat.id, "/plan")).toMatchObject({
+      kind: "failed",
+      reason: "awaiting-reply",
+    });
+    expect(
+      await changePlanAction({
+        projectId: chat.project.id,
+        chatId: chat.id,
+        operations: [{ op: "complete", step: 1 }],
+      }),
+    ).toMatchObject({ kind: "failed", reason: "awaiting-reply" });
+
+    // Nothing came after the failed message, so it is still the one to send
+    // again, and the plan is as it was.
+    expect((await listMessages(user.id, chat.id)).at(-1)?.id).toBe(failed?.id);
+    expect(await readStoppedReply(user.id, chat.id)).toBe(failed?.id);
+    expect(await openTexts(user.id, chat.project.id)).toEqual([
+      BLOCK_OUT,
+      SCULPT,
+      RENDER,
+    ]);
+
+    // The quest's page still changes the plan; once a reply answers, the
+    // adventure does too.
+    expect(
+      await changePlanAction({
+        projectId: chat.project.id,
+        operations: [{ op: "complete", step: 1 }],
+      }),
+    ).toMatchObject({ kind: "changed" });
+    await sendChatMessage(chat.id, "Still there?");
+    expect(await command(chat.id, "/add Sketch wings")).toMatchObject({
+      kind: "changed",
+    });
+  });
+
+  test("while a reply is being made, here or elsewhere, a person's plan change in the adventure waits", async () => {
+    const { user, chat } = await signedInChat();
+    await laidOut(chat.project.id);
+    // Saving the message claims its reply, as the route does before it
+    // replies.
+    await saveMessage(user.id, chat.id, question("Hello", newMessageId()));
+
+    expect(await command(chat.id, "/done")).toMatchObject({
+      kind: "failed",
+      reason: "awaiting-reply",
+    });
+    expect(
+      await undoPlanChangeAction({
+        projectId: chat.project.id,
+        chatId: chat.id,
+        version: 1,
+      }),
+    ).toMatchObject({ kind: "failed", reason: "awaiting-reply" });
+    expect(await openTexts(user.id, chat.project.id)).toEqual([
+      BLOCK_OUT,
+      SCULPT,
+      RENDER,
+    ]);
+  });
+
+  test("/undo passes over a change with nothing left to undo", async () => {
+    const { user, chat } = await signedInChat();
+    await laidOut(chat.project.id);
+    await command(chat.id, "/done 1");
+    await command(chat.id, "/add Paint the enamel eyes");
+    // The added step is removed from the quest's page.
+    await changePlanAction({
+      projectId: chat.project.id,
+      operations: [{ op: "remove", step: 4 }],
+    });
+
+    expect(await command(chat.id, "/undo")).toMatchObject({
+      kind: "changed",
+      lines: [{ kind: "reopen", text: BLOCK_OUT }],
+    });
+    expect(await command(chat.id, "/undo")).toMatchObject({
+      kind: "failed",
+      reason: "no-such-change",
+    });
+    expect(await openTexts(user.id, chat.project.id)).toEqual([
+      BLOCK_OUT,
+      SCULPT,
+      RENDER,
+    ]);
   });
 });

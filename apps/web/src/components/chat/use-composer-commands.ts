@@ -77,10 +77,7 @@ function useComposerCommands(): ComposerCommands {
   );
   const intercept = useCallback(
     (event: SyntheticEvent): void => {
-      if (
-        commands === undefined ||
-        !isChatCommand(text, commands.mockCommands)
-      ) {
+      if (commands === undefined || !isChatCommand(text, commands)) {
         return;
       }
       event.preventDefault();

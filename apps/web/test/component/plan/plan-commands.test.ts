@@ -15,19 +15,37 @@ const PLAN: Plan = {
 };
 
 describe("chat commands", () => {
-  test("a message that starts with / and a name is a command", () => {
-    expect(isChatCommand("/plan", false)).toBe(true);
-    expect(isChatCommand("  /done 3", false)).toBe(true);
-    expect(isChatCommand("/whatever", false)).toBe(true);
-    expect(isChatCommand("Finished /plan stuff", false)).toBe(false);
-    expect(isChatCommand("/ nothing", false)).toBe(false);
-    expect(isChatCommand("", false)).toBe(false);
+  const Quest = { mockCommands: false, inQuest: true };
+  const QuestWithMock = { mockCommands: true, inQuest: true };
+  const Standalone = { mockCommands: false, inQuest: false };
+
+  test("in a quest, a message that starts with / and a name is a command", () => {
+    expect(isChatCommand("/plan", Quest)).toBe(true);
+    expect(isChatCommand("  /done 3", Quest)).toBe(true);
+    expect(isChatCommand("/whatever", Quest)).toBe(true);
+    expect(isChatCommand("Finished /plan stuff", Quest)).toBe(false);
+    expect(isChatCommand("/ nothing", Quest)).toBe(false);
+    expect(isChatCommand("", Quest)).toBe(false);
   });
 
   test("the mock model's commands go to it while it runs, and are commands otherwise", () => {
-    expect(isChatCommand("/mock-tool change_plan {}", true)).toBe(false);
-    expect(isChatCommand("/mock-tool change_plan {}", false)).toBe(true);
-    expect(isChatCommand("/plan", true)).toBe(true);
+    expect(isChatCommand("/mock-tool change_plan {}", QuestWithMock)).toBe(
+      false,
+    );
+    expect(isChatCommand("/mock-tool change_plan {}", Quest)).toBe(true);
+    expect(isChatCommand("/plan", QuestWithMock)).toBe(true);
+  });
+
+  test("in a standalone adventure only a plan command's name is a command; any other /word goes to the construct", () => {
+    expect(isChatCommand("/add Sketch wings", Standalone)).toBe(true);
+    expect(isChatCommand("/plan", Standalone)).toBe(true);
+    expect(isChatCommand("/shrug ok let's go", Standalone)).toBe(false);
+    expect(
+      isChatCommand("/mock-tool change_plan {}", {
+        mockCommands: true,
+        inQuest: false,
+      }),
+    ).toBe(false);
   });
 
   test.each([

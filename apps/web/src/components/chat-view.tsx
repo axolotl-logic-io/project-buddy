@@ -349,9 +349,28 @@ export function ChatView({
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
   const reattach = useComposerDraft(runtime, { viewer, chatId });
   const replying = chat.status === "streaming" || chat.status === "submitted";
+  const lastSaved = initialMessages.at(-1);
+  const replyingElsewhere =
+    lastSaved !== undefined &&
+    awaitsReply(lastSaved) &&
+    stoppedReplyId === undefined &&
+    chat.status === "ready";
+  const shownError = refusal ?? chat.error;
+  const replyStopped =
+    stoppedReplyId !== undefined &&
+    shownError === undefined &&
+    chat.status === "ready" &&
+    chat.messages.at(-1)?.id === stoppedReplyId;
+  const replyFailed = chat.status === "error" && refusal === undefined;
+  // The plan's controls here wait while the newest message awaits a reply:
+  // a plan message saved after it would end the conversation its reply, a
+  // retry or "send again" answers. The server refuses one too
+  // (src/chats/store.ts, chatAwaitsReply).
   let planDisabledNote: string | undefined;
-  if (replying) {
+  if (replying || replyingElsewhere) {
     planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
+  } else if (replyFailed || replyStopped) {
+    planDisabledNote = PLAN_PANEL_COPY.unanswered;
   }
   const { setMessages } = chat;
   const addMessage = useCallback(
@@ -415,6 +434,7 @@ export function ChatView({
     return {
       listings,
       mockCommands: mockCommands.length > 0,
+      inQuest: projectId !== undefined,
       run: runCommand,
     };
   }, [mockCommands, planActions, projectId, runCommand]);
@@ -424,12 +444,6 @@ export function ChatView({
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
-  const lastSaved = initialMessages.at(-1);
-  const replyingElsewhere =
-    lastSaved !== undefined &&
-    awaitsReply(lastSaved) &&
-    stoppedReplyId === undefined &&
-    chat.status === "ready";
   useEffect(() => {
     if (!replyingElsewhere) {
       return;
@@ -466,13 +480,6 @@ export function ChatView({
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
   }
-  const shownError = refusal ?? chat.error;
-  const replyStopped =
-    stoppedReplyId !== undefined &&
-    shownError === undefined &&
-    chat.status === "ready" &&
-    chat.messages.at(-1)?.id === stoppedReplyId;
-
   const conversation = (
     <>
       {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}

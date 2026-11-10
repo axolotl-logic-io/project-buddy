@@ -18,6 +18,7 @@ import {
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { planVersionOpenTo, projectOpenTo } from "@/accounts/owner-scope.ts";
+import { chatAwaitsReply, noReplyAwaited } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
 import { chats, projects } from "@/db/tables/projects-and-chats.ts";
@@ -25,6 +26,7 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import {
   applyPlanOperations,
+  applyPlanUndo,
   EMPTY_PLAN,
   PLAN,
   PLAN_CHANGE_LINE,
@@ -57,9 +59,18 @@ interface PlanChange {
 }
 
 // Why an undo changed nothing, besides the reasons operations fail: the
-// change was undone already, or there is no such change to undo, such as an
-// undo itself.
-type PlanUndoFailure = "already-undone" | "no-such-change";
+// change was undone already, there is no such change to undo, such as an
+// undo itself, or everything it did was changed or removed since.
+type PlanUndoFailure = "already-undone" | "no-such-change" | "nothing-to-undo";
+
+// Why a person's change in an adventure saved nothing: the adventure's
+// newest message awaits a reply, as while one runs, or after one failed or
+// stopped. A plan message after it would end the conversation that reply,
+// a retry or "send again" answers (src/chats/store.ts, chatAwaitsReply).
+type PlanChatFailure = "awaiting-reply";
+
+// Why a change or an undo saved nothing.
+type PlanChangeFailure = PlanFailure | PlanUndoFailure | PlanChatFailure;
 
 // What a change or an undo did: the change it saved and the plan after it,
 // or why it saved nothing, with the plan as it is. Undefined, with nothing
@@ -73,7 +84,7 @@ type PlanChangeOutcome =
     }
   | {
       readonly kind: "failed";
-      readonly reason: PlanFailure | PlanUndoFailure;
+      readonly reason: PlanChangeFailure;
       readonly state: PlanState;
     }
   | undefined;
@@ -202,7 +213,9 @@ function chatInProject(projectId: ProjectId, chatId: ChatId): SQL {
 // Saves next as the version after its basedOn, and says whether it did. It
 // saves nothing if another change saved that version first, or the undo it
 // is undid that change already, or the project isn't open to the owner, or
-// the source's chat isn't in it.
+// the source's chat isn't in it, or, for a person's change, the chat's
+// newest message awaits a reply. The construct's own change is made while
+// its reply to that message runs.
 async function saveVersion(
   owner: UserId,
   source: PlanChangeSource,
@@ -216,6 +229,9 @@ async function saveVersion(
   const where: SQL[] = [eq(projects.id, projectId), projectOpenTo(owner)];
   if (chatId !== undefined) {
     where.push(chatInProject(projectId, chatId));
+    if (author === "person") {
+      where.push(noReplyAwaited(chatId));
+    }
   }
   const saved = await withAppErrors("changePlan", () =>
     getDb()
@@ -252,7 +268,7 @@ type Attempt =
   | { readonly kind: "save"; readonly next: NextVersion }
   | {
       readonly kind: "failed";
-      readonly reason: PlanFailure | PlanUndoFailure;
+      readonly reason: PlanChangeFailure;
     };
 
 // Works out a change from the newest plan and saves it on top, again from
@@ -288,9 +304,19 @@ async function saveChange(
       state: { version, plan: next.plan, undone: undoneAfter(state, next) },
     };
   }
-  // A chat outside the project saves nothing, however often it is tried.
-  if (tries === 0 && !(await chatIsInProject(owner, source))) {
-    return undefined;
+  // A chat outside the project saves nothing, however often it is tried,
+  // and nor does a person's change in a chat awaiting a reply.
+  if (tries === 0) {
+    if (!(await chatIsInProject(owner, source))) {
+      return undefined;
+    }
+    if (
+      source.author === "person" &&
+      source.chatId !== undefined &&
+      (await chatAwaitsReply(owner, source.chatId))
+    ) {
+      return { kind: "failed", reason: "awaiting-reply", state };
+    }
   }
   return saveChange(owner, source, attempt, tries + 1);
 }
@@ -367,8 +393,8 @@ async function readVersion(
 
 // Undoes the change saved as version of the owner's project's plan, as a new
 // version by the source's author that names it: the plan as it would be had
-// that change not been made, keeping the changes after it. An undo can't be
-// undone, and a change can be undone once.
+// that change not been made, keeping the changes after it (applyPlanUndo).
+// An undo can't be undone, and a change can be undone once.
 function undoPlanChange(
   owner: UserId,
   source: PlanChangeSource,
@@ -382,7 +408,10 @@ function undoPlanChange(
     if (state.undone.includes(version)) {
       return { kind: "failed", reason: "already-undone" };
     }
-    const outcome = applyPlanOperations(state.plan, undone.undo);
+    const outcome = applyPlanUndo(state.plan, undone);
+    if (outcome.kind === "failed" && outcome.reason === "unchanged") {
+      return { kind: "failed", reason: "nothing-to-undo" };
+    }
     if (outcome.kind === "failed") {
       return outcome;
     }
@@ -393,15 +422,17 @@ function undoPlanChange(
   });
 }
 
-// The newest change the owner made to their project's plan from the chat
-// that is still there to undo: not an undo, and not undone. Undefined if
-// there is none.
-async function latestUndoableChange(
+// The changes the owner made to their project's plan from the chat that
+// are still there to undo, newest first and at most most of them: not an
+// undo, and not undone. /undo tries them in turn, since an older one's undo
+// may apply where a newer one's has nothing left to undo.
+async function undoableChanges(
   owner: UserId,
   { projectId, chatId }: { projectId: ProjectId; chatId: ChatId },
-): Promise<number | undefined> {
+  most: number,
+): Promise<number[]> {
   const undoing = alias(planVersions, "undoing");
-  const [row] = await withAppErrors("undoPlanChange", () =>
+  const rows = await withAppErrors("undoPlanChange", () =>
     getDb()
       .select({ version: planVersions.version })
       .from(planVersions)
@@ -427,22 +458,17 @@ async function latestUndoableChange(
         ),
       )
       .orderBy(desc(planVersions.version))
-      .limit(1),
+      .limit(most),
   );
-  return row?.version;
+  return rows.map(({ version }) => version);
 }
 
 export type {
   PlanAuthor,
   PlanChange,
+  PlanChangeFailure,
   PlanChangeOutcome,
   PlanChangeSource,
   PlanUndoFailure,
 };
-export {
-  changePlan,
-  latestUndoableChange,
-  readPlan,
-  readPlanState,
-  undoPlanChange,
-};
+export { changePlan, readPlan, readPlanState, undoableChanges, undoPlanChange };

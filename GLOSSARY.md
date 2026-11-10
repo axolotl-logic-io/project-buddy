@@ -448,7 +448,7 @@ A note in an adventure that the construct or a person changed the quest's [plan]
 
 ### Command
 
-A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The plan commands keep the plan without a model call. With the mock model, its own `/mock-…` commands still go to it as messages.
+A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The plan commands keep the plan without a model call. With the mock model, its own `/mock-…` commands still go to it as messages. In a standalone adventure only the plan commands' names are commands, and they say they need a quest; any other "/word" message goes to the construct.
 
 - **UI:** "Commands", "/plan", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
 - **Avoid:** "slash command" in UI copy.

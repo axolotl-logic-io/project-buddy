@@ -155,6 +155,17 @@ interface WorkingPlan {
   nextNumber: number;
 }
 
+// How a batch treats what has changed since it was made. A change is strict:
+// a step it names that isn't there fails it. An undo keeps the changes made
+// after the change it undoes: an operation on a step since removed, or on a
+// text since edited again, is skipped, and a step moved before one since
+// removed goes to the end.
+type ApplyMode = "change" | "undo";
+
+// An operation as a batch applies it; an undo's change of text also carries
+// the text the change it undoes set, which it reverts only if still there.
+type AppliedOperation = PlanUndoOperation & { readonly expect?: string };
+
 function indexOf(steps: readonly PlanStep[], number: number): number {
   return steps.findIndex((step) => step.number === number);
 }
@@ -206,9 +217,6 @@ function addStep(
   before: number | undefined,
 ): StepOutcome {
   const { steps } = working;
-  if (!step.done && openCount(steps) >= MOST_OPEN_STEPS) {
-    return "too-many-steps";
-  }
   if (indexOf(steps, step.number) !== -1 || !insert(steps, step, before)) {
     return "missing-step";
   }
@@ -230,9 +238,6 @@ function setDone(
   }
   if (step.done === done) {
     return undefined;
-  }
-  if (!done && openCount(steps) >= MOST_OPEN_STEPS) {
-    return "too-many-steps";
   }
   steps[at] = { ...step, done };
   if (done) {
@@ -308,7 +313,20 @@ function removeStep(steps: PlanStep[], number: number): StepOutcome {
 
 function applyOne(
   working: WorkingPlan,
-  operation: PlanUndoOperation,
+  operation: AppliedOperation,
+  mode: ApplyMode,
+): StepOutcome {
+  const outcome = applyOperation(working, operation, mode);
+  if (mode === "undo" && outcome === "missing-step") {
+    return undefined;
+  }
+  return outcome;
+}
+
+function applyOperation(
+  working: WorkingPlan,
+  operation: AppliedOperation,
+  mode: ApplyMode,
 ): StepOutcome {
   const { steps } = working;
   switch (operation.op) {
@@ -332,13 +350,28 @@ function applyOne(
       return addStep(working, operation.step, before);
     }
     case "change":
+      if (
+        operation.expect !== undefined &&
+        textOf(steps, operation.step) !== operation.expect
+      ) {
+        return undefined;
+      }
       return changeText(steps, operation.step, operation.text);
     case "complete":
       return setDone(steps, operation.step, true);
     case "reopen":
       return setDone(steps, operation.step, false);
-    case "move":
-      return moveStep(steps, operation.step, operation.before);
+    case "move": {
+      let { before } = operation;
+      if (
+        mode === "undo" &&
+        before !== undefined &&
+        indexOf(steps, before) === -1
+      ) {
+        before = undefined;
+      }
+      return moveStep(steps, operation.step, before);
+    }
     case "remove":
       return removeStep(steps, operation.step);
     default:
@@ -346,15 +379,10 @@ function applyOne(
   }
 }
 
-// The plan with operations applied in order, all or none: what each one
-// that changed something did, and the operations that undo them. An
-// operation that would change nothing, such as completing a done step, is
-// skipped. Nothing changes if one names a step that isn't there, if the plan
-// would hold more than MOST_OPEN_STEPS open steps, or if none changes
-// anything.
-function applyPlanOperations(
+function applyBatch(
   plan: Plan,
-  operations: readonly PlanUndoOperation[],
+  operations: readonly AppliedOperation[],
+  mode: ApplyMode,
 ): PlanOutcome {
   const working: WorkingPlan = {
     steps: [...plan.steps],
@@ -363,7 +391,7 @@ function applyPlanOperations(
   const lines: PlanChangeLine[] = [];
   const undo: PlanUndoOperation[] = [];
   for (const operation of operations) {
-    const outcome = applyOne(working, operation);
+    const outcome = applyOne(working, operation, mode);
     if (typeof outcome === "string") {
       return { kind: "failed", reason: outcome };
     }
@@ -375,12 +403,56 @@ function applyPlanOperations(
   if (lines.length === 0) {
     return { kind: "failed", reason: "unchanged" };
   }
+  // The limit is on the plan the batch leaves, so a batch may add a step
+  // and remove another at the limit; a plan already over it, which only an
+  // older limit could leave, may still lose open steps.
+  const open = openCount(working.steps);
+  if (open > MOST_OPEN_STEPS && open > openCount(plan.steps)) {
+    return { kind: "failed", reason: "too-many-steps" };
+  }
   return {
     kind: "changed",
     plan: { steps: working.steps, nextNumber: working.nextNumber },
     lines,
     undo,
   };
+}
+
+// The plan with operations applied in order, all or none: what each one
+// that changed something did, and the operations that undo them. An
+// operation that would change nothing, such as completing a done step, is
+// skipped. Nothing changes if one names a step that isn't there, if the plan
+// it leaves would hold more than MOST_OPEN_STEPS open steps, or if none
+// changes anything.
+function applyPlanOperations(
+  plan: Plan,
+  operations: readonly PlanUndoOperation[],
+): PlanOutcome {
+  return applyBatch(plan, operations, "change");
+}
+
+// The plan with a saved change undone: its undo operations, which keep the
+// changes made since (ApplyMode). lines are what the change did, in order,
+// which its undo operations answer in reverse; each change of text is
+// reverted only while the step still has the text the change set. It fails
+// as applyPlanOperations does, and as "unchanged" when nothing the change
+// did is left to undo.
+function applyPlanUndo(
+  plan: Plan,
+  change: {
+    readonly undo: readonly PlanUndoOperation[];
+    readonly lines: readonly PlanChangeLine[];
+  },
+): PlanOutcome {
+  const { undo, lines } = change;
+  const operations = undo.map((operation, index): AppliedOperation => {
+    const line = lines.at(-1 - index);
+    if (operation.op === "change" && line?.kind === "change") {
+      return { ...operation, expect: line.text };
+    }
+    return operation;
+  });
+  return applyBatch(plan, operations, "undo");
 }
 
 // The plan's open steps, in order.
@@ -456,6 +528,7 @@ export type {
 };
 export {
   applyPlanOperations,
+  applyPlanUndo,
   doneSteps,
   EMPTY_PLAN,
   MOST_OPEN_STEPS,

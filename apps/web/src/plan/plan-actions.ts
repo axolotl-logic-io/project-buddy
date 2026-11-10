@@ -11,7 +11,12 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, withAuthor } from "@/chats/message-author.ts";
-import { getChat, readMessageAuthor, savePlanMessage } from "@/chats/store.ts";
+import {
+  chatAwaitsReply,
+  getChat,
+  readMessageAuthor,
+  savePlanMessage,
+} from "@/chats/store.ts";
 import {
   CHAT_ID,
   type ChatId,
@@ -22,7 +27,6 @@ import {
 import {
   PLAN_OPERATION,
   type PlanChangeLine,
-  type PlanFailure,
   type PlanState,
   type PlanUndoOperation,
 } from "@/plan/plan.ts";
@@ -30,16 +34,20 @@ import { parsePlanCommand } from "@/plan/plan-commands.ts";
 import { planCardMessage, planChangeMessage } from "@/plan/plan-message.ts";
 import {
   changePlan,
-  latestUndoableChange,
+  type PlanChangeFailure,
   type PlanChangeOutcome,
-  type PlanUndoFailure,
   readPlanState,
+  undoableChanges,
   undoPlanChange,
 } from "@/plan/plan-store.ts";
 import { CHAT_COMMANDS_COPY } from "@/ui/copy/plan.ts";
 
 // The most operations one request may make, as many as the construct's.
 const MOST_OPERATIONS = 40;
+
+// How many of the user's changes in an adventure /undo looks back through
+// for one with something left to undo.
+const MOST_UNDO_TRIES = 10;
 
 // The longest command text read; a longer one can't be a valid command.
 const MOST_COMMAND_LENGTH = 2000;
@@ -81,7 +89,7 @@ type PlanActionResult =
     }
   | {
       readonly kind: "failed";
-      readonly reason: PlanFailure | PlanUndoFailure;
+      readonly reason: PlanChangeFailure;
       readonly state: PlanState;
     }
   | { readonly kind: "problem"; readonly text: string }
@@ -224,29 +232,57 @@ async function showPlan(
   return { kind: "shown", state, message };
 }
 
+// Undoes the user's newest change in the adventure that has something left
+// to undo: a newer one whose steps were all changed or removed since is
+// passed over, so /undo never sticks on it.
 async function undoLatest(
   user: UserId,
   chat: Chat,
   projectId: ProjectId,
   command: string,
 ): Promise<PlanActionResult> {
-  const version = await latestUndoableChange(user, {
-    projectId,
-    chatId: chat.id,
-  });
+  const versions = await undoableChanges(
+    user,
+    { projectId, chatId: chat.id },
+    MOST_UNDO_TRIES,
+  );
+  const outcome = await undoFirstOf(user, chat, projectId, versions);
+  if (outcome !== "none") {
+    return answer(user, chat.id, outcome, command);
+  }
+  const state = await readPlanState(user, projectId);
+  if (state === undefined) {
+    return NOT_FOUND;
+  }
+  return { kind: "failed", reason: "no-such-change", state };
+}
+
+// Undoes the first of versions, newest first, that has something left to
+// undo; "none" if none has. They are tried in turn, not at once, so only
+// one is undone.
+async function undoFirstOf(
+  user: UserId,
+  chat: Chat,
+  projectId: ProjectId,
+  versions: readonly number[],
+): Promise<PlanChangeOutcome | "none"> {
+  const [version, ...older] = versions;
   if (version === undefined) {
-    const state = await readPlanState(user, projectId);
-    if (state === undefined) {
-      return NOT_FOUND;
-    }
-    return { kind: "failed", reason: "no-such-change", state };
+    return "none";
   }
   const outcome = await undoPlanChange(
     user,
     { projectId, chatId: chat.id, author: "person" },
     version,
   );
-  return answer(user, chat.id, outcome, command);
+  if (
+    outcome?.kind === "failed" &&
+    (outcome.reason === "nothing-to-undo" ||
+      outcome.reason === "already-undone")
+  ) {
+    return undoFirstOf(user, chat, projectId, older);
+  }
+  return outcome;
 }
 
 // The command's operations, run as a change from the chat.
@@ -297,6 +333,11 @@ async function runChatCommandAction(
   const state = await readPlanState(user.id, projectId);
   if (state === undefined) {
     return NOT_FOUND;
+  }
+  // Every plan command saves a message to the adventure, which must not
+  // come between a message and the reply it awaits.
+  if (await chatAwaitsReply(user.id, chat.id)) {
+    return { kind: "failed", reason: "awaiting-reply", state };
   }
   const planCommand = parsePlanCommand(text, state.plan);
   switch (planCommand.kind) {

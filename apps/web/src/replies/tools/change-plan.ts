@@ -2,6 +2,7 @@
 // it is changed in.
 import { tool } from "ai";
 import { AppError } from "@/errors/app-error.ts";
+import type { PlanFailure } from "@/plan/plan.ts";
 import { changePlan } from "@/plan/plan-store.ts";
 import {
   CHANGE_PLAN_DESCRIPTION,
@@ -43,9 +44,12 @@ async function changeChatPlan(
     );
   }
   if (outcome.kind === "failed") {
-    let { reason } = outcome;
-    if (reason === "already-undone" || reason === "no-such-change") {
-      reason = "unchanged";
+    // The construct's changes are no undos and wait for no reply, so any
+    // other reason reads as the plan unchanged.
+    const { reason: found } = outcome;
+    let reason: PlanFailure = "unchanged";
+    if (found === "missing-step" || found === "too-many-steps") {
+      reason = found;
     }
     return { status: "not-changed", reason, plan: outcome.state.plan };
   }

@@ -17,6 +17,9 @@ interface ChatCommands {
   // Whether the mock model runs, so its own `/mock-…` commands go to it as
   // messages.
   readonly mockCommands: boolean;
+  // Whether the adventure is in a quest; outside one, only the plan
+  // commands' names run as commands (isChatCommand).
+  readonly inQuest: boolean;
   // Runs the command and answers with why it did nothing, or undefined once
   // it ran.
   readonly run: (text: string) => Promise<string | undefined>;
