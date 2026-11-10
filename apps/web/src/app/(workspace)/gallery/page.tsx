@@ -18,6 +18,10 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 const CURSOR = z.object({ before: z.iso.datetime(), beforeId: GENERATION_ID });
 const metadata: Metadata = { title: GENERATION_COPY.title };
 
+// A failed generation shows the alert icon; one that may still finish, the
+// image icon, where its picture would be.
+const STATUS_ICONS = { pending: "image", failed: "alert" } as const;
+
 async function GalleryPage({
   searchParams,
 }: {
@@ -58,7 +62,7 @@ async function GalleryPage({
               <>
                 <p className="break-words text-muted text-sm">{image.prompt}</p>
                 <p className="icon-line text-sm" role="status">
-                  <Icon name="image" />
+                  <Icon name={STATUS_ICONS[image.status]} />
                   <span>{GENERATION_COPY[image.status]}</span>
                 </p>
               </>

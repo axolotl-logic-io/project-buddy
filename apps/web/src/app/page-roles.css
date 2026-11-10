@@ -507,14 +507,14 @@
   }
 
   /* The quest an activity's card offers, set off below the card's own
-     actions. The card takes a whole grid row, so its neighbour isn't
-     stretched to match. */
+     actions. Its list keeps each card's own height, so the offer doesn't
+     stretch the card beside it into an empty box. */
   .activity-quest-entry {
     @apply flex flex-col items-start gap-3 border-line border-t pt-3;
   }
 
-  .card:has(> .activity-quest-entry) {
-    grid-column: 1 / -1;
+  ul:has(> .card > .activity-quest-entry) {
+    @apply items-start;
   }
 
   /* A card that is one link, such as a project in the list: the card's one
