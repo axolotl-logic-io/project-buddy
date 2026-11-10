@@ -2,7 +2,6 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
-import { Button } from "@/components/ui/button.tsx";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { ActivityLists } from "../activities/activity-lists.tsx";
@@ -21,25 +20,26 @@ function workshopPath(kind: PromptKind): Route {
   return `/workshop?kind=${kind}`;
 }
 
-// A link to each kind's tab, the shown one marked.
+// A link to each kind's tab, the shown one marked, styled as the site's
+// other tabs.
 function KindTabs({ shown }: { readonly shown: PromptKind }): JSX.Element {
   return (
     <nav aria-label={WORKSHOP_PAGE_COPY.kindsLabel}>
-      <ul className="flex flex-wrap gap-2">
+      <ul className="workspace-tablist border-line border-b">
         {PROMPT_KINDS.map((kind) => {
           let current: "page" | undefined;
-          let variant: "secondary" | "quiet" = "quiet";
           if (kind === shown) {
             current = "page";
-            variant = "secondary";
           }
           return (
             <li key={kind}>
-              <Button asChild={true} variant={variant}>
-                <Link aria-current={current} href={workshopPath(kind)}>
-                  {WORKSHOP_PAGE_COPY.kinds[kind]}
-                </Link>
-              </Button>
+              <Link
+                aria-current={current}
+                className="workspace-tab"
+                href={workshopPath(kind)}
+              >
+                {WORKSHOP_PAGE_COPY.kinds[kind]}
+              </Link>
             </li>
           );
         })}
