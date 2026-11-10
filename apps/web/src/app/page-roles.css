@@ -134,6 +134,13 @@
     @apply grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4;
   }
 
+  /* With nothing to say, it leaves the flow, as an empty .notice does, so
+     it adds no gap to the column around it; its empty status region stays
+     mounted for announcements. */
+  .quest-status-feedback:has(> .notice:empty) {
+    @apply absolute;
+  }
+
   .quests-index .quest-status-feedback:has(> .notice:not(:empty)) {
     @apply px-4 pb-4 sm:px-6;
   }
