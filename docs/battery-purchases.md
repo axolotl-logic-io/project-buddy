@@ -1,7 +1,6 @@
 # Battery purchases
 
-When a valid isolated test catalog is available, Account offers **Buy batteries** at `/account?section=batteries#buy-batteries`. Each server-controlled offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. Battery grants never change historical Marketplace accounting.
-
+When a valid isolated test catalog is available, Settings offers **Buy batteries** at `/settings?section=batteries#buy-batteries`. Each server-controlled offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. Battery grants never change historical Marketplace accounting.
 When Checkout is unavailable, model-use shortage messages explain that purchases are unavailable. They offer no dead-end purchase link or earning fallback. The Library should describe actual availability and label purchases as test-only until launch approval.
 
 ## Launch status
@@ -32,7 +31,7 @@ The authenticated Server Action accepts only a catalog package identifier. It ve
 
 The purchase row doubles as the fulfillment ledger: the row lock, balance adjustment and fulfillment references commit in one database transaction. Unique session and payment identifiers prevent reuse. Existing internal `gold` balance names and conversion rates remain unchanged. The separate ledger keeps the old live build's legacy ledger parser compatible during rollout.
 
-A success redirect means pending confirmation. A cancellation redirect means Checkout was closed; it does not prove a payment failed. A failed card stays in Checkout for retry and grants nothing. Abandoned sessions remain pending until Stripe expires them. Account refresh reads the confirmed balance and purchase history.
+A success redirect means pending confirmation. A cancellation redirect means Checkout was closed; it does not prove a payment failed. A failed card stays in Checkout for retry and grants nothing. Abandoned sessions remain pending until Stripe expires them. Settings refresh reads the confirmed balance and purchase history.
 
 ## Refunds and disputes
 

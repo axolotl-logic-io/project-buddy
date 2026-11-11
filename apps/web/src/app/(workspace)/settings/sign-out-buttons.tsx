@@ -21,6 +21,12 @@ export function SignOutButtons(): JSX.Element {
         </Button>
       </form>
       <form action={signOutEverywhereAction} ref={everywhereFormRef}>
+        <noscript>
+          <p>{ACCOUNT_COPY.signOutEverywhereDescription}</p>
+          <Button type="submit" variant="secondary">
+            {ACCOUNT_COPY.signOutEverywhere}
+          </Button>
+        </noscript>
         <ConfirmDialog
           cancelLabel={ACCOUNT_COPY.stay}
           confirmLabel={ACCOUNT_COPY.signOutEverywhere}

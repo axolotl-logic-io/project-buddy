@@ -7,7 +7,7 @@ The conventions for these cases are in [the index](README.md#conventions). Who m
 An admin invites one email address from the signed-in site.
 
 - **Prerequisites:** The designated account, `me@modestprogress.com`, is provisioned or promoted by migration and proves ownership through normal email sign-in. Other accounts remain ordinary users with unchanged data.
-- **Steps:** From Account, the admin opens Invitations, enters an email address, and sends.
+- **Steps:** From Settings, the admin opens Invitations, enters an email address, and sends.
 - **Outcome:** The address receives a direct setup link, fixed to that normalized address, which never expires. The admin sees confirmation only after storage and the email service accept the send. No recipient account or session exists yet. A successful resend replaces the previous unaccepted link. An empty or malformed address is refused without an invitation or email. Storage or delivery failure is reported and can be retried; a failed delivery leaves the previous invitation usable. Existing accounts receive normal login links instead.
 - **Send limits:** Each admin can send 20 invitations per hour. A normalized recipient can receive one admin send per minute across all admins, whether they are a new or existing account. Refusal explains the limit and sends no email. These limits do not use up public sign-in allowances, and public requests do not use up invitation allowances. A failed send frees its budget slot and recipient cooldown so the admin can retry immediately. Concurrent submissions cannot bypass either limit.
 - **Access:** Ordinary users have no invitation link and cannot open or submit the page. Signed-out, expired and revoked sessions must sign in first. Refused requests send no email and issue no invitation. The admin role grants no access to anyone else's private data.
@@ -115,9 +115,9 @@ The user checks how many Batteries they have left.
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - They read their Batteries balance in the shared header, including Quests, without opening a menu.
-  - They open Account and select Batteries to see the same balance and its explanation. Profile holds the name form; Security holds Sign out and Sign out everywhere. Checkout return links select Batteries. Loading and failed balance states still offer sign-out.
+  - They open Settings and go to Batteries to see the same balance and its explanation. Profile holds the name form; Security holds Sign out and Sign out everywhere. Checkout return links reach Batteries. Loading and failed balance states still offer sign-out.
   - They send an adventure message and wait for its reply and accounting to finish.
-- **Outcome:** the header shows the viewing user's own Batteries,. Account and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including construct image generation. Checking a recovered image generation updates any reserved or settled balance. Account shows the number large, under a small "Batteries" label. The header shows a battery and the number on one line, which screen readers read as "Batteries: 100". An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
+- **Outcome:** the header shows the viewing user's own Batteries. Settings and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including construct image generation. Checking a recovered image generation updates any reserved or settled balance. Settings shows the number large, under a small "Batteries" label. The header shows a battery and the number on one line, which screen readers read as "Batteries: 100". An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
 - **Adventure replies:** the acting user's balance appears near the composer. Actual fractional battery costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
 - **Next:**
   - `use_case_out_of_gold`: they spend their last Batteries.
@@ -129,7 +129,7 @@ The user tells the construct what to call her, so a construct that says `{{name}
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - On her account page’s Profile tab, under "Your name", she types her name, such as "Mabel", and saves.
+  - On Settings, under Profile, under "Your name", she types her name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows her name, also after a reload.
   - She adventures in a construct of her own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](constructs.md#use_case_edit_construct)).
 - **Outcome:** her name is saved trimmed, and the construct's system prompt says "Hi Mabel" wherever the construct's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new adventure's opening. The construct itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
@@ -150,7 +150,7 @@ The user has spent all her batteries.
   - She sends another message.
   - Instead of a reply, the adventure says "You're out of batteries."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, her account page shows 0 under "Batteries", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation is refused too. With a valid isolated test catalog, model-use shortage messages link to Account. Otherwise they explain that purchases are unavailable. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, Settings shows 0 under "Batteries", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation is refused too. With a valid isolated test catalog, model-use shortage messages link to Settings. Otherwise they explain that purchases are unavailable. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her batteries.
 
@@ -160,7 +160,7 @@ The user signs out of the browser she is using.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - On her account page, she chooses Sign out.
+  - On Settings, she chooses Sign out.
   - The site shows the sign-in page.
 - **Outcome:** every page in this browser shows the sign-in page until she signs in again. Her other browsers and devices stay signed in. A sign-in link from the last 30 minutes still signs her in.
 - **Next:**
@@ -173,7 +173,7 @@ The user signs out of every browser and device at once, for example after signin
 
 - **Prerequisites:** `use_case_sign_in_by_link`, in two browsers.
 - **Steps:**
-  - On her account page in one browser, she chooses Sign out everywhere.
+  - On Settings in one browser, she chooses Sign out everywhere.
   - The site asks her to confirm. She confirms.
   - The site shows the sign-in page.
   - In the other browser, she opens a page.
@@ -187,9 +187,9 @@ The signed-in user buys batteries for model use through Stripe-hosted Checkout.
 
 - **Prerequisites:** a configured test-mode catalog; live purchases are unavailable pending approved pricing, tax and refund terms.
 - **Steps:**
-  - In Account, the user reviews a package's battery amount and price with its currency.
+  - In Settings, the user reviews a package's battery amount and price with its currency.
   - The user continues to Stripe Checkout and pays using Stripe test mode.
   - Stripe confirms the payment to the site, even if the user closes Checkout.
-  - The user refreshes payment status in Account.
-- **Outcome:** the buyer's balance increases by the configured amount once. Account shows the fulfilled purchase with its price and currency. Browser redirects grant nothing. Model-use rates do not change. The grant changes only the Batteries balance.
+  - The user refreshes payment status in Settings.
+- **Outcome:** the buyer's balance increases by the configured amount once. Settings shows the fulfilled purchase with its price and currency. Browser redirects grant nothing. Model-use rates do not change. The grant changes only the Batteries balance.
 - **Variations:** unpaid, failed and expired sessions grant nothing. Closing Checkout shows a cancellation notice without claiming a payment failed. Duplicate and concurrent events grant once. After a storage failure, replaying the Stripe event completes the same grant safely.

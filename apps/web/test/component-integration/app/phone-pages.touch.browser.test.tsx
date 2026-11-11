@@ -174,7 +174,7 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   resetConstructPromptAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/account/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
   setNameAction: vi.fn(),
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
@@ -340,7 +340,7 @@ describe("use_case_use_on_phone", () => {
 vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));
-vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/interview-construct-action.ts", () => ({
   setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
 }));
 
