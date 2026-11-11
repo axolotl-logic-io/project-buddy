@@ -13,7 +13,6 @@ interface FieldCopy {
 export const SPELLBOOK_COPY = {
   title: pageTitle("Spellbook"),
   headerLink: "Spellbook",
-  homeLink: "Home",
   heading: "Spellbook",
   intro:
     "A spell is a set of instructions your construct casts when it fits what you need. Every conversation lists your spells by name and when to use them; a spell's instructions reach your construct only in the conversations that cast it.",

@@ -8,7 +8,7 @@ The user makes, customizes, tweaks or clones a construct, activity or spell from
 
 - **Prerequisites:** a signed-in account.
 - **Steps:**
-  - Open Workshop from Home. It shows Constructs first.
+  - Open Workshop from the menu. It shows Constructs first.
   - Each construct also offers “Adventure with [construct name]”, with the same visible label and accessible name, to open the New adventure modal with that construct fixed. Closing it creates nothing.
   - Choose Activities or Spells to show that kind instead.
   - Choose Craft construct, Craft activity or Craft spell to make one without copying another, Customize on a built-in one, or Tweak or Clone on an own one.
