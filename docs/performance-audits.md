@@ -10,6 +10,8 @@ The original captures measured `242e3a1` and `9a8ab46`. Their checked-in recipes
 
 ## Run a local audit
 
+For the simplified app, first read [the matrix migration limitation](#simplified-app-diagnostic-scope). The complete historical matrix is not yet compatible with its current routes and controls.
+
 From `apps/web`, provision this worktree's manual environment with `npm run test-env:init` and start its local database/proxy with `npm run test-db:up`. Use only the isolated synthetic/mock environment. Commit the source changes before capture so the recorded source and build are reviewable. Supply the pinned Chrome for Testing 156.0.8078.4 executable; a different browser version fails preflight.
 
 ```sh
@@ -103,3 +105,7 @@ A lower five-second script total does not establish a smaller initial payload. L
 `networkResources` records completed CDP requests with a categorical path, method, resource type, finite timing/byte/status values, failure flag, known-prefetch flag and initiator category (`parser`, `script`, `preload`, `other`). Request IDs, raw URLs, headers and initiator stacks are never exported. Initiator categories come from each request, not a URL-only association. Timing is normalized to the document time origin; startup buckets include only requests begun and completed in the fixed five-second window.
 
 Network script buckets separate early parser, preload, script dependency and unattributed work from late scripts. Early means request start at or before primary-content presence; it does not prove essential work. Late requests may still be required: timing and initiator categories are not a causal dependency graph. Known prefetch and failed requests stay separate. Client windows exclude prior source requests, but a late background request can still originate from the source graph. Historical artifacts without CDP attribution remain unavailable for these buckets, rather than being reported as zero. Do not pool Resource Timing transfer sizes with CDP encoded-byte counts.
+
+## Simplified-app diagnostic scope
+
+The archived full command's route/control matrix predates the removal of Home, Adventures and the main-content Workshop dialog. Do not treat that matrix as current-app acceptance evidence. The [current quest and Workshop investigation](performance/819/current/README.md) supplies focused recipes, separate source/build provenance and retained failures. Migrating the maintained full matrix remains necessary before another complete current-app audit.
