@@ -1,5 +1,5 @@
 // Rows of the chats and messages tables, as the chat stores read and write
-// them. Reads check what the columns cannot: a chat's construct and name. A chat
+// them. Reads check what the columns cannot: a chat's construct. A chat
 // is in a project, a project chat, or in none, a standalone chat; both are
 // one type, Chat, whose project is undefined in a standalone chat.
 import type { UIMessage } from "ai";
@@ -14,8 +14,6 @@ import {
   sql,
 } from "drizzle-orm";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
-import { unreadFor } from "@/chats/unread-marks.ts";
 import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   type ConstructId,
@@ -50,13 +48,6 @@ interface Chat {
   // The construct as it was when the chat started.
   readonly construct: ConstructSnapshot;
   readonly createdAt: Date;
-  // Undefined until Claude Haiku or she first names the chat.
-  readonly name: ChatName | undefined;
-  // Whether she has renamed the chat, after which Haiku never renames it.
-  readonly renamedByHand: boolean;
-  // Whether the user reading it hasn't opened the chat yet, as with a new
-  // check-in: that user's own mark, which another user's opening leaves.
-  readonly unread: boolean;
 }
 
 // A chat known to be in a project, such as one of a project's chats.
@@ -65,11 +56,10 @@ type ProjectChat = Chat & { readonly project: ChatProject };
 type ChatRow = typeof chats.$inferSelect;
 
 // A chats row with its project's name, which is null for a standalone chat,
-// and whether it is unread for the user reading it (chatColumnsFor).
+// and its current activity's name (chatColumnsFor).
 type ChatRowWithProject = ChatRow & {
   readonly projectName: string | null;
   readonly activityName?: string | null;
-  readonly unread: boolean;
 };
 
 // A message to save as it is, with an id from the AI SDK.
@@ -137,8 +127,7 @@ function toProject({
 
 // Rows, with their projects' columns, as chats. A row that is not a chat
 // (toProject), or whose id is not a UUID, though the uuid column never
-// holds one, is skipped. A stored name that is not a chat name, which only
-// a hand-edited row could hold, reads as no name.
+// holds one, is skipped.
 function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
   return rows.flatMap((row) => {
     const id = parseChatId(row.id);
@@ -152,26 +141,19 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
         activityName: row.activityName ?? undefined,
         project: place.project,
         construct: toConstruct(row),
-        name: parseChatName(row.name ?? ""),
-        renamedByHand: row.renamedByHand,
-        unread: row.unread,
         createdAt: row.createdAt,
       },
     ];
   });
 }
 
-// The columns a chat is read from, by viewer: its row, with unread as
-// viewer's own mark (unread-marks.ts).
-function chatColumnsFor(viewer: UserId): ReturnType<
-  typeof getTableColumns<typeof chats>
-> & {
-  readonly unread: SQL.Aliased<boolean>;
+// The columns a chat is read from: its row, with its current activity's
+// name.
+function chatColumnsFor(): ReturnType<typeof getTableColumns<typeof chats>> & {
   readonly activityName: SQL.Aliased<string | null>;
 } {
   return {
     ...getTableColumns(chats),
-    unread: unreadFor(viewer),
     activityName: sql<string | null>`(select ${activitySessions.activityName}
       from ${activitySessions} where ${activitySessions.chatId} = ${chats.id}
       order by ${activitySessions.createdAt} desc, ${activitySessions.id} desc limit 1)`.as(
@@ -180,14 +162,14 @@ function chatColumnsFor(viewer: UserId): ReturnType<
   };
 }
 
-// The columns a chat is read from by viewer (chatColumnsFor) and its
+// The columns a chat is read from (chatColumnsFor) and its
 // project's name, which a left join of projects on chats.project_id gives,
 // null in a standalone chat. The join only reads the project's columns;
-// chatOpenTo is what keeps a chat open to viewer.
-function chatWithProjectColumns(viewer: UserId): {
+// chatOpenTo is what keeps a chat open to its reader.
+function chatWithProjectColumns(): {
   readonly projectName: typeof projects.name;
 } & ReturnType<typeof chatColumnsFor> {
-  return { ...chatColumnsFor(viewer), projectName: projects.name };
+  return { ...chatColumnsFor(), projectName: projects.name };
 }
 
 // Whether the chat is in a project.
@@ -272,7 +254,6 @@ export type {
   ProjectChat,
 };
 export {
-  chatColumnsFor,
   chatWithProjectColumns,
   isProjectChat,
   messageColumns,

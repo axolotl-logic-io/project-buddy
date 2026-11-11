@@ -1,14 +1,14 @@
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { BatteryPurchases } from "@/app/(workspace)/account/battery-purchases.tsx";
+import { BatteryPurchases } from "@/app/(workspace)/settings/battery-purchases.tsx";
 import {
   BatteryPurchasesAvailable,
   EarnGoldLink,
 } from "@/components/earn-gold-link.tsx";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 
-vi.mock("@/app/(workspace)/account/battery-actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/battery-actions.ts", () => ({
   buyBatteries: vi.fn(),
   refreshBatteryPayments: vi.fn(),
 }));
@@ -59,7 +59,7 @@ test("closed Checkout does not claim a paid purchase failed", async () => {
     .toHaveTextContent(BATTERY_PURCHASES_COPY.canceled);
 });
 
-test("out of batteries links to Account purchase guidance", async () => {
+test("out of batteries links to Settings purchase guidance", async () => {
   await render(
     <BatteryPurchasesAvailable available={true}>
       <EarnGoldLink />
@@ -67,7 +67,7 @@ test("out of batteries links to Account purchase guidance", async () => {
   );
   await expect
     .element(page.getByRole("link", { name: BATTERY_PURCHASES_COPY.heading }))
-    .toHaveAttribute("href", "/account?section=batteries#buy-batteries");
+    .toHaveAttribute("href", "/settings?section=batteries#buy-batteries");
 });
 
 test("disabled purchases explain availability without a purchase or earning link", async () => {

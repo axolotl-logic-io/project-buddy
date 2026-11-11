@@ -8,7 +8,7 @@ The [planned API glossary](../GLOSSARY.md#api-access-planned) defines client, ex
 
 The site and a future API must use the same quests, adventures, Journal and other records. A connection belongs to one user and narrows that acting user's current access. It grants neither quest membership nor ownership. An external agent is calling software, not a construct or a separate participant.
 
-Issue #684 says a quest starts with an interview. Current [adventure behavior](chats.md#activities) retires Quest interview from new choices and maps older interview requests to Project Breakdown. New-adventure forms choose activity and construct independently of whether they start in no quest, an existing quest or a new quest. Quest creation defaults to Project Breakdown.
+Issue #684 says a quest starts with an interview. Current [conversation behavior](chats.md#activities-and-constructs) retires Quest interview from new choices and maps older interview requests to Project Breakdown. Activities and Constructs start a quest through the shared quest start, with their choice preset. Quest creation defaults to Project Breakdown.
 
 Motivation seeds the Journal; generated openings acknowledge it. See `src/chats/start-chat.ts` and the [quest use cases](../apps/web/use-cases/projects.md).
 
@@ -43,7 +43,6 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 | Offer a new quest from any adventure; edit and confirm the summary | Deferred | Undecided | M for the offer, Conditional for creation. Needs an explicit confirmation contract and interview reconciliation; disable the corresponding reply tool initially. |
 | Read current Journal, version list and a version's text | Exposed | `journal:read` | D. Prioritize context without requesting a reply or exposing prompt context. |
 | Edit Journal; restore an earlier version as a new version | Exposed | `journal:write` | D. Preserve version authorship and reject stale base versions. |
-| List, save and delete Quick Notes | Exposed | `journal:read` (list), `journal:write` (save/delete) | D. Notes are in the same Journal; append/delete creates a version. Do not invent a separate API note store or stable note id without a contract decision. |
 | Read progress timeline; edit/delete an existing milestone | Exposed | `milestones:read`, `milestones:write` | D. Shared validation and current access rules; edits preserve milestone date and source adventure. |
 | Record a milestone through a construct reply | Exposed | `adventures:reply` and `milestones:write` | M for reply. Record only real achievements under existing rules; unavailable in standalone adventures. Direct new-milestone creation is deferred because the app records through the construct. |
 | List available constructs, activities and spells; read safe selection metadata | Exposed | `definitions:read` | D. Select from built-in and acting user's available definitions. Availability is distinct from permission to read instructions. |
@@ -52,22 +51,19 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 | Workshop drafts and test conversations | Deferred | Undecided | M for test replies; no saved adventure. Separate draft and accounting contract needed. |
 | Read construct profile/artwork; generate or restore construct visuals | Deferred | Undecided | Reads/restore are D, generation is M. Asset rights and payer/private-generation metadata need a dedicated contract. |
 | Cast spells; search and cite the Blender manual during a reply | Exposed through reply only | `adventures:reply` | M for reply; tool effects remain restricted below. Cast instructions are model-only, not automatically API-readable. Direct spell execution/manual search endpoints are deferred. |
-| Read team membership; invite, revoke invitation, join, decline, remove member or leave | Deferred | Undecided | D. Existing team access applies immediately to every exposed operation, but management and email privacy/rate limits need separate design. |
-| Read check-in frequency/unread state, open a check-in, mark own unread state read | Exposed | `quests:read`, `adventures:read`; `adventures:write` for mark-read | D. Read does not schedule or generate a check-in. Site opening clears the acting user's unread state; whether an API read does the same or needs an explicit mark-read operation remains unresolved. Never clear another user's unread state. |
-| Change check-in frequency; turn off from an email; run scheduled check-ins | Deferred (preferences); Site-only (email link and scheduler) | Undecided | Settings are D; check-in generation is M and uses quest owner's accounting. No client-triggered scheduler endpoint. |
+| Read team membership; invite, revoke invitation, join, decline, remove member or leave | Removed | None | Team quests were removed in #907; every quest is its owner's alone. |
 | Upload image attachments and include them in user messages | Deferred | Undecided | Upload is D; requesting a reply about an image is M. The site allows up to four JPEG, PNG, GIF or WebP attachments per message, each at most 2 MiB (`src/images/image-contract.ts`, `src/replies/chat-protocol.ts`; [image attachment use case](../apps/web/use-cases/chats.md#use_case_chat_images)). API upload permission, private storage/delivery, retention/cleanup and limits need a contract. This deferral does not remove existing safe image references from readable messages. |
 | Read image gallery, view/download/delete an adventure image; request image generation | Deferred | Undecided | Read/delete are D, generation is M. Existing messages can retain safe image references; no grant to private generation inputs, payer costs or separate generation operations. |
-| Browse Marketplace listings, prices and seller display names; buy/get free; list, update or unlist | Deferred | Undecided | D with respect to models; buys can transfer Marketplace orbs after #779. Financial authorization, atomic ownership transfer and retry rules need separate approval. Listing browse never reveals prompts or seller email. |
 | Read own model-use availability and operation usage result | Exposed | `usage:read` | D. Clients need actionable insufficient-availability results. Final names and fields follow Batteries, with no Marketplace orbs authority implied. |
 | Transfer, grant or buy balances; read transaction history | Deferred | Undecided | No model call implied. Expose no new commercial policy or administrative balance capability; reconcile supported operations with #779/#782. |
 | Site sign-up/invitations, sign-in links, sign-out, Sign out everywhere; API authorization consent and connection revocation | Site-only browser workflows; connection lifecycle required for API launch | No domain operation permission | D. Reuse current sign-in limits; connections remain distinct from site sessions. Lifecycle semantics below require decisions. |
-| Account name, New quest construct, notification preferences and other account/settings changes | Deferred | Undecided | D. Keep initial domain access small; own-account access never grants admin invitation authority. |
-| Appearance, hidden extras, installed app, device push registration, Home atlas and navigation | Site-only | None | D. Device and presentation behavior, with no proposed command equivalent. Underlying quest/adventure data comes from exposed reads. |
+| Account name, New quest construct, other account/settings changes | Deferred | Undecided | D. Keep initial domain access small; own-account access never grants admin invitation authority. |
+| Appearance, installed app, navigation | Site-only | None | D. Device and presentation behavior, with no proposed command equivalent. Underlying quest/adventure data comes from exposed reads. |
 | Site setup, manual reindex and operational maintenance | Site-only | None | Administrative operations are outside a user's API connection. |
 
 ## Proposed reply tool restrictions
 
-`src/replies/tools/index.ts` currently selects tools by quest presence, not API connection permission. `create_project` is available in every adventure; only `update_memory`, `record_milestone` and `request_quest_status` require a quest.
+`src/replies/tools/index.ts` currently selects tools by quest presence, not API connection permission. `create_project` is available only in Chat, where it offers Turn Chat into a quest and creates nothing; only `update_memory`, `record_milestone` and `request_quest_status` require a quest.
 
 API support needs a shared authorization boundary that supplies the intersection of operation permissions, connection restrictions and current acting-user access. Filter the tools advertised to the model and enforce permission again where each effect executes. A prompt or a spell cannot widen that authority. Recheck current access on later requests and tool writes; removed members must not keep access through a running client's cached authorization.
 
@@ -91,10 +87,10 @@ Paths below are relative to `apps/web/`. They identify reuse/extraction candidat
 | Behavior | Existing domain boundary and work to assess before implementation |
 | --- | --- |
 | Acting-user access | `src/accounts/owner-scope.ts`; retain owned/open predicates, including team access. Add connection permission checks without replacing those predicates. Foreign or inaccessible records remain indistinguishable from missing. |
-| Quest and adventure starts | `src/projects/store.ts`, `src/chats/start-chat.ts`, `src/chats/new-chat-store.ts`; share name/selection validation and atomic creation. Reconcile first-adventure requirements before exposing. |
+| Quest starts | `src/projects/store.ts`, `src/conversations/start-quest.ts`, `src/chats/new-chat-store.ts`; share name/selection validation and atomic creation. |
 | Messages, replies and stop | `src/chats/store.ts`, `src/replies/reply.ts`, `src/replies/stop-reply-action.ts`, `src/replies/tools/index.ts`; extract session/transport orchestration where necessary. Reuse run persistence and authorization rather than starting an independent harness. |
-| Openings and automatic names | `src/replies/chat-opening.ts`, `src/replies/chat-naming.ts`; prepared openings avoid calls, generated openings and automatic names do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
-| Journal and Quick Notes | `src/memory/memory-store.ts`, `src/notes/note-store.ts`; preserve version-based edits/restores and append/delete semantics under concurrency. |
+| Openings | `src/replies/chat-opening.ts`; prepared openings avoid calls, generated openings do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
+| Journal | `src/memory/memory-store.ts`; preserve version-based edits and restores under concurrency. |
 | Status and milestones | `src/projects/quest-status-store.ts`, `src/milestones/milestone-store.ts`; preserve revision, confirmation, scope and validation rules. |
 | Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/activities/`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
 
@@ -120,13 +116,13 @@ Define deterministic outcomes for denial, cancellation, authorization expiry, pe
 
 | Decision | Proposed direction and unresolved details |
 | --- | --- |
-| Stable identifiers and validated inputs | Reuse domain ids where valid; publish schemas and structured success/error results. Choose wire field names and compatibility policy, not private transport shapes. Quick Notes currently live in Journal text: decide identity/retry representation explicitly. |
+| Stable identifiers and validated inputs | Reuse domain ids where valid; publish schemas and structured success/error results. Choose wire field names and compatibility policy, not private transport shapes. |
 | Read and mark-read | Site opening calls `markChatRead` for the acting user. Decide whether API message reads have this effect or require an explicit write, and align permissions and retry behavior accordingly. |
 | Pagination | Define bounded page sizes, ordering, continuation and mutation-between-pages behavior for quests, adventures, messages, versions and timelines. Do not depend on site lists being unbounded. |
 | Errors and limits | Distinguish invalid input, not found, missing permission, stale write, insufficient model-use availability, rate limit, unavailable service and operation in progress (for example, the same retry key still in flight). Do not impose an adventure-wide rejection of distinct new messages while a reply runs; preserve shared message/reply concurrency behavior. Do not leak foreign existence through errors. Choose codes, retry guidance and limits without weakening existing sign-in, invitation or accounting rules. |
 | Replies and disconnects | Propose a discoverable operation identity/state with saved message ids and accounting outcome. Choose streaming versus polling delivery and retention. Transport loss must not imply cancellation or permission to submit again. Define terminal failure, partial saves, stop races and which model work was charged, including naming. |
 | Idempotency | Propose caller retry keys bound to user/connection, operation and validated payload, with atomic effect/result handling. Decide lifetime and cross-connection retry semantics; conflicting key reuse must not repeat work. Cover starts, messages, tools, updates and charges, including crash-after-save and concurrent retries. |
-| Stale writes | Reuse Journal base-version checks: reject a stale edit/restore and return a conflict that lets the client reread and reconcile. Choose equivalent revision behavior for other shared editable records; do not silently overwrite site changes. Quick Note appends must not lose concurrent Journal work. |
+| Stale writes | Reuse Journal base-version checks: reject a stale edit/restore and return a conflict that lets the client reread and reconcile. Choose equivalent revision behavior for other shared editable records; do not silently overwrite site changes. |
 | Client registration | Consider a first-party utility initially. Decide third-party registration, client identification and consent rules before allowing arbitrary clients. No registration policy is approved here. |
 | Quest restrictions | Decide whether connections can restrict quests as well as operations, how new quests enter that set, and what losing membership means for in-flight tools and retries. Current membership is always required. |
 | Versioning and distribution | Choose API versioning, deprecation and compatibility policy, utility executable name and installation/update channels before release. No URL scheme, OAuth provider or token/table format is selected here. |
@@ -137,7 +133,6 @@ These are future implementation gates, not tests passed by this planning PR. Upd
 
 | Issue #684 example | Required future evidence |
 | --- | --- |
-| 1: Quick Note uses the same Journal without a model call | Component integration through API/domain and real test database; observe the site's Journal reader; deterministic model spy/fake rejects unexpected calls and verify no model-use accounting entry. |
 | 2: API message uses the normal adventure and harness | Real-database integration for author, authenticated submitting connection, saved reply and acting-user accounting; UI component integration confirms existing author display without connection labels. Include cross-site/API continuation and private-context exclusion. |
 | 3: Permission denial directly and through a tool | Integration tests for both entry-point denial and attempted harness effects, including forbidden tool execution, spells and standalone quest-only tools. Verify no forbidden write or unintended charge. |
 | 4: Removed member loses access | Real users, owner/member/outsider and connection fixtures; remove membership then read/write/tool operations return the same result as missing records. |

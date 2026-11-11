@@ -8,7 +8,6 @@ const SERVER_OPERATIONS = z.enum([
   "current-user",
   "today",
   "home-summary",
-  "workshop-options",
   "construct-metadata",
   "construct-data",
   "activity-metadata",

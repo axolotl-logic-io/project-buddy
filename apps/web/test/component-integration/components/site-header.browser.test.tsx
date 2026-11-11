@@ -1,43 +1,42 @@
 // "use_case_use_on_phone" in use-cases, the header and its menu in Chromium
-// and WebKit, in every theme: the header takes one row at every width, the
-// site's name and the menu's button, so the page starts high on the
-// screen. The button stays a touch target's height (44 px), the site's name
-// at least WCAG 2.5.8's minimum (24 px), and nothing scrolls sideways. The
+// and WebKit, in every theme: the header's bar takes one row at every
+// width, the brand and the menu's button, so the page starts high on the
+// screen. On a phone the brand is its medallion alone, still named for the
+// site. The button stays a touch target's height (44 px), the brand at
+// least WCAG 2.5.8's minimum (24 px), and nothing scrolls sideways. The
 // open menu fits the narrowest phone, with every link a target's height.
 // The header is laid out by width alone (no pointer media query in src/),
 // so the test's viewport stands in for the phone. The theme fonts are
-// loaded, since the site's name's width depends on them.
+// loaded, since the site's name's width depends on them. The trail band
+// under the bar: parent links leading into the page's one heading, which
+// keeps its words while the parents shorten, and stays pinned while the bar
+// scrolls away.
 // test/component-integration/app/phone-pages.touch.browser.test.tsx checks every page's reflow
 // and targets.
 import type { JSX } from "react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import {
   AccountLinks,
-  Breadcrumbs,
   HeaderBalance,
   SignedInLinks,
   SiteHeader,
+  TrailBand,
 } from "@/components/site-header.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
-import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -80,21 +79,20 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 // src/app/page-roles.css.
 const BUTTON_HEIGHT_PX = 44;
 const LOCATION_BALANCE = 870_000;
+// Narrower than this (32rem), the brand is its medallion alone and a deeper
+// trail leaves out its Quests link.
+const PHONE_LAYOUT_BELOW_PX = 512;
 
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
   PROJECTS_COPY.headerLink,
   CHAT_COPY.headerLink,
-  CONSTRUCTS_COPY.headerLink,
-  ACTIVITIES_COPY.headerLink,
-  SPELLBOOK_COPY.headerLink,
   LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
   GENERATION_COPY.heading,
-  MARKETPLACE_COPY.headerLink,
 ] as const;
-const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
+const YOU = [SETTINGS_COPY.headerLink] as const;
 
 // The screens the header is checked on.
 const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
@@ -104,6 +102,20 @@ const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
   { name: "a tablet", viewport: { width: 800, height: 720 } },
   { name: "a laptop", viewport: LAPTOP_VIEWPORT },
 ];
+
+// How many lines the text inside element takes.
+function textLines(element: Element): number {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  let lines = 0;
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    if (node.textContent?.trim() !== "") {
+      range.selectNodeContents(node);
+      lines += range.getClientRects().length;
+    }
+  }
+  return lines;
+}
 
 function heightOf(target: Locator): number {
   return target.element().getBoundingClientRect().height;
@@ -118,13 +130,6 @@ function linkNames(label: string): readonly string[] {
     .map((link) => link.textContent);
 }
 
-// The header's link to quick capture.
-function noteLink(): Locator {
-  return page
-    .getByRole("banner")
-    .getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink });
-}
-
 // Stops a clicked link from leaving the test's page.
 function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
@@ -136,7 +141,7 @@ function renderSignedIn(): ReturnType<typeof render> {
       links={
         <>
           <HeaderBalance microUsd={870_000} />
-          <SiteMenu links={<AccountLinks />} shortcuts={true} />
+          <SiteMenu links={<AccountLinks />} />
         </>
       }
     />,
@@ -161,6 +166,11 @@ describe("use_case_use_on_phone", () => {
           await setViewport(screen.viewport);
           await renderSignedIn();
           await expect.element(menuButton()).toBeVisible();
+          await expect
+            .element(
+              page.getByRole("link", { name: "Quick Note", exact: true }),
+            )
+            .not.toBeInTheDocument();
           await loadFonts();
 
           const title = page
@@ -176,39 +186,17 @@ describe("use_case_use_on_phone", () => {
             titleBox.bottom > buttonBox.top && buttonBox.bottom > titleBox.top,
             "the site's name and the menu's button share one row",
           ).toBe(true);
-          const brandText = [...title.element().childNodes].find(
-            (node) =>
-              node.nodeType === Node.TEXT_NODE &&
-              node.textContent?.trim() !== "",
-          );
-          if (brandText === undefined) {
-            throw new Error("The brand text is missing");
-          }
-          const brandRange = document.createRange();
-          brandRange.selectNodeContents(brandText);
           expect(
-            brandRange.getClientRects().length,
-            "brand remains on one text line",
+            titleBox.width === BUTTON_HEIGHT_PX,
+            "on a phone the brand is its medallion alone, a target wide",
+          ).toBe(screen.viewport.width < PHONE_LAYOUT_BELOW_PX);
+          expect(
+            textLines(title.element()),
+            "the brand's name is on one line",
           ).toBe(1);
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          const noteBox = noteLink().element().getBoundingClientRect();
-          expect(
-            noteBox.bottom > buttonBox.top && buttonBox.bottom > noteBox.top,
-            "quick capture's link shares the menu button's row",
-          ).toBe(true);
-          expect(noteBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          expect(noteBox.height, "Quick Note stays a single-row control").toBe(
-            buttonBox.height,
-          );
-          expect(noteBox.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          const noteIcon = noteLink().element().querySelector(".icon");
-          expect(
-            noteIcon?.getBoundingClientRect().width,
-            "Quick Note shows its icon at every width",
-          ).toBeGreaterThan(1);
-          expect(titleBox.right).toBeLessThanOrEqual(noteBox.left);
-          expect(noteBox.right).toBeLessThanOrEqual(buttonBox.left);
+          expect(titleBox.right).toBeLessThanOrEqual(buttonBox.left);
           expect(
             document.documentElement.scrollWidth,
             "no sideways scroll",
@@ -238,27 +226,8 @@ describe("use_case_use_on_phone", () => {
   }
 });
 
-describe("use_case_quick_note", () => {
-  for (const screen of SCREENS) {
-    test(`quick capture is one tap from the signed-in header on ${screen.name}`, async () => {
-      await setViewport(screen.viewport);
-      await renderSignedIn();
-
-      await expect.element(noteLink()).toBeVisible();
-      expect(noteLink().element()).toHaveAttribute("href", "/capture");
-    });
-  }
-
-  test("a visitor's header has no quick capture", async () => {
-    await render(<SiteHeader />);
-
-    await expect.element(menuButton()).toBeVisible();
-    expect(noteLink().query()).toBeNull();
-  });
-});
-
 test.each(SCREENS)(
-  "Quests and Adventures are reached through the menu on $name",
+  "Quests and Chat are reached through the menu on $name",
   async (screen) => {
     await setViewport(screen.viewport);
     await renderSignedIn();
@@ -269,7 +238,6 @@ test.each(SCREENS)(
     expect(
       header.getByRole("link", { name: CHAT_COPY.headerLink }).query(),
     ).toBeNull();
-    await expect.element(noteLink()).toBeVisible();
     await openMenu();
     await expect
       .element(
@@ -290,7 +258,7 @@ test.each(SCREENS)(
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Workshop apart from Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
@@ -382,49 +350,69 @@ describe("the site menu", () => {
 });
 
 const LONG_NAME_REPEATS = 20;
+const LONG_NAME = "Long quest and adventure name ".repeat(LONG_NAME_REPEATS);
+// Enough lines of page to scroll the header away, on any screen.
+const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
+const QUESTS: Breadcrumb = { label: PROJECTS_COPY.heading, href: "/projects" };
 
-describe("breadcrumbs in the shared header", () => {
+// The signed-in header with the trail band of items, as the @header slot
+// renders it.
+function bandedHeader(items: readonly Breadcrumb[]): JSX.Element {
+  return (
+    <SiteHeader
+      links={
+        <>
+          <HeaderBalance microUsd={LOCATION_BALANCE} />
+          <SiteMenu links={<AccountLinks />} />
+          <TrailBand items={items} />
+        </>
+      }
+    />
+  );
+}
+
+function trailNavigation(): Locator {
+  return page.getByRole("navigation", { name: SITE_COPY.breadcrumbs });
+}
+
+function pageHeading(): Locator {
+  return page.getByRole("heading", { level: 1 });
+}
+
+describe("the trail band", () => {
   test.each(
     [NARROWEST_VIEWPORT, IPHONE_15_VIEWPORT, LAPTOP_VIEWPORT].flatMap(
       (viewport) => ["light", "dark"].map((mode) => ({ viewport, mode })),
     ),
   )(
-    "keeps the main origin and header footprint from Home to Quests at $viewport.width px in $mode",
+    "keeps the main origin and header footprint from Quests to Settings at $viewport.width px in $mode",
     async ({ viewport, mode }) => {
       applyTheme("parchment", mode);
       signInAs(SIGNED_IN_USER);
       vi.mocked(readGoldBalance).mockResolvedValue(LOCATION_BALANCE);
       await setViewport(viewport);
-      async function location(home: boolean): Promise<JSX.Element> {
-        let trail: Parameters<typeof Breadcrumbs>[0]["items"] = [
-          { label: SITE_COPY.home },
-        ];
-        let heading: string = SITE_COPY.home;
-        if (!home) {
-          trail = [
-            { label: SITE_COPY.home, href: "/home" },
-            { label: PROJECTS_COPY.heading },
-          ];
-          ({ heading } = PROJECTS_COPY);
+      async function location(quests: boolean): Promise<JSX.Element> {
+        let trail: readonly Breadcrumb[] = [{ label: PROJECTS_COPY.heading }];
+        if (!quests) {
+          trail = [QUESTS, { label: SETTINGS_COPY.heading }];
         }
         return (
           <>
             <SiteHeader links={await SignedInLinks({ breadcrumbs: trail })} />
-            <main>
-              <h1>{heading}</h1>
-            </main>
+            <main />
           </>
         );
       }
       const screen = await render(await location(true));
       await loadFonts();
-      const navigation = page.getByRole("navigation", {
-        name: SITE_COPY.breadcrumbs,
-      });
+      await expect
+        .element(pageHeading())
+        .toHaveTextContent(PROJECTS_COPY.heading);
       expect(
-        navigation.element().querySelector('[aria-current="page"]')
-          ?.textContent,
-      ).toBe(SITE_COPY.home);
+        page.getByRole("banner").getByRole("heading", { level: 1 }).elements(),
+        "Quests' one heading is the band's",
+      ).toHaveLength(1);
+      await expect.element(trailNavigation()).not.toBeInTheDocument();
       const before = page
         .getByRole("banner")
         .element()
@@ -433,13 +421,18 @@ describe("breadcrumbs in the shared header", () => {
       const main = page.getByRole("main").element();
       const origin = main.getBoundingClientRect().y;
       await screen.rerender(await location(false));
+      await expect
+        .element(pageHeading())
+        .toHaveTextContent(SETTINGS_COPY.heading);
       expect(
         page.getByRole("banner").element().getBoundingClientRect().toJSON(),
       ).toEqual(before);
       expect(main.getBoundingClientRect().y).toBe(origin);
       await expect
-        .element(navigation.getByRole("link", { name: SITE_COPY.home }))
-        .toHaveAttribute("href", "/home");
+        .element(
+          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        )
+        .toHaveAttribute("href", "/projects");
       await openMenu();
       await closeMenu();
       await screen.rerender(await location(true));
@@ -453,90 +446,162 @@ describe("breadcrumbs in the shared header", () => {
     },
   );
 
-  for (const mode of ["light", "dark"]) {
-    test(`long names keep parent targets and controls usable at 320 px in ${mode}`, async () => {
-      applyTheme("parchment", mode);
-      await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
-      const longName = "Long quest and adventure name ".repeat(
-        LONG_NAME_REPEATS,
+  test("leads the parent links into the page's one heading, on the bar's row below", async () => {
+    applyTheme("parchment");
+    await setViewport(LAPTOP_VIEWPORT);
+    await render(
+      bandedHeader([
+        QUESTS,
+        { label: "Our quest", href: "/projects/quest" },
+        { label: "Journal" },
+      ]),
+    );
+    await loadFonts();
+    const links = trailNavigation().getByRole("link").all();
+    expect(links.map((link) => link.element().textContent)).toEqual([
+      PROJECTS_COPY.heading,
+      "Our quest",
+    ]);
+    await expect.element(pageHeading()).toHaveTextContent("Journal");
+    expect(
+      page.getByRole("heading", { level: 1 }).elements(),
+      "one heading",
+    ).toHaveLength(1);
+    const heading = pageHeading().element().getBoundingClientRect();
+    const brand = page
+      .getByRole("link", { name: SITE_COPY.name })
+      .element()
+      .getBoundingClientRect();
+    const menu = menuButton().element().getBoundingClientRect();
+    expect(heading.top, "the band is under the bar").toBeGreaterThanOrEqual(
+      Math.max(brand.bottom, menu.bottom),
+    );
+    for (const link of links) {
+      const bounds = link.element().getBoundingClientRect();
+      expect(bounds.right, "parents lead into the heading").toBeLessThan(
+        heading.left,
       );
+      expect(
+        Math.abs(bounds.bottom - heading.bottom),
+        "on the heading's line",
+      ).toBeLessThan(heading.height);
+    }
+  });
+
+  test("stays pinned while the bar scrolls away", async () => {
+    applyTheme("parchment");
+    await setViewport(IPHONE_15_VIEWPORT);
+    await render(
+      <>
+        {bandedHeader([QUESTS, { label: LONG_NAME }])}
+        <main>
+          {SCROLL_LINES.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </main>
+      </>,
+    );
+    await loadFonts();
+    window.scrollTo(0, window.innerHeight);
+    await expect
+      .poll(() => pageHeading().element().getBoundingClientRect().top)
+      .toBeGreaterThanOrEqual(0);
+    await expect.element(pageHeading()).toBeInViewport({ ratio: 1 });
+    await expect
+      .element(
+        trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+      )
+      .toBeInViewport({ ratio: 1 });
+    await expect
+      .element(page.getByRole("link", { name: SITE_COPY.name }))
+      .not.toBeInViewport();
+    await expect.element(menuButton()).not.toBeInViewport();
+    window.scrollTo(0, 0);
+  });
+
+  for (const mode of ["light", "dark"]) {
+    test(`long names shorten the parents, keep the heading's words and fit 320 px in ${mode}`, async () => {
+      applyTheme("parchment", mode);
+      await setViewport(NARROWEST_VIEWPORT);
       const screen = await render(
-        <SiteHeader
-          links={
-            <>
-              <SiteMenu links={<AccountLinks />} shortcuts={true} />
-              <HeaderBalance microUsd={870_000} />
-              <Breadcrumbs
-                items={[
-                  { label: "Home", href: "/home" },
-                  { label: "All quests", href: "/projects" },
-                  { label: longName, href: "/projects/quest" },
-                  { label: longName },
-                ]}
-              />
-            </>
-          }
-        />,
+        bandedHeader([
+          QUESTS,
+          { label: LONG_NAME, href: "/projects/quest" },
+          { label: "Journal" },
+        ]),
       );
       await loadFonts();
-      const navigation = page.getByRole("navigation", { name: "Breadcrumbs" });
-      await expect.element(navigation).toBeVisible();
-      expect(navigation.element().closest("header")).not.toBeNull();
+      await expect.element(trailNavigation()).toBeVisible();
+      await expect
+        .element(
+          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        )
+        .not.toBeInTheDocument();
+      const parent = trailNavigation().getByRole("link", { name: LONG_NAME });
       expect(
-        navigation.element().querySelector('[aria-current="page"]')
-          ?.textContent,
-      ).toBe(longName);
-      const currentWords = navigation
-        .element()
-        .querySelector('[aria-current="page"] > span');
-      if (currentWords === null) {
-        throw new Error("The current page's words are missing");
-      }
-      expect(
-        getComputedStyle(currentWords).textOverflow,
-        "the shortened current page ends in an ellipsis",
+        getComputedStyle(parent.element()).textOverflow,
+        "the shortened parent ends in an ellipsis",
       ).toBe("ellipsis");
-      expect(currentWords.scrollWidth).toBeGreaterThan(
-        currentWords.clientWidth,
+      expect(parent.element().scrollWidth).toBeGreaterThan(
+        parent.element().clientWidth,
       );
-      const parent = navigation.getByRole("link", { name: longName });
       parent.element().focus();
       await expect.element(parent).toHaveFocus();
       const bounds = parent.element().getBoundingClientRect();
       expect(bounds.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
       expect(bounds.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+      await expect.element(pageHeading()).toHaveTextContent("Journal");
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,
       );
+      await expect.element(menuButton()).toBeVisible();
+
+      await screen.rerender(bandedHeader([QUESTS, { label: LONG_NAME }]));
       await expect
-        .element(page.getByRole("button", { name: "Menu", exact: true }))
+        .element(
+          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        )
         .toBeVisible();
-      await expect
-        .element(page.getByRole("link", { name: "Quick Note", exact: true }))
-        .toBeVisible();
-      await screen.rerender(
-        <SiteHeader
-          links={
-            <Breadcrumbs
-              items={[{ label: "Home", href: "/home" }, { label: "Settings" }]}
-            />
-          }
-        />,
+      const heading = pageHeading().element();
+      expect(heading.textContent, "the heading keeps its words").toBe(
+        LONG_NAME,
+      );
+      const lineHeight = Number.parseFloat(
+        getComputedStyle(heading).lineHeight,
       );
       expect(
-        page.getByRole("navigation", { name: "Breadcrumbs" }).elements(),
-      ).toHaveLength(1);
-      await expect
-        .element(page.getByRole("link", { name: longName }))
-        .not.toBeInTheDocument();
+        heading.getBoundingClientRect().height,
+        "on at most two lines",
+      ).toBeLessThanOrEqual(lineHeight * 2 + 1);
       expect(
-        navigation.element().querySelector('[aria-current="page"]')
-          ?.textContent,
-      ).toBe("Settings");
+        heading.getBoundingClientRect().width,
+        "the heading takes the room the parents give up",
+      ).toBeGreaterThan(NARROWEST_VIEWPORT.width / 2);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+
       await screen.rerender(<SiteHeader />);
-      await expect.element(navigation).not.toBeInTheDocument();
+      await expect.element(trailNavigation()).not.toBeInTheDocument();
+      await expect.element(pageHeading()).not.toBeInTheDocument();
     });
   }
+
+  test("keeps the Quests link in deeper trails wider than a phone", async () => {
+    await setViewport({ width: 544, height: 720 });
+    await render(
+      bandedHeader([
+        QUESTS,
+        { label: "Our quest", href: "/projects/quest" },
+        { label: "Journal" },
+      ]),
+    );
+    await expect
+      .element(
+        trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+      )
+      .toBeVisible();
+  });
 });
 
 describe("header battery balance", () => {
@@ -556,7 +621,7 @@ describe("header battery balance", () => {
   });
 
   test.each(["light", "dark"])(
-    "fits Home and shared controls at 320px in %s",
+    "fits Quests and shared controls at 320px in %s",
     async (mode) => {
       applyTheme("parchment", mode);
       await setViewport(NARROWEST_VIEWPORT);
@@ -566,12 +631,12 @@ describe("header battery balance", () => {
             links={
               <>
                 <HeaderBalance microUsd={870_000} />
-                <SiteMenu links={<AccountLinks />} shortcuts={true} />
+                <SiteMenu links={<AccountLinks />} />
               </>
             }
           />
           <main>
-            <div className="atlas" />
+            <h1>{PROJECTS_COPY.heading}</h1>
           </main>
         </>,
       );

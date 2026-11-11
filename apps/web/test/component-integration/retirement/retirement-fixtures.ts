@@ -9,7 +9,6 @@ const RETIRED_CONSTRUCT: RetiredDetail = {
   kind: "construct",
   name: "Moss",
   retiredAt: new Date("2026-11-05T10:00:00Z"),
-  boughtFrom: null,
   texts: [
     {
       name: "prompt",
@@ -24,14 +23,12 @@ const RETIRED_DEFINITIONS: readonly RetiredDefinition[] = [
     kind: "activity",
     name: "Weekly reflection",
     retiredAt: new Date("2026-11-03T10:00:00Z"),
-    boughtFrom: null,
   },
   {
     id: userConstructIdFixture("4d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
     kind: "spell",
     name: "Explore three alternatives",
     retiredAt: new Date("2026-10-30T10:00:00Z"),
-    boughtFrom: null,
   },
 ];
 

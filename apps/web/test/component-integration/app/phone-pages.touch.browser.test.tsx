@@ -8,6 +8,7 @@
 // The pages are rendered from fixed data, in their layouts and the site's
 // frame (phone-pages-test-kit.tsx), with the site's stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
+import type { JSX } from "react";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -17,37 +18,20 @@ import type {
   getOwnActivity,
   listOwnActivities,
 } from "@/activities/activity-store.ts";
-import type { listAllChats } from "@/chats/all-chats.ts";
-import type {
-  getChat,
-  listChats,
-  listMessages,
-  markChatRead,
-} from "@/chats/store.ts";
-import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
-import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import type { getChat, listMessages } from "@/chats/store.ts";
 import type {
   getOwnConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
-import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
+import type { privateChat } from "@/conversations/private-chat.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
-import type {
-  getListing,
-  listListings,
-  listOwnListings,
-  readSaleState,
-} from "@/marketplace/listing-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { readRecentNotes } from "@/notes/note-store.ts";
-import type { listProjectMembers } from "@/projects/members-store.ts";
+import type { readCurrentQuest } from "@/projects/current-quest-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readHomeSummary, readToday } from "@/today/today-store.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -75,18 +59,12 @@ import {
 import { GOLD_BALANCE } from "./phone-pages-fixtures.ts";
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
+import { siteHeaderAt } from "./site-header-test-kit.tsx";
 
 vi.mock(
   "@/plan/plan-actions.ts",
   () => import("../plan/plan-actions-test-kit.ts"),
 );
-vi.mock("@/workshop/options.ts", () => ({
-  workshopOptions: async () => ({
-    constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Chat" }],
-  }),
-}));
-
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -101,28 +79,20 @@ vi.mock("@/projects/store.ts", () => ({
   getProject: vi.fn<typeof getProject>(),
   listProjects: vi.fn<typeof listProjects>(),
 }));
+vi.mock("@/projects/current-quest-store.ts", () => ({
+  readCurrentQuest: vi.fn<typeof readCurrentQuest>(),
+}));
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
-  listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
+vi.mock("@/conversations/start-quest.ts", () => ({
+  readQuestConversation: vi.fn(),
+  startQuestConversation: vi.fn(),
 }));
-vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
-  readCheckInsOffLink: vi.fn<typeof readCheckInsOffLink>(),
-}));
-vi.mock("@/app/check-ins/off/actions.ts", () => ({
-  turnOffCheckInsAction: vi.fn(),
-}));
-vi.mock("@/chats/all-chats.ts", () => ({
-  listAllChats: vi.fn<typeof listAllChats>(),
-}));
-vi.mock("@/today/today-store.ts", () => ({
-  readToday: vi.fn<typeof readToday>(),
-  readHomeSummary: vi.fn<typeof readHomeSummary>(),
+vi.mock("@/conversations/private-chat.ts", () => ({
+  privateChat: vi.fn<typeof privateChat>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
@@ -131,20 +101,6 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock(
-  "@/projects/project-invitations.ts",
-  () => import("../projects/project-invitations-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: vi.fn<typeof listProjectMembers>(),
-}));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: vi.fn<typeof readRecentNotes>(),
-}));
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
@@ -152,19 +108,6 @@ vi.mock("@/activities/activity-store.ts", () => ({
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-  getListing: vi.fn<typeof getListing>(),
-  listListings: vi.fn<typeof listListings>(),
-  listOwnListings: vi.fn<typeof listOwnListings>(),
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  buyListingAction: vi.fn(),
-  sellListingAction: vi.fn(),
-  unlistListingAction: vi.fn(),
-  updateListingAction: vi.fn(),
 }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
@@ -199,7 +142,7 @@ vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
-  createProjectAction: vi.fn(),
+  startQuestAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
@@ -208,21 +151,10 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/capture/actions.ts", () => ({
-  saveNoteAction: vi.fn(),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
-  deleteNoteAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
+  startConversationAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   retireActivityAction: vi.fn(),
@@ -248,22 +180,13 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   resetConstructPromptAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/account/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
   setNameAction: vi.fn(),
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));
-vi.mock("@/flags/save-hidden-flags-action.ts", () => ({
-  saveHiddenFlagsAction: vi.fn(),
-}));
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
-}));
-vi.mock("@/push/notification-actions.ts", () => ({
-  restoreNotificationsAction: vi.fn(),
-  turnOnNotificationsAction: vi.fn(),
-  turnOffNotificationsAction: vi.fn(),
-  sendTestNotificationAction: vi.fn(),
 }));
 
 vi.mock(
@@ -282,17 +205,17 @@ interface PhoneMeasures {
   readonly targets: readonly MeasuredTarget[];
   // The rows of tabs whose tabs don't all sit on one line.
   readonly wrappedTabRows: readonly string[];
+  // The page's headings of the first level: its one heading.
+  readonly pageHeadings: number;
 }
 
 // The rows of tabs a page may have, besides its tab lists: a quest's
-// sections, an adventure's, the Workshop's kinds, the Marketplace's, the
-// Library's books and the Retirement filter. The Quests list's status tabs
+// sections, an adventure's, the Workshop's kinds, the Library's books and the Retirement filter. The Quests list's status tabs
 // are a grid of two columns on a phone by design, so they aren't one.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [
   PROJECT_COPY.navigation,
   WORKSPACES_COPY.conversation,
   WORKSHOP_PAGE_COPY.kindsLabel,
-  MARKETPLACE_COPY.filterLabel,
   WORKSPACES_COPY.books,
 ];
 
@@ -356,8 +279,17 @@ async function measureOnPhone(
 ): Promise<PhoneMeasures> {
   applyTheme(theme);
   await setViewport(viewport);
-  await render(await inSiteFrame(await phonePage.render()));
+  const content = await phonePage.render();
+  let header: JSX.Element | undefined;
+  if (phonePage.path !== undefined) {
+    header = await siteHeaderAt(phonePage.path);
+  }
+  await render(await inSiteFrame(content, header));
   await waitForContent(phonePage);
+  // Counted before a dialog opens and hides the page behind it.
+  const pageHeadings = page
+    .getByRole("heading", { level: 1 })
+    .elements().length;
   await phonePage.open?.();
   await loadFonts();
   return {
@@ -365,6 +297,7 @@ async function measureOnPhone(
     wideDialogs: measureWideDialogs(),
     targets: await measureTargets(),
     wrappedTabRows: measureWrappedTabRows(),
+    pageHeadings,
   };
 }
 
@@ -376,9 +309,6 @@ beforeAll(async () => {
 beforeEach(() => {
   vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
   vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
-  for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
-    document.documentElement.setAttribute(name, value);
-  }
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
 });
@@ -394,8 +324,13 @@ describe("use_case_use_on_phone", () => {
       for (const theme of THEME_IDS) {
         for (const phonePage of PHONE_PAGES) {
           test(`${phonePage.name} in ${theme}`, async () => {
-            const { scrollWidth, wideDialogs, targets, wrappedTabRows } =
-              await measureOnPhone(phonePage, viewport, theme);
+            const {
+              scrollWidth,
+              wideDialogs,
+              targets,
+              wrappedTabRows,
+              pageHeadings,
+            } = await measureOnPhone(phonePage, viewport, theme);
 
             // Compared with the width set, as a phone zooms out to fit
             // content wider than its screen.
@@ -404,6 +339,7 @@ describe("use_case_use_on_phone", () => {
             );
             expect(wideDialogs, "no sideways scroll in a dialog").toEqual([]);
             expect(wrappedTabRows, "each row of tabs is one row").toEqual([]);
+            expect(pageHeadings, "one page heading").toBe(1);
             expect(
               smallTargets(targets),
               `every control at least ${MINIMUM_TARGET_PX}×${MINIMUM_TARGET_PX} px`,
@@ -428,7 +364,7 @@ describe("use_case_use_on_phone", () => {
 vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));
-vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/interview-construct-action.ts", () => ({
   setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
 }));
 
@@ -440,8 +376,4 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
 vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
-}));
-
-vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
-  startPremadeQuestAction: vi.fn(),
 }));

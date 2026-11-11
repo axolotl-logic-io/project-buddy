@@ -15,10 +15,7 @@ async function RetirementPage({
   const { restored, deleted } = await searchParams;
   const definitions = await listRetiredDefinitions(user.id);
   return (
-    <PageWorkspace
-      title={RETIREMENT_COPY.heading}
-      intro={RETIREMENT_COPY.intro}
-    >
+    <PageWorkspace intro={RETIREMENT_COPY.intro}>
       {(restored === "1" || deleted === "1") && (
         <div className="workspace-content">
           {restored === "1" && (
@@ -32,7 +29,6 @@ async function RetirementPage({
       <RetirementList definitions={definitions}>
         <footer className="flex flex-col gap-2 text-muted text-sm">
           <p>{RETIREMENT_COPY.help}</p>
-          <p>{RETIREMENT_COPY.marketplace}</p>
         </footer>
       </RetirementList>
     </PageWorkspace>

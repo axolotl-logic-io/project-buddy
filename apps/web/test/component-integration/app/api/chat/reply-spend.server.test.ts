@@ -1,43 +1,34 @@
 // Whom a reply's model calls are charged to: the user who sent the message,
-// read from the request's session, and never the project's owner or anyone
-// else the chat or its project names. The sender is a member of the owner's
-// team project, so the chat is open to both, while each user's spend stays
-// their own.
+// read from the request's session, and never anyone else.
 import { expect, test } from "vitest";
-import { getChat } from "@/chats/store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { constructReply } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-// What the mock construct's calls cost at the configured prices
-// (src/quota/prices.ts), for one input and one output token each: the
-// reply at Sonnet's and the chat's naming at Haiku's, rounded up.
+// What the mock construct's reply costs at Sonnet's configured prices
+// (src/quota/prices.ts), for one input and one output token, rounded up. A
+// reply makes no other model call.
 const REPLY_MICRO_USD = 12;
-const NAMING_MICRO_USD = 1;
 
-test("a reply, and the chat's naming after it, is charged to the user who sent the message, not the project's owner", async () => {
-  const [owner, sender] = await Promise.all([testUser(), testUser()]);
-  const ownerData = testData(owner);
-  const project = await ownerData.project();
-  const chat = await ownerData.chat(project);
-  expect(await addProjectMember(sender.id, project.id)).toBe(true);
+test("a reply is charged to the user who sent the message, and no one else", async () => {
+  const [sender, other] = await Promise.all([testUser(), testUser()]);
+  const data = testData(sender);
+  const project = await data.project();
+  const chat = await data.chat(project);
   await signIn(sender);
-  const [senderBefore, ownerBefore] = await Promise.all([
+  const [senderBefore, otherBefore] = await Promise.all([
     goldSpent(sender),
-    goldSpent(owner),
+    goldSpent(other),
   ]);
 
   await constructReply(chat.id, "Bevel a donut");
 
-  const [senderAfter, ownerAfter, named] = await Promise.all([
+  const [senderAfter, otherAfter] = await Promise.all([
     goldSpent(sender),
-    goldSpent(owner),
-    getChat(owner.id, chat.id),
+    goldSpent(other),
   ]);
-  expect(named?.name).toBeDefined();
-  expect(senderAfter - senderBefore).toBe(REPLY_MICRO_USD + NAMING_MICRO_USD);
-  expect(ownerAfter).toBe(ownerBefore);
+  expect(senderAfter - senderBefore).toBe(REPLY_MICRO_USD);
+  expect(otherAfter).toBe(otherBefore);
 });

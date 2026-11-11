@@ -7,9 +7,7 @@
 // opening knew. An opening
 // whose prompt holds "/mock-error <Anthropic error type>", as a project's
 // name can, fails the way mock-error.ts says, so the tests can start a chat
-// while Claude is down: nobody types into an opening's conversation. Its
-// reply to the check-in kickoff (src/check-ins/check-in-kickoff.ts) is a
-// check-in: the memory and one small next step.
+// while Claude is down: nobody types into an opening's conversation.
 
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
@@ -26,10 +24,7 @@ const MOCK_FIRST_QUESTION =
 
 // The mock opening of any other chat while the project's memory is empty.
 const MOCK_CHAT_QUESTION =
-  "The mock construct starts an adventure. What would you like to work on?";
-
-// The mock check-in's first line, before the project's memory.
-const MOCK_CHECK_IN = "The mock construct checks in. Where you left off:";
+  "The mock construct starts a conversation. What would you like to work on?";
 
 // The failure a "/mock-error <type>" in the prompt asks for, or undefined.
 function mockErrorInPrompt(prompt: string): readonly MockStep[] | undefined {
@@ -39,28 +34,6 @@ function mockErrorInPrompt(prompt: string): readonly MockStep[] | undefined {
   }
   const { errorType = "" } = mockError;
   return mockErrorReply(errorType);
-}
-
-function mockCheckInReply({
-  systemTexts,
-}: MockConversation): readonly MockStep[] {
-  const prompt = systemTexts.join("\n\n");
-  const failure = mockErrorInPrompt(prompt);
-  if (failure !== undefined) {
-    return failure;
-  }
-  return [
-    {
-      text: [
-        MOCK_CHECK_IN,
-        "",
-        memoryInPrompt(prompt),
-        "",
-        "One small next step: try the first open milestone for ten minutes.",
-      ].join("\n"),
-      toolCalls: [],
-    },
-  ];
 }
 
 function mockOpeningReply({
@@ -92,10 +65,4 @@ function mockOpeningReply({
   ];
 }
 
-export {
-  MOCK_CHAT_QUESTION,
-  MOCK_CHECK_IN,
-  MOCK_FIRST_QUESTION,
-  mockCheckInReply,
-  mockOpeningReply,
-};
+export { MOCK_CHAT_QUESTION, MOCK_FIRST_QUESTION, mockOpeningReply };

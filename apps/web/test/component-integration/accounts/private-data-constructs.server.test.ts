@@ -5,8 +5,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import {
   cloneConstruct,
   deleteConstruct,
@@ -77,7 +77,7 @@ function constructPage(constructId: string): Promise<unknown> {
 // The signed-in user's constructs page, as HTML.
 async function constructsHtml(): Promise<string> {
   return renderToStaticMarkup(
-    await ConstructsPage({
+    await WorkshopPage({
       params: Promise.resolve({}),
       searchParams: Promise.resolve({}),
     }),

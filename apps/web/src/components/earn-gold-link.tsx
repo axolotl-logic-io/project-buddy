@@ -21,8 +21,8 @@ function BatteryPurchasesAvailable({
   );
 }
 
-// Compatibility name: Marketplace sales never fund model use after the
-// orb migration, regardless of its activation gate.
+// Where a user who is short of batteries can get more: the link to buy
+// them, or a note that purchases are unavailable.
 function EarnGoldLink(): JSX.Element {
   const available = useContext(BatteryPurchasesContext);
   if (available !== true) {
@@ -38,7 +38,7 @@ function EarnGoldLink(): JSX.Element {
       {" "}
       <Link
         className="text-link"
-        href="/account?section=batteries#buy-batteries"
+        href="/settings?section=batteries#buy-batteries"
       >
         {BATTERY_PURCHASES_COPY.heading}
       </Link>

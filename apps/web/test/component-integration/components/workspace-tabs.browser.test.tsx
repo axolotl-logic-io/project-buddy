@@ -11,7 +11,7 @@ const LOOKS = "Light, dark or system";
 
 test("keyboard section changes retain a draft and hide inactive controls", async () => {
   await render(
-    <PageWorkspace title="Settings">
+    <PageWorkspace>
       <WorkspaceTabs
         label="Sections"
         sections={[
@@ -52,7 +52,7 @@ test("keyboard section changes retain a draft and hide inactive controls", async
 test("a clicked tab shows no focus ring, and a tab reached by keyboard does", async () => {
   applyTheme("parchment");
   await render(
-    <PageWorkspace title="Settings">
+    <PageWorkspace>
       <WorkspaceTabs
         label="Sections"
         sections={[

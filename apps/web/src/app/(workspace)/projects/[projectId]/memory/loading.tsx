@@ -6,7 +6,7 @@ export default function MemoryLoading(): JSX.Element {
   return (
     <LoadingSkeleton
       label={MEMORY_COPY.loading}
-      shapes={["line", "heading", "panel", "cards"]}
+      shapes={["line", "panel", "cards"]}
     />
   );
 }

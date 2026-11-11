@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import type { SaleState } from "@/marketplace/listing-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { retireConstructAction } from "./actions.ts";
 
@@ -11,7 +10,6 @@ export function RetireConstructForm({
 }: {
   readonly constructId: string;
   readonly name: string;
-  readonly sale?: SaleState["kind"];
 }): JSX.Element {
   return (
     <form action={retireConstructAction}>

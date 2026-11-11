@@ -9,7 +9,7 @@ function LibraryIndex(): JSX.Element {
   const [book] = LIBRARY_COPY.books;
   if (book === undefined) {
     return (
-      <PageWorkspace title={LIBRARY_COPY.heading} intro={LIBRARY_COPY.intro}>
+      <PageWorkspace intro={LIBRARY_COPY.intro}>
         <div />
       </PageWorkspace>
     );
@@ -24,12 +24,8 @@ function LibraryReader({
   readonly book: LibraryBook;
   readonly index?: boolean;
 }): JSX.Element {
-  let { title } = book;
-  if (index === true) {
-    title = LIBRARY_COPY.heading;
-  }
   return (
-    <PageWorkspace title={title} intro={book.intro}>
+    <PageWorkspace intro={book.intro}>
       <nav className="workspace-rail" aria-label={WORKSPACES_COPY.books}>
         <div className="workspace-tablist">
           {LIBRARY_COPY.books.map((candidate) => {
