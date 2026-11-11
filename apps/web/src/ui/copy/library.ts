@@ -73,9 +73,9 @@ const LIBRARY_COPY: {
         },
         {
           id: "craft",
-          title: "Craft your own",
+          title: "Create your own",
           links: [
-            { href: "/workshop", label: "Craft in Workshop" },
+            { href: "/workshop", label: "Create in Workshop" },
             { href: "/marketplace", label: "Browse Marketplace" },
             {
               href: "/library/model-context#inventory",
@@ -83,8 +83,8 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Workshop shows built-in constructs, activities and spells alongside your private copies, one kind at a time. Choose Craft to make your own, or Customize on a built-in one to start from a copy. Retirement keeps retired definitions available to restore or delete.",
-            "Workshop is where you edit. Edit one section of the instructions at a time, then choose Save. Unsaved edits stay in this browser until you save or discard them. Saving makes no model call and spends no batteries. To see how a change works, save it and use it in a quest or in Chat.",
+            "Workshop shows built-in constructs, activities and spells alongside your private copies, one kind at a time. Choose Create to make your own, or Make a copy on a built-in one to start from a copy. Retirement keeps retired definitions available to restore or delete.",
+            "Workshop is where you edit. Edit one section of the instructions at a time, then choose Save. Unsaved edits stay in this browser until you choose Save or Cancel. Saving makes no model call and spends no batteries. To see how a change works, save it and use it in a quest or in Chat.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a reply sends to the model.",
             "Batteries pay for model use: replies, generated openings and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
             "Under each reply, the conversation shows what it cost you, to one decimal place. That cost includes any retries and images the reply needed. Your balance shows whole batteries.",
@@ -117,10 +117,10 @@ const LIBRARY_COPY: {
         },
         {
           id: "craft",
-          title: "Craft and customize",
+          title: "Create and make copies",
           links: [],
           paragraphs: [
-            "To start from a built-in construct, open Workshop and choose Customize. Edit changes one of your own, and Clone copies it so you can compare two versions. To start from nothing, choose Craft construct.",
+            "To start from a built-in construct, open Workshop and choose Make a copy. Edit changes one of your own, and Make a copy copies it so you can compare two versions. To start from nothing, choose Create construct.",
             "Give the construct a name you’ll recognize. In its Character Sheet, describe habits you can see in a reply, such as: “Explain one practical step at a time. Give a concrete example before an abstract idea. When unsure, say what needs checking.” Don’t ask it to invent facts or ignore permissions; instructions can’t change what the site allows.",
             "For example, name a construct “Moss” and give it these instructions: “Use calm, plain language. Help the user choose a small experiment. Ask at most one question per reply. Keep plant names and care steps exact.” Set its Visual description to “A small leafy guide with round glasses.” The leaves shape Moss’s picture; only the Character Sheet shapes its replies.",
             "To start the instructions over, choose Reset prompt to default. The editor shows the built-in construct’s instructions, or the default construct’s when yours didn’t come from a built-in one, and offers Undo reset. Nothing changes until you choose Save, and the Visual description and artwork stay. A copy bought in the Marketplace, or a clone of one, has nothing to reset to.",
@@ -167,10 +167,10 @@ const LIBRARY_COPY: {
         },
         {
           id: "craft",
-          title: "Craft focused instructions",
+          title: "Create focused instructions",
           links: [],
           paragraphs: [
-            "To make a spell, open Workshop’s Spells tab, then customize a built-in spell, clone one of yours, or choose Craft spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
+            "To make a spell, open Workshop’s Spells tab, then make a copy of a built-in spell, clone one of yours, or choose Create spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
             "For example, name a spell “Compare options”, with the When to use line “When the user needs to choose between two or more approaches with trade-offs.” Its Spell Sheet says: “List the options and the user’s stated constraints. Compare effort, reversibility and likely benefit. Separate known facts from assumptions. Recommend one small experiment. Ask at most one question if a missing constraint changes the choice.”",
             "Keep the When to use line short: every conversation’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset. A copy bought in the Marketplace has nothing to reset to.",
           ],
@@ -215,10 +215,10 @@ const LIBRARY_COPY: {
         },
         {
           id: "craft",
-          title: "Craft an activity",
+          title: "Create an activity",
           links: [],
           paragraphs: [
-            "To make an activity, open Activities or Workshop, then customize or clone one, or choose Craft activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
+            "To make an activity, open Activities or Workshop, then customize or clone one, or choose Create activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
             "For example, a “Small experiment” activity might say: “Help the user define one experiment they can finish today. Identify a clear observation that would make it useful. Keep plans provisional until the user agrees. Respect their current request if they change subject.” Its Opening request: “Greet the user briefly and ask what they want to try today.”",
             "An opening should start the conversation, not ask for a life story. Don’t ask the construct to repeat the same questions every turn, or to say a tool worked before its result arrives. Reset puts back the built-in instructions and keeps the Opening request; Save keeps the change. A copy bought in the Marketplace has nothing to reset to.",
           ],

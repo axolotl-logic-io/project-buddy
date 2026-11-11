@@ -14,7 +14,7 @@ const WORKSHOP_COPY = {
 const WORKSHOP_PAGE_COPY = {
   homeLink: "Home",
   intro:
-    "Craft a construct, activity or spell, customize a built-in one, or tweak or clone one of your own.",
+    "Create a construct, activity or spell, make a copy, or edit one of your own.",
   loading: "Loading the Workshop…",
   kindsLabel: "What to shape",
   kinds: {

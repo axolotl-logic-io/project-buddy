@@ -65,10 +65,11 @@ export default async function WorkshopPage({
   searchParams,
 }: PageProps<"/workshop">): Promise<JSX.Element> {
   const query = await searchParams;
+  const { retired } = query;
   const { kind } = QUERY.parse(query);
   return (
     <>
-      <RetirementFeedback completed={query.retired === "1"} />
+      <RetirementFeedback completed={retired === "1"} />
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
         <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>

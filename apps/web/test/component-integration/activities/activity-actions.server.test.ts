@@ -132,6 +132,17 @@ async function startIn(user: User, activityId: string): Promise<ChatId> {
   return started.chat.id;
 }
 
+// Making a copy opens that new private definition in the editor.
+async function copyOwn(user: User, sourceId: string): Promise<void> {
+  const copying = cloneActivityAction(formOf({ sourceId }));
+  await Promise.allSettled([copying]);
+  const copy = (await listOwnActivities(user.id)).at(-1);
+  if (copy === undefined) {
+    throw new Error("No copy was created");
+  }
+  await expectRedirect(() => copying, `/activities/${copy.id}`);
+}
+
 describe("use_case_customize_activity", () => {
   test("her copy of a built-in activity is hers to edit, and a chat in it follows her text", async () => {
     const user = await signedInUser();
@@ -139,7 +150,7 @@ describe("use_case_customize_activity", () => {
 
     const copy = await customizeBrainstorming(user);
     expect(copy).toMatchObject({
-      name: `${BRAINSTORMING.name} (clone)`,
+      name: `${BRAINSTORMING.name} (copy)`,
       definition: BRAINSTORMING.definition,
       clonedFrom: "brainstorming",
     });
@@ -200,13 +211,10 @@ describe("use_case_customize_activity", () => {
       }),
     ).catch(() => undefined);
 
-    await expectRedirect(
-      () => cloneActivityAction(formOf({ sourceId: copy.id })),
-      "/activities",
-    );
+    await copyOwn(user, copy.id);
     const clone = (await listOwnActivities(user.id)).at(-1);
     expect(clone).toMatchObject({
-      name: `${copy.name} (clone)`,
+      name: `${copy.name} (copy)`,
       definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
 
@@ -292,12 +300,9 @@ describe("use_case_new_activity", () => {
       definition: parts,
     });
 
-    await expectRedirect(
-      () => cloneActivityAction(formOf({ sourceId: activity.id })),
-      "/activities",
-    );
+    await copyOwn(user, activity.id);
     expect((await listOwnActivities(user.id)).at(-1)).toMatchObject({
-      name: "Picnic (clone)",
+      name: "Picnic (copy)",
       definition: parts,
     });
 

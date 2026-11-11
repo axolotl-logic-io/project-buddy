@@ -175,7 +175,7 @@ export default async function ActivityPage({
     const activity = getActivity(activityId);
     const choices = await questCreationChoices(user.id);
     return (
-      <Workshop>
+      <Workshop kind="activity">
         <BuiltInActivity activity={activity} />
         <StartWorkDialog
           choices={choices}
@@ -199,7 +199,7 @@ export default async function ActivityPage({
     promptId: activity.id,
   });
   return (
-    <Workshop>
+    <Workshop kind="activity">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnActivityForm viewer={user.id} activity={activity} sale={sale} />
     </Workshop>

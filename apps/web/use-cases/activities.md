@@ -9,7 +9,7 @@ An activity sets the scene an adventure plays out. The site has four built-in ac
 - **Find something to make:** the construct helps the user discover a small achievable creative project and supports uncertainty and challenges while they make it. No idea or inspiration source is required.
 - **Break Down a Project:** the construct helps her split a goal into milestones and the next small steps.
 
-Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Craft activity” to distinguish it from an own definition named “New activity”.
+Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Create activity” to distinguish it from an own definition named “New activity”.
 
 Built-in, starter, customized and reset prompts use `# Activity Sheet`. The separate name identifies the activity; renaming leaves the sheet heading alone. Edited instructions and existing activity snapshots keep their text.
 
@@ -19,7 +19,7 @@ The user starts a quest in the activity she wants.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens Activities from any signed-in page's menu. The Built-in tab lists the built-in activities, each with what it is. Yours lists her own, Retired holds retired activities, and Craft activity stays in the heading.
+  - She opens Activities from any signed-in page's menu. The Built-in tab lists the built-in activities, each with what it is. Yours lists her own, Retired holds retired activities, and Create activity stays in the heading.
   - She chooses Brainstorm, the activity's name used directly as its start action. A dialog named "Start a quest in Brainstorm" opens the quest start ([`use_case_new_project`](projects.md#use_case_new_project)) with Brainstorm already chosen.
   - She closes the dialog. Another time, she picks a starting point, edits the name and starts the quest.
 - **Outcome:** closing the dialog creates nothing, spends nothing and returns focus to the activity's name. Starting creates one quest in Brainstorm and opens its conversation, whose replies follow Brainstorm's instructions until the activity changes ([`use_case_construct_changes_activity`](#use_case_construct_changes_activity)). The same works from a built-in activity's own page and for her own activities.
@@ -49,7 +49,7 @@ The user makes an activity of her own from a built-in one, and changes it.
   - She renames it and edits its prompt, which guides the activity. She edits the separate opening request, which tells the construct how to open a new adventure when the activity has no prepared opening. She saves. The editable fields show the original Markdown source.
   - She starts an adventure in it, then edits it again.
   - Back on Activities, she clones it. On its page, she resets its prompt, then saves it.
-- **Outcome:** her activity has her name and text, and the adventure follows her text, with any `{{name}}` replaced by her name. The adventure keeps the activity as it was when the adventure entered it, so her later edit changes only adventures that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The construct offers her own activities beside the built-in ones.
+- **Outcome:** her activity has her name and text, and the adventure follows her text, with any `{{name}}` replaced by her name. The adventure keeps the activity as it was when the adventure entered it, so her later edit changes only adventures that enter it afterwards. The clone is named as its source with " (copy)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The construct offers her own activities beside the built-in ones.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
@@ -62,10 +62,10 @@ The user crafts an activity of her own without copying another.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - On Activities, she chooses Craft activity. The site makes a new activity of hers and opens its page to edit.
+  - On Activities, she chooses Create activity. The site makes a new activity of hers and opens its page to edit.
   - She names it, writes its instructions and opening request, and saves.
   - She resets its prompt, then starts an adventure in the activity.
   - In another adventure, the construct moves the adventure into it.
-- **Outcome:** the new activity is named "New activity" and starts with Chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start an adventure in it, and the construct can move an adventure into it. Choosing Craft activity again makes another activity named "New activity". Another user never sees it.
+- **Outcome:** the new activity is named "New activity" and starts with Chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start an adventure in it, and the construct can move an adventure into it. Choosing Create activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start an adventure in it.

@@ -56,10 +56,14 @@ function spellPage(spellId: string): never {
 async function cloneSpellAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = CLONE_SPELL_FORM.safeParse(Object.fromEntries(formData));
-  if (form.success) {
-    await cloneSpell(user.id, form.data.sourceId);
+  if (!form.success) {
+    notFound();
   }
-  return redirect(workshopPath("spell"));
+  const copy = await cloneSpell(user.id, form.data.sourceId);
+  if (copy === undefined) {
+    notFound();
+  }
+  return spellPage(copy.id);
 }
 
 async function newSpellAction(): Promise<never> {

@@ -1,4 +1,4 @@
-// The Spellbook's pages in the browser: the list offers Craft spell among her
+// The Spellbook's pages in the browser: the list offers Create spell among her
 // own spells, after the built-in ones in keyboard order; Delete asks before
 // it deletes; and her spell's page names each field's limit, keeps typing
 // within it, and names what its reset restores.
@@ -47,7 +47,7 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
-// The pages expose these actions; only Craft spell and Delete are submitted.
+// The pages expose these actions; only Create spell and Delete are submitted.
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
   retireSpellAction: vi.fn(),
@@ -78,13 +78,13 @@ function submissionOf(
   return submitted.promise;
 }
 
-test("her spells offer Craft spell, with or without spells of her own", async () => {
+test("her spells offer Create spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const screen = await render(inWorkspace(await SpellLists()));
 
   await expect
-    .element(page.getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Create spell" }))
     .toBeEnabled();
 
   vi.mocked(listOwnSpells).mockResolvedValue([]);
@@ -93,21 +93,21 @@ test("her spells offer Craft spell, with or without spells of her own", async ()
     .element(ownRegion().getByText(SPELLBOOK_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Create spell" }))
     .toBeEnabled();
 });
 
-test("the header Craft spell action supports keyboard submission", async () => {
+test("the header Create spell action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
   await render(inWorkspace(await SpellLists()));
   page
-    .getByRole("button", { name: "Craft spell", exact: true })
+    .getByRole("button", { name: "Create spell", exact: true })
     .element()
     .focus();
   await expect
-    .element(page.getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Create spell" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 

@@ -59,10 +59,14 @@ function constructPage(constructId: string): never {
 export async function cloneConstructAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = CLONE_CONSTRUCT_FORM.safeParse(Object.fromEntries(formData));
-  if (form.success) {
-    await cloneConstruct(user.id, form.data.sourceId);
+  if (!form.success) {
+    notFound();
   }
-  return redirect(workshopPath("construct"));
+  const copy = await cloneConstruct(user.id, form.data.sourceId);
+  if (copy === undefined) {
+    notFound();
+  }
+  return constructPage(copy.id);
 }
 
 export async function newConstructAction(): Promise<never> {

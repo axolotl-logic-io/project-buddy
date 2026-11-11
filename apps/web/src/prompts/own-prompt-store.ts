@@ -53,7 +53,7 @@ interface DefinitionEdit<Definition> {
 
 type OwnPromptRow = typeof ownPrompts.$inferSelect;
 
-const COPY_SUFFIX = " (clone)";
+const COPY_SUFFIX = " (copy)";
 
 function withinLimits<Definition>(
   store: DefinitionStore<Definition>,

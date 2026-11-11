@@ -1,8 +1,8 @@
 # Prompts
 
-A construct, activity or spell has a prompt. The editor for an own construct shows one prompt describing its voice and habits. Headings can organize those instructions without making them separate fields. The Visual description is a separate field for appearance and identity. It never enters the conversational prompt. Built-in definitions show their original Visual description and artwork read-only; Customize makes an editable copy with the same images.
+A construct, activity or spell has a prompt. The editor for an own construct shows one prompt describing its voice and habits. Headings can organize those instructions without making them separate fields. The Visual description is a separate field for appearance and identity. It never enters the conversational prompt. Built-in definitions show their original Visual description and artwork read-only; Make a copy makes an editable copy with the same images.
 
-Visual descriptions share Save, browser draft recovery and Discard changes with the prompt. Reset prompt preserves the description and images. A saved description with images cannot be cleared; the field explains this before submission. Save accepts description text, while image references and framing stay server-controlled.
+Visual descriptions share Save, browser draft recovery and Cancel with the prompt. Reset prompt preserves the description and images. A saved description with images cannot be cleared; the field explains this before submission. Save accepts description text, while image references and framing stay server-controlled.
 
 An activity has a prompt and a separate opening request. The prompt guides the current activity session. The opening request asks for the first reply when no prepared opening exists. Reset restores the activity prompt while preserving its opening request.
 
@@ -10,13 +10,13 @@ A spell has a prompt, shown as Instructions, and separate name and when-to-use m
 
 Reset changes the editor draft and offers Undo reset; only Save stores it. Unsaved names, opening requests and when-to-use descriptions are preserved. Bought copies and clones of bought copies have no built-in source and cannot be reset, including through a direct request. They remain editable. For other copies, reset restores the prompt from the built-in source when there is one. Otherwise a construct uses the default construct's prompt, an activity uses Chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing adventure snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
 
-Built-in and starter prompts begin with `# Character Sheet` for a construct, `# Activity Sheet` for an activity, and `# Spell Sheet` for a spell. The separate name field identifies the definition; the sheet contains its instructions. Renaming does not require a heading edit. Identity instructions such as “Write as Vellum” still describe the character and remain editable. For example, a construct named “My cartographer” can keep `# Character Sheet` while its body describes its voice. Character Sheet is a prompt heading, not a rename of constructs. Customize and reset use these same sheets. Model context identifies the current activity by its snapshot name beside its instructions; that label is not saved in the prompt.
+Built-in and starter prompts begin with `# Character Sheet` for a construct, `# Activity Sheet` for an activity, and `# Spell Sheet` for a spell. The separate name field identifies the definition; the sheet contains its instructions. Renaming does not require a heading edit. Identity instructions such as “Write as Vellum” still describe the character and remain editable. For example, a construct named “My cartographer” can keep `# Character Sheet` while its body describes its voice. Character Sheet is a prompt heading, not a rename of constructs. Make a copy and reset use these same sheets. Model context identifies the current activity by its snapshot name beside its instructions; that label is not saved in the prompt.
 
 ## Workshop
 
-Construct, activity and spell detail pages share the Workshop. In the Workshop and collection pages, choose Craft construct, Craft activity or Craft spell to create an own definition without copying another. The saved starter names remain "New construct", "New activity" and "New spell".
+Construct, activity and spell detail pages share the Workshop. In the single Workshop collection, choose Create construct, Create activity or Create spell to create an own definition without copying another. The saved starter names remain "New construct", "New activity" and "New spell".
 
-The existing save, reset, Customize, delete and Marketplace actions remain available. The editor uses the available width and shows one instruction section at a time. Save stays pinned at the foot of the form, with Reset and Discard changes after it.
+Make a copy opens a new private copy in the same editor, for built-ins and private definitions alike. Edit opens an existing private definition. Save stores edits; Cancel puts back saved fields and clears the browser draft. Reset and retirement remain available. Workshop actions never start quests. The editor uses the available width and shows one instruction section at a time. Save stays pinned at the foot of the form, with Reset and Cancel after it.
 
 The Workshop has no test drawer and makes no model call of its own. A prompt save makes no model call and spends no batteries. To try a change, save it and use the definition in a quest or in Chat. A conversation keeps the construct and activity texts it started with, so an edit shows in conversations started after it, and a spell's next cast reads its saved instructions.
 
@@ -67,7 +67,7 @@ Reply and tool application state identifies the acting user. Replies, generated 
 
 ## Unsaved edits
 
-The shared editor refuses a blank or whitespace-only name beside the field and keeps all edits. Unsaved edits are kept in this browser for the signed-in viewer and prompt until Save or Discard changes. A draft based on an older save is discarded. Browser storage can be blocked or cleared; these drafts do not follow you to other devices. Anyone with access to this browser’s storage can read them, so use Discard changes on a shared device.
+The shared editor refuses a blank or whitespace-only name beside the field and keeps all edits. Unsaved edits are kept in this browser for the signed-in viewer and prompt until Save or Cancel. A draft based on an older save is discarded. Browser storage can be blocked or cleared; these drafts do not follow you to other devices. Anyone with access to this browser’s storage can read them, so use Cancel on a shared device.
 
 ## Quest activities and Journal updates
 
@@ -77,4 +77,4 @@ Every quest adventure receives Journal update instructions and the update tool, 
 
 ## Definition page identity
 
-Construct, activity and spell detail pages use the actual definition name as their H1 and document title. Access checks precede private names in metadata. Workshop remains secondary navigation and context. Collection buttons explicitly offer an adventure; navigation stays a link. Customize describes making an own copy, while Edit changes an own definition in place.
+Construct, activity and spell detail pages use the actual definition name as their H1 and document title. Access checks precede private names in metadata. Workshop remains secondary navigation and context. Definition names open inspection or editing; collections have no quest-start action. Make a copy creates a private definition, while Edit changes an existing private definition in place.
