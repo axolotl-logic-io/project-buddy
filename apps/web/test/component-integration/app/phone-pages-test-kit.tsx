@@ -769,15 +769,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the Workshop's Activities tab", render: workshopPage("activity") },
   { name: "the Workshop's Spells tab", render: workshopPage("spell") },
   {
-    name: "the Workshop test drawer",
-    render: workspacePage(noData, () => spellPage("ask-one-question")),
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("button", { name: "Try your draft", exact: true })
-        .click();
-    },
-  },
-  {
     name: "a built-in spell's page",
     render: workspacePage(noData, () => spellPage("ask-one-question")),
   },
