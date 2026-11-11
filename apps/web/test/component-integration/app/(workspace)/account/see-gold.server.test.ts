@@ -1,8 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 // "use_case_see_gold" in use-cases/accounts.md: her account page states her
 // batteries, in whole batteries rounded down, as a number under its
-// "Batteries" label, and her balance falls as the construct replies. The
-// extra that hides it is checked in hide-extras.browser.test.tsx.
+// "Batteries" label, and her balance falls as the construct replies.
 import { afterEach, expect, test, vi } from "vitest";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
