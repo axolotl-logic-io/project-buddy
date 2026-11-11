@@ -2,10 +2,11 @@
 // first, each offering Craft, Customize for the built-in ones, and Tweak and
 // Clone for the user's own.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
+import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import { listConstructs } from "@/constructs/construct-store.ts";
 import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
@@ -203,7 +204,7 @@ describe("use_case_workshop_page", () => {
     await expect.element(tab(kind)).toHaveAttribute("aria-current", "page");
   });
 
-  test("the Activities tab offers Craft, Customize, Tweak and Clone for activities", async () => {
+  test("the Activities tab offers Create, Make a copy and Edit for activities", async () => {
     await showWorkshop("activity");
     await expect
       .element(tab("activity"))
@@ -238,7 +239,7 @@ describe("use_case_workshop_page", () => {
       .not.toBeInTheDocument();
   });
 
-  test("the Spells tab offers Craft, Customize, Tweak and Clone for spells", async () => {
+  test("the Spells tab offers Create, Make a copy and Edit for spells", async () => {
     await showWorkshop("spell");
     await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
     const builtIn = listSpells()[0]?.name ?? "";
@@ -296,3 +297,21 @@ describe("use_case_workshop_page", () => {
 vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));
+
+test("Create construct supports keyboard submission in Workshop", async () => {
+  const submitted = Promise.withResolvers<void>();
+  vi.mocked(newConstructAction).mockImplementation(() => {
+    submitted.resolve();
+    return new Promise<never>(() => undefined);
+  });
+  await showWorkshop();
+  const create = page.getByRole("button", {
+    name: "Create construct",
+    exact: true,
+  });
+  create.element().focus();
+  await expect.element(create).toHaveFocus();
+  await userEvent.keyboard("{Enter}");
+  await submitted.promise;
+  expect(newConstructAction).toHaveBeenCalledOnce();
+});
