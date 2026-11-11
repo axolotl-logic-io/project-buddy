@@ -71,12 +71,12 @@ async function savedCalls(
   );
 }
 
-// The project's page, as the signed-in user sees it.
+// The project's Progress section, as the signed-in user sees it.
 async function pageHtml(projectId: string): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "progress" }),
     }),
   );
 }

@@ -70,13 +70,13 @@ async function emailsFor(
   );
 }
 
-// The project's page as the user, signed in, sees it.
+// The project's members section as the user, signed in, sees it.
 async function pageHtml(user: User, projectId: ProjectId): Promise<string> {
   await signIn(user);
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "members" }),
     }),
   );
 }

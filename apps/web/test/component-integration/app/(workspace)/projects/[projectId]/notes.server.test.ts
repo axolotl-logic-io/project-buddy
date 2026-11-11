@@ -25,12 +25,12 @@ vi.mock("next/cache", async (importOriginal) => ({
 
 const TODAY = dayOf(new Date(), "utc");
 
-// The project's page, as the signed-in user sees it.
+// The project's Quick Notes section, as the signed-in user sees it.
 async function pageHtml(projectId: string): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "notes" }),
     }),
   );
 }
