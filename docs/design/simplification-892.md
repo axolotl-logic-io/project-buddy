@@ -10,33 +10,23 @@ Each addition is the smallest state that the behavior needs.
 
 | State | Why it's needed |
 | --- | --- |
-| `chats.continuing` (boolean, default false) with partial unique indexes on `project_id` and on standalone `user_id` | Gives atomic get-or-create of the one conversation per quest and the one Chat per user. The flag, rather than plain unique indexes, keeps the live build working during the release: it still writes several adventures per quest with `continuing = false`. |
+| `chats.continuing` (boolean, default false) with partial unique indexes on `project_id` and on standalone `user_id` | Gives atomic get-or-create of the one conversation per quest and the one Chat per user. The flag, rather than plain unique indexes, keeps the live build working while 0051 runs: it still writes several adventures per quest with `continuing = false`, and existing adventures stay until #898. |
 | `projects.dailies` (boolean, default false) with a partial unique index on `user_id` | Gives the stable identity of the user's one Dailies quest, whatever its name, and atomic reuse under concurrent starts. |
-| `milestones.chat_id` nullable, `on delete set null` | Lets Progress outlive the adventure it was recorded in, so the cutover keeps it. |
+| `milestones.chat_id` nullable, `on delete set null` | Lets Progress outlive the adventure it was recorded in, so the cutover (#898) keeps it. A milestone with no conversation still reads and shows. |
 
-Migration 0051 adds all three and is compatible with the live build. There is no new state for construct history, activity history, daily progress or Start the day.
+Migration 0051 is additive. It adds all three and is compatible with the live build. There is no new state for construct history, activity history, daily progress or Start the day.
 
 ## Cutover
 
-Migration 0052 deletes every chat that isn't continuing: the existing adventures. The user approved removal rather than keeping their history. The following go with the adventures through their foreign keys:
+Removing existing adventures is the destructive second step, in its own PR, #898, which holds migration `0052_remove_adventures`. It must not merge into `integration` until this release (#897, with 0051) and the replacement pages (#893, #894) are live in production, as the [project practices](../project-practices.md) require.
 
-- messages
-- images and image generations
-- reply runs and their usage rows
-- activity sessions
-- unread marks
-- quest transfers and status approvals
-- construct-visual grants, whose last release collects the asset's bytes
+0052 deletes every chat that isn't continuing, and what belongs to it through foreign keys. It keeps accounts, balances, own definitions, quests, Journals, plans and milestones, which then have no conversation. Until 0052 runs, adventures stay in the database:
 
-Plan versions and milestones stay, with no conversation. Accounts, battery and orb balances, own constructs, activities and spells, quests, Journals, plans, members and invitations stay. `test/component-integration/db/remove-adventures-migration.server.test.ts` checks this on a scratch database.
+- The new build doesn't read them.
+- Old links resolve through `resolveConversation`.
+- A milestone keeps its link until its conversation is gone. After that it shows without a link.
 
-### Release sequencing
-
-- 0051 and 0052 run in the release's migration step while the old build is live. The old build keeps working: it reads adventures that are gone as not found and writes new adventures with `continuing = false`.
-- The new build reads only continuing conversations, so it doesn't depend on 0052 having run.
-- **Follow-up release required:** adventures the old build writes between 0052 and promotion are invisible leftovers. The next release must run `DELETE FROM chats WHERE NOT continuing` again. Once no build writes `continuing = false`, it can also drop the unused `chats.name` and `chats.renamed_by_hand` columns.
-- A rollback restores old code without the adventures. No real users are affected, by the user's approval.
-- Nobody runs 0052 by hand in production. It runs only through the release workflow.
+Nobody runs the cutover by hand in production; the release workflow applies it.
 
 ## Domain API (`src/conversations/`)
 
@@ -73,5 +63,5 @@ Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`
 ## Retained compatibility
 
 - **`chats`/`chat` names in code and storage.** They are the conversation's storage, and renaming them would be a broad mechanical rename the ticket advises against.
-- **`chats.name` and `chats.renamed_by_hand`.** The live build reads them during the release. A later release drops them.
+- **`chats.name` and `chats.renamed_by_hand`.** The live build reads them during the release. A release after #898 drops them.
 - **`getChat` reading any open chat, continuing or not.** Old links resolve safely through `resolveConversation`. Nothing lists leftovers.
