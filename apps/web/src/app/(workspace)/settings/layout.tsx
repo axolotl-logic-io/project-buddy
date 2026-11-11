@@ -1,4 +1,7 @@
 import type { JSX, ReactNode } from "react";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
+import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { PageFrame } from "@/components/ui/page-frame.tsx";
 
 export default function RouteLayout({
@@ -6,5 +9,5 @@ export default function RouteLayout({
 }: {
   readonly children: ReactNode;
 }): JSX.Element {
-  return <PageFrame>{children}</PageFrame>;
+  return <PageFrame><PageWorkspace title={SETTINGS_COPY.heading} intro={WORKSPACES_COPY.settingsIntro}>{children}</PageWorkspace></PageFrame>;
 }

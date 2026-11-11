@@ -13,7 +13,6 @@ import { userMessage } from "@/errors/app-error.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -34,10 +33,7 @@ async function anotherBrowser(
 
 // Opens the account page at its Security tab, where the sign-out buttons are.
 async function openSecurity(page: Page): Promise<void> {
-  await page.goto("/account");
-  await page
-    .getByRole("tab", { exact: true, name: WORKSPACES_COPY.security })
-    .click();
+  await page.goto("/settings");
 }
 
 test("use_case_sign_out", async ({ account, browser, page }) => {
@@ -57,7 +53,7 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
   await test.step("every page in this browser shows the sign-in page", async () => {
     await page.goto("/projects");
     await expect(page).toHaveURL("/login");
-    await page.goto("/account");
+    await page.goto("/settings");
     await expect(page).toHaveURL("/login");
   });
 
@@ -73,8 +69,8 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
     await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
 
     await expect(page).toHaveURL(HOME_PATH);
-    await page.goto("/account");
-    await expect(page).toHaveURL("/account");
+    await page.goto("/settings");
+    await expect(page).toHaveURL("/settings");
   });
 });
 
@@ -118,7 +114,7 @@ test("use_case_sign_out_everywhere", async ({
 
     await expect(signOutEverywhereDialog(page)).toBeHidden();
     await page.reload();
-    await expect(page).toHaveURL("/account");
+    await expect(page).toHaveURL("/settings");
     await openSecurity(page);
   });
 
@@ -153,7 +149,7 @@ test("use_case_sign_out_everywhere", async ({
   await test.step("a new link signs her in as usual", async () => {
     await signInByLink(page, account.email);
 
-    await page.goto("/account");
-    await expect(page).toHaveURL("/account");
+    await page.goto("/settings");
+    await expect(page).toHaveURL("/settings");
   });
 });
