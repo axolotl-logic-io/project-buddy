@@ -25,13 +25,11 @@ import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -85,13 +83,11 @@ const PLACES = [
   PROJECTS_COPY.headerLink,
   CHAT_COPY.headerLink,
   CONSTRUCTS_COPY.headerLink,
-  ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
   LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
   GENERATION_COPY.heading,
-  MARKETPLACE_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 
@@ -251,7 +247,7 @@ test.each(SCREENS)(
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Constructs, Activities and Spellbook apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 

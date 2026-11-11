@@ -8,7 +8,7 @@ An activity has a prompt and a separate opening request. The prompt guides the c
 
 A spell has a prompt, shown as Instructions, and separate name and when-to-use metadata. The model sees selection metadata before casting. Casting delivers the instructions through the tool result. Reset restores instructions while preserving the name and when-to-use description.
 
-Reset changes the editor draft and offers Undo reset; only Save stores it. Unsaved names, opening requests and when-to-use descriptions are preserved. Bought copies and clones of bought copies have no built-in source and cannot be reset, including through a direct request. They remain editable. For other copies, reset restores the prompt from the built-in source when there is one. Otherwise a construct uses the default construct's prompt, an activity uses Chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing adventure snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
+Reset changes the editor draft and offers Undo reset; only Save stores it. Unsaved names, opening requests and when-to-use descriptions are preserved. Reset restores the prompt from the built-in source when there is one. Otherwise a construct uses the default construct's prompt, an activity uses Chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing adventure snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
 
 Built-in and starter prompts begin with `# Character Sheet` for a construct, `# Activity Sheet` for an activity, and `# Spell Sheet` for a spell. The separate name field identifies the definition; the sheet contains its instructions. Renaming does not require a heading edit. Identity instructions such as “Write as Vellum” still describe the character and remain editable. For example, a construct named “My cartographer” can keep `# Character Sheet` while its body describes its voice. Character Sheet is a prompt heading, not a rename of constructs. Customize and reset use these same sheets. Model context identifies the current activity by its snapshot name beside its instructions; that label is not saved in the prompt.
 
@@ -16,7 +16,7 @@ Built-in and starter prompts begin with `# Character Sheet` for a construct, `# 
 
 Construct, activity and spell detail pages share the Workshop. In the Workshop and collection pages, choose Craft construct, Craft activity or Craft spell to create an own definition without copying another. The saved starter names remain "New construct", "New activity" and "New spell".
 
-The existing save, reset, Customize, delete and Marketplace actions remain available. The editor uses the available width and shows one instruction section at a time. Save stays pinned at the foot of the form, with Reset and Discard changes after it.
+The existing save, reset, Customize and delete actions remain available. The editor uses the available width and shows one instruction section at a time. Save stays pinned at the foot of the form, with Reset and Discard changes after it.
 
 The Workshop has no test drawer and makes no model call of its own. A prompt save makes no model call and spends no batteries. To try a change, save it and use the definition in a quest or in Chat. A conversation keeps the construct and activity texts it started with, so an edit shows in conversations started after it, and a spell's next cast reads its saved instructions.
 
@@ -40,30 +40,30 @@ For older unversioned hashes, an owned immutable generation record supplies the 
 
 Activities uses each activity’s name directly as its start action. The built-in names are Brainstorm, Chat and Break Down a Project. These names also appear in activity choices and detail page titles. Own activity names are kept as written.
 
-The rename changes display names only. Built-in instruction text (including older headings), opening requests and ids stay unchanged so exact built-in matching, prepared openings and Marketplace restrictions remain compatible. In particular, Chat retains `open-chat`. Saved names, prompts, adventure snapshots and historical content are not rewritten.
+The rename changes display names only. Built-in instruction text (including older headings), opening requests and ids stay unchanged so exact built-in matching and prepared openings remain compatible. In particular, Chat retains `open-chat`. Saved names, prompts, adventure snapshots and historical content are not rewritten.
 
 ## Storage compatibility
 
 The product calls ongoing work quests, conversations adventures and persistent quest context the Journal. Existing `chat` and `memory` paths, identifiers, tool names and prompt boundary tags remain compatible. Historical Note paragraphs remain ordinary Journal text and are never rewritten by feature removal. The global prompt explains earlier names without rewriting user instructions or saved snapshots. Existing route paths, tool names, storage fields and built-in activity ids retain their `project` names for compatibility. Saved user prompts, adventure snapshots and past messages keep their original text.
 
-The shared store handles ownership, cloning, source tracking and Marketplace copies. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.
+The shared store handles ownership, cloning and source tracking. Copies bought in the removed Marketplace are ordinary own definitions; their inert `bought_from` column is no longer read. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.
 
 The existing `buddies` table and JSON columns remain in place. Validated read boundaries convert legacy construct voice and habits into one prompt, preserving the previous rendered text. Activity and spell boundaries separate their instruction text from opening requests and selection metadata. Writes retain the legacy JSON shape so the currently live build can read newly saved definitions, snapshots and listings during a rollout or rollback. This change needs no schema migration.
 
 Constructs were first called buddies. The rename to constructs changed no schema, and the earlier build, which a release keeps live while it migrates and a rollback returns to, reads everything the current build writes:
 
 - Stored rows and browsers' saved drafts keep the kind `buddy` (`STORED_PROMPT_KIND` in `src/prompts/prompt.ts`), and Journal a construct writes keeps the author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's parser also takes `construct`; the stored Journal author is a legacy-only boundary, `user` or `buddy`, and refuses `construct`, as the `memory_versions` check does.
-- `/buddies`, `/buddies/<id>`, `/guild` and `/guild/<id>` redirect, temporarily, to `/constructs` and `/constructs/<id>` (`next.config.ts`). A Marketplace link with `?kind=buddy` still shows constructs.
-- An own copy of a built-in construct, activity or spell is stored, while its whole text is unchanged, in that built-in's text from before the rename, and read back in today's text (`src/prompts/earlier-built-in-texts.ts`). The earlier texts are recorded in `src/prompts/earlier-built-ins.ts` and never edited. The earlier build knows a copy only by exact equality with its own text, so either build keeps the copy's prepared openings and refuses to list it in the Marketplace, whichever build saved it. Edited text is stored exactly as written, and matching stays exact (`src/prompts/matching-built-in.ts`). Adventure snapshots and activity sessions are not translated.
+- `/buddies`, `/buddies/<id>`, `/guild` and `/guild/<id>` redirect, temporarily, to `/constructs` and `/constructs/<id>` (`next.config.ts`).
+- An own copy of a built-in construct, activity or spell is stored, while its whole text is unchanged, in that built-in's text from before the rename, and read back in today's text (`src/prompts/earlier-built-in-texts.ts`). The earlier texts are recorded in `src/prompts/earlier-built-ins.ts` and never edited. The earlier build knows a copy only by exact equality with its own text, so either build keeps the copy's prepared openings, whichever build saved it. Edited text is stored exactly as written, and matching stays exact (`src/prompts/matching-built-in.ts`). Adventure snapshots and activity sessions are not translated.
 - Generic sheet headings follow the same exact-match rule. `src/prompts/named-sheet-built-ins.ts` records the canonical definitions immediately before the heading change. Existing unchanged copies read as current sheets, including Find something to make, while writes keep the oldest recorded compatible text. Edited copies, including those with changed opening requests or when-to-use metadata, keep their text exactly. The historical records are never rewritten. No database migration or bulk prompt rewrite is needed.
 - `BUDDY_MODEL` is read when `CONSTRUCT_MODEL` is unset (`readConstructModel` in `src/env.ts`).
 - The global prompt tells the model that older instructions may call a construct a buddy. Saved prompts and snapshots are never rewritten.
 
-What the earlier build cannot do after a rollback: open `/constructs` links, or show constructs for a `?kind=construct` link, which shows all listings instead.
+What the earlier build cannot do after a rollback: open `/constructs` links.
 
 Placeholders remain literal in saved definitions and snapshots. Substitution happens when text enters model context. Adventure viewers cannot read private spell instructions through saved tool results, and ownership of the original definition does not change team adventure access.
 
-Reply and tool application state identifies the acting user. Replies, generated images and automatic adventure names charge that user; generated openings charge the starter, and check-ins charge the quest owner. Prompt text grants no access or tools.
+Reply and tool application state identifies the acting user. Replies, generated images and automatic adventure names charge that user; and generated openings charge the starter. Prompt text grants no access or tools.
 
 ## Unsaved edits
 

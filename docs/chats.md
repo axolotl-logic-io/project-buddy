@@ -22,15 +22,15 @@ previews remain separate and keep their editable name, Journal and activity.
 
 ## Chat
 
-`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: quest members can't open it, and old addresses of it reveal nothing to anyone else.
+`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: old addresses of it reveal nothing to anyone else.
 
 Chat has no Journal, plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
 
-### Start a quest from this
+### Turn Chat into a quest
 
-Chat's header offers **Start a quest from this**. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
+Chat's header offers **Turn Chat into a quest**, one of the two ways to create a quest; the other is Start a quest on Quests. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
 
-The construct can also propose a quest with `create_project`. The user edits and confirms the proposed summary in the conversation, and the result links to the new quest.
+In Chat only, the construct can offer a quest with `create_project`. The tool creates nothing and spends nothing: its result holds a name, summary and motivation, and the conversation shows them with a Turn Chat into a quest button that opens the same dialog filled in (`QuestFromChat`, through `ChatQuestChoices`). The user confirms there, through `startQuestAction`, like any quest start. A quest's conversation has no `create_project` tool. An offer saved before this change, or shown outside Chat, shows its name with nothing to open, and a saved "created" result still links to its quest. The `quest_transfers` table is no longer read or written; it stays until the held schema cleanup drops it.
 
 ### Old addresses
 
@@ -38,8 +38,7 @@ The construct can also propose a quest with `create_project`. The user edits and
 
 ## Home atlas
 
-Home shows the approved heading "Your projects await" and the guidance
-"Don't know where to start? Try an Activity", linking to Activities. The
+Home shows the approved heading "Your projects await". The
 heading deliberately uses the user's chosen wording; the domain term for
 ongoing work elsewhere is quest.
 
@@ -51,7 +50,7 @@ image. There is no compass bar or region caption.
 
 Home has one responsive control panel, with no Map/List switch. The map
 fills the background behind the heading, places, current quest and footer.
-Quests, Adventures, Constructs, Activities, Workshop and Marketplace appear
+Quests, Adventures, Constructs, Activities and Workshop appear
 in that reading and keyboard order, in two columns on phones and three on
 wide screens. The map has no geographic markers, trails or separate phone
 overview. It needs no panning, zooming, hovering or animation.
@@ -117,17 +116,16 @@ are allowed. A plan whose steps are all done, or a Journal without such a
 line, shows the quest without a next step.
 
 The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries, which
-include the team quests the user is a member of, and makes
-no model call. Unread check-ins (#609) can join Today as another part above
-the quests: add a list to the `Today` type in `src/today/today.ts` and a
-part to `TodaySection` in `src/components/today-section.tsx`.
+`src/today/today-store.ts` reads Today with owner-scoped queries, and makes
+no model call.
 
 ## Activities and constructs
 
 Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
 
-On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. The start opens on the starting point built on the chosen activity, such as Make a thing for Find something to make, and otherwise on Do a thing, so most starts need only a name. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
+Activities are internal instructions, not a destination or a start choice. Each starting point begins in its own activity, which `startQuestAction` takes from `PREMADE_QUESTS` on the server; the form sends none, and an `activityId` from an older form is ignored. Chat begins in Chat. The user customizes activities in the Workshop's Activities tab, and `/activities` redirects there, making nothing ([#905](design/simplification-905.md)).
+
+A quest is created only through Start a quest or Turn Chat into a quest, which share one form. Constructs and activities have no start actions: the construct is picked inside the form, and its activity comes from the starting point. Closing the form creates nothing.
 
 Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
@@ -140,31 +138,13 @@ The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_st
 
 Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
-## Check-ins
+## Removed check-ins
 
-A quest's construct can write in the quest's conversation on its own: a check-in. The quest has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
-
-Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
-
-1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no conversation started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Appends the check-in (`appendCheckIn` in `src/conversations/check-in.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries, or when the conversation's newest message still awaits a reply. The check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct, in the conversation's construct and current activity, for two or three sentences from the quest's Journal about where the user left off and one small next step. The message is added to the end of the quest's one conversation, which keeps its activity; a quest with no conversation yet gets one, opened by the check-in. The conversation is then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`).
-3. Emails the owner the construct's message, with a link to the quest and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). The email's idempotency key is the message's id, so each check-in sends one email. A failed email is logged; the message stays.
-
-When the owner is out of batteries, or the conversation awaits a reply, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
-
-The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
-
-### Unread quests
-
-Unread marks are per user. A row in `chat_unreads` marks one conversation unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a conversation, for the quest's owner and every member. A user who can't read the conversation gets no mark, and a user named twice or already marked keeps one mark.
-
-`Project.unread` (`src/projects/store.ts`) says whether the quest's conversation is unread for the user reading it, so quest lists show the viewer's own mark. Opening the conversation clears the viewer's mark and no one else's (`markChatRead`).
-
-The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one conversation stay apart.
+Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Start the day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
 
 ## Conversation header
 
-A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Start a quest from this. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Turn Chat into a quest. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 
@@ -182,7 +162,7 @@ someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
 The author in a message's metadata holds the email address only for an
 author with no name, so a named author's address never reaches anyone's
-browser, as with the members list ([team quests](team-projects.md)).
+browser.
 The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. An adventure that only the viewer writes in looks as
 it did before authors were recorded.
@@ -207,7 +187,7 @@ one author sends the model exactly what it sent before, and the saved
 messages never hold the headers. The mock model reads a command past the
 header, and `/mock-recall` also searches it.
 
-The quest owner and current members can write in a team quest adventure. Replies, generated images and automatic adventure names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
+Only the quest's owner can write in its adventure. Messages other people wrote while quests could be shared keep their authors. Replies, generated images and automatic adventure names charge the acting user; and generated openings charge the starter.
 Server tests write other authors' messages through the `author` field of
 the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
 `use_case_chat_with_several_people` covers this behavior.
@@ -313,7 +293,7 @@ Start Quest offers a construct picker and optional Why: why the user wants to co
 
 Existing adventure snapshots stay unchanged. If the preferred construct is deleted or unavailable, the picker defaults to Vellum.
 
-New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference that defaults the dedicated Start Quest picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+The quest start's construct picker defaults to the New quest construct, and the user can change it before starting.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
@@ -355,4 +335,4 @@ The composer shows the acting user's battery balance. A reply's cost shows one d
 
 The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand and Menu row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
 
-Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, Marketplace listings, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.
+Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.

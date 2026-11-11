@@ -1,4 +1,4 @@
-// The summary Chat's Start a quest from this offers to edit first: what the
+// The summary Chat's Turn Chat into a quest offers to edit first: what the
 // user said most recently, so she starts from her own words rather than an
 // empty box. It is built without the model, so offering it spends nothing,
 // and it is only a draft: nothing leaves her Chat until she confirms it.

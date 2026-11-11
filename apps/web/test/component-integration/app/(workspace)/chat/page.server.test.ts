@@ -15,9 +15,9 @@ import {
 } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
 import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
+import { formerMembership } from "../../../../support/test-database/former-member-test-kit.ts";
 import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import {
@@ -80,14 +80,14 @@ describe("use_case_standalone_chat", () => {
     await expectNotFound(() => openOld(chat.id));
   });
 
-  test("an old adventure address opens her Chat or the quest she can open, and reveals nothing else", async () => {
+  test("an old adventure address opens her Chat or her quest, and reveals nothing else", async () => {
     const { her, herData, other, otherData } = await twoUsers();
     const [ownQuest, sharedQuest, foreignQuest] = await Promise.all([
       herData.project("Own fox"),
-      otherData.project("Shared fox"),
+      otherData.project("Formerly shared fox"),
       otherData.project("Private fox"),
     ]);
-    await addProjectMember(her.id, sharedQuest.id);
+    await formerMembership(other, her, sharedQuest.id);
     const [chat, own, shared, foreign] = await Promise.all([
       privateChat(her.id),
       questConversationId(her.id, ownQuest),
@@ -98,7 +98,7 @@ describe("use_case_standalone_chat", () => {
     const checks = [
       expectRedirect(() => openOld(chat.id), "/chat"),
       expectRedirect(() => openOld(own), `/projects/${ownQuest.id}`),
-      expectRedirect(() => openOld(shared), `/projects/${sharedQuest.id}`),
+      expectNotFound(() => openOld(shared)),
       expectNotFound(() => openOld(foreign)),
       expectNotFound(() => openOld("not-a-chat")),
       expectNotFound(() => openOld(crypto.randomUUID())),
@@ -129,7 +129,6 @@ describe("use_case_project_from_standalone_chat", () => {
         premadeId: "do",
         name: QUEST_NAME,
         journal: edited,
-        activityId: "project-breakdown",
         constructId: "vellum",
       }),
     );
@@ -152,7 +151,7 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(JSON.stringify(questMessages)).not.toContain(SAID);
     expect(await listMessages(her.id, chat.id)).toHaveLength(2);
 
-    await addProjectMember(other.id, quest.id);
+    await formerMembership(her, other, quest.id);
     await signIn(other);
     expect(await resolveConversation(other.id, chat.id)).toBeUndefined();
     expect(await listMessages(other.id, chat.id)).toEqual([]);

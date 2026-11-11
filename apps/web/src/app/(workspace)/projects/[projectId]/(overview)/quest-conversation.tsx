@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { listMessages, markChatRead, readStoppedReply } from "@/chats/store.ts";
+import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
@@ -37,7 +37,6 @@ async function questConversation(
     listMessages(viewer, conversation.id),
     readStoppedReply(viewer, conversation.id),
     readPlanState(viewer, project.id),
-    conversation.unread && markChatRead(viewer, conversation.id),
   ]);
   let starter: typeof START_THE_DAY | undefined;
   if (project.dailies && project.status === "active") {

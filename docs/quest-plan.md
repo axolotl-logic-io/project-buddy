@@ -6,7 +6,7 @@ Each quest has a plan: its ordered steps of remaining work, which the construct 
 
 A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the plan's first open step. Home's Continue, the Plan panel and check-in openings read it through `nextStepOfQuest` in `src/memory/next-step.ts`. A quest whose plan has never had a step falls back to its Journal's line that starts "Next step:", which the construct kept before plans. Once the plan has had one, it alone says: an emptied plan, or one with every step done, has no next step. The premade quests' Journals hold no next step.
+The next step is the plan's first open step. Home's Continue and the Plan panel read it through `nextStepOfQuest` in `src/memory/next-step.ts`. A quest whose plan has never had a step falls back to its Journal's line that starts "Next step:", which the construct kept before plans. Once the plan has had one, it alone says: an emptied plan, or one with every step done, has no next step. The premade quests' Journals hold no next step.
 
 ## Operations
 
@@ -36,7 +36,7 @@ The conversation shows each call as a **Plan change** with Undo (`src/components
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
 - The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
-- The **Plan panel** beside a quest's conversation: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the conversation's last message awaits a reply: while one runs, here or for another member, and after one failed or stopped, so that Retry or "send again" still answers that message.
+- The **Plan panel** beside a quest's conversation: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |
@@ -54,7 +54,7 @@ People change the plan through the Server Actions in `src/plan/plan-actions.ts`.
 
 A change made in a conversation, by the panel, a card or a command, is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, a conversation's naming or a reply's cost. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. A change made on the quest's page adds no message.
 
-In a [team quest](team-projects.md), every member can change the plan and undo anyone's change. Each change records its author.
+Only the quest's owner can change its plan. Each change records its author.
 
 ## Storage
 

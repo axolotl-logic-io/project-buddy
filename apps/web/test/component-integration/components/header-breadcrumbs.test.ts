@@ -7,17 +7,13 @@ const stores = vi.hoisted(() => ({
   getOwnConstruct: vi.fn(),
   getOwnActivity: vi.fn(),
   getOwnSpell: vi.fn(),
-  getListing: vi.fn(),
   getRetiredDefinition: vi.fn(),
-  readProjectInvitation: vi.fn(),
 }));
 vi.mock("@/projects/store.ts", () => stores);
 vi.mock("@/activities/activity-store.ts", () => stores);
 vi.mock("@/constructs/construct-store.ts", () => stores);
 vi.mock("@/spells/spell-store.ts", () => stores);
-vi.mock("@/marketplace/listing-store.ts", () => stores);
 vi.mock("@/retirement/retirement-store.ts", () => stores);
-vi.mock("@/projects/project-invitations.ts", () => stores);
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
 
@@ -84,7 +80,6 @@ describe("header navigation hierarchy", () => {
         "constructs",
         "activities",
         "spellbook",
-        "marketplace",
         "retirement",
       ].map((section) => headerBreadcrumbs(USER, [section, "foreign"])),
     );
@@ -112,5 +107,21 @@ describe("header navigation hierarchy", () => {
     expect(
       (await headerBreadcrumbs(USER, ["constructs", "lumen"])).at(-1)?.label,
     ).toBe("Lumen");
+  });
+
+  test("leads from an activity's page to the Workshop's Activities tab", async () => {
+    if (USER === undefined) {
+      throw new Error("Invalid fixture user");
+    }
+    expect(
+      await headerBreadcrumbs(USER, ["activities", "brainstorming"]),
+    ).toEqual([
+      { label: "Home", href: "/home" },
+      {
+        label: "Workshop",
+        href: `/workshop?${new URLSearchParams({ kind: "activity" })}`,
+      },
+      { label: "Brainstorm" },
+    ]);
   });
 });

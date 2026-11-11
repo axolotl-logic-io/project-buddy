@@ -10,9 +10,8 @@ const WORKSPACES_COPY = {
   standalone: "Standalone",
   versions: "Versions",
   journal: "Quest Journal",
-  members: "Members and check-ins",
   accountIntro: "Your name, batteries and sign-in controls.",
-  settingsIntro: "Your preferences, appearance and notifications.",
+  settingsIntro: "Your preferences and appearance.",
   openWorkshop: "Open Workshop",
   books: "Library books",
 } as const;

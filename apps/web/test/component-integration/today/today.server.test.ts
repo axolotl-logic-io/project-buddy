@@ -1,22 +1,20 @@
 // What Home reads to offer Continue, against the test database: the
 // Active quest whose conversation was most recently active, with its next
-// step and whether it is unread for the viewer. "use_case_today_on_landing".
+// step. "use_case_today_on_landing".
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { markChatUnreadFor } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
-import { removeProjectMember } from "@/projects/members-store.ts";
 import { changeQuestStatus } from "@/projects/quest-status-store.ts";
 import { readHomeSummary } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { teamProject } from "../projects/team-project-test-kit.ts";
+import { formerMemberQuest } from "../accounts/former-member-quest-test-kit.ts";
 
 // Explicit start times, oldest first, decide the order of conversations
 // with no messages; a message saved now is newer than any of them.
@@ -96,23 +94,9 @@ describe("use_case_today_on_landing", () => {
       latestQuest: {
         project: { id: turtle.id, name: "Sea turtle model" },
         nextStep: "retopo the flipper",
-        unread: false,
       },
       firstVisit: false,
     });
-  });
-
-  test("marks the quest unread for the viewer alone", async () => {
-    const team = await teamProject();
-    await markChatUnreadFor(team.chat.id, [team.member.id]);
-
-    const [owner, member] = await Promise.all([
-      readHomeSummary(team.owner.id),
-      readHomeSummary(team.member.id),
-    ]);
-
-    expect(owner.latestQuest?.unread).toBe(false);
-    expect(member.latestQuest?.unread).toBe(true);
   });
 
   test("Chat alone is no quest to continue, and no first visit", async () => {
@@ -126,56 +110,48 @@ describe("use_case_today_on_landing", () => {
   });
 });
 
-test("Home continues only active quests for owners and members", async () => {
-  const team = await teamProject();
+test("Home continues only the owner's active quests", async () => {
+  const quest = await formerMemberQuest();
   const other = await testUser();
-  const data = testData(team.owner);
+  const data = testData(quest.owner);
   const completed = await data.project("Finished");
   await data.chat(completed);
-  await changeQuestStatus(team.owner.id, {
+  await changeQuestStatus(quest.owner.id, {
     projectId: completed.id,
     fromStatus: "active",
     toStatus: "completed",
     revision: 0,
   });
-  const active = await Promise.all(
-    [team.owner, team.member].map((user) => readHomeSummary(user.id)),
+  expect((await readHomeSummary(quest.owner.id)).latestQuest?.project.id).toBe(
+    quest.project.id,
   );
-  for (const summary of active) {
-    expect(summary.latestQuest?.project.id).toBe(team.project.id);
+  for (const summary of await Promise.all(
+    [quest.member, other].map((user) => readHomeSummary(user.id)),
+  )) {
+    expect(summary.latestQuest).toBeUndefined();
   }
-  expect((await readHomeSummary(other.id)).latestQuest).toBeUndefined();
-  await changeQuestStatus(team.owner.id, {
-    projectId: team.project.id,
+  await changeQuestStatus(quest.owner.id, {
+    projectId: quest.project.id,
     fromStatus: "active",
     toStatus: "abandoned",
     revision: 0,
   });
-  const finished = await Promise.all(
-    [team.owner, team.member].map((user) => readHomeSummary(user.id)),
-  );
-  for (const summary of finished) {
-    expect(summary.latestQuest).toBeUndefined();
-  }
+  expect((await readHomeSummary(quest.owner.id)).latestQuest).toBeUndefined();
 });
 
-test("Home forgets membership immediately and keeps first-visit semantics for completed quests", async () => {
-  const team = await teamProject();
-  expect((await readHomeSummary(team.member.id)).latestQuest?.project.id).toBe(
-    team.project.id,
-  );
-  await removeProjectMember(team.owner.id, team.project.id, team.member.id);
-  expect(await readHomeSummary(team.member.id)).toEqual({
+test("Home ignores a former membership and keeps first-visit semantics for completed quests", async () => {
+  const quest = await formerMemberQuest();
+  expect(await readHomeSummary(quest.member.id)).toEqual({
     latestQuest: undefined,
     firstVisit: true,
   });
-  await changeQuestStatus(team.owner.id, {
-    projectId: team.project.id,
+  await changeQuestStatus(quest.owner.id, {
+    projectId: quest.project.id,
     fromStatus: "active",
     toStatus: "completed",
     revision: 0,
   });
-  expect(await readHomeSummary(team.owner.id)).toEqual({
+  expect(await readHomeSummary(quest.owner.id)).toEqual({
     latestQuest: undefined,
     firstVisit: false,
   });

@@ -51,9 +51,9 @@ const LIBRARY_COPY: {
           ],
           paragraphs: [
             "Chat is your private conversation with a construct, for talking without a goal. A quest is something you want to learn, make or do. Each quest has one continuing conversation, with its Journal, plan and progress beside it.",
-            "To explore an idea, open Chat and tell the construct what you are thinking about and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.” When the idea becomes a goal, choose Start a quest from this. You edit the new quest’s name and Journal before anything is made, and your Chat stays private.",
+            "To explore an idea, open Chat and tell the construct what you are thinking about and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.” When the idea becomes a goal, choose Turn Chat into a quest, or ask the construct to suggest one. You edit the new quest’s name and Journal before anything is made, and your Chat stays private.",
             "Each part has its own job. The construct brings a voice and habits, the activity brings an approach, and spells add focused instructions when they fit.",
-            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name, a starting Journal and an approach; change any of them and the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
+            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name and a starting Journal and begins in an activity that suits it; change the name, the Journal or the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
             "The construct’s first message is its opening. Reply with what you need now, and ask for a smaller step or a clearer explanation if an answer is too broad. AI answers can be wrong, so check advice that matters.",
           ],
         },
@@ -64,9 +64,9 @@ const LIBRARY_COPY: {
           paragraphs: [
             "The header shows where you are. Its links lead back through the pages that contain this one, up to Home.",
             "Chat is always one conversation, so open Chat to carry on where you left off. A quest’s conversation opens with the quest.",
-            "To find a quest, open Quests, or follow Continue on Home. Its tabs show Active, Completed and Abandoned quests, and a quest with messages you haven’t read, such as a check-in, is marked New messages. A quest opens on its conversation, with its Journal, plan, progress, Journal versions, and members and check-ins one tap away. If you own the quest, rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
+            "To find a quest, open Quests, or follow Continue on Home. Its tabs show Active, Completed and Abandoned quests. A quest opens on its conversation, with its Journal, plan, progress and Journal versions one tap away. Rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
             "The Journal holds what a quest needs to remember: its goals, preferences, limits and agreed plans. The construct is asked to save useful information there, and you can read and edit it yourself. If a reply misunderstands your goal, check the Journal first.",
-            "Replies read the Journal and the newest part of the conversation. To keep lasting information for a quest, edit its Journal.",
+            "To keep lasting information for a quest, edit its Journal. Replies read the Journal and the newest part of the conversation, so keep lasting information in the Journal.",
             "For example, write “The shelf gets sun only in the morning” in the Journal. Later in the quest’s conversation, ask which plants would suit it. Chat has no Journal.",
             "A quest’s plan holds its remaining steps, in order, and its first open step is the quest’s next step. Your construct keeps it with you in the quest’s conversation. You can change it yourself in the quest’s Plan section, in the Plan panel beside the conversation, or with commands in the message box: type / to see them. Commands such as /done, /add and /move run at once and spend no batteries.",
           ],
@@ -76,20 +76,18 @@ const LIBRARY_COPY: {
           title: "Craft your own",
           links: [
             { href: "/workshop", label: "Craft in Workshop" },
-            { href: "/marketplace", label: "Browse Marketplace" },
             {
               href: "/library/model-context#inventory",
               label: "Explore model inputs",
             },
           ],
           paragraphs: [
-            "Constructs, Activities and Spellbook each show the built-in ones, your own and the ones you’ve retired, in tabs. To make your own, choose Craft in the page’s heading, or Customize on a built-in one to start from a copy.",
+            "Constructs and Spellbook each show the built-in ones, your own and the ones you’ve retired, in tabs. Activities are in Workshop, under Activities. To make your own, choose Craft, or Customize on a built-in one to start from a copy.",
             "Workshop is where you edit. Edit one section of the instructions at a time, then choose Save. Unsaved edits stay in this browser until you save or discard them. Saving makes no model call and spends no batteries. To see how a change works, save it and use it in a quest or in Chat.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a reply sends to the model.",
-            "Batteries pay for model use: replies, generated openings and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
+            "Batteries pay for model use: replies, generated openings and images. Each uses the balance of the person who asked. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
             "Under each reply, the conversation shows what it cost you, to one decimal place. That cost includes any retries and images the reply needed. Your balance shows whole batteries.",
-            "Account shows your name under Profile, your balance and whether you can buy more batteries under Batteries, and the sign-out controls under Security. Settings holds General, Appearance and Notifications.",
-            "In the Marketplace, people share copies of their own constructs, activities and spells, and buy them with orbs. Orbs are separate from batteries: you can’t turn one into the other, and selling never earns batteries. The Marketplace says whether buying is open.",
+            "Account shows your name under Profile, your balance and whether you can buy more batteries under Batteries, and the sign-out controls under Security. Settings holds General and Appearance.",
           ],
         },
       ],
@@ -123,7 +121,7 @@ const LIBRARY_COPY: {
             "To start from a built-in construct, open Constructs or Workshop and choose Customize. Edit changes one of your own, and Clone copies it so you can compare two versions. To start from nothing, choose Craft construct.",
             "Give the construct a name you’ll recognize. In its Character Sheet, describe habits you can see in a reply, such as: “Explain one practical step at a time. Give a concrete example before an abstract idea. When unsure, say what needs checking.” Don’t ask it to invent facts or ignore permissions; instructions can’t change what the site allows.",
             "For example, name a construct “Moss” and give it these instructions: “Use calm, plain language. Help the user choose a small experiment. Ask at most one question per reply. Keep plant names and care steps exact.” Set its Visual description to “A small leafy guide with round glasses.” The leaves shape Moss’s picture; only the Character Sheet shapes its replies.",
-            "To start the instructions over, choose Reset prompt to default. The editor shows the built-in construct’s instructions, or the default construct’s when yours didn’t come from a built-in one, and offers Undo reset. Nothing changes until you choose Save, and the Visual description and artwork stay. A copy bought in the Marketplace, or a clone of one, has nothing to reset to.",
+            "To start the instructions over, choose Reset prompt to default. The editor shows the built-in construct’s instructions, or the default construct’s when yours didn’t come from a built-in one, and offers Undo reset. Nothing changes until you choose Save, and the Visual description and artwork stay.",
             "To give the construct artwork, write a Visual description and choose Generate Images. It uses the description as it is in the editor, spends batteries, and saves nothing else. The site makes one picture and frames it for each place it appears; the small round avatar centres on the character’s head. Save then attaches the new artwork without charging again.",
           ],
         },
@@ -162,7 +160,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "Before it casts a spell, the construct sees each spell’s name and When to use line, not its instructions. It uses them to decide whether a spell fits your request. It can miss a spell that fits, or cast one that doesn’t.",
             "When the construct casts a spell, it receives the spell’s instructions, the Spell Sheet in its Instructions field. The conversation shows the cast by the spell’s name and keeps the instructions private. A spell adds instructions only: it grants no tools or permissions.",
-            "A cast keeps the instructions as they were then. Editing or deleting the spell later doesn’t change past casts, which keep guiding later replies in that conversation. In a team quest, those can be replies to other members, though your spell itself stays private.",
+            "A cast keeps the instructions as they were then. Editing or deleting the spell later doesn’t change past casts, which keep guiding later replies in that conversation.",
           ],
         },
         {
@@ -172,7 +170,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "To make a spell, open Spellbook or Workshop, then customize a built-in spell, clone one of yours, or choose Craft spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
             "For example, name a spell “Compare options”, with the When to use line “When the user needs to choose between two or more approaches with trade-offs.” Its Spell Sheet says: “List the options and the user’s stated constraints. Compare effort, reversibility and likely benefit. Separate known facts from assumptions. Recommend one small experiment. Ask at most one question if a missing constraint changes the choice.”",
-            "Keep the When to use line short: every conversation’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset. A copy bought in the Marketplace has nothing to reset to.",
+            "Keep the When to use line short: every conversation’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset.",
           ],
         },
         {
@@ -201,14 +199,14 @@ const LIBRARY_COPY: {
       id: "activities",
       title: "Activities",
       intro:
-        "An activity shapes what happens in a conversation: planning, exploring or working through a task. It combines with the construct’s voice and any spells the construct casts.",
+        "An activity is a set of instructions that shapes what happens in a conversation: planning, exploring or working through a task. It isn’t a place to go or something to pick before you start. It combines with the construct’s voice and any spells the construct casts.",
       chapters: [
         {
           id: "sessions",
           title: "Activity sessions",
           links: [],
           paragraphs: [
-            "Choose an activity when you start a quest, or start one from its card on Activities. To switch, ask the construct: it can change to any activity you have. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
+            "Each starting point begins in its own activity: Dailies in Dailies, Learn a thing in Learn a thing, Make a thing in Find something to make, and Do a thing in Break Down a Project. Chat starts in Chat. To switch, ask the construct: it can change to any activity you have, including your own. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
             "A session keeps the activity as it was when the session started, so later edits to the activity don’t change it. The conversation shows which activity it changed to, not the activity’s instructions.",
             "The Activity Sheet heading starts the Instructions field. The separate Opening request asks the construct for its first message when a new quest needs one written. It isn’t repeated with every reply, and changing activity during a conversation doesn’t replay it.",
           ],
@@ -218,9 +216,9 @@ const LIBRARY_COPY: {
           title: "Craft an activity",
           links: [],
           paragraphs: [
-            "To make an activity, open Activities or Workshop, then customize or clone one, or choose Craft activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
+            "To make an activity, open Workshop and choose Activities, then customize or clone one, or choose Craft activity. To use it, ask the construct to change to it in a conversation. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
             "For example, a “Small experiment” activity might say: “Help the user define one experiment they can finish today. Identify a clear observation that would make it useful. Keep plans provisional until the user agrees. Respect their current request if they change subject.” Its Opening request: “Greet the user briefly and ask what they want to try today.”",
-            "An opening should start the conversation, not ask for a life story. Don’t ask the construct to repeat the same questions every turn, or to say a tool worked before its result arrives. Reset puts back the built-in instructions and keeps the Opening request; Save keeps the change. A copy bought in the Marketplace has nothing to reset to.",
+            "An opening should start the conversation, not ask for a life story. Don’t ask the construct to repeat the same questions every turn, or to say a tool worked before its result arrives. Reset puts back the built-in instructions and keeps the Opening request; Save keeps the change.",
           ],
         },
         {
@@ -235,15 +233,12 @@ const LIBRARY_COPY: {
           ],
           paragraphs: [
             "Save the activity, then start a quest with it and read its opening. Next, send “I have ten minutes and a sunny shelf.” Check that the reply helps define a small experiment. Then ask something unrelated, and check that the activity doesn’t get in the way of a useful answer.",
-            "A built-in construct in a built-in activity, or an unchanged copy of either, can have a prepared opening, which appears without a model call. Check-ins and some quest starts always have their opening written, even with built-in ones. An edited activity’s opening is written from its Opening request.",
+            "A built-in construct in a built-in activity, or an unchanged copy of either, can have a prepared opening, which appears without a model call. Some quest starts always have their opening written, even with built-in ones. An edited activity’s opening is written from its Opening request.",
             "A quest that has started keeps the activity text it entered with, so start a new quest after each edit. Read the Model context book to see what each reply receives.",
           ],
         },
       ],
-      action: {
-        href: "/activities",
-        label: "Choose or craft an activity",
-      },
+      action: workshopLink("activity", "Craft an activity in Workshop"),
     },
     {
       id: "model-context",
@@ -257,8 +252,7 @@ const LIBRARY_COPY: {
           links: [],
           paragraphs: [
             "Conversation reply: the model receives the assembled instructions, the newest sixty messages of the conversation, your new message among them, and the tools it may use. Images you attached are included in a form the model can read. A tool’s result can lead to another step of the same reply, up to eight steps. If the reply would end on a tool result with no answer written, one more step asks the model to answer and call no tools.",
-            "Generated opening: the model receives the same instructions, built for the chosen construct and activity, with your name, your activities and spells, and the quest’s context if there is one. Its only message is the activity’s Opening request, or a special request for check-ins and some quest starts. It gets no conversation and no tools. A prepared opening makes no call.",
-            "Automatic check-in: a message from the construct is added to the end of the quest’s conversation, written like a generated opening and paid for by the quest’s owner. A hidden request asks for two or three sentences on where the Journal left off, and a small ten-minute next step. It has no tools, so it is told not to give technical manual steps. It reads the Journal, plan and milestones, not the conversation.",
+            "Generated opening: the model receives the same instructions, built for the chosen construct and activity, with your name, your activities and spells, and the quest’s context if there is one. Its only message is the activity’s Opening request, or a special request for some quest starts. It gets no conversation and no tools. A prepared opening makes no call.",
             "Plan commands and the Plan controls make no model call. They change the plan and add a short plan change to the conversation, which the next reply reads as a note marked [Plan change], not as a request. In a conversation they wait while your last message has no reply yet, so Retry or sending again still answers it.",
             "Image in a conversation: the construct’s image tool sends the image model only the image’s description, at most 1,000 characters, not the conversation or the Journal. Conversation images use no reference pictures, and their size and quality are fixed.",
             "Construct artwork: the image model receives only the Visual description you submitted, which can be an unsaved draft. It receives no name, instructions, old artwork or conversation. One picture serves every place the construct appears. To frame the avatar, a separate small model call receives only that picture, scaled down, and returns where the character’s face and head are; it receives no name, description or instructions, and its cost joins the image’s.",
@@ -284,11 +278,10 @@ const LIBRARY_COPY: {
           title: "Tools, retrieved content and access",
           links: [],
           paragraphs: [
-            "Tools are actions the model can ask the site to take. In an ordinary reply it can generate images, search and cite the Blender manual, change activity, cast spells and propose a new quest. A quest reply can also edit the Journal, change the plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings and check-ins have no tools.",
-            "Each tool checks your access when it runs. Your own constructs, activities and spells stay private to you. A quest’s owner and current members share the quest’s data, and removal ends a member’s access. Only the owner approves status changes and manages check-ins, and buying someone’s spell gives no access to their data.",
+            "Tools are actions the model can ask the site to take. In an ordinary reply it can generate images, search and cite the Blender manual, change activity and cast spells. In Chat it can also suggest a quest, which only fills in Turn Chat into a quest for you to confirm. A quest reply can also edit the Journal, change the plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings have no tools.",
+            "Each tool checks your access when it runs. Your own constructs, activities and spells stay private to you, and only you can open your quests and their data.",
             "A manual search returns up to five sections, each with its link and an excerpt of at most 1,500 characters. Citations keep only links that a search in the same conversation returned, and the site shows them apart from the reply’s text. These results are what the model reads; it has no access to the whole web.",
             "The model decides which tools to ask for; the site checks and runs them. A cast returns the spell’s instructions, an activity change returns the new activity’s instructions, and edits return whether they worked. A reply that says the Journal changed isn’t the same as a tool result that says so.",
-            "In a team quest, the construct and activity can guide replies to every member. Past spell casts stay with the conversation for later replies, though members never see their instructions. Don’t put secrets in definitions you use in a team quest.",
           ],
         },
         {

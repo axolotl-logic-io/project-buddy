@@ -18,7 +18,6 @@ import {
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
-import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
@@ -29,35 +28,26 @@ import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
-import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
-import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
-import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
-import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
-import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { listMessages } from "@/chats/store.ts";
-import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
-import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
-import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import {
   getOwnConstruct,
   listConstructs,
-  type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
@@ -65,21 +55,8 @@ import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
-import {
-  getListing,
-  listListings,
-  listOwnListings,
-  readSaleState,
-} from "@/marketplace/listing-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { listProjectMembers } from "@/projects/members-store.ts";
-import {
-  listProjectInvitations,
-  listSentProjectInvitations,
-  type ProjectInvitation,
-  readProjectInvitation,
-} from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import {
   getRetiredDefinition,
@@ -89,7 +66,6 @@ import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readHomeSummary } from "@/today/today-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import {
   PROJECT_COPY,
@@ -97,23 +73,12 @@ import {
   QUEST_START_COPY,
 } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { QUEST_FROM_CHAT_COPY, START_WORK_COPY } from "@/ui/copy/start-work.ts";
+import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "../auth/current-user-test-kit.ts";
-import {
-  CONSTRUCT_LISTING,
-  CONSTRUCT_LISTING_AS_SELLER,
-  CONSTRUCT_LISTING_TO_BUY,
-  OWN_LISTINGS,
-  SPELL_LISTING,
-} from "../marketplace/marketplace-fixtures.ts";
-import {
-  LONG_NAME_INVITATION,
-  SENT_INVITATION,
-} from "../projects/project-invitations-test-kit.ts";
 import {
   RETIRED_CONSTRUCT,
   RETIRED_DEFINITIONS,
@@ -121,12 +86,8 @@ import {
 import {
   FOX_CHAT,
   FOX_CONVERSATION,
-  FOX_MEMBER,
   FOX_MILESTONES,
-  FOX_OWNER,
   FOX_PROJECT,
-  FOX_PROJECT_AS_MEMBER,
-  FOX_TEAM_PROJECT,
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
@@ -166,8 +127,6 @@ const LONG_PROJECT_NAME_REPEATS = 40;
 const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
-// The gold a refused buyer has, short of the listing's price.
-const SHORT_GOLD = 12;
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
 // A page signed out, as a visitor sees it.
@@ -197,31 +156,6 @@ function setupPage(email: string | undefined): () => Promise<JSX.Element> {
     signOut();
     vi.mocked(readInvitation).mockResolvedValue(email);
     return await SetupPage({
-      params: NO_PARAMS,
-      searchParams: Promise.resolve({ token: LINK_TOKEN }),
-    });
-  };
-}
-
-// The page a check-in email's link to turn check-ins off opens, signed out,
-// for a project with a long name whose check-ins are at frequency, or for
-// a link that isn't signed when frequency is undefined.
-function checkInsOffPage(
-  frequency: CheckInFrequency | undefined,
-): () => Promise<JSX.Element> {
-  return async (): Promise<JSX.Element> => {
-    signOut();
-    let target: Awaited<ReturnType<typeof readCheckInsOffLink>>;
-    if (frequency !== undefined) {
-      target = { owner: SIGNED_IN_USER.id, projectId: FOX_PROJECT.id };
-    }
-    vi.mocked(readCheckInsOffLink).mockResolvedValue(target);
-    vi.mocked(getProject).mockResolvedValue({
-      ...FOX_PROJECT,
-      name: LONG_PROJECT_NAME,
-    });
-    vi.mocked(readCheckInFrequency).mockResolvedValue(frequency);
-    return await CheckInsOffPage({
       params: NO_PARAMS,
       searchParams: Promise.resolve({ token: LINK_TOKEN }),
     });
@@ -269,27 +203,6 @@ function spellPage(spellId: string): Promise<JSX.Element> {
   });
 }
 
-// A listing's page, as the store gives it.
-function listingPage(
-  listing: Awaited<ReturnType<typeof getListing>>,
-): () => Promise<JSX.Element> {
-  return workspacePage(
-    () => {
-      vi.mocked(getListing).mockResolvedValue(listing);
-    },
-    () =>
-      ListingPage({
-        params: Promise.resolve({ listingId: CONSTRUCT_LISTING.id }),
-        searchParams: NO_PARAMS,
-      }),
-  );
-}
-
-// Her own prompts' pages offer to sell them, the section at its widest.
-function sellable(): void {
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
-}
-
 // Chat, her private conversation.
 async function chatPage(): Promise<JSX.Element> {
   vi.mocked(listConstructs).mockResolvedValue([]);
@@ -300,44 +213,23 @@ async function chatPage(): Promise<JSX.Element> {
   );
 }
 
-// The Projects page, with one project, and with the invitations and the
-// user's own constructs.
-function projectsPageOf(
-  invitations: readonly ProjectInvitation[],
-  ownConstructs: readonly OwnConstruct[] = [],
-): () => Promise<JSX.Element> {
-  return workspacePage(
-    () => {
-      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-      vi.mocked(listConstructs).mockResolvedValue([...ownConstructs]);
-      vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
-    },
-    async () =>
-      ProjectListLayout({
-        params: NO_PARAMS,
-        children: await ProjectsPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-      }),
-  );
-}
-
-const projectsPage = projectsPageOf([]);
-
-// The page a project invitation's email opens.
-const projectInvitationPage = workspacePage(
+// The Projects page, with one project.
+const projectsPage = workspacePage(
   () => {
-    vi.mocked(readProjectInvitation).mockResolvedValue(LONG_NAME_INVITATION);
+    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listConstructs).mockResolvedValue([]);
   },
-  () =>
-    ProjectInvitationPage({
-      params: Promise.resolve({ token: LINK_TOKEN }),
-      searchParams: NO_PARAMS,
+  async () =>
+    ProjectListLayout({
+      params: NO_PARAMS,
+      children: await ProjectsPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
     }),
 );
 
-// A project's page, its owner's view of a team project.
+// A quest's page, as its owner sees it.
 function projectPageFor(
   section = "conversation",
   dailies = false,
@@ -345,16 +237,12 @@ function projectPageFor(
   return workspacePage(
     () => {
       vi.mocked(getProject).mockResolvedValue({
-        ...FOX_TEAM_PROJECT,
+        ...FOX_PROJECT,
         name: LONG_PROJECT_NAME,
         dailies,
       });
       vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue([]);
-      vi.mocked(listProjectMembers).mockResolvedValue([
-        { ...FOX_OWNER, id: SIGNED_IN_USER.id },
-        { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
-      ]);
       vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -395,19 +283,6 @@ function memoryPageFor(section = "journal"): () => Promise<JSX.Element> {
 
 const memoryPage = memoryPageFor();
 
-const activitiesPage = workspacePage(
-  () => {
-    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-  },
-  () =>
-    ActivitiesPage({
-      params: Promise.resolve({}),
-      searchParams: Promise.resolve({}),
-    }),
-);
-
 // The Workshop's page on the kind's tab, with one of her own of each kind.
 function workshopPage(
   kind: "construct" | "activity" | "spell",
@@ -443,23 +318,6 @@ function tabVariants(subject: string, labels: readonly string[]): PhonePage[] {
       await page.getByRole("tab", { name: label, exact: true }).click();
     },
   }));
-}
-
-function marketplacePageFor(view?: string): () => Promise<JSX.Element> {
-  const query: { view?: string } = {};
-  if (view !== undefined) {
-    query.view = view;
-  }
-  return workspacePage(
-    () => {
-      vi.mocked(listListings).mockResolvedValue([
-        CONSTRUCT_LISTING,
-        SPELL_LISTING,
-      ]);
-      vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
-    },
-    () => MarketplacePage({ searchParams: Promise.resolve(query) }),
-  );
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
@@ -555,22 +413,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the setup page", render: setupPage("learner@example.com") },
   { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
-  { name: "the turn-off-check-ins page", render: checkInsOffPage("daily") },
-  { name: "check-ins turned off", render: checkInsOffPage("off") },
-  {
-    name: "an unusable turn-off-check-ins link",
-    render: checkInsOffPage(undefined),
-  },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
-    name: "the projects list with a project invitation",
-    render: projectsPageOf([LONG_NAME_INVITATION]),
-  },
-  { name: "a project invitation's page", render: projectInvitationPage },
-  {
     name: "the projects list's Make a thing details",
-    render: projectsPageOf([]),
+    render: projectsPage,
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
@@ -608,37 +455,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "a team project, as its member",
-    render: workspacePage(
-      () => {
-        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT_AS_MEMBER);
-        vi.mocked(listProjectMembers).mockResolvedValue([
-          FOX_OWNER,
-          { ...FOX_MEMBER, id: SIGNED_IN_USER.id, name: LONG_PROJECT_NAME },
-        ]);
-        vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
-        vi.mocked(listMessages).mockResolvedValue([]);
-        vi.mocked(listSentProjectInvitations).mockResolvedValue([
-          SENT_INVITATION,
-        ]);
-        vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
-        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-        vi.mocked(listOwnActivities).mockResolvedValue([]);
-        vi.mocked(listConstructs).mockResolvedValue([]);
-      },
-      async () => (
-        <ProjectLayout params={PROJECT_PARAMS}>
-          {
-            await ProjectPage({
-              params: PROJECT_PARAMS,
-              searchParams: NO_PARAMS,
-            })
-          }
-        </ProjectLayout>
-      ),
-    ),
-  },
-  {
     name: "a project's memory",
     render: memoryPage,
   },
@@ -672,7 +488,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
           latestQuest: {
             project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
             nextStep: LONG_PROJECT_NAME,
-            unread: true,
           },
           firstVisit: false,
         });
@@ -713,33 +528,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnConstruct).mockResolvedValue(VELLUM_CLONE);
-        sellable();
       },
       () => constructPage(VELLUM_CLONE.id),
     ),
-  },
-  {
-    name: "the activities page",
-    render: activitiesPage,
-  },
-  {
-    name: "the activities page's start dialog",
-    render: activitiesPage,
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("button", {
-          name: "Brainstorm",
-          exact: true,
-        })
-        .click();
-      await vi.waitFor(() =>
-        page
-          .getByRole("dialog", {
-            name: START_WORK_COPY.activityDialogHeading("Brainstorm"),
-          })
-          .element(),
-      );
-    },
   },
   {
     name: "the discovery activity's page",
@@ -754,7 +545,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
-        sellable();
       },
       () => activityPage(BRAINSTORMING_CLONE.id),
     ),
@@ -784,56 +574,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
-        sellable();
       },
       () => spellPage(ASK_ONE_QUESTION_CLONE.id),
     ),
-  },
-  {
-    name: "the Marketplace",
-    render: marketplacePageFor(),
-  },
-  { name: "a listing's page", render: listingPage(CONSTRUCT_LISTING_TO_BUY) },
-  {
-    name: "a listing's page, as its seller",
-    render: listingPage(CONSTRUCT_LISTING_AS_SELLER),
-  },
-  {
-    name: "a listing's page, as its unlisted seller",
-    render: listingPage({ ...CONSTRUCT_LISTING_AS_SELLER, listed: false }),
-  },
-  {
-    name: "a listing's page, for a buyer who has a copy",
-    render: listingPage({
-      ...CONSTRUCT_LISTING_TO_BUY,
-      copy: CONSTRUCT_LISTING_AS_SELLER.source,
-    }),
-  },
-  {
-    name: "a listing's page, refused for too few orbs",
-    render: listingPage(CONSTRUCT_LISTING_TO_BUY),
-    open: async (): Promise<void> => {
-      vi.mocked(buyListingAction).mockResolvedValue({
-        kind: "refused",
-        message: LISTING_COPY.tooLittleGold(
-          CONSTRUCT_LISTING.price,
-          SHORT_GOLD,
-        ),
-        earnGold: false,
-      });
-      await page
-        .getByRole("button", {
-          name: LISTING_COPY.buy(CONSTRUCT_LISTING.price),
-        })
-        .click();
-      await vi.waitFor(() =>
-        page
-          .getByText(
-            LISTING_COPY.tooLittleGold(CONSTRUCT_LISTING.price, SHORT_GOLD),
-          )
-          .element(),
-      );
-    },
   },
   {
     name: "the account page",
@@ -861,7 +604,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }, chatPage),
   },
   {
-    name: "Chat's Start a quest from this",
+    name: "Chat's Turn Chat into a quest",
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
@@ -879,26 +622,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   ...tabVariants("the Settings page", ["Appearance"]),
   ...tabVariants("the constructs page", ["Yours", "Retired"]),
-  ...tabVariants("the activities page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),
   ...tabVariants("the account page", ["Batteries", "Security"]),
   { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
-  {
-    name: "a quest's members and check-ins",
-    render: projectPageFor("members"),
-  },
   { name: "a quest's Journal versions", render: memoryPageFor("versions") },
-  { name: "your Marketplace listings", render: marketplacePageFor("yours") },
 ];
-
-const PHONE_ORB_BALANCE = 100;
-vi.mock("@/orbs/orb-store.ts", () => ({
-  readOrbsBalance: vi.fn(() => Promise.resolve(PHONE_ORB_BALANCE)),
-}));
-vi.mock("@/marketplace/cutover.ts", () => ({
-  orbPurchasesEnabled: vi.fn(() => Promise.resolve(true)),
-}));
 
 vi.mock("@/batteries/catalog.ts", () => ({
   availableBatteryCatalog: () => [],

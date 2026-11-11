@@ -64,16 +64,13 @@ const TEXT_CONTRAST = 4.5;
 const LATEST: TodayProject = {
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
   nextStep: "Shape the ears",
-  unread: false,
 };
 const DESTINATIONS = [
   { name: "Quests", href: "/projects" },
   { name: "Chat", href: "/chat" },
   { name: "Constructs", href: "/constructs" },
-  { name: "Activities", href: "/activities" },
   { name: "Workshop", href: "/workshop" },
-  { name: "Marketplace", href: "/marketplace" },
-];
+] as const;
 
 beforeEach(() => {
   applyTheme("parchment");
@@ -121,14 +118,11 @@ function cachedPages(showHome: boolean): Promise<JSX.Element> {
 }
 
 describe("use_case_home_atlas", () => {
-  test("offers every place and activity guidance even before the first quest", async () => {
+  test("offers every place and the quest start even before the first quest", async () => {
     await render(inWorkspace(await HomePage()));
     await expect
       .element(page.getByRole("heading", { level: 1, name: HOME_COPY.heading }))
       .toBeVisible();
-    await expect
-      .element(page.getByRole("link", { name: HOME_COPY.activitiesLink }))
-      .toHaveAttribute("href", "/activities");
     await expect.element(page.getByText(HOME_COPY.purpose)).toBeVisible();
     const startLink = page
       .getByRole("link", { name: HOME_COPY.newQuest })
@@ -229,14 +223,15 @@ describe("use_case_home_atlas", () => {
 
   test("reaches all destinations before the current quest from the keyboard", async () => {
     await render(inWorkspace(<HomeAtlas latestQuest={LATEST} />));
-    page
-      .getByRole("link", { name: HOME_COPY.activitiesLink })
-      .element()
-      .focus();
     const places = page.getByRole("navigation", {
       name: HOME_COPY.placesLabel,
     });
-    await DESTINATIONS.reduce(async (previous, { name }) => {
+    const [first, ...rest] = DESTINATIONS;
+    places
+      .getByRole("link", { name: first.name, exact: true })
+      .element()
+      .focus();
+    await rest.reduce(async (previous, { name }) => {
       await previous;
       await tabForward();
       await expect
@@ -260,7 +255,7 @@ describe("use_case_home_atlas", () => {
       name: HOME_COPY.placesLabel,
     });
     places
-      .getByRole("link", { name: "Marketplace", exact: true })
+      .getByRole("link", { name: "Workshop", exact: true })
       .element()
       .focus();
     await tabForward();
@@ -623,9 +618,6 @@ describe("use_case_today_on_landing", () => {
       .element(page.getByText(LATEST.project.name, { exact: true }))
       .toBeVisible();
     await expect
-      .element(page.getByText(HOME_COPY.unread))
-      .not.toBeInTheDocument();
-    await expect
       .element(page.getByText(`${HOME_COPY.nextStep} ${LATEST.nextStep}`))
       .toBeVisible();
     await expect
@@ -636,13 +628,6 @@ describe("use_case_today_on_landing", () => {
         }),
       )
       .toHaveAttribute("href", `/projects/${LATEST.project.id}`);
-  });
-
-  test("marks a quest with unread messages", async () => {
-    await render(
-      inWorkspace(<HomeAtlas latestQuest={{ ...LATEST, unread: true }} />),
-    );
-    await expect.element(page.getByText(HOME_COPY.unread)).toBeVisible();
   });
 
   test("shows no invented next step when memory records none", async () => {

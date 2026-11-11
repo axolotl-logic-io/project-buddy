@@ -13,7 +13,7 @@ const APP_COLORS = {
 } as const;
 
 // The icons in public/icons/: the header's gold compass on its ink brown,
-// rendered from app-icon.svg there, as notifications show it too. Each
+// rendered from app-icon.svg there. Each
 // keeps its picture inside the middle 80%, so the large one serves as a
 // maskable icon too.
 const APP_ICONS = {

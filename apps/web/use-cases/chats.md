@@ -10,7 +10,7 @@ The user talks with a construct in Chat, her one private conversation for talkin
 - **Steps:**
   - She opens Chat from any signed-in page's header.
   - She sends a message, leaves, and later opens Chat again.
-- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user, and no member of any of her quests, can open it. It writes no quest's Journal, Plan or milestones.
+- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user can open it. It writes no quest's Journal, Plan or milestones.
 - **Variations:**
   - An old adventure address of hers that has no quest opens Chat; one of a quest she can open opens that quest; any other, including another user's, a removed one or a malformed one, shows the not-found page ([`use_case_open_missing_page`](#use_case_open_missing_page)).
   - The old new-adventure address opens Chat and makes nothing.
@@ -50,11 +50,11 @@ The user turns what she talked through in Chat into a quest.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - In Chat, she chooses Start a quest from this.
+  - In Chat, she chooses Turn Chat into a quest.
   - A dialog opens the quest start on Do a thing, with a summary of her recent Chat messages as the new quest's Journal. She edits the name and Journal.
   - She closes the dialog without starting. Another time, she starts the quest.
-  - Instead of the button, she can ask the construct to make the idea a quest; it proposes a name and summary, which she edits and confirms in the conversation.
-- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest whose Journal is exactly what she confirmed, and opens the quest's conversation. Chat keeps all its messages and stays private: none are copied into the quest, so people she later invites to the quest see only the confirmed Journal. A construct's proposal alone creates nothing; repeating its confirmation returns the same quest, and concurrent confirmations create only one. Planned steps never become completed milestones.
+  - Instead of the button, she can ask the construct to make the idea a quest; it offers a name and summary, and its offer's Turn Chat into a quest opens the same dialog with them filled in, to edit and confirm.
+- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest whose Journal is exactly what she confirmed, and opens the quest's conversation. Chat keeps all its messages and stays private: none are copied into the quest, so people she later invites to the quest see only the confirmed Journal. A construct's offer alone creates nothing and spends nothing. In a quest's conversation the construct can't offer another quest. Planned steps never become completed milestones.
 - **Variations:** an invalid name fails before anything is created. An unavailable opening, insufficient batteries or a storage failure saves no quest and keeps her edits for a retry.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
@@ -67,7 +67,7 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Steps:**
   - The user opens Home or follows the site's name after signing in.
   - They follow a labeled destination in the responsive control panel.
-- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chat, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; the menu remains available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Chat have no header shortcuts; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
+- **Outcome:** the heading is "Your projects await". Quests, Chat, Constructs and Workshop are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all four places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; the menu remains available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Chat have no header shortcuts; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
 - **Variations:**
   - Following a link away from Home restores the destination's page background and content column without a refresh, with the same shared header. Returning to Home restores the map layout, including with browser back and forward.
   - While Home loads, it shows its heading, a tile where each place will be and the map's artwork, so the background doesn't change when Home arrives.
@@ -83,7 +83,7 @@ The user returns to the quest they were most recently working on.
 - **Prerequisites:** a signed-in account with an Active quest that has a conversation.
 - **Steps:**
   - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
+- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules exclude other users' work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
 - **Next:**
@@ -115,9 +115,9 @@ The user writes to the construct and gets a reply.
 
 ## use_case_chat_with_several_people
 
-The user reads an adventure that other people write in too, and sees who wrote each message; the construct knows who is speaking.
+The user reads an adventure that someone else also wrote in, while quests could be shared, and sees who wrote each message; the construct knows who is speaking.
 
-- **Prerequisites:** `use_case_send_message`. Someone else has written in the adventure too, such as another member of a team quest.
+- **Prerequisites:** `use_case_send_message`. Someone else wrote in the adventure too, as a member did while quests could be shared.
 - **Steps:**
   - She opens the adventure.
   - She sends a message, and the construct replies.
@@ -227,42 +227,6 @@ The user asks the construct about something that has nothing to do with Blender.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
 
-## use_case_check_in
-
-The quest's construct checks in on her, on the schedule she chose.
-
-- **Prerequisites:** [`use_case_set_check_ins`](projects.md#use_case_set_check_ins), for a quest whose Journal holds where she is ([`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory)).
-- **Steps:**
-  - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
-  - The site's scheduler runs.
-- **Outcome:** the quest's conversation ends with the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. No new conversation is made, and the conversation keeps its construct and current activity. A check-in has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The quest is unread. She gets an email from the construct with the same message, a link to the quest and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, while the last check-in is still unread, or while her last message still awaits a reply. Once she is out of batteries, the check-in is skipped and nothing is saved or sent. A quest with no conversation yet gets one, which the check-in opens.
-- **Next:**
-  - `use_case_open_unread_check_in`: read it.
-  - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
-
-## use_case_open_unread_check_in
-
-The user opens a check-in they haven't read.
-
-- **Prerequisites:** `use_case_check_in`.
-- **Steps:**
-  - On Quests or Home, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
-- **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
-- **Next:**
-  - `use_case_continue_chat`: take the small next step with the construct.
-
-## use_case_turn_off_check_ins_from_email
-
-The user turns off a quest's check-ins from a check-in email.
-
-- **Prerequisites:** `use_case_check_in`.
-- **Steps:**
-  - She follows the email's link to turn check-ins off. She needn't be signed in.
-  - The page names the quest and asks her to confirm, and she does.
-- **Outcome:** the page says the quest's check-ins are off, with the quest's name in semibold, and links to the quest. The quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing, says it doesn't work and links to Home.
-- **Next:**
-  - [`use_case_set_check_ins`](projects.md#use_case_set_check_ins): turn them on again later.
-
 ## use_case_continue_chat
 
 The user carries on an earlier conversation, and the construct remembers it.
@@ -348,7 +312,7 @@ The user asks their construct about images in a quest or standalone adventure.
   - They preview the attachments and remove any they do not want to send.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the adventure and ask a follow-up question about an earlier image.
-- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the quest owner. Deleting the adventure, its quest or its account deletes its images.
+- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure. Replies and generated images charge the acting user, and generated openings charge the starter. Deleting the adventure, its quest or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-batteries refusal returns text and attachments to the composer. No paid model runs during tests.
 
 ## use_case_construct_presence
@@ -369,4 +333,4 @@ The user stops a reply that is still running.
 - **Prerequisites:** signed in, with current access to the adventure.
 - **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
 - **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
-- **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
+- **Variations:** only the adventure's owner can stop its reply; other users cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

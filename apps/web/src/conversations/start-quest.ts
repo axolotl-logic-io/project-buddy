@@ -247,7 +247,6 @@ async function startQuestConversation(
 export type { StartConversationResult, StartProjectResult };
 export {
   defaultStart,
-  openingFor,
   readQuestConversation,
   startNewQuest,
   startProject,

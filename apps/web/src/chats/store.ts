@@ -1,7 +1,6 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A project chat is open to everyone in its
-// project, its owner and its members; a standalone chat only to the user it
-// names (src/accounts/owner-scope.ts). Every function takes the acting user
+// saved by new-chat-store.ts. A project chat is open to its project's owner
+// alone; a standalone chat only to the user it names (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's construct and name, and each message's role and
@@ -10,11 +9,7 @@
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import {
-  chatOpenTo,
-  chatUnreadOwnedBy,
-  messageOpenTo,
-} from "@/accounts/owner-scope.ts";
+import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import {
   type Chat,
@@ -32,9 +27,7 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
-import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -144,7 +137,7 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns(owner))
+        .select(chatWithProjectColumns())
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
@@ -202,8 +195,7 @@ export async function listMessagesForModel(
 
 // The messages of the owner's chat as people see them, such as on the
 // chat's page: as listMessagesForModel reads them, but without the
-// instructions of the spells the construct cast (withoutSpellInstructions), so
-// a spell of one member's reaches no one else in a team project.
+// instructions of the spells the construct cast (withoutSpellInstructions).
 export async function listMessages(
   owner: UserId,
   chatId: ChatId,
@@ -434,37 +426,5 @@ export async function releaseReply(
       .update(messages)
       .set({ replyStartedAt: null })
       .where(openMessage(owner, chatId, messageId)),
-  );
-}
-
-// Marks the chat unread for each of userIds who can read it, as a check-in
-// does for its project's owner. A user named twice, or already marked, keeps
-// one mark; a user who can't read the chat gets none.
-export async function markChatUnreadFor(
-  chatId: ChatId,
-  userIds: readonly UserId[],
-): Promise<void> {
-  if (userIds.length === 0) {
-    return;
-  }
-  await withAppErrors("markChatUnreadFor", () =>
-    getDb()
-      .insert(chatUnreads)
-      .select(unreadMarks(chatId, userIds))
-      .onConflictDoNothing(),
-  );
-}
-
-// Clears the viewer's unread mark on the chat, as the viewer opening it
-// does; anyone else's mark stays. A chat already read, unknown or another
-// user's is left as it is.
-export async function markChatRead(
-  viewer: UserId,
-  chatId: ChatId,
-): Promise<void> {
-  await withAppErrors("markChatRead", () =>
-    getDb()
-      .delete(chatUnreads)
-      .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
   );
 }
