@@ -5,7 +5,6 @@ import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
-import { readProjectInvitation } from "@/projects/project-invitations.ts";
 import { getProject } from "@/projects/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
@@ -17,8 +16,6 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
-import { PROJECT_INVITATION_COPY } from "@/ui/copy/project-invitations.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -49,7 +46,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["gallery", { label: GENERATION_COPY.heading, href: "/gallery" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
     ["account", { label: ACCOUNT_COPY.heading, href: "/account" }],
-    ["capture", { label: QUICK_CAPTURE_COPY.heading, href: "/capture" }],
     ["invitations", { label: INVITATIONS_COPY.heading, href: "/invitations" }],
   ]);
 
@@ -73,20 +69,6 @@ async function headerBreadcrumbs(
     return [QUESTS, { label: root.label }];
   }
   if (section === "projects") {
-    if (
-      id === "invitations" &&
-      child !== undefined &&
-      path.length === CHILD_DEPTH
-    ) {
-      const invitation = await readProjectInvitation(user, child);
-      if (invitation === undefined) {
-        return [];
-      }
-      return [
-        QUESTS,
-        { label: PROJECT_INVITATION_COPY.question(invitation.project.name) },
-      ];
-    }
     if (
       path.length > CHILD_DEPTH ||
       (child !== undefined && child !== "memory")

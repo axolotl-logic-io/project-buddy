@@ -27,10 +27,6 @@ import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import {
-  addProjectMember,
-  removeProjectMember,
-} from "@/projects/members-store.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { listProjects, renameProject } from "@/projects/store.ts";
 import { CONVERSATION_WINDOW } from "@/replies/conversation-to-answer.ts";
@@ -38,6 +34,7 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -137,25 +134,20 @@ describe("a quest's conversation", () => {
     expect(await readQuestConversation(her.id, project.id)).toBeUndefined();
   });
 
-  test("an owner and a member each write and pay for their own messages, and a removed member loses the conversation", async () => {
+  test("a former member can't send to, open or resolve the owner's conversation", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
     const project = await data.project();
     const chat = await data.chat(project);
-    expect(await addProjectMember(member.id, project.id)).toBe(true);
+    await formerMembership(owner, member, project.id);
+    const before = await listMessages(owner.id, chat.id);
 
     await signIn(member);
     const sent = await sendChatMessage(chat.id, "Hello from the member");
-    expect(sent.status).toBe(HTTP_STATUS.ok);
 
-    const saved = await listMessages(owner.id, chat.id);
-    expect(saved[0]?.metadata?.author?.id).toBe(member.id);
-    expect(messageText(saved[0])).toBe("Hello from the member");
-    expect(await goldSpent(member)).toBeGreaterThan(0);
-    expect(await goldSpent(owner)).toBe(0);
-
-    await removeProjectMember(owner.id, project.id, member.id);
-
+    expect(sent.status).toBe(HTTP_STATUS.notFound);
+    expect(await listMessages(owner.id, chat.id)).toEqual(before);
+    expect(await goldSpent(member)).toBe(0);
     expect(await readQuestConversation(member.id, project.id)).toBeUndefined();
     expect(await getChat(member.id, chat.id)).toBeUndefined();
     expect(await resolveConversation(member.id, chat.id)).toBeUndefined();
@@ -299,13 +291,13 @@ describe("Dailies", () => {
     expect(await goldSpent(user)).toBe(spent);
   });
 
-  test("each user has their own Dailies, and a member's start makes theirs", async () => {
+  test("each user has their own Dailies, and a former member's start makes theirs", async () => {
     const { her, other } = await twoUsers();
     const hers = await startDailies(her.id, dailiesStart());
     if (hers.kind !== "started") {
       throw new Error(`Dailies didn't start: ${hers.kind}`);
     }
-    expect(await addProjectMember(other.id, hers.chat.project.id)).toBe(true);
+    await formerMembership(her, other, hers.chat.project.id);
 
     const theirs = await startDailies(other.id, dailiesStart());
 

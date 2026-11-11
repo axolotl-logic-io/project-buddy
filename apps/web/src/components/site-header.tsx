@@ -134,7 +134,7 @@ function AccountLinks(): JSX.Element {
 }
 
 // Reads the session for the header slot and supplies the signed-in menu
-// and its shortcuts, or the public menu for a visitor.
+// or the public menu for a visitor.
 async function SignedInLinks({
   breadcrumbs,
 }: {
@@ -148,7 +148,7 @@ async function SignedInLinks({
   return (
     <>
       <HeaderBalance microUsd={balance} />
-      <SiteMenu links={<AccountLinks />} shortcuts={true} />
+      <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
     </>
   );

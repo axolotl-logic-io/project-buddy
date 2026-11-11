@@ -111,7 +111,7 @@ function TitleEditor({
 function QuestTitle({
   project,
 }: {
-  readonly project: Pick<Project, "id" | "name" | "role">;
+  readonly project: Pick<Project, "id" | "name">;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState<string | undefined>(undefined);
@@ -144,18 +144,16 @@ function QuestTitle({
       {editing === false && (
         <div className="flex min-w-0 items-start gap-2">
           <h1 className="page-heading">{title}</h1>
-          {project.role === "owner" && (
-            <Button
-              ref={pencilRef}
-              variant="quiet"
-              className="quest-title-edit"
-              aria-label={PROJECT_COPY.rename}
-              aria-expanded={false}
-              onClick={open}
-            >
-              <Icon name="pencil" />
-            </Button>
-          )}
+          <Button
+            ref={pencilRef}
+            variant="quiet"
+            className="quest-title-edit"
+            aria-label={PROJECT_COPY.rename}
+            aria-expanded={false}
+            onClick={open}
+          >
+            <Icon name="pencil" />
+          </Button>
         </div>
       )}
       <FormStatus>{saved !== undefined && PROJECT_COPY.titleSaved}</FormStatus>

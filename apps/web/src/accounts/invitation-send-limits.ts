@@ -15,26 +15,12 @@ const RESERVED = z.object({
   rows: z.array(z.object({ windowStartedAt: z.coerce.date() })),
 });
 
-// One kind of invitation's limits: the prefixes of its senders' budget keys
-// and its recipients' cooldown keys, and the label that sets its recipient
-// HMAC apart. Each kind counts apart from the others.
-interface SendLimits {
-  readonly senderPrefix: string;
-  readonly recipientPrefix: string;
-  readonly recipientLabel: string;
-}
-
-const INVITATION_LIMITS: SendLimits = {
-  senderPrefix: "invitation-admin:",
-  recipientPrefix: "invitation-recipient:",
-  recipientLabel: "project-buddy invitation recipient\n",
-};
-
-const PROJECT_INVITATION_LIMITS: SendLimits = {
-  senderPrefix: "project-invitation-inviter:",
-  recipientPrefix: "project-invitation-recipient:",
-  recipientLabel: "project-buddy project invitation recipient\n",
-};
+// The prefixes of the senders' budget keys and the recipients' cooldown
+// keys, and the label that sets the recipient HMAC apart from other uses of
+// the session secret.
+const SENDER_PREFIX = "invitation-admin:";
+const RECIPIENT_PREFIX = "invitation-recipient:";
+const RECIPIENT_LABEL = "project-buddy invitation recipient\n";
 
 // A send reserved within the limits. release gives it back, the sender's
 // send and the recipient's cooldown, so the sender can retry immediately.
@@ -47,17 +33,16 @@ interface Reservation {
 // nothing, if either limit is reached. A reservation not released counts
 // toward both limits.
 async function reserve(
-  limits: SendLimits,
   sender: UserId,
   email: string,
 ): Promise<Reservation | undefined> {
   const now = new Date(Date.now());
   const digest = await hmacSha256(
     readSessionSecret(),
-    `${limits.recipientLabel}${normalizeEmail(email)}`,
+    `${RECIPIENT_LABEL}${normalizeEmail(email)}`,
   );
-  const recipientKey = `${limits.recipientPrefix}${Buffer.from(digest).toString("hex")}`;
-  const budgetKey = `${limits.senderPrefix}${sender}`;
+  const recipientKey = `${RECIPIENT_PREFIX}${Buffer.from(digest).toString("hex")}`;
+  const budgetKey = `${SENDER_PREFIX}${sender}`;
   const cutoff = new Date(now.getTime() - HOUR_MS).toISOString();
   const cooldownCutoff = new Date(now.getTime() - COOLDOWN_MS).toISOString();
   const timestamp = now.toISOString();
@@ -89,7 +74,7 @@ async function reserve(
       db.execute(sql`
         delete from rate_limits where key in (
           select key from rate_limits
-          where (starts_with(key, ${limits.senderPrefix}) or starts_with(key, ${limits.recipientPrefix}))
+          where (starts_with(key, ${SENDER_PREFIX}) or starts_with(key, ${RECIPIENT_PREFIX}))
             and window_started_at <= ${cutoff}::timestamptz
           limit ${EXPIRED_ROWS_PER_SEND} for update skip locked
         )
@@ -121,7 +106,7 @@ async function reserve(
 
 // Sends an admin's invitation within the admin's invitation limits, answering
 // whether it was within them. Both new and existing accounts use these limits,
-// independently of public sign-in requests and project invitations. A failed
+// independently of public sign-in requests. A failed
 // send releases the reservation so the admin can retry immediately. In-flight
 // sends count toward both limits.
 async function sendWithinInvitationLimits(
@@ -129,7 +114,7 @@ async function sendWithinInvitationLimits(
   email: string,
   send: () => Promise<void>,
 ): Promise<boolean> {
-  const reservation = await reserve(INVITATION_LIMITS, admin, email);
+  const reservation = await reserve(admin, email);
   if (reservation === undefined) {
     return false;
   }
@@ -142,18 +127,4 @@ async function sendWithinInvitationLimits(
   return true;
 }
 
-// Reserves a project invitation within the inviter's project invitation
-// limits, the same as an admin's but counted apart: 20 per inviter per hour,
-// and one a minute to each address. Every attempt to an address counts the
-// same, whether or not it has an account, so the limits reveal nothing.
-// Gives the reservation, to release if sending fails, or undefined,
-// reserving nothing, past the limits.
-function reserveProjectInvitation(
-  inviter: UserId,
-  email: string,
-): Promise<Reservation | undefined> {
-  return reserve(PROJECT_INVITATION_LIMITS, inviter, email);
-}
-
-export type { Reservation };
-export { reserveProjectInvitation, sendWithinInvitationLimits };
+export { sendWithinInvitationLimits };

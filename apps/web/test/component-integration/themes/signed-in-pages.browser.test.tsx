@@ -19,7 +19,6 @@ import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -77,33 +76,9 @@ vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock(
-  "@/projects/project-invitations.ts",
-  () => import("../projects/project-invitations-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: async (): Promise<ProjectMember[]> => {
-    const { FOX_OWNER, FOX_MEMBER } = await import(
-      "../app/(workspace)/page-fixtures.ts"
-    );
-    return [FOX_OWNER, FOX_MEMBER];
-  },
-}));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: () => Promise.resolve([]),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
 
