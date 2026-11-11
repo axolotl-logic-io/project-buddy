@@ -26,25 +26,10 @@ import { RetireSpellForm } from "../retire-spell-form.tsx";
 
 const PROMPT_HEADING_ID = "spell-parts-heading";
 
-function SpellHeading({
-  name,
-  intro,
-}: {
-  readonly name: string;
-  readonly intro: string;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="page-heading wrap-anywhere">{name}</h1>
-      <p className="text-muted">{intro}</p>
-    </div>
-  );
-}
-
 function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
   return (
     <>
-      <SpellHeading intro={SPELL_COPY.builtInIntro} name={spell.name} />
+      <p className="text-muted">{SPELL_COPY.builtInIntro}</p>
       <form action={editBuiltInSpellAction}>
         <input name="spellId" type="hidden" value={spell.id} />
         <Button type="submit">{SPELLBOOK_COPY.customize}</Button>
@@ -84,7 +69,7 @@ function OwnSpellForm({
 }): JSX.Element {
   return (
     <>
-      <SpellHeading intro={SPELL_COPY.ownIntro} name={spell.name} />
+      <p className="text-muted">{SPELL_COPY.ownIntro}</p>
       <PromptEditor
         action={saveSpellAction}
         defaultPrompt={spellResetPrompt(spell.clonedFrom).prompt}

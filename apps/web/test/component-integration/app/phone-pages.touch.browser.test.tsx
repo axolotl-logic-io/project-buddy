@@ -8,6 +8,7 @@
 // The pages are rendered from fixed data, in their layouts and the site's
 // frame (phone-pages-test-kit.tsx), with the site's stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
+import type { JSX } from "react";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -58,6 +59,7 @@ import {
 import { GOLD_BALANCE } from "./phone-pages-fixtures.ts";
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
+import { siteHeaderAt } from "./site-header-test-kit.tsx";
 
 vi.mock(
   "@/plan/plan-actions.ts",
@@ -203,6 +205,8 @@ interface PhoneMeasures {
   readonly targets: readonly MeasuredTarget[];
   // The rows of tabs whose tabs don't all sit on one line.
   readonly wrappedTabRows: readonly string[];
+  // The page's headings of the first level: its one heading.
+  readonly pageHeadings: number;
 }
 
 // The rows of tabs a page may have, besides its tab lists: a quest's
@@ -275,8 +279,17 @@ async function measureOnPhone(
 ): Promise<PhoneMeasures> {
   applyTheme(theme);
   await setViewport(viewport);
-  await render(await inSiteFrame(await phonePage.render()));
+  const content = await phonePage.render();
+  let header: JSX.Element | undefined;
+  if (phonePage.path !== undefined) {
+    header = await siteHeaderAt(phonePage.path);
+  }
+  await render(await inSiteFrame(content, header));
   await waitForContent(phonePage);
+  // Counted before a dialog opens and hides the page behind it.
+  const pageHeadings = page
+    .getByRole("heading", { level: 1 })
+    .elements().length;
   await phonePage.open?.();
   await loadFonts();
   return {
@@ -284,6 +297,7 @@ async function measureOnPhone(
     wideDialogs: measureWideDialogs(),
     targets: await measureTargets(),
     wrappedTabRows: measureWrappedTabRows(),
+    pageHeadings,
   };
 }
 
@@ -310,8 +324,13 @@ describe("use_case_use_on_phone", () => {
       for (const theme of THEME_IDS) {
         for (const phonePage of PHONE_PAGES) {
           test(`${phonePage.name} in ${theme}`, async () => {
-            const { scrollWidth, wideDialogs, targets, wrappedTabRows } =
-              await measureOnPhone(phonePage, viewport, theme);
+            const {
+              scrollWidth,
+              wideDialogs,
+              targets,
+              wrappedTabRows,
+              pageHeadings,
+            } = await measureOnPhone(phonePage, viewport, theme);
 
             // Compared with the width set, as a phone zooms out to fit
             // content wider than its screen.
@@ -320,6 +339,7 @@ describe("use_case_use_on_phone", () => {
             );
             expect(wideDialogs, "no sideways scroll in a dialog").toEqual([]);
             expect(wrappedTabRows, "each row of tabs is one row").toEqual([]);
+            expect(pageHeadings, "one page heading").toBe(1);
             expect(
               smallTargets(targets),
               `every control at least ${MINIMUM_TARGET_PX}×${MINIMUM_TARGET_PX} px`,

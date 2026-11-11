@@ -106,6 +106,9 @@ interface PhonePage {
   // Sets the page's data, signs in or out, and returns the page in its
   // layouts, without the site's frame.
   readonly render: () => Promise<JSX.Element>;
+  // The page's path, which the header slot builds its trail band from, for
+  // a signed-in page with a place in the site.
+  readonly path?: readonly string[];
   // The names of buttons laid out only once on screen, which the check
   // waits for and then checks it measured.
   readonly laidOutWhenShown?: readonly string[];
@@ -120,6 +123,9 @@ const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
+const QUESTS_PATH = ["projects"] as const;
+const QUEST_PATH = ["projects", FOX_PROJECT.id] as const;
+const JOURNAL_PATH = ["projects", FOX_PROJECT.id, "memory"] as const;
 
 // A page signed out, as a visitor sees it.
 function signedOut(content: () => JSX.Element): () => Promise<JSX.Element> {
@@ -302,6 +308,7 @@ function workshopPage(
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "Library",
+    path: ["library"],
     render: workspacePage(
       () => {
         /* Reading needs no store fixtures. */
@@ -311,6 +318,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   ...LIBRARY_COPY.books.map((book) => ({
     name: `Library: ${book.title}`,
+    path: ["library", book.id],
     render: workspacePage(
       () => {
         /* Reading needs no store fixtures. */
@@ -320,6 +328,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   })),
   {
     name: "Retirement",
+    path: ["retirement"],
     render: workspacePage(
       () => {
         vi.mocked(listRetiredDefinitions).mockResolvedValue([
@@ -331,6 +340,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a retired definition",
+    path: ["retirement", RETIRED_CONSTRUCT.id],
     render: workspacePage(
       () => {
         vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_CONSTRUCT);
@@ -344,6 +354,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "Delete forever confirmation",
+    path: ["retirement"],
     render: workspacePage(
       () => {
         vi.mocked(listRetiredDefinitions).mockResolvedValue([
@@ -363,6 +374,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
 
   {
     name: "the image gallery",
+    path: ["gallery"],
     render: workspacePage(
       () => {
         vi.mocked(listGeneratedImages).mockResolvedValue([
@@ -384,6 +396,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the sign-up page", render: signedOut(SignUpPage) },
   {
     name: "the invitation page",
+    path: ["invitations"],
     render: async (): Promise<JSX.Element> => {
       signInAs({ ...SIGNED_IN_USER, role: "admin" });
       return inWorkspace(await InvitationsPage());
@@ -393,9 +406,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
-  { name: "the projects list", render: projectsPage },
+  { name: "the projects list", path: QUESTS_PATH, render: projectsPage },
   {
     name: "the projects list's Make a thing details",
+    path: QUESTS_PATH,
     render: projectsPage,
     open: async (): Promise<void> => {
       await page
@@ -409,9 +423,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
-  { name: "a project", render: projectPage },
+  { name: "a project", path: QUEST_PATH, render: projectPage },
   {
     name: "the Dailies quest, with Start the day",
+    path: QUEST_PATH,
     render: projectPageFor("conversation", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
@@ -423,6 +438,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a quest with its title editor open",
+    path: QUEST_PATH,
     render: projectPage,
     open: async (): Promise<void> => {
       await page.getByRole("button", { name: PROJECT_COPY.rename }).click();
@@ -433,10 +449,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a project's memory",
+    path: JOURNAL_PATH,
     render: memoryPage,
   },
   {
     name: "a project's memory, open in the editor",
+    path: JOURNAL_PATH,
     render: memoryPage,
     open: async (): Promise<void> => {
       await page.getByRole("button", { name: MEMORY_COPY.edit }).click();
@@ -447,6 +465,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Settings page",
+    path: ["settings"],
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([]);
@@ -458,10 +477,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
 
   {
     name: "a built-in construct's page",
+    path: ["constructs", "vellum"],
     render: workspacePage(noData, () => constructPage("vellum")),
   },
   {
     name: "her own construct's page",
+    path: ["constructs", VELLUM_CLONE.id],
     render: workspacePage(
       () => {
         vi.mocked(getOwnConstruct).mockResolvedValue(VELLUM_CLONE);
@@ -471,14 +492,17 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the discovery activity's page",
+    path: ["activities", "find-something-to-make"],
     render: workspacePage(noData, () => activityPage("find-something-to-make")),
   },
   {
     name: "a built-in activity's page",
+    path: ["activities", "brainstorming"],
     render: workspacePage(noData, () => activityPage("brainstorming")),
   },
   {
     name: "her own activity's page",
+    path: ["activities", BRAINSTORMING_CLONE.id],
     render: workspacePage(
       () => {
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
@@ -487,15 +511,29 @@ const PHONE_PAGES: readonly PhonePage[] = [
     ),
   },
 
-  { name: "the Workshop's Constructs tab", render: workshopPage("construct") },
-  { name: "the Workshop's Activities tab", render: workshopPage("activity") },
-  { name: "the Workshop's Spells tab", render: workshopPage("spell") },
+  {
+    name: "the Workshop's Constructs tab",
+    path: ["workshop"],
+    render: workshopPage("construct"),
+  },
+  {
+    name: "the Workshop's Activities tab",
+    path: ["workshop"],
+    render: workshopPage("activity"),
+  },
+  {
+    name: "the Workshop's Spells tab",
+    path: ["workshop"],
+    render: workshopPage("spell"),
+  },
   {
     name: "a built-in spell's page",
+    path: ["spellbook", "ask-one-question"],
     render: workspacePage(noData, () => spellPage("ask-one-question")),
   },
   {
     name: "her own spell's page",
+    path: ["spellbook", ASK_ONE_QUESTION_CLONE.id],
     render: workspacePage(
       () => {
         vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
@@ -505,6 +543,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "Chat, with a search and Markdown",
+    path: ["chat"],
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(searchAndMarkdownChat());
@@ -513,6 +552,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "Chat",
+    path: ["chat"],
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
@@ -520,6 +560,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "Chat's Turn Chat into a quest",
+    path: ["chat"],
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
@@ -535,9 +576,17 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
-  { name: "a quest's Plan", render: projectPageFor("plan") },
-  { name: "a quest's Progress", render: projectPageFor("progress") },
-  { name: "a quest's Journal versions", render: memoryPageFor("versions") },
+  { name: "a quest's Plan", path: QUEST_PATH, render: projectPageFor("plan") },
+  {
+    name: "a quest's Progress",
+    path: QUEST_PATH,
+    render: projectPageFor("progress"),
+  },
+  {
+    name: "a quest's Journal versions",
+    path: JOURNAL_PATH,
+    render: memoryPageFor("versions"),
+  },
 ];
 
 vi.mock("@/batteries/catalog.ts", () => ({

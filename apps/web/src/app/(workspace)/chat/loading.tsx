@@ -4,9 +4,6 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 export default function StandaloneChatLoading(): JSX.Element {
   return (
-    <LoadingSkeleton
-      label={CHAT_COPY.loading}
-      shapes={["line", "heading", "messages"]}
-    />
+    <LoadingSkeleton label={CHAT_COPY.loading} shapes={["line", "messages"]} />
   );
 }

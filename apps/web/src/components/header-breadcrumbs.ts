@@ -1,10 +1,10 @@
 import type { Route } from "next";
+import type { User } from "@/accounts/users-store.ts";
 import { getOwnActivity } from "@/activities/activity-store.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
-import type { UserId } from "@/ids.ts";
 import { getProject } from "@/projects/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
@@ -52,17 +52,22 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   ]);
 
 // Resolve names only through the same acting-user stores as the page. Unknown
-// or inaccessible destinations expose no trail. The header slot calls this on
+// or inaccessible destinations, such as Invitations for anyone but an admin,
+// expose no trail. The last item is the page's heading, so it is worded as
+// the page names itself. The header slot calls this on
 // each matched navigation, including history restoration, rather than keeping
 // page registrations in client state.
 async function headerBreadcrumbs(
-  user: UserId,
+  user: Pick<User, "id" | "role">,
   path: readonly string[],
 ): Promise<readonly Breadcrumb[]> {
   const [section = "", id, child] = path;
   const root = ROOTS.get(section);
   if (id === undefined) {
-    if (root === undefined) {
+    if (
+      root === undefined ||
+      (section === "invitations" && user.role !== "admin")
+    ) {
       return [];
     }
     if (section === "projects") {
@@ -77,7 +82,7 @@ async function headerBreadcrumbs(
     ) {
       return [];
     }
-    const project = await getProject(user, id);
+    const project = await getProject(user.id, id);
     if (project === undefined) {
       return [];
     }
@@ -105,22 +110,22 @@ async function headerBreadcrumbs(
     if (isConstructId(id)) {
       ({ name } = getConstruct(id));
     } else {
-      name = (await getOwnConstruct(user, id))?.name;
+      name = (await getOwnConstruct(user.id, id))?.name;
     }
   } else if (section === "activities") {
     if (isActivityId(id)) {
       ({ name } = getActivity(id));
     } else {
-      name = (await getOwnActivity(user, id))?.name;
+      name = (await getOwnActivity(user.id, id))?.name;
     }
   } else if (section === "spellbook") {
     if (isSpellId(id)) {
       ({ name } = getSpell(id));
     } else {
-      name = (await getOwnSpell(user, id))?.name;
+      name = (await getOwnSpell(user.id, id))?.name;
     }
   } else if (section === "retirement") {
-    name = (await getRetiredDefinition(user, id))?.name;
+    name = (await getRetiredDefinition(user.id, id))?.name;
   }
   if (name === undefined) {
     return [];

@@ -13,10 +13,7 @@ export const metadata: Metadata = { title: INVITATIONS_COPY.title };
 export default async function InvitationsPage(): Promise<JSX.Element> {
   await requireAdmin();
   return (
-    <PageWorkspace
-      title={INVITATIONS_COPY.heading}
-      intro={INVITATIONS_COPY.intro}
-    >
+    <PageWorkspace intro={INVITATIONS_COPY.intro}>
       <div className="workspace-content border-line border-t">
         <div className="w-full max-w-md">
           <LinkRequestForm

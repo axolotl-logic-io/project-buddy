@@ -4,7 +4,7 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
-import { Breadcrumbs, SiteHeader } from "@/components/site-header.tsx";
+import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
@@ -56,7 +56,7 @@ async function show(
     <>
       <SiteHeader
         links={
-          <Breadcrumbs
+          <TrailBand
             items={[
               { label: "Workshop", href: "/workshop" },
               { label: "My construct" },
@@ -205,11 +205,12 @@ test.each([
       .getByRole("button", { name: PROMPT_COPY.save, exact: true })
       .element()
       .getBoundingClientRect();
-    const breadcrumbsBottom = page
-      .getByRole("navigation", { name: "Breadcrumbs" })
+    const bandBottom = page
+      .getByRole("banner")
+      .getByRole("heading", { level: 1 })
       .element()
       .getBoundingClientRect().bottom;
-    const visibleTop = Math.max(0, rect.top, breadcrumbsBottom);
+    const visibleTop = Math.max(0, rect.top, bandBottom);
     const visibleBottom = Math.min(
       window.innerHeight,
       rect.bottom,
