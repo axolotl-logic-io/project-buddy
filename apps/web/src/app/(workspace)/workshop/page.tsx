@@ -16,7 +16,9 @@ const QUERY = z.object({
 });
 
 // A link to each kind's tab, the shown one marked, styled as the site's
-// other tabs.
+// other tabs. These query variants share a route. Prefetching them with
+// partial prefetching repeatedly requests a variant on Next 16.4.3; load
+// the selected kind when its link is followed instead.
 function KindTabs({ shown }: { readonly shown: PromptKind }): JSX.Element {
   return (
     <nav
@@ -35,6 +37,7 @@ function KindTabs({ shown }: { readonly shown: PromptKind }): JSX.Element {
                 aria-current={current}
                 className="workspace-tab"
                 href={workshopPath(kind)}
+                prefetch={false}
               >
                 {WORKSHOP_PAGE_COPY.kinds[kind]}
               </Link>
