@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { listMessages, markChatRead, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
-import { readQuestConversation } from "@/conversations/quest-conversation.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
 import type { Project } from "@/projects/store.ts";

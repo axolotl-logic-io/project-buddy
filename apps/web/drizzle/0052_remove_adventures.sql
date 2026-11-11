@@ -1,0 +1,13 @@
+-- Removes legacy adventures: every chat that isn't a quest's conversation or
+-- a user's private Chat (chats.continuing, migration 0051). The user approved
+-- removing them rather than keeping their history (#892). What belongs to an
+-- adventure goes with it through its foreign keys: its messages, images,
+-- image generations, reply runs and their usage, activity sessions,
+-- unread marks, quest transfers and status approvals, and its
+-- construct-visual grants, whose last release collects the asset's bytes.
+-- Plan versions and milestones belong to their quest and stay, with no
+-- conversation (on delete set null). Accounts, balances, own constructs,
+-- activities and spells, Journals, Plans, members and invitations stay.
+-- The live build still writes adventures until the new build is promoted;
+-- the new build reads none, and the next release deletes any it wrote.
+DELETE FROM "chats" WHERE NOT "continuing";
