@@ -1,15 +1,12 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { z } from "zod";
-import { EMAIL_FIELD, typedEmail } from "@/app/login/link-request.ts";
-import type { LinkRequestState } from "@/app/login/link-request-state.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { startQuestConversation } from "@/conversations/start-quest.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
-import { MILESTONE_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
+import { MILESTONE_ID, PROJECT_ID } from "@/ids.ts";
 import {
   MILESTONE_TEXT,
   MILESTONE_TEXT_MAX_LENGTH,
@@ -20,16 +17,9 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { LISTED_NOTE_TEXT, NOTE_DAY } from "@/notes/note.ts";
 import { deleteNote } from "@/notes/note-store.ts";
-import { leaveProject, removeProjectMember } from "@/projects/members-store.ts";
-import {
-  type InviteOutcome,
-  inviteToProject,
-  revokeProjectInvitation,
-} from "@/projects/project-invitations.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
-import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
 
 // What the last delete from a project's notes did: nothing yet; deleted;
 // nothing deleted, since the memory no longer holds the note; or failed,
@@ -70,8 +60,6 @@ async function deleteFromForm(formData: FormData): Promise<DeleteNoteState> {
 
 const PROJECT_FORM = z.object({ projectId: PROJECT_ID });
 
-const REMOVE_MEMBER_FORM = PROJECT_FORM.extend({ memberId: USER_ID });
-
 const MILESTONE_FORM = z.object({ milestoneId: MILESTONE_ID });
 
 const EDIT_MILESTONE_FORM = MILESTONE_FORM.extend({ text: z.string() });
@@ -92,42 +80,6 @@ function refusal(text: string): string {
   }
   return PROGRESS_TIMELINE_COPY.tooLong(MILESTONE_TEXT_MAX_LENGTH);
 }
-
-// What the invite form says for each outcome, about the address as typed.
-function inviteAnswer(
-  outcome: Exclude<InviteOutcome, "not-found">,
-  email: string,
-): Exclude<LinkRequestState, { kind: "idle" }> {
-  const address = email.trim();
-  switch (outcome) {
-    case "taken":
-      return {
-        kind: "sent",
-        message: PROJECT_INVITE_COPY.sent(address),
-        email,
-      };
-    case "yourself":
-      return {
-        kind: "invalid",
-        field: "email",
-        message: PROJECT_INVITE_COPY.yourself,
-        email,
-      };
-    case "already-member":
-      return {
-        kind: "invalid",
-        field: "email",
-        message: PROJECT_INVITE_COPY.alreadyMember(address),
-        email,
-      };
-    case "limited":
-      return { kind: "error", message: PROJECT_INVITE_COPY.limited, email };
-    default:
-      return outcome satisfies never;
-  }
-}
-
-const REVOKE_FORM = z.object({ invitationId: z.string() });
 
 // What came of starting a quest's conversation: nothing yet, or why it
 // didn't start. Starting it refreshes the page, which then shows it.
@@ -199,99 +151,10 @@ export async function deleteMilestoneAction(formData: FormData): Promise<void> {
   refresh();
 }
 
-// Invites the person with the form's address to her project, and says what
-// happened: the same "if they have an account, we've sent them an
-// invitation" for every address she may invite, so the answer never shows
-// whether an address has an account; or refused, saying why, for her own
-// address, a member's, a malformed one or past her limits. A sent invitation
-// refreshes the page, so its Pending invitations list it. A project that
-// isn't hers is not found, as is a malformed form. A storage failure is
-// reported for her to try again.
-export async function inviteToProjectAction(
-  _state: LinkRequestState,
-  formData: FormData,
-): Promise<Exclude<LinkRequestState, { kind: "idle" }>> {
-  const user = await requireUser();
-  const projectId = PROJECT_ID.safeParse(formData.get("projectId")).data;
-  if (projectId === undefined) {
-    notFound();
-  }
-  const typed = typedEmail(formData);
-  const parsed = EMAIL_FIELD.safeParse(typed);
-  if (!parsed.success) {
-    return {
-      kind: "invalid",
-      field: "email",
-      message: PROJECT_INVITE_COPY.needsEmail,
-      email: typed,
-    };
-  }
-  let outcome: InviteOutcome;
-  try {
-    outcome = await inviteToProject(user, {
-      projectId,
-      email: parsed.data,
-      requestHeaders: await headers(),
-    });
-  } catch (error) {
-    if (error instanceof AppError) {
-      return { kind: "error", message: error.message, email: typed };
-    }
-    throw error;
-  }
-  if (outcome === "not-found") {
-    notFound();
-  }
-  if (outcome === "taken") {
-    refresh();
-  }
-  return inviteAnswer(outcome, typed);
-}
-
-// Revokes her pending invitation to her project, so its invitee can't join
-// with it. One that is answered, unknown or not hers is left as it is.
-export async function revokeProjectInvitationAction(
-  formData: FormData,
-): Promise<void> {
-  const user = await requireUser();
-  const form = REVOKE_FORM.safeParse(Object.fromEntries(formData));
-  if (!form.success) {
-    notFound();
-  }
-  await revokeProjectInvitation(user.id, form.data.invitationId);
-  refresh();
-}
-
-// Takes the member out of her project, which ends their access at once.
-// Removing someone who is no longer a member, or from a project that is
-// not hers, changes nothing.
-export async function removeMemberAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const form = REMOVE_MEMBER_FORM.safeParse(Object.fromEntries(formData));
-  if (!form.success) {
-    notFound();
-  }
-  await removeProjectMember(user.id, form.data.projectId, form.data.memberId);
-  refresh();
-}
-
-// Takes her out of a team project she is a member of, then shows her
-// projects, since she can no longer open this one. Her own project, which
-// she can't leave, is left as it is.
-export async function leaveProjectAction(formData: FormData): Promise<never> {
-  const user = await requireUser();
-  const form = PROJECT_FORM.safeParse(Object.fromEntries(formData));
-  if (!form.success) {
-    notFound();
-  }
-  await leaveProject(user.id, form.data.projectId);
-  return redirect("/projects");
-}
-
 // Starts the quest's one conversation, with its opening, charged to the
 // acting user, for a quest that has none yet, as after the move from
 // adventures. Starting one that has started, as from a second tab, writes
-// no second opening. A quest that isn't open to the user is not found.
+// no second opening. A quest that isn't the user's is not found.
 export async function startConversationAction(
   _state: StartConversationState,
   formData: FormData,

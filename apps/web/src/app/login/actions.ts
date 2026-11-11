@@ -12,8 +12,7 @@ import { LOGIN_COPY } from "@/ui/copy/login.ts";
 // Emails a sign-in link to the address's account, if it has one and is
 // within the rate limits, and answers "check your email" either way, so the
 // answer reveals neither. Or says the address is not one, or why the
-// request couldn't be taken. A project's invite form keeps the same rule
-// (src/projects/project-invitations.ts).
+// request couldn't be taken.
 export async function requestSignInLinkAction(
   _state: LinkRequestState,
   formData: FormData,
