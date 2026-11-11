@@ -8,7 +8,7 @@
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, not, type SQL, sql } from "drizzle-orm";
+import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import {
   chatOpenTo,
@@ -28,7 +28,6 @@ import {
   type ProjectChat,
   replyUnclaimed,
   toChats,
-  toConstructWithId,
 } from "@/chats/chat-rows.ts";
 import {
   type ChatMessage,
@@ -36,7 +35,6 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
 import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
@@ -155,30 +153,6 @@ export function listChats(
   );
 }
 
-// The construct of the newest chat in the owner's project, as a new chat would
-// keep it; undefined if the project has no chats or is another user's.
-export async function latestConstruct(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<NewChatConstruct | undefined> {
-  const [row] = await withAppErrors("latestConstruct", () =>
-    getDb()
-      .select({
-        constructId: chats.constructId,
-        constructName: chats.constructName,
-        constructParts: chats.constructParts,
-      })
-      .from(chats)
-      .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
-      .orderBy(desc(chats.createdAt), desc(chats.id))
-      .limit(1),
-  );
-  if (row === undefined) {
-    return undefined;
-  }
-  return toConstructWithId(row);
-}
-
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(
@@ -207,11 +181,13 @@ export async function getChat(
 // user who sent it or, for a message saved with no author, the chat's
 // owner, who is its project's user or the standalone chat's user. None if
 // the chat is another user's. A stored message whose role or parts are
-// invalid is left out and logged. Only a reply reads these; people read
+// invalid is left out and logged. With newest, only that many of the newest
+// messages, still oldest first. Only a reply reads these; people read
 // listMessages.
 export async function listMessagesForModel(
   owner: UserId,
   chatId: ChatId,
+  newest?: number,
 ): Promise<ChatMessage[]> {
   // The joins only read the author's columns; messageOpenTo is what keeps
   // a message open to the owner.
@@ -239,9 +215,10 @@ export async function listMessagesForModel(
         ),
       )
       .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
-      .orderBy(asc(messages.createdAt), asc(messages.id)),
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(newest ?? Number.MAX_SAFE_INTEGER),
   );
-  const parsed = await Promise.all(rows.map(toChatMessage));
+  const parsed = await Promise.all(rows.reverse().map(toChatMessage));
   return parsed.filter((message) => message !== undefined);
 }
 
@@ -530,21 +507,4 @@ export async function renameChat(
       .returning({ id: chats.id }),
   );
   return renamed.length > 0;
-}
-
-// Names the owner's chat with the name Haiku suggested, unless she has
-// renamed it by hand, even while Haiku was answering.
-export async function saveAutomaticChatName(
-  owner: UserId,
-  chatId: ChatId,
-  name: ChatName,
-): Promise<void> {
-  await withAppErrors("saveAutomaticChatName", () =>
-    getDb()
-      .update(chats)
-      .set({ name })
-      .where(
-        and(eq(chats.id, chatId), chatOpenTo(owner), not(chats.renamedByHand)),
-      ),
-  );
 }
