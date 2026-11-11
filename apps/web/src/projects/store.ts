@@ -1,18 +1,15 @@
-// Projects, stored in Postgres. A project is its owner's, and open to its
-// owner and its members (src/accounts/owner-scope.ts): every function takes
-// the acting user first and reads only the projects open to them. An id
-// from outside the code, such as a route parameter, is looked up as a
-// string; anything malformed, unknown or not open to the user is not found.
-import { and, desc, eq, exists, type SQL, sql } from "drizzle-orm";
-import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOpenTo, projectOwnedBy } from "@/accounts/owner-scope.ts";
+// Projects, stored in Postgres. A project is its owner's alone
+// (src/accounts/owner-scope.ts): every function takes the acting user first
+// and reads only their own projects. An id from outside the code, such as a
+// route parameter, is looked up as a string; anything malformed, unknown or
+// another user's is not found.
+import { and, desc, eq, type SQL, sql } from "drizzle-orm";
+import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { questUnreadFor } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
-import { projectMembers } from "@/db/tables/project-members.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
-import type { ProjectRole } from "@/projects/members-store.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/projects/quest-status.ts";
 
@@ -22,12 +19,7 @@ interface Project {
   createdAt: Date;
   status: QuestStatus;
   statusRevision: number;
-  // What the acting user is in the project: its owner or a member.
-  role: ProjectRole;
-  // Whether it is a team project: one with members besides its owner.
-  shared: boolean;
-  // Whether it is the acting user's own Dailies quest
-  // (src/conversations/dailies.ts); a member sees another's as a quest.
+  // Whether it is the user's Dailies quest (src/conversations/dailies.ts).
   dailies: boolean;
   // Whether its conversation is unread for the acting user, as after a
   // check-in they haven't opened yet.
@@ -40,8 +32,6 @@ interface ProjectRow {
   readonly createdAt: Date;
   readonly status: string;
   readonly statusRevision: number;
-  readonly owned: boolean;
-  readonly shared: boolean;
   readonly dailies: boolean;
   readonly unread: boolean;
 }
@@ -55,9 +45,7 @@ function projectColumns(user: UserId): {
   readonly id: typeof projects.id;
   readonly name: typeof projects.name;
   readonly createdAt: typeof projects.createdAt;
-  readonly owned: SQL<boolean>;
-  readonly shared: SQL<boolean>;
-  readonly dailies: SQL<boolean>;
+  readonly dailies: typeof projects.dailies;
   readonly unread: SQL.Aliased<boolean>;
 } {
   return {
@@ -66,40 +54,16 @@ function projectColumns(user: UserId): {
     id: projects.id,
     name: projects.name,
     createdAt: projects.createdAt,
-    owned: sql<boolean>`${projectOwnedBy(user)}`,
-    shared: sql<boolean>`${exists(
-      new QueryBuilder()
-        .select({ userId: projectMembers.userId })
-        .from(projectMembers)
-        .where(eq(projectMembers.projectId, projects.id)),
-    )}`,
-    dailies: sql<boolean>`(${projects.dailies} and ${projectOwnedBy(user)})`,
+    dailies: projects.dailies,
     unread: questUnreadFor(user),
   };
-}
-
-function roleOf(owned: boolean): ProjectRole {
-  if (owned) {
-    return "owner";
-  }
-  return "member";
 }
 
 // Rows as projects. A row whose id is not a UUID is skipped, though the uuid
 // column never holds one.
 function toProjects(rows: readonly ProjectRow[]): Project[] {
   return rows.flatMap(
-    ({
-      id,
-      name,
-      createdAt,
-      owned,
-      shared,
-      status,
-      statusRevision,
-      dailies,
-      unread,
-    }) => {
+    ({ id, name, createdAt, status, statusRevision, dailies, unread }) => {
       const projectId = parseProjectId(id);
       if (projectId === undefined) {
         return [];
@@ -109,8 +73,6 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
           id: projectId,
           name,
           createdAt,
-          role: roleOf(owned),
-          shared,
           status: QUEST_STATUS.parse(status),
           statusRevision,
           dailies,
@@ -123,22 +85,21 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
 
 export type { Project };
 
-// The projects open to the user, their own and those they are a member of,
-// newest first.
+// The user's projects, newest first.
 export function listProjects(user: UserId): Promise<Project[]> {
   return withAppErrors("listProjects", async () =>
     toProjects(
       await getDb()
         .select(projectColumns(user))
         .from(projects)
-        .where(projectOpenTo(user))
+        .where(projectOwnedBy(user))
         .orderBy(desc(projects.createdAt)),
     ),
   );
 }
 
-// The project with this id open to the user, or undefined if the id is
-// malformed, unknown or not open to them.
+// The user's project with this id, or undefined if the id is malformed,
+// unknown or another user's.
 export async function getProject(
   user: UserId,
   id: string,
@@ -152,7 +113,7 @@ export async function getProject(
       await getDb()
         .select(projectColumns(user))
         .from(projects)
-        .where(and(eq(projects.id, projectId), projectOpenTo(user))),
+        .where(and(eq(projects.id, projectId), projectOwnedBy(user))),
     ),
   );
   return project;
@@ -173,8 +134,6 @@ export function createProject(
         id: projects.id,
         name: projects.name,
         createdAt: projects.createdAt,
-        owned: sql<boolean>`true`,
-        shared: sql<boolean>`false`,
         dailies: projects.dailies,
         unread: sql<boolean>`false`,
       }),

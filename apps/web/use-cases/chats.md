@@ -10,7 +10,7 @@ The user talks with a construct in Chat, her one private conversation for talkin
 - **Steps:**
   - She opens Chat from any signed-in page's header.
   - She sends a message, leaves, and later opens Chat again.
-- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user, and no member of any of her quests, can open it. It writes no quest's Journal, Plan or milestones.
+- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user can open it. It writes no quest's Journal, Plan or milestones.
 - **Variations:**
   - An old adventure address of hers that has no quest opens Chat; one of a quest she can open opens that quest; any other, including another user's, a removed one or a malformed one, shows the not-found page ([`use_case_open_missing_page`](#use_case_open_missing_page)).
   - The old new-adventure address opens Chat and makes nothing.
@@ -83,7 +83,7 @@ The user returns to the quest they were most recently working on.
 - **Prerequisites:** a signed-in account with an Active quest that has a conversation.
 - **Steps:**
   - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
+- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules exclude other users' work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
 - **Next:**
@@ -115,9 +115,9 @@ The user writes to the construct and gets a reply.
 
 ## use_case_chat_with_several_people
 
-The user reads an adventure that other people write in too, and sees who wrote each message; the construct knows who is speaking.
+The user reads an adventure that someone else also wrote in, while quests could be shared, and sees who wrote each message; the construct knows who is speaking.
 
-- **Prerequisites:** `use_case_send_message`. Someone else has written in the adventure too, such as another member of a team quest.
+- **Prerequisites:** `use_case_send_message`. Someone else wrote in the adventure too, as a member did while quests could be shared.
 - **Steps:**
   - She opens the adventure.
   - She sends a message, and the construct replies.
@@ -247,7 +247,7 @@ The user opens a check-in they haven't read.
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
   - On Quests or Home, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
-- **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
+- **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the construct.
 
@@ -348,7 +348,7 @@ The user asks their construct about images in a quest or standalone adventure.
   - They preview the attachments and remove any they do not want to send.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the adventure and ask a follow-up question about an earlier image.
-- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the quest owner. Deleting the adventure, its quest or its account deletes its images.
+- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure. Replies and generated images charge the acting user; generated openings charge the starter and check-ins charge the quest owner. Deleting the adventure, its quest or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-batteries refusal returns text and attachments to the composer. No paid model runs during tests.
 
 ## use_case_construct_presence
@@ -369,4 +369,4 @@ The user stops a reply that is still running.
 - **Prerequisites:** signed in, with current access to the adventure.
 - **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
 - **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
-- **Variations:** owners and current members can stop a shared reply; outsiders cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
+- **Variations:** only the adventure's owner can stop its reply; other users cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.

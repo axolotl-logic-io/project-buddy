@@ -9,7 +9,6 @@ const stores = vi.hoisted(() => ({
   getOwnSpell: vi.fn(),
   getListing: vi.fn(),
   getRetiredDefinition: vi.fn(),
-  readProjectInvitation: vi.fn(),
 }));
 vi.mock("@/projects/store.ts", () => stores);
 vi.mock("@/activities/activity-store.ts", () => stores);
@@ -17,7 +16,6 @@ vi.mock("@/constructs/construct-store.ts", () => stores);
 vi.mock("@/spells/spell-store.ts", () => stores);
 vi.mock("@/marketplace/listing-store.ts", () => stores);
 vi.mock("@/retirement/retirement-store.ts", () => stores);
-vi.mock("@/projects/project-invitations.ts", () => stores);
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
 

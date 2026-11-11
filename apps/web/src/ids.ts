@@ -1,5 +1,5 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, project invitation, chat, milestone, user construct
+// expected. User, project, chat, milestone, user construct
 // and listing ids are Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
@@ -48,12 +48,6 @@ const MILESTONE_ID = z
   .toLowerCase()
   .brand<"MilestoneId">();
 
-const PROJECT_INVITATION_ID = z
-  .string()
-  .regex(CANONICAL_UUID)
-  .toLowerCase()
-  .brand<"ProjectInvitationId">();
-
 const OWN_PROMPT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -85,9 +79,6 @@ type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
 
 // A milestone's id, as `parseMilestoneId` returns it.
 type MilestoneId = z.infer<typeof MILESTONE_ID>;
-
-// A project invitation's id, as `parseProjectInvitationId` returns it.
-type ProjectInvitationId = z.infer<typeof PROJECT_INVITATION_ID>;
 
 // A Marketplace listing's id, as `parseListingId` returns it.
 type ListingId = z.infer<typeof LISTING_ID>;
@@ -124,14 +115,6 @@ function parseMilestoneId(value: string): MilestoneId | undefined {
   return MILESTONE_ID.safeParse(value).data;
 }
 
-// The value as a lowercase ProjectInvitationId, or undefined unless it is a
-// canonical UUID.
-function parseProjectInvitationId(
-  value: string,
-): ProjectInvitationId | undefined {
-  return PROJECT_INVITATION_ID.safeParse(value).data;
-}
-
 // The value as a lowercase ListingId, or undefined unless it is a
 // canonical UUID.
 function parseListingId(value: string): ListingId | undefined {
@@ -152,7 +135,6 @@ export type {
   MilestoneId,
   OwnPromptId,
   ProjectId,
-  ProjectInvitationId,
   UserId,
 };
 export {
@@ -164,7 +146,6 @@ export {
   MILESTONE_ID,
   OWN_PROMPT_ID,
   PROJECT_ID,
-  PROJECT_INVITATION_ID,
   parseChatId,
   parseImageId,
   parseListingId,
@@ -172,7 +153,6 @@ export {
   parseMilestoneId,
   parseOwnPromptId,
   parseProjectId,
-  parseProjectInvitationId,
   parseUserId,
   USER_ID,
 };

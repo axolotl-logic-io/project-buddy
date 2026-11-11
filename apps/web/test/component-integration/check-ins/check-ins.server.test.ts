@@ -29,7 +29,6 @@ import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { getProject, type Project } from "@/projects/store.ts";
 import { MOCK_CHECK_IN } from "@/replies/mock-opening.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
@@ -358,32 +357,6 @@ describe("use_case_open_unread_check_in", () => {
 
     expect(await unreadFor(user, scene)).toBe(false);
   });
-
-  test("a team quest's check-in is unread for the owner and every member, each until they open it", async () => {
-    const [owner, member, another] = await Promise.all([
-      testUser(),
-      testUser(),
-      testUser(),
-    ]);
-    const scene = await checkInScene(owner);
-    expect(await addProjectMember(member.id, scene.project.id)).toBe(true);
-    expect(await addProjectMember(another.id, scene.project.id)).toBe(true);
-    await runCheckIns();
-
-    expect(
-      await Promise.all(
-        [owner, member, another].map((u) => unreadFor(u, scene)),
-      ),
-    ).toEqual([true, true, true]);
-
-    await markChatRead(member.id, scene.chat.id);
-
-    expect(
-      await Promise.all(
-        [owner, member, another].map((u) => unreadFor(u, scene)),
-      ),
-    ).toEqual([true, false, true]);
-  });
 });
 
 // The project's page, as the signed-in user sees it.
@@ -391,7 +364,7 @@ async function projectPageHtml(project: Project): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId: project.id }),
-      searchParams: Promise.resolve({ section: "members" }),
+      searchParams: Promise.resolve({ section: "progress" }),
     }),
   );
 }
@@ -430,19 +403,17 @@ describe("use_case_set_check_ins", () => {
 });
 
 describe("check-ins stay hidden until CRON_SECRET is set", () => {
-  test("with the secret set, the project page shows the setting and it saves", async () => {
+  test("with the secret set, the setting saves", async () => {
     vi.stubEnv("CRON_SECRET", CRON_SECRET);
     const user = await testUser();
     await signIn(user);
     const project = await testData(user).project();
 
-    const html = await projectPageHtml(project);
     const saved = await saveCheckInSettingAction(
       { kind: "idle" },
       formOf({ projectId: project.id, frequency: "weekly" }),
     );
 
-    expect(html).toContain(CHECK_IN_SETTING_COPY.intro);
     expect(saved).toEqual({ kind: "saved" });
     expect(await readCheckInFrequency(user.id, project.id)).toBe("weekly");
   });

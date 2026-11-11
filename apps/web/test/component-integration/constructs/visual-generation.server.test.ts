@@ -36,14 +36,11 @@ import {
   unlistListing,
   updateListing,
 } from "@/marketplace/listing-store.ts";
-import {
-  addProjectMember,
-  removeProjectMember,
-} from "@/projects/members-store.ts";
 import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
 import { matchingBuiltInConstruct } from "@/prompts/matching-built-in.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import {
   goldSpent,
   spendGold,
@@ -365,7 +362,7 @@ describe("use_case_generate_construct_visual", () => {
     event.resolve(await image());
     expect((await first).status).toBe("generated");
   });
-  test("clones, team snapshots and bought copies retain grants after source deletion", async () => {
+  test("clones, quest snapshots and bought copies retain grants after source deletion", async () => {
     const { user, construct, provider, request } = await setup();
     const [member, outsider, buyer] = await Promise.all([
       testUser(),
@@ -380,7 +377,7 @@ describe("use_case_generate_construct_visual", () => {
       throw new Error("No construct");
     }
     const project = await testData(user).project();
-    await addProjectMember(member.id, project.id);
+    await formerMembership(user, member, project.id);
     const chat = await createChat(user.id, {
       project,
       construct: {
@@ -443,12 +440,11 @@ describe("use_case_generate_construct_visual", () => {
       ),
     ).toBeDefined();
     expect(
-      await getVisualAsset(member.id, { kind: "adventure", id: chat.id }, id),
+      await getVisualAsset(user.id, { kind: "adventure", id: chat.id }, id),
     ).toBeDefined();
     expect(
       await getVisualAsset(outsider.id, { kind: "adventure", id: chat.id }, id),
     ).toBeUndefined();
-    await removeProjectMember(user.id, project.id, member.id);
     expect(
       await getVisualAsset(member.id, { kind: "adventure", id: chat.id }, id),
     ).toBeUndefined();

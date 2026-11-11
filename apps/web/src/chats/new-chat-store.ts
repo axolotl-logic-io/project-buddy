@@ -1,11 +1,11 @@
-// New chats, saved in Postgres: in a project open to the acting user, their
-// own or a team project they are a member of, or standalone, in none. A chat that starts with the construct's opening is saved with it, and
+// New chats, saved in Postgres: in a project of the acting user's, or
+// standalone, in none. A chat that starts with the construct's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOpenTo } from "@/accounts/owner-scope.ts";
+import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
@@ -147,7 +147,7 @@ export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
       }),
     )
     .from(projects)
-    .where(and(eq(projects.id, project.id), projectOpenTo(owner)))
+    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)))
     .getSQL();
 }
 

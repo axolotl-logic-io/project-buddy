@@ -1,5 +1,5 @@
 // Continuing conversations, stored in Postgres as `chats` rows marked
-// continuing: one per quest, open to its owner and members, and one private
+// continuing: one per quest, open to its owner alone, and one private
 // Chat per user, open to that user alone (src/accounts/owner-scope.ts). The
 // database's partial unique indexes keep them one per place, so finding or
 // making one is atomic: concurrent requests reach the same conversation, and
