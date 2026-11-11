@@ -2,6 +2,7 @@
 // of each kind of data reached through it, with a member added through the
 // members store, and two probes over the stores: everything a user can read
 // of the project, and every write a user can try on it.
+
 import type { User } from "@/accounts/users-store.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import {
@@ -10,21 +11,14 @@ import {
 } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { parseChatName } from "@/chats/chat-name.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
-import { createChat } from "@/chats/new-chat-store.ts";
 import {
   getChat,
   listChats,
   listMessages,
-  renameChat,
   saveMessage,
 } from "@/chats/store.ts";
-import {
-  DEFAULT_CONSTRUCT_ID,
-  getConstruct,
-  snapshotOf,
-} from "@/constructs/index.ts";
+import { startQuestConversation } from "@/conversations/start-quest.ts";
 import type { MilestoneId } from "@/ids.ts";
 import type { GenerationId } from "@/images/generation-contract.ts";
 import {
@@ -247,10 +241,6 @@ async function writesBy(
   team: TeamProject,
 ): Promise<Record<string, unknown>> {
   const { project, chat } = team;
-  const name = parseChatName("Renamed");
-  if (name === undefined) {
-    throw new Error("Not a chat name");
-  }
   const memory = await readMemory(team.owner.id, project.id);
   const message = await saveMessage(user.id, chat.id, {
     ...question("Mine"),
@@ -279,17 +269,9 @@ async function writesBy(
     "Rigged the flippers",
   );
   const edited = await editMilestone(user.id, team.milestoneId, "Edited");
-  const renamed = await renameChat(user.id, chat.id, name);
-  const newChat = await createChat(user.id, {
-    project: { id: project.id, name: project.name },
-    construct: {
-      ...snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
-      id: DEFAULT_CONSTRUCT_ID,
-    },
-  }).then(
-    () => true,
-    () => false,
-  );
+  const started = await startQuestConversation(user.id, project.id);
+  const conversation =
+    started.kind === "started" && started.conversation.id === chat.id;
   const generation = await claimGeneration({
     owner: user.id,
     chatId: chat.id,
@@ -304,8 +286,7 @@ async function writesBy(
     note,
     milestone: milestone !== undefined,
     edited,
-    renamed,
-    newChat,
+    conversation,
     generation: generation.status,
   };
 }
@@ -320,8 +301,7 @@ const NONE_TAKEN: Record<string, unknown> = {
   note: false,
   milestone: false,
   edited: false,
-  renamed: false,
-  newChat: false,
+  conversation: false,
   generation: "failed",
 };
 
@@ -334,8 +314,7 @@ const ALL_TAKEN: Record<string, unknown> = {
   note: true,
   milestone: true,
   edited: true,
-  renamed: true,
-  newChat: true,
+  conversation: true,
   generation: "claimed",
 };
 

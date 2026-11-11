@@ -1,8 +1,8 @@
 // Per-user unread marks on chats, stored in Postgres, as the chat stores
 // read and write them: a chat is unread for a user until that user opens
 // it, and opening it clears that user's mark alone (markChatUnreadFor and
-// markChatRead in store.ts). Only a check-in marks a chat
-// (src/chats/start-chat.ts). chats.unread, the single mark before, is
+// markChatRead in store.ts). Only a check-in marks a conversation
+// (src/conversations/check-in.ts). chats.unread, the single mark before, is
 // dropped by migration 0034.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
@@ -19,6 +19,22 @@ function unreadFor(viewer: UserId): SQL.Aliased<boolean> {
     .from(chatUnreads)
     .where(
       and(eq(chatUnreads.chatId, chats.id), chatUnreadOwnedBy(viewer)),
+    )})`.as("unread");
+}
+
+// Whether the conversation of the `projects` row the query reads is unread
+// for viewer, as a boolean column.
+function questUnreadFor(viewer: UserId): SQL.Aliased<boolean> {
+  return sql<boolean>`exists (${new QueryBuilder()
+    .select({ chatId: chatUnreads.chatId })
+    .from(chatUnreads)
+    .innerJoin(chats, eq(chats.id, chatUnreads.chatId))
+    .where(
+      and(
+        eq(chats.projectId, projects.id),
+        eq(chats.continuing, true),
+        chatUnreadOwnedBy(viewer),
+      ),
     )})`.as("unread");
 }
 
@@ -49,4 +65,4 @@ function unreadMarks(chatId: ChatId, userIds: readonly UserId[]): SQL {
   return sql.join(selects, sql` union all `);
 }
 
-export { unreadFor, unreadForProjectOwner, unreadMarks };
+export { questUnreadFor, unreadFor, unreadForProjectOwner, unreadMarks };

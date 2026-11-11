@@ -6,13 +6,10 @@ import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
-import {
-  type StartChatResult,
-  startChat,
-  startProject,
-} from "@/chats/start-chat.ts";
+import { type StartChatResult, startChat } from "@/chats/start-chat.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import type { ConstructId } from "@/constructs/index.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {

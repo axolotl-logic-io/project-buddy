@@ -4,8 +4,8 @@
 // in the construct's prompt, who may change it, and the next step Today
 // shows. How the plan looks is the browser tests'.
 import { describe, expect, test, vi } from "vitest";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
@@ -143,15 +143,14 @@ describe("use_case_construct_changes_plan", () => {
     ]);
   });
 
-  test("every adventure in the quest gets the plan, with step numbers, in its prompt; a standalone one doesn't", async () => {
+  test("the quest's conversation gets the plan, with step numbers, in its prompt; the private Chat doesn't", async () => {
     const user = await testUser();
     await signIn(user);
     const data = testData(user);
     const project = await data.project();
-    const [chat, other, standalone] = await Promise.all([
+    const [chat, standalone] = await Promise.all([
       data.chat(project),
-      data.chat(project),
-      createStandaloneChat(user.id),
+      privateChat(user.id),
     ]);
     await laidOut(chat.project.id);
     await changePlanAction({
@@ -159,7 +158,7 @@ describe("use_case_construct_changes_plan", () => {
       operations: [{ op: "complete", step: 1 }],
     });
 
-    const prompt = await constructPrompt(other.id);
+    const prompt = await constructPrompt(chat.id);
     expect(prompt).toContain("<quest_plan>");
     expect(prompt).toContain(`#1 [done] ${BLOCK_OUT}`);
     expect(prompt).toContain(`#2 ${SCULPT}`);
@@ -245,7 +244,7 @@ describe("a quest's plan, changed without the construct", () => {
   test("a command with a problem changes nothing and says why", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.project.id);
-    const standalone = await createStandaloneChat(user.id);
+    const standalone = await privateChat(user.id);
 
     expect(await command(chat.id, "/frobnicate")).toEqual({
       kind: "problem",
