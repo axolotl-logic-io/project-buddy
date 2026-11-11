@@ -46,7 +46,9 @@ function ChatScreen({
   readonly viewer: UserId;
   readonly plan?: PlanState | undefined;
   readonly actions?: ReactNode;
-  readonly starter?: { readonly label: string; readonly text: string };
+  readonly starter?:
+    | { readonly label: string; readonly text: string }
+    | undefined;
 }): JSX.Element {
   const { construct } = conversation;
   return (

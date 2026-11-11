@@ -162,10 +162,10 @@ type StartConversationState =
 
 export type {
   CheckInSettingState,
-  StartConversationState,
   DeleteNoteState,
   EditMilestoneResult,
   EditMilestoneState,
+  StartConversationState,
 };
 
 // Saves how often the construct checks in on her project. Until check-ins are
@@ -347,21 +347,17 @@ export async function startConversationAction(
     notFound();
   }
   const result = await startQuestConversation(user.id, form.data.projectId);
-  switch (result.kind) {
-    case "notFound":
-      notFound();
-      break;
-    case "outOfGold":
-      return { kind: "outOfGold", message: userMessage("out-of-gold") };
-    case "claudeUnavailable":
-      return {
-        kind: "claudeUnavailable",
-        message: OPENING_COPY.claudeUnavailable,
-      };
-    case "started":
-      break;
-    default:
-      return result satisfies never;
+  if (result.kind === "notFound") {
+    notFound();
+  }
+  if (result.kind === "outOfGold") {
+    return { kind: "outOfGold", message: userMessage("out-of-gold") };
+  }
+  if (result.kind === "claudeUnavailable") {
+    return {
+      kind: "claudeUnavailable",
+      message: OPENING_COPY.claudeUnavailable,
+    };
   }
   refresh();
   return { kind: "idle" };

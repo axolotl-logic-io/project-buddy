@@ -9,22 +9,8 @@ import {
   readStoppedReply,
 } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import type { PlanActions } from "@/components/plan/use-plan.ts";
 import type { PlanState } from "@/plan/plan.ts";
-import {
-  changePlanAction,
-  runChatCommandAction,
-  undoPlanChangeAction,
-} from "@/plan/plan-actions.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
-import { mockCommandListings } from "@/replies/mock-command-listings.ts";
-
-// The plan's Server Actions, which the chat's client components call.
-const PLAN_ACTIONS: PlanActions = {
-  change: changePlanAction,
-  undo: undoPlanChangeAction,
-  command: runChatCommandAction,
-};
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
 // the pinned header and the composer both stay above it. Other pages keep
@@ -58,13 +44,11 @@ export default async function ChatPage({
   ]);
   return (
     <ChatScreen
-      chat={chat}
+      conversation={chat}
       messages={messages}
       stoppedReplyId={stoppedReplyId}
       viewer={user.id}
       plan={planState}
-      planActions={PLAN_ACTIONS}
-      mockCommands={mockCommandListings()}
     />
   );
 }

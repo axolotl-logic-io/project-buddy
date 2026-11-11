@@ -30,10 +30,6 @@ import { ProjectNotes } from "./project-notes.tsx";
 import { QuestConversation } from "./quest-conversation.tsx";
 import { QuestPlan } from "./quest-plan.tsx";
 
-// An on-screen keyboard shrinks the page rather than covering its bottom, so
-// the conversation's pinned header and composer both stay above it.
-export const viewport: Viewport = { interactiveWidget: "resizes-content" };
-
 // The project's check-in frequency for its setting, off when unsaved, or
 // null, which hides the setting, while check-ins are off for the site or
 // for a member: check-ins are the owner's alone.
@@ -50,6 +46,10 @@ async function checkInSetting(
   }
   return (await readCheckInFrequency(user, project.id)) ?? null;
 }
+
+// An on-screen keyboard shrinks the page rather than covering its bottom, so
+// the conversation's pinned header and composer both stay above it.
+export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
 // its composer; the others are its plan, its progress timeline, its newest
