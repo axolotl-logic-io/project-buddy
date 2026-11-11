@@ -70,5 +70,5 @@ Each area's cases are in their own file:
 - [Spellbook](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
-- [Installed app and notifications](notifications.md)
+- [Installed app](notifications.md)
 - [Site upkeep](site-upkeep.md)

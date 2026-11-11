@@ -505,7 +505,7 @@ A **theme** is the site's look. A **mode** is its light, dark or system appearan
 
 - **UI:** "Appearance", "Theme", "Mode".
 
-## Installed app and notifications
+## Installed app
 
 ### Installed app
 
@@ -513,20 +513,6 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 - **UI:** "Add to Home Screen", "Install app", as the phone's browser names them.
 - **Avoid:** "PWA" and "progressive web app" in copy; "native app".
-
-### Notification
-
-A message the site sends to the user's devices, which appears even when the site is closed. Tapping it opens a page of the site.
-
-- **UI:** "Notifications", "Send a test notification".
-- **Avoid:** "alert", which is an error message on the page; "push" alone in copy.
-
-### Device
-
-One browser on one of the user's phones or computers, as far as notifications go. The user turns notifications on or off for each device separately, in Settings.
-
-- **UI:** "this device".
-- **Avoid:** "registration", "token".
 
 ## Accounts and access
 
