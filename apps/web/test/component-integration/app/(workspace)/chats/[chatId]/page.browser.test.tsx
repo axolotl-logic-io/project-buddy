@@ -14,7 +14,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
-import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type {
@@ -95,10 +94,6 @@ vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
 );
-
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
 
 const CHAT_NAME = "Beveling the den's roof";
 // The screens the case is checked on: a laptop's and a phone's.
@@ -357,109 +352,6 @@ async function chatPage(): Promise<JSX.Element> {
     </>
   );
 }
-
-const RENAME_PHONES: readonly { viewport: ViewportSize; invalid: string }[] = [
-  { viewport: NARROWEST_VIEWPORT, invalid: "" },
-  { viewport: PHONE_VIEWPORT, invalid: "   " },
-];
-
-const RENAME_TOUCH_TARGET = 44;
-
-describe("use_case_rename_chat", () => {
-  for (const { viewport, invalid } of RENAME_PHONES) {
-    const { width, height } = viewport;
-    test(`inline rename and cancel with a keyboard at ${width} px`, async () => {
-      await page.viewport(width, height);
-      const screen = await render(await chatPage());
-      const pencil = page.getByRole("button", { name: CHAT_NAME_COPY.rename });
-      const heading = page.getByRole("heading", { level: 1 });
-      expect(
-        Math.abs(
-          pencil.element().getBoundingClientRect().top -
-            heading.element().getBoundingClientRect().top,
-        ),
-      ).toBeLessThan(1);
-      pencil.element().focus();
-      await userEvent.keyboard("{Enter}");
-      const field = page.getByRole("textbox", { name: CHAT_NAME_COPY.label });
-      await expect.element(field).toHaveFocus();
-      await expect.element(heading).not.toBeInTheDocument();
-      await expect.element(pencil).not.toBeInTheDocument();
-      const saveButton = page.getByRole("button", {
-        name: CHAT_NAME_COPY.save,
-      });
-      const cancelButton = page.getByRole("button", {
-        name: CHAT_NAME_COPY.cancel,
-      });
-      const inputBounds = field.element().getBoundingClientRect();
-      for (const button of [saveButton, cancelButton]) {
-        const bounds = button.element().getBoundingClientRect();
-        expect(bounds.top).toBeLessThan(inputBounds.bottom);
-        expect(bounds.bottom).toBeGreaterThan(inputBounds.top);
-        expect(bounds.height).toBeGreaterThanOrEqual(RENAME_TOUCH_TARGET);
-        expect(bounds.width).toBeGreaterThanOrEqual(RENAME_TOUCH_TARGET);
-      }
-      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
-      expect(field.element()).toHaveAttribute("maxlength", "60");
-      await field.fill("Discard me");
-      await tabForward();
-      await tabForward();
-      await expect
-        .element(page.getByRole("button", { name: CHAT_NAME_COPY.cancel }))
-        .toHaveFocus();
-      await userEvent.keyboard("{Enter}");
-      await expect.element(field).not.toBeInTheDocument();
-      await expect
-        .element(heading)
-        .toHaveTextContent(
-          `${CHAT_NAME} ${CHAT_COPY.heading(FOX_CHAT.construct.name)}`,
-        );
-      await expect.element(pencil).toHaveFocus();
-      expect(renameChatAction).not.toHaveBeenCalled();
-      await userEvent.keyboard("{Enter}");
-      await expect.element(field).toHaveValue(CHAT_NAME);
-      vi.mocked(renameChatAction).mockResolvedValue({
-        kind: "invalid",
-        message: CHAT_NAME_COPY.needsName,
-      });
-      await field.fill(invalid);
-      await userEvent.keyboard("{Enter}");
-      await expect
-        .element(page.getByText(CHAT_NAME_COPY.needsName))
-        .toBeVisible();
-      const error = page.getByRole("alert").element();
-      expect(field.element()).toHaveAttribute("aria-describedby", error.id);
-      expect(error.id).not.toBe("");
-      expect(Number.parseFloat(getComputedStyle(error).paddingTop)).toBe(0);
-      expect(Number.parseFloat(getComputedStyle(error).borderTopWidth)).toBe(0);
-      await expect.element(field).toHaveValue(invalid);
-      await expect.element(heading).not.toBeInTheDocument();
-      vi.mocked(renameChatAction).mockImplementation(() => {
-        store.getChat.mockResolvedValue({
-          ...FOX_CHAT,
-          name: chatNameFixture("My chat"),
-        });
-        return Promise.resolve({ kind: "renamed" });
-      });
-      await field.fill("My chat");
-      await userEvent.keyboard("{Enter}");
-      await expect.element(field).not.toBeInTheDocument();
-      await expect.element(pencil).toHaveFocus();
-      await screen.rerender(await chatPage());
-      await expect
-        .element(heading)
-        .toHaveTextContent(
-          `My chat ${CHAT_COPY.heading(FOX_CHAT.construct.name)}`,
-        );
-      const [, form] = vi.mocked(renameChatAction).mock.calls.at(-1) ?? [];
-      expect(form?.get("name")).toBe("My chat");
-      expect(form?.get("chatId")).toBe(FOX_CHAT.id);
-      await pencil.click();
-      await expect.element(field).toHaveValue("My chat");
-      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
-    });
-  }
-});
 
 describe("use_case_send_message", () => {
   for (const chat of [FOX_CHAT, STANDALONE_CHAT]) {

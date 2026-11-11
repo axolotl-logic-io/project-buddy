@@ -31,7 +31,10 @@ async function chatHtml(): Promise<string> {
 }
 
 function openOld(chatId: string): Promise<never> {
-  return OldChatPage({ params: Promise.resolve({ chatId }) });
+  return OldChatPage({
+    params: Promise.resolve({ chatId }),
+    searchParams: Promise.resolve({}),
+  });
 }
 
 // The quest's one conversation, opened for its owner.
