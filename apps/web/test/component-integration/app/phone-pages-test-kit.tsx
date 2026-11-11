@@ -16,14 +16,11 @@ import {
   listOwnActivities,
 } from "@/activities/activity-store.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import AccountLayout from "@/app/(workspace)/account/layout.tsx";
-import AccountPage from "@/app/(workspace)/account/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
-import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
@@ -34,6 +31,7 @@ import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
+import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
@@ -61,7 +59,6 @@ import {
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
-import { readHomeSummary } from "@/today/today-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -467,39 +464,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "the atlas before the first quest",
-    render: workspacePage(
-      () => {
-        vi.mocked(readHomeSummary).mockResolvedValue({
-          latestQuest: undefined,
-          firstVisit: true,
-        });
-      },
-      () => HomePage(),
-    ),
-  },
-  {
-    name: "the atlas with a long quest and next step",
-    render: workspacePage(
-      () => {
-        vi.mocked(readHomeSummary).mockResolvedValue({
-          latestQuest: {
-            project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
-            nextStep: LONG_PROJECT_NAME,
-          },
-          firstVisit: false,
-        });
-      },
-      () => HomePage(),
-    ),
-  },
-  {
     name: "the Settings page",
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([]);
+        vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
       },
-      () => SettingsPage(),
+      async () => SettingsLayout({ children: await SettingsPage() }),
     ),
   },
 
@@ -551,16 +522,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     ),
   },
   {
-    name: "the account page",
-    render: workspacePage(
-      () => {
-        vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
-      },
-      async () =>
-        AccountLayout({ params: NO_PARAMS, children: await AccountPage() }),
-    ),
-  },
-  {
     name: "Chat, with a search and Markdown",
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
@@ -592,8 +553,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
-  ...tabVariants("the Settings page", ["Appearance"]),
-  ...tabVariants("the account page", ["Batteries", "Security"]),
   { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
   { name: "a quest's Journal versions", render: memoryPageFor("versions") },
@@ -605,7 +564,7 @@ vi.mock("@/batteries/catalog.ts", () => ({
 vi.mock("@/batteries/purchases.ts", () => ({
   readBatteryPurchases: async () => [],
 }));
-vi.mock("@/app/(workspace)/account/battery-actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/battery-actions.ts", () => ({
   buyBatteries: vi.fn(),
   refreshBatteryPayments: vi.fn(),
 }));

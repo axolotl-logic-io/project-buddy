@@ -87,8 +87,8 @@ async function startBatteryPurchase(
           line_items: [{ price: offer.priceId, quantity: 1 }],
           client_reference_id: id,
           metadata: { purchase: id },
-          success_url: `${config.origin}/account?battery=returned#buy-batteries`,
-          cancel_url: `${config.origin}/account?battery=canceled#buy-batteries`,
+          success_url: `${config.origin}/settings?battery=returned#buy-batteries`,
+          cancel_url: `${config.origin}/settings?battery=canceled#buy-batteries`,
         },
         { idempotencyKey: id },
       );

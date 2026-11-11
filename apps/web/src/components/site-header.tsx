@@ -8,7 +8,6 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { wholeGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
@@ -118,22 +117,16 @@ function AccountLinks(): JSX.Element {
         <li>
           <MenuLink href="/settings">{SETTINGS_COPY.headerLink}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/account">{ACCOUNT_COPY.headerLink}</MenuLink>
-        </li>
       </ul>
     </nav>
   );
 }
 
 // Reads the session for the header slot and supplies the signed-in menu
-// or the public menu for a visitor. place names the map's
-// place the page belongs to, if any, beside the site's name.
+// or the public menu for a visitor.
 async function SignedInLinks({
-  place,
   breadcrumbs,
 }: {
-  readonly place?: string | undefined;
   readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
   const user = await currentUser();
@@ -143,7 +136,6 @@ async function SignedInLinks({
   const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
-      {place !== undefined && <p className="hud-place">{place}</p>}
       <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
@@ -155,7 +147,7 @@ async function SignedInLinks({
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim, whose
-// title, behind a compass, leads back to Home. The controls scroll away;
+// title, behind a compass, leads back to Quests. The controls scroll away;
 // pages with breadcrumbs keep only that navigation row pinned.
 function SiteHeader({
   links = VISITOR_MENU,

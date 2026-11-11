@@ -30,7 +30,6 @@ import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readHomeSummary } from "@/today/today-store.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -88,9 +87,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 }));
 vi.mock("@/conversations/private-chat.ts", () => ({
   privateChat: vi.fn<typeof privateChat>(),
-}));
-vi.mock("@/today/today-store.ts", () => ({
-  readHomeSummary: vi.fn<typeof readHomeSummary>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
@@ -178,7 +174,7 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   resetConstructPromptAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/account/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
   setNameAction: vi.fn(),
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
@@ -344,7 +340,7 @@ describe("use_case_use_on_phone", () => {
 vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));
-vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/interview-construct-action.ts", () => ({
   setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
 }));
 

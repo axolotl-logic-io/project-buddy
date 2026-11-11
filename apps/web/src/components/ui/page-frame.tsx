@@ -10,10 +10,6 @@ function PageFrame({ children }: FrameProps): JSX.Element {
   return <div className="page-column">{children}</div>;
 }
 
-function HomeFrame({ children }: FrameProps): JSX.Element {
-  return <div className="page-column page-frame-home">{children}</div>;
-}
-
 function EditorFrame({ children }: FrameProps): JSX.Element {
   return <div className="page-column page-frame-editor">{children}</div>;
 }
@@ -24,4 +20,4 @@ function QuestFrame({ children }: FrameProps): JSX.Element {
   return <div className="page-column page-frame-quest">{children}</div>;
 }
 
-export { EditorFrame, HomeFrame, PageFrame, QuestFrame };
+export { EditorFrame, PageFrame, QuestFrame };

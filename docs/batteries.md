@@ -7,7 +7,6 @@ Replies, generated adventure openings and names, and images spend the acting use
 ## Marketplace history
 
 Batteries fund model use only. The Marketplace, which was removed in [#902](design/simplification-902.md), once moved this balance between users and later moved a separate orb balance. No code moves either balance between users now. The ledger keeps its historical sale and purchase rows, and the orb tables stay unread.
-
 ## Compatibility boundaries
 
 The `src/gold/` module, its exports and constants, `gold_balances` and `gold_ledger`, and existing numeric fields retain their names. They still store micro-USD at the existing rate. No migration is needed for this rename. No balance is reset, rescaled or granted by it.

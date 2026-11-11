@@ -2,9 +2,9 @@
 
 import type { JSX } from "react";
 import { PageError } from "@/components/ui/page-error.tsx";
-import { PageFrame } from "@/components/ui/page-frame.tsx";
+import { SignOutButtons } from "./sign-out-buttons.tsx";
 
-export default function SegmentError({
+export default function SettingsError({
   error,
   retry,
 }: {
@@ -12,8 +12,9 @@ export default function SegmentError({
   readonly retry: () => void;
 }): JSX.Element {
   return (
-    <PageFrame>
+    <div className="workspace-content flex flex-col gap-4">
       <PageError error={error} retry={retry} />
-    </PageFrame>
+      <SignOutButtons />
+    </div>
   );
 }

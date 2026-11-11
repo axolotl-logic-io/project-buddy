@@ -11,7 +11,6 @@ const WORKSHOP_COPY = {
 
 // Workshop has one collection tab per kind and the same editing actions.
 const WORKSHOP_PAGE_COPY = {
-  homeLink: "Home",
   intro:
     "Create a construct, activity or spell, make a copy, or edit one of your own.",
   loading: "Loading the Workshop…",
