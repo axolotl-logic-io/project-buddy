@@ -70,7 +70,7 @@ const DESTINATIONS = [
   { name: "Chat", href: "/chat" },
   { name: "Constructs", href: "/constructs" },
   { name: "Workshop", href: "/workshop" },
-];
+] as const;
 
 beforeEach(() => {
   applyTheme("parchment");
