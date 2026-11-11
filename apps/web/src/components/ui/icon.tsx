@@ -1,11 +1,4 @@
-import {
-  Bot,
-  ListChecks,
-  MessagesSquare,
-  Pencil,
-  Shield,
-  Store,
-} from "lucide-react";
+import { Bot, ListChecks, MessagesSquare, Pencil, Shield } from "lucide-react";
 import type { JSX } from "react";
 
 // What each icon draws on a 16 by 16 grid: an outline, in strokes, and
@@ -95,7 +88,6 @@ const PLACE_ICONS = {
   bot: Bot,
   checklist: ListChecks,
   pencil: Pencil,
-  store: Store,
 } as const;
 
 type PlaceIconName = keyof typeof PLACE_ICONS;

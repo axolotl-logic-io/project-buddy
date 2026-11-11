@@ -4,7 +4,6 @@ import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
@@ -52,13 +51,6 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     name: WORKSHOP_COPY.heading,
     description: HOME_COPY.workshop,
     icon: "pencil",
-  },
-  {
-    id: "marketplace",
-    href: "/marketplace",
-    name: MARKETPLACE_COPY.heading,
-    description: HOME_COPY.marketplace,
-    icon: "store",
   },
 ];
 

@@ -132,7 +132,11 @@ test("Delete forever names the definition, supports cancellation, and submits on
   await expect.element(trigger).toHaveFocus();
   await trigger.click();
   await expect
-    .element(dialog.getByText(RETIREMENT_COPY.marketplace, { exact: false }))
+    .element(
+      dialog.getByText(
+        RETIREMENT_COPY.deleteDescription(RETIRED_CONSTRUCT.kind),
+      ),
+    )
     .toBeVisible();
   const deleteForever = dialog.getByRole("button", {
     name: RETIREMENT_COPY.delete,

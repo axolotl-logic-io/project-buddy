@@ -1,4 +1,4 @@
-// Retirement preserves identity, source tracking, and bought-copy ownership.
+// Retirement preserves identity and source tracking.
 // Normal definition stores read only active definitions; this module alone
 // reads retired ones and permanently deletes them through the Retirement UI.
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
@@ -27,7 +27,6 @@ const RETIRED_ROW = z.object({
   kind: STORED_PROMPT_KIND,
   name: z.string(),
   retiredAt: z.date(),
-  boughtFrom: z.string().nullable(),
 });
 type RetiredDefinition = z.infer<typeof RETIRED_ROW>;
 interface RetiredText {
@@ -48,7 +47,6 @@ async function listRetiredDefinitions(
         kind: ownPrompts.kind,
         name: ownPrompts.name,
         retiredAt: ownPrompts.retiredAt,
-        boughtFrom: ownPrompts.boughtFrom,
       })
       .from(ownPrompts)
       .where(and(ownPromptOwnedBy(owner), isNotNull(ownPrompts.retiredAt)))

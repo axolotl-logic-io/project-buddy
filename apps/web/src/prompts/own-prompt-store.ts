@@ -2,17 +2,11 @@
 import { and, asc, eq, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
-import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import {
-  type ListingId,
-  type OwnPromptId,
-  parseListingId,
-  parseOwnPromptId,
-  type UserId,
-} from "@/ids.ts";
+import { type OwnPromptId, parseOwnPromptId, type UserId } from "@/ids.ts";
 import {
   type NamedDefinition,
   type PromptKind,
@@ -35,16 +29,11 @@ interface DefinitionStore<Definition> {
 interface OwnPrompt<Definition> extends NamedDefinition<Definition> {
   readonly id: OwnPromptId;
   readonly clonedFrom: string | undefined;
-  readonly boughtFrom: ListingId | undefined;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
 
 type OwnPromptChoice = Pick<OwnPrompt<unknown>, "id" | "name">;
-
-interface BoughtPrompt extends NamedDefinition<unknown> {
-  readonly listing: ListingId;
-}
 
 interface DefinitionEdit<Definition> {
   readonly name?: string;
@@ -117,7 +106,6 @@ function toPrompts<Definition>(
         name: row.name,
         definition: parts,
         clonedFrom: row.clonedFrom ?? undefined,
-        boughtFrom: parseListingId(row.boughtFrom ?? ""),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
@@ -222,12 +210,7 @@ function cloneSource<Definition>(
   store: DefinitionStore<Definition>,
   owner: UserId,
   sourceId: string,
-): Promise<
-  | (NamedDefinition<Definition> & {
-      readonly boughtFrom?: ListingId | undefined;
-    })
-  | undefined
-> {
+): Promise<NamedDefinition<Definition> | undefined> {
   const builtIn = store.builtIn(sourceId);
   if (builtIn !== undefined) {
     return Promise.resolve(builtIn);
@@ -259,7 +242,6 @@ async function cloneOwnPrompt<Definition>(
             parts:
               store.encodeDefinition?.(source.definition) ?? source.definition,
             clonedFrom: sourceId.toLowerCase(),
-            boughtFrom: source.boughtFrom,
           })
           .returning(),
       );
@@ -343,43 +325,7 @@ async function deleteOwnPrompt<Definition>(
   return deleted.length > 0;
 }
 
-async function saveBoughtPrompt<Definition>(
-  store: DefinitionStore<Definition>,
-  transaction: Transaction,
-  owner: UserId,
-  bought: BoughtPrompt,
-): Promise<OwnPromptId | undefined> {
-  const parts = store.parseDefinition(bought.definition);
-  if (
-    parts === undefined ||
-    !withinLimits(store, { name: bought.name, definition: parts })
-  ) {
-    return undefined;
-  }
-  const [saved] = await transaction
-    .insert(ownPrompts)
-    .values({
-      userId: owner,
-      kind: storedPromptKind(store.kind),
-      name: bought.name,
-      parts: store.encodeDefinition?.(parts) ?? parts,
-      boughtFrom: bought.listing,
-    })
-    .returning({ id: ownPrompts.id });
-  const id = parseOwnPromptId(saved?.id ?? "");
-  if (id !== undefined && store.kind === "construct") {
-    await grantVisualAssets(
-      owner,
-      transaction,
-      { kind: "construct", id },
-      { parts, boughtFrom: bought.listing },
-    );
-  }
-  return id;
-}
-
 export type {
-  BoughtPrompt,
   DefinitionEdit,
   DefinitionLimits,
   DefinitionStore,
@@ -392,6 +338,5 @@ export {
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
-  saveBoughtPrompt,
   updateOwnPrompt,
 };
