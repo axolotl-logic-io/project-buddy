@@ -559,7 +559,7 @@
 
   /* A list whose items are rows divided by rules rather than cards, as the
      Quests index lists its quests: a quest's adventures, milestones, Quick
-     Notes and Journal versions, and every other list of adventures. Inside
+     Journal versions, and every other list of adventures. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
   .divided-rows {

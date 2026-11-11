@@ -8,8 +8,6 @@ const WORKSPACES_COPY = {
   appearance: "Appearance",
   conversation: "Conversation",
   standalone: "Standalone",
-  write: "Write",
-  preview: "Preview",
   versions: "Versions",
   journal: "Quest Journal",
   members: "Members and check-ins",

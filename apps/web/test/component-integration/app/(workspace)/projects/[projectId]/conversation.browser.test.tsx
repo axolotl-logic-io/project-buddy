@@ -515,6 +515,9 @@ describe("use_case_open_project", () => {
         sections.getByRole("link", { name: WORKSPACES_COPY.conversation }),
       )
       .toHaveAttribute("aria-current", "page");
+    await expect
+      .element(sections.getByRole("link", { name: "Quick Notes", exact: true }))
+      .not.toBeInTheDocument();
     await Promise.all(
       [MEMORY_COPY.link, PLAN_COPY.heading, PROGRESS_TIMELINE_COPY.heading].map(
         (name) =>
