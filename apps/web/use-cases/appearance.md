@@ -31,7 +31,7 @@ The user uses the site on her phone, in any theme, as she does on her computer.
 
 ## use_case_hide_extras
 
-Settings groups preferences into General, Appearance, Extras and configured Notifications tabs. Choose Extras for its immediate-save switches. Appearance is also available through the existing site menu.
+Settings groups preferences into General, Appearance and Extras tabs. Choose Extras for its immediate-save switches. Appearance is also available through the existing site menu.
 
 The user hides the parts of the site she can do without, such as the construct's working notes, and gets them back when she wants them.
 
