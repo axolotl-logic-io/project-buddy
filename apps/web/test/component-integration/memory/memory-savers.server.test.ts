@@ -63,7 +63,7 @@ async function saveAsFormerMember(
 
 describe("use_case_view_memory", () => {
   test("a quest's history names who saved each version, and a former member reads none of it", async () => {
-    // The owner saved the memory (version 1) and a Quick Note (version 2).
+    // The owner saved two versions of the memory.
     const { owner, member, project } = await formerMemberQuest();
     await saveUserName(owner.id, "Ada");
     await saveAsFormerMember(owner, member, project.id);

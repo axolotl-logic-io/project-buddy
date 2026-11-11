@@ -39,13 +39,6 @@ import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { NOTE_DAY } from "@/notes/note.ts";
-import {
-  deleteNote,
-  type NoteDeleteResult,
-  readRecentNotes,
-  saveNote,
-} from "@/notes/note-store.ts";
 import { getProject, listProjects, type Project } from "@/projects/store.ts";
 import { readHomeSummary } from "@/today/today-store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
@@ -54,8 +47,10 @@ import { formerMembership } from "../../support/test-database/former-member-test
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
-const NOTE = { day: NOTE_DAY.parse("2026-11-02"), text: "Bevel the shell" };
 const MEMORY = "Goal: a sea turtle model.";
+// The Journal's second version, which holds a Quick Note as such a version
+// once did.
+const MEMORY_WITH_NOTE = `${MEMORY}\n\n## Notes\n\n- 2026-11-02: Bevel the shell`;
 const MILESTONE = "Modelled the shell";
 const PNG = pngBytes();
 
@@ -107,7 +102,7 @@ async function generatedImage(
 }
 
 // A new quest of a new owner's, with a chat holding a message and an image,
-// an interview activity session, a memory with a note, a milestone and a
+// an interview activity session, a memory of two versions, a milestone and a
 // generated image; and a new user with a saved membership of it.
 async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
@@ -127,7 +122,12 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
     basedOn: MEMORY_VERSION_NUMBER.parse(0),
     author: "user",
   });
-  await saveNote(owner.id, { projectId: project.id, note: NOTE });
+  await saveMemory(owner.id, {
+    projectId: project.id,
+    text: MEMORY_WITH_NOTE,
+    basedOn: MEMORY_VERSION_NUMBER.parse(1),
+    author: "user",
+  });
   const milestone = await recordMilestone(
     owner.id,
     { projectId: project.id, chatId: chat.id },
@@ -168,7 +168,6 @@ async function seenBy(
     activity,
     memory,
     history,
-    notes,
     milestones,
   ] = await Promise.all([
     getProject(user.id, project.id),
@@ -182,7 +181,6 @@ async function seenBy(
     currentActivity(user.id, chat),
     readMemory(user.id, project.id),
     readMemoryHistory(user.id, project.id),
-    readRecentNotes(user.id, project.id),
     listMilestones(user.id, project.id),
   ]);
   return {
@@ -197,7 +195,6 @@ async function seenBy(
     activity: activity.id,
     memory: memory.text,
     history: history.length,
-    notes: notes.map(({ text }) => text),
     milestones: milestones.map(({ text }) => text),
   };
 }
@@ -216,7 +213,6 @@ const NOTHING: Record<string, unknown> = {
   activity: DEFAULT_ACTIVITY_ID,
   memory: EMPTY_MEMORY.text,
   history: 0,
-  notes: [],
   milestones: [],
 };
 
@@ -245,10 +241,6 @@ async function writesBy(
     basedOn: memory.version,
     author: "user",
   });
-  const note = await saveNote(user.id, {
-    projectId: project.id,
-    note: { ...NOTE, text: "Paint the flippers" },
-  });
   const milestone = await recordMilestone(
     user.id,
     { projectId: project.id, chatId: chat.id },
@@ -269,7 +261,6 @@ async function writesBy(
     image: image !== undefined,
     activity,
     memory: memorySave.kind,
-    note,
     milestone: milestone !== undefined,
     edited,
     conversation,
@@ -284,7 +275,6 @@ const NONE_TAKEN: Record<string, unknown> = {
   image: false,
   activity: false,
   memory: "outdated",
-  note: false,
   milestone: false,
   edited: false,
   conversation: false,
@@ -297,25 +287,15 @@ const ALL_TAKEN: Record<string, unknown> = {
   image: true,
   activity: true,
   memory: "saved",
-  note: true,
   milestone: true,
   edited: true,
   conversation: true,
   generation: "claimed",
 };
 
-// Deletes the note and the milestone as user, the two deletes the owner may
-// make, which answer nothing of their own.
-async function deletesBy(
-  user: User,
-  quest: FormerMemberQuest,
-): Promise<NoteDeleteResult> {
-  const note = await deleteNote(user.id, {
-    projectId: quest.project.id,
-    note: NOTE,
-  });
+// Deletes the milestone as user, which answers nothing of its own.
+async function deletesBy(user: User, quest: FormerMemberQuest): Promise<void> {
   await deleteMilestone(user.id, quest.milestoneId);
-  return note;
 }
 
 export type { FormerMemberQuest };
