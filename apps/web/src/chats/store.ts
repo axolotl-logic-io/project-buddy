@@ -130,8 +130,6 @@ type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 
 export type { MessageSaveResult };
 
-// The chats in the owner's project, newest first; none if the project is
-// another user's. A standalone chat is in no project, so never among them.
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(

@@ -834,7 +834,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
-  ...tabVariants("the Settings page", ["Appearance", "Extras"]),
+  ...tabVariants("the Settings page", ["Appearance"]),
   ...tabVariants("the constructs page", ["Yours", "Retired"]),
   ...tabVariants("the activities page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),

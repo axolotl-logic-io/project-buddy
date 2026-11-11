@@ -33,4 +33,4 @@ The user turns notifications on for one of her devices, and checks they arrive.
   - Her browser can't show notifications, as on an iPhone before installing the app: Settings says to add Project Buddy to the Home Screen first, with no switch.
   - The site's notification keys aren't set up: Settings has no Notifications section, and the site refuses to turn notifications on or send a test.
 - **Next:**
-  - [`use_case_hide_extras`](appearance.md#use_case_hide_extras): adjust the rest of Settings while she is there.
+  - [`use_case_choose_theme`](appearance.md#use_case_choose_theme): adjust the rest of Settings while she is there.
