@@ -10,7 +10,7 @@ import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { StartConversationForm } from "./start-conversation-form.tsx";
 
 // The prepared message that starts the day in the Dailies quest.
-const START_THE_DAY = {
+const START_THE_DAY: { readonly label: string; readonly text: string } = {
   label: QUEST_CONVERSATION_COPY.startTheDay,
   text: QUEST_CONVERSATION_COPY.startTheDayMessage,
 };

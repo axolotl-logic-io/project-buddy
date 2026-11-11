@@ -1100,8 +1100,7 @@
   }
 
   .atlas-quest-name {
-    @apply inline-flex max-w-full items-center break-words font-semibold text-section-heading underline underline-offset-4;
-    min-block-size: var(--target-size);
+    @apply max-w-full break-words font-semibold text-section-heading;
     overflow-wrap: anywhere;
     font-family: var(--atlas-font);
   }

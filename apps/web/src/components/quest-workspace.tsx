@@ -86,51 +86,50 @@ function QuestWorkspace({
   ];
   return (
     <>
-    <QuestStatusFeedback>
-      <div className="quest-workspace">
-        <header>
-          <div className="quest-workspace-heading">
-            <div className="min-w-0">
-              <QuestTitle project={project} />
-              <p className="quest-workspace-status">
-                {QUEST_STATUS_COPY.labels[project.status]}
-              </p>
+      <QuestStatusFeedback>
+        <div className="quest-workspace">
+          <header>
+            <div className="quest-workspace-heading">
+              <div className="min-w-0">
+                <QuestTitle project={project} />
+                <p className="quest-workspace-status">
+                  {QUEST_STATUS_COPY.labels[project.status]}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="quest-workspace-rail">
-            <nav
-              aria-label={PROJECT_COPY.navigation}
-              className="quest-workspace-nav"
-            >
-              {links.map((link) => {
-                let selected: "page" | undefined;
-                if (link.id === current) {
-                  selected = "page";
-                }
-                return (
-                  <Link
-                    key={link.id}
-                    className="quest-workspace-tab"
-                    aria-current={selected}
-                    href={link.href}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
-            <QuestStatusControls project={project} />
-          </div>
-        </header>
-        {children !== undefined && (
-          <div className="workspace-content">{children}</div>
-        )}
-      </div>
-    </QuestStatusFeedback>
-    {conversation}
+            <div className="quest-workspace-rail">
+              <nav
+                aria-label={PROJECT_COPY.navigation}
+                className="quest-workspace-nav"
+              >
+                {links.map((link) => {
+                  let selected: "page" | undefined;
+                  if (link.id === current) {
+                    selected = "page";
+                  }
+                  return (
+                    <Link
+                      key={link.id}
+                      className="quest-workspace-tab"
+                      aria-current={selected}
+                      href={link.href}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+              <QuestStatusControls project={project} />
+            </div>
+          </header>
+          {children !== undefined && (
+            <div className="workspace-content">{children}</div>
+          )}
+        </div>
+      </QuestStatusFeedback>
+      {conversation}
     </>
   );
 }
 
-export type { QuestSection };
 export { QuestWorkspace };

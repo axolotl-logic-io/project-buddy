@@ -50,7 +50,9 @@ export function ChatThread({
   onRetry?: (() => void) | undefined;
   stop?: ReplyStop | undefined;
   stopStatus?: string;
-  starter?: { readonly label: string; readonly onStart: () => void };
+  starter?:
+    | { readonly label: string; readonly onStart: () => void }
+    | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
   const inputRef = useRef<HTMLTextAreaElement>(null);

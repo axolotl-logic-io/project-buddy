@@ -11,7 +11,7 @@ import {
   interview,
   isInterviewOpeningRequest,
 } from "@/activities/interview.ts";
-import { learnAThing } from "@/activities/learn-a-thing.ts";
+import { learnSomething } from "@/activities/learn-a-thing.ts";
 import { openChat } from "@/activities/open-chat.ts";
 import { projectBreakdown } from "@/activities/project-breakdown.ts";
 
@@ -24,7 +24,7 @@ const activitiesById: Readonly<Record<ActivityId, Activity>> = {
   "project-breakdown": projectBreakdown,
   "find-something-to-make": findSomethingToMake,
   dailies,
-  "learn-a-thing": learnAThing,
+  "learn-a-thing": learnSomething,
 };
 
 export type {

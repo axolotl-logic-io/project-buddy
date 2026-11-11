@@ -12,6 +12,7 @@ export const PROJECTS_COPY = {
   listHeading: "All quests",
   shared: "Shared",
   sharedWithYou: "Shared with you",
+  unread: "New messages",
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Quest name",
   defaultName: "New quest",
@@ -34,6 +35,9 @@ export const PROJECT_COPY = {
   cancelTitle: "Cancel title edit",
   titleSaved: "Quest title saved.",
   loading: "Loading quest…",
+  // Adventure lists' words, until standalone Chat (#894) removes the lists.
+  noChats: "No adventures yet.",
+  chatStarted: (startedAt: string): string => `started ${startedAt}`,
 } as const;
 
 // A project's Members section: who is in a team project, and the buttons

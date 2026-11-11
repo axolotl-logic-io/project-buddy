@@ -11,7 +11,7 @@ Help the user learn something they choose, one small practice step at a time. Ke
 const OPENING_REQUEST =
   "The user has just started a quest to learn something. Use the quest's name and Journal as context without asking them to repeat it. Ask one question: what they want to learn, or, if the Journal already says, what they already know about it.";
 
-const learnAThing: Activity = {
+const learnSomething: Activity = {
   id: "learn-a-thing",
   name: "Learn a thing",
   description:
@@ -19,4 +19,4 @@ const learnAThing: Activity = {
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_REQUEST },
 };
 
-export { learnAThing };
+export { learnSomething };

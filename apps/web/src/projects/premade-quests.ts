@@ -1,7 +1,4 @@
-import {
-  type ActivityId,
-  DAILIES_ACTIVITY_ID,
-} from "@/activities/activity.ts";
+import { type ActivityId, DAILIES_ACTIVITY_ID } from "@/activities/activity.ts";
 
 // The four ways to start a quest. Each is an ordinary quest with a
 // suggested name, starting Journal and activity, all editable before it

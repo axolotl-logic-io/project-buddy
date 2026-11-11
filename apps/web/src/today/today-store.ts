@@ -1,101 +1,31 @@
-// Reads Today (today.ts) for the owner. A chat is active when it starts or
-// gains a message; a project is as active as its most active chat. Reading
-// makes no model call: the next step is whatever the project's plan or
-// memory records (nextStepOfQuest). It reads only the projects, chats and memory open to the user:
-// their own, and those of team projects they are a member of.
-import { and, desc, eq, isNotNull, type SQL, sql } from "drizzle-orm";
+// Reads what Home offers to continue (today.ts). A quest is as active as
+// its conversation: its newest message, or when it started. Reading makes
+// no model call: the next step is whatever the quest's plan or Journal
+// records (nextStepOfQuest). It reads only the quests open to the user:
+// their own, and the team quests they are a member of.
+import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import {
-  type Chat,
-  type ChatProject,
-  chatWithProjectColumns,
-  toChats,
-} from "@/chats/chat-rows.ts";
+import { unreadFor } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import {
-  type ChatId,
-  type ProjectId,
-  parseChatId,
-  parseProjectId,
-  type UserId,
-} from "@/ids.ts";
+import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import { nextStepOfQuest } from "@/memory/next-step.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { readPlan } from "@/plan/plan-store.ts";
-import type { Today, TodayProject } from "@/today/today.ts";
+import type { TodayProject } from "@/today/today.ts";
 
-// How many projects and other recent chats Today shows at most.
-const TODAY_PROJECT_COUNT = 3;
-const TODAY_CHAT_COUNT = 3;
-
-// When a `chats` row was last active: its newest message's time, or when it
-// started if it has none. The outer query keeps the chat the owner's, and
-// with it its messages.
+// When a conversation was last active: its newest message's time, or when
+// it started if it has none.
 function lastActiveAt(): SQL<Date> {
   return sql`coalesce((select max(${messages.createdAt}) from ${messages} where ${messages.chatId} = ${chats.id}), ${chats.createdAt})`.mapWith(
     chats.createdAt,
   );
 }
 
-// The owner's projects with chats, the most recently active first, at most
-// limit of them, each with its most recently active chat.
-async function activeProjects(
-  owner: UserId,
-  limit: number,
-): Promise<{ project: ChatProject; latestChat: ChatId }[]> {
-  const active = lastActiveAt();
-  const latestChats = getDb()
-    .selectDistinctOn([chats.projectId], {
-      projectId: chats.projectId,
-      projectName: projects.name,
-      chatId: chats.id,
-      activeAt: active.as("active_at"),
-    })
-    .from(chats)
-    .innerJoin(projects, eq(chats.projectId, projects.id))
-    .where(
-      and(
-        chatOpenTo(owner),
-        isNotNull(chats.projectId),
-        eq(projects.status, "active"),
-      ),
-    )
-    .orderBy(chats.projectId, desc(active), desc(chats.id))
-    .as("latest_project_chats");
-  const rows = await getDb()
-    .select()
-    .from(latestChats)
-    .orderBy(desc(latestChats.activeAt), desc(latestChats.chatId))
-    .limit(limit);
-  return rows.flatMap(({ projectId, projectName, chatId }) => {
-    const id = parseProjectId(projectId ?? "");
-    const latestChat = parseChatId(chatId);
-    if (id === undefined || latestChat === undefined) {
-      return [];
-    }
-    return [{ project: { id, name: projectName }, latestChat }];
-  });
-}
-
-// The owner's chats, the most recently active first, at most limit of them.
-async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
-  const active = lastActiveAt();
-  return toChats(
-    await getDb()
-      .select(chatWithProjectColumns(owner))
-      .from(chats)
-      .leftJoin(projects, eq(chats.projectId, projects.id))
-      .where(chatOpenTo(owner))
-      .orderBy(desc(active), desc(chats.id))
-      .limit(limit),
-  );
-}
-
-// The project's next step, from its plan and memory read together.
+// The quest's next step, from its plan and Journal read together.
 async function readNextStep(
   owner: UserId,
   projectId: ProjectId,
@@ -107,58 +37,57 @@ async function readNextStep(
   return nextStepOfQuest(memory, plan ?? EMPTY_PLAN);
 }
 
-// What is waiting for the owner today.
-function readToday(owner: UserId): Promise<Today> {
-  return measureServerOperation("today", () =>
-    withAppErrors("readToday", async () => {
-      const [shown, recentChats] = await Promise.all([
-        activeProjects(owner, TODAY_PROJECT_COUNT),
-        activeChats(owner, TODAY_PROJECT_COUNT + TODAY_CHAT_COUNT),
-      ]);
-      const continued = new Set(shown.map(({ latestChat }) => latestChat));
-      return {
-        projects: await Promise.all(
-          shown.map(async (entry) => ({
-            ...entry,
-            nextStep: await readNextStep(owner, entry.project.id),
-          })),
-        ),
-        chats: recentChats
-          .filter(({ id }) => !continued.has(id))
-          .slice(0, TODAY_CHAT_COUNT),
-      };
-    }),
-  );
-}
-
-// Home needs one continued quest and whether any adventure exists. Keep the
-// same ordering and access predicates as Today without loading unused cards.
+// The Active quest open to the owner whose conversation was most recently
+// active, with its next step, or undefined if they have none; and whether
+// this is their first visit: no quest and no Chat yet.
 function readHomeSummary(owner: UserId): Promise<{
   latestQuest: TodayProject | undefined;
   firstVisit: boolean;
 }> {
   return measureServerOperation("home-summary", () =>
     withAppErrors("readHomeSummary", async () => {
-      const [[latest], [adventure]] = await Promise.all([
-        activeProjects(owner, 1),
+      const active = lastActiveAt();
+      const [[latest], [conversation]] = await Promise.all([
+        getDb()
+          .select({
+            id: projects.id,
+            name: projects.name,
+            unread: unreadFor(owner),
+          })
+          .from(chats)
+          .innerJoin(projects, eq(chats.projectId, projects.id))
+          .where(
+            and(
+              chatOpenTo(owner),
+              eq(chats.continuing, true),
+              eq(projects.status, "active"),
+            ),
+          )
+          .orderBy(desc(active), desc(chats.id))
+          .limit(1),
         getDb()
           .select({ id: chats.id })
           .from(chats)
-          .where(chatOpenTo(owner))
+          .where(and(chatOpenTo(owner), eq(chats.continuing, true)))
           .limit(1),
       ]);
-      if (latest !== undefined) {
+      const id = parseProjectId(latest?.id ?? "");
+      if (latest === undefined || id === undefined) {
         return {
-          latestQuest: {
-            ...latest,
-            nextStep: await readNextStep(owner, latest.project.id),
-          },
-          firstVisit: false,
+          latestQuest: undefined,
+          firstVisit: conversation === undefined,
         };
       }
-      return { latestQuest: undefined, firstVisit: adventure === undefined };
+      return {
+        latestQuest: {
+          project: { id, name: latest.name },
+          nextStep: await readNextStep(owner, id),
+          unread: latest.unread,
+        },
+        firstVisit: false,
+      };
     }),
   );
 }
 
-export { readHomeSummary, readToday };
+export { readHomeSummary };
