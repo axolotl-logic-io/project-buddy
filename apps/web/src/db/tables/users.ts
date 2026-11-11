@@ -13,10 +13,10 @@ import {
 // lower-cased; see src/accounts/users-store.ts), so each address has one
 // account however it was typed. A session carries the epoch it was signed
 // in at, and only sessions at the current epoch are signed in, so raising
-// it signs the user out everywhere. hidden_extras lists the ids of the
-// extras the user has switched away from their default (src/flags/); the
-// name is from when every extra showed by default, kept to avoid a
-// migration. The name is what she asked the construct to call her, stored
+// it signs the user out everywhere. hidden_extras is inert: it held the
+// removed Extras switches (docs/design/simplification-904.md) and stays only
+// while a live build may still read it, until a later migration drops it.
+// The name is what she asked the construct to call her, stored
 // trimmed (src/accounts/user-name.ts); null when she has none.
 export const users = pgTable(
   "users",

@@ -34,7 +34,7 @@ vi.mock("@/constructs/own-construct-choices.ts", () => ({
   ownConstructChoices: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn().mockResolvedValue(1_000_000),
+  readGoldBalance: vi.fn().mockResolvedValue(0),
 }));
 vi.mock("@/batteries/purchases.ts", () => ({
   readBatteryPurchases: vi.fn().mockResolvedValue([]),
