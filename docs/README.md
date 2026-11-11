@@ -21,7 +21,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Spellbook](spellbook.md): spells, the instructions the construct casts when they fit, the Spellbook pages, and how casts are kept.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
-- [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in the Journal, and the quest page's recent Quick Notes.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
 
 - [Images](images.md): image generation, gallery, battery accounting and deletion.

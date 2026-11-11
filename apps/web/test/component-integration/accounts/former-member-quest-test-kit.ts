@@ -48,8 +48,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
 const MEMORY = "Goal: a sea turtle model.";
-// The Journal's second version, which holds a Quick Note as such a version
-// once did.
+// A second Journal version with historical text.
 const MEMORY_WITH_NOTE = `${MEMORY}\n\n## Notes\n\n- 2026-11-02: Bevel the shell`;
 const MILESTONE = "Modelled the shell";
 const PNG = pngBytes();
