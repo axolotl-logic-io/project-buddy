@@ -16,7 +16,6 @@ import {
   listOwnActivities,
 } from "@/activities/activity-store.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
@@ -37,6 +36,7 @@ import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
+import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
