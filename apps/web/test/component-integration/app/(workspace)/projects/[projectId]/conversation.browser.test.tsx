@@ -8,8 +8,6 @@
 // and a jump to a message lands below the pinned header. The page sits in
 // the main landmark and the workspace's column, as the layouts render it;
 // the site's stylesheet comes from vitest.browser-setup.ts.
-// "use_case_hide_extras" in use-cases/appearance.md: the pinned header,
-// switched off, scrolls away and draws nothing over the conversation.
 // "use_case_send_message": a reply streams in the quest's conversation.
 // "use_case_dailies": Start the day sends its prepared message like any
 // other, keeping the draft. "use_case_start_quest_conversation": a quest
@@ -29,11 +27,6 @@ import type {
 } from "@/chats/store.ts";
 import { SiteHeader } from "@/components/site-header.tsx";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
-import {
-  applyHiddenFlags,
-  DEFAULT_FLAG_ATTRIBUTES,
-} from "@/flags/flag-choice.ts";
-import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import type { getProject } from "@/projects/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -260,10 +253,7 @@ function lineOneScreenDown(conversation: Element): Element {
 }
 
 beforeEach(() => {
-  for (const [name, value] of Object.entries({
-    ...DEFAULT_THEME_ATTRIBUTES,
-    ...DEFAULT_FLAG_ATTRIBUTES,
-  })) {
+  for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }
   document.documentElement.classList.add("h-full");
@@ -341,8 +331,8 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
   }
 });
 
-describe("use_case_hide_extras", () => {
-  test("the pinned chat header, switched off, scrolls away and leaves nothing behind", async () => {
+describe("the pinned chat header", () => {
+  test("stays on screen at the end and leaves a tap one screen down reaching the conversation", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
     const title = page.getByRole("button", {
@@ -355,27 +345,9 @@ describe("use_case_hide_extras", () => {
       .poll(() => conversation.element().textContent)
       .toContain(REPLY_END);
 
-    applyHiddenFlags(["pinned-chat-header", ...DEFAULT_HIDDEN_FLAGS]);
-    await scrollToBottom();
-    await expect.element(title).not.toBeInViewport();
-    const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
-    await expect.element(trail).toBeInViewport({ ratio: 1 });
-    expect(
-      topmostAtCentre(
-        trail
-          .getByRole("link", { name: PROJECTS_COPY.allProjectsLink })
-          .element(),
-      ),
-    ).toBe(true);
-    const line = lineOneScreenDown(conversation.element());
-    expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
-      true,
-    );
-
-    applyHiddenFlags(DEFAULT_HIDDEN_FLAGS);
     await scrollToBottom();
     await expect.element(title).toBeInViewport();
-    expect(lineOneScreenDown(conversation.element())).toBe(line);
+    const line = lineOneScreenDown(conversation.element());
     expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
       true,
     );

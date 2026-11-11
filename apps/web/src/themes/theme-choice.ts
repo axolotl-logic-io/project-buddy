@@ -86,7 +86,7 @@ function parseThemeChoiceCookie(value: string | undefined): ThemeChoice {
 
 // The cookie that saves a choice for a year, ready for Next's
 // cookies().set. Not HttpOnly, since the pre-paint script reads it, and not
-// Secure, as the hidden extras' isn't.
+// Secure.
 function themeChoiceSetCookie(choice: ThemeChoice): {
   readonly name: string;
   readonly value: string;
