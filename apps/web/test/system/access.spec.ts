@@ -1,10 +1,7 @@
 import { expect } from "@playwright/test";
-import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
-import { constructName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { signInByLink } from "./sign-in-pages.ts";
 
@@ -41,16 +38,13 @@ test("use_case_return_signed_in", async ({
   await signInByLink(page, account.email);
   await page.close();
 
-  await test.step("a bookmarked chat opens without signing in again", async () => {
+  await test.step("a bookmarked quest opens without signing in again", async () => {
     const later = await context.newPage();
-    await later.goto(`/chats/${chat.id}`);
+    await later.goto(`/projects/${chat.project.id}`);
 
-    await expect(later).toHaveURL(`/chats/${chat.id}`);
+    await expect(later).toHaveURL(`/projects/${chat.project.id}`);
     await expect(
-      later.getByRole("heading", {
-        level: 1,
-        name: CHAT_COPY.heading(constructName(DEFAULT_CONSTRUCT_ID)),
-      }),
+      later.getByRole("heading", { level: 1, name: chat.project.name }),
     ).toBeVisible();
     await expect(
       later.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
