@@ -94,6 +94,8 @@ test("use_case_sign_up_existing_email", async ({
   const [email] = await waitForEmailsTo(account.email, 1);
   await continueSignIn(page, signInLinkIn(email));
   await page.goto("/projects");
-  await expect(page.getByText(project.name)).toBeVisible();
+  // By role: while the page refreshes after loading, Next keeps a hidden
+  // copy of the list, which a text match finds too.
+  await expect(page.getByRole("link", { name: project.name })).toBeVisible();
   expect(await findUserByEmail(account.email)).toEqual(before);
 });
