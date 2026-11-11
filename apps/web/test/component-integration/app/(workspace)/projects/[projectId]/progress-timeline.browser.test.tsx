@@ -61,6 +61,19 @@ describe("use_case_view_progress_timeline", () => {
     expect(entries.elements()).toHaveLength(FOX_MILESTONES.length);
   });
 
+  test("a milestone whose conversation is gone stays listed, with no link", async () => {
+    await render(
+      <ProgressTimeline
+        milestones={[{ ...FOX_TAIL_MILESTONE, chatId: undefined }]}
+      />,
+    );
+
+    await expect
+      .element(page.getByRole("listitem"))
+      .toMatchTextContent(NEWEST_TEXT);
+    expect(page.getByRole("link").elements()).toHaveLength(0);
+  });
+
   test("with no milestones, says how they arrive", async () => {
     await render(<ProgressTimeline milestones={[]} />);
 
