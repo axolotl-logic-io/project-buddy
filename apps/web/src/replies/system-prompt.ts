@@ -113,7 +113,7 @@ function activityLine({ id, name, description }: ActivityChoice): string {
 function activitiesSection({ activities }: ReplyPromptContext): string {
   return [
     "# Activities",
-    `An activity sets the scene an adventure plays out. The adventure's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. These are the activities:`,
+    `An activity sets the scene a conversation plays out. The conversation's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. These are the activities:`,
     ...activities.map(activityLine),
   ].join("\n");
 }
@@ -149,7 +149,7 @@ function placeSection({ project }: ReplyPromptContext): string {
   if (project === undefined) {
     return STANDALONE_CHAT_PROMPT;
   }
-  return `This adventure is about the user's quest "${project.name}".`;
+  return `This conversation is about the user's quest "${project.name}".`;
 }
 
 // How to talk with several people, in a chat where more than one has
@@ -173,14 +173,14 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
     if (project?.status === undefined) {
       return "";
     }
-    return `Current quest status: ${project.status}. This current status takes precedence over older proposal cards in the adventure.`;
+    return `Current quest status: ${project.status}. This current status takes precedence over older proposal cards in the conversation.`;
   },
   ({ project }: ReplyPromptContext): string => {
     const approval = project?.latestApproval;
     if (approval === undefined) {
       return "";
     }
-    return `Latest status proposal in this adventure: ${approval.fromStatus} to ${approval.toStatus}; decision: ${approval.decision}. This live decision supersedes the original tool result. Only pending cards have confirmation buttons. A declined, approved or outdated card cannot be confirmed again. If the user requests a change after that decision, create a fresh proposal; do not claim an old card is still waiting. This context never authorizes a status change.`;
+    return `Latest status proposal in this conversation: ${approval.fromStatus} to ${approval.toStatus}; decision: ${approval.decision}. This live decision supersedes the original tool result. Only pending cards have confirmation buttons. A declined, approved or outdated card cannot be confirmed again. If the user requests a change after that decision, create a fresh proposal; do not claim an old card is still waiting. This context never authorizes a status change.`;
   },
   severalAuthorsSection,
   memoryPromptSection,
