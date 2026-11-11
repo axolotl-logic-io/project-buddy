@@ -25,4 +25,4 @@ function journalMessage(id: string, data: JournalData): ChatMessage {
   return { id, role: "user", parts: [{ type: JOURNAL_PART, data }] };
 }
 
-export { journalMessage, readJournalPart };
+export { JOURNAL_PART, journalMessage, readJournalPart };

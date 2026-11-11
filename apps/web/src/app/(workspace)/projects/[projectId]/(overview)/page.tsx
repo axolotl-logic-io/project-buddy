@@ -41,6 +41,7 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
+  const journal = await QuestJournal({ owner: user.id, projectId: project.id });
   if (current === "conversation") {
     return (
       <QuestWorkspace
@@ -48,7 +49,7 @@ export default async function ProjectPage({
         current={current}
         conversation={await questConversation(project, user.id)}
       >
-        <QuestJournal owner={user.id} projectId={project.id} />
+        {journal}
         {project.status !== "active" && (
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
         )}
@@ -62,7 +63,7 @@ export default async function ProjectPage({
 
   return (
     <QuestWorkspace project={project} current={current}>
-      <QuestJournal owner={user.id} projectId={project.id} />
+      {journal}
       {project.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}

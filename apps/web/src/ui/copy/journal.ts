@@ -50,6 +50,7 @@ const JOURNAL_SECTIONS_COPY = {
     "How you prefer to work. Add, edit, reorder or remove preferences without a model call.",
   text: "Preference",
   goalText: "Goal text",
+  viewed: "No batteries spent.",
   changed: "Saved. No batteries spent.",
   conflict:
     "This section changed. Reload to read the current version before editing again.",

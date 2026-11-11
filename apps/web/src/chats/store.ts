@@ -39,6 +39,7 @@ import {
   parseUserId,
   type UserId,
 } from "@/ids.ts";
+import { JOURNAL_PART } from "@/journal/journal-message.ts";
 import {
   awaitsReply,
   PLAN_CARD_PART,
@@ -251,7 +252,7 @@ export function noReplyAwaited(chatId: ChatId): SQL {
     .orderBy(desc(messages.createdAt), desc(messages.id))
     .limit(1)
     .as("newest");
-  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${PLAN_CHANGE_PART}, ${PLAN_CARD_PART}))))`;
+  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${PLAN_CHANGE_PART}, ${PLAN_CARD_PART}, ${JOURNAL_PART}))))`;
 }
 
 // Whether the owner's chat's newest message awaits a reply (noReplyAwaited);

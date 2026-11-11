@@ -49,7 +49,7 @@ function JournalDataPart({
       <p>{data.command}</p>
       <h3>{COPY.preferences}</h3>
       <p className="whitespace-pre-wrap">{contentText(data.content)}</p>
-      <p>{COPY.changed}</p>
+      <p>{COPY.viewed}</p>
       {data.changed === true && (
         <UndoSection
           projectId={data.projectId}

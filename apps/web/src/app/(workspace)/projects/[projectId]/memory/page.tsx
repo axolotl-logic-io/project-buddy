@@ -32,6 +32,7 @@ export default async function MemoryPage({
   if (project === undefined) {
     notFound();
   }
+  const journal = await QuestJournal({ owner: user.id, projectId: project.id });
   const [history, plan] = await Promise.all([
     readMemoryHistory(user.id, project.id),
     readPlan(user.id, project.id),
@@ -42,7 +43,7 @@ export default async function MemoryPage({
     <QuestWorkspace project={project} current={current}>
       {current === "journal" && (
         <>
-          <QuestJournal owner={user.id} projectId={project.id} />
+          {journal}
           <p className="text-muted">{MEMORY_COPY.intro}</p>
           <PlanInJournal projectId={project.id} plan={plan ?? EMPTY_PLAN} />
           <MemoryView

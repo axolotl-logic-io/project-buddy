@@ -54,7 +54,7 @@ describe("typed Journal controls", () => {
       .element(page.getByRole("status"))
       .toHaveTextContent(COPY.changed);
     await expect
-      .element(page.getByText("Learn shading", { exact: true }))
+      .element(page.getByRole("paragraph").filter({ hasText: "Learn shading" }))
       .toBeVisible();
   });
   test("preference removal names its stable number", async () => {
@@ -95,6 +95,9 @@ describe("typed Journal controls", () => {
     await expect
       .element(page.getByRole("status"))
       .toHaveTextContent(COPY.changed);
+    await expect
+      .element(page.getByRole("textbox", { name: COPY.text, exact: true }))
+      .toHaveFocus();
   });
   test("a conversation change shows both values and an undo control", async () => {
     actions.change.mockResolvedValue({
