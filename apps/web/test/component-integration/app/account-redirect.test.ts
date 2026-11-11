@@ -7,11 +7,7 @@ import nextConfig from "../../../next.config.ts";
 
 const TEMPORARY_REDIRECT = 307;
 
-test.each([
-  "",
-  "?battery=returned",
-  "?battery=canceled",
-])(
+test.each(["", "?battery=returned", "?battery=canceled"])(
   "old Account links retain their query when redirected to Settings (%s)",
   async (query) => {
     const response = await unstable_getResponseFromNextConfig({
@@ -31,6 +27,8 @@ test.each(["batteries", "security"])(
       url: `http://localhost/account?section=${section}`,
       nextConfig,
     });
-    expect(getRedirectUrl(response)).toBe(`http://localhost/settings?section=${section}#${section}`);
+    expect(getRedirectUrl(response)).toBe(
+      `http://localhost/settings?section=${section}#${section}`,
+    );
   },
 );
