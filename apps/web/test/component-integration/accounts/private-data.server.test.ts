@@ -12,8 +12,12 @@ import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import { privateChat } from "@/conversations/private-chat.ts";
 import type { Project } from "@/projects/store.ts";
+import { STANDALONE_CHAT_PATH } from "@/routes.ts";
 import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
-import { expectNotFound } from "../test-database/navigation-test-kit.ts";
+import {
+  expectNotFound,
+  expectRedirect,
+} from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
@@ -74,8 +78,8 @@ function projectsIn(html: string, projects: readonly Project[]): string[] {
 }
 
 describe("use_case_private_data", () => {
-  // Her project chat's page, and her standalone chat's; they still open for
-  // her.
+  // Her project chat's old address and her standalone chat's still open for
+  // her, at the quest and at her Chat.
   test("another user's project, memory and chat pages can't be found", async () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.project();
@@ -91,8 +95,11 @@ describe("use_case_private_data", () => {
     await signIn(her);
     await expect(projectPage(hers.id)).resolves.toBeDefined();
     await expect(memoryPage(hers.id)).resolves.toBeDefined();
-    await expect(chatPage(herChat.id)).resolves.toBeDefined();
-    await expect(chatPage(herStandalone.id)).resolves.toBeDefined();
+    await expectRedirect(() => chatPage(herChat.id), `/projects/${hers.id}`);
+    await expectRedirect(
+      () => chatPage(herStandalone.id),
+      STANDALONE_CHAT_PATH,
+    );
   });
 
   test("each sees only their own projects", async () => {
