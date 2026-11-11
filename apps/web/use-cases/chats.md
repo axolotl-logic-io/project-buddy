@@ -2,54 +2,22 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-## use_case_new_chat
-
-The user starts an adventure in a quest with the construct she wants.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). At least one quest exists ([`use_case_new_project`](projects.md#use_case_new_project)).
-- **Steps:**
-  - She opens the new adventure page or the Adventures page's "New adventure" dialog, which show the same form, or the "New adventure" dialog on a quest's page.
-  - She picks the quest, an activity, and a construct: Vellum, Lumen or one of her own. Chat and Vellum are already chosen unless she picks others. A quest's page shows its New adventure button with the form closed, even after a reload. Its dialog, named "New adventure", has no quest field: it offers only the activity and the construct, and starts the adventure in that quest, in whichever activity she chooses, Break Down a Project included. The dialog takes the keyboard's focus and keeps focused controls visible when its content scrolls, including forward and backward focus wrapping; Escape, or its close button, closes it without starting an adventure and puts focus back on the button.
-  - The site starts the adventure and opens it. With a built-in construct and activity it starts at once, with the construct's prepared opening (`use_case_prepared_opening`). With a construct or activity of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
-- **Outcome:** the adventure shows the quest's name and the construct's name. Before she writes anything, it holds one message from the construct, in the construct's voice: its prepared opening, which in Chat asks what she would like to work on. An opening the construct writes follows the activity's opening request: in Chat, a brief synopsis of what the quest's Journal holds, if it holds anything, then one question: what to work on, such as the next milestone. The adventure follows its chosen activity and saves useful information in the Journal, even when it is empty. Active quest and standalone adventures show no Activity dropdown or its label, progress or errors. Its heading reads "New adventure" until it has a name. It is first in the quest's list of adventures, with that construct. It keeps that construct for its whole life. The construct already knows the quest's Journal (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
-- **Variations:**
-  - New adventure and activity quest dropdowns offer only accessible Active quests, including team quests. An inactive or inaccessible selection clears to no quest; standalone and new quest options remain. Restoring a quest makes it available again. Existing adventures in Completed and Abandoned quests can still be continued.
-  - On the main start form or the quest page’s start dialog, she chooses Break Down a Project in an existing quest. The construct helps plan from the Journal and saves useful information even when the Journal starts empty.
-- **Next:**
-  - `use_case_send_message`: say hello or ask something.
-  - `use_case_ask_blender_question`: get straight to a Blender question.
-  - `use_case_rename_chat`: give the adventure a name of her own.
-  - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the quest's interview was left unfinished; she goes back to its adventure.
-  - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
-  - `use_case_standalone_chat`: adventure without choosing a quest, in a standalone adventure.
-  - [`use_case_start_chat_in_activity`](activities.md#use_case_start_chat_in_activity): start an adventure in another activity.
-  - `use_case_talk_idea_through`: talk over an idea before it is a quest.
-
 ## use_case_standalone_chat
 
-The user starts or reopens a standalone adventure, without choosing a quest.
+The user talks with a construct in Chat, her one private conversation for talking without a goal.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no quest.
 - **Steps:**
-  - She signs in and lands on Home as always, not in an adventure.
-  - She opens Adventures from Home, beside Quests, or from any signed-in page's header.
-  - The Adventures page leads with her previous adventures, standalone and quest adventures together, newest first, and their quest filter (`use_case_list_all_chats`). The new-adventure form isn't on the page itself: a "New adventure" button, in the heading or, before the first adventure, in the page's welcome, opens it in a dialog named "New adventure". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
-  - In the dialog, she leaves the quest at "No quest", and chooses an activity and a construct, built in or one of her own, and starts an adventure. Chat and Vellum are chosen initially.
-  - The picker shows one construct at a time: its name, its place in the order, such as "1 of 7", and a short description. Bars on either side step to the previous and next construct, through the built-in constructs and then her own, and wrap round at either end. The keyboard alone can use both bars.
-  - The site starts the adventure, at once with a built-in construct and activity (`use_case_prepared_opening`). The conversation opens at its own `/chats/[chatId]` URL, with the construct's opening, which asks what she would like to work on or talk about. Starting it makes no quest.
-  - She sends a message, follows the Adventures link above the conversation to return to the list, and later reopens the conversation.
-- **Outcome:** each adventure keeps its original construct and messages across visits. The page shows its name, or "New adventure" until it has one, and its construct's name, with a link back to Adventures rather than to a quest. Starting another adventure never replaces an earlier one. A standalone adventure started before it got an opening keeps its history and construct unchanged. Standalone adventures are private and appear in no quest's list.
+  - She opens Chat from any signed-in page's header.
+  - She sends a message, leaves, and later opens Chat again.
+- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user, and no member of any of her quests, can open it. It writes no quest's Journal, Plan or milestones.
 - **Variations:**
-  - Editing or deleting an owned construct later does not change an adventure's saved name or voice.
-  - An invalid construct or another user's construct is refused, saving no adventure.
-  - While Claude is unavailable, an adventure with a prepared opening still starts; one whose construct has to write its opening is not saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
-  - Out of batteries, starting an adventure is refused with the out-of-batteries message; the selected construct remains chosen and existing conversations stay readable.
-  - While an adventure starts, its button is disabled and the form shows progress.
+  - An old adventure address of hers that has no quest opens Chat; one of a quest she can open opens that quest; any other, including another user's, a removed one or a malformed one, shows the not-found page ([`use_case_open_missing_page`](#use_case_open_missing_page)).
+  - The old new-adventure address opens Chat and makes nothing.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
-  - `use_case_project_from_standalone_chat`: ask the construct to make the idea a quest.
+  - `use_case_project_from_standalone_chat`: make the idea a quest.
   - `use_case_send_message`: keep the conversation going.
-  - `use_case_rename_chat`: give the adventure a name of her own.
 
 ## use_case_prepared_opening
 
@@ -60,50 +28,36 @@ The user starts an adventure and finds the construct already speaking, with a br
   - She starts a standalone adventure, an adventure in one of her quests, or a new quest, with a built-in construct and a built-in activity, or with copies of her own that she has customized or cloned and only renamed. Claude may be unavailable meanwhile.
   - She starts another adventure in the same construct and activity.
   - In the first adventure, she sends her first message and gets the reply, and later reopens the adventure.
-- **Outcome:** each adventure starts at once, with one message from the construct before she writes anything: the brief opening prepared for that construct and activity, in the construct's voice, and never another construct's. In Chat it asks what she would like to work on or talk about; in brainstorming, which idea or plan to explore; in Break Down a Project, which goal to break down. Starting it asks nothing of Claude, so it starts while Claude is unavailable too. The second adventure is a separate adventure, with the same opening, and the first adventure is unchanged. The opening stays first in the adventure, once, before her message and its reply, and editing or deleting her own construct later doesn't change it. A construct or an activity of her own that she has edited has no prepared opening: its construct writes the adventure's opening, as in `use_case_new_chat`. Adventures started before prepared openings keep their history unchanged.
+- **Outcome:** each adventure starts at once, with one message from the construct before she writes anything: the brief opening prepared for that construct and activity, in the construct's voice, and never another construct's. In Chat it asks what she would like to work on or talk about; in brainstorming, which idea or plan to explore; in Break Down a Project, which goal to break down. Starting it asks nothing of Claude, so it starts while Claude is unavailable too. The second adventure is a separate adventure, with the same opening, and the first adventure is unchanged. The opening stays first in the adventure, once, before her message and its reply, and editing or deleting her own construct later doesn't change it. A construct or an activity of her own that she has edited has no prepared opening: its construct writes the opening. Adventures started before prepared openings keep their history unchanged.
 - **Next:**
   - `use_case_send_message`: answer the construct's question.
-  - `use_case_new_chat`: start an adventure with a construct of her own that she has edited.
 
 ## use_case_talk_idea_through
 
-The user talks an idea through in a standalone adventure before it becomes a quest, if it ever does.
+The user talks an idea through in Chat before it becomes a quest, if it ever does.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
   - She sends another message once she is out of batteries.
-- **Outcome:** the replies arrive as in any adventure, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone adventure creates no quest unless she asks the construct for one, and changes no quest's Journal. Out of batteries, her message is refused with the out-of-batteries message, as in any adventure ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
+- **Outcome:** the replies arrive as in a quest, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). The construct has no Journal, Plan or milestone tools in Chat, so talking there changes no quest. Out of batteries, her message is refused with the out-of-batteries message ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
 - **Next:**
-  - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a quest.
-  - `use_case_project_from_standalone_chat`: she asks the construct to make the idea a quest.
+  - `use_case_project_from_standalone_chat`: the idea becomes a quest.
 
 ## use_case_project_from_standalone_chat
 
-The user asks the construct in an adventure to turn the idea they talked through into a quest.
+The user turns what she talked through in Chat into a quest.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - Ask the construct to turn the idea into a named quest.
-  - Review and edit the proposed summary and optional motivation, then confirm creation.
-  - Follow the link to its first adventure in Break Down a Project.
-- **Outcome:** the confirmed summary and motivation become the first Journal version and inform the opening, using the source adventure's selected construct. The standalone source stays intact. Full transcripts are not copied and planned steps do not become completed milestones. The quest, opening, Journal and confirmation result save together. Repeating confirmation returns the same quest; concurrent confirmations create only one.
-- **Variations:** invalid names fail before creation. An unavailable opening, insufficient batteries or storage failure saves no quest, preserves the summary draft and allows an explicit retry. The construct's proposal alone creates nothing and spends no opening batteries. A user who removes everything from the summary and motivation starts with an empty Journal and the ordinary opening.
+  - In Chat, she chooses Start a quest from this.
+  - A dialog opens the quest start on Do a thing, with a summary of her recent Chat messages as the new quest's Journal. She edits the name and Journal.
+  - She closes the dialog without starting. Another time, she starts the quest.
+  - Instead of the button, she can ask the construct to make the idea a quest; it proposes a name and summary, which she edits and confirms in the conversation.
+- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest whose Journal is exactly what she confirmed, and opens the quest's conversation. Chat keeps all its messages and stays private: none are copied into the quest, so people she later invites to the quest see only the confirmed Journal. A construct's proposal alone creates nothing; repeating its confirmation returns the same quest, and concurrent confirmations create only one. Planned steps never become completed milestones.
+- **Variations:** an invalid name fails before anything is created. An unavailable opening, insufficient batteries or a storage failure saves no quest and keeps her edits for a retry.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
-
-## use_case_new_chat_without_projects
-
-The user starts an adventure before she has any quests.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), with no quests yet.
-- **Steps:**
-  - She chooses to start an adventure.
-  - The quest is "No quest", the only choice. She picks a construct and starts the adventure.
-- **Outcome:** the adventure starts as a standalone adventure, with the construct's opening, as in `use_case_standalone_chat`. Afterwards, the new adventure page shows the adventure under "Today" (`use_case_today_on_landing`).
-- **Next:**
-  - [`use_case_new_project`](projects.md#use_case_new_project): create a quest for later adventures.
-  - `use_case_project_from_standalone_chat`: ask the construct to make the idea a quest.
 
 ## use_case_home_atlas
 
@@ -113,12 +67,12 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Steps:**
   - The user opens Home or follows the site's name after signing in.
   - They follow a labeled destination in the responsive control panel.
-- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Adventures, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Adventures have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
+- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chat, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Chat have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
 - **Variations:**
   - Following a link away from Home restores the destination's page background and content column without a refresh, with the same shared header. Returning to Home restores the map layout, including with browser back and forward.
   - While Home loads, it shows its heading, a tile where each place will be and the map's artwork, so the background doesn't change when Home arrives.
-  - Before the first quest, Start a quest opens Break Down a Project with a new quest selected.
-  - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
+  - Before the first quest, Start a quest opens Quests, with its four starting points.
+  - With no quest conversation or Chat yet, Home briefly explains Project Buddy and the first action. Returning users keep Continue unobscured.
   - The six place icons come from one library and stay decorative, with visible destination names and no duplicate screen-reader announcement in Light and Dark modes, including at 320 px. The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
   - A signed-out visitor is sent to sign in before any recent work is read.
 
@@ -126,65 +80,22 @@ The user finds the site's places on an illustrated parchment atlas.
 
 The user returns to the quest they were most recently working on.
 
-- **Prerequisites:** a signed-in account with a quest adventure.
+- **Prerequisites:** a signed-in account with an Active quest that has a conversation.
 - **Steps:**
   - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
+- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
-  - The new adventure page at `/chats/new` retains Today above its form: up to three recent Active quests with their next steps and Continue links, plus up to three other recent adventures. With no recent work, it shows the form alone.
 - **Next:**
-  - `use_case_continue_chat`: carry on in the quest's latest adventure.
+  - `use_case_continue_chat`: carry on in the quest's conversation.
   - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): ask the construct for a next step.
 
-
-## use_case_list_all_chats
-
-The user looks for an adventure on the Adventures page, wherever it is: in a quest or in none.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has adventures in a quest ([`use_case_new_chat`](#use_case_new_chat)) and adventures in no quest (`use_case_standalone_chat`).
-- **Steps:**
-  - The user opens Adventures, from Home or from any signed-in page's header. All adventures is selected by default; Quest adventures excludes standalone conversations, and Standalone shows only conversations without a quest. New adventure stays in the heading.
-- **Outcome:** each adventure with a saved activity session shows its current activity by name. The list holds every adventure of theirs, those in their quests and those in none together, newest first. It holds no other user's adventure. Each adventure links to its conversation, as on its quest's page. A quest's own page still lists only that quest's adventures.
-- **Variations:**
-  - Before their first adventure, even with quests, the page shows no tabs or quest selector. It welcomes them instead, with a construct's portrait, a line on what an adventure is and the New adventure button, which moves there from the heading. Opening the page creates nothing.
-- **Next:**
-  - `use_case_filter_chats_by_project`: narrow the list to one quest's adventures.
-  - `use_case_chat_project_badge`: tell a quest's adventures from the ones in no quest.
-  - `use_case_send_message`: carry on in the adventure they found.
-  - `use_case_open_unread_check_in`: a check-in waits in the list.
-
-## use_case_filter_chats_by_project
-
-The user narrows the Adventures page's list to one of their quests.
-
-- **Prerequisites:** `use_case_list_all_chats`.
-- **Steps:**
-  - Above the list, the quest selector offers All and each accessible Active quest by name, including team quests. All is chosen.
-  - The user chooses one of their quests. The list filters immediately in the browser, without a Show adventures action, navigation or another adventure-list request.
-  - The user reloads the page, or opens a link to it that they saved or shared.
-  - The user chooses All again.
-- **Outcome:** with a quest chosen, the list holds only that quest's adventures, and the selector shows that quest. An inactive or inaccessible selection falls back to All; adventures in finished quests remain in All. The choice is in the page's address, so the reload and the link keep it for a viewer who owns that quest; sharing the address does not share access. A valid owned quest with no adventures stays selected and shows the usual empty-adventure message. With All, the list holds every adventure of theirs again, using the complete list loaded with the page and preserving its newest-first order. The selector offers no other user's quest. An address that names another user's quest, a quest that doesn't exist, a malformed id, an empty or missing value, or repeated quest parameters (whether the values are equal or different) shows All and every adventure of theirs, exactly as if it named no quest. A shared address selecting a foreign quest shows only the receiving user's All list and quest choices, without disclosing the sender's quest name or adventures.
-- **Next:**
-  - `use_case_send_message`: carry on in one of the quest's adventures.
-  - [`use_case_open_project`](projects.md#use_case_open_project): go to the quest itself.
-
-## use_case_chat_project_badge
-
-The user tells a quest's adventures from the adventures in no quest on the Adventures page.
-
-- **Prerequisites:** `use_case_list_all_chats`.
-- **Steps:**
-  - The user looks over the list.
-- **Outcome:** each adventure in a quest carries a badge with its quest's name, beside the adventure's own name and construct. An adventure in no quest has no badge. A long quest name is cut short in its badge rather than widening the page, even on a phone, and the badge is readable in every theme.
-- **Next:**
-  - `use_case_filter_chats_by_project`: show only that quest's adventures.
 
 ## use_case_send_message
 
 The user writes to the construct and gets a reply.
 
-- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She types a message and sends it.
   - Her message appears in the adventure at once, under her name.
@@ -247,7 +158,7 @@ The user leaves the adventure while the construct is still replying.
 
 The user asks how to do something in Blender and gets an answer backed by the manual.
 
-- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
   - The construct casts Blender manual lookup, unless it has cast it in this adventure already. The adventure shows "Cast Blender manual lookup" where the cast happened.
@@ -294,7 +205,7 @@ The user opens the manual section the construct cited.
 
 The user asks about something the Blender manual does not cover.
 
-- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She asks about something the manual has nothing on, such as a third-party add-on.
   - The construct looks the topic up in the manual and finds nothing about it.
@@ -308,26 +219,13 @@ The user asks about something the Blender manual does not cover.
 
 The user asks the construct about something that has nothing to do with Blender.
 
-- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She asks about something else, such as a recipe.
   - The construct answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
 - **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to consult the Journal or advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. Relevant quest information still follows the Journal rules. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
-
-## use_case_reopen_chat
-
-The user returns to a quest's conversation.
-
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), in a quest whose conversation has messages.
-- **Steps:**
-  - She opens the quest.
-  - The site shows its one conversation so far, with the same construct.
-- **Outcome:** the conversation shows the construct's name, then every message, hers and the construct's, in the order they were sent. Replies keep their formatting and their manual links. She can send a new message. Opening it again, from any link to the quest, reaches the same conversation; the quest never has a second one.
-- **Next:**
-  - `use_case_continue_chat`: pick up the conversation.
-  - `use_case_construct_voice_consistent`: check the construct still sounds like itself.
 
 ## use_case_check_in
 
@@ -344,13 +242,12 @@ The quest's construct checks in on her, on the schedule she chose.
 
 ## use_case_open_unread_check_in
 
-The user opens a check-in she hasn't read.
+The user opens a check-in they haven't read.
 
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
-  - She finds the quest marked Unread among her quests.
-  - She opens it, from there or from the email's link.
-- **Outcome:** the quest's conversation shows the construct's check-in message, and she can answer it as any other. The quest is no longer marked Unread. Only a check-in marks a quest. The mark is hers alone: anyone else's mark doesn't show to her, and her opening the quest clears only her own mark. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
+  - On Quests or Home, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
+- **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the construct.
 
@@ -370,7 +267,7 @@ The user turns off a quest's check-ins from a check-in email.
 
 The user carries on an earlier conversation, and the construct remembers it.
 
-- **Prerequisites:** `use_case_reopen_chat`.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation has earlier messages.
 - **Steps:**
   - She sends a message that refers to something said earlier, such as "repeat that shortcut".
   - The construct answers with the earlier conversation in mind.
@@ -388,35 +285,19 @@ The construct keeps its voice for the whole adventure, across visits.
   - Every reply comes from the same construct, in its own manner of speech, such as Vellum's calm talk of a quest as a map being drawn.
 - **Outcome:** the adventure's heading and every reply show the same construct's name, before and after she reopens it. Every reply speaks in that construct's manner, from the first to the last, and none speaks as another construct or in a plain assistant voice.
 - **Next:**
-  - `use_case_same_facts_any_construct`: hear another construct give the same steps.
+  - `use_case_same_facts_any_construct`: hear another construct teach the same steps.
 
 ## use_case_same_facts_any_construct
 
 The user asks two constructs the same question and gets the same facts in different voices.
 
-- **Prerequisites:** two quests started with different constructs ([`use_case_new_project`](projects.md#use_case_new_project)).
+- **Prerequisites:** [`use_case_new_project_with_construct`](projects.md#use_case_new_project_with_construct), twice, so two quests have different constructs.
 - **Steps:**
-  - She asks the same Blender question in both quests' conversations, such as how to bevel an edge.
+  - She asks the same Blender question in both quests, such as how to bevel an edge.
   - Each construct answers in its own voice.
 - **Outcome:** the two replies are worded differently, but they give the same steps, menu paths and keyboard shortcuts. The manual links under both replies lead to the same sections.
 - **Next:**
   - `use_case_follow_citation`: check the steps in the manual.
-
-## use_case_rename_chat
-
-The user gives an adventure a name of her own.
-
-- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
-- **Steps:**
-  - On the adventure, she selects the pencil beside the title, named "Rename adventure". The title is replaced by a focused inline name field, with Save name and Cancel icon buttons on the same row. The construct stays visible below, and the editor fits on a narrow phone without adding a form beneath the title. She types a name of up to 60 characters and saves it.
-  - Another time, she edits the name and chooses Cancel. The existing name stays unchanged and the draft is discarded.
-  - She can reach and operate the pencil, field and actions with the keyboard, including on a narrow phone screen.
-  - The adventure's heading shows her name at once.
-  - She keeps chatting.
-- **Outcome:** the adventure's heading, Adventures list and quest's list of adventures show her name, after a reload too. The site never renames the adventure again, whatever she sends. An empty name, or one of only spaces, is refused with a message asking for a name; her text stays in the field and the adventure keeps its old name.
-- **Next:**
-  - `use_case_send_message`: carry on under the new name.
-  - [`use_case_open_project`](projects.md#use_case_open_project): see the adventure listed under her name.
 
 ## use_case_open_missing_page
 
@@ -432,13 +313,13 @@ The user follows a link to a quest or adventure that does not exist.
 
 ## use_case_breadcrumbs_in_long_chat
 
-The user is deep in a long adventure and wants to go back to the quest, without scrolling up.
+The user is deep in a quest's long conversation and wants to go back to their quests, without scrolling up.
 
-- **Prerequisites:** `use_case_reopen_chat`, in an adventure longer than the screen.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation is longer than the screen.
 - **Steps:**
   - The user scrolls down to the newest message, on a laptop or a phone.
-  - The user follows the quest link in the shared site header.
-- **Outcome:** wherever the user has scrolled, the link back to the quest, the adventure's name and the box they write in stay on screen, and nothing covers them. On a phone, in every theme, the combined visible pinned headers are at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long quest, adventure and construct names fit at 320 CSS pixels without horizontal page overflow. The shared site header contains one accessible breadcrumb trail, including the current adventure and its quest parents. Standalone adventures keep the link back to Adventures. The trail stays on screen even when the pinned adventure controls extra is off. Client navigation and browser back/forward replace the trail with the destination’s trail. Jumping to a message shows it below both headers.
+  - The user follows the Quests link in the shared site header.
+- **Outcome:** wherever the user has scrolled, the link back to their quests, the conversation's pinned header with its construct, and the box they write in stay on screen, and nothing covers them. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The shared site header contains one accessible breadcrumb trail, ending in the quest. The trail stays on screen even when the pinned conversation header extra is off. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below both headers.
 - **Next:**
   - [`use_case_open_project`](projects.md#use_case_open_project): back on the quest.
 
@@ -446,7 +327,7 @@ The user is deep in a long adventure and wants to go back to the quest, without 
 
 The user follows the latest messages without repeatedly scrolling down.
 
-- **Prerequisites:** `use_case_reopen_chat` or `use_case_send_message`.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project) or `use_case_send_message`.
 - **Steps:**
   - The user opens an existing adventure. It opens at the latest message.
   - The user sends a message. The latest message comes into view.

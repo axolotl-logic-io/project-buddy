@@ -3,7 +3,7 @@ import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 const VISUAL_COPY = {
   restore: "Restore previous artwork",
   restoreHint:
-    "Restore the previous saved artwork and its Visual description without spending batteries. Save or discard text edits first. Existing adventures and Marketplace copies keep their artwork.",
+    "Restore the previous saved artwork and its Visual description without spending batteries. Save or discard text edits first. Existing conversations and Marketplace copies keep their artwork.",
   restored:
     "Previous artwork and Visual description restored. No batteries spent.",
   heading: "Visuals",
@@ -39,7 +39,7 @@ const VISUAL_COPY = {
   roleStates: { pending: "Pending", generated: "Generated", failed: "Failed" },
   states: {
     generated:
-      "Your new images are ready. Existing adventures keep their images.",
+      "Your new images are ready. Existing conversations keep their images.",
     pending:
       "Generation is pending. Check its status before starting another request.",
     failed:

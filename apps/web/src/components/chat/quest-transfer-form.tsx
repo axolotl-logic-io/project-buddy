@@ -88,9 +88,9 @@ function QuestTransferForm({
         </p>
         <Link
           className="self-start text-link"
-          href={`/chats/${created.interviewChatId}`}
+          href={`/projects/${created.projectId}`}
         >
-          {CREATE_PROJECT_COPY.openInterview}
+          {CREATE_PROJECT_COPY.openQuest}
         </Link>
       </div>
     );

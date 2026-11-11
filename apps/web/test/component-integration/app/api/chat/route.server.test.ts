@@ -61,7 +61,7 @@ test("use_case_send_message", async () => {
   expect(saved?.id).toBe(message.id);
 });
 
-test("use_case_reopen_chat", async () => {
+test("a conversation keeps every exchange, in order", async () => {
   const { user, chat } = await userWithChat("lumen");
   const first = "How do I bevel an edge?";
   const second = "Can I make it rounder?";

@@ -9,7 +9,7 @@ export const MEMORY_COPY = {
   link: "Quest Journal",
   heading: "Journal",
   intro:
-    "The goals, milestones, preferences and Quick Notes your constructs know about this quest. Every adventure in the quest works from this Journal, and both you and your construct can change it.",
+    "The goals, milestones, preferences and Quick Notes your constructs know about this quest. The quest's conversation works from this Journal, and both you and your construct can change it.",
   currentLabel: "Current Journal",
   loading: "Loading Journal…",
   empty:
@@ -18,7 +18,7 @@ export const MEMORY_COPY = {
   newerLabel: "Newer Journal",
   textLabel: "Journal",
   textHint:
-    "Markdown. The quest's adventures work from your text from their next reply.",
+    "Markdown. The quest's conversation works from your text from its next reply.",
   save: "Save",
   cancelEdit: "Discard changes",
   saved: "Saved.",

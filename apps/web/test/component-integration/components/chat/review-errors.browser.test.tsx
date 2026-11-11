@@ -28,10 +28,3 @@ test.each(["request-too-large", "not-found"])(
     expect(retry).not.toHaveBeenCalled();
   },
 );
-
-test("an adventure that is too long links to starting a new one", async () => {
-  await render(<ChatError error={new Error("request-too-large")} />);
-  await expect
-    .element(page.getByRole("link", { name: IMAGE_COPY.newAdventure }))
-    .toHaveAttribute("href", "/chat");
-});

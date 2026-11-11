@@ -9,6 +9,7 @@ import { listActivities } from "@/activities/index.ts";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import { listConstructs } from "@/constructs/construct-store.ts";
 import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
+import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { listProjects } from "@/projects/store.ts";
 import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { listSpells } from "@/spells/index.ts";
@@ -50,6 +51,9 @@ vi.mock("@/projects/store.ts", () => ({
   getProject: vi.fn(),
   listProjects: vi.fn<typeof listProjects>(),
 }));
+vi.mock("@/projects/quest-creation-choices.ts", () => ({
+  questCreationChoices: vi.fn<typeof questCreationChoices>(),
+}));
 vi.mock("@/marketplace/listing-store.ts", () => ({
   listedPromptIds: vi.fn().mockResolvedValue(new Set()),
 }));
@@ -65,6 +69,9 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
@@ -83,6 +90,11 @@ beforeEach(() => {
   vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   vi.mocked(listProjects).mockResolvedValue([]);
+  vi.mocked(questCreationChoices).mockResolvedValue({
+    activities: [],
+    userConstructs: [],
+    preferredConstructId: "vellum",
+  });
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -130,11 +142,11 @@ describe("use_case_workshop_page", () => {
         await expect
           .element(
             page.getByRole("button", {
-              name: `Adventure with ${construct.name}`,
+              name: CONSTRUCTS_COPY.startLabel(construct.name),
               exact: true,
             }),
           )
-          .toHaveTextContent(`Adventure with ${construct.name}`);
+          .toHaveTextContent(CONSTRUCTS_COPY.startLabel(construct.name));
       }),
     );
     await expect

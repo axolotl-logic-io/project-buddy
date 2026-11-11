@@ -1,18 +1,18 @@
 // The activities page's Craft activity button, with her own activities and
 // with none: it sits among her own, follows the built-in activities in
 // keyboard order, and Enter crafts a new activity.
-import { beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { OwnActivity } from "@/activities/activity-store.ts";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import { newActivityAction } from "@/app/(workspace)/activities/actions.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { newChatChoices } from "@/chats/new-chat-choices.ts";
+import { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
+import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { projectIdFixture } from "../../support/id-fixtures.ts";
+import { QUEST_START_COPY } from "@/ui/copy/projects.ts";
+import { START_WORK_COPY } from "@/ui/copy/start-work.ts";
 import { BRAINSTORMING_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -29,17 +29,11 @@ const SAVED_ACTIVITY: OwnActivity = {
   name: "Brainstorming (clone)",
 };
 
-const PROJECT = {
-  id: projectIdFixture(),
-  name: "Low-poly fox",
-  status: "active" as const,
-};
-
-vi.mock("@/chats/new-chat-choices.ts", () => ({
-  newChatChoices: vi.fn<typeof newChatChoices>(),
+vi.mock("@/projects/quest-creation-choices.ts", () => ({
+  questCreationChoices: vi.fn<typeof questCreationChoices>(),
 }));
-vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn<typeof startChatAction>(),
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn<typeof startQuestAction>(),
 }));
 
 // Listing exposes these actions; only Craft activity is submitted, from the
@@ -57,16 +51,15 @@ function ownRegion(): ReturnType<typeof page.getByRole> {
 }
 
 beforeEach(() => {
-  vi.mocked(newChatChoices).mockResolvedValue({
-    projects: [PROJECT],
+  vi.mocked(questCreationChoices).mockResolvedValue({
     activities: [],
     userConstructs: [],
+    preferredConstructId: "vellum",
   });
 });
 
 test("her activities offer Craft activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
-  vi.mocked(startChatAction).mockClear();
   vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
   const screen = await render(
     inWorkspace(
@@ -101,7 +94,6 @@ test("her activities offer Craft activity, with or without activities of her own
 
 test("the header Craft activity action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
-  vi.mocked(startChatAction).mockClear();
   vi.mocked(listOwnActivities).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
   // The action redirects; here it only says it was submitted.
@@ -130,96 +122,84 @@ test("the header Craft activity action supports keyboard submission", async () =
   expect(newActivityAction).toHaveBeenCalledOnce();
 });
 
-test.each([
-  { id: "open-chat", name: "Chat", project: NEW_CHAT_COPY.noProject },
-  {
-    id: "find-something-to-make",
-    name: "Find something to make",
-    project: NEW_CHAT_COPY.noProject,
-  },
-  {
-    id: "brainstorming",
-    name: "Brainstorm",
-    project: NEW_CHAT_COPY.noProject,
-  },
-  {
-    id: BRAINSTORMING_CLONE.id,
-    name: SAVED_ACTIVITY.name,
-    project: NEW_CHAT_COPY.noProject,
-  },
-  {
-    id: "project-breakdown",
-    name: "Break Down a Project",
-    project: NEW_CHAT_COPY.noProject,
-  },
-])(
-  "The $name title opens New chat and submits that activity",
-  async (activity) => {
-    signInAs(SIGNED_IN_USER);
-    vi.mocked(startChatAction).mockClear();
-    vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
-    const submitted = Promise.withResolvers<FormData>();
-    vi.mocked(startChatAction).mockImplementation((_state, form) => {
-      submitted.resolve(form);
-      return new Promise<never>(() => undefined);
-    });
-    await render(
-      inWorkspace(
-        await ActivitiesPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-      ),
-    );
-    if (activity.id === SAVED_ACTIVITY.id) {
-      await page.getByRole("tab", { name: "Yours", exact: true }).click();
-    }
-    const trigger = page.getByRole("button", {
-      name: activity.name,
-      exact: true,
-    });
-    await trigger.click();
-    const dialog = page.getByRole("dialog", {
-      name: NEW_CHAT_COPY.dialogHeading,
-    });
-    await expect.element(dialog).toBeVisible();
-    await expect
-      .element(
-        dialog.getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel }),
-      )
-      .not.toBeInTheDocument();
-    const projects = dialog.getByRole("combobox", {
-      name: NEW_CHAT_COPY.projectLabel,
-    });
-    await expect.element(projects).toHaveDisplayValue(activity.project);
-    await expect
-      .element(
-        projects.getByRole("option", {
-          name: NEW_CHAT_COPY.newProject,
-          exact: true,
-        }),
-      )
-      .toBeInTheDocument();
-    await projects.selectOptions(PROJECT.id);
-    await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
-    await expect.element(trigger).toHaveFocus();
-    expect(startChatAction).not.toHaveBeenCalled();
-    await userEvent.keyboard("{Enter}");
-    await page
-      .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
-      .selectOptions(PROJECT.id);
-    await page
-      .getByRole("button", { name: NEW_CHAT_COPY.start, exact: true })
-      .click();
-    const sent = await submitted.promise;
-    expect(sent.get("activityId")).toBe(activity.id);
-    expect(sent.get("projectId")).toBe(PROJECT.id);
-  },
-);
+describe("use_case_start_chat_in_activity", () => {
+  test.each([
+    { id: "open-chat", name: "Chat", start: "do", startName: "Do a thing" },
+    {
+      id: "find-something-to-make",
+      name: "Find something to make",
+      start: "make",
+      startName: "Make a thing",
+    },
+    {
+      id: "brainstorming",
+      name: "Brainstorm",
+      start: "do",
+      startName: "Do a thing",
+    },
+    {
+      id: BRAINSTORMING_CLONE.id,
+      name: SAVED_ACTIVITY.name,
+      start: "do",
+      startName: "Do a thing",
+    },
+    {
+      id: "project-breakdown",
+      name: "Break Down a Project",
+      start: "do",
+      startName: "Do a thing",
+    },
+  ])(
+    "the $name title opens $startName with it chosen, and closing makes nothing",
+    async (activity) => {
+      signInAs(SIGNED_IN_USER);
+      vi.mocked(startQuestAction).mockClear();
+      vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
+      const submitted = Promise.withResolvers<FormData>();
+      vi.mocked(startQuestAction).mockImplementation((_state, form) => {
+        submitted.resolve(form);
+        return new Promise<never>(() => undefined);
+      });
+      await render(
+        inWorkspace(
+          await ActivitiesPage({
+            params: Promise.resolve({}),
+            searchParams: Promise.resolve({}),
+          }),
+        ),
+      );
+      if (activity.id === SAVED_ACTIVITY.id) {
+        await page.getByRole("tab", { name: "Yours", exact: true }).click();
+      }
+      const trigger = page.getByRole("button", {
+        name: activity.name,
+        exact: true,
+      });
+      await trigger.click();
+      const dialog = page.getByRole("dialog", {
+        name: START_WORK_COPY.activityDialogHeading(activity.name),
+      });
+      await expect
+        .element(dialog.getByRole("heading", { name: activity.startName }))
+        .toBeVisible();
+      await page
+        .getByRole("button", { name: START_WORK_COPY.closeDialog })
+        .click();
+      await expect.element(dialog).not.toBeInTheDocument();
+      await expect.element(trigger).toHaveFocus();
+      expect(startQuestAction).not.toHaveBeenCalled();
 
-vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
-  startPremadeQuestAction: vi.fn(),
-}));
+      await userEvent.keyboard("{Enter}");
+      await dialog
+        .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
+        .click();
+      const sent = await submitted.promise;
+      expect(sent.get("activityId")).toBe(activity.id);
+      expect(sent.get("premadeId")).toBe(activity.start);
+    },
+  );
+});
+
 vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));

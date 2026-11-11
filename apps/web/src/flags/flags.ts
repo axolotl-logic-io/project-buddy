@@ -44,9 +44,6 @@ const FLAGS = [
   { id: "tool-lines", copyKey: "toolLines", defaultOn: true },
   // Hiding it unpins the chat's header rather than removing it.
   { id: "pinned-chat-header", copyKey: "pinnedChatHeader", defaultOn: true },
-  // The names in a project's chat list; a hidden name reads as an unnamed
-  // chat's does.
-  { id: "chat-names", copyKey: "chatNames", defaultOn: true },
   // The theme's background behind every page.
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
   // The user's gold balance, on the account page. Its id is from when it

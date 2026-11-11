@@ -16,7 +16,7 @@ export const CONSTRUCTS_COPY = {
   homeLink: "Home",
   heading: "Constructs",
   intro:
-    "Constructs are AI characters, each with a name, a voice and habits. Choose one when you start an adventure, or customize one to make your own.",
+    "Constructs are AI characters, each with a name, a voice and habits. Choose one when you start a quest, or customize one to make your own.",
   loading: "Loading constructs…",
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
@@ -25,7 +25,7 @@ export const CONSTRUCTS_COPY = {
   newConstruct: "Craft construct",
   // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",
-  startLabel: (name: string): string => `Adventure with ${name}`,
+  startLabel: (name: string): string => `Start a quest with ${name}`,
   customize: "Customize",
   customizeLabel: (name: string): string =>
     `Customize ${name}: make your own copy`,
@@ -44,7 +44,7 @@ export const CONSTRUCT_COPY = {
   builtInIntro:
     "A built-in construct can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your construct's instructions. Adventures keep the construct as it was when they started, so a change applies to new adventures only.",
+    "Your construct's instructions. A quest keeps the construct as it was when the quest started, so a change applies to new quests only.",
 } as const;
 
 // Conversational fields exposed by the prompt form. Visual metadata has its own editor.

@@ -1,5 +1,5 @@
 // A project's progress timeline in Chromium and WebKit: its milestones,
-// newest first, each linked to its chat, and the forms that edit and delete
+// newest first, each with its day, and the forms that edit and delete
 // one. What the actions save is actions.server.test.ts's, and which
 // milestones the page lists is page.server.test.ts's.
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -18,7 +18,6 @@ import {
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   FOX_BODY_MILESTONE,
-  FOX_CHAT,
   FOX_MILESTONES,
   FOX_TAIL_MILESTONE,
 } from "../../page-fixtures.ts";
@@ -48,7 +47,7 @@ afterEach(() => {
 });
 
 describe("use_case_view_progress_timeline", () => {
-  test("lists the milestones newest first, each with its day and a link to its chat", async () => {
+  test("lists the milestones newest first, each with its day", async () => {
     await renderTimeline();
 
     const entries = page
@@ -59,13 +58,7 @@ describe("use_case_view_progress_timeline", () => {
     await expect
       .element(entries.nth(1))
       .toMatchTextContent(FOX_BODY_MILESTONE.text);
-    const chatLinks = page.getByRole("link", {
-      name: PROGRESS_TIMELINE_COPY.openChat,
-    });
-    expect(chatLinks.elements()).toHaveLength(FOX_MILESTONES.length);
-    await expect
-      .element(chatLinks.nth(0))
-      .toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
+    expect(entries.elements()).toHaveLength(FOX_MILESTONES.length);
   });
 
   test("a milestone whose conversation is gone stays listed, with no link", async () => {

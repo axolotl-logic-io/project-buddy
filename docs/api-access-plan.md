@@ -8,7 +8,7 @@ The [planned API glossary](../GLOSSARY.md#api-access-planned) defines client, ex
 
 The site and a future API must use the same quests, adventures, Journal and other records. A connection belongs to one user and narrows that acting user's current access. It grants neither quest membership nor ownership. An external agent is calling software, not a construct or a separate participant.
 
-Issue #684 says a quest starts with an interview. Current [adventure behavior](chats.md#activities) retires Quest interview from new choices and maps older interview requests to Project Breakdown. New-adventure forms choose activity and construct independently of whether they start in no quest, an existing quest or a new quest. Quest creation defaults to Project Breakdown.
+Issue #684 says a quest starts with an interview. Current [conversation behavior](chats.md#activities-and-constructs) retires Quest interview from new choices and maps older interview requests to Project Breakdown. Activities and Constructs start a quest through the shared quest start, with their choice preset. Quest creation defaults to Project Breakdown.
 
 Motivation seeds the Journal; generated openings acknowledge it. See `src/chats/start-chat.ts` and the [quest use cases](../apps/web/use-cases/projects.md).
 
