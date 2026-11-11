@@ -17,7 +17,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Adventures](chats.md): the all-adventures hub, owner-specific quest filters, standalone conversations, activities, check-ins and unread adventures.
+- [Adventures](chats.md): the all-adventures hub, owner-specific quest filters, standalone conversations, activities and the removed check-ins.
 - [Spellbook](spellbook.md): spells, the instructions the construct casts when they fit, the Spellbook pages, and how casts are kept.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
@@ -28,7 +28,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Marketplace](marketplace.md): listing, updating and unlisting own constructs, activities and spells, what other users see, buying listings, and bought copies.
 
 - [Images](images.md): image generation, gallery, battery accounting and deletion.
-- [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
+- [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
 
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 

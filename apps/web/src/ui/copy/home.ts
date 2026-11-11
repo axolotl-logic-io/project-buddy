@@ -5,7 +5,6 @@ const HOME_COPY = {
   heading: "Your projects await",
   purpose:
     "Project Buddy helps you turn ideas into next steps with an AI construct. Start a quest with a goal you want to work on.",
-  unread: "New messages",
   placesLabel: "Places",
   loading: "Loading your atlas…",
   newQuest: "Start a quest",

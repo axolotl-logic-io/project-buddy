@@ -22,7 +22,7 @@ The product: a personal site where constructs help each user with their own ques
 
 ### Workshop
 
-The shared editing and testing experience for constructs, activities and spells.
+The shared editor for constructs, activities and spells. It has no test drawer: a saved definition is tried in a quest or Chat.
 
 ## Prompts and context
 
@@ -111,7 +111,6 @@ Constructs were first called buddies. Use the new names everywhere except these 
 - The `buddies` table (`ownPrompts` in code), its `buddies_*` constraint and index names, and the `buddy_id`, `buddy_name` and `buddy_parts` columns of `chats`.
 - The stored kind `buddy` of an own construct and a listing (`STORED_PROMPT_KINDS` in `src/prompts/prompt.ts`), and the stored Journal author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's reader accepts both names; the stored Journal author is `user` or `buddy` only. Writers write `buddy`.
 - The `kind` in a saved prompt draft's browser storage key, and old `?kind=buddy` Marketplace links, which are read as constructs.
-- The `buddyId` a Workshop test request also carries, for the earlier build.
 - The `/buddies`, `/buddies/<id>`, `/guild` and `/guild/<id>` links, which redirect, temporarily, to `/constructs` and `/constructs/<id>`.
 - `BUDDY_MODEL`, read when `CONSTRUCT_MODEL` is unset.
 - An own copy of a built-in construct, activity or spell whose text is unchanged is stored in the built-in one's text from before the rename, recorded in `src/prompts/earlier-built-ins.ts`, and read back in today's text, so both builds know it as a copy of the built-in one.
@@ -162,7 +161,7 @@ A built-in activity for discovering a small achievable creative project, even wh
 
 ### Current activity
 
-The activity a conversation is in now. A quest starts in its starting point's activity; only the construct changes it after that, with its activity tool. A [check-in](#check-in) leaves it as it is.
+The activity a conversation is in now. A quest starts in its starting point's activity; only the construct changes it after that, with its activity tool.
 
 ### Activity session
 
@@ -272,7 +271,7 @@ The earlier name for one of several conversations in a quest, or a standalone on
 
 ### Quest status
 
-A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents and turn off check-ins. The owner can restore either to Active. Restoring leaves check-ins off until the owner turns them on.
+A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents. The owner can restore either to Active.
 
 - **UI:** "Active", "Completed", "Abandoned", "Mark completed", "Mark abandoned", "Restore quest", "Quest actions".
 
@@ -286,19 +285,11 @@ The construct's first message in a new quest's conversation: its [prepared openi
 
 An opening written ahead of time for a built-in construct in a built-in activity, so the conversation starts at once, without a model call. A construct or activity of the user's own whose prompts are unchanged from built-in ones, such as a copy the user has only renamed, gets the built-in one's. An edited one has none, so its construct writes the opening.
 
-### Check-in
+### Check-in (removed)
 
-A message the construct adds to the end of a quest's conversation on a schedule its owner chooses, drawing on the Journal to help the user resume. It starts no new conversation and keeps the current activity. Check-ins are optional. For who pays for model use, see [batteries](#batteries).
+A message the construct once added to a quest's conversation on a schedule its owner chose, with an email and an unread mark. Automatic check-ins were removed (#903): the construct writes only in answer to the user, and Dailies continues when the user writes or chooses Start the day. `check_in_frequency`, `last_check_in_at` and `chat_unreads` remain in storage, unused, until a held cleanup drops them.
 
-- **UI:** "Check-ins".
-- **Avoid:** "nudge", "reminder", "ping".
-
-### Unread
-
-The state of a quest whose conversation a user hasn't opened since a [check-in](#check-in). Each user has their own mark: a check-in marks the quest unread for its owner and each [member](#member), and opening the conversation clears only the opener's mark. Quest lists mark the quests that are unread for the user viewing them.
-
-- **UI:** "Unread".
-- **Avoid:** "new", "unseen".
+- **Avoid:** in product copy, prompts and docs, except when describing the removal; also "nudge", "reminder", "ping" for anything the site sends on its own.
 
 ### Today
 
@@ -512,7 +503,7 @@ A **theme** is the site's look. A **mode** is its light, dark or system appearan
 
 - **UI:** "Appearance", "Theme", "Mode".
 
-## Installed app and notifications
+## Installed app
 
 ### Installed app
 
@@ -520,20 +511,6 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 - **UI:** "Add to Home Screen", "Install app", as the phone's browser names them.
 - **Avoid:** "PWA" and "progressive web app" in copy; "native app".
-
-### Notification
-
-A message the site sends to the user's devices, which appears even when the site is closed. Tapping it opens a page of the site.
-
-- **UI:** "Notifications", "Send a test notification".
-- **Avoid:** "alert", which is an error message on the page; "push" alone in copy.
-
-### Device
-
-One browser on one of the user's phones or computers, as far as notifications go. The user turns notifications on or off for each device separately, in Settings.
-
-- **UI:** "this device".
-- **Avoid:** "registration", "token".
 
 ## Accounts and access
 
@@ -557,7 +534,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 ### Owner
 
-The user something belongs to. A quest's owner is the user who made it. Members share access to its conversation, Journal, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
+The user something belongs to. A quest's owner is the user who made it. Members share access to its conversation, Journal, Quick Notes and progress timeline, but only the owner removes members. The owner cannot leave their quest.
 
 Ownership and access are distinct: own constructs, activities, spells and batteries belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
 
@@ -641,7 +618,7 @@ The generated images made at a user's request. Each user's gallery lists their o
 
 ### Batteries
 
-Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies and generated images spend the [acting user](#acting-user)'s batteries. A new quest's generated opening spends the batteries of the user starting it. Reading a quest or Chat spends none. An automatic check-in spends the quest owner's batteries.
+Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies and generated images spend the [acting user](#acting-user)'s batteries. A new quest's generated opening spends the batteries of the user starting it. Reading a quest or Chat spends none.
 
 Batteries fund model use. Before the orb migration, legacy Marketplace sales transferred the shared gold balance between users. The migration pauses all buys. After separate operator activation, Marketplace sales use orbs and do not fund model use. See the [cutover plan](docs/marketplace.md#currency-cutover-proposal).
 

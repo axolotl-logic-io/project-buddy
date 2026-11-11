@@ -1,8 +1,4 @@
-// Installing the app and showing its notifications needs files that phones
-// fetch without the session cookie: the web app manifest, the service
-// worker and the icons. The paper texture also dresses public pages.
-// The proxy, which sends a visitor without a session
-// to sign in, never sees them; it still guards every page.
+// Installed app assets and the temporary retirement worker remain public.
 import { unstable_doesMiddlewareMatch as doesProxyMatch } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
 import { expect, test } from "vitest";

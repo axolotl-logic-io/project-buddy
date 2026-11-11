@@ -8,12 +8,11 @@
 // Everything reached through a project is open to everyone the project is
 // open to: its chats, their messages, images and activity sessions, its
 // memory (with its notes) and its milestones. Actions only the owner may
-// take, such as setting check-ins or removing a member, use the "owned"
+// take, such as removing a member, use the "owned"
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own
 // prompt, a construct or an activity, a gold balance and its ledger, an image
-// generation's claim and a push subscription belong to their user alone,
-// and an unread mark on a chat to the user it marks the chat for. A
+// generation's claim belong to their user alone. A
 // transfer of gold changes the payee's balance too, only by adding to it
 // (goldBalancesOfTransfer). The one
 // exception is by design: a chat keeps a snapshot of its construct, and each
@@ -48,7 +47,6 @@ import {
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
-import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import {
   constructAssetGrants,
   constructGenerations,
@@ -65,7 +63,6 @@ import { planVersions } from "@/db/tables/plan-versions.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
-import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
 import { questTransfers } from "@/db/tables/quest-transfers.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
@@ -131,12 +128,6 @@ function messageOpenTo(user: UserId): SQL {
 // An `images` row of a chat open to user.
 function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
-}
-
-// A `chat_unreads` row of owner's: owner's own mark on a chat, which no one
-// else's opening clears.
-function chatUnreadOwnedBy(owner: UserId): SQL {
-  return eq(chatUnreads.userId, owner);
 }
 
 // An `activity_sessions` row of a chat open to user.
@@ -263,12 +254,6 @@ function generationOpenTo(user: UserId): SQL {
   return inArray(imageGenerations.chatId, openChatIds(user));
 }
 
-// A `push_subscriptions` row of owner's: a browser where owner turned
-// notifications on.
-function pushSubscriptionOwnedBy(owner: UserId): SQL {
-  return eq(pushSubscriptions.userId, owner);
-}
-
 // A `listings` row that every signed-in user may read: one still listed in
 // the Marketplace.
 function listingListed(): SQL {
@@ -369,7 +354,6 @@ export {
   activitySessionOpenTo,
   batteryPurchasesOwnedBy,
   chatOpenTo,
-  chatUnreadOwnedBy,
   constructGenerationOwnedBy,
   constructGenerationVisualOpenTo,
   generationOpenTo,
@@ -401,7 +385,6 @@ export {
   projectOwnedBy,
   purchaseMadeBy,
   purchaseOfListingSoldBy,
-  pushSubscriptionOwnedBy,
   questTransferOwnedBy,
   replyRunOpenTo,
   replyRunOwnedBy,
