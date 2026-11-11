@@ -241,13 +241,6 @@ function readPushEndpoints(): "public" | "loopback" {
   return parsed.data;
 }
 
-// The secret the scheduler sends to start check-ins, as Vercel Cron sends
-// CRON_SECRET in its Authorization header; undefined when unset, so no
-// request may start them.
-function readCronSecretIfSet(): string | undefined {
-  return readIfSet("CRON_SECRET");
-}
-
 // Whether a CI runner set CI to a non-empty value.
 function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
@@ -305,7 +298,6 @@ export {
   readAnthropicApiKeyIfSet,
   readBatteryPayments,
   readConstructModel,
-  readCronSecretIfSet,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,

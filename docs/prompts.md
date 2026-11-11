@@ -63,7 +63,7 @@ What the earlier build cannot do after a rollback: open `/constructs` links, or 
 
 Placeholders remain literal in saved definitions and snapshots. Substitution happens when text enters model context. Adventure viewers cannot read private spell instructions through saved tool results, and ownership of the original definition does not change team adventure access.
 
-Reply and tool application state identifies the acting user. Replies, generated images and automatic adventure names charge that user; generated openings charge the starter, and check-ins charge the quest owner. Prompt text grants no access or tools.
+Reply and tool application state identifies the acting user. Replies, generated images and automatic adventure names charge that user; and generated openings charge the starter. Prompt text grants no access or tools.
 
 ## Unsaved edits
 

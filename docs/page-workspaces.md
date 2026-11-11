@@ -10,7 +10,7 @@ The signed-in pages below group related content under a compact heading and an u
 | Quick Note | Write, Preview | The heading's Save Quick Note submits the same form from either tab. Preview shows the selected quest and the text as one line. Submitting returns to Write so feedback and focus remain visible. Switching tabs keeps the draft. |
 | Settings | General, Appearance, Notifications | General keeps the New quest construct form. Appearance changes this browser's mode. Notifications appears only when configured and applies to the current device. |
 | Account | Profile, Batteries, Security | Profile keeps the name form. Batteries keeps the balance, purchase options and payment status. Checkout returns and Buy batteries links select Batteries. Security keeps both sign-out actions; loading and error states also offer sign-out. |
-| Quest and Journal | Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, Members and check-ins | The quest opens on its conversation, below the workspace at full width. Each other section appears inside the quest workspace. The title editor and visible status actions remain in the heading. Member and check-in permissions remain unchanged. |
+| Quest and Journal | Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, Members | The quest opens on its conversation, below the workspace at full width. Each other section appears inside the quest workspace. The title editor and visible status actions remain in the heading. Member permissions remain unchanged. |
 
 ## Navigation and drafts
 
