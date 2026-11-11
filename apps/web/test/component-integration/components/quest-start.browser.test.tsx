@@ -1,14 +1,6 @@
-// The four ways to start a quest, in Chromium and WebKit
-// ("use_case_browse_premade_quests"): each starting point is one tile, named
-// by the starting point and described by its tagline; choosing one shows its
-// details, filled in, with what it is for, in its place, and going back
-// starts nothing. The user's Dailies opens instead of starting again,
-// and a preset Journal, as from Chat, isn't offered to Dailies. Each
-// starting point sends its own start, so Learn, Make and Do make quests of
-// their own and Dailies goes to its one quest. What the
-// action makes is projects/actions.server.test.ts's.
+// Quest starting dialogs and the inline start used inside Chat.
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
 import { QuestStartChoices } from "@/components/quest-start.tsx";
@@ -38,7 +30,7 @@ afterEach(() => {
 });
 
 describe("use_case_browse_premade_quests", () => {
-  test("the four starting points show their details in place, and going back starts nothing", async () => {
+  test("the four starting points open a modal, and cancelling restores focus without starting", async () => {
     await render(<QuestStartChoices choices={CHOICES} />);
 
     await Promise.all(
@@ -50,27 +42,26 @@ describe("use_case_browse_premade_quests", () => {
     );
     await choose("Learn a thing").click();
 
-    const details = page.getByRole("region", { name: "Learn a thing" });
-    await expect
-      .element(details.getByRole("heading", { name: "Learn a thing" }))
-      .toHaveFocus();
+    const details = page.getByRole("dialog", { name: "Learn a thing" });
     await expect
       .element(details.getByText(PREMADE_QUESTS[1]?.description ?? ""))
       .toBeVisible();
     await expect
-      .element(details.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
-      .toHaveValue("Learn a thing");
-    await expect
       .element(
-        details.getByRole("textbox", { name: QUEST_START_COPY.journalLabel }),
+        details.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
       )
-      .toHaveValue(PREMADE_QUESTS[1]?.journal ?? "");
-
-    await page.getByRole("button", { name: QUEST_START_COPY.back }).click();
-
+      .toBeVisible();
     await expect
-      .element(page.getByRole("heading", { name: QUEST_START_COPY.heading }))
-      .toHaveFocus();
+      .element(details.getByRole("textbox"))
+      .toHaveAccessibleName(PROJECTS_COPY.motivationLabel);
+    await expect
+      .element(details.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
+      .not.toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+
+    await expect.element(details).not.toBeInTheDocument();
+    await expect.element(choose("Learn a thing")).toHaveFocus();
     await expect.element(choose("Make a thing")).toBeVisible();
     expect(actions.startQuestAction).not.toHaveBeenCalled();
   });
@@ -87,10 +78,8 @@ describe("use_case_browse_premade_quests", () => {
       await render(<QuestStartChoices choices={CHOICES} />);
       await choose(name).click();
       await page
-        .getByRole("region", { name })
-        .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
-        .fill(`My ${name}`);
-
+        .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+        .fill("This matters to me.");
       await page.getByRole("button", { name: QUEST_START_COPY.start }).click();
 
       await expect
@@ -99,9 +88,41 @@ describe("use_case_browse_premade_quests", () => {
       const sent = actions.startQuestAction.mock.calls[0]?.[1];
       expect(sent?.get("premadeId")).toBe(premadeId);
       expect(sent?.has("activityId")).toBe(false);
-      expect(sent?.get("name")).toBe(`My ${name}`);
+      expect(sent?.get("name")).toBe(name);
+      expect(sent?.get("constructId")).toBe("vellum");
+      expect(sent?.get("journal")).toBe(
+        PREMADE_QUESTS.find((quest) => quest.id === premadeId)?.journal,
+      );
+      expect(sent?.get("motivation")).toBe("This matters to me.");
     },
   );
+
+  test("a refused start keeps the Why in the dialog", async () => {
+    actions.startQuestAction.mockResolvedValue({
+      kind: "claudeUnavailable",
+      message: "Try again later.",
+    });
+    await render(<QuestStartChoices choices={CHOICES} />);
+    await choose("Learn a thing").click();
+    const dialog = page.getByRole("dialog", { name: "Learn a thing" });
+    const why = dialog.getByRole("textbox", {
+      name: PROJECTS_COPY.motivationLabel,
+    });
+    await why.fill("Read with my family.");
+    await dialog.getByRole("button", { name: QUEST_START_COPY.start }).click();
+    await expect
+      .element(dialog.getByRole("alert"))
+      .toHaveTextContent("Try again later.");
+    await expect.element(why).toHaveValue("Read with my family.");
+    await dialog.getByRole("button", { name: QUEST_START_COPY.close }).click();
+    await expect.element(choose("Learn a thing")).toHaveFocus();
+    await choose("Learn a thing").click();
+    await expect
+      .element(
+        page.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
+      )
+      .toHaveValue("");
+  });
 
   test("the user's Dailies opens instead of starting again", async () => {
     await render(
@@ -120,6 +141,7 @@ describe("use_case_browse_premade_quests", () => {
       <QuestStartChoices
         choices={CHOICES}
         initialChoice="do"
+        presentation="inline"
         preset={{ journal: summary }}
       />,
     );
@@ -127,9 +149,9 @@ describe("use_case_browse_premade_quests", () => {
     const details = page.getByRole("region", { name: "Do a thing" });
     await expect
       .element(
-        details.getByRole("textbox", { name: QUEST_START_COPY.journalLabel }),
+        details.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
       )
-      .toHaveValue(summary);
+      .toBeVisible();
     await page.getByRole("button", { name: QUEST_START_COPY.back }).click();
     await expect.element(choose("Do a thing")).toBeVisible();
     await expect.element(choose("Dailies")).not.toBeInTheDocument();

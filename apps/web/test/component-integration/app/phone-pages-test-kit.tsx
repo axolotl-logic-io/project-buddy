@@ -408,7 +408,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", path: QUESTS_PATH, render: projectsPage },
   {
-    name: "the projects list's Make a thing details",
+    name: "the projects list's Make a thing dialog",
     path: QUESTS_PATH,
     render: projectsPage,
     open: async (): Promise<void> => {
@@ -417,8 +417,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
         .click();
       await vi.waitFor(() =>
         page
-          .getByRole("region", { name: "Make a thing" })
-          .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
+          .getByRole("dialog", { name: "Make a thing" })
+          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
           .element(),
       );
     },
