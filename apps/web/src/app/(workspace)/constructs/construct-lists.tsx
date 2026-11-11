@@ -16,11 +16,11 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import {
   type QuestCreationChoices,
   questCreationChoices,
 } from "@/projects/quest-creation-choices.ts";
+import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";

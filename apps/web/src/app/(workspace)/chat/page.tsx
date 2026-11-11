@@ -36,10 +36,7 @@ export default async function StandaloneChatPage(): Promise<JSX.Element> {
       stoppedReplyId={stoppedReplyId}
       viewer={user.id}
       actions={
-        <QuestFromChat
-          choices={choices}
-          summary={chatSummaryDraft(messages)}
-        />
+        <QuestFromChat choices={choices} summary={chatSummaryDraft(messages)} />
       }
     />
   );

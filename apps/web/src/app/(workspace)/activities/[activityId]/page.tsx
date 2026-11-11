@@ -22,8 +22,8 @@ import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
-import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
+import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   ACTIVITIES_COPY,
   ACTIVITY_COPY,

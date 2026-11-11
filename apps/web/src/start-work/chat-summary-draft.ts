@@ -3,7 +3,6 @@
 // empty box. It is built without the model, so offering it spends nothing,
 // and it is only a draft: nothing leaves her Chat until she confirms it.
 import type { UIMessage } from "ai";
-import { TRANSFER_SUMMARY_MAX } from "@/replies/tools/create-project-contract.ts";
 
 // How many of her latest messages the draft quotes, and how much of each.
 const DRAFT_MESSAGES = 5;
@@ -31,18 +30,15 @@ function oneLine({ parts }: UIMessage): string {
 }
 
 // The draft for messages, oldest first: the user's latest messages with
-// text, oldest first, one list item each; empty when she has written none.
-// It never exceeds the summary's limit.
+// text, oldest first, one list item each, each cut short if long; empty
+// when she has written none.
 function chatSummaryDraft(messages: readonly UIMessage[]): string {
   const said = messages
     .filter((message) => message.role === "user")
     .map(oneLine)
     .filter((line) => line !== "")
     .slice(-DRAFT_MESSAGES);
-  return said
-    .map((line) => `- ${line}`)
-    .join("\n")
-    .slice(0, TRANSFER_SUMMARY_MAX);
+  return said.map((line) => `- ${line}`).join("\n");
 }
 
 export { chatSummaryDraft };
