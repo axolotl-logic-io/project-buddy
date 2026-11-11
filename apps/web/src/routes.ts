@@ -13,18 +13,13 @@ const HOME_PATH = "/home";
 // Chat, the user's one private conversation for talking without a goal.
 const STANDALONE_CHAT_PATH = "/chat";
 
-// The Settings page, which a test notification opens.
+// The Settings page.
 const SETTINGS_PATH = "/settings";
 
 // The page a sign-in link opens, and its parameter naming where continuing
 // leads, when not home.
 const SIGN_IN_LINK_PATH = "/login/link";
 const SIGN_IN_DESTINATION_PARAMETER = "next";
-
-// The route the service worker (public/sw.js), which has no Server
-// Actions, asks for the site's VAPID public key and sends a renewed push
-// subscription to. It answers without a session too.
-const PUSH_SUBSCRIPTION_PATH = "/api/push-subscription";
 
 // A path on this site: segments of letters, digits, "_" and "-" only, so
 // never another site's address ("//host", "/\host"), a scheme, a query or
@@ -51,7 +46,6 @@ function workshopPath(kind: PromptKind): Route {
 export {
   HOME_PATH,
   localPath,
-  PUSH_SUBSCRIPTION_PATH,
   SETTINGS_PATH,
   SIGN_IN_DESTINATION_PARAMETER,
   SIGN_IN_LINK_PATH,
