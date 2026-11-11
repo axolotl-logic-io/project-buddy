@@ -166,7 +166,7 @@ describe("use_case_retire_definitions", () => {
     }
     await expectRedirect(
       () => retireConstructAction(form({ constructId: copy.id })),
-      "/constructs?retired=1",
+      "/workshop?retired=1",
     );
     expect(await chosenConstruct(owner.id, copy.id)).toBeUndefined();
     expect((await interviewConstruct(owner.id)).id).toBe("vellum");
