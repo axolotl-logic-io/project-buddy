@@ -36,7 +36,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "Too many requests to Claude right now. Wait a minute, then try again.",
   overloaded: "Claude is overloaded right now. Try again in a few minutes.",
   "request-too-large":
-    "This adventure is too long for Claude to read in one go. Start a new adventure to continue.",
+    "This message is too long for Claude to read in one go. Shorten it, or send fewer images, and try again.",
   "invalid-image":
     "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
   "invalid-request":

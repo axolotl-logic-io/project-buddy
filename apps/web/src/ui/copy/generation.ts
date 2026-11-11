@@ -6,17 +6,17 @@ const GENERATION_COPY = {
   heading: "Image gallery",
   home: "Home",
   empty:
-    "No generated images yet. Ask your construct to create an image in an adventure.",
+    "No generated images yet. Ask your construct to create an image in a conversation.",
   context:
-    "Images belong to their source adventure. Deleting that adventure or its quest also deletes its images. Downloads you have saved are yours to keep.",
+    "Images belong to the conversation they came from. Deleting its quest also deletes its images. Downloads you have saved are yours to keep.",
   download: "Download image",
   view: "View full image",
-  source: "Open source adventure",
+  source: "Open its conversation",
   older: "Older images",
   loading: "Loading image gallery",
   working: "Generating your image… This can take up to two minutes.",
   pending:
-    "Generation was started. If it was interrupted, it will not restart automatically. Check the source adventure before asking again.",
+    "Generation was started. If it was interrupted, it will not restart automatically. Check its conversation before asking again.",
   reservationRefused: (required: number, available: number): string =>
     `Images reserve ${BATTERIES_COPY.amount(required)}; ${BATTERIES_COPY.amount(available)} available for this request. Replies still spend batteries.`,
   outOfGold: "You don't have enough batteries left to generate an image.",
