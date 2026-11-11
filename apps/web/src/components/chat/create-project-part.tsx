@@ -33,9 +33,9 @@ export function CreateProjectPart({
           </p>
           <Link
             className="self-start text-link"
-            href={`/chats/${result.interviewChatId}`}
+            href={`/projects/${result.projectId}`}
           >
-            {CREATE_PROJECT_COPY.openInterview}
+            {CREATE_PROJECT_COPY.openQuest}
           </Link>
         </div>
       );
