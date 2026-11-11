@@ -6,38 +6,6 @@ export const SETTINGS_COPY = {
   headerLink: "Settings",
   homeLink: "Home",
   heading: "Settings",
-  extrasHeading: "Extras",
-  extrasHint:
-    "Switch extra parts of the site on or off. A switch only changes what is shown: nothing is deleted. Each switch saves at once, to your account.",
-} as const;
-
-// Each extra's switch on the Settings page: its label and what it shows, by
-// the copy key its flag names in src/flags/flags.ts.
-export const FLAG_COPY = {
-  workingNotes: {
-    label: "Working notes",
-    hint: "Your construct's short notes in a conversation before it looks something up.",
-  },
-  memoryChangeCards: {
-    label: "Journal changes",
-    hint: "The cards in a conversation that show what your construct changed in the quest's Journal.",
-  },
-  toolLines: {
-    label: "Search and tool lines",
-    hint: "The lines in a conversation that say what your construct searched the manual for, or that a tool failed.",
-  },
-  pinnedChatHeader: {
-    label: "Pinned conversation header",
-    hint: "Keeps the conversation's construct and actions at the top while you scroll. Off, they scroll away with the conversation.",
-  },
-  pageDecorations: {
-    label: "Page decorations",
-    hint: "The theme's pattern behind every page.",
-  },
-  usageMeter: {
-    label: "Batteries balance",
-    hint: "How many batteries you have left for your constructs, on your account page.",
-  },
 } as const;
 
 export const INTERVIEW_CONSTRUCT_COPY = {

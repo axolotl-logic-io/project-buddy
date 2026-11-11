@@ -6,7 +6,6 @@ import { z } from "zod";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
-import { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import {
   HOME_PATH,
   localPath,
@@ -18,7 +17,7 @@ import {
 const TOKEN_FIELD = z.string().catch("");
 
 // Signs the browser in for 30 days as the user whose link holds the form's
-// token, with the extras her account hides, then shows the link's
+// token, then shows the link's
 // destination, if it has a local one, or else the home page. If the link has
 // expired since its page opened, or no longer works, shows that page again,
 // which says so.
@@ -31,9 +30,6 @@ export async function continueSignInAction(formData: FormData): Promise<never> {
     const linkPage = new URLSearchParams({ token });
     return redirect(`${SIGN_IN_LINK_PATH}?${linkPage.toString()}`);
   }
-  await seedHiddenFlags(found.hiddenExtras);
-  (await cookies()).set(
-    await sessionCookie(found.user, readSessionSecret(), now),
-  );
+  (await cookies()).set(await sessionCookie(found, readSessionSecret(), now));
   return redirect(destination ?? HOME_PATH);
 }
