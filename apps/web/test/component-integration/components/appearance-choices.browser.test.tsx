@@ -118,7 +118,6 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  document.documentElement.removeAttribute("data-hide");
   vi.restoreAllMocks();
   vi.clearAllMocks();
   await commands.emulateColorScheme("light");
