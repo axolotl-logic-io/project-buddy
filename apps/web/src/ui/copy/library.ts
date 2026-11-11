@@ -83,7 +83,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Constructs, Activities and Spellbook each show the built-in ones, your own and the ones you’ve retired, in tabs. To make your own, choose Craft in the page’s heading, or Customize on a built-in one to start from a copy.",
+            "Workshop shows built-in constructs, activities and spells alongside your private copies, one kind at a time. Choose Craft to make your own, or Customize on a built-in one to start from a copy. Retirement keeps retired definitions available to restore or delete.",
             "Workshop is where you edit and test. Edit one section of the instructions at a time, then choose Try your draft to test it in a drawer before you save. Back to editing or Escape closes the drawer, and reopening it brings your test back. Tests disappear when you leave or reload the page.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a test sends to the model.",
             "Batteries pay for model use: replies, generated openings, Workshop tests and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
@@ -120,7 +120,7 @@ const LIBRARY_COPY: {
           title: "Craft and customize",
           links: [],
           paragraphs: [
-            "To start from a built-in construct, open Constructs or Workshop and choose Customize. Edit changes one of your own, and Clone copies it so you can compare two versions. To start from nothing, choose Craft construct.",
+            "To start from a built-in construct, open Workshop and choose Customize. Edit changes one of your own, and Clone copies it so you can compare two versions. To start from nothing, choose Craft construct.",
             "Give the construct a name you’ll recognize. In its Character Sheet, describe habits you can see in a reply, such as: “Explain one practical step at a time. Give a concrete example before an abstract idea. When unsure, say what needs checking.” Don’t ask it to invent facts or ignore permissions; instructions can’t change what the site allows.",
             "For example, name a construct “Moss” and give it these instructions: “Use calm, plain language. Help the user choose a small experiment. Ask at most one question per reply. Keep plant names and care steps exact.” Set its Visual description to “A small leafy guide with round glasses.” The leaves shape Moss’s picture; only the Character Sheet shapes its replies.",
             "To start the instructions over, choose Reset prompt to default. The editor shows the built-in construct’s instructions, or the default construct’s when yours didn’t come from a built-in one, and offers Undo reset. Nothing changes until you choose Save, and the Visual description and artwork stay. A copy bought in the Marketplace, or a clone of one, has nothing to reset to.",
@@ -145,7 +145,7 @@ const LIBRARY_COPY: {
         },
       ],
       action: {
-        href: "/constructs",
+        href: "/workshop",
         label: "Choose or craft a construct",
       },
     },
@@ -153,7 +153,7 @@ const LIBRARY_COPY: {
       id: "spells",
       title: "Spells",
       intro:
-        "A spell is a focused set of instructions the construct loads when it fits your request. The Spellbook holds built-in spells and your own spells.",
+        "A spell is a focused set of instructions the construct loads when it fits your request. Workshop’s Spells tab holds built-in spells and your own spells.",
       chapters: [
         {
           id: "selection",
@@ -170,7 +170,7 @@ const LIBRARY_COPY: {
           title: "Craft focused instructions",
           links: [],
           paragraphs: [
-            "To make a spell, open Spellbook or Workshop, then customize a built-in spell, clone one of yours, or choose Craft spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
+            "To make a spell, open Workshop’s Spells tab, then customize a built-in spell, clone one of yours, or choose Craft spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
             "For example, name a spell “Compare options”, with the When to use line “When the user needs to choose between two or more approaches with trade-offs.” Its Spell Sheet says: “List the options and the user’s stated constraints. Compare effort, reversibility and likely benefit. Separate known facts from assumptions. Recommend one small experiment. Ask at most one question if a missing constraint changes the choice.”",
             "Keep the When to use line short: every conversation’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset. A copy bought in the Marketplace has nothing to reset to.",
           ],
@@ -193,8 +193,8 @@ const LIBRARY_COPY: {
         },
       ],
       action: {
-        href: "/spellbook",
-        label: "Open Spellbook",
+        href: "/workshop?kind=spell",
+        label: "Open Workshop’s Spells tab",
       },
     },
     {

@@ -137,7 +137,7 @@ describe("use_case_customize_spell", () => {
 
     await expectRedirect(
       () => cloneSpellAction(formOf({ sourceId: copy.id })),
-      "/spellbook",
+      "/workshop?kind=spell",
     );
     const clone = (await listOwnSpells(user.id)).at(-1);
     expect(clone).toMatchObject({ name: "Render plan (clone)" });
@@ -150,7 +150,7 @@ describe("use_case_customize_spell", () => {
 
     await expectRedirect(
       () => retireSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook?retired=1",
+      "/workshop?kind=spell&retired=1",
     );
     expect((await listOwnSpells(user.id)).map(({ id }) => id)).toEqual([
       clone?.id,
@@ -202,7 +202,7 @@ describe("use_case_customize_spell", () => {
 
     await expectRedirect(
       () => cloneSpellAction(formOf({ sourceId: copy.id })),
-      "/spellbook",
+      "/workshop?kind=spell",
     );
     const clone = (await listOwnSpells(user.id)).at(-1);
     if (clone === undefined || clone.id === copy.id) {
@@ -233,7 +233,7 @@ describe("use_case_customize_spell", () => {
     );
     await expectRedirect(
       () => retireSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook?retired=1",
+      "/workshop?kind=spell&retired=1",
     );
     expect(await stored(owner, copy.id)).toEqual(copy);
   });

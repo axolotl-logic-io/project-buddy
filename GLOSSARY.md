@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Three concepts shape every [conversation](#conversation):
 
-- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Constructs page](#constructs-page).
+- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Workshop](#workshop).
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
 
@@ -88,11 +88,11 @@ Instructions that every conversation gets, whatever its construct and activity: 
 
 ## Constructs
 
-### Constructs page
+### Workshop
 
-The page listing the built-in [constructs](#construct) and the user's own. The user chooses a construct to start a quest with.
+The single collection destination for inspecting built-in constructs, activities and spells and editing private copies. Each kind has a tab. Built-ins offer Customize; private definitions offer editing, clone and retirement. Quest starts keep their own construct choice. Old Constructs and Spellbook collection URLs redirect here.
 
-- **UI:** "Constructs".
+- **UI:** "Workshop", "Constructs", "Activities", "Spells".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
 
 ### Construct
@@ -211,13 +211,6 @@ The built-in activity with no set scene. It is the default when the user picks n
 - **UI:** "Chat".
 
 ## Spells
-
-### Spellbook
-
-A user's list of [spells](#spell), built in and their own, and the page that shows it. It is the user's lorebook of spells; use "lorebook" only to explain it.
-
-- **UI:** "Spellbook", "Built-in spells", "Your spells", "Craft spell".
-- **Avoid:** "skill library", "lorebook" outside explanations.
 
 ### Spell
 
@@ -720,6 +713,6 @@ The user's one ongoing quest for starting the day, continued every day in its on
 
 ## Library
 
-The in-site reading area with Getting Started and books on Constructs, Spells, Activities and Model context. A book explains a subject through navigable chapters, practical examples and links to site actions. This Library is distinct from the Spellbook and the Quest library of premade quests.
+The in-site reading area with Getting Started and books on Constructs, Spells, Activities and Model context. A book explains a subject through navigable chapters, practical examples and links to site actions. This Library is distinct from Workshop and the Quest library of premade quests.
 
 - **UI:** “Library”, “Getting Started”, “Chapters”.

@@ -8,11 +8,11 @@ The user makes, customizes, tweaks or clones a construct, activity or spell from
 
 - **Prerequisites:** a signed-in account.
 - **Steps:**
-  - Open Workshop from Home. It shows Constructs first.
-  - Each construct also offers “Adventure with [construct name]”, with the same visible label and accessible name, to open the New adventure modal with that construct fixed. Closing it creates nothing.
+  - Open Workshop from the site menu. It shows Constructs first.
+  - Open a definition’s name to inspect its built-in instructions or edit a private copy. Collection cards have no quest-start actions.
   - Choose Activities or Spells to show that kind instead.
   - Choose Craft construct, Craft activity or Craft spell to make one without copying another, Customize on a built-in one, or Tweak or Clone on an own one.
-- **Outcome:** each editing action opens the definition's Workshop to edit and test, as on that kind's own page. Only the user's own definitions appear beside the built-ins. An unknown kind shows Constructs. Viewing the page changes nothing.
+- **Outcome:** each editing action opens the existing definition editor. Old Constructs and Spellbook collection links redirect to the relevant Workshop tab. Retirement remains available to restore or permanently delete retired definitions. Only the user's own definitions appear beside the built-ins. An unknown kind shows Constructs. Viewing the page changes nothing.
 - **Next:** `use_case_workshop_draft`: test the definition before saving it.
 
 ## use_case_workshop_draft

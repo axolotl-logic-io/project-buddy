@@ -1,23 +1,18 @@
 // The spells list, shared by the Spellbook and the Workshop: the built-in
-// spells, each of which she can customize, and her own, each of which she
+// spells, each of which the user can customize, and the user's own, each of which she
 // can tweak, clone or delete, with a button that crafts a new one.
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import {
   listedPromptIds,
   type SaleState,
 } from "@/marketplace/listing-store.ts";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
-import { RetirementList } from "../retirement/retirement-list.tsx";
 import {
   cloneSpellAction,
   editBuiltInSpellAction,
@@ -141,11 +136,7 @@ function asCard({
   return { id, name, whenToUse: definition.whenToUse };
 }
 
-async function SpellLists({
-  workspace = false,
-}: {
-  readonly workspace?: boolean;
-} = {}): Promise<JSX.Element> {
+async function SpellLists(): Promise<JSX.Element> {
   const user = await requireUser();
   const [own, listed] = await Promise.all([
     listOwnSpells(user.id),
@@ -161,53 +152,7 @@ async function SpellLists({
     }
     return { ...asCard(spell), sale };
   });
-  if (workspace === true) {
-    const retired = await listRetiredDefinitions(user.id);
-    return (
-      <PageWorkspace
-        title={SPELLBOOK_COPY.heading}
-        intro={SPELLBOOK_COPY.intro}
-        action={
-          <form action={newSpellAction}>
-            <Button type="submit">{SPELLBOOK_COPY.newSpell}</Button>
-          </form>
-        }
-      >
-        <WorkspaceTabs
-          label={SPELLBOOK_COPY.heading}
-          sections={[
-            {
-              id: "built-in",
-              label: WORKSPACES_COPY.builtIn,
-              content: (
-                <div className="workspace-rows">
-                  <BuiltInSpellCards spells={listSpells().map(asCard)} />
-                </div>
-              ),
-            },
-            {
-              id: "yours",
-              label: WORKSPACES_COPY.yours,
-              content: (
-                <div className="workspace-rows">
-                  <OwnSpellCards spells={cards} />
-                </div>
-              ),
-            },
-            {
-              id: "retired",
-              label: WORKSPACES_COPY.retired,
-              content: (
-                <div className="flex flex-col gap-4">
-                  <RetirementList definitions={retired} kind="spell" />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </PageWorkspace>
-    );
-  }
+
   return (
     <>
       <section

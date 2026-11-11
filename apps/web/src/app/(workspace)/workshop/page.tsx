@@ -1,8 +1,10 @@
-import type { Metadata, Route } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
+import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import { workshopPath } from "@/routes.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { ActivityLists } from "../activities/activity-lists.tsx";
 import { ConstructLists } from "../constructs/construct-lists.tsx";
@@ -11,14 +13,6 @@ import { SpellLists } from "../spellbook/spell-lists.tsx";
 const QUERY = z.object({
   kind: z.enum(PROMPT_KINDS).catch("construct"),
 });
-
-// The Workshop's address, showing the kind's tab.
-function workshopPath(kind: PromptKind): Route {
-  if (kind === "construct") {
-    return "/workshop";
-  }
-  return `/workshop?kind=${kind}`;
-}
 
 // A link to each kind's tab, the shown one marked, styled as the site's
 // other tabs.
@@ -70,9 +64,11 @@ export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 export default async function WorkshopPage({
   searchParams,
 }: PageProps<"/workshop">): Promise<JSX.Element> {
-  const { kind } = QUERY.parse(await searchParams);
+  const query = await searchParams;
+  const { kind } = QUERY.parse(query);
   return (
     <>
+      <RetirementFeedback completed={query.retired === "1"} />
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
         <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>

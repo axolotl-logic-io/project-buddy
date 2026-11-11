@@ -1,3 +1,6 @@
+import type { Route } from "next";
+import type { PromptKind } from "@/prompts/prompt.ts";
+
 // The app's route paths that code refers to.
 
 // Where a visitor without a session is sent.
@@ -37,6 +40,14 @@ function localPath(value: unknown): string | undefined {
   return undefined;
 }
 
+// The one customization collection, showing the requested prompt kind.
+function workshopPath(kind: PromptKind): Route {
+  if (kind === "construct") {
+    return "/workshop";
+  }
+  return `/workshop?kind=${kind}`;
+}
+
 export {
   HOME_PATH,
   localPath,
@@ -46,4 +57,5 @@ export {
   SIGN_IN_LINK_PATH,
   SIGN_IN_PATH,
   STANDALONE_CHAT_PATH,
+  workshopPath,
 };

@@ -18,6 +18,7 @@ import { isConstructId } from "@/constructs/index.ts";
 import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
 import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
+import { workshopPath } from "@/routes.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 
 const CLONE_CONSTRUCT_FORM = z.object({ sourceId: z.string() });
@@ -61,7 +62,7 @@ export async function cloneConstructAction(formData: FormData): Promise<never> {
   if (form.success) {
     await cloneConstruct(user.id, form.data.sourceId);
   }
-  return redirect("/constructs");
+  return redirect(workshopPath("construct"));
 }
 
 export async function newConstructAction(): Promise<never> {
@@ -157,5 +158,5 @@ export async function retireConstructAction(
     await retireDefinition(user.id, "construct", form.data.constructId);
     revalidatePath("/", "layout");
   }
-  return redirect("/constructs?retired=1");
+  return redirect(`${workshopPath("construct")}?retired=1`);
 }

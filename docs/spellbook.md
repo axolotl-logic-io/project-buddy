@@ -1,6 +1,6 @@
-# Spellbook
+# Spells
 
-Each user has a Spellbook: their list of spells. A spell is a set of instructions that the construct loads only when it needs them, as a skill is in agentic coding. Every adventure's instructions list the user's spells by name and when-to-use line, so a spell's instructions cost tokens only in the adventures that cast it. The [glossary](../GLOSSARY.md#spell) defines the words this page uses.
+Workshop’s Spells tab lists the built-in spells and each user’s private spells. A spell is a set of instructions that the construct loads only when it needs them, as a skill is in agentic coding. Every adventure's instructions list the user's spells by name and when-to-use line, so a spell's instructions cost tokens only in the adventures that cast it. The [glossary](../GLOSSARY.md#spell) defines the words this page uses.
 
 ## Spells
 
@@ -42,9 +42,9 @@ Tool instructions become a spell only when they apply to a minority of replies a
 - **The rules for several people** stay in the adventure's own part of the prompt, which only adventures where several people write get.
 - **The `generate_image` description** keeps the image rules, since they must hold even if the construct casts no spell.
 
-## Spellbook pages
+## Spells pages
 
-The Spellbook page, `/spellbook`, is in the site menu after Constructs and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Retire. Retirement preserves the definition and removes it from future spell lists and casts. Craft spell creates an own spell without copying another, named "New spell", with starter instructions and a separate when-to-use description.
+Workshop’s Spells tab, `/workshop?kind=spell`, lists built-in spells with Customize and private spells with Tweak, Clone and Retire. The former `/spellbook` collection URL redirects there. Retirement preserves retired definitions for restore or permanent deletion; they stay out of future spell choices and casts. Craft spell creates a private spell with starter instructions and a separate when-to-use description.
 
 Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is a form for its name, when-to-use description and instructions, with Retire. Spells without bought lineage also have one Reset prompt to default button. Bought spells and their clones have no reset source; they can still be edited and saved. The instructions reset to the built-in spell it was customized from, or to the starter text for a crafted spell, in the editor only, with Undo reset; Save stores the change.
 

@@ -165,7 +165,7 @@ describe("use_case_customize_construct", () => {
 
     await expectRedirect(
       () => cloneConstructAction(form({ sourceId: copy.id })),
-      "/constructs",
+      "/workshop",
     );
     expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
       "Vellum (clone)",
@@ -225,7 +225,7 @@ describe("use_case_new_construct", () => {
     });
     await expectRedirect(
       () => cloneConstructAction(form({ sourceId: construct.id })),
-      "/constructs",
+      "/workshop",
     );
     expect((await listOwnConstructs(user.id)).at(-1)).toMatchObject({
       name: "Pal (clone)",
