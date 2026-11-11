@@ -7,8 +7,6 @@ const WORKSPACES_COPY = {
   general: "General",
   appearance: "Appearance",
   conversation: "Conversation",
-  allAdventures: "All adventures",
-  questAdventures: "Quest adventures",
   standalone: "Standalone",
   write: "Write",
   preview: "Preview",

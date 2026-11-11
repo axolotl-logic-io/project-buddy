@@ -19,7 +19,7 @@ export const ACCOUNT_COPY = {
   nameBraces: "A name can't hold { or }.",
   goldHeading: "Batteries",
   goldHint:
-    "What your constructs spend on your replies, adventure names, images and check-ins. It doesn't reset.",
+    "What your constructs spend on your replies, images and check-ins. It doesn't reset.",
   signOutHeading: "Signing out",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",

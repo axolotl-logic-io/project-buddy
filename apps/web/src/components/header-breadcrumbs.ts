@@ -1,7 +1,6 @@
 import type { Route } from "next";
 import { getOwnActivity } from "@/activities/activity-store.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
-import { getChat } from "@/chats/store.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
@@ -14,11 +13,6 @@ import { getSpell, isSpellId } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import {
-  CHAT_NAME_COPY,
-  NEW_CHAT_COPY,
-  STANDALONE_CHATS_COPY,
-} from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
@@ -32,6 +26,7 @@ import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 const DETAIL_DEPTH = 2;
@@ -42,14 +37,10 @@ const QUESTS: Breadcrumb = {
   label: PROJECTS_COPY.allProjectsLink,
   href: "/projects",
 };
-const ADVENTURES: Breadcrumb = {
-  label: STANDALONE_CHATS_COPY.backLink,
-  href: "/chat",
-};
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["projects", { label: PROJECTS_COPY.heading, href: "/projects" }],
-    ["chat", { label: STANDALONE_CHATS_COPY.heading, href: "/chat" }],
+    ["chat", { label: STANDALONE_CHAT_COPY.heading, href: "/chat" }],
     ["constructs", { label: CONSTRUCTS_COPY.heading, href: "/constructs" }],
     ["activities", { label: ACTIVITIES_COPY.heading, href: "/activities" }],
     ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
@@ -82,28 +73,6 @@ async function headerBreadcrumbs(
       return [];
     }
     return [HOME, { label: root.label }];
-  }
-  if (section === "chats") {
-    if (id === "new") {
-      return [HOME, ADVENTURES, { label: NEW_CHAT_COPY.heading }];
-    }
-    if (path.length !== DETAIL_DEPTH) {
-      return [];
-    }
-    const chat = await getChat(user, id);
-    if (chat === undefined) {
-      return [];
-    }
-    const parents: Breadcrumb[] = [HOME];
-    if (chat.project === undefined) {
-      parents.push(ADVENTURES);
-    } else {
-      parents.push(QUESTS, {
-        label: chat.project.name,
-        href: `/projects/${chat.project.id}`,
-      });
-    }
-    return [...parents, { label: chat.name ?? CHAT_NAME_COPY.fallback }];
   }
   if (section === "projects") {
     if (

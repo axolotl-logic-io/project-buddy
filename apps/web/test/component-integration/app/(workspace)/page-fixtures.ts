@@ -1,8 +1,10 @@
 // Stored projects, chats and milestones for the page tests, shaped as the project and chat
 // stores return them, with fixed canonical UUID ids from the id fixtures.
 
+import { getActivity } from "@/activities/index.ts";
 import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
 import { getConstruct, snapshotOf } from "@/constructs/index.ts";
+import type { Conversation } from "@/conversations/conversation-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import type { ProjectMember } from "@/projects/members-store.ts";
 import type { Project } from "@/projects/store.ts";
@@ -93,9 +95,17 @@ const FOX_PROJECT_AS_MEMBER: Project = {
   shared: true,
 };
 
+// The fox project's one conversation, in its default activity.
+const { id, name, definition } = getActivity("open-chat");
+const FOX_CONVERSATION: Conversation = {
+  ...FOX_CHAT,
+  activity: { id, name, definition },
+};
+
 export {
   FOX_BODY_MILESTONE,
   FOX_CHAT,
+  FOX_CONVERSATION,
   FOX_MEMBER,
   FOX_MILESTONES,
   FOX_OWNER,

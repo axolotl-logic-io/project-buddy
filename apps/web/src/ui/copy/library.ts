@@ -44,16 +44,16 @@ const LIBRARY_COPY: {
       chapters: [
         {
           id: "first-adventure",
-          title: "Start your first adventure",
+          title: "Start talking or start a quest",
           links: [
-            { href: "/chat", label: "Start an adventure" },
+            { href: "/chat", label: "Open Chat" },
             { href: "/projects", label: "Open Quests" },
           ],
           paragraphs: [
-            "An adventure is a conversation with one construct. A quest is something you want to make or learn over several adventures, and its adventures share a Journal and a progress timeline. To explore an idea before you commit to it, start a standalone adventure.",
-            "To start, open Adventures and choose a construct. Then choose an activity for the kind of help you want. Tell the construct your goal and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.”",
+            "Chat is your private conversation with a construct, for talking without a goal. A quest is something you want to learn, make or do. Each quest has one continuing conversation, with its Journal, plan and progress beside it.",
+            "To explore an idea, open Chat and tell the construct what you are thinking about and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.” When the idea becomes a goal, choose Start a quest from this. You edit the new quest’s name and Journal before anything is made, and your Chat stays private.",
             "Each part has its own job. The construct brings a voice and habits, the activity brings an approach, and spells add focused instructions when they fit.",
-            "To work toward a goal over time, open Quests and choose Start Quest. Review the summary the site proposes before you confirm it, then choose a construct and a first activity. Later adventures in the quest can use a different construct.",
+            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name, a starting Journal and an approach; change any of them and the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
             "The construct’s first message is its opening. Reply with what you need now, and ask for a smaller step or a clearer explanation if an answer is too broad. AI answers can be wrong, so check advice that matters.",
           ],
         },
@@ -63,12 +63,12 @@ const LIBRARY_COPY: {
           links: [{ href: "/projects", label: "Find your quests" }],
           paragraphs: [
             "The header shows where you are. Its links lead back through the pages that contain this one, up to Home.",
-            "To find a conversation, open Adventures. Its tabs show all adventures, quest adventures and standalone adventures, and you can show one quest’s adventures only. To make an adventure easy to recognize, rename it; the site then stops naming it for you.",
-            "To find a quest, open Quests. Its tabs show Active, Completed, Abandoned and Premade quests. A quest’s page holds its adventures, Journal, plan, progress, Quick Notes, Journal versions, and members and check-ins. If you own the quest, rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
+            "Chat is always one conversation, so open Chat to carry on where you left off. A quest’s conversation opens with the quest.",
+            "To find a quest, open Quests, or follow Continue on Home. Its tabs show Active, Completed and Abandoned quests, and a quest with messages you haven’t read, such as a check-in, is marked New messages. A quest opens on its conversation, with its Journal, plan, progress, Quick Notes, Journal versions, and members and check-ins one tap away. If you own the quest, rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
             "The Journal holds what a quest needs to remember: its goals, preferences, limits and agreed plans. The construct is asked to save useful information there, and you can read and edit it yourself. If a reply misunderstands your goal, check the Journal first.",
-            "To note something without a conversation, save a Quick Note. Quick Notes become part of the Journal, so later quest adventures can use them. An adventure doesn’t see other adventures’ conversations, so keep lasting information in the Journal.",
-            "For example, save “The shelf gets sun only in the morning” as a Quick Note. In a later quest adventure, ask which plants would suit it. A standalone adventure has no Journal.",
-            "A quest’s plan holds its remaining steps, in order, and its first open step is the quest’s next step. Your construct keeps it with you in adventures. You can change it yourself in the quest’s Plan section, in the Plan panel beside an adventure, or with commands in the message box: type / to see them. Commands such as /done, /add and /move run at once and spend no batteries.",
+            "To note something without a conversation, save a Quick Note. Quick Notes become part of the Journal, so the quest’s replies can use them. Replies read the Journal and the newest part of the conversation, so keep lasting information in the Journal.",
+            "For example, save “The shelf gets sun only in the morning” as a Quick Note. Later in the quest’s conversation, ask which plants would suit it. Chat has no Journal.",
+            "A quest’s plan holds its remaining steps, in order, and its first open step is the quest’s next step. Your construct keeps it with you in the quest’s conversation. You can change it yourself in the quest’s Plan section, in the Plan panel beside the conversation, or with commands in the message box: type / to see them. Commands such as /done, /add and /move run at once and spend no batteries.",
           ],
         },
         {
@@ -86,23 +86,23 @@ const LIBRARY_COPY: {
             "Constructs, Activities and Spellbook each show the built-in ones, your own and the ones you’ve retired, in tabs. To make your own, choose Craft in the page’s heading, or Customize on a built-in one to start from a copy.",
             "Workshop is where you edit and test. Edit one section of the instructions at a time, then choose Try your draft to test it in a drawer before you save. Back to editing or Escape closes the drawer, and reopening it brings your test back. Tests disappear when you leave or reload the page.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a test sends to the model.",
-            "Batteries pay for model use: replies, generated openings, automatic adventure names, Workshop tests and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
-            "Under each reply, the adventure shows what it cost you, to one decimal place. That cost includes any retries, images and automatic adventure name the reply needed. Your balance shows whole batteries.",
+            "Batteries pay for model use: replies, generated openings, Workshop tests and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
+            "Under each reply, the conversation shows what it cost you, to one decimal place. That cost includes any retries and images the reply needed. Your balance shows whole batteries.",
             "Account shows your name under Profile, your balance and whether you can buy more batteries under Batteries, and the sign-out controls under Security. Settings holds General, Appearance, Extras and Notifications.",
             "In the Marketplace, people share copies of their own constructs, activities and spells, and buy them with orbs. Orbs are separate from batteries: you can’t turn one into the other, and selling never earns batteries. The Marketplace says whether buying is open.",
           ],
         },
       ],
       action: {
-        href: "/chat",
-        label: "Open Adventures",
+        href: "/projects",
+        label: "Start a quest",
       },
     },
     {
       id: "constructs",
       title: "Constructs",
       intro:
-        "A construct is the character you work with: its voice, habits and way of explaining. Choose one when you start an adventure; choose an activity for what you want to do.",
+        "A construct is the character you work with: its voice, habits and way of explaining. Choose one when you start a quest; an activity guides what you do.",
       chapters: [
         {
           id: "character",
@@ -112,7 +112,7 @@ const LIBRARY_COPY: {
             "A construct has a name, instructions and an appearance. In the editor, its instructions are the Prompt field under Instructions, and they start with a Character Sheet heading. Headings inside the sheet organize one text; they aren’t separate settings.",
             "The construct sets the voice. An activity guides what you do in the current session, and a spell adds focused instructions when the construct casts it.",
             "The Visual description shapes the construct’s artwork only. It never reaches the conversation, and the artwork doesn’t teach the construct its personality. Write how it talks and works in the Character Sheet, even when the artwork suggests it.",
-            "An adventure keeps the construct as it was when the adventure started. A saved change to the name or instructions affects new adventures only. A quest’s first construct is a starting choice: later adventures can use another.",
+            "A quest keeps its construct as it was when the quest started. A saved change to the name or instructions affects new quests only. Chat uses the default construct.",
           ],
         },
         {
@@ -139,8 +139,8 @@ const LIBRARY_COPY: {
           ],
           paragraphs: [
             "Choose Try your draft, then choose an activity under Test activity. Try “I have one sunny shelf. What should I do first?” and check that Moss offers a small, concrete experiment. Then try an unrelated request, to check that Moss doesn’t steer every answer back to gardening.",
-            "Change one habit at a time, then choose New test. A follow-up continues the same test, but editing the draft or the test settings marks the replies out of date, and your next test starts fresh. When the replies help, save, then start a new adventure with the construct.",
-            "Tests are real model calls and spend batteries, but they save no adventure and change no quest. Only spell casting works in a test, so a test can’t show Journal edits, manual searches or images. A friendly greeting alone doesn’t prove that the construct gives reliable help.",
+            "Change one habit at a time, then choose New test. A follow-up continues the same test, but editing the draft or the test settings marks the replies out of date, and your next test starts fresh. When the replies help, save, then start a quest with the construct.",
+            "Tests are real model calls and spend batteries, but they save no conversation and change no quest. Only spell casting works in a test, so a test can’t show Journal edits, manual searches or images. A friendly greeting alone doesn’t prove that the construct gives reliable help.",
           ],
         },
       ],
@@ -161,8 +161,8 @@ const LIBRARY_COPY: {
           links: [],
           paragraphs: [
             "Before it casts a spell, the construct sees each spell’s name and When to use line, not its instructions. It uses them to decide whether a spell fits your request. It can miss a spell that fits, or cast one that doesn’t.",
-            "When the construct casts a spell, it receives the spell’s instructions, the Spell Sheet in its Instructions field. The adventure shows the cast by the spell’s name and keeps the instructions private. A spell adds instructions only: it grants no tools or permissions.",
-            "A cast keeps the instructions as they were then. Editing or deleting the spell later doesn’t change past casts, which keep guiding later replies in that adventure. In a team quest, those can be replies to other members, though your spell itself stays private.",
+            "When the construct casts a spell, it receives the spell’s instructions, the Spell Sheet in its Instructions field. The conversation shows the cast by the spell’s name and keeps the instructions private. A spell adds instructions only: it grants no tools or permissions.",
+            "A cast keeps the instructions as they were then. Editing or deleting the spell later doesn’t change past casts, which keep guiding later replies in that conversation. In a team quest, those can be replies to other members, though your spell itself stays private.",
           ],
         },
         {
@@ -172,7 +172,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "To make a spell, open Spellbook or Workshop, then customize a built-in spell, clone one of yours, or choose Craft spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
             "For example, name a spell “Compare options”, with the When to use line “When the user needs to choose between two or more approaches with trade-offs.” Its Spell Sheet says: “List the options and the user’s stated constraints. Compare effort, reversibility and likely benefit. Separate known facts from assumptions. Recommend one small experiment. Ask at most one question if a missing constraint changes the choice.”",
-            "Keep the When to use line short: every adventure’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset. A copy bought in the Marketplace has nothing to reset to.",
+            "Keep the When to use line short: every conversation’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset. A copy bought in the Marketplace has nothing to reset to.",
           ],
         },
         {
@@ -188,7 +188,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "Choose Try your draft, then choose a Test construct and a Test activity. Leave Let the construct decide selected and ask “Should I plant basil or mint on my sunny shelf?” Check that the construct casts the spell, then judge the comparison. Also try a request that shouldn’t need it, such as “Say hello.”",
             "To test the instructions on their own, choose Cast before replying. A good reply then tells you nothing about whether the construct would choose the spell itself. If the forced reply is good but the construct doesn’t cast the spell on its own, improve the When to use line and start a new test.",
-            "Follow-ups keep the test conversation and the spells already cast, and each request reads the spell’s current draft. Unlike an adventure, a test doesn’t keep the text of earlier casts. Try several realistic requests: one good example can’t promise how the construct will choose next time.",
+            "Follow-ups keep the test conversation and the spells already cast, and each request reads the spell’s current draft. Unlike a conversation, a test doesn’t keep the text of earlier casts. Try several realistic requests: one good example can’t promise how the construct will choose next time.",
           ],
         },
       ],
@@ -201,16 +201,16 @@ const LIBRARY_COPY: {
       id: "activities",
       title: "Activities",
       intro:
-        "An activity shapes what happens in an adventure: planning, exploring or working through a task. It combines with the construct’s voice and any spells the construct casts.",
+        "An activity shapes what happens in a conversation: planning, exploring or working through a task. It combines with the construct’s voice and any spells the construct casts.",
       chapters: [
         {
           id: "sessions",
           title: "Activity sessions",
           links: [],
           paragraphs: [
-            "Choose an activity when you start an adventure. To switch, ask the construct: it can change to any activity you have. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
-            "A session keeps the activity as it was when the session started, so later edits to the activity don’t change it. The adventure shows which activity it changed to, not the activity’s instructions.",
-            "The Activity Sheet heading starts the Instructions field. The separate Opening request asks the construct for its first message when a new adventure needs one written. It isn’t repeated with every reply, and changing activity during an adventure doesn’t replay it.",
+            "Choose an activity when you start a quest, or start one from its card on Activities. To switch, ask the construct: it can change to any activity you have. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
+            "A session keeps the activity as it was when the session started, so later edits to the activity don’t change it. The conversation shows which activity it changed to, not the activity’s instructions.",
+            "The Activity Sheet heading starts the Instructions field. The separate Opening request asks the construct for its first message when a new quest needs one written. It isn’t repeated with every reply, and changing activity during a conversation doesn’t replay it.",
           ],
         },
         {

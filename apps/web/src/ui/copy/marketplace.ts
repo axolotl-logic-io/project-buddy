@@ -143,7 +143,7 @@ export const LISTING_COPY = {
   legacy:
     "Legacy listing: unavailable until the seller chooses a price from 0 to 5 orbs. Historical gold prices are not converted.",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the adventures you use it in, and in a team quest's adventure they also guide replies to the quest's members. They can't widen what the model reaches: only the quests and adventures accessible to the person requesting the reply, including team quests they have joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the conversations you use it in, and in a team quest's conversation they also guide replies to the quest's members. They can't widen what the model reaches: only the quests and conversations accessible to the person requesting the reply, including team quests they have joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
   buy: (orbs: number): string => {
     if (orbs === 0) {
       return "Get for free";

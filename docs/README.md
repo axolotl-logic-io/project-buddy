@@ -10,7 +10,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Battery purchases](battery-purchases.md): test-mode Stripe Checkout, payment audit, launch blockers and replay.
 - [Batteries](batteries.md): model-use terminology, accounting compatibility and purchase availability.
 
-- [Premade quests](premade-quests.md): the Quest library, editable starting Journals and ordinary quest creation.
+- [Premade quests](premade-quests.md): the four starting points, Dailies, and the one quest start.
 
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
 

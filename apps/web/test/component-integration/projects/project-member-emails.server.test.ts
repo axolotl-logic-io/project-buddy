@@ -76,7 +76,7 @@ async function pageHtml(user: User, projectId: ProjectId): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "members" }),
     }),
   );
 }

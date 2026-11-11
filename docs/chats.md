@@ -1,4 +1,4 @@
-# Adventures
+# Conversations
 
 ## Conversations
 
@@ -20,61 +20,21 @@ when available. Failed openings save nothing and keep the construct choice and
 Why for retry. Cancel, Close and Escape create nothing. The premade quest
 previews remain separate and keep their editable name, Journal and activity.
 
-## Standalone adventure
+## Chat
 
-The current `/chat` page is the signed-in user's **Adventures** hub, not a single
-standalone conversation and not a standalone-only list (#472, #482). This page
-describes the hub, filtering and conversation workflows.
+`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: quest members can't open it, and old addresses of it reveal nothing to anyone else.
 
-The atlas at `/home` is the landing page after sign-in. `/` redirects there,
-and so do the header's site name and the pages' "Home" links. The new-adventure form
-remains at `/chats/new`, including activity and quest start links. The signed-in site menu links to Adventures and Quests. Every conversation, including the
-original standalone adventure, opens at its existing `/chats/[chatId]` address. Quest
-conversations link back to their quest; standalone conversations link back to
-Adventures. The conversation routes use `ChatScreen` and retain their existing
-history, construct and keyboard/composer behavior. `/chat` is a Server Component,
-not a conversation screen, for finding an adventure again: the list of adventures and its
-quest filter lead the page (#588).
+Chat has no Journal, plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
 
-Starting a standalone adventure requires no quest. The Adventures page's "New adventure"
-button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
-new-adventure form. The dialog is named "New adventure", takes and keeps focus, and
-closes with Escape or its close button, returning focus to the button; Escape
-in the construct picker's open list closes only the list. That form, like
-the new adventure page at `/chats/new`, offers an accessible Active quest or "No quest", an
-activity and a construct, built in or the user's own, with Chat and Vellum
-chosen initially. Starting saves the adventure with the construct's opening; it makes no
-quest, unless "New quest" is chosen.
+### Start a quest from this
 
-Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
+Chat's header offers **Start a quest from this**. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
 
-The Constructs page and the Workshop's Constructs tab label each saved-adventure
-action “Adventure with [construct name]”, using the full name in both the visible
-label and accessible name. It opens the New adventure dialog with that construct
-fixed. Closing creates nothing. Construct detail pages offer editing and temporary
-Workshop tests rather than a saved-adventure start action.
+The construct can also propose a quest with `create_project`. The user edits and confirms the proposed summary in the conversation, and the result links to the new quest.
 
-A quest's page has its own "New adventure" button (#670, replacing the form
-#536 embedded there), so the quest's adventures lead the page. The form is
-closed when the page opens or reloads. The button opens the same kind of
-dialog, with the form's activity and construct but no quest field: given a
-`projectId`, `NewChatForm` sends that quest in a hidden field and starts
-every adventure in it, in whichever activity is chosen.
+### Old addresses
 
-The form can also start a new quest. Activity, construct and quest choices are independent: every activity, including one of the user's own, supports no quest, an existing quest or a new quest. Start adventure with a new quest opens a second dialog for its name and optional motivation. Cancel keeps the choices. The action creates the quest and first adventure together through `startProject`, in the selected activity and construct. Invalid names or failed openings save nothing.
-
-Built-in constructs and activities have prepared openings when no motivation is supplied. Edited definitions need a generated opening. With motivation, the construct acknowledges it and follows the chosen activity; the motivation becomes the first Journal version.
-
-Merely viewing the Adventures page, or opening and closing its dialog, creates
-nothing. Standalone adventures started before they
-got openings remain accessible alongside later ones, with their history and
-construct unchanged.
-
-A standalone conversation has no Journal and no [progress timeline](progress-timeline.md), so it
-can't record milestones. Its construct can search and cite the Blender manual, change
-the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
-move the standalone conversation into the quest. The new quest's
-first adventure opens in Break Down a Project through the link the adventure shows.
+`/chats/[chatId]` is a redirect kept for links, bookmarks and emails. `resolveConversation` sends the viewer to the quest that owns the conversation when they can open it, to `/chat` for their own Chat, and otherwise to not found. A foreign, removed or malformed id is not found, so the address reveals nothing. `/chats/new` redirects to `/chat` and makes nothing.
 
 ## Home atlas
 
@@ -163,115 +123,22 @@ no model call. Unread check-ins (#609) can join Today as another part above
 the quests: add a list to the `Today` type in `src/today/today.ts` and a
 part to `TodaySection` in `src/components/today-section.tsx`.
 
-## Activities
+## Activities and constructs
 
-Find something to make (`find-something-to-make`) helps the user discover a small achievable creative project without needing an idea or inspiration source first. The construct explores interests, energy, available materials and constraints one manageable question at a time. It helps with uncertainty, perfectionism, missing skills and limited materials, and continues supporting the user after they choose an idea.
+Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
 
-Use it without a quest, in an existing quest or with a new quest through the normal adventure form. Vellum and Lumen have prepared openings; edited definitions and new quests with motivation use generated openings. In a quest, the construct uses its existing Journal and the usual tool rules. A standalone adventure has no Journal or quest progress. Suggested milestones remain plans until meaningful work is reported completed.
+On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. The start opens on the starting point built on the chosen activity, such as Make a thing for Find something to make, and otherwise on Do a thing, so most starts need only a name. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
 
-Every adventure is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
-
-Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Break Down a Project. The quest creation form defaults to Break Down a Project. An adventure records each
-activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
-`select_activity` tool. Its in-adventure result shows the activity it entered,
-including while the reply streams and after reopening the adventure. Saved activity
-sessions persist and apply to subsequent replies. Active standalone and quest
-adventures have no Activity dropdown, label, or selection progress and error UI
-(#580 supersedes the selector requirements in #561 and #562). Activity selection
-on the new-adventure forms and activity management remain available. See the
-[activities use cases](../apps/web/use-cases/activities.md).
-
-## All adventures and quest filtering
-
-The hub lists every adventure open to the viewer: their standalone adventures and the
-adventures of each quest they own or are a [member](../GLOSSARY.md#member) of,
-newest first by creation time (descending id breaks ties). Each links to its
-existing conversation. There is no adventure-name search or separate No quest
-filter.
-
-Above the list, **Quest** offers **All** and only accessible Active quests by
-name: their own and the team quests they've joined. The page loads the
-viewer's complete adventure list, even when opened with a
-quest filter. Selecting a quest immediately filters those loaded adventures in
-the browser, without submitting a form, navigating or requesting another list.
-Selecting All restores the loaded list in its original order. Each change
-replaces the current address with `/chat?project=<id>` (or removes `project` for
-All), so a valid choice stays selected on reload or when reopening a
-saved URL. A quest of the viewer's with no adventures stays selected and shows the usual
-empty-adventure message.
-
-The page resolves the raw URL value against the viewer's quest choices.
-Missing, empty, malformed, unknown, foreign or array-valued values (including
-repeated parameters with either equal or different values) all mean All.
-Foreign and nonexistent quest ids give the same choices and results, without
-a not-found response or disclosure of another user's quest. Sharing a filter
-URL does not grant access: another viewer sees their own All list unless the
-selected quest is theirs or they are a member of it. Selecting All restores
-the full list.
-
-## Quest badges and phones
-
-Only the all-adventures page opts into quest-name badges. A quest adventure displays
-its quest's name outside the conversation link; a standalone adventure has no
-badge. The accessible link name remains the adventure name and construct, or just the
-construct when unnamed. The adventure-names extra still controls adventure-name visibility.
-Quest pages keep their existing quest-only list without badges.
-
-The selector uses the semantic theme tokens and
-`--target-size` controls. Long unbroken quest names truncate in badges rather
-than expanding the page. Browser tests exercise the assembled page at 320 and
-390 pixels in every theme and both modes, alongside the selector's dedicated
-selected-state and target-size tests.
+Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
 ## Behavioral evidence
 
-The [adventure use cases](../apps/web/use-cases/chats.md) define
-`use_case_list_all_chats`, `use_case_filter_chats_by_project`,
-`use_case_chat_project_badge` and `use_case_today_on_landing`, with exactly
-slug-titled Vitest groups.
+The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_standalone_chat`, `use_case_talk_idea_through` and `use_case_project_from_standalone_chat`, with exactly slug-titled Vitest groups.
 
-- `apps/web/test/app/(workspace)/chat/page.server.test.ts` composes the actual
-  page and stores with isolated signed-in users: mixed ordering across multiple
-  quests, ordered quest filtering, empty quests, invalid URL fallbacks,
-  foreign choices and shared URLs.
-- `apps/web/test/component-integration/components/new-chat-dialog.browser.test.tsx`
-  checks the "New adventure" dialog: its name, the form's default choices, focus
-  kept inside, closing by Escape or the close button with focus returned, and
-  that opening and closing it sends nothing. The phone checks
-  (`phone-pages.touch.browser.test.tsx`) measure the open dialog too.
-- `apps/web/test/components/chat-project-filter-behavior.browser.test.tsx`
-  checks immediate local filtering, switching back to All, empty states and
-  address updates without fetching another list.
-- `page.touch.browser.test.tsx` checks the complete phone layout, including
-  long quest badges. `test/components/chat-list.browser.test.tsx` checks
-  badge visibility, accessible link names, colors and containment under
-  `use_case_chat_project_badge`. The former jsdom `page.test.tsx` checks of
-  controls, native GET serialization and query arguments were removed in #508.
-- `apps/web/test/app/(workspace)/projects/[projectId]/page.server.test.ts`
-  checks the quest page's form, with the quest chosen and no foreign
-  choices, and `page.browser.test.tsx` beside it checks that the form sends
-  the quest, shows progress, and stays on the page when the adventure can't
-  start.
-- `apps/web/test/component-integration/today/today.server.test.ts` checks
-  what Today reads under `use_case_today_on_landing`: ordering by activity,
-  next steps from the Journal, Continue adventures, no repeated adventures, the limit,
-  another user's data and a new user's empty Today.
-- `apps/web/test/component-integration/app/(workspace)/chats/new/page.browser.test.tsx`
-  checks the landing page's Today section: the next step, the Continue and
-  adventure links, the keyboard order, and the form alone for a new user. The
-  phone checks measure Today with long names.
-- `apps/web/test/component/memory/next-step.test.ts` checks reading the next
-  step from the Journal.
-- `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
-  predicates, ordering and row conversion, including real-database isolation.
-- Existing standalone-conversation tests continue to cover starting and
-  reopening adventures, history and construct preservation. The former jsdom checks of
-  the quest page's badge-free output were removed in #508.
+- `apps/web/test/component-integration/app/(workspace)/chat/page.server.test.ts` opens Chat repeatedly as two users with the real stores: one conversation each, nothing spent on the way in, no other user sees it, and old addresses redirect or are not found as above.
+- `apps/web/test/component/start-work/chat-summary-draft.test.ts` checks the draft Journal.
 
-Adventure behavior stays in Vitest. Playwright covers authentication flows only.
-Server and authentication runs require the non-production test database and
-mock model, guarded by `checkTestEnvironment`; never substitute a production
-database or a real model.
+Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
 ## Check-ins
 
@@ -294,6 +161,10 @@ Unread marks are per user. A row in `chat_unreads` marks one conversation unread
 `Project.unread` (`src/projects/store.ts`) says whether the quest's conversation is unread for the user reading it, so quest lists show the viewer's own mark. Opening the conversation clears the viewer's mark and no one else's (`markChatRead`).
 
 The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one conversation stay apart.
+
+## Conversation header
+
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Start a quest from this. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 
