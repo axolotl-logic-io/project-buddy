@@ -3,6 +3,7 @@
 // made atomically, never made by reading, open to the quest's people or to
 // the Chat's user alone, and the user's one Dailies quest, reused by its
 // mark whatever its name.
+import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
@@ -17,9 +18,15 @@ import {
   startProject,
   startQuestConversation,
 } from "@/conversations/start-quest.ts";
+import { getDb } from "@/db/client.ts";
+import { chats } from "@/db/tables/projects-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { readMemory, saveMemory } from "@/memory/memory-store.ts";
+import {
+  listMilestones,
+  recordMilestone,
+} from "@/milestones/milestone-store.ts";
 import {
   addProjectMember,
   removeProjectMember,
@@ -156,6 +163,26 @@ describe("a quest's conversation", () => {
       kind: "quest",
       projectId: project.id,
     });
+  });
+});
+
+describe("a quest's Progress", () => {
+  test("a milestone stays on the timeline, with no conversation, once its conversation is gone", async () => {
+    const user = await testUser();
+    const data = testData(user);
+    const project = await data.project();
+    const chat = await data.chat(project);
+    await recordMilestone(
+      user.id,
+      { projectId: project.id, chatId: chat.id },
+      "Modelled the shell",
+    );
+
+    await getDb().delete(chats).where(eq(chats.id, chat.id));
+
+    expect(await listMilestones(user.id, project.id)).toMatchObject([
+      { text: "Modelled the shell", chatId: undefined },
+    ]);
   });
 });
 

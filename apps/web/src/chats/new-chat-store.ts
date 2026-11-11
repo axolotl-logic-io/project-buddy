@@ -153,18 +153,19 @@ export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
     .getSQL();
 }
 
-// The owner's project's conversation, new, with no messages and no activity
-// session. Rejects with the not-found case if the project is another user's,
-// and fails if it has a conversation already. The site starts every
-// conversation with the construct's opening (src/conversations/); tests make
-// empty ones.
+// A new chat in the owner's project, with no messages and no activity
+// session: the project's conversation when it has none yet, and otherwise
+// an adventure, as the multi-adventure pages still in this release make
+// them. Rejects with the not-found case if the project is another user's.
+// The site starts every conversation with the construct's opening
+// (src/conversations/); tests make empty ones.
 export function createChat(
   owner: UserId,
   chat: NewProjectChat,
 ): Promise<ProjectChat> {
   return withAppErrors("createChat", () =>
     inTransaction(async (tx) => {
-      const created = await tx
+      const conversation = await tx
         .insert(chats)
         .select(
           newChatRow(
@@ -173,7 +174,15 @@ export function createChat(
             randomId(parseChatId),
           ),
         )
+        .onConflictDoNothing()
         .returning();
+      let created = conversation;
+      if (conversation.length === 0) {
+        created = await tx
+          .insert(chats)
+          .select(newChatRow(owner, chat, randomId(parseChatId)))
+          .returning();
+      }
       const result = insertedProjectChat(created, chat.project);
       await grantVisualAssets(
         owner,
