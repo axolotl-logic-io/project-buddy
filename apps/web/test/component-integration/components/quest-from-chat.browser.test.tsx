@@ -47,18 +47,10 @@ describe("use_case_project_from_standalone_chat", () => {
     await expect.element(journal).toHaveValue(SUMMARY);
     await doIt.getByRole("button", { name: QUEST_START_COPY.back }).click();
     await expect
-      .element(
-        page.getByRole("button", {
-          name: QUEST_START_COPY.chooseLabel("Make a thing"),
-        }),
-      )
+      .element(page.getByRole("button", { name: "Make a thing", exact: true }))
       .toBeVisible();
     await expect
-      .element(
-        page.getByRole("button", {
-          name: QUEST_START_COPY.chooseLabel("Dailies"),
-        }),
-      )
+      .element(page.getByRole("button", { name: "Dailies", exact: true }))
       .not.toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
