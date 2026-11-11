@@ -21,6 +21,8 @@ const FOX_PROJECT: Project = {
   statusRevision: 0,
   role: "owner",
   shared: false,
+  dailies: false,
+  unread: false,
 };
 
 // A chat in the fox project, not named yet.

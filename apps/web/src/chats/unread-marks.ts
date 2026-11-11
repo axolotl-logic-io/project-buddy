@@ -23,9 +23,19 @@ function unreadFor(viewer: UserId): SQL.Aliased<boolean> {
 }
 
 // Whether the conversation of the `projects` row the query reads is unread
-// for viewer, as a boolean.
-function questUnreadFor(viewer: UserId): SQL<boolean> {
-  return sql<boolean>`exists (select 1 from ${chatUnreads} inner join ${chats} on ${chats.id} = ${chatUnreads.chatId} where ${chats.projectId} = ${projects.id} and ${chats.continuing} and ${chatUnreadOwnedBy(viewer)})`;
+// for viewer, as a boolean column.
+function questUnreadFor(viewer: UserId): SQL.Aliased<boolean> {
+  return sql<boolean>`exists (${new QueryBuilder()
+    .select({ chatId: chatUnreads.chatId })
+    .from(chatUnreads)
+    .innerJoin(chats, eq(chats.id, chatUnreads.chatId))
+    .where(
+      and(
+        eq(chats.projectId, projects.id),
+        eq(chats.continuing, true),
+        chatUnreadOwnedBy(viewer),
+      ),
+    )})`.as("unread");
 }
 
 // True when the `chats` row the query reads is still unread for the owner

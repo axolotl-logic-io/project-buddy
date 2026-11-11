@@ -1,8 +1,7 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
-import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -55,13 +54,10 @@ const FAKE_IMAGE: GeneratedImage = {
 
 async function setup(): Promise<{
   user: Awaited<ReturnType<typeof testUser>>;
-  chat: Awaited<ReturnType<typeof createStandaloneChat>>;
+  chat: Awaited<ReturnType<typeof privateChat>>;
 }> {
   const user = await testUser();
-  const chat = await createStandaloneChat(
-    user.id,
-    getConstruct(DEFAULT_CONSTRUCT_ID),
-  );
+  const chat = await privateChat(user.id);
   return { user, chat };
 }
 

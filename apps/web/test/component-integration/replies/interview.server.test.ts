@@ -14,9 +14,10 @@ import {
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
-import { startChat, startProject } from "@/chats/start-chat.ts";
+import { startChat } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { getProject } from "@/projects/store.ts";
