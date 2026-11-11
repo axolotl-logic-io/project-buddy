@@ -3,9 +3,9 @@
 // and chats.
 
 import type { UIMessage } from "ai";
-import type { SignInLinkUser } from "@/accounts/sign-in-links.ts";
 import type { OwnActivity } from "@/activities/activity-store.ts";
 import { getActivity } from "@/activities/index.ts";
+import type { SessionUser } from "@/auth/session-token.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
@@ -63,12 +63,9 @@ const VELLUM_CLONE: OwnConstruct = {
 };
 
 // The user a sign-in link that works signs in.
-const LINK_USER: SignInLinkUser = {
-  user: {
-    id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
-    sessionEpoch: 0,
-  },
-  hiddenExtras: [],
+const LINK_USER: SessionUser = {
+  id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
+  sessionEpoch: 0,
 };
 
 // Her gold, in micro-USD: 87 gold.

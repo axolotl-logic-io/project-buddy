@@ -241,6 +241,7 @@ describe("use_case_stop_reply", () => {
       const acknowledged =
         Promise.withResolvers<Awaited<ReturnType<typeof stopReplyAction>>>();
       vi.mocked(stopReplyAction).mockReturnValueOnce(acknowledged.promise);
+      refresh.mockClear();
       await page.getByRole("button", { name: CHAT_COPY.stop }).click();
       await expect.element(page.getByText(CHAT_COPY.stopping)).toBeVisible();
       await expect
@@ -251,6 +252,9 @@ describe("use_case_stop_reply", () => {
         messageId: STOPPED.id,
       });
       acknowledged.resolve("active");
+      // The page showing the conversation, a quest's or Chat, is refreshed
+      // once the stop is acknowledged.
+      await expect.poll(() => refresh.mock.calls.length).toBeGreaterThan(0);
       output?.enqueue({ type: "abort" });
       output?.close();
       output = undefined;

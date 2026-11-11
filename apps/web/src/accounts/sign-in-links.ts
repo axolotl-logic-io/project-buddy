@@ -137,20 +137,13 @@ async function requestSignInLink(request: SignInLinkRequest): Promise<void> {
   after(() => emailSignInLink(request, origin));
 }
 
-// The user a sign-in link signs in, with the extras her account hides, read
-// in the same query so signing in needn't read her again to seed them.
-interface SignInLinkUser {
-  readonly user: SessionUser;
-  readonly hiddenExtras: readonly string[];
-}
-
-// The user the token's link signs in, with her hidden extras, or undefined
+// The user the token's link signs in, or undefined
 // if the token is not one the site made, or its link has expired or been
 // deleted. Reads nothing for a token of the wrong form.
 async function readSignInLinkUser(
   token: string,
   now: Date,
-): Promise<SignInLinkUser | undefined> {
+): Promise<SessionUser | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
   }
@@ -160,7 +153,6 @@ async function readSignInLinkUser(
       .select({
         id: users.id,
         sessionEpoch: users.sessionEpoch,
-        hiddenExtras: users.hiddenExtras,
       })
       .from(signInLinks)
       .innerJoin(users, eq(users.id, signInLinks.userId))
@@ -175,13 +167,10 @@ async function readSignInLinkUser(
   if (row === undefined || id === undefined) {
     return undefined;
   }
-  return {
-    user: { id, sessionEpoch: row.sessionEpoch },
-    hiddenExtras: row.hiddenExtras,
-  };
+  return { id, sessionEpoch: row.sessionEpoch };
 }
 
-export type { SignInLinkRequest, SignInLinkUser };
+export type { SignInLinkRequest };
 export {
   newSignInLinkUrl,
   readSignInLinkUser,

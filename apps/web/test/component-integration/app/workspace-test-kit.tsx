@@ -3,11 +3,6 @@ import { vi } from "vitest";
 
 import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
 
-vi.mock(
-  "@/components/refresh-preferences.tsx",
-  () => import("./refresh-preferences-test-kit.ts"),
-);
-
 vi.mock("@/batteries/catalog.ts", () => ({
   availableBatteryCatalog: () => [],
 }));
