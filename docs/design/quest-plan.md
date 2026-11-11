@@ -12,7 +12,7 @@ The Journal is one Markdown document that the construct changes with `update_mem
 - The user can only change the plan by editing Markdown on the Journal page.
 - The site can't show progress through the plan, reorder it, or check off a step, because it has no steps to work with.
 
-Quick Notes already show the way: a typed piece of the Journal that one module owns (`src/notes/note.ts`), which the user changes without a model call. The plan goes one step further, out of the Markdown and into its own storage.
+The plan lives outside the Journal Markdown in its own storage and can change without a model call.
 
 ## Names
 
@@ -109,7 +109,7 @@ Each phase ships on its own and leaves the site working. Each moves one piece of
 4. **In-adventure editing.** Ship the chosen candidate: the side panel, the commands, or both.
 5. **Goals.** A typed Goal section with a `set_goal` tool, shown at the top of the Journal page and the quest page.
 6. **Preferences.** A list like the plan, with a `change_preferences` tool and the same operations.
-7. **Quick Notes.** Move them from Journal paragraphs to their own table. The construct reads them in their own prompt section, and can't rewrite them.
+Quick Notes were removed in #917. Historical Note paragraphs remain ordinary Journal text; no separate note store is planned.
 
 After phase 7, `update_memory` edits only the Journal's free notes. Whether to keep that free section is a decision for then, with evidence from how constructs use it.
 

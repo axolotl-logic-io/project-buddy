@@ -327,7 +327,7 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its Journal, plan, progress timeline and Quick Notes. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
+Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its Journal, plan and progress timeline. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
@@ -336,7 +336,7 @@ The code and storage still use `Project`, `project` and `projects`, including ro
 
 ### Team quest
 
-A quest that its [owner](#owner) shares with [members](#member). Everyone in it shares its conversation, Journal, Quick Notes and progress timeline. A quest with no members is not a team quest, though nothing else sets it apart.
+A quest that its [owner](#owner) shares with [members](#member). Everyone in it shares its conversation, Journal and progress timeline. A quest with no members is not a team quest, though nothing else sets it apart.
 
 In a team quest, the chosen construct's and activity's instructions are shared with the quest's members, own ones too, through the conversation's [snapshots](#snapshot). The original construct or activity stays private to its user.
 
@@ -352,7 +352,7 @@ A user in someone else's [team quest](#team-quest), who works in it as the owner
 
 ### Journal
 
-One editable Markdown document per quest, read by every reply in its conversation. It holds the quest's goals, milestones, progress, preferences and Quick Notes. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
+One editable Markdown document per quest, read by every reply in its conversation. It holds the quest's goals, milestones, progress and preferences. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
 
 - **UI:** "Journal", "Quest Journal".
 - **Earlier name:** "Memory" or "Quest memory".
@@ -374,13 +374,6 @@ A note in a quest's conversation that the construct updated the quest's Journal.
 
 - **UI:** "Journal change".
 - **Avoid:** "Journal change card", "Journal change notice".
-
-### Quick Note
-
-A short, dated line the user saves to a quest outside its conversation, without a model call. It becomes part of the Journal, so the construct can read it in later replies. Saving or deleting one makes a new Journal version by the user. **Quick Notes** names the feature and a quest's collection of them.
-
-- **UI:** "Quick Note" for a single item and "Quick Notes" for the feature and collection.
-- **Avoid:** "note" alone or "quick capture" for this feature in UI copy and docs; "memo", "jot", "inbox".
 
 ### Goal
 
@@ -550,7 +543,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 ### Owner
 
-The user something belongs to. A quest's owner is the user who made it. Members share access to its conversation, Journal, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
+The user something belongs to. A quest's owner is the user who made it. Members share access to its conversation, Journal and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
 
 Ownership and access are distinct: own constructs, activities, spells and batteries belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
 
@@ -701,7 +694,7 @@ Use conversation, Chat and Journal in new product copy and prompts. The existing
 route paths, database names, API fields, tool names and prompt boundary tags
 remain compatibility names in this release. The Chat activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
-Quick Note paragraphs and historical migration fixtures are never rewritten.
+historical Note paragraphs and migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.
 
 ### Premade quest

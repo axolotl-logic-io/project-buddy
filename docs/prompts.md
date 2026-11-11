@@ -50,7 +50,7 @@ The rename changes display names only. Built-in instruction text (including olde
 
 ## Storage compatibility
 
-The product calls ongoing work quests, conversations adventures and persistent quest context the Journal. Existing `chat` and `memory` paths, identifiers, tool names and prompt boundary tags remain compatible. Quick Notes remain part of the Journal. The global prompt explains earlier names without rewriting user instructions or saved snapshots. Existing route paths, tool names, storage fields and built-in activity ids retain their `project` names for compatibility. Saved user prompts, adventure snapshots and past messages keep their original text.
+The product calls ongoing work quests, conversations adventures and persistent quest context the Journal. Existing `chat` and `memory` paths, identifiers, tool names and prompt boundary tags remain compatible. Historical Note paragraphs remain ordinary Journal text and are never rewritten by feature removal. The global prompt explains earlier names without rewriting user instructions or saved snapshots. Existing route paths, tool names, storage fields and built-in activity ids retain their `project` names for compatibility. Saved user prompts, adventure snapshots and past messages keep their original text.
 
 The shared store handles ownership, cloning, source tracking and Marketplace copies. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.
 

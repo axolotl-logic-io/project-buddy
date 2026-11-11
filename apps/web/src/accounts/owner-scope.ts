@@ -7,7 +7,7 @@
 // owner and its members (project_members), who share it as a team project.
 // Everything reached through a project is open to everyone the project is
 // open to: its chats, their messages, images and activity sessions, its
-// memory (with its notes) and its milestones. Actions only the owner may
+// memory and its milestones. Actions only the owner may
 // take, such as setting check-ins or removing a member, use the "owned"
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own

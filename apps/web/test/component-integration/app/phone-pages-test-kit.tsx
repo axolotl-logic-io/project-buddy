@@ -20,7 +20,6 @@ import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
-import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
@@ -74,8 +73,6 @@ import {
 } from "@/marketplace/listing-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { NOTE_DAY } from "@/notes/note.ts";
-import { readRecentNotes } from "@/notes/note-store.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import {
   listProjectInvitations,
@@ -362,9 +359,6 @@ function projectPageFor(
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
       vi.mocked(listConstructs).mockResolvedValue([]);
-      vi.mocked(readRecentNotes).mockResolvedValue([
-        { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-      ]);
     },
     async () => (
       <ProjectLayout params={PROJECT_PARAMS}>
@@ -631,9 +625,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
         vi.mocked(listOwnActivities).mockResolvedValue([]);
         vi.mocked(listConstructs).mockResolvedValue([]);
-        vi.mocked(readRecentNotes).mockResolvedValue([
-          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-        ]);
       },
       async () => (
         <ProjectLayout params={PROJECT_PARAMS}>
@@ -645,26 +636,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
           }
         </ProjectLayout>
       ),
-    ),
-  },
-  {
-    name: "quick capture",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([
-          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
-        ]);
-      },
-      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
-    ),
-  },
-  {
-    name: "quick capture with no projects",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([]);
-      },
-      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
     ),
   },
   {
@@ -920,10 +891,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   ...tabVariants("the activities page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),
   ...tabVariants("the account page", ["Batteries", "Security"]),
-  ...tabVariants("quick capture", ["Preview"]),
   { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
-  { name: "a quest's Quick Notes", render: projectPageFor("notes") },
   {
     name: "a quest's members and check-ins",
     render: projectPageFor("members"),

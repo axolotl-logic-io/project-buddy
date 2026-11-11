@@ -56,10 +56,9 @@ describe("use_case_team_project_access", () => {
     const team = await teamProject();
 
     expect(await writesBy(team.member, team)).toEqual(ALL_TAKEN);
-    expect(await deletesBy(team.member, team)).toBe("deleted");
+    await deletesBy(team.member, team);
     expect(await seenBy(team.owner, team)).toMatchObject({
       messages: EXCHANGE_MESSAGES + 1,
-      notes: ["Paint the flippers"],
       milestones: ["Rigged the flippers"],
     });
   });
@@ -83,7 +82,7 @@ describe("use_case_team_project_access", () => {
 
     expect(await seenBy(outsider, team)).toEqual(NOTHING);
     expect(await writesBy(outsider, team)).toEqual(NONE_TAKEN);
-    expect(await deletesBy(outsider, team)).not.toBe("deleted");
+    await deletesBy(outsider, team);
     expect(await seenBy(team.owner, team)).toEqual(before);
   });
 

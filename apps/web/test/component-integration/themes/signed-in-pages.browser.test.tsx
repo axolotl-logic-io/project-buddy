@@ -98,14 +98,10 @@ vi.mock("@/projects/members-store.ts", () => ({
     return [FOX_OWNER, FOX_MEMBER];
   },
 }));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: () => Promise.resolve([]),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   removeMemberAction: vi.fn(),

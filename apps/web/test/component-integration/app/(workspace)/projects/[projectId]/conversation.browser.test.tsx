@@ -41,7 +41,6 @@ import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -105,7 +104,6 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   removeMemberAction: vi.fn(),
@@ -121,7 +119,6 @@ vi.mock("@/check-ins/check-in-store.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn(),
 }));
-vi.mock("@/notes/note-store.ts", () => ({ readRecentNotes: vi.fn() }));
 vi.mock("@/projects/members-store.ts", () => ({
   listProjectMembers: vi.fn(),
 }));
@@ -519,13 +516,9 @@ describe("use_case_open_project", () => {
       )
       .toHaveAttribute("aria-current", "page");
     await Promise.all(
-      [
-        MEMORY_COPY.link,
-        PLAN_COPY.heading,
-        PROGRESS_TIMELINE_COPY.heading,
-        PROJECT_NOTES_COPY.heading,
-      ].map((name) =>
-        expect.element(sections.getByRole("link", { name })).toBeVisible(),
+      [MEMORY_COPY.link, PLAN_COPY.heading, PROGRESS_TIMELINE_COPY.heading].map(
+        (name) =>
+          expect.element(sections.getByRole("link", { name })).toBeVisible(),
       ),
     );
     await expect
