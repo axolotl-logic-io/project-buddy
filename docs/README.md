@@ -33,7 +33,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 ## Plans
 
 - [Quest plan design](design/quest-plan.md): the three ways into the plan, the phases that move the Journal to typed sections, and the decisions taken.
-- [API access proposal](api-access-plan.md): operation inventory, candidate permissions, unresolved decisions and future test evidence for command utilities and external agents; no API implementation or approved release contract.
+- [API access proposal](api-access-plan.md): owner-only continuing-conversation operation inventory, candidate permissions, implementation blockers and future test evidence for command utilities and external agents; no API implementation or approved release contract.
 
 ## Practices
 
