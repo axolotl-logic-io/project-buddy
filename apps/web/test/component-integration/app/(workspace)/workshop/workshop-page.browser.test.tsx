@@ -84,6 +84,8 @@ vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: async () => ({ id: "vellum" }),
 }));
 
+const QUEST_START = /Start a quest/u;
+
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
@@ -124,6 +126,16 @@ function tab(
 }
 
 describe("use_case_workshop_page", () => {
+  test("use_case_view_constructs", async () => {
+    await showWorkshop();
+    await expect
+      .element(page.getByRole("link", { name: VELLUM_CLONE.name, exact: true }))
+      .toBeVisible();
+    vi.mocked(listConstructs).mockResolvedValue([]);
+    await cleanup();
+    await showWorkshop();
+    await expect.element(page.getByText(CONSTRUCTS_COPY.noOwn)).toBeVisible();
+  });
   test("shows Constructs first, with a tab for each kind", async () => {
     await showWorkshop();
     await expect
@@ -141,14 +153,17 @@ describe("use_case_workshop_page", () => {
       [...listBuiltInConstructs(), VELLUM_CLONE].map(async (construct) => {
         await expect
           .element(
-            page.getByRole("button", {
-              name: CONSTRUCTS_COPY.startLabel(construct.name),
+            page.getByRole("link", {
+              name: construct.name,
               exact: true,
             }),
           )
-          .toHaveTextContent(CONSTRUCTS_COPY.startLabel(construct.name));
+          .toHaveAttribute("href", `/constructs/${construct.id}`);
       }),
     );
+    await expect
+      .element(page.getByRole("button", { name: QUEST_START }))
+      .not.toBeInTheDocument();
     await expect
       .element(
         page.getByRole("button", {

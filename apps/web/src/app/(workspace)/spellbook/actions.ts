@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
+import { workshopPath } from "@/routes.ts";
 import {
   spellResetPrompt,
   starterSpellDefinition,
@@ -58,7 +59,7 @@ async function cloneSpellAction(formData: FormData): Promise<never> {
   if (form.success) {
     await cloneSpell(user.id, form.data.sourceId);
   }
-  return redirect(SPELLBOOK_PATH);
+  return redirect(workshopPath("spell"));
 }
 
 async function newSpellAction(): Promise<never> {
@@ -132,7 +133,7 @@ async function retireSpellAction(formData: FormData): Promise<never> {
     await retireDefinition(user.id, "spell", form.data.spellId);
     revalidatePath("/", "layout");
   }
-  return redirect(`${SPELLBOOK_PATH}?retired=1`);
+  return redirect(`${workshopPath("spell")}&retired=1`);
 }
 
 export {

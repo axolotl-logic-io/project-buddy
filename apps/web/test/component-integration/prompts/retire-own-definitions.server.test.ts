@@ -24,7 +24,7 @@ const KINDS: readonly RetirementKind[] = [
     name: "construct",
     source: "vellum",
     field: "constructId",
-    path: "/constructs",
+    path: "/workshop",
     clone: cloneConstruct,
     read: getOwnConstruct,
     remove: retireConstructAction,

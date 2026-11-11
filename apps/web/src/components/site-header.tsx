@@ -11,7 +11,6 @@ import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
@@ -20,7 +19,6 @@ import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 // Parents remain full-size keyboard targets. The final item names the current
@@ -100,15 +98,11 @@ function AccountLinks(): JSX.Element {
         <li>
           <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/constructs">{CONSTRUCTS_COPY.headerLink}</MenuLink>
-        </li>
+
         <li>
           <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/spellbook">{SPELLBOOK_COPY.headerLink}</MenuLink>
-        </li>
+
         <li>
           <MenuLink href="/library">{LIBRARY_COPY.heading}</MenuLink>
         </li>

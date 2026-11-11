@@ -23,7 +23,6 @@ import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
-import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
@@ -42,7 +41,6 @@ import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
-import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
@@ -718,21 +716,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => SettingsPage(),
     ),
   },
-  {
-    name: "the constructs page",
-    render: workspacePage(
-      () => {
-        vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-        vi.mocked(listProjects).mockResolvedValue([]);
-        vi.mocked(listOwnActivities).mockResolvedValue([]);
-      },
-      () =>
-        ConstructsPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-    ),
-  },
+
   {
     name: "a built-in construct's page",
     render: workspacePage(noData, () => constructPage("vellum")),
@@ -788,19 +772,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => activityPage(BRAINSTORMING_CLONE.id),
     ),
   },
-  {
-    name: "the Spellbook",
-    render: workspacePage(
-      () => {
-        vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-      },
-      () =>
-        SpellbookPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-    ),
-  },
+
   { name: "the Workshop's Constructs tab", render: workshopPage("construct") },
   { name: "the Workshop's Activities tab", render: workshopPage("activity") },
   { name: "the Workshop's Spells tab", render: workshopPage("spell") },

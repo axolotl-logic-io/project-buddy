@@ -1,14 +1,11 @@
 // Constructs shared by the Constructs page and the Workshop: the
-// built-in constructs, each of which she can customize, and her own, oldest
-// first, each of which she can tweak or clone, with a button that crafts a new one.
+// built-in constructs, each of which the user can customize, and the user's own, oldest
+// first, each of which the user can tweak or clone, with a button that crafts a new one.
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
-import { PageWorkspace } from "@/components/page-workspace.tsx";
-import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
 import {
   type ConstructId,
@@ -16,15 +13,8 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
-import {
-  type QuestCreationChoices,
-  questCreationChoices,
-} from "@/projects/quest-creation-choices.ts";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
-import { RetirementList } from "../retirement/retirement-list.tsx";
 import {
   cloneConstructAction,
   editBuiltInConstructAction,
@@ -46,11 +36,9 @@ interface ListedConstruct extends ConstructSnapshot {
 function ConstructCard({
   construct,
   actions,
-  choices,
 }: {
   readonly construct: ListedConstruct;
   readonly actions: JSX.Element;
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <li className="card construct-card">
@@ -60,22 +48,12 @@ function ConstructCard({
         decorative={true}
       />
       <div className="flex min-w-0 flex-col gap-2">
-        <StartWorkDialog
-          choices={choices}
-          startWith={{
-            kind: "construct",
-            id: construct.id,
-            name: construct.name,
-          }}
-          trigger={
-            <button
-              className="card-title wrap-anywhere self-start text-left text-link"
-              type="button"
-            >
-              {CONSTRUCTS_COPY.startLabel(construct.name)}
-            </button>
-          }
-        />
+        <Link
+          className="card-title wrap-anywhere self-start text-left text-link"
+          href={`/constructs/${construct.id}`}
+        >
+          {construct.name}
+        </Link>
         <p className="wrap-anywhere text-muted text-sm">
           {constructPersonality(construct).temperament}
         </p>
@@ -86,13 +64,11 @@ function ConstructCard({
 }
 
 // The built-in constructs as cards, each with a button that customizes it:
-// makes a clone of her own and opens it to edit.
+// makes a clone of the user's own and opens it to edit.
 function BuiltInConstructCards({
   constructs,
-  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -110,7 +86,6 @@ function BuiltInConstructCards({
               </Button>
             </form>
           }
-          choices={choices}
           key={construct.id}
           construct={construct}
         />
@@ -119,14 +94,12 @@ function BuiltInConstructCards({
   );
 }
 
-// Her own constructs as cards, each with a link that tweaks it in place and a
+// The user's own constructs as cards, each with a link that tweaks it in place and a
 // button that clones it.
 function OwnConstructList({
   constructs,
-  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -158,7 +131,6 @@ function OwnConstructList({
               />
             </>
           }
-          choices={choices}
           key={construct.id}
           construct={construct}
         />
@@ -167,80 +139,22 @@ function OwnConstructList({
   );
 }
 
-// Her own constructs as cards, or, if she has none, a line that says so.
+// The user's own constructs as cards, or, if she has none, a line that says so.
 function OwnConstructCards({
   constructs,
-  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   if (constructs.length === 0) {
     return <p className="text-muted">{CONSTRUCTS_COPY.noOwn}</p>;
   }
-  return <OwnConstructList constructs={constructs} choices={choices} />;
+  return <OwnConstructList constructs={constructs} />;
 }
 
-async function ConstructLists({
-  workspace = false,
-}: {
-  readonly workspace?: boolean;
-} = {}): Promise<JSX.Element> {
+async function ConstructLists(): Promise<JSX.Element> {
   const user = await requireUser();
-  const [own, choices] = await Promise.all([
-    listOwnConstructs(user.id),
-    questCreationChoices(user.id),
-  ]);
-  if (workspace === true) {
-    const retired = await listRetiredDefinitions(user.id);
-    return (
-      <PageWorkspace
-        title={CONSTRUCTS_COPY.heading}
-        intro={CONSTRUCTS_COPY.intro}
-        action={
-          <form action={newConstructAction}>
-            <Button type="submit">{CONSTRUCTS_COPY.newConstruct}</Button>
-          </form>
-        }
-      >
-        <WorkspaceTabs
-          label={CONSTRUCTS_COPY.heading}
-          sections={[
-            {
-              id: "built-in",
-              label: WORKSPACES_COPY.builtIn,
-              content: (
-                <div className="workspace-rows">
-                  <BuiltInConstructCards
-                    constructs={listBuiltInConstructs()}
-                    choices={choices}
-                  />
-                </div>
-              ),
-            },
-            {
-              id: "yours",
-              label: WORKSPACES_COPY.yours,
-              content: (
-                <div className="workspace-rows">
-                  <OwnConstructCards constructs={own} choices={choices} />
-                </div>
-              ),
-            },
-            {
-              id: "retired",
-              label: WORKSPACES_COPY.retired,
-              content: (
-                <div className="flex flex-col gap-4">
-                  <RetirementList definitions={retired} kind="construct" />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </PageWorkspace>
-    );
-  }
+  const own = await listOwnConstructs(user.id);
+
   return (
     <>
       <section
@@ -250,10 +164,7 @@ async function ConstructLists({
         <h2 className="section-heading" id={BUILT_IN_HEADING_ID}>
           {CONSTRUCTS_COPY.builtInHeading}
         </h2>
-        <BuiltInConstructCards
-          constructs={listBuiltInConstructs()}
-          choices={choices}
-        />
+        <BuiltInConstructCards constructs={listBuiltInConstructs()} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -266,7 +177,7 @@ async function ConstructLists({
             </Button>
           </form>
         </div>
-        <OwnConstructCards constructs={own} choices={choices} />
+        <OwnConstructCards constructs={own} />
       </section>
     </>
   );
