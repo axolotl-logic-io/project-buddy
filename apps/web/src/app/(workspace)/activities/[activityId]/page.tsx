@@ -12,7 +12,6 @@ import {
   getActivity,
   isActivityId,
 } from "@/activities/index.ts";
-import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
@@ -20,7 +19,6 @@ import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
-import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
 import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
@@ -92,11 +90,9 @@ function BuiltInActivity({
 
 function OwnActivityForm({
   activity,
-  sale,
   viewer,
 }: {
   readonly activity: OwnActivity;
-  readonly sale: SaleState;
   readonly viewer: string;
 }): JSX.Element {
   return (
@@ -104,11 +100,7 @@ function OwnActivityForm({
       <ActivityHeading intro={ACTIVITY_COPY.ownIntro} name={activity.name} />
       <PromptEditor
         action={saveActivityAction}
-        defaultPrompt={
-          (activity.boughtFrom === undefined &&
-            activityResetPrompt(activity.clonedFrom).prompt) ||
-          undefined
-        }
+        defaultPrompt={activityResetPrompt(activity.clonedFrom).prompt}
         heading={PROMPT_COPY.activityFieldsHeading}
         idName="activityId"
         key={activity.updatedAt.toISOString()}
@@ -130,15 +122,7 @@ function OwnActivityForm({
           },
         ]}
       />
-      {activity.boughtFrom !== undefined && (
-        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
-      )}
-      <RetireActivityForm
-        sale={sale.kind}
-        name={activity.name}
-        activityId={activity.id}
-      />
-      <SellSection kind="activity" promptId={activity.id} sale={sale} />
+      <RetireActivityForm name={activity.name} activityId={activity.id} />
     </>
   );
 }
@@ -194,14 +178,10 @@ export default async function ActivityPage({
     }
     notFound();
   }
-  const sale = await readSaleState(user.id, {
-    kind: "activity",
-    promptId: activity.id,
-  });
   return (
     <Workshop kind="activity">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
-      <OwnActivityForm viewer={user.id} activity={activity} sale={sale} />
+      <OwnActivityForm viewer={user.id} activity={activity} />
     </Workshop>
   );
 }

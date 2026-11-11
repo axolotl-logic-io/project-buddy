@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { cache } from "react";
-import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualPreview } from "@/components/constructs/construct-visual-preview.tsx";
@@ -20,7 +19,6 @@ import {
   getConstruct,
   isConstructId,
 } from "@/constructs/index.ts";
-import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
@@ -105,11 +103,9 @@ function visualRequiredMessage(
 
 function OwnConstructForm({
   construct,
-  sale,
   viewer,
 }: {
   readonly construct: OwnConstruct;
-  readonly sale: SaleState;
   readonly viewer: string;
 }): JSX.Element {
   // Artwork attachments must not invalidate an otherwise current browser draft.
@@ -124,11 +120,7 @@ function OwnConstructForm({
       <ConstructEditor
         action={saveConstructAction}
         construct={construct}
-        defaultPrompt={
-          (construct.boughtFrom === undefined &&
-            constructResetPrompt(construct.clonedFrom).prompt) ||
-          undefined
-        }
+        defaultPrompt={constructResetPrompt(construct.clonedFrom).prompt}
         heading={PROMPT_COPY.constructFieldsHeading}
         idName="constructId"
         key={draftRevision}
@@ -154,15 +146,7 @@ function OwnConstructForm({
           },
         ]}
       />
-      {construct.boughtFrom !== undefined && (
-        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
-      )}
-      <RetireConstructForm
-        sale={sale.kind}
-        name={construct.name}
-        constructId={construct.id}
-      />
-      <SellSection kind="construct" promptId={construct.id} sale={sale} />
+      <RetireConstructForm name={construct.name} constructId={construct.id} />
     </>
   );
 }
@@ -213,14 +197,10 @@ export default async function ConstructPage({
     }
     notFound();
   }
-  const sale = await readSaleState(user.id, {
-    kind: "construct",
-    promptId: construct.id,
-  });
   return (
     <Workshop kind="construct">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
-      <OwnConstructForm viewer={user.id} construct={construct} sale={sale} />
+      <OwnConstructForm viewer={user.id} construct={construct} />
     </Workshop>
   );
 }

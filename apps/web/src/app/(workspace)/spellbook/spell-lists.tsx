@@ -3,10 +3,6 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { Button } from "@/components/ui/button.tsx";
-import {
-  listedPromptIds,
-  type SaleState,
-} from "@/marketplace/listing-store.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
@@ -71,14 +67,10 @@ function BuiltInSpellCards({
   );
 }
 
-interface OwnSpellCard extends SpellChoice {
-  readonly sale: SaleState["kind"];
-}
-
 function OwnSpellCards({
   spells,
 }: {
-  readonly spells: readonly OwnSpellCard[];
+  readonly spells: readonly SpellChoice[];
 }): JSX.Element {
   if (spells.length === 0) {
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
@@ -107,11 +99,7 @@ function OwnSpellCards({
                   {SPELLBOOK_COPY.clone}
                 </Button>
               </form>
-              <RetireSpellForm
-                sale={spell.sale}
-                name={spell.name}
-                spellId={spell.id}
-              />
+              <RetireSpellForm name={spell.name} spellId={spell.id} />
             </>
           }
           key={spell.id}
@@ -136,21 +124,7 @@ function asCard({
 
 async function SpellLists(): Promise<JSX.Element> {
   const user = await requireUser();
-  const [own, listed] = await Promise.all([
-    listOwnSpells(user.id),
-    listedPromptIds(user.id, "spell"),
-  ]);
-  const cards = own.map((spell): OwnSpellCard => {
-    let sale: SaleState["kind"] = "listable";
-    if (listed.has(spell.id)) {
-      sale = "listed";
-    }
-    if (spell.boughtFrom !== undefined) {
-      sale = "bought";
-    }
-    return { ...asCard(spell), sale };
-  });
-
+  const cards = (await listOwnSpells(user.id)).map(asCard);
   return (
     <>
       <section

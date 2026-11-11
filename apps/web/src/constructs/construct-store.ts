@@ -8,14 +8,12 @@ import {
   isConstructId,
 } from "@/constructs/index.ts";
 import type { ConstructVisual } from "@/constructs/visual.ts";
-import type { Transaction } from "@/db/client.ts";
-import type { OwnPromptId, UserId } from "@/ids.ts";
+import type { UserId } from "@/ids.ts";
 import {
   currentConstructText,
   earlierConstructText,
 } from "@/prompts/earlier-built-in-texts.ts";
 import {
-  type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
   type DefinitionEdit,
@@ -25,7 +23,6 @@ import {
   listOwnPrompts,
   type OwnPrompt,
   type OwnPromptChoice,
-  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { NamedDefinition } from "@/prompts/prompt.ts";
@@ -92,14 +89,6 @@ export function updateConstruct(
 
 export function deleteConstruct(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(CONSTRUCT_STORE, owner, id);
-}
-
-export function saveBoughtConstruct(
-  transaction: Transaction,
-  owner: UserId,
-  bought: BoughtPrompt,
-): Promise<OwnPromptId | undefined> {
-  return saveBoughtPrompt(CONSTRUCT_STORE, transaction, owner, bought);
 }
 
 export type { ConstructEdit, OwnConstruct, OwnConstructChoice };

@@ -10,8 +10,6 @@ function resetTarget(source: string | undefined): string {
 // The text every prompt's page shares, a construct's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
-  boughtResetHint:
-    "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, choose Make a copy in Workshop.",
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",

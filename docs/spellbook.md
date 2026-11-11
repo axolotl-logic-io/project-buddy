@@ -42,11 +42,11 @@ Tool instructions become a spell only when they apply to a minority of replies a
 - **The rules for several people** stay in the adventure's own part of the prompt, which only adventures where several people write get.
 - **The `generate_image` description** keeps the image rules, since they must hold even if the construct casts no spell.
 
-## Spells pages
+## Spell pages
 
 Workshop’s Spells tab, `/workshop?kind=spell`, lists built-in spells with Make a copy and private spells with Edit, Make a copy and Retire. The former `/spellbook` collection URL redirects there. Retirement preserves retired definitions for restore or permanent deletion; they stay out of future spell choices and casts. Create spell creates a private spell with starter instructions and a separate when-to-use description.
 
-Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Make a copy. An own spell's page is a form for its name, when-to-use description and instructions, with Retire. Spells without bought lineage also have one Reset prompt to default button. Bought spells and their clones have no reset source; they can still be edited and saved. The instructions reset to the built-in spell it was customized from, or to the starter text for a crafted spell, in the editor only, with Undo reset; Save stores the change.
+Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Make a copy. An own spell's page is a form for its name, when-to-use description and instructions, with Retire. It also has one Reset prompt to default button. The instructions reset to the built-in spell it was customized from, or to the starter text for a crafted spell, in the editor only, with Undo reset; Save stores the change.
 
 ## Casting a spell
 
