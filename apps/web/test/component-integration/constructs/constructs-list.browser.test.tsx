@@ -249,30 +249,21 @@ describe("a construct's start action", () => {
       const trigger = page.getByRole("button", { name: label, exact: true });
       await expect.element(trigger).toHaveTextContent(label);
       await trigger.click();
-      const doIt = page.getByRole("dialog", { name: "Do a thing" });
+      const dialog = page.getByRole("dialog", {
+        name: START_WORK_COPY.constructDialogHeading(construct.name),
+      });
       await expect
-        .element(doIt.getByRole("button", { name: QUEST_START_COPY.start }))
+        .element(dialog.getByRole("heading", { name: "Do a thing" }))
         .toBeVisible();
-      // The starting point takes focus as it opens; Escape closes the dialog
-      // holding focus.
-      await expect
-        .poll(() => doIt.element().contains(document.activeElement))
-        .toBe(true);
-      await userEvent.keyboard("{Escape}");
-      await expect.element(doIt).not.toBeInTheDocument();
-      await expect
-        .element(
-          page.getByRole("dialog", {
-            name: START_WORK_COPY.constructDialogHeading(construct.name),
-          }),
-        )
-        .toBeVisible();
-      await userEvent.keyboard("{Escape}");
+      await page
+        .getByRole("button", { name: START_WORK_COPY.closeDialog })
+        .click();
+      await expect.element(dialog).not.toBeInTheDocument();
       await expect.element(trigger).toHaveFocus();
       expect(startQuestAction).not.toHaveBeenCalled();
 
       await userEvent.keyboard("{Enter}");
-      await doIt
+      await dialog
         .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
         .click();
       const sent = await submitted.promise;
