@@ -63,5 +63,5 @@ Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`
 ## Retained compatibility
 
 - **`chats`/`chat` names in code and storage.** They are the conversation's storage, and renaming them would be a broad mechanical rename the ticket advises against.
-- **`chats.name` and `chats.renamed_by_hand`.** The live build reads them during the release. A release after #898 drops them.
+- **`chats.name` and `chats.renamed_by_hand`.** These columns stay for now: this release still selects them through `getTableColumns(chats)` and bare `returning()`. #898 only deletes adventures and doesn't drop them. Dropping them needs a later release, after a build that neither reads nor writes them is live.
 - **`getChat` reading any open chat, continuing or not.** Old links resolve safely through `resolveConversation`. Nothing lists leftovers.
