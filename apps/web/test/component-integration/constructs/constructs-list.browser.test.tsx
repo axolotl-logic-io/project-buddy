@@ -249,32 +249,30 @@ describe("a construct's start action", () => {
       const trigger = page.getByRole("button", { name: label, exact: true });
       await expect.element(trigger).toHaveTextContent(label);
       await trigger.click();
-      const dialog = page.getByRole("dialog", {
-        name: START_WORK_COPY.constructDialogHeading(construct.name),
-      });
+      const doIt = page.getByRole("dialog", { name: "Do a thing" });
+      await expect
+        .element(doIt.getByRole("button", { name: QUEST_START_COPY.start }))
+        .toBeVisible();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(doIt).not.toBeInTheDocument();
       await expect
         .element(
-          dialog.getByRole("heading", { name: QUEST_START_COPY.heading }),
+          page.getByRole("dialog", {
+            name: START_WORK_COPY.constructDialogHeading(construct.name),
+          }),
         )
         .toBeVisible();
-      await page
-        .getByRole("button", { name: START_WORK_COPY.closeDialog })
-        .click();
+      await userEvent.keyboard("{Escape}");
       await expect.element(trigger).toHaveFocus();
       expect(startQuestAction).not.toHaveBeenCalled();
 
       await userEvent.keyboard("{Enter}");
-      await page
-        .getByRole("button", {
-          name: QUEST_START_COPY.chooseLabel("Learn a thing"),
-        })
-        .click();
-      await page
+      await doIt
         .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
         .click();
       const sent = await submitted.promise;
       expect(sent.get("constructId")).toBe(construct.id);
-      expect(sent.get("premadeId")).toBe("learn");
+      expect(sent.get("premadeId")).toBe("do");
     },
   );
 });
