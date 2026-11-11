@@ -1,5 +1,5 @@
 // use-cases/accounts.md: signing out of one browser or of every one, from
-// the account page. Another browser is a new browser context, which shares
+// Settings. Another browser is a new browser context, which shares
 // nothing with the test's. The page's usage and name are server and
 // component tests in src/app/(workspace)/account/.
 import {
@@ -31,7 +31,7 @@ async function anotherBrowser(
   return other;
 }
 
-// Opens the account page at its Security tab, where the sign-out buttons are.
+// Opens Settings, where both sign-out actions are visible.
 async function openSecurity(page: Page): Promise<void> {
   await page.goto("/settings");
 }
@@ -81,7 +81,7 @@ function signOutEverywhereDialog(page: Page): Locator {
   });
 }
 
-// On the account page, presses Sign out everywhere, and checks the dialog
+// In Settings, presses Sign out everywhere, and checks the dialog
 // says what it does before she answers it with answer.
 async function answerSignOutEverywhere(
   page: Page,
@@ -152,4 +152,49 @@ test("use_case_sign_out_everywhere", async ({
     await page.goto("/settings");
     await expect(page).toHaveURL("/settings");
   });
+});
+
+test("sign out submits without JavaScript", async ({ account, browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await logIn(page, account);
+    await page.goto("/settings");
+    await page
+      .getByRole("button", { name: ACCOUNT_COPY.signOut, exact: true })
+      .click();
+    await expect(page).toHaveURL("/login");
+    await page.goto("/settings");
+    await expect(page).toHaveURL("/login");
+  } finally {
+    await context.close();
+  }
+});
+
+test("sign out everywhere submits without JavaScript and ends other sessions", async ({
+  account,
+  browser,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const otherContext = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    const other = await otherContext.newPage();
+    await logIn(page, account);
+    await logIn(other, account);
+    await page.goto("/settings");
+    await page
+      .locator("noscript")
+      .getByRole("button", {
+        name: ACCOUNT_COPY.signOutEverywhere,
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL("/login");
+    await other.goto("/settings");
+    await expect(other).toHaveURL("/login");
+  } finally {
+    await context.close();
+    await otherContext.close();
+  }
 });
