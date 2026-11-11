@@ -52,10 +52,14 @@ function activityPage(activityId: string): never {
 async function cloneActivityAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = CLONE_ACTIVITY_FORM.safeParse(Object.fromEntries(formData));
-  if (form.success) {
-    await cloneActivity(user.id, form.data.sourceId);
+  if (!form.success) {
+    notFound();
   }
-  return redirect("/activities");
+  const copy = await cloneActivity(user.id, form.data.sourceId);
+  if (copy === undefined) {
+    notFound();
+  }
+  return activityPage(copy.id);
 }
 
 async function newActivityAction(): Promise<never> {

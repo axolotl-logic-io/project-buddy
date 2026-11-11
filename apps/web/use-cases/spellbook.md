@@ -2,14 +2,14 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-Workshop’s Spells tab lists built-in spells and private copies. Craft spell creates a private spell. Retirement retains restore and permanent deletion controls. The old /spellbook collection URL redirects to this Workshop tab.
+Workshop’s Spells tab lists built-in spells and private copies. Create spell creates a private spell. Retirement retains restore and permanent deletion controls. The old /spellbook collection URL redirects to this Workshop tab.
 
 A spell is a set of instructions the construct loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every adventure's instructions list her spells by name and when-to-use line, and the construct casts a spell when it fits, which gives it the spell's instructions. The site has two built-in spells:
 
 - **Ask one question at a time:** the construct interviews her step by step, one short question per message.
 - **Blender manual lookup:** the construct looks up Blender facts in the Blender manual and cites the sections it read (see [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question)).
 
-Successful saves in an own spell’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Craft spell” to distinguish it from an own definition named “New spell”.
+Successful saves in an own spell’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Create spell” to distinguish it from an own definition named “New spell”.
 
 Built-in, starter, customized and reset prompts use `# Spell Sheet`. The separate name identifies the definition; renaming leaves the sheet heading alone. Edited instructions and existing adventure snapshots keep their text.
 
@@ -33,11 +33,11 @@ The user makes a spell of her own from a built-in one, and changes it.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens Workshop from any signed-in page’s menu, then chooses Spells. It lists the built-in spells, each with its when-to-use line, then her own.
-  - She chooses Customize beside Ask one question at a time. The site makes a spell of hers named "Ask one question at a time (clone)" and opens its page.
+  - She chooses Make a copy beside Ask one question at a time. The site makes a spell of hers named "Ask one question at a time (copy)" and opens its page.
   - She renames it and edits its when-to-use line and instructions, and saves. Each field says how long it may be: the name 80 characters, the when-to-use line 300 and the instructions 20,000.
   - Back on the Workshop’s Spells tab, she clones it. On its page, she resets the prompt, then saves it.
   - She retires the first spell.
-- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active Workshop’s Spells tab and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
+- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The clone is named as its source with " (copy)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active Workshop’s Spells tab and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
@@ -50,9 +50,9 @@ The user crafts a spell of her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - On the Workshop’s Spells tab, she chooses Craft spell. The site makes a new spell of hers and opens its page to edit.
+  - On the Workshop’s Spells tab, she chooses Create spell. The site makes a new spell of hers and opens its page to edit.
   - She names it, writes its when-to-use line and instructions, and saves.
   - She chooses Reset instructions; Undo reset restores the previous draft, and Save keeps the reset. She then has the construct cast the spell in an adventure.
-- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Workshop’s Spells tab lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and retire it, and the construct lists and casts it. Choosing Craft spell again makes another spell named "New spell". Another user never sees it.
+- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Workshop’s Spells tab lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and retire it, and the construct lists and casts it. Choosing Create spell again makes another spell named "New spell". Another user never sees it.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.

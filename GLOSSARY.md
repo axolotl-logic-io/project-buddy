@@ -40,7 +40,7 @@ A construct, activity or spell that ships with the site.
 
 ### Own construct, activity or spell
 
-A user's private, editable construct, activity or spell, made by copying another or crafting one. Its prompt can become part of a team quest's conversation without giving others access to the original.
+A user's private, editable construct, activity or spell, made by copying another or creating one. Its prompt can become part of a team quest's conversation without giving others access to the original.
 
 ### Retire, Retirement, restore, delete forever
 
@@ -50,11 +50,14 @@ To **retire** an own construct, activity, or spell is to put it aside without lo
 **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging batteries.
 **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
-### Customize, craft, tweak, clone, rename
+### Create, make a copy, edit, save, cancel
 
-To **customize** is to make an own copy of a built-in construct, activity or spell. To **craft** is to create an own construct, activity or spell without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+**Create construct**, **Create activity** and **Create spell** make a private definition from starter instructions. **Make a copy** makes a private, editable copy of either a built-in or an own definition and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
 
-- **Avoid:** "Write new", "write from scratch" and "New construct/activity/spell" as creation action labels; use "Craft" with the kind where needed.
+**Edit** opens an own definition. **Save** stores its name and instructions. **Cancel** puts back the saved fields and clears the browser draft without changing saved data. Leaving the editor without Save or Cancel preserves draft recovery. These actions never start a quest. Creating, copying and saving prompt text spend no batteries; construct artwork keeps its explicit generation and battery rules. **Rename** means changing the name in the editor.
+
+- **UI:** "Create construct", "Create activity", "Create spell", "Make a copy", "Edit", "Save", "Cancel".
+- **Avoid:** "Craft", "Customize", "Clone" and "Tweak" as action labels. Internal identifiers and saved user text may retain earlier names.
 
 ### Message
 
@@ -90,7 +93,7 @@ Instructions that every conversation gets, whatever its construct and activity: 
 
 ### Workshop
 
-The single collection destination for inspecting built-in constructs, activities and spells and editing private copies. Each kind has a tab. Built-ins offer Customize; private definitions offer editing, clone and retirement. Quest starts keep their own construct choice. Old Constructs and Spellbook collection URLs redirect here.
+The single collection destination for inspecting built-in constructs, activities and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Quest starts keep their own construct choice. Old Constructs and Spellbook collection URLs redirect here.
 
 - **UI:** "Workshop", "Constructs", "Activities", "Spells".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
@@ -101,7 +104,7 @@ An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice
 
 A construct is not a prompt; it has one. People working together on a [team quest](#team-quest) are its [members](#member).
 
-- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Craft construct".
+- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Create construct".
 - **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
 
 ### Earlier names (compatibility)

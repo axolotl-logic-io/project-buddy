@@ -16,23 +16,21 @@ export const CONSTRUCTS_COPY = {
   homeLink: "Home",
   heading: "Constructs",
   intro:
-    "Constructs are AI characters, each with a name, a voice and habits. Choose one when you start a quest, or customize one to make your own.",
+    "Constructs are AI characters, each with a name, a voice and habits. Choose one when you start a quest, or make a copy to edit your own version.",
   loading: "Loading constructs…",
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
-    "No constructs of your own yet. Customize a built-in one, or choose Craft construct to make one without copying another.",
-  newConstruct: "Craft construct",
+    "No constructs of your own yet. Make a copy of a built-in one, or choose Create construct to make one without copying another.",
+  newConstruct: "Create construct",
   // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",
-  startLabel: (name: string): string => `Start a quest with ${name}`,
-  customize: "Customize",
-  customizeLabel: (name: string): string =>
-    `Customize ${name}: make your own copy`,
+  customize: "Make a copy",
+  customizeLabel: (name: string): string => `Make a copy of ${name}`,
   tweak: "Edit",
   tweakLabel: (name: string): string => `Edit your ${name}`,
-  clone: "Clone",
-  cloneLabel: (name: string): string => `Clone ${name}`,
+  clone: "Make a copy",
+  cloneLabel: (name: string): string => `Make a copy of ${name}`,
 } as const;
 
 // The text of a construct's page: its instructions as named parts, editable
@@ -42,7 +40,7 @@ export const CONSTRUCT_COPY = {
   constructsLink: "Constructs",
   loading: "Loading construct…",
   builtInIntro:
-    "A built-in construct can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
+    "A built-in construct can't be changed. Choose Make a copy to edit your own version.",
   ownIntro:
     "Your construct's instructions. A quest keeps the construct as it was when the quest started, so a change applies to new quests only.",
 } as const;

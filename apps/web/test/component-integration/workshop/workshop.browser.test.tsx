@@ -6,6 +6,7 @@ import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { Breadcrumbs, SiteHeader } from "@/components/site-header.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
+import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -64,7 +65,7 @@ async function show(
         }
       />
       {inWorkspace(
-        <Workshop>
+        <Workshop kind="construct">
           <PromptEditor
             action={saveAction}
             defaultPrompt="Default instructions."
@@ -308,3 +309,18 @@ test("name-first validation marks hidden errors and reset reveals only the promp
     .toHaveValue("Keep this appearance.");
   expect(saveAction).not.toHaveBeenCalled();
 });
+
+test.each(PROMPT_KINDS)(
+  "the %s editor returns to its Workshop collection",
+  async (kind) => {
+    await render(<Workshop kind={kind}>{PROMPT}</Workshop>);
+    const href = page
+      .getByRole("link", { name: "Workshop", exact: true })
+      .element()
+      .getAttribute("href");
+    expect(href).not.toBeNull();
+    const destination = new URL(href ?? "", globalThis.location.origin);
+    expect(destination.pathname).toBe("/workshop");
+    expect(destination.searchParams.get("kind") ?? "construct").toBe(kind);
+  },
+);

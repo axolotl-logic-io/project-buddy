@@ -198,7 +198,7 @@ export default async function ConstructPage({
   if (isConstructId(constructId)) {
     const construct = getConstruct(constructId);
     return (
-      <Workshop>
+      <Workshop kind="construct">
         <BuiltInConstruct construct={construct} />
       </Workshop>
     );
@@ -218,7 +218,7 @@ export default async function ConstructPage({
     promptId: construct.id,
   });
   return (
-    <Workshop>
+    <Workshop kind="construct">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnConstructForm viewer={user.id} construct={construct} sale={sale} />
     </Workshop>

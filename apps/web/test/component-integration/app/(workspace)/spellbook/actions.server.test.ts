@@ -15,6 +15,7 @@ import {
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
+import { workshopPath } from "@/routes.ts";
 import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
@@ -110,12 +111,23 @@ async function resetPrompt(spellId: string): Promise<void> {
   await resetSpellPromptAction(formOf({ spellId }));
 }
 
+// Making a copy opens that new private definition in the editor.
+async function copyOwn(user: User, sourceId: string): Promise<void> {
+  const copying = cloneSpellAction(formOf({ sourceId }));
+  await Promise.allSettled([copying]);
+  const copy = (await listOwnSpells(user.id)).at(-1);
+  if (copy === undefined) {
+    throw new Error("No copy was created");
+  }
+  await expectRedirect(() => copying, `/spellbook/${copy.id}`);
+}
+
 describe("use_case_customize_spell", () => {
   test("her copy of a built-in spell is hers to edit, clone, reset and delete", async () => {
     const user = await signedInUser();
     const copy = await customize(user);
     expect(copy).toMatchObject({
-      name: `${ASK_ONE_QUESTION.name} (clone)`,
+      name: `${ASK_ONE_QUESTION.name} (copy)`,
       definition: ASK_ONE_QUESTION.definition,
     });
 
@@ -135,12 +147,9 @@ describe("use_case_customize_spell", () => {
       },
     });
 
-    await expectRedirect(
-      () => cloneSpellAction(formOf({ sourceId: copy.id })),
-      "/workshop?kind=spell",
-    );
+    await copyOwn(user, copy.id);
     const clone = (await listOwnSpells(user.id)).at(-1);
-    expect(clone).toMatchObject({ name: "Render plan (clone)" });
+    expect(clone).toMatchObject({ name: "Render plan (copy)" });
 
     await resetPrompt(copy.id);
     expect((await stored(user, copy.id)).definition).toEqual({
@@ -150,7 +159,7 @@ describe("use_case_customize_spell", () => {
 
     await expectRedirect(
       () => retireSpellAction(formOf({ spellId: copy.id })),
-      "/workshop?kind=spell&retired=1",
+      `${workshopPath("spell")}&retired=1`,
     );
     expect((await listOwnSpells(user.id)).map(({ id }) => id)).toEqual([
       clone?.id,
@@ -200,10 +209,7 @@ describe("use_case_customize_spell", () => {
       () => undefined,
     );
 
-    await expectRedirect(
-      () => cloneSpellAction(formOf({ sourceId: copy.id })),
-      "/workshop?kind=spell",
-    );
+    await copyOwn(user, copy.id);
     const clone = (await listOwnSpells(user.id)).at(-1);
     if (clone === undefined || clone.id === copy.id) {
       throw new Error("Cloning made no spell");
@@ -214,7 +220,7 @@ describe("use_case_customize_spell", () => {
       `/spellbook/${clone.id}?saved=1`,
     );
     expect(clone.name.length).toBeLessThanOrEqual(SPELL_NAME_MAX);
-    expect(clone.name.endsWith(" (clone)")).toBe(true);
+    expect(clone.name.endsWith(" (copy)")).toBe(true);
   });
 
   test("another user's spell, or one that isn't built in, is not found", async () => {
@@ -233,7 +239,7 @@ describe("use_case_customize_spell", () => {
     );
     await expectRedirect(
       () => retireSpellAction(formOf({ spellId: copy.id })),
-      "/workshop?kind=spell&retired=1",
+      `${workshopPath("spell")}&retired=1`,
     );
     expect(await stored(owner, copy.id)).toEqual(copy);
   });

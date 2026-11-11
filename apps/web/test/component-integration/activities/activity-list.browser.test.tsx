@@ -1,4 +1,4 @@
-// The activities page's Craft activity button, with her own activities and
+// The activities page's Create activity button, with her own activities and
 // with none: it sits among her own, follows the built-in activities in
 // keyboard order, and Enter crafts a new activity.
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -36,7 +36,7 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   startQuestAction: vi.fn<typeof startQuestAction>(),
 }));
 
-// Listing exposes these actions; only Craft activity is submitted, from the
+// Listing exposes these actions; only Create activity is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
@@ -58,7 +58,7 @@ beforeEach(() => {
   });
 });
 
-test("her activities offer Craft activity, with or without activities of her own", async () => {
+test("her activities offer Create activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
   const screen = await render(
@@ -71,7 +71,7 @@ test("her activities offer Craft activity, with or without activities of her own
   );
 
   await expect
-    .element(page.getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Create activity" }))
     .toBeEnabled();
 
   await page.getByRole("tab", { name: "Yours", exact: true }).click();
@@ -88,11 +88,11 @@ test("her activities offer Craft activity, with or without activities of her own
     .element(ownRegion().getByText(ACTIVITIES_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Create activity" }))
     .toBeEnabled();
 });
 
-test("the header Craft activity action supports keyboard submission", async () => {
+test("the header Create activity action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnActivities).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
@@ -110,11 +110,11 @@ test("the header Craft activity action supports keyboard submission", async () =
     ),
   );
   page
-    .getByRole("button", { name: "Craft activity", exact: true })
+    .getByRole("button", { name: "Create activity", exact: true })
     .element()
     .focus();
   await expect
-    .element(page.getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Create activity" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 

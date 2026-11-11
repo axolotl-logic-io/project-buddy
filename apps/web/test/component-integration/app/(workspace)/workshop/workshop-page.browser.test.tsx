@@ -172,7 +172,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft construct" }))
+      .element(page.getByRole("button", { name: "Create construct" }))
       .toBeEnabled();
     await expect
       .element(
@@ -189,7 +189,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft activity" }))
+      .element(page.getByRole("button", { name: "Create activity" }))
       .not.toBeInTheDocument();
   });
 
@@ -217,7 +217,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft activity" }))
+      .element(page.getByRole("button", { name: "Create activity" }))
       .toBeEnabled();
     await expect
       .element(
@@ -234,7 +234,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft construct" }))
+      .element(page.getByRole("button", { name: "Create construct" }))
       .not.toBeInTheDocument();
   });
 
@@ -250,7 +250,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft spell" }))
+      .element(page.getByRole("button", { name: "Create spell" }))
       .toBeEnabled();
     await expect
       .element(
@@ -274,7 +274,7 @@ describe("use_case_workshop_page", () => {
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");
     await expect
-      .element(page.getByRole("button", { name: "Craft construct" }))
+      .element(page.getByRole("button", { name: "Create construct" }))
       .toBeEnabled();
   });
 
