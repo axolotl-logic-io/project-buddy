@@ -88,7 +88,6 @@ beforeEach(() => {
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   vi.mocked(listProjects).mockResolvedValue([]);
   vi.mocked(questCreationChoices).mockResolvedValue({
-    activities: [],
     userConstructs: [],
     preferredConstructId: "vellum",
   });
@@ -138,12 +137,9 @@ describe("use_case_workshop_page", () => {
       [...listBuiltInConstructs(), VELLUM_CLONE].map(async (construct) => {
         await expect
           .element(
-            page.getByRole("button", {
-              name: CONSTRUCTS_COPY.startLabel(construct.name),
-              exact: true,
-            }),
+            page.getByRole("link", { name: construct.name, exact: true }),
           )
-          .toHaveTextContent(CONSTRUCTS_COPY.startLabel(construct.name));
+          .toHaveAttribute("href", `/constructs/${construct.id}`);
       }),
     );
     await expect

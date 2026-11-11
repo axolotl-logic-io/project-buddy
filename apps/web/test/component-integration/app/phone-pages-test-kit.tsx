@@ -18,7 +18,6 @@ import {
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
-import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
@@ -77,7 +76,7 @@ import {
   QUEST_START_COPY,
 } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { QUEST_FROM_CHAT_COPY, START_WORK_COPY } from "@/ui/copy/start-work.ts";
+import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -289,19 +288,6 @@ function memoryPageFor(section = "journal"): () => Promise<JSX.Element> {
 }
 
 const memoryPage = memoryPageFor();
-
-const activitiesPage = workspacePage(
-  () => {
-    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-  },
-  () =>
-    ActivitiesPage({
-      params: Promise.resolve({}),
-      searchParams: Promise.resolve({}),
-    }),
-);
 
 // The Workshop's page on the kind's tab, with one of her own of each kind.
 function workshopPage(
@@ -573,29 +559,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     ),
   },
   {
-    name: "the activities page",
-    render: activitiesPage,
-  },
-  {
-    name: "the activities page's start dialog",
-    render: activitiesPage,
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("button", {
-          name: "Brainstorm",
-          exact: true,
-        })
-        .click();
-      await vi.waitFor(() =>
-        page
-          .getByRole("dialog", {
-            name: START_WORK_COPY.activityDialogHeading("Brainstorm"),
-          })
-          .element(),
-      );
-    },
-  },
-  {
     name: "the discovery activity's page",
     render: workspacePage(noData, () => activityPage("find-something-to-make")),
   },
@@ -667,7 +630,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }, chatPage),
   },
   {
-    name: "Chat's Start a quest from this",
+    name: "Chat's Turn Chat into a quest",
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
@@ -685,7 +648,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   ...tabVariants("the Settings page", ["Appearance"]),
   ...tabVariants("the constructs page", ["Yours", "Retired"]),
-  ...tabVariants("the activities page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),
   ...tabVariants("the account page", ["Batteries", "Security"]),
   ...tabVariants("quick capture", ["Preview"]),

@@ -23,7 +23,7 @@ const PLAN_ACTIONS: PlanActions = {
 
 // A continuing conversation, a quest's or the private Chat, as viewer sees
 // it: a pinned header with its construct, who was chosen when it started,
-// and actions, such as Chat's Start a quest from this; then its messages
+// and actions, such as Chat's Turn Chat into a quest; then its messages
 // and the composer. Their own messages are the viewer's; every other user
 // message shows its author's name. stoppedReplyId is the last message's id
 // when its reply stopped (readStoppedReply). plan is given in a quest's
