@@ -17,8 +17,8 @@ import {
   SELECT_ACTIVITY_TOOL,
   type SelectActivityOutput,
 } from "@/activities/select-activity-contract.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { messages as messageRows } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
@@ -79,7 +79,7 @@ describe("use_case_construct_changes_activity", () => {
   test("an unknown activity enters none; an older interview request enters breakdown", async () => {
     const user = await testUser();
     await signIn(user);
-    const chat = await createStandaloneChat(user.id);
+    const chat = await privateChat(user.id);
 
     expect(await constructSelects(chat.id, "no-such-activity")).toEqual({
       status: "unknown",

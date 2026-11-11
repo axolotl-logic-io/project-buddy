@@ -28,7 +28,7 @@ import {
 } from "@/app/(workspace)/activities/actions.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId } from "@/ids.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -273,7 +273,7 @@ describe("use_case_new_activity", () => {
     const started = await startIn(user, activity.id);
     expect(await constructPrompt(started)).toContain(parts.prompt);
 
-    const chat = await createStandaloneChat(user.id);
+    const chat = await privateChat(user.id);
     await constructReply(
       chat.id,
       `/mock-tool ${SELECT_ACTIVITY_TOOL} ${JSON.stringify({ activityId: activity.id })}`,

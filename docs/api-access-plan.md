@@ -91,9 +91,9 @@ Paths below are relative to `apps/web/`. They identify reuse/extraction candidat
 | Behavior | Existing domain boundary and work to assess before implementation |
 | --- | --- |
 | Acting-user access | `src/accounts/owner-scope.ts`; retain owned/open predicates, including team access. Add connection permission checks without replacing those predicates. Foreign or inaccessible records remain indistinguishable from missing. |
-| Quest and adventure starts | `src/projects/store.ts`, `src/chats/start-chat.ts`, `src/chats/new-chat-store.ts`; share name/selection validation and atomic creation. Reconcile first-adventure requirements before exposing. |
+| Quest starts | `src/projects/store.ts`, `src/conversations/start-quest.ts`, `src/chats/new-chat-store.ts`; share name/selection validation and atomic creation. |
 | Messages, replies and stop | `src/chats/store.ts`, `src/replies/reply.ts`, `src/replies/stop-reply-action.ts`, `src/replies/tools/index.ts`; extract session/transport orchestration where necessary. Reuse run persistence and authorization rather than starting an independent harness. |
-| Openings and automatic names | `src/replies/chat-opening.ts`, `src/replies/chat-naming.ts`; prepared openings avoid calls, generated openings and automatic names do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
+| Openings | `src/replies/chat-opening.ts`; prepared openings avoid calls, generated openings do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
 | Journal and Quick Notes | `src/memory/memory-store.ts`, `src/notes/note-store.ts`; preserve version-based edits/restores and append/delete semantics under concurrency. |
 | Status and milestones | `src/projects/quest-status-store.ts`, `src/milestones/milestone-store.ts`; preserve revision, confirmation, scope and validation rules. |
 | Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/activities/`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
