@@ -6,11 +6,11 @@ import type { ReplyPromptContext } from "@/replies/system-prompt.ts";
 
 // The line the prompt gives while the memory is empty.
 const EMPTY_MEMORY_PROMPT =
-  "The quest's Journal is empty: nothing about the user's goals, milestones, progress or preferences is saved yet.";
+  "The quest's free Journal notes are empty. Goal, Preferences and Plan are separate sections.";
 
 // The line before the memory.
 const MEMORY_PROMPT_INTRO =
-  "The quest's Journal, which every reply in this quest's conversation works from. It holds the user's goals, milestones, progress and preferences:";
+  "The quest's free Journal notes, which every reply in this quest's conversation reads. Legacy headings are preserved here; current typed Goal, Preferences and Plan take precedence:";
 
 // The tags around the memory.
 const MEMORY_START_TAG = "<project_memory>";

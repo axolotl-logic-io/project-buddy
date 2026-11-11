@@ -54,6 +54,7 @@ import {
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { JOURNAL_SECTIONS_COPY } from "@/ui/copy/journal.ts";
 import {
   CHAT_COMMANDS_COPY,
   PLAN_COPY,
@@ -238,11 +239,15 @@ export function ChatView({
     id: chatId,
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
-    onFinish: (): void => {
+    onFinish: ({ isError }: { isError: boolean }): void => {
       replyCompletedRef.current = true;
       setStopping(false);
       setStopStatus("");
-      router.refresh();
+      // The SDK finishes failed requests too. Keep their error visible; a
+      // refresh after a signed-out reply would redirect away from it.
+      if (!isError) {
+        router.refresh();
+      }
     },
     onError: (error: Error): void => {
       replyCompletedRef.current = true;
@@ -434,7 +439,11 @@ export function ChatView({
     }
     let listings: readonly CommandListing[] = mockCommands;
     if (projectId !== undefined) {
-      listings = [...PLAN_COMMAND_LISTINGS, ...mockCommands];
+      listings = [
+        ...PLAN_COMMAND_LISTINGS,
+        ...JOURNAL_SECTIONS_COPY.commands,
+        ...mockCommands,
+      ];
     }
     return {
       listings,

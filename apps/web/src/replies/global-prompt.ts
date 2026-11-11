@@ -53,6 +53,7 @@ const MILESTONE_RULES: string = [
 // never to nag.
 const PLAN_RULES: string = [
   "# Plan",
+  "- Keep the agreed goal in set_goal and stated preferences in change_preferences. These typed sections override legacy Journal headings. update_memory edits free notes only. Proposals remain in the conversation until agreed; never infer a preference. [Journal section change] messages record a user command, not a request for a reply.",
   `In a quest's conversation, keep the quest's plan, given below with its steps' numbers, with \`${CHANGE_PLAN_TOOL}\`. It holds the remaining work the user agreed to, in order; its first open step is the quest's next step.`,
   "- Add steps only when the user agrees to them. A plan you propose stays in the conversation until they do.",
   "- Complete a step when the user says they finished it, and change, move or remove steps when they change their mind. Keep the steps few and small.",
@@ -80,7 +81,7 @@ const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   NEW_PROJECT_RULES,
   MILESTONE_RULES,
   PLAN_RULES,
-  `# Journal\nIn every quest's conversation, whatever the activity, use \`${UPDATE_MEMORY_TOOL}\` to save new information the user gives about their goals, knowledge, purpose, constraints, progress and preferences. Keep the steps they agree to, and so their next step, in the plan with \`${CHANGE_PLAN_TOOL}\`, not in the Journal. This includes new quests and blank Journals: use empty oldText to initialize or append Markdown. Preserve unrelated content, distinguish proposals from agreements and never invent facts. Do not require an interview or a complete plan before saving useful information. A standalone adventure has no Journal.`,
+  `# Journal\nIn every quest's conversation, whatever the activity, use \`${UPDATE_MEMORY_TOOL}\` to save free notes about knowledge, purpose, constraints and progress. Save the agreed goal with \`set_goal\` and stated preferences with \`change_preferences\` in their typed sections, never duplicating them in free notes. Keep the steps they agree to, and so their next step, in the plan with \`${CHANGE_PLAN_TOOL}\`, not in the Journal. This includes new quests and blank Journals: use empty oldText to initialize or append Markdown. Preserve unrelated content, distinguish proposals from agreements and never invent facts. Do not require an interview or a complete plan before saving useful information. A standalone adventure has no Journal.`,
 ];
 
 export { GLOBAL_PROMPT_SECTIONS, SEVERAL_AUTHORS_RULES, SHARED_RULES };

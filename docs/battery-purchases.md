@@ -11,7 +11,7 @@ Stripe test credentials and a configured test catalog were not supplied for this
 
 The Batteries terminology follows the glossary. Existing `gold` identifiers and copy keys remain compatibility names.
 
-The purchase table currently cascades on user deletion. There is no current delete-user flow. Durable audit retention independent of account deletion is required before live enablement.
+Purchase and cash-event audit rows survive account deletion. The purchase retains the immutable buyer UUID, without an account foreign key or email. There is no current delete-user flow. A paid purchase whose buyer has been deleted remains unfulfilled and returns a retryable error for manual cash reconciliation; it never recreates a balance or falsely records a grant. Retention duration and an authorized audit-erasure procedure still need review before live launch.
 
 ## Configure Stripe test mode
 
@@ -20,7 +20,7 @@ The purchase table currently cascades on user deletion. There is no current dele
    Set `STRIPE_TEST_RETURN_ORIGIN` to the exact test site origin, without a trailing slash; Checkout must return to the isolated local test site, not production. Hosted preview purchases are unavailable because they share the production database.
 
 3. Set the catalog to a JSON array of objects with `id`, `priceId`, `batteries`, `amount` and `currency`. The amount is the integer Stripe minor-unit price; currency is lowercase. Initially supported currencies are USD, EUR and GBP; this avoids incorrect display of Stripe-specific minor-unit exceptions. This support list does not select a commercial currency. Choose sandbox values explicitly: the repository supplies no commercial package defaults.
-4. Configure a snapshot webhook for `checkout.session.completed` and `checkout.session.expired` at `/api/stripe`. For local work, forward with Stripe CLI to the worktree's own site port. Use that listener's signing secret.
+4. Configure a snapshot webhook for `checkout.session.completed`, `checkout.session.expired`, `refund.created`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`, `charge.dispute.funds_withdrawn` and `charge.dispute.funds_reinstated` at `/api/stripe`. For local work, forward with Stripe CLI to the worktree's own site port. Use that listener's signing secret.
 5. Keep test and future live keys, catalogs, endpoints and databases separate. Use the worktree-local database; remote databases are refused. No live configuration accessor exists today.
 
 Only cards are enabled. Delayed payment methods, subscriptions and automatic recharge are not supported. Stripe collects card data; the site stores only buyer, offer snapshot, session/payment/event references, fulfillment time and state.
@@ -37,7 +37,11 @@ A success redirect means pending confirmation. A cancellation redirect means Che
 
 No customer refund policy has been chosen. Do not automatically deduct batteries or promise a refund. Before live launch, approve full and partial refunds, dispute openings/wins/losses, fees, rounding, tax corrections, and what happens when batteries have already been spent.
 
-The live-enablement change must add an auditable adjustment ledger with unique provider adjustment references, transactionally applied signed balance deltas, and cumulative refund/dispute tracking that prevents double reversal across different events. It must define negative-balance handling and recovery, test partial refunds and already-spent batteries, and reconcile Stripe cash movements with battery adjustments. Until that work and policy review are complete, live purchases remain blocked. Sandbox refunds do not adjust batteries in this implementation.
+The live-enablement change must add an auditable adjustment ledger with unique provider adjustment references, transactionally applied signed balance deltas, and cumulative refund/dispute tracking that prevents double reversal across different events. It must define negative-balance handling and recovery, test partial refunds and already-spent batteries, and reconcile Stripe cash movements with battery adjustments. Until that work and policy review are complete, live purchases remain blocked. Sandbox refunds and disputes do not adjust batteries in this implementation.
+
+Verified refund and dispute events retrieve the current Stripe object and match its payment intent to the retained purchase. Each observation records a unique event reference, provider object reference, purchase, kind, event type, current amount/currency/status and observation time in `battery_cash_events`. Duplicate deliveries insert once, including concurrent deliveries. Provider/storage failures return 500 for replay. If the payment has not yet been fulfilled but Stripe Checkout identifies it as a battery purchase, delivery returns 500 until fulfillment can establish the payment reference.
+
+These are current-state observations, not cash movements or battery adjustments. Multiple events can describe the same refund or dispute; never sum their amounts. A replay observes current state, not necessarily the state when Stripe created the event. Use provider object references to reconcile partial/full refunds, failures and dispute outcomes against Stripe's cash ledger. Fees, tax corrections, overlapping refunds/disputes and cumulative battery reversal still require the policy and adjustment implementation above. No raw payment payload or card data is retained.
 
 ## Reconcile and replay
 
@@ -49,7 +53,7 @@ The live-enablement change must add an auditable adjustment ledger with unique p
 
 ## Migrate and roll back
 
-The generated migration adds only `battery_purchases`; it changes no existing table or balance and is compatible with the old live build. Run the normal migration gate before the new build. Rollback restores code without dropping the audit table or undoing grants. Remove offers to stop new sessions while retaining test credentials and the webhook to finish in-flight payments. Before removing webhook support, reconcile every paid session. Revert code only after accounting for pending deliveries; retain records for replay and audit.
+Migration 0049 adds `battery_purchases`. Migration 0054 adds `battery_cash_events` and removes only the cascading buyer foreign key from purchases. It retains the required buyer UUID column and every existing purchase field. This expansion preserves the old live build's reads/writes and changes no balance. Removing the cascade intentionally preserves audits when an account is deleted; fixture cleanup deletes its audit rows explicitly. Run the normal migration gate before the new build. Rollback restores code without dropping the audit table or undoing grants. Remove offers to stop new sessions while retaining test credentials and the webhook to finish in-flight payments. Before removing webhook support, reconcile every paid session. Revert code only after accounting for pending deliveries; retain records for replay and audit.
 
 ## Validate with Stripe
 

@@ -54,6 +54,14 @@ import { changePlanTool } from "@/replies/tools/change-plan.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
+import {
+  CHANGE_PREFERENCES_TOOL,
+  SET_GOAL_TOOL,
+} from "@/replies/tools/journal-contract.ts";
+import {
+  changePreferencesTool,
+  setGoalTool,
+} from "@/replies/tools/journal-tools.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
@@ -74,6 +82,8 @@ type ChatTools = Readonly<{
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
   [CHANGE_PLAN_TOOL]: typeof changePlanTool;
+  [SET_GOAL_TOOL]: typeof setGoalTool;
+  [CHANGE_PREFERENCES_TOOL]: typeof changePreferencesTool;
   [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
   [QUEST_STATUS_TOOL]: typeof questStatusTool;
 }>;
@@ -114,6 +124,8 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
     tools.push(CREATE_PROJECT_TOOL);
   } else {
     tools.push(
+      SET_GOAL_TOOL,
+      CHANGE_PREFERENCES_TOOL,
       UPDATE_MEMORY_TOOL,
       CHANGE_PLAN_TOOL,
       RECORD_MILESTONE_TOOL,
@@ -164,6 +176,14 @@ function chatTools(projectId: ProjectId | undefined): ChatTools {
     [CREATE_PROJECT_TOOL]: withSettings(
       createProjectTool,
       breakpointOn(CREATE_PROJECT_TOOL, active),
+    ),
+    [SET_GOAL_TOOL]: withSettings(
+      setGoalTool,
+      breakpointOn(SET_GOAL_TOOL, active),
+    ),
+    [CHANGE_PREFERENCES_TOOL]: withSettings(
+      changePreferencesTool,
+      breakpointOn(CHANGE_PREFERENCES_TOOL, active),
     ),
     [UPDATE_MEMORY_TOOL]: withSettings(
       updateMemoryTool,
@@ -241,6 +261,8 @@ function streamChatToolCalls(
       [GENERATE_IMAGE_TOOL]: context,
       [SELECT_ACTIVITY_TOOL]: context,
       [CAST_SPELL_TOOL]: context,
+      [SET_GOAL_TOOL]: context,
+      [CHANGE_PREFERENCES_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
       [CHANGE_PLAN_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,

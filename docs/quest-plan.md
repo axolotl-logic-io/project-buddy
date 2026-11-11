@@ -67,3 +67,29 @@ The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per c
 Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854) and Preferences (#855) sections, are separate issues.
 
 Quick Notes removal supersedes the separate-storage proposal (#856). Historical Note paragraphs remain ordinary Journal content, with no rewrite or migration.
+
+## Move legacy Next step lines
+
+The explicit `journal:migrate-next-steps` command previews eligible quests by
+count, without printing Journal contents. It does not run during deployment.
+After the release that reads plans is live, an operator can run:
+
+```sh
+cd apps/web
+npm run journal:migrate-next-steps
+npm run journal:migrate-next-steps -- --apply --plan-release-live
+```
+
+Use the approved environment for the intended database. Production execution
+requires separate authorization. No production data was changed when this
+tooling was implemented (#853).
+
+The command moves the first nonempty legacy Next step line into an untouched
+plan, recording a construct plan change and a construct Journal version in one
+transaction. It preserves the remaining Markdown and all earlier versions.
+Plans with steps, previously emptied plans, and Journals without a valid line
+are unchanged. Lines longer than the plan's 200-character limit are left for
+manual review. A repeat run does not add another step. Concurrent changes that
+collide with a version abort the transaction; rerun after resolving the edit.
+The plan change can be undone and the previous Journal version restored with
+the existing controls.

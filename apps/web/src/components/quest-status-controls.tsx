@@ -1,10 +1,12 @@
 "use client";
 
+import { Popover } from "radix-ui";
 import {
   createContext,
   type JSX,
   type ReactNode,
   useActionState,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -16,7 +18,6 @@ import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import {
   QUEST_STATUSES,
-  type QuestStatus,
   type StatusActionState,
   type StatusChange,
 } from "@/projects/quest-status.ts";
@@ -101,17 +102,7 @@ function UndoControl({
   );
 }
 
-// The rail's status actions are quiet, except the one the quest's state
-// leads to next, which is boxed: Complete while it is Active, Restore quest
-// once it is closed. Abandon keeps the danger colour.
-function statusActionClass(current: QuestStatus, action: QuestStatus): string {
-  const classes = [`quest-status-${action}`];
-  if (action === "active" || (current === "active" && action === "completed")) {
-    classes.push("quest-status-next");
-  }
-  return classes.join(" ");
-}
-
+// A popover keeps infrequent status actions out of the navigation row.
 function StatusControls({
   project,
   restoreOnly = false,
@@ -120,10 +111,37 @@ function StatusControls({
   readonly restoreOnly?: boolean;
 }): JSX.Element | null {
   const publish = useContext(StatusFeedbackContext);
-  const [, action, pending] = useActionState(
-    changeWithFeedback.bind(null, publish, true),
-    IDLE,
+  const [open, setOpen] = useState(false);
+  const feedbackFocusRef = useRef<boolean>(false);
+  const submit = useCallback(
+    async (
+      previous: StatusActionState,
+      submitted: FormData,
+    ): Promise<StatusActionState> => {
+      const result = await changeWithFeedback(
+        publish,
+        true,
+        previous,
+        submitted,
+      );
+      feedbackFocusRef.current = true;
+      setOpen(false);
+      return result;
+    },
+    [publish],
   );
+  const [, action, pending] = useActionState(submit, IDLE);
+  const changeOpen = useCallback((next: boolean): void => {
+    if (next) {
+      feedbackFocusRef.current = false;
+    }
+    setOpen(next);
+  }, []);
+  const preserveFeedbackFocus = useCallback((event: Event): void => {
+    if (feedbackFocusRef.current) {
+      event.preventDefault();
+    }
+  }, []);
   let control: JSX.Element;
   if (restoreOnly === true) {
     control = (
@@ -148,7 +166,7 @@ function StatusControls({
               name="toStatus"
               value={status}
               variant="quiet"
-              className={statusActionClass(project.status, status)}
+              className={`quest-status-${status}`}
               disabled={pending}
             >
               {status === "completed" && <Icon name="check" />}
@@ -159,15 +177,43 @@ function StatusControls({
       </div>
     );
   }
+  const form = (
+    <form id={`quest-status-${project.id}`} action={action}>
+      <input type="hidden" name="projectId" value={project.id} />
+      <input type="hidden" name="fromStatus" value={project.status} />
+      <input type="hidden" name="revision" value={project.statusRevision} />
+      {control}
+    </form>
+  );
+  if (restoreOnly === true) {
+    return form;
+  }
   return (
-    <div className="flex flex-col items-start gap-2">
-      <form id={`quest-status-${project.id}`} action={action}>
-        <input type="hidden" name="projectId" value={project.id} />
-        <input type="hidden" name="fromStatus" value={project.status} />
-        <input type="hidden" name="revision" value={project.statusRevision} />
-        {control}
-      </form>
-    </div>
+    <Popover.Root open={open} onOpenChange={changeOpen}>
+      <Popover.Trigger asChild={true}>
+        <Button
+          variant="quiet"
+          className="quest-actions-trigger"
+          aria-label={QUEST_STATUS_COPY.menu}
+          title={QUEST_STATUS_COPY.menu}
+        >
+          <Icon name="more" />
+        </Button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          className="quest-actions-panel"
+          align="end"
+          onCloseAutoFocus={preserveFeedbackFocus}
+          aria-label={QUEST_STATUS_COPY.menu}
+        >
+          <p className="text-muted text-sm">
+            {QUEST_STATUS_COPY.labels[project.status]}
+          </p>
+          {form}
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 

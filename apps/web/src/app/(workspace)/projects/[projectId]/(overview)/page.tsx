@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { QuestJournal } from "@/components/journal/quest-journal.tsx";
 import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { listMilestones } from "@/milestones/milestone-store.ts";
@@ -40,16 +41,22 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
+  const journal = await QuestJournal({ owner: user.id, projectId: project.id });
+  let statusNotice: JSX.Element | undefined;
+  if (project.status !== "active") {
+    statusNotice = <Notice>{QUEST_STATUS_COPY.effects}</Notice>;
+  }
   if (current === "conversation") {
+    const conversation = await questConversation(project, user.id);
     return (
       <QuestWorkspace
         project={project}
         current={current}
-        conversation={await questConversation(project, user.id)}
+        conversation={conversation.content}
+        navigationStart={conversation.portrait}
       >
-        {project.status !== "active" && (
-          <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-        )}
+        {journal}
+        {statusNotice}
       </QuestWorkspace>
     );
   }
@@ -60,9 +67,8 @@ export default async function ProjectPage({
 
   return (
     <QuestWorkspace project={project} current={current}>
-      {project.status !== "active" && (
-        <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-      )}
+      {journal}
+      {statusNotice}
       {current === "plan" && plan !== undefined && (
         <section className="page-slot">
           <div className="flex flex-col gap-2">

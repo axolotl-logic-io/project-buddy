@@ -5,6 +5,7 @@
 // the server, because the composer in the browser tells commands apart with
 // the same rules.
 import { z } from "zod";
+import { preferenceCommand } from "@/journal/preference-commands.ts";
 import {
   moveToPlace,
   nextPlanStep,
@@ -97,7 +98,10 @@ function isChatCommand(text: string, place: CommandPlace): boolean {
     return false;
   }
   if (!place.inQuest) {
-    return PLAN_COMMAND_NAME.safeParse(name).success;
+    return (
+      PLAN_COMMAND_NAME.safeParse(name).success ||
+      preferenceCommand(text) !== undefined
+    );
   }
   return !(place.mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
 }
