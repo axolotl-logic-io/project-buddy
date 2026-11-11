@@ -67,7 +67,7 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 
 ## Proposed reply tool restrictions
 
-`src/replies/tools/index.ts` currently selects tools by quest presence, not API connection permission. `create_project` is available in every adventure; only `update_memory`, `record_milestone` and `request_quest_status` require a quest.
+`src/replies/tools/index.ts` currently selects tools by quest presence, not API connection permission. `create_project` is available only in Chat, where it offers Turn Chat into a quest and creates nothing; only `update_memory`, `record_milestone` and `request_quest_status` require a quest.
 
 API support needs a shared authorization boundary that supplies the intersection of operation permissions, connection restrictions and current acting-user access. Filter the tools advertised to the model and enforce permission again where each effect executes. A prompt or a spell cannot widen that authority. Recheck current access on later requests and tool writes; removed members must not keep access through a running client's cached authorization.
 

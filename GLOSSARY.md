@@ -90,7 +90,7 @@ Instructions that every conversation gets, whatever its construct and activity: 
 
 ### Constructs page
 
-The page listing the built-in [constructs](#construct) and the user's own. The user chooses a construct to start a quest with.
+The page listing the built-in [constructs](#construct) and the user's own. It starts no quest: the user picks a construct inside [Start a quest](#start-a-quest).
 
 - **UI:** "Constructs".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
@@ -259,7 +259,7 @@ The continuing exchange between the user and one [construct](#construct). Each [
 
 ### Chat (destination)
 
-The user's private conversation for talking without a goal, in no quest. It has no Journal, plan or progress timeline. The construct can offer to start a quest from it; confirming makes a new quest with its own conversation and moves no Chat messages into it.
+The user's private conversation for talking without a goal, in no quest. It has no Journal, plan or progress timeline. The user can [turn it into a quest](#turn-chat-into-a-quest), and the construct can offer to; confirming makes a new quest with its own conversation and moves no Chat messages into it.
 
 - **UI:** "Chat".
 - **Avoid:** "standalone adventure", "central chat", "Chats".
@@ -331,6 +331,20 @@ Something the user wants to do, make or learn, which they work on in the quest's
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
+
+### Start a quest
+
+One of the two ways to create a quest: the shared form that offers the four [premade quests](#premade-quest), then the chosen one's name, starting Journal and construct to edit and confirm. Every link that starts a quest opens this same form; no construct or activity page has a start of its own. Browsing or closing it creates nothing and spends nothing.
+
+- **UI:** "Start a quest".
+- **Avoid:** "New quest" as a separate flow, "Explore".
+
+### Turn Chat into a quest
+
+The other way to create a quest: from [Chat](#chat-destination), the same form as Start a quest, opened on Do a thing with a summary of the Chat, or the construct's offered name and summary, as the Journal to edit and confirm. The construct's offer creates nothing on its own. A quest's conversation can't create quests.
+
+- **UI:** "Turn Chat into a quest".
+- **Avoid:** "Start a quest from this", "transfer".
 
 The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. The Home heading "Your projects await" is the user-approved copy exception; other labels use Quest and Quests.
 

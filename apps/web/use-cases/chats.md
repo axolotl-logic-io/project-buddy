@@ -50,11 +50,11 @@ The user turns what she talked through in Chat into a quest.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - In Chat, she chooses Start a quest from this.
+  - In Chat, she chooses Turn Chat into a quest.
   - A dialog opens the quest start on Do a thing, with a summary of her recent Chat messages as the new quest's Journal. She edits the name and Journal.
   - She closes the dialog without starting. Another time, she starts the quest.
-  - Instead of the button, she can ask the construct to make the idea a quest; it proposes a name and summary, which she edits and confirms in the conversation.
-- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest whose Journal is exactly what she confirmed, and opens the quest's conversation. Chat keeps all its messages and stays private: none are copied into the quest, so people she later invites to the quest see only the confirmed Journal. A construct's proposal alone creates nothing; repeating its confirmation returns the same quest, and concurrent confirmations create only one. Planned steps never become completed milestones.
+  - Instead of the button, she can ask the construct to make the idea a quest; it offers a name and summary, and its offer's Turn Chat into a quest opens the same dialog with them filled in, to edit and confirm.
+- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest whose Journal is exactly what she confirmed, and opens the quest's conversation. Chat keeps all its messages and stays private: none are copied into the quest, so people she later invites to the quest see only the confirmed Journal. A construct's offer alone creates nothing and spends nothing. In a quest's conversation the construct can't offer another quest. Planned steps never become completed milestones.
 - **Variations:** an invalid name fails before anything is created. An unavailable opening, insufficient batteries or a storage failure saves no quest and keeps her edits for a retry.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.

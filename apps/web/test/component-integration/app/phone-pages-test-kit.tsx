@@ -862,7 +862,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }, chatPage),
   },
   {
-    name: "Chat's Start a quest from this",
+    name: "Chat's Turn Chat into a quest",
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());

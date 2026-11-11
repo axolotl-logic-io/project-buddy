@@ -1,13 +1,5 @@
-// The text of the start action on Constructs, of Chat, and of Chat's Start
-// a quest from this.
+// The text of Chat, and of Turn Chat into a quest.
 import { pageTitle } from "@/ui/copy/site.ts";
-
-// A Construct's start action, which starts a quest with it.
-export const START_WORK_COPY = {
-  constructDialogHeading: (name: string): string =>
-    `Start a quest with ${name}`,
-  closeDialog: "Close",
-} as const;
 
 // Chat, the private conversation for talking without a goal.
 export const STANDALONE_CHAT_COPY = {
@@ -17,11 +9,13 @@ export const STANDALONE_CHAT_COPY = {
     "Talk with a construct without a goal. Only you can see this conversation.",
 } as const;
 
-// Chat's Start a quest from this: the premade quest start, on Do a thing,
-// with a summary of the Chat as the Journal to edit and confirm.
+// Turn Chat into a quest: the shared quest start, on Do a thing, with a
+// summary of the Chat, or the construct's offer, as the Journal to edit and
+// confirm.
 export const QUEST_FROM_CHAT_COPY = {
-  open: "Start a quest from this",
-  heading: "Start a quest from this",
+  open: "Turn Chat into a quest",
+  openOffer: (name: string): string => `Turn Chat into a quest: ${name}`,
+  heading: "Turn Chat into a quest",
   closeDialog: "Close",
   intro:
     "Only the name and Journal you confirm go into the new quest. This Chat stays private and keeps its messages, even if you later invite people to the quest.",

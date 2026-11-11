@@ -34,10 +34,10 @@ const SHARED_RULES: string = [
   "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the owner to confirm the exact change on the card. The quest does not change until they approve. Never infer completion from a milestone or abandonment from frustration. Only the owner may approve; restoring keeps check-ins off.",
 ].join("\n");
 
-// When to start a project, from any chat.
+// When to offer a quest: in Chat only.
 const NEW_PROJECT_RULES: string = [
   "# New quests",
-  `When the user asks for a new quest, or asks to make an idea you talked through a quest, call \`${CREATE_PROJECT_TOOL}\` with a short name for it; the user then follows the link it shows to the quest's first adventure.`,
+  `In Chat, when the user asks for a new quest, or asks to make an idea you talked through a quest, call \`${CREATE_PROJECT_TOOL}\` with a short name and a summary; the user then reviews and confirms it themselves, and nothing exists until they do. In a quest's conversation you can't create quests: point the user to Start a quest on Quests.`,
 ].join("\n");
 
 // When to add a milestone to a project's progress timeline: sparingly, to
