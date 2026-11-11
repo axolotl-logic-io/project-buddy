@@ -6,7 +6,6 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
-import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
@@ -16,10 +15,6 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
-import {
-  type QuestCreationChoices,
-  questCreationChoices,
-} from "@/projects/quest-creation-choices.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
@@ -41,16 +36,15 @@ interface ListedConstruct extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its avatar beside its name, which opens its start action,
-// its temperament and its actions, in one column.
+// A construct as a card: its avatar beside its name, which opens its page,
+// its temperament and its actions, in one column. Quests start only from
+// Start a quest, where the construct is chosen.
 function ConstructCard({
   construct,
   actions,
-  choices,
 }: {
   readonly construct: ListedConstruct;
   readonly actions: JSX.Element;
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <li className="card construct-card">
@@ -60,22 +54,12 @@ function ConstructCard({
         decorative={true}
       />
       <div className="flex min-w-0 flex-col gap-2">
-        <StartWorkDialog
-          choices={choices}
-          startWith={{
-            kind: "construct",
-            id: construct.id,
-            name: construct.name,
-          }}
-          trigger={
-            <button
-              className="card-title wrap-anywhere self-start text-left text-link"
-              type="button"
-            >
-              {CONSTRUCTS_COPY.startLabel(construct.name)}
-            </button>
-          }
-        />
+        <Link
+          className="card-title wrap-anywhere self-start text-link"
+          href={`/constructs/${construct.id}`}
+        >
+          {construct.name}
+        </Link>
         <p className="wrap-anywhere text-muted text-sm">
           {constructPersonality(construct).temperament}
         </p>
@@ -89,10 +73,8 @@ function ConstructCard({
 // makes a clone of her own and opens it to edit.
 function BuiltInConstructCards({
   constructs,
-  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -110,7 +92,6 @@ function BuiltInConstructCards({
               </Button>
             </form>
           }
-          choices={choices}
           key={construct.id}
           construct={construct}
         />
@@ -123,10 +104,8 @@ function BuiltInConstructCards({
 // button that clones it.
 function OwnConstructList({
   constructs,
-  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -158,7 +137,6 @@ function OwnConstructList({
               />
             </>
           }
-          choices={choices}
           key={construct.id}
           construct={construct}
         />
@@ -170,15 +148,13 @@ function OwnConstructList({
 // Her own constructs as cards, or, if she has none, a line that says so.
 function OwnConstructCards({
   constructs,
-  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   if (constructs.length === 0) {
     return <p className="text-muted">{CONSTRUCTS_COPY.noOwn}</p>;
   }
-  return <OwnConstructList constructs={constructs} choices={choices} />;
+  return <OwnConstructList constructs={constructs} />;
 }
 
 async function ConstructLists({
@@ -187,10 +163,7 @@ async function ConstructLists({
   readonly workspace?: boolean;
 } = {}): Promise<JSX.Element> {
   const user = await requireUser();
-  const [own, choices] = await Promise.all([
-    listOwnConstructs(user.id),
-    questCreationChoices(user.id),
-  ]);
+  const own = await listOwnConstructs(user.id);
   if (workspace === true) {
     const retired = await listRetiredDefinitions(user.id);
     return (
@@ -211,10 +184,7 @@ async function ConstructLists({
               label: WORKSPACES_COPY.builtIn,
               content: (
                 <div className="workspace-rows">
-                  <BuiltInConstructCards
-                    constructs={listBuiltInConstructs()}
-                    choices={choices}
-                  />
+                  <BuiltInConstructCards constructs={listBuiltInConstructs()} />
                 </div>
               ),
             },
@@ -223,7 +193,7 @@ async function ConstructLists({
               label: WORKSPACES_COPY.yours,
               content: (
                 <div className="workspace-rows">
-                  <OwnConstructCards constructs={own} choices={choices} />
+                  <OwnConstructCards constructs={own} />
                 </div>
               ),
             },
@@ -250,10 +220,7 @@ async function ConstructLists({
         <h2 className="section-heading" id={BUILT_IN_HEADING_ID}>
           {CONSTRUCTS_COPY.builtInHeading}
         </h2>
-        <BuiltInConstructCards
-          constructs={listBuiltInConstructs()}
-          choices={choices}
-        />
+        <BuiltInConstructCards constructs={listBuiltInConstructs()} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -266,7 +233,7 @@ async function ConstructLists({
             </Button>
           </form>
         </div>
-        <OwnConstructCards constructs={own} choices={choices} />
+        <OwnConstructCards constructs={own} />
       </section>
     </>
   );

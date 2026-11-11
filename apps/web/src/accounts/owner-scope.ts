@@ -32,7 +32,6 @@ import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
-import { questTransfers } from "@/db/tables/quest-transfers.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
 import { users } from "@/db/tables/users.ts";
@@ -159,10 +158,6 @@ function constructGenerationVisualOpenTo(user: UserId): SQL {
   );
 }
 
-function questTransferOwnedBy(user: UserId): SQL {
-  return sql`(${eq(questTransfers.userId, user)} and ${inArray(questTransfers.sourceChatId, new QueryBuilder().select({ id: chats.id }).from(chats).where(chatOpenTo(user)))})`;
-}
-
 function replyUsageOwnedBy(user: UserId): SQL {
   return eq(replyUsage.userId, user);
 }
@@ -208,7 +203,6 @@ export {
   ownsProject,
   planVersionOpenTo,
   projectOwnedBy,
-  questTransferOwnedBy,
   replyRunOpenTo,
   replyRunOwnedBy,
   replyUsageOwnedBy,

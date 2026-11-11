@@ -52,7 +52,6 @@ function startForm(
     premadeId: id,
     name: quest.name,
     journal: quest.journal,
-    activityId: quest.activityId,
     constructId: "vellum",
     ...changes,
   });
@@ -145,6 +144,19 @@ describe("use_case_new_project", () => {
       "Learn to knit",
       "Learn Spanish",
     ]);
+  });
+
+  test("the starting point chooses the activity, whatever an older form sends", async () => {
+    const user = await testUser();
+    await signIn(user);
+    const form = startForm("make");
+    form.set("activityId", "brainstorming");
+
+    const conversation = await startQuest(user, form);
+
+    expect((await currentActivity(user.id, conversation)).id).toBe(
+      "find-something-to-make",
+    );
   });
 });
 
