@@ -212,9 +212,6 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   leaveProjectAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   retireActivityAction: vi.fn(),
   cloneActivityAction: vi.fn(),
