@@ -20,10 +20,7 @@ function ContinueQuest({
 }): JSX.Element {
   if (quest === undefined) {
     return (
-      <Link
-        className="atlas-start"
-        href="/chats/new?activity=project-breakdown&projectId=new"
-      >
+      <Link className="atlas-start" href="/projects">
         <Icon name="shield" />
         {HOME_COPY.newQuest}
       </Link>
@@ -36,12 +33,10 @@ function ContinueQuest({
     >
       <div className="atlas-quest">
         <p className="atlas-hud-label">{HOME_COPY.currentQuest}</p>
-        <Link
-          className="atlas-quest-name"
-          href={`/projects/${quest.project.id}`}
-        >
-          {quest.project.name}
-        </Link>
+        <p className="atlas-quest-name">{quest.project.name}</p>
+        {quest.unread === true && (
+          <p className="atlas-next-step">{HOME_COPY.unread}</p>
+        )}
         {quest.nextStep !== undefined && (
           <p className="atlas-next-step">
             {HOME_COPY.nextStep} {quest.nextStep}
@@ -51,7 +46,7 @@ function ContinueQuest({
       <Link
         aria-label={HOME_COPY.continueLabel(quest.project.name)}
         className="atlas-continue-link"
-        href={`/chats/${quest.latestChat}`}
+        href={`/projects/${quest.project.id}`}
       >
         {HOME_COPY.continue}
         <Icon className="rotate-180" name="arrow-left" />
