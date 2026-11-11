@@ -31,6 +31,12 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CONVERSATION, FOX_PROJECT } from "../../page-fixtures.ts";
 
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: (): never => {
+    throw new Error("Quest creation is not available in a quest conversation");
+  },
+}));
+
 vi.mock(
   "@/plan/plan-actions.ts",
   () => import("../../../../plan/plan-actions-test-kit.ts"),
