@@ -27,7 +27,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
 
 - [Images](images.md): image generation, gallery, battery accounting and deletion.
-- [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
+- [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
 
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 
