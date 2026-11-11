@@ -21,7 +21,6 @@ import {
   SPELL_DEFINITION_COPY,
   SPELLBOOK_COPY,
 } from "@/ui/copy/spells.ts";
-import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInSpellAction, saveSpellAction } from "../actions.ts";
 import { RetireSpellForm } from "../retire-spell-form.tsx";
 
@@ -147,30 +146,16 @@ export default async function SpellPage({
   const { saved } = await searchParams;
   const user = await requireUser();
   if (isSpellId(spellId)) {
-    const options = await workshopOptions(user.id);
     const spell = getSpell(spellId);
     return (
-      <Workshop
-        options={options}
-        initial={{
-          kind: "spell",
-          id: spell.id,
-          name: spell.name,
-          prompt: spell.definition.prompt,
-          whenToUse: spell.definition.whenToUse,
-          openingRequest: "",
-        }}
-      >
+      <Workshop>
         <BuiltInSpell spell={spell} />
       </Workshop>
     );
   }
-  const [spell, options] = await Promise.all([
-    measureServerOperation("spell-data", () =>
-      readOwnDefinition(user.id, spellId),
-    ),
-    workshopOptions(user.id),
-  ]);
+  const spell = await measureServerOperation("spell-data", () =>
+    readOwnDefinition(user.id, spellId),
+  );
   if (spell === undefined) {
     const retired = await getRetiredDefinition(user.id, spellId);
     if (retired?.kind === "spell") {
@@ -179,17 +164,7 @@ export default async function SpellPage({
     notFound();
   }
   return (
-    <Workshop
-      options={options}
-      initial={{
-        kind: "spell",
-        id: spell.id,
-        name: spell.name,
-        prompt: spell.definition.prompt,
-        whenToUse: spell.definition.whenToUse,
-        openingRequest: "",
-      }}
-    >
+    <Workshop>
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnSpellForm viewer={user.id} spell={spell} />
     </Workshop>

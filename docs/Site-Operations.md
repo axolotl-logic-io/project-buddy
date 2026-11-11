@@ -20,11 +20,11 @@ The site is the Vercel project `project-buddy` in the team `modest-progress`. `a
 | `npm run ops:env -- production` | Pulls that environment's variables (`production`, `preview` or `development`) to `~/.config/project-buddy/production.env`, readable only by you, and prints the names, never the values. Refuses a directory inside any git checkout. Links first if needed. |
 | `npm run ops:query -- production "<sql>"` | Runs one statement against that environment's database inside a read-only transaction, which is always rolled back, with a 15 s timeout. Prints the rows as JSON. |
 
-For example, to count the unread marks after a release:
+For example, to count the quests after a release:
 
 ```bash
 npm run ops:env -- production
-npm run ops:query -- production "select count(*) from chat_unreads"
+npm run ops:query -- production "select count(*) from projects"
 ```
 
 - **Pulled files stay outside the checkout.** `next build` loads `.env.production` and the test commands load `.env*` files, so a pulled file inside the repo could point a build or a test at production. `ops:env` refuses any directory inside the checkout. Set `PROJECT_BUDDY_OPS_DIR` to use another directory outside it.
@@ -106,15 +106,15 @@ Deleting a chat, project or account cascades to its image bytes. Unsent and remo
 
 Use the worktree-local `.env.test` and mock model for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
 
-## Check-ins
+## Removed check-ins and unread marks
 
-A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the constructs' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call. A call that leaves due projects behind logs a `[check-in-backlog]` line, so a growing backlog shows in the Vercel logs before check-ins arrive late.
+The site has no scheduled jobs. Automatic check-ins, with their Vercel cron, `/api/check-ins` route, `CRON_SECRET`, emails and unread marks, were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). The `crons` entry is gone from `apps/web/vercel.json`, so a deployment of this build registers no cron, and a request to the old route starts nothing.
 
-Check-ins are hidden until `CRON_SECRET` is set. Without it, the project page doesn't show the check-in setting, the setting's action refuses to save, and the route answers 401 to every request, so no request starts check-ins. Chats and unread marks that check-ins already made stay as they are.
+Removing the code needs no migration. `projects.check_in_frequency`, `projects.last_check_in_at` and the `chat_unreads` table stay, unread and unwritten by this build, because earlier builds read them. A held cleanup drops them once no live or rollback build reads them.
 
-To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls, then redeploy, so the deployment gets it. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. Crons run only on the production deployment.
+After the release is live, an operator can delete `CRON_SECRET` from the Vercel project; nothing reads it. A rollback to a build before #903 brings the cron and check-ins back for quests whose `check_in_frequency` is still on, until the build with #903 is promoted again.
 
-Each check-in is a real model call charged to its owner's gold, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
+The history of the check-in columns follows. Migration 0022 added `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults.
 
 Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release that added 0028 (#638) also kept writing `chats.unread` for the chat's owner; the release of #665 stopped writing it.
 

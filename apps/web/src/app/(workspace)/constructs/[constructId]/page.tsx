@@ -29,7 +29,6 @@ import {
 } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
-import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInConstructAction, saveConstructAction } from "../actions.ts";
 import { RetireConstructForm } from "../retire-construct-form.tsx";
 
@@ -181,30 +180,16 @@ export default async function ConstructPage({
   const { saved } = await searchParams;
   const user = await requireUser();
   if (isConstructId(constructId)) {
-    const options = await workshopOptions(user.id);
     const construct = getConstruct(constructId);
     return (
-      <Workshop
-        options={options}
-        initial={{
-          kind: "construct",
-          id: construct.id,
-          name: construct.name,
-          prompt: construct.definition.prompt,
-          whenToUse: "",
-          openingRequest: "",
-        }}
-      >
+      <Workshop>
         <BuiltInConstruct construct={construct} />
       </Workshop>
     );
   }
-  const [construct, options] = await Promise.all([
-    measureServerOperation("construct-data", () =>
-      readOwnDefinition(user.id, constructId),
-    ),
-    workshopOptions(user.id),
-  ]);
+  const construct = await measureServerOperation("construct-data", () =>
+    readOwnDefinition(user.id, constructId),
+  );
   if (construct === undefined) {
     const retired = await getRetiredDefinition(user.id, constructId);
     if (retired?.kind === "construct") {
@@ -213,17 +198,7 @@ export default async function ConstructPage({
     notFound();
   }
   return (
-    <Workshop
-      options={options}
-      initial={{
-        kind: "construct",
-        id: construct.id,
-        name: construct.name,
-        prompt: construct.definition.prompt,
-        whenToUse: "",
-        openingRequest: "",
-      }}
-    >
+    <Workshop>
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnConstructForm viewer={user.id} construct={construct} />
     </Workshop>

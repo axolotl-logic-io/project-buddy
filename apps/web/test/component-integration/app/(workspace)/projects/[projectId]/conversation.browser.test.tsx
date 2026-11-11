@@ -20,11 +20,7 @@ import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
-import type {
-  listMessages,
-  markChatRead,
-  readStoppedReply,
-} from "@/chats/store.ts";
+import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { SiteHeader } from "@/components/site-header.tsx";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getProject } from "@/projects/store.ts";
@@ -78,7 +74,6 @@ vi.mock(
 
 const store = vi.hoisted(() => ({
   listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn<typeof readStoppedReply>(),
   readQuestConversation: vi.fn<typeof readQuestConversation>(),
   getProject: vi.fn<typeof getProject>(),
@@ -86,7 +81,6 @@ const store = vi.hoisted(() => ({
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn(),
   listMessages: store.listMessages,
-  markChatRead: store.markChatRead,
   readStoppedReply: store.readStoppedReply,
 }));
 vi.mock("@/conversations/start-quest.ts", () => ({
@@ -97,7 +91,6 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   startConversationAction: vi.fn(),
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
@@ -107,9 +100,6 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
 vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
   joinProjectAction: vi.fn(),
   declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: vi.fn(),
 }));
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn(),
@@ -505,20 +495,6 @@ describe("use_case_open_project", () => {
     await expect
       .element(page.getByRole("button", { name: "New adventure" }))
       .not.toBeInTheDocument();
-    expect(store.markChatRead).not.toHaveBeenCalled();
-  });
-
-  test("an unread conversation is marked read for the viewer alone", async () => {
-    store.readQuestConversation.mockResolvedValue({
-      ...FOX_CONVERSATION,
-      unread: true,
-    });
-    await render(await chatPage());
-
-    expect(store.markChatRead).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      FOX_CHAT.id,
-    );
   });
 });
 
