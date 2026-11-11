@@ -195,42 +195,6 @@ The user asks the construct about something that has nothing to do with Blender.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
 
-## use_case_check_in
-
-The quest's construct checks in on her, on the schedule she chose.
-
-- **Prerequisites:** [`use_case_set_check_ins`](projects.md#use_case_set_check_ins), for a quest whose Journal holds where she is ([`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory)).
-- **Steps:**
-  - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
-  - The site's scheduler runs.
-- **Outcome:** the quest's conversation ends with the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. No new conversation is made, and the conversation keeps its construct and current activity. A check-in has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The quest is unread. She gets an email from the construct with the same message, a link to the quest and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, while the last check-in is still unread, or while her last message still awaits a reply. Once she is out of batteries, the check-in is skipped and nothing is saved or sent. A quest with no conversation yet gets one, which the check-in opens.
-- **Next:**
-  - `use_case_open_unread_check_in`: read it.
-  - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
-
-## use_case_open_unread_check_in
-
-The user opens a check-in they haven't read.
-
-- **Prerequisites:** `use_case_check_in`.
-- **Steps:**
-  - On Quests, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
-- **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
-- **Next:**
-  - `use_case_continue_chat`: take the small next step with the construct.
-
-## use_case_turn_off_check_ins_from_email
-
-The user turns off a quest's check-ins from a check-in email.
-
-- **Prerequisites:** `use_case_check_in`.
-- **Steps:**
-  - She follows the email's link to turn check-ins off. She needn't be signed in.
-  - The page names the quest and asks her to confirm, and she does.
-- **Outcome:** the page says the quest's check-ins are off, with the quest's name in semibold, and links to the quest. The quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing, says it doesn't work and links to Quests.
-- **Next:**
-  - [`use_case_set_check_ins`](projects.md#use_case_set_check_ins): turn them on again later.
-
 ## use_case_continue_chat
 
 The user carries on an earlier conversation, and the construct remembers it.
@@ -316,7 +280,7 @@ The user asks their construct about images in a quest or standalone adventure.
   - They preview the attachments and remove any they do not want to send.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the adventure and ask a follow-up question about an earlier image.
-- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the quest owner. Deleting the adventure, its quest or its account deletes its images.
+- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure, including current team members. Replies and generated images charge the acting user, including a replying member and generated openings charge the starter. Deleting the adventure, its quest or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-batteries refusal returns text and attachments to the composer. No paid model runs during tests.
 
 ## use_case_construct_presence

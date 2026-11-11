@@ -155,7 +155,6 @@ async function linkCardFocus(): Promise<
             role: "owner",
             shared: false,
             dailies: false,
-            unread: false,
           },
         ]}
       />

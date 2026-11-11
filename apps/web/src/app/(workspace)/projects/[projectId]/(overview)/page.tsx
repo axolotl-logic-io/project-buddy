@@ -2,13 +2,8 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
-import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
-import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
-import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
-import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
 import {
@@ -19,7 +14,7 @@ import {
 import { readPlanState } from "@/plan/plan-store.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import { listSentProjectInvitations } from "@/projects/project-invitations.ts";
-import { getProject, type Project } from "@/projects/store.ts";
+import { getProject } from "@/projects/store.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -30,23 +25,6 @@ import { ProjectNotes } from "./project-notes.tsx";
 import { questConversation } from "./quest-conversation.tsx";
 import { QuestPlan } from "./quest-plan.tsx";
 
-// The project's check-in frequency for its setting, off when unsaved, or
-// null, which hides the setting, while check-ins are off for the site or
-// for a member: check-ins are the owner's alone.
-async function checkInSetting(
-  user: UserId,
-  project: Pick<Project, "id" | "role" | "status">,
-): Promise<CheckInFrequency | null> {
-  if (
-    !checkInsAreOn() ||
-    project.role !== "owner" ||
-    project.status !== "active"
-  ) {
-    return null;
-  }
-  return (await readCheckInFrequency(user, project.id)) ?? null;
-}
-
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
 // the conversation's pinned header and composer both stay above it.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
@@ -54,8 +32,7 @@ export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 // A quest's page. Its first section is the quest's one conversation, with
 // its composer; the others are its plan, its progress timeline, its newest
 // Quick Notes and its members, with, for its owner, the invite form with its
-// pending invitations and its check-in setting, once check-ins are on for
-// the site. Journal and Versions are pages of their own (memory/).
+// pending invitations. Journal and Versions are pages of their own (memory/).
 export default async function ProjectPage({
   params,
   searchParams,
@@ -90,15 +67,13 @@ export default async function ProjectPage({
       </QuestWorkspace>
     );
   }
-  const [milestones, notes, members, invitations, frequency, plan] =
-    await Promise.all([
-      listMilestones(user.id, project.id),
-      readRecentNotes(user.id, project.id),
-      listProjectMembers(user.id, project.id),
-      listSentProjectInvitations(user.id, project.id),
-      checkInSetting(user.id, project),
-      readPlanState(user.id, project.id),
-    ]);
+  const [milestones, notes, members, invitations, plan] = await Promise.all([
+    listMilestones(user.id, project.id),
+    readRecentNotes(user.id, project.id),
+    listProjectMembers(user.id, project.id),
+    listSentProjectInvitations(user.id, project.id),
+    readPlanState(user.id, project.id),
+  ]);
 
   return (
     <QuestWorkspace project={project} current={current}>
@@ -144,9 +119,6 @@ export default async function ProjectPage({
           />
           {invitations !== undefined && (
             <ProjectInvite invitations={invitations} projectId={project.id} />
-          )}
-          {frequency !== null && (
-            <CheckInSetting frequency={frequency} projectId={project.id} />
           )}
         </>
       )}

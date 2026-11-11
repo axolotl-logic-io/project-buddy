@@ -6,9 +6,9 @@ const QUEST_STATUS_COPY = {
     abandoned: "Abandon",
   },
   saved: {
-    active: "Quest restored. Check-ins stay off until you turn them on.",
-    completed: "Quest completed. Check-ins paused.",
-    abandoned: "Quest abandoned. Check-ins paused.",
+    active: "Quest restored.",
+    completed: "Quest completed.",
+    abandoned: "Quest abandoned.",
   },
   option: (name: string, status: string): string => `${name} (${status})`,
   tabs: "Quest status",
@@ -16,7 +16,7 @@ const QUEST_STATUS_COPY = {
   undo: "Undo",
   empty: "No quests with this status.",
   effects:
-    "Your conversation, Journal, Quick Notes and progress stay available. Completed and abandoned quests have no check-ins. You can restore the quest whenever you want.",
+    "Your conversation, Journal, Quick Notes and progress stay available. You can restore the quest whenever you want.",
   pending: "Awaiting your approval",
   approvalHeading: "Confirm quest status change",
   confirm: {
