@@ -138,12 +138,52 @@ test("the cutover removes adventures and what they own, and keeps accounts, bala
       ADVENTURES,
     );
 
+    // The replacement build's two conversation kinds survive the cutover.
+    const conversation = await insertedId(
+      pool,
+      "insert into chats (project_id, buddy_id, continuing) values ($1, 'vellum', true) returning id",
+      [project],
+    );
+    const privateChat = await insertedId(
+      pool,
+      "insert into chats (user_id, buddy_id, continuing) values ($1, 'vellum', true) returning id",
+      [user],
+    );
+    await pool.query(
+      "insert into messages (id, chat_id, role, parts) values ('kept-quest', $1, 'user', '[]'::jsonb), ('kept-chat', $2, 'user', '[]'::jsonb)",
+      [conversation, privateChat],
+    );
+    await pool.query(
+      "insert into images (chat_id, media_type, data) values ($1, 'image/png', 'AQ==')",
+      [conversation],
+    );
+
     await migrateTestDatabase(database);
 
-    expect(await count(pool, "select count(*) as n from chats")).toBe(0);
-    expect(await count(pool, "select count(*) as n from messages")).toBe(0);
-    expect(await count(pool, "select count(*) as n from images")).toBe(0);
+    const { rows: conversations } = await pool.query(
+      "select id, continuing from chats order by id",
+    );
+    expect(conversations).toEqual(
+      [conversation, privateChat]
+        .sort()
+        .map((id) => ({ id, continuing: true })),
+    );
+    const { rows: messages } = await pool.query(
+      "select id from messages order by id",
+    );
+    expect(messages).toEqual([{ id: "kept-chat" }, { id: "kept-quest" }]);
+    const { rows: images } = await pool.query(
+      'select chat_id as "chatId", data from images',
+    );
+    expect(images).toEqual([{ chatId: conversation, data: "AQ==" }]);
     expect(await count(pool, "select count(*) as n from chat_unreads")).toBe(0);
+    expect(
+      await count(pool, "select count(*) as n from image_generations"),
+    ).toBe(0);
+    expect(
+      await count(pool, "select count(*) as n from activity_sessions"),
+    ).toBe(0);
+    expect(await count(pool, "select count(*) as n from reply_runs")).toBe(0);
     const { rows: kept } = await pool.query<{
       users: string;
       balance: string;
@@ -173,6 +213,11 @@ test("the cutover removes adventures and what they own, and keeps accounts, bala
       [project],
     );
     expect(milestones).toEqual([{ text: "Modelled the shell", chatId: null }]);
+    const { rows: plans } = await pool.query(
+      'select version, plan, chat_id as "chatId" from plan_versions where project_id = $1',
+      [project],
+    );
+    expect(plans).toEqual([{ version: 1, plan: [], chatId: null }]);
   } finally {
     await pool.end();
     await dropTestDatabase(database);
