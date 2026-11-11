@@ -23,8 +23,9 @@ type QuestSection =
   | "progress"
   | "versions";
 
-// A quest's frame: its title and status, with the rail of its sections, the
-// conversation first, and the status controls. children is the current
+// A quest's frame, under the trail band that names the quest: first its
+// actions, Rename and the status with its controls, then the rail of its
+// sections, the conversation first. children is the current
 // section, inside the frame; conversation follows the frame instead, so the
 // conversation and its composer take the page's full width and height.
 // Moving between sections keeps the conversation's draft, which the
@@ -77,11 +78,12 @@ function QuestWorkspace({
         <div className="quest-workspace">
           <header>
             <div className="quest-workspace-heading">
-              <div className="min-w-0">
-                <QuestTitle project={project} />
+              <QuestTitle project={project} />
+              <div className="quest-workspace-state">
                 <p className="quest-workspace-status">
                   {QUEST_STATUS_COPY.labels[project.status]}
                 </p>
+                <QuestStatusControls project={project} />
               </div>
             </div>
             <div className="quest-workspace-rail">
@@ -106,7 +108,6 @@ function QuestWorkspace({
                   );
                 })}
               </nav>
-              <QuestStatusControls project={project} />
             </div>
           </header>
           {children !== undefined && (

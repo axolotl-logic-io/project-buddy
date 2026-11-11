@@ -20,8 +20,8 @@ Reply instructions include the requesting owner’s latest proposal decision in 
 
 ## Quest workspace
 
-The quest overview and Quest Journal share a compact header. The title and its pencil appear above the status. The lower rail holds Conversation, Quest Journal, Plan, Progress and Versions navigation, followed by the status actions. The current section appears below the rail; Conversation, the default, follows the frame at the page's full width, with its pinned header and composer. The current page has an underlined link. Controls wrap on phones.
+The quest overview and Quest Journal share a compact frame under the site header's trail band, whose heading is the quest's title on the overview and Journal on the Journal. The frame's first row holds Rename, the status and the status actions. The rail below it holds Conversation, Quest Journal, Plan, Progress and Versions navigation. The current section appears below the rail; Conversation, the default, follows the frame at the page's full width, with its pinned header and composer. The current page has an underlined link. Controls wrap on phones.
 
-The owner can choose the pencil to edit the title inline. Save title or Enter saves a trimmed name of up to 80 characters. Cancel title edit or Escape discards the draft, and focus returns to the pencil. Invalid names and storage failures keep the draft open for correction.
+The owner can choose Rename to edit the title in place of the button. Save title or Enter saves a trimmed name of up to 80 characters, and the band's heading and parent link show it. Cancel title edit or Escape discards the draft, and focus returns to Rename. Invalid names and storage failures keep the draft open for correction.
 
 The overview keeps the conversation, plan, progress timeline. The Journal keeps its editor and version history. Navigation and title edits start nothing and make no model call.

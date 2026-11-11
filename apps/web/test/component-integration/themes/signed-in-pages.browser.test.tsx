@@ -1,8 +1,10 @@
 // "use_case_choose_theme", signed in, in Chromium and WebKit: each theme on
-// the pages it styles beyond its colours. A long project name keeps the
-// "Project memory" link beside it, the memory's checkboxes take the theme's
-// colours, and a reply's heading stays smaller than the page's. Each page
-// is rendered from fixed data, in its layouts, with the site's stylesheet
+// the pages it styles beyond its colours. A long quest name, the trail
+// band's heading, keeps the quest's sections below it, the memory's
+// checkboxes take the theme's colours, and a reply's heading stays smaller
+// than the page's. Each page is rendered from fixed data, in its layouts
+// and under the site header the @header slot gives it, with the site's
+// stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
 // test/app/layout-first-paint.test.tsx covers the theme's first paint,
 // test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
@@ -20,7 +22,7 @@ import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
-import { THEMES, type ThemeId } from "@/themes/themes.ts";
+import { THEMES } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
@@ -29,6 +31,7 @@ import {
   FOX_CONVERSATION,
   FOX_PROJECT,
 } from "../app/(workspace)/page-fixtures.ts";
+import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -50,6 +53,18 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
+// The header slot reads the balance and resolves the trail's names.
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn().mockResolvedValue(0),
+}));
+vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
+vi.mock("@/constructs/construct-store.ts", () => ({
+  getOwnConstruct: vi.fn(),
+}));
+vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+}));
 
 const stores = vi.hoisted(() => ({
   projects: {
@@ -98,17 +113,10 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   restoreMemoryAction: vi.fn(),
 }));
 
-// The longest project name, in characters, that each theme keeps on one row
-// with the "Project memory" link at 1280 px, in both browsers. A new theme
-// needs its entry here (tsc fails until it's there).
-const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
-  // Gravy Falls holds 38 characters beside the link; longer names wrap it
-  // below (`theme-heading-sizes`).
-  parchment: 38,
-};
-
-// The words a long project name is cut from.
-const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
+// A long project name, which the trail band's heading wraps.
+const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";
+const QUEST_PATH = ["projects", FOX_PROJECT.id] as const;
+const JOURNAL_PATH = [...QUEST_PATH, "memory"] as const;
 
 // A milestone list in the memory: one milestone done, one to do.
 const MILESTONES =
@@ -140,7 +148,10 @@ async function renderProject(name: string): Promise<void> {
     searchParams: Promise.resolve({}),
   });
   await render(
-    inWorkspace(<ProjectLayout params={params}>{content}</ProjectLayout>),
+    <>
+      {await siteHeaderAt(QUEST_PATH)}
+      {inWorkspace(<ProjectLayout params={params}>{content}</ProjectLayout>)}
+    </>,
   );
 }
 
@@ -160,7 +171,12 @@ async function renderMilestones(): Promise<void> {
     params: Promise.resolve({ projectId: FOX_PROJECT.id }),
     searchParams: Promise.resolve({}),
   });
-  await render(inWorkspace(content));
+  await render(
+    <>
+      {await siteHeaderAt(JOURNAL_PATH)}
+      {inWorkspace(content)}
+    </>,
+  );
 }
 
 // Renders a quest whose conversation's reply is the mock construct's
@@ -172,26 +188,27 @@ async function renderMarkdownChat(): Promise<void> {
     params: Promise.resolve({ projectId: FOX_PROJECT.id }),
     searchParams: Promise.resolve({}),
   });
-  await render(inWorkspace(content));
+  await render(
+    <>
+      {await siteHeaderAt(QUEST_PATH)}
+      {inWorkspace(content)}
+    </>,
+  );
 }
 
-// Opens the page of a project whose name is as long as theme keeps beside
-// the "Project memory" link, and returns the name's length and whether the
-// two share a row.
-async function longNameRow(
-  theme: ThemeId,
-): Promise<{ length: number; journalBelowTitle: boolean }> {
-  const projectName = LONG_NAME_SOURCE.slice(0, LONG_NAME_LENGTHS[theme]);
-  await renderProject(projectName);
+// Opens the page of a project with a long name and returns whether its
+// Journal link is below the name, the page's heading.
+async function journalBelowLongName(): Promise<boolean> {
+  await renderProject(LONG_NAME);
   await loadFonts();
-  const heading = page.getByRole("heading", { level: 1, name: projectName });
+  // The quest opens on its latest message; the frame is at the page's top.
+  window.scrollTo(0, 0);
+  const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
   const link = page.getByRole("link", { name: MEMORY_COPY.link });
-  return {
-    length: projectName.length,
-    journalBelowTitle:
-      link.element().getBoundingClientRect().top >=
-      heading.element().getBoundingClientRect().bottom,
-  };
+  return (
+    link.element().getBoundingClientRect().top >=
+    heading.element().getBoundingClientRect().bottom
+  );
 }
 
 // A milestone checkbox as the memory shows it.
@@ -261,10 +278,7 @@ describe("use_case_choose_theme", () => {
       });
 
       test("a long quest title keeps Journal navigation below it at 1280 px", async () => {
-        expect(await longNameRow(id)).toEqual({
-          length: LONG_NAME_LENGTHS[id],
-          journalBelowTitle: true,
-        });
+        expect(await journalBelowLongName()).toBe(true);
       });
 
       test("the memory's milestones show read-only checkboxes in the theme's colours", async () => {
@@ -293,11 +307,14 @@ describe("use_case_choose_theme", () => {
   }
 });
 
-test("the Journal selects its workspace link and keeps the quest title", async () => {
+test("the Journal selects its workspace link and leads back to its quest", async () => {
   await renderMilestones();
   await expect
-    .element(page.getByRole("heading", { name: FOX_PROJECT.name, level: 1 }))
-    .toBeVisible();
+    .element(page.getByRole("heading", { level: 1 }))
+    .toHaveTextContent(MEMORY_COPY.heading);
+  await expect
+    .element(page.getByRole("link", { name: FOX_PROJECT.name }))
+    .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
   const nav = page.getByRole("navigation", { name: PROJECT_COPY.navigation });
   await expect
     .element(nav.getByRole("link", { name: MEMORY_COPY.link }))

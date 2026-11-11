@@ -172,9 +172,11 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       await screen.rerender(
         inWorkspace(<ProjectLayout params={PARAMS}>{content}</ProjectLayout>),
       );
-      const heading = page.getByRole("heading", { name: FOX_PROJECT.name });
-      await expect.element(heading).toBeVisible();
-      const title = heading.element().getBoundingClientRect();
+      // The quest's name is the trail band's heading; its frame starts with
+      // Rename.
+      const rename = page.getByRole("button", { name: PROJECT_COPY.rename });
+      await expect.element(rename).toBeVisible();
+      const title = rename.element().getBoundingClientRect();
       const workspace = page
         .getByRole("navigation", { name: PROJECT_COPY.navigation })
         .element()
@@ -235,6 +237,10 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
 
 test("the workspace exposes navigation and direct status actions", async () => {
   await renderProject();
+  expect(
+    page.getByRole("heading", { level: 1 }).query(),
+    "the quest's name is the trail band's heading, not the frame's",
+  ).toBeNull();
   const navigation = page.getByRole("navigation", {
     name: PROJECT_COPY.navigation,
   });
@@ -255,4 +261,14 @@ test("the workspace exposes navigation and direct status actions", async () => {
   await expect
     .element(page.getByRole("button", { name: PROJECT_COPY.rename }))
     .toBeVisible();
+  const sections = navigation.element().getBoundingClientRect();
+  for (const action of [PROJECT_COPY.rename, "Complete", "Abandon"]) {
+    expect(
+      page
+        .getByRole("button", { name: action, exact: true })
+        .element()
+        .getBoundingClientRect().bottom,
+      `${action} is in the frame's first row, above its sections`,
+    ).toBeLessThanOrEqual(sections.top);
+  }
 });

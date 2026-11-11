@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
@@ -18,40 +19,46 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
-// Parents remain full-size keyboard targets. The final item names the current
-// page; long names are visually shortened without shortening accessible names.
-function Breadcrumbs({
+// A breadcrumb that leads somewhere: every one but the current page.
+function isLink(item: Breadcrumb): item is Breadcrumb & { href: Route } {
+  return item.href !== undefined;
+}
+
+// The page's place, as a band under the header's bar: the links to the
+// pages above it, small and muted, leading into the current page's name,
+// which is the page's one heading. Each parent stays a full-size target and
+// keeps its whole name as its accessible name, however much of it shows.
+// The last item is the current page; an empty trail draws no band.
+function TrailBand({
   items,
 }: {
   readonly items: readonly Breadcrumb[];
 }): JSX.Element | null {
-  if (items.length === 0) {
+  const current = items.at(-1);
+  if (current === undefined) {
     return null;
   }
+  const parents = items.slice(0, -1).filter(isLink);
   return (
-    <nav aria-label={SITE_COPY.breadcrumbs} className="header-breadcrumbs">
-      <ol>
-        {items.map((item, index) => (
-          <li key={item.href ?? "current"}>
-            {index > 0 && (
-              <span aria-hidden="true" className="breadcrumb-separator">
-                {SITE_COPY.breadcrumbSeparator}
-              </span>
-            )}
-            {item.href !== undefined && (
-              <Link href={item.href} title={item.label}>
-                <span>{item.label}</span>
-              </Link>
-            )}
-            {item.href === undefined && (
-              <span aria-current="page" title={item.label}>
-                <span>{item.label}</span>
-              </span>
-            )}
-          </li>
-        ))}
-      </ol>
-    </nav>
+    <div className="trail-band">
+      {parents.length > 0 && (
+        <nav aria-label={SITE_COPY.breadcrumbs} className="trail-parents">
+          <ol>
+            {parents.map((parent) => (
+              <li key={parent.href}>
+                <Link href={parent.href} title={parent.label}>
+                  {parent.label}
+                </Link>
+                <span aria-hidden="true" className="breadcrumb-separator">
+                  {SITE_COPY.breadcrumbSeparator}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+      <h1 className="trail-heading">{current.label}</h1>
+    </div>
   );
 }
 
@@ -138,7 +145,7 @@ async function SignedInLinks({
     <>
       <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} />
-      {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
+      {breadcrumbs !== undefined && <TrailBand items={breadcrumbs} />}
     </>
   );
 }
@@ -147,8 +154,10 @@ async function SignedInLinks({
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim, whose
-// title, behind a compass, leads back to Quests. The controls scroll away;
-// pages with breadcrumbs keep only that navigation row pinned.
+// brand, a compass medallion and the site's name, leads back to Quests. On a
+// phone the medallion alone shows, and the name stays its accessible name.
+// A page with a trail adds the trail band under the rim; the bar scrolls
+// away and the band stays pinned.
 function SiteHeader({
   links = VISITOR_MENU,
 }: {
@@ -161,11 +170,11 @@ function SiteHeader({
         <span className="hud-medallion">
           <Icon name="compass" />
         </span>
-        {SITE_COPY.name}
+        <span className="hud-name">{SITE_COPY.name}</span>
       </Link>
       {links}
     </header>
   );
 }
 
-export { AccountLinks, Breadcrumbs, HeaderBalance, SignedInLinks, SiteHeader };
+export { AccountLinks, HeaderBalance, SignedInLinks, SiteHeader, TrailBand };

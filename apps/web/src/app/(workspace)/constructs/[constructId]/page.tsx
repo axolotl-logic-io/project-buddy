@@ -34,21 +34,6 @@ import { RetireConstructForm } from "../retire-construct-form.tsx";
 
 const PROMPT_HEADING_ID = "construct-parts-heading";
 
-function ConstructHeading({
-  name,
-  intro,
-}: {
-  readonly name: string;
-  readonly intro: string;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="page-heading wrap-anywhere">{name}</h1>
-      <p className="text-muted">{intro}</p>
-    </div>
-  );
-}
-
 function BuiltInConstruct({
   construct,
 }: {
@@ -56,10 +41,7 @@ function BuiltInConstruct({
 }): JSX.Element {
   return (
     <>
-      <ConstructHeading
-        intro={CONSTRUCT_COPY.builtInIntro}
-        name={construct.name}
-      />
+      <p className="text-muted">{CONSTRUCT_COPY.builtInIntro}</p>
       <form action={editBuiltInConstructAction}>
         <input name="constructId" type="hidden" value={construct.id} />
         <Button type="submit">{CONSTRUCTS_COPY.customize}</Button>
@@ -116,7 +98,7 @@ function OwnConstructForm({
   ]);
   return (
     <>
-      <ConstructHeading intro={CONSTRUCT_COPY.ownIntro} name={construct.name} />
+      <p className="text-muted">{CONSTRUCT_COPY.ownIntro}</p>
       <ConstructEditor
         action={saveConstructAction}
         construct={construct}

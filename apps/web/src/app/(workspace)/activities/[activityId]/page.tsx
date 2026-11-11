@@ -32,21 +32,6 @@ import { RetireActivityForm } from "../retire-activity-form.tsx";
 
 const PROMPT_HEADING_ID = "activity-parts-heading";
 
-function ActivityHeading({
-  name,
-  intro,
-}: {
-  readonly name: string;
-  readonly intro: string;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="page-heading wrap-anywhere">{name}</h1>
-      <p className="text-muted">{intro}</p>
-    </div>
-  );
-}
-
 function BuiltInActivity({
   activity,
 }: {
@@ -54,10 +39,7 @@ function BuiltInActivity({
 }): JSX.Element {
   return (
     <>
-      <ActivityHeading
-        intro={ACTIVITY_COPY.builtInIntro}
-        name={activity.name}
-      />
+      <p className="text-muted">{ACTIVITY_COPY.builtInIntro}</p>
       <form action={editBuiltInActivityAction}>
         <input name="activityId" type="hidden" value={activity.id} />
         <Button type="submit">{ACTIVITIES_COPY.customize}</Button>
@@ -95,7 +77,7 @@ function OwnActivityForm({
 }): JSX.Element {
   return (
     <>
-      <ActivityHeading intro={ACTIVITY_COPY.ownIntro} name={activity.name} />
+      <p className="text-muted">{ACTIVITY_COPY.ownIntro}</p>
       <PromptEditor
         action={saveActivityAction}
         defaultPrompt={activityResetPrompt(activity.clonedFrom).prompt}

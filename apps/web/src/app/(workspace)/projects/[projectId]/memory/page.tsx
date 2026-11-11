@@ -41,10 +41,7 @@ export default async function MemoryPage({
     <QuestWorkspace project={project} current={current}>
       {current === "journal" && (
         <>
-          <div className="flex flex-col gap-2">
-            <h2 className="section-heading">{MEMORY_COPY.heading}</h2>
-            <p className="text-muted">{MEMORY_COPY.intro}</p>
-          </div>
+          <p className="text-muted">{MEMORY_COPY.intro}</p>
           <PlanInJournal projectId={project.id} plan={plan ?? EMPTY_PLAN} />
           <MemoryView
             viewer={user.id}
