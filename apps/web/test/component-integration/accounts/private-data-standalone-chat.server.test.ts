@@ -1,14 +1,11 @@
-// use_case_private_data for a user's standalone chat, which is in no project,
-// on real rows of two users, read and written through the stores directly:
-// each new chat is hers, never among a project's chats, and deleted with
-// her account. private-data-chats.server.test.ts checks that it is not found to
-// another user.
+// use_case_private_data for a user's private Chat, which is in no quest, on
+// real rows of two users, read through the stores directly: it is hers
+// alone, never a quest's conversation, and deleted with her account.
+// conversations.server.test.ts checks that it is the same Chat each time.
 import { describe, expect, test } from "vitest";
-import {
-  createStandaloneChat,
-  listStandaloneChats,
-} from "@/chats/standalone-chat.ts";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { getChat } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -18,62 +15,41 @@ import {
 } from "../test-database/two-users-test-kit.ts";
 
 describe("use_case_private_data", () => {
-  test("standalone chats are distinct, including concurrent starts", async () => {
-    const her = await testUser();
-    const [first, atOnce] = await Promise.all([
-      createStandaloneChat(her.id),
-      createStandaloneChat(her.id),
-    ]);
-    const again = await createStandaloneChat(her.id);
-    const last = await createStandaloneChat(her.id);
-
-    const ids = [first.id, atOnce.id, again.id, last.id];
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(first.project).toBeUndefined();
-    expect(await getChat(her.id, first.id)).toEqual(first);
-    expect(await listMessages(her.id, first.id)).toEqual([]);
-  });
-
-  test("two users fetching their standalone chats at once each get their own", async () => {
+  test("two users fetching their private Chats at once each get their own", async () => {
     const { her, other } = await twoUsers();
     const [hers, theirs] = await Promise.all([
-      createStandaloneChat(her.id),
-      createStandaloneChat(other.id),
+      privateChat(her.id),
+      privateChat(other.id),
     ]);
 
-    expect(await getChat(her.id, hers.id)).toEqual(hers);
-    expect(await getChat(other.id, theirs.id)).toEqual(theirs);
-    expect((await listStandaloneChats(her.id)).map(({ id }) => id)).toEqual([
-      hers.id,
-    ]);
-    expect((await listStandaloneChats(other.id)).map(({ id }) => id)).toEqual([
-      theirs.id,
-    ]);
+    expect(hers.id).not.toBe(theirs.id);
+    expect((await getChat(her.id, hers.id))?.id).toBe(hers.id);
+    expect(await getChat(her.id, theirs.id)).toBeUndefined();
+    expect(await getChat(other.id, hers.id)).toBeUndefined();
   });
-});
 
-describe("use_case_private_data standalone chats and projects", () => {
-  test("a standalone chat is in no project's chats", async () => {
+  test("her private Chat is not her quest's conversation", async () => {
     const her = await testUser();
     const herData = testData(her);
     const project = await herData.project();
     const projectChat = await herData.chat(project);
-    await createStandaloneChat(her.id);
+    const chat = await privateChat(her.id);
 
-    expect((await listChats(her.id, project.id)).map(({ id }) => id)).toEqual([
+    expect(chat.id).not.toBe(projectChat.id);
+    expect((await readQuestConversation(her.id, project.id))?.id).toBe(
       projectChat.id,
-    ]);
+    );
   });
 
-  // A new account at the same address then starts with none.
-  test("deleting an account deletes its standalone chat", async () => {
+  // A new account at the same address then starts with a new, empty Chat.
+  test("deleting an account deletes its private Chat", async () => {
     const her = await testUser();
-    const hers = await createStandaloneChat(her.id);
+    const hers = await privateChat(her.id);
 
     await deleteAccount(her);
 
     expect(await getChat(her.id, hers.id)).toBeUndefined();
     const again = await reopenAccount(her);
-    expect(await listStandaloneChats(again.id)).toEqual([]);
+    expect((await privateChat(again.id)).id).not.toBe(hers.id);
   });
 });

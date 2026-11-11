@@ -1,20 +1,20 @@
 // The constructs' check-ins, in the test database: the scheduler's route
-// (src/app/api/check-ins/route.ts) starting them, the project's setting,
-// the unread mark and the email's link to turn them off. The mock construct
-// answers the check-in kickoff with MOCK_CHECK_IN and the project's memory
-// (mock-opening.ts). Each scene makes its project quiet by moving its chats
-// and messages, and its last check-in, days into the past.
-import { eq, inArray } from "drizzle-orm";
+// (src/app/api/check-ins/route.ts) appending them to the quest's one
+// conversation, the quest's setting, the unread mark and the email's link
+// to turn them off. The mock construct answers the check-in kickoff with
+// MOCK_CHECK_IN and the quest's Journal (mock-opening.ts). Each scene makes
+// its quest quiet by moving its conversation and messages, and its last
+// check-in, days into the past.
+import { eq, inArray, sql } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import { saveCheckInSettingAction } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { GET } from "@/app/api/check-ins/route.ts";
 import { turnOffCheckInsAction } from "@/app/check-ins/off/actions.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
-import { listChats, listMessages, markChatRead } from "@/chats/store.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
+import { listMessages, markChatRead, saveMessage } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import {
   readCheckInFrequency,
@@ -23,16 +23,18 @@ import {
 import { runCheckIns as runCheckInsWithLimit } from "@/check-ins/check-ins.ts";
 import { CHECK_INS_OFF_PATH } from "@/check-ins/check-ins-off-link.ts";
 import type { ConstructId } from "@/constructs/index.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
 import { addProjectMember } from "@/projects/members-store.ts";
-import type { Project } from "@/projects/store.ts";
+import { getProject, type Project } from "@/projects/store.ts";
 import { MOCK_CHECK_IN } from "@/replies/mock-opening.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { emailsTo } from "../../support/email/outbox-files.ts";
+import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -56,17 +58,14 @@ const DAY_MS = 86_400_000;
 // check-in, but not a weekly one.
 const QUIET_DAYS = 3;
 
-// A scene's earlier chat and two check-ins.
-const CHATS_AFTER_TWO_CHECK_INS = 3;
-
 // Longer than QUIET_DAYS, so a scene this quiet is longest-waiting.
 const LONGER_QUIET_DAYS = 5;
 
 // The link to turn check-ins off in a check-in email's text.
 const OFF_LINK = /https?:\/\/\S+\/check-ins\/off\?\S+/u;
 
-// The chat link in a check-in email's text.
-const CHAT_LINK = /https?:\/\/\S+\/chats\/(?<chatId>[\w-]+)/u;
+// The quest link in a check-in email's text.
+const QUEST_LINK = /https?:\/\/\S+\/projects\/(?<projectId>[\w-]+)/u;
 
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
@@ -80,8 +79,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// A project of user's with memory and one chat, in constructId, that has been
-// quiet for quietDays, with check-ins at frequency.
+// A quest of user's with a Journal and its conversation, in constructId,
+// with one exchange, that has been quiet for quietDays, with check-ins at
+// frequency.
 async function checkInScene(
   user: User,
   {
@@ -93,7 +93,7 @@ async function checkInScene(
     readonly quietDays?: number;
     readonly constructId?: ConstructId;
   } = {},
-): Promise<Project> {
+): Promise<Scene> {
   const data = testData(user);
   const project = await data.project();
   const chat = await data.chat(project, constructId);
@@ -110,13 +110,21 @@ async function checkInScene(
     saveCheckInFrequency(user.id, project.id, frequency),
   ]);
   await quietFor(project, quietDays);
-  return project;
+  return { project, chat };
 }
 
-// Moves the project's chats and messages, and its last check-in, days into
-// the past, as if no one had touched it since.
+// A check-in scene's quest and its conversation.
+interface Scene {
+  readonly project: Project;
+  readonly chat: ProjectChat;
+}
+
+// Moves the project's conversation and messages, and its last check-in, days
+// into the past, as if no one had touched it since.
 async function quietFor(project: Project, days: number): Promise<void> {
   const before = new Date(Date.now() - days * DAY_MS);
+  // Shifted, not set, so the conversation's messages keep their order.
+  const shift = `${days} days`;
   const db = getDb();
   const projectChats = db
     .select({ id: chats.id })
@@ -125,11 +133,11 @@ async function quietFor(project: Project, days: number): Promise<void> {
   await db.batch([
     db
       .update(messages)
-      .set({ createdAt: before })
+      .set({ createdAt: sql`${messages.createdAt} - ${shift}::interval` })
       .where(inArray(messages.chatId, projectChats)),
     db
       .update(chats)
-      .set({ createdAt: before })
+      .set({ createdAt: sql`${chats.createdAt} - ${shift}::interval` })
       .where(eq(chats.projectId, project.id)),
     db
       .update(projects)
@@ -149,21 +157,24 @@ function runCheckIns(
   return GET(new Request("http://localhost/api/check-ins", { headers }));
 }
 
-// The check-in chats in user's project: its unread chats.
-async function checkIns(user: User, project: Project): Promise<number> {
-  const projectChats = await listChats(user.id, project.id);
-  return projectChats.filter((chat) => chat.unread).length;
+// How many check-ins the scene's conversation holds, as user reads it.
+async function checkIns(user: User, { chat }: Scene): Promise<number> {
+  const conversation = await listMessages(user.id, chat.id);
+  return conversation.filter((message) =>
+    messageText(message).includes(MOCK_CHECK_IN),
+  ).length;
 }
 
-// Whether each chat in the project is unread for user, newest first.
-async function unreadIn(user: User, project: Project): Promise<boolean[]> {
-  return (await listChats(user.id, project.id)).map(({ unread }) => unread);
+// Whether the scene's quest is unread for user.
+async function unreadFor(user: User, { project }: Scene): Promise<boolean> {
+  return (await getProject(user.id, project.id))?.unread ?? false;
 }
 
 describe("use_case_check_in", () => {
-  test("a quiet project gets one unread check-in from its latest construct, from its memory, emailed with links", async () => {
+  test("a quiet quest gets one unread check-in at the end of its conversation, from its Journal, emailed with links", async () => {
     const user = await testUser();
-    const project = await checkInScene(user);
+    const scene = await checkInScene(user);
+    const { project, chat } = scene;
 
     const responses = await Promise.all([runCheckIns(), runCheckIns()]);
 
@@ -171,29 +182,74 @@ describe("use_case_check_in", () => {
       HTTP_STATUS.ok,
       HTTP_STATUS.ok,
     ]);
-    const [checkIn, earlier] = await listChats(user.id, project.id);
-    expect(earlier?.unread).toBe(false);
-    expect(checkIn).toMatchObject({
-      unread: true,
-      construct: { name: "Lumen" },
-    });
-    if (checkIn === undefined) {
-      throw new Error("No check-in chat");
-    }
-    const [opening, ...rest] = await listMessages(user.id, checkIn.id);
-    expect(rest).toEqual([]);
-    const text = messageText(opening);
+    expect(await unreadFor(user, scene)).toBe(true);
+    const conversation = await listMessages(user.id, chat.id);
+    expect(conversation.map(({ role }) => role)).toEqual([
+      "user",
+      "assistant",
+      "assistant",
+    ]);
+    const text = messageText(conversation.at(-1));
     expect(text).toContain(MOCK_CHECK_IN);
     expect(text).toContain("Stuck on the flipper topology");
+    const quest = await getProject(user.id, project.id);
+    expect(quest?.unread).toBe(true);
 
     const emails = await emailsTo(user.email);
     expect(emails).toHaveLength(1);
     const [email] = emails;
     expect(email?.subject).toContain(project.name);
+    expect(email?.subject).toContain("Lumen");
     expect(email?.text).toContain(MOCK_CHECK_IN);
-    const { chatId } = CHAT_LINK.exec(email?.text ?? "")?.groups ?? {};
-    expect(chatId).toBe(checkIn.id);
+    const { projectId } = QUEST_LINK.exec(email?.text ?? "")?.groups ?? {};
+    expect(projectId).toBe(project.id);
     expect(email?.text).toMatch(OFF_LINK);
+  });
+
+  test("a check-in keeps the conversation's current activity", async () => {
+    const user = await testUser();
+    const scene = await checkInScene(user);
+    const before = await readQuestConversation(user.id, scene.project.id);
+
+    await runCheckIns();
+
+    const after = await readQuestConversation(user.id, scene.project.id);
+    expect(after?.id).toBe(scene.chat.id);
+    expect(after?.activity).toEqual(before?.activity);
+  });
+
+  test("a quest with no conversation yet gets one, opened by the check-in", async () => {
+    const user = await testUser();
+    const project = await testData(user).project();
+    await saveCheckInFrequency(user.id, project.id, "daily");
+    await quietFor(project, QUIET_DAYS);
+
+    await runCheckIns();
+
+    const conversation = await readQuestConversation(user.id, project.id);
+    if (conversation === undefined) {
+      throw new Error("The check-in started no conversation");
+    }
+    const opened = await listMessages(user.id, conversation.id);
+    expect(opened).toHaveLength(1);
+    expect(messageText(opened[0])).toContain(MOCK_CHECK_IN);
+  });
+
+  test("no check-in follows a message still awaiting its reply", async () => {
+    const user = await testUser();
+    const scene = await checkInScene(user);
+    await saveMessage(user.id, scene.chat.id, {
+      id: messageIdFixture(),
+      role: "user",
+      parts: [{ type: "text", text: "Are you there?" }],
+    });
+    await quietFor(scene.project, QUIET_DAYS);
+
+    const run = await runCheckInsWithLimit(ORIGIN);
+
+    expect(run).toEqual({ started: 0, skipped: 1, failed: 0 });
+    expect(await checkIns(user, scene)).toBe(0);
+    expect(await emailsTo(user.email)).toEqual([]);
   });
 
   test("a project with check-ins off, or used within its interval, gets none", async () => {
@@ -213,53 +269,46 @@ describe("use_case_check_in", () => {
 
   test("an unread check-in waits for her before the next one", async () => {
     const user = await testUser();
-    const project = await checkInScene(user);
+    const scene = await checkInScene(user);
     await runCheckIns();
-    await quietFor(project, QUIET_DAYS);
+    await quietFor(scene.project, QUIET_DAYS);
 
     await runCheckIns();
 
-    expect(await checkIns(user, project)).toBe(1);
+    expect(await checkIns(user, scene)).toBe(1);
   });
 
   test("a check-in she has read doesn't wait for anyone else's mark on it", async () => {
     const { her, other } = await twoUsers();
-    const project = await checkInScene(her);
+    const scene = await checkInScene(her);
     await runCheckIns();
-    const [checkIn] = await listChats(her.id, project.id);
-    if (checkIn === undefined) {
-      throw new Error("No check-in chat");
-    }
     await Promise.all([
-      markChatRead(her.id, checkIn.id),
-      markUnreadFor(checkIn.id, other),
+      markChatRead(her.id, scene.chat.id),
+      markUnreadFor(scene.chat.id, other),
     ]);
-    await quietFor(project, QUIET_DAYS);
+    await quietFor(scene.project, QUIET_DAYS);
 
     await runCheckIns();
 
-    expect(await checkIns(her, project)).toBe(1);
-    expect(await listChats(her.id, project.id)).toHaveLength(
-      CHATS_AFTER_TWO_CHECK_INS,
-    );
+    expect(await checkIns(her, scene)).toBe(2);
   });
 
   test("out of gold, the check-in is skipped without error", async () => {
     const user = await testUser();
-    const project = await checkInScene(user);
+    const scene = await checkInScene(user);
     await spendAllGold(user);
 
     const response = await runCheckIns();
 
     expect(response.status).toBe(HTTP_STATUS.ok);
     expect(await response.json()).toMatchObject({ failed: 0 });
-    expect(await checkIns(user, project)).toBe(0);
+    expect(await checkIns(user, scene)).toBe(0);
     expect(await emailsTo(user.email)).toEqual([]);
   });
 
   test("a project skipped for being out of gold waits its interval, so it doesn't crowd out the next run", async () => {
     const [spent, other] = await Promise.all([testUser(), testUser()]);
-    const [spentProject, otherProject] = await Promise.all([
+    const [spentScene, otherScene] = await Promise.all([
       checkInScene(spent, { quietDays: LONGER_QUIET_DAYS }),
       checkInScene(other),
     ]);
@@ -273,8 +322,8 @@ describe("use_case_check_in", () => {
 
     expect(first).toEqual({ started: 0, skipped: 1, failed: 0 });
     expect(second).toEqual({ started: 1, skipped: 0, failed: 0 });
-    expect(await checkIns(spent, spentProject)).toBe(0);
-    expect(await checkIns(other, otherProject)).toBe(1);
+    expect(await checkIns(spent, spentScene)).toBe(0);
+    expect(await checkIns(other, otherScene)).toBe(1);
     expect(warn).toHaveBeenCalledWith(
       "[check-in-backlog]",
       expect.stringContaining("limit of 1 check-ins"),
@@ -283,7 +332,7 @@ describe("use_case_check_in", () => {
 
   test("a request without the scheduler's secret starts nothing", async () => {
     const user = await testUser();
-    const project = await checkInScene(user);
+    const scene = await checkInScene(user);
 
     const responses = await Promise.all([
       runCheckIns({}),
@@ -294,53 +343,46 @@ describe("use_case_check_in", () => {
       HTTP_STATUS.unauthorized,
       HTTP_STATUS.unauthorized,
     ]);
-    expect(await checkIns(user, project)).toBe(0);
+    expect(await checkIns(user, scene)).toBe(0);
   });
 });
 
 describe("use_case_open_unread_check_in", () => {
-  test("a check-in is unread on the Chats page until she opens it", async () => {
+  test("a check-in leaves the quest unread until she opens its conversation", async () => {
     const user = await testUser();
-    await checkInScene(user);
+    const scene = await checkInScene(user);
     await runCheckIns();
-    await signIn(user);
-    const [checkIn] = await listAllChats(user.id);
-    expect(checkIn?.unread).toBe(true);
+    expect(await unreadFor(user, scene)).toBe(true);
 
-    await ChatPage({
-      params: Promise.resolve({ chatId: checkIn?.id ?? "" }),
-      searchParams: Promise.resolve({}),
-    });
+    await markChatRead(user.id, scene.chat.id);
 
-    const [opened] = await listAllChats(user.id);
-    expect(opened).toMatchObject({ id: checkIn?.id, unread: false });
+    expect(await unreadFor(user, scene)).toBe(false);
   });
-  test("a team project's check-in is unread for the owner and every member, each until they open it", async () => {
+
+  test("a team quest's check-in is unread for the owner and every member, each until they open it", async () => {
     const [owner, member, another] = await Promise.all([
       testUser(),
       testUser(),
       testUser(),
     ]);
-    const project = await checkInScene(owner);
-    expect(await addProjectMember(member.id, project.id)).toBe(true);
-    expect(await addProjectMember(another.id, project.id)).toBe(true);
+    const scene = await checkInScene(owner);
+    expect(await addProjectMember(member.id, scene.project.id)).toBe(true);
+    expect(await addProjectMember(another.id, scene.project.id)).toBe(true);
     await runCheckIns();
 
-    // The check-in is the newest chat, before the earlier one.
-    expect(await unreadIn(owner, project)).toEqual([true, false]);
-    expect(await unreadIn(member, project)).toEqual([true, false]);
-    expect(await unreadIn(another, project)).toEqual([true, false]);
+    expect(
+      await Promise.all(
+        [owner, member, another].map((u) => unreadFor(u, scene)),
+      ),
+    ).toEqual([true, true, true]);
 
-    await signIn(member);
-    const [checkIn] = await listChats(member.id, project.id);
-    await ChatPage({
-      params: Promise.resolve({ chatId: checkIn?.id ?? "" }),
-      searchParams: Promise.resolve({}),
-    });
+    await markChatRead(member.id, scene.chat.id);
 
-    expect(await unreadIn(member, project)).toEqual([false, false]);
-    expect(await unreadIn(owner, project)).toEqual([true, false]);
-    expect(await unreadIn(another, project)).toEqual([true, false]);
+    expect(
+      await Promise.all(
+        [owner, member, another].map((u) => unreadFor(u, scene)),
+      ),
+    ).toEqual([true, false, true]);
   });
 });
 
@@ -349,7 +391,7 @@ async function projectPageHtml(project: Project): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId: project.id }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "members" }),
     }),
   );
 }
@@ -430,7 +472,7 @@ describe("check-ins stay hidden until CRON_SECRET is set", () => {
 describe("use_case_turn_off_check_ins_from_email", () => {
   test("the email's link turns check-ins off once she confirms, and a forged one changes nothing", async () => {
     const user = await testUser();
-    const project = await checkInScene(user);
+    const { project } = await checkInScene(user);
     await runCheckIns();
     const [email] = await emailsTo(user.email);
     const [link = ""] = OFF_LINK.exec(email?.text ?? "") ?? [];

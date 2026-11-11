@@ -18,7 +18,6 @@ The user starts an adventure in a quest with the construct she wants.
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
-  - `use_case_chat_named_automatically`: see the adventure get a name from her first message.
   - `use_case_rename_chat`: give the adventure a name of her own.
   - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the quest's interview was left unfinished; she goes back to its adventure.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
@@ -197,7 +196,6 @@ The user writes to the construct and gets a reply.
   - In a standalone adventure, which is in no quest, the reply arrives the same way. The construct helps her talk an idea through and decide whether it should become a quest, and nothing is saved to a quest's Journal.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
-  - `use_case_chat_named_automatically`: her first message gives the adventure a name.
   - `use_case_ask_blender_question`: ask how to do something.
   - `use_case_read_formatted_reply`: the reply has steps, shortcuts or a script.
   - `use_case_leave_during_reply`: she has to go before the reply finishes.
@@ -320,17 +318,16 @@ The user asks the construct about something that has nothing to do with Blender.
 
 ## use_case_reopen_chat
 
-The user returns to an earlier adventure.
+The user returns to a quest's conversation.
 
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), in a quest with at least one adventure.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), in a quest whose conversation has messages.
 - **Steps:**
-  - She picks an adventure.
-  - The site shows the whole conversation so far, with the same construct.
-- **Outcome:** the adventure shows its name (or "New adventure" before it has one) and the same construct's name, then every message, hers and the construct's, in the order they were sent, under the construct's name. Replies keep their formatting and their manual links. She can send a new message.
+  - She opens the quest.
+  - The site shows its one conversation so far, with the same construct.
+- **Outcome:** the conversation shows the construct's name, then every message, hers and the construct's, in the order they were sent. Replies keep their formatting and their manual links. She can send a new message. Opening it again, from any link to the quest, reaches the same conversation; the quest never has a second one.
 - **Next:**
   - `use_case_continue_chat`: pick up the conversation.
   - `use_case_construct_voice_consistent`: check the construct still sounds like itself.
-  - `use_case_rename_chat`: the adventure's name no longer fits.
 
 ## use_case_check_in
 
@@ -340,7 +337,7 @@ The quest's construct checks in on her, on the schedule she chose.
 - **Steps:**
   - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. A check-in opening has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of batteries, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the quest's conversation ends with the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. No new conversation is made, and the conversation keeps its construct and current activity. A check-in has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The quest is unread. She gets an email from the construct with the same message, a link to the quest and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, while the last check-in is still unread, or while her last message still awaits a reply. Once she is out of batteries, the check-in is skipped and nothing is saved or sent. A quest with no conversation yet gets one, which the check-in opens.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -351,9 +348,9 @@ The user opens a check-in she hasn't read.
 
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
-  - She opens Adventures, or the quest's page, and finds the check-in, marked Unread.
-  - She opens it, from the list or from the email's link.
-- **Outcome:** the adventure shows the construct's check-in message, and she can answer it as in any adventure. Back on the Adventures page, the adventure is no longer marked Unread. Adventures she started herself are never marked. The mark is hers alone: anyone else's mark on the adventure doesn't show to her, and her opening the adventure clears only her own mark. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
+  - She finds the quest marked Unread among her quests.
+  - She opens it, from there or from the email's link.
+- **Outcome:** the quest's conversation shows the construct's check-in message, and she can answer it as any other. The quest is no longer marked Unread. Only a check-in marks a quest. The mark is hers alone: anyone else's mark doesn't show to her, and her opening the quest clears only her own mark. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the construct.
 
@@ -377,22 +374,9 @@ The user carries on an earlier conversation, and the construct remembers it.
 - **Steps:**
   - She sends a message that refers to something said earlier, such as "repeat that shortcut".
   - The construct answers with the earlier conversation in mind.
-- **Outcome:** the reply uses what was said earlier in the adventure. Asked to repeat a shortcut, it gives the same shortcut as before.
+- **Outcome:** the reply uses what was said earlier in the conversation. Asked to repeat a shortcut, it gives the same shortcut as before. A long conversation's reply reads its newest messages, and the quest's Journal, Plan and Progress, which carry what matters from earlier.
 - **Next:**
   - `use_case_send_message`: keep going.
-
-## use_case_switch_construct
-
-The user wants a different voice for the same quest.
-
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
-- **Steps:**
-  - She starts a new adventure in the same quest and picks a different construct.
-  - The new construct already knows the quest's goals and progress from its Journal: the adventure uses its prepared opening when the construct and activity have one; otherwise the generated opening gives a synopsis of the Journal.
-- **Outcome:** the quest lists the new adventure with the new construct, and the earlier adventures with their own constructs. Each earlier adventure still shows its original construct when opened. Asked what comes next, the new construct names the same milestone that the quest's Journal gives.
-- **Next:**
-  - `use_case_ask_blender_question`: hear the new construct explain something.
-  - `use_case_same_facts_any_construct`: check that the new voice teaches the same steps.
 
 ## use_case_construct_voice_consistent
 
@@ -404,33 +388,19 @@ The construct keeps its voice for the whole adventure, across visits.
   - Every reply comes from the same construct, in its own manner of speech, such as Vellum's calm talk of a quest as a map being drawn.
 - **Outcome:** the adventure's heading and every reply show the same construct's name, before and after she reopens it. Every reply speaks in that construct's manner, from the first to the last, and none speaks as another construct or in a plain assistant voice.
 - **Next:**
-  - `use_case_switch_construct`: try a different voice in a new adventure.
+  - `use_case_same_facts_any_construct`: hear another construct give the same steps.
 
 ## use_case_same_facts_any_construct
 
 The user asks two constructs the same question and gets the same facts in different voices.
 
-- **Prerequisites:** `use_case_switch_construct`, so the quest has adventures with two different constructs.
+- **Prerequisites:** two quests started with different constructs ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
-  - She asks the same Blender question in both adventures, such as how to bevel an edge.
+  - She asks the same Blender question in both quests' conversations, such as how to bevel an edge.
   - Each construct answers in its own voice.
 - **Outcome:** the two replies are worded differently, but they give the same steps, menu paths and keyboard shortcuts. The manual links under both replies lead to the same sections.
 - **Next:**
   - `use_case_follow_citation`: check the steps in the manual.
-
-## use_case_chat_named_automatically
-
-The construct names the adventure from the conversation, so she can find it again in the quest's list.
-
-- **Prerequisites:** `use_case_new_chat`.
-- **Steps:**
-  - She sends her first message and the reply arrives (`use_case_send_message`).
-  - The site names the adventure from the conversation so far, in a few words.
-  - She keeps chatting. The site names the adventure again after her 3rd, 5th, 7th and 14th messages, as the conversation finds its topic, and at no other time.
-- **Outcome:** after she reloads the adventure, or opens it from the quest, its heading shows the name instead of "New adventure", above the construct's name. The quest's list of adventures links to the adventure by that name, followed by its construct's name. After her 2nd message the name stays as it was; after her 3rd it can change. If naming fails, the adventure keeps its old name (or "New adventure"), and neither the reply nor the adventure shows an error. An adventure she has renamed by hand (`use_case_rename_chat`) is never renamed by the site.
-- **Next:**
-  - `use_case_rename_chat`: she prefers a name of her own.
-  - `use_case_reopen_chat`: find the adventure again by its name.
 
 ## use_case_rename_chat
 

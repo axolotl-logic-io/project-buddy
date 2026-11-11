@@ -7,13 +7,12 @@ import {
   updateActivity,
 } from "@/activities/activity-store.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { retireConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import {
   deleteRetiredDefinitionAction,
   restoreDefinitionAction,
 } from "@/app/(workspace)/retirement/actions.ts";
-import { listStandaloneChats } from "@/chats/standalone-chat.ts";
+import { getChat } from "@/chats/store.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import {
   cloneConstruct,
@@ -25,6 +24,7 @@ import {
   interviewConstruct,
   saveInterviewConstruct,
 } from "@/constructs/interview-construct.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { getDb } from "@/db/client.ts";
 import { marketplaceCutover } from "@/db/tables/orbs.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
@@ -32,6 +32,7 @@ import type { UserId } from "@/ids.ts";
 import { buyListing } from "@/marketplace/buy-listing.ts";
 import { publishListing } from "@/marketplace/listing-store.ts";
 import { addProjectMember } from "@/projects/members-store.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import type { OwnPrompt } from "@/prompts/own-prompt-store.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
 import {
@@ -143,7 +144,7 @@ describe("use_case_retire_definitions", () => {
       ).toEqual(retired?.retiredAt);
     },
   );
-  test("new adventures reject a retired construct while existing adventures retain it", async () => {
+  test("new quests reject a retired construct while existing conversations retain it", async () => {
     const owner = await testUser();
     const copy = await cloneConstruct(owner.id, "lumen");
     if (copy === undefined) {
@@ -151,21 +152,25 @@ describe("use_case_retire_definitions", () => {
     }
     await saveInterviewConstruct(owner.id, copy.id);
     await signIn(owner);
-    const start = form({ projectId: "", constructId: copy.id });
-    const starting = startChatAction({ kind: "idle" }, start);
-    await Promise.allSettled([starting]);
-    const [chat] = await listStandaloneChats(owner.id);
-    await expectRedirect(() => starting, `/chats/${chat?.id}`);
+    const chosen = await chosenConstruct(owner.id, copy.id);
+    if (chosen === undefined) {
+      throw new Error("Her copy is not hers");
+    }
+    const started = await startProject(
+      owner.id,
+      PROJECT_NAME.parse("Fox"),
+      chosen.construct,
+    );
+    if (started.kind !== "started") {
+      throw new Error(`The quest didn't start: ${started.kind}`);
+    }
     await expectRedirect(
       () => retireConstructAction(form({ constructId: copy.id })),
       "/constructs?retired=1",
     );
     expect(await chosenConstruct(owner.id, copy.id)).toBeUndefined();
     expect((await interviewConstruct(owner.id)).id).toBe("vellum");
-    expect(await startChatAction({ kind: "idle" }, start)).toMatchObject({
-      kind: "invalid",
-    });
-    expect((await listStandaloneChats(owner.id))[0]?.construct).toEqual({
+    expect((await getChat(owner.id, started.chat.id))?.construct).toEqual({
       name: copy.name,
       definition: copy.definition,
     });
