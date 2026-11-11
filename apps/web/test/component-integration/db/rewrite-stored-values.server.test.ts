@@ -20,9 +20,6 @@ type Pool = ReturnType<typeof openPool>;
 
 // #549's last migration (0015_prompt_kind_activity_sessions).
 const LAST_INDEX_OF_549 = 15;
-// The last migration that keeps adventures: 0052 removes them (#892), so the
-// rows this test checks are read before it.
-const LAST_INDEX_BEFORE_ADVENTURES_REMOVED = 51;
 // A scratch database of this test's own, beside the run's.
 const SCRATCH_SUFFIX = "_migration_0016";
 // The check that the memory's author is a known one.
@@ -178,17 +175,14 @@ async function readRewritten(pool: Pool): Promise<Rewritten> {
 
 test("the release after #549 rewrites the values saved before it", async () => {
   const database = scratchDatabase(SCRATCH_SUFFIX);
-  const [oldMigrations, beforeRemoval] = await Promise.all([
-    copyMigrationsUpTo(LAST_INDEX_OF_549),
-    copyMigrationsUpTo(LAST_INDEX_BEFORE_ADVENTURES_REMOVED),
-  ]);
+  const oldMigrations = await copyMigrationsUpTo(LAST_INDEX_OF_549);
   await dropTestDatabase(database);
   try {
     await resetTestDatabase(database, oldMigrations);
     const pool = openPool(database.url);
     try {
       await seedBefore(pool);
-      await migrateTestDatabase(database, beforeRemoval);
+      await migrateTestDatabase(database);
       expect(await readRewritten(pool)).toEqual({
         hiddenExtras: ["working-notes"],
         authors: [{ author: "buddy" }],
@@ -221,9 +215,6 @@ test("the release after #549 rewrites the values saved before it", async () => {
     }
   } finally {
     await dropTestDatabase(database);
-    await Promise.all([
-      removeOldMigrations(oldMigrations),
-      removeOldMigrations(beforeRemoval),
-    ]);
+    await removeOldMigrations(oldMigrations);
   }
 });

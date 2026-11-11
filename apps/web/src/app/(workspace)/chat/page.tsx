@@ -35,6 +35,7 @@ export default async function StandaloneChatPage(): Promise<JSX.Element> {
       messages={messages}
       stoppedReplyId={stoppedReplyId}
       viewer={user.id}
+      title={STANDALONE_CHAT_COPY.heading}
       actions={
         <QuestFromChat choices={choices} summary={chatSummaryDraft(messages)} />
       }

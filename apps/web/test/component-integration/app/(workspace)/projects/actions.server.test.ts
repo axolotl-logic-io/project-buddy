@@ -1,67 +1,85 @@
-// Her projects and a new project's first adventure, in the test database
-// with the mock construct: the list and a project's chats, as the stores give
-// them to the pages, and what the New Project form's action makes.
+// Starting quests, in the test database with the mock construct: what the
+// one start action makes from each of the four starting points, as the
+// stores give it to the pages. Concurrent Dailies starts and their
+// isolation are conversations.server.test.ts's.
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import {
-  type CreateProjectState,
-  createProjectAction,
+  type StartQuestState,
+  startQuestAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import type { ProjectChat } from "@/chats/chat-rows.ts";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import type { ChatProject } from "@/chats/chat-rows.ts";
+import { listMessages } from "@/chats/store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
-import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
+import type { Conversation } from "@/conversations/conversation-store.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
+import { readMemoryHistory } from "@/memory/memory-store.ts";
+import {
+  PREMADE_QUESTS,
+  type PremadeQuestId,
+} from "@/projects/premade-quests.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import {
-  constructPrompt,
-  formOf,
-  messageText,
-} from "../../../test-database/chat-test-kit.ts";
+import { formOf, messageText } from "../../../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-const IDLE: CreateProjectState = { kind: "idle" };
+const IDLE: StartQuestState = { kind: "idle" };
 
-// Creates a project named name, in the construct of constructId when it is given,
-// from the New Project form as the signed-in user; finds the project's only
-// chat through the stores, checks the action opened that chat, and returns
-// it.
-async function createProject(
+// The starting point of id, as its details are first filled in.
+function premade(id: PremadeQuestId): (typeof PREMADE_QUESTS)[number] {
+  const quest = PREMADE_QUESTS.find((offering) => offering.id === id);
+  if (quest === undefined) {
+    throw new Error(`No starting point ${id}`);
+  }
+  return quest;
+}
+
+// The start form for the starting point id, as its details are first
+// filled in, with any field changed.
+function startForm(
+  id: PremadeQuestId,
+  changes: Partial<Record<"name" | "journal" | "constructId", string>> = {},
+): FormData {
+  const quest = premade(id);
+  return formOf({
+    premadeId: id,
+    name: quest.name,
+    journal: quest.journal,
+    activityId: quest.activityId,
+    constructId: "vellum",
+    ...changes,
+  });
+}
+
+// Starts a quest from form as the signed-in user, checks the action opened
+// the quest it made, the newest of theirs, and returns its conversation.
+async function startQuest(
   user: User,
-  name: string,
-  constructId?: string,
-): Promise<ProjectChat> {
-  const form = new FormData();
-  form.set("name", name);
-  if (constructId !== undefined) {
-    form.set("constructId", constructId);
-  }
-  const creating = createProjectAction(IDLE, form);
-  await Promise.allSettled([creating]);
-  const project = (await listProjects(user.id)).find(
-    (made) => made.name === name.trim(),
-  );
+  form: FormData,
+): Promise<Conversation & { readonly project: ChatProject }> {
+  const starting = startQuestAction(IDLE, form);
+  await Promise.allSettled([starting]);
+  const [project] = await listProjects(user.id);
   if (project === undefined) {
-    throw new Error(`No project ${name} was made`);
+    throw new Error("No quest was made");
   }
-  const [chat] = await listChats(user.id, project.id);
-  if (chat === undefined) {
-    throw new Error(`The project ${name} has no chat`);
+  await expectRedirect(() => starting, `/projects/${project.id}`);
+  const conversation = await readQuestConversation(user.id, project.id);
+  if (conversation?.project === undefined) {
+    throw new Error("The quest has no conversation");
   }
-  await expectRedirect(() => creating, `/chats/${chat.id}`);
-  return chat;
+  return { ...conversation, project: conversation.project };
 }
 
 describe("use_case_view_projects", () => {
-  test("her projects are listed newest first", async () => {
+  test("their quests are listed newest first", async () => {
     const user = await testUser();
     const data = testData(user);
     const older = await data.project();
@@ -74,66 +92,84 @@ describe("use_case_view_projects", () => {
   });
 });
 
-describe("use_case_open_project", () => {
-  test("a project's chats are listed newest first, and only its own", async () => {
+// A Journal's next step, which the plan keeps instead.
+const NEXT_STEP = /next step/iu;
+
+describe("use_case_new_project", () => {
+  test("no starting Journal holds a next step, which the plan keeps", () => {
+    for (const quest of PREMADE_QUESTS) {
+      expect(quest.journal).not.toMatch(NEXT_STEP);
+    }
+  });
+
+  test.each([
+    ["learn", "learn-a-thing"],
+    ["make", "find-something-to-make"],
+    ["do", "project-breakdown"],
+  ] as const)(
+    "%s opens its quest's one conversation in %s, with its opening and Journal",
+    async (id, activityId) => {
+      const user = await testUser();
+      await signIn(user);
+
+      const conversation = await startQuest(user, startForm(id));
+
+      expect(conversation.construct.name).toBe(getConstruct("vellum").name);
+      expect((await currentActivity(user.id, conversation)).id).toBe(
+        activityId,
+      );
+      const messages = await listMessages(user.id, conversation.id);
+      expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
+      expect(messages.map(messageText).join("")).not.toBe("");
+      expect(
+        await readMemoryHistory(user.id, conversation.project.id),
+      ).toMatchObject([{ author: "user", text: premade(id).journal }]);
+    },
+  );
+
+  test("each start is a quest of its own, for another goal", async () => {
     const user = await testUser();
-    const data = testData(user);
-    const project = await data.project();
-    const older = await data.chat(project, "vellum");
-    const newer = await data.chat(project, "lumen");
-    await data.chat(await data.project(), "lumen");
+    await signIn(user);
 
-    const listed = await listChats(user.id, project.id);
+    const first = await startQuest(
+      user,
+      startForm("learn", { name: "Learn Spanish" }),
+    );
+    const second = await startQuest(
+      user,
+      startForm("learn", { name: "Learn to knit" }),
+    );
 
-    expect(listed.map(({ id, construct }) => [id, construct.name])).toEqual([
-      [newer.id, getConstruct("lumen").name],
-      [older.id, getConstruct("vellum").name],
+    expect(second.project.id).not.toBe(first.project.id);
+    expect((await listProjects(user.id)).map(({ name }) => name)).toEqual([
+      "Learn to knit",
+      "Learn Spanish",
     ]);
   });
 });
 
-describe("use_case_new_project", () => {
-  test("the project is made with its first adventure, with Vellum, which opens with a question", async () => {
+describe("use_case_dailies", () => {
+  test("starting Dailies again opens the same quest, even renamed, and writes nothing", async () => {
     const user = await testUser();
     await signIn(user);
-    const name = `New project ${crypto.randomUUID()}`;
+    const first = await startQuest(user, startForm("dailies"));
+    const before = await listMessages(user.id, first.id);
 
-    const chat = await createProject(user, `  ${name}  `);
+    const again = await startQuest(
+      user,
+      startForm("dailies", { name: "Mornings" }),
+    );
 
-    expect(
-      (await listProjects(user.id)).map((project) => project.name),
-    ).toEqual([name]);
-    expect(await listChats(user.id, chat.project.id)).toEqual([chat]);
-    expect(chat.construct.name).toBe(getConstruct("vellum").name);
-    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
-    const messages = await listMessages(user.id, chat.id);
-    expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
-    expect(messages.map(messageText).join("")).toContain("?");
+    expect(again.id).toBe(first.id);
+    expect(await listMessages(user.id, again.id)).toEqual(before);
+    const projects = await listProjects(user.id);
+    expect(projects).toHaveLength(1);
+    expect(projects[0]).toMatchObject({ name: "Dailies", dailies: true });
   });
 });
 
 describe("use_case_new_project_with_construct", () => {
-  test("legacy named callers without a construct use the saved preference", async () => {
-    const user = await testUser();
-    await signIn(user);
-    await saveInterviewConstruct(user.id, "lumen");
-
-    const chat = await createProject(user, "Saved preference quest");
-
-    expect(chat.construct.name).toBe(getConstruct("lumen").name);
-    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
-  });
-
-  test("the first adventure is with the built-in construct she chose", async () => {
-    const user = await testUser();
-    await signIn(user);
-
-    const chat = await createProject(user, "Lumen's project", "lumen");
-
-    expect(chat.construct.name).toBe(getConstruct("lumen").name);
-  });
-
-  test("the first adventure is with her own construct, when she chose it", async () => {
+  test("the quest is with their own construct, when they chose it", async () => {
     const user = await testUser();
     await signIn(user);
     const own = await cloneConstruct(user.id, "lumen");
@@ -141,47 +177,52 @@ describe("use_case_new_project_with_construct", () => {
       throw new Error("Lumen could not be cloned");
     }
 
-    const chat = await createProject(user, "Her construct's project", own.id);
-
-    expect(chat.construct.name).toBe(own.name);
-    expect((await getChat(user.id, chat.id))?.construct.definition).toEqual(
-      own.definition,
+    const conversation = await startQuest(
+      user,
+      startForm("do", { constructId: own.id }),
     );
+
+    expect(conversation.construct.name).toBe(own.name);
+    expect(conversation.construct.definition).toEqual(own.definition);
+  });
+
+  test("another user's construct cannot start a quest", async () => {
+    const user = await testUser();
+    const other = await testUser();
+    const own = await cloneConstruct(other.id, "lumen");
+    if (own === undefined) {
+      throw new Error("No construct was cloned");
+    }
+    await signIn(user);
+
+    expect(
+      await startQuestAction(IDLE, startForm("do", { constructId: own.id })),
+    ).toMatchObject({ kind: "invalid" });
+    expect(await listProjects(user.id)).toEqual([]);
   });
 });
 
 describe("use_case_new_project_without_name", () => {
-  test("a name of only spaces asks for a name at the field, with her choices, and makes nothing", async () => {
+  test("a name of only spaces asks for a name and makes nothing", async () => {
     const user = await testUser();
     await signIn(user);
-    const form = new FormData();
-    form.set("name", "   ");
-    form.set("constructId", "lumen");
 
-    expect(await createProjectAction(IDLE, form)).toEqual({
-      kind: "invalidName",
-      message: PROJECTS_COPY.needsName,
-      name: "   ",
-      motivation: "",
-    });
+    expect(
+      await startQuestAction(IDLE, startForm("make", { name: "   " })),
+    ).toEqual({ kind: "invalid", message: PROJECTS_COPY.needsName });
     expect(await listProjects(user.id)).toEqual([]);
   });
 });
 
 describe("use_case_new_project_name_too_long", () => {
-  test("a name longer than the limit is refused at the field, with her choices, and makes nothing", async () => {
+  test("a name longer than the limit is refused and makes nothing", async () => {
     const user = await testUser();
     await signIn(user);
     const name = "Fox ".repeat(PROJECT_NAME_MAX_LENGTH);
-    const form = new FormData();
-    form.set("name", name);
-    form.set("constructId", "lumen");
 
-    expect(await createProjectAction(IDLE, form)).toEqual({
-      kind: "invalidName",
+    expect(await startQuestAction(IDLE, startForm("make", { name }))).toEqual({
+      kind: "invalid",
       message: PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH),
-      name,
-      motivation: "",
     });
     expect(await listProjects(user.id)).toEqual([]);
   });
@@ -191,104 +232,29 @@ describe("use_case_new_project_name_too_long", () => {
     await signIn(user);
     const name = "f".repeat(PROJECT_NAME_MAX_LENGTH);
 
-    const chat = await createProject(user, `  ${name}  `);
+    const conversation = await startQuest(
+      user,
+      startForm("make", { name: `  ${name}  ` }),
+    );
 
-    expect(chat.project.name).toBe(name);
+    expect(conversation.project.name).toBe(name);
   });
 
   test("the limit counts UTF-16 code units, as the name field does, so a fox emoji counts as 2", async () => {
     const user = await testUser();
     await signIn(user);
     const atLimit = "🦊".repeat(PROJECT_NAME_MAX_LENGTH / 2);
-    const overLimit = `${atLimit}🦊`;
-    const form = new FormData();
-    form.set("name", overLimit);
 
-    expect(await createProjectAction(IDLE, form)).toMatchObject({
-      kind: "invalidName",
-      message: PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH),
-    });
-    expect(await listProjects(user.id)).toEqual([]);
-
-    const chat = await createProject(user, atLimit);
-
-    expect(chat.project.name).toBe(atLimit);
-  });
-});
-
-describe("use_case_new_project_motivation", () => {
-  test("keeps motivation in shared memory and uses the selected construct rather than the preference", async () => {
-    const user = await testUser();
-    await signIn(user);
-    await saveInterviewConstruct(user.id, "lumen");
-    const motivation = "Make a fox as a birthday gift";
-    const creating = createProjectAction(
-      IDLE,
-      formOf({
-        name: "Gift",
-        motivation: `  ${motivation}  `,
-        constructId: "vellum",
-      }),
-    );
-    await Promise.allSettled([creating]);
-    const [project] = await listProjects(user.id);
-    if (project === undefined) {
-      throw new Error("No quest was made");
-    }
-    const [chat] = await listChats(user.id, project.id);
-    if (chat === undefined) {
-      throw new Error("No chat was made");
-    }
-    await expectRedirect(() => creating, `/chats/${chat.id}`);
-    expect(chat.construct.name).toBe("Vellum");
-    expect((await readMemory(user.id, project.id)).text).toBe(motivation);
-    expect(await readMemoryHistory(user.id, project.id)).toMatchObject([
-      { author: "user", text: motivation },
-    ]);
     expect(
-      (await listMessages(user.id, chat.id)).map(messageText).join("\n"),
-    ).toContain(motivation);
-    expect(await constructPrompt(chat.id)).toContain(motivation);
-    await saveInterviewConstruct(user.id, "vellum");
-    expect((await getChat(user.id, chat.id))?.construct.name).toBe("Vellum");
-  });
-});
-
-describe("use_case_start_quest_two_fields", () => {
-  test("omitting a name creates a valid quest in the default activity with the selected construct", async () => {
-    const user = await testUser();
-    await signIn(user);
-    const creating = createProjectAction(
-      IDLE,
-      formOf({ constructId: "lumen", motivation: "" }),
-    );
-    await Promise.allSettled([creating]);
-    const [project] = await listProjects(user.id);
-    if (project === undefined) {
-      throw new Error("No quest was made");
-    }
-    const [chat] = await listChats(user.id, project.id);
-    if (chat === undefined) {
-      throw new Error("No adventure was made");
-    }
-    await expectRedirect(() => creating, `/chats/${chat.id}`);
-    expect(project.name).toBe(PROJECTS_COPY.defaultName);
-    expect(chat.construct.name).toBe("Lumen");
-    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
-    const later = await testData(user).chat(project, "vellum");
-    expect(later.construct.name).toBe("Vellum");
-  });
-  test("another user's construct cannot start a quest", async () => {
-    const user = await testUser();
-    const other = await testUser();
-    const own = await cloneConstruct(other.id, "lumen");
-    if (own === undefined) {
-      throw new Error("No construct was cloned");
-    }
-    await signIn(user);
-    expect(
-      await createProjectAction(IDLE, formOf({ constructId: own.id })),
+      await startQuestAction(IDLE, startForm("make", { name: `${atLimit}🦊` })),
     ).toMatchObject({ kind: "invalid" });
     expect(await listProjects(user.id)).toEqual([]);
+
+    const conversation = await startQuest(
+      user,
+      startForm("make", { name: atLimit }),
+    );
+
+    expect(conversation.project.name).toBe(atLimit);
   });
 });
