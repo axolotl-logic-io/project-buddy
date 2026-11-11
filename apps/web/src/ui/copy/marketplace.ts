@@ -57,7 +57,6 @@ const KIND_CONTENTS: Readonly<Record<PromptKind, string>> = {
 export const MARKETPLACE_COPY = {
   title: pageTitle("Marketplace"),
   headerLink: "Marketplace",
-  homeLink: "Home",
   heading: "Marketplace",
   paused:
     "Marketplace buys are paused. Orbs are prepared for the planned rollout; sellers can choose new prices, but no one can buy yet. Batteries remain separate.",

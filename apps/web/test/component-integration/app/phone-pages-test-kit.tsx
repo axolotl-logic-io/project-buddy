@@ -26,7 +26,6 @@ import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
-import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
@@ -89,7 +88,6 @@ import {
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
-import { readHomeSummary } from "@/today/today-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
@@ -680,34 +678,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
         page.getByRole("textbox", { name: MEMORY_COPY.textLabel }).element(),
       );
     },
-  },
-  {
-    name: "the atlas before the first quest",
-    render: workspacePage(
-      () => {
-        vi.mocked(readHomeSummary).mockResolvedValue({
-          latestQuest: undefined,
-          firstVisit: true,
-        });
-      },
-      () => HomePage(),
-    ),
-  },
-  {
-    name: "the atlas with a long quest and next step",
-    render: workspacePage(
-      () => {
-        vi.mocked(readHomeSummary).mockResolvedValue({
-          latestQuest: {
-            project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
-            nextStep: LONG_PROJECT_NAME,
-            unread: true,
-          },
-          firstVisit: false,
-        });
-      },
-      () => HomePage(),
-    ),
   },
   {
     name: "the Settings page",

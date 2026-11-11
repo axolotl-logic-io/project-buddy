@@ -4,7 +4,6 @@ import { pageTitle } from "@/ui/copy/site.ts";
 export const ACCOUNT_COPY = {
   title: pageTitle("Account"),
   headerLink: "Account",
-  homeLink: "Home",
   heading: "Account",
   loading: "Loading your batteries…",
   nameHeading: "Your name",

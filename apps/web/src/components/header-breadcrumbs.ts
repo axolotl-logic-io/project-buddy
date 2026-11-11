@@ -24,7 +24,6 @@ import { PROJECT_INVITATION_COPY } from "@/ui/copy/project-invitations.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
@@ -32,9 +31,8 @@ import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 const DETAIL_DEPTH = 2;
 const CHILD_DEPTH = 3;
 
-const HOME: Breadcrumb = { label: SITE_COPY.home, href: "/home" };
 const QUESTS: Breadcrumb = {
-  label: PROJECTS_COPY.allProjectsLink,
+  label: PROJECTS_COPY.heading,
   href: "/projects",
 };
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
@@ -64,15 +62,15 @@ async function headerBreadcrumbs(
   path: readonly string[],
 ): Promise<readonly Breadcrumb[]> {
   const [section = "", id, child] = path;
-  if (section === "home" && id === undefined) {
-    return [{ label: SITE_COPY.home }];
-  }
   const root = ROOTS.get(section);
   if (id === undefined) {
     if (root === undefined) {
       return [];
     }
-    return [HOME, { label: root.label }];
+    if (section === "projects") {
+      return [{ label: root.label }];
+    }
+    return [QUESTS, { label: root.label }];
   }
   if (section === "projects") {
     if (
@@ -85,7 +83,6 @@ async function headerBreadcrumbs(
         return [];
       }
       return [
-        HOME,
         QUESTS,
         { label: PROJECT_INVITATION_COPY.question(invitation.project.name) },
       ];
@@ -102,13 +99,12 @@ async function headerBreadcrumbs(
     }
     if (child === "memory") {
       return [
-        HOME,
         QUESTS,
         { label: project.name, href: `/projects/${project.id}` },
         { label: MEMORY_COPY.heading },
       ];
     }
-    return [HOME, QUESTS, { label: project.name }];
+    return [QUESTS, { label: project.name }];
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
@@ -118,7 +114,7 @@ async function headerBreadcrumbs(
     if (book === undefined) {
       return [];
     }
-    return [HOME, root, { label: book.title }];
+    return [QUESTS, root, { label: book.title }];
   }
   let name: string | undefined;
   if (section === "constructs") {
@@ -147,7 +143,7 @@ async function headerBreadcrumbs(
   if (name === undefined) {
     return [];
   }
-  return [HOME, root, { label: name }];
+  return [QUESTS, root, { label: name }];
 }
 
 export { headerBreadcrumbs };

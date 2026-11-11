@@ -332,7 +332,7 @@ Something the user wants to do, make or learn, which they work on in the quest's
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
 
-The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. The Home heading "Your projects await" is the user-approved copy exception; other labels use Quest and Quests.
+The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. Quests is the signed-in landing page; labels use Quest and Quests.
 
 ### Team quest
 

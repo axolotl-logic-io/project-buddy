@@ -20,7 +20,7 @@ const TOKEN_FIELD = z.string().catch("");
 
 // Signs the browser in for 30 days as the user whose link holds the form's
 // token, with the extras her account hides, then shows the link's
-// destination, if it has a local one, or else the home page. If the link has
+// destination, if it has a local one, or else Quests. If the link has
 // expired since its page opened, or no longer works, shows that page again,
 // which says so. Another user's notifications stop going to this browser.
 export async function continueSignInAction(formData: FormData): Promise<never> {
