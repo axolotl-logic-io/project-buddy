@@ -8,26 +8,15 @@ export const PROJECTS_COPY = {
   homeLink: "Home",
   heading: "Quests",
   loading: "Loading quests…",
-  none: "No quests yet. Choose Start Quest to start one.",
-  newHeading: "Start Quest",
-  closeNewProject: "Close",
+  none: "No quests yet. Choose a way to start one above.",
   listHeading: "All quests",
   shared: "Shared",
   sharedWithYou: "Shared with you",
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Quest name",
-  create: "Start Quest",
   defaultName: "New quest",
-  whyLabel: "Why",
-  constructHint:
-    "This construct joins your first adventure. You can start other adventures in this quest with other constructs.",
-  unavailableConstruct:
-    "Choose an available construct for your first adventure.",
   cancel: "Cancel",
-  creating: "Creating the quest and its first adventure…",
-  exploreFirst: "Explore before starting a quest",
   newestFirst: "Your quests, newest first",
-  findStartingPoint: "Find a starting point",
   allProjectsLink: "All quests",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
@@ -35,7 +24,6 @@ export const PROJECTS_COPY = {
   motivationLabel: "Why do you want to complete this quest?",
   motivationHint:
     "Optional. Tell your construct what makes this quest matter to you.",
-  invalidDetails: "Enter a quest name and motivation as text.",
 } as const;
 
 export const PROJECT_COPY = {
@@ -46,9 +34,6 @@ export const PROJECT_COPY = {
   cancelTitle: "Cancel title edit",
   titleSaved: "Quest title saved.",
   loading: "Loading quest…",
-  chatsHeading: "Adventures",
-  noChats: "No adventures yet.",
-  chatStarted: (startedAt: string): string => `started ${startedAt}`,
 } as const;
 
 // A project's Members section: who is in a team project, and the buttons
@@ -65,30 +50,28 @@ export const PROJECT_MEMBERS_COPY = {
   removeLabel: (label: string): string => `Remove ${label} from the quest`,
   removeTitle: "Remove this member?",
   removeDescription: (label: string): string =>
-    `${label} can no longer open this quest or its adventures. What they wrote stays in the adventures.`,
+    `${label} can no longer open this quest or its conversation. What they wrote stays in it.`,
   removeConfirm: "Remove member",
   removeCancel: "Keep them",
   leave: "Leave quest",
   leaveTitle: "Leave this quest?",
   leaveDescription:
-    "You can no longer open this quest or its adventures unless the owner invites you again. What you wrote stays in the adventures.",
+    "You can no longer open this quest or its conversation unless the owner invites you again. What you wrote stays in it.",
   leaveConfirm: "Leave quest",
   leaveCancel: "Stay",
 } as const;
 
-export const QUEST_LIBRARY_COPY = {
-  heading: "Premade quests",
-  intro:
-    "Bring your own idea, or find a place to begin. Each starting point is yours to change.",
-  explore: "Explore quest",
-  exploreLabel: (name: string): string => `Explore quest: ${name}`,
+// The four ways to start a quest (src/components/quest-start.tsx).
+export const QUEST_START_COPY = {
+  heading: "Start a quest",
+  choose: "Choose",
+  chooseLabel: (name: string): string => `Choose ${name}`,
+  openDailies: "Open Dailies",
+  close: "Close",
   journalLabel: "Starting Journal",
   journalHint:
-    "Edit this starting plan here or change the Journal later. Possible milestones are plans, not completed progress.",
-  activityLabel: "First activity",
+    "Change anything here, or later in the Journal. Possible milestones are plans, not completed progress.",
   start: "Start quest",
-  activityIntro:
-    "Want to keep working on what you discover? Start a quest with this activity and return as your idea takes shape.",
-  invalid:
-    "Check the starting details and choose an available activity and construct.",
+  starting: "Starting the quest…",
+  invalid: "Check the details and choose an available construct.",
 } as const;

@@ -15,23 +15,33 @@ import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 
+// A quest's sections: its continuing conversation, then the quest's own
+// pages.
+type QuestSection =
+  | "conversation"
+  | "journal"
+  | "plan"
+  | "progress"
+  | "notes"
+  | "versions"
+  | "members";
+
+// A quest's frame: its title and status, with the rail of its sections, the
+// conversation first, and the status controls. children is the current
+// section, inside the frame; conversation follows the frame instead, so the
+// conversation and its composer take the page's full width and height.
+// Moving between sections keeps the conversation's draft, which the
+// composer saves for its conversation.
 function QuestWorkspace({
   project,
   current,
-  newAdventure,
   children,
+  conversation,
 }: {
   readonly project: Project;
-  readonly current:
-    | "adventures"
-    | "journal"
-    | "plan"
-    | "progress"
-    | "notes"
-    | "versions"
-    | "members";
-  readonly newAdventure: ReactNode;
+  readonly current: QuestSection;
   readonly children?: ReactNode;
+  readonly conversation?: ReactNode;
 }): JSX.Element {
   const links: readonly {
     readonly id: string;
@@ -39,8 +49,8 @@ function QuestWorkspace({
     readonly href: Route;
   }[] = [
     {
-      id: "adventures",
-      label: PROJECT_COPY.chatsHeading,
+      id: "conversation",
+      label: WORKSPACES_COPY.conversation,
       href: `/projects/${project.id}`,
     },
     {
@@ -75,6 +85,7 @@ function QuestWorkspace({
     },
   ];
   return (
+    <>
     <QuestStatusFeedback>
       <div className="quest-workspace">
         <header>
@@ -85,7 +96,6 @@ function QuestWorkspace({
                 {QUEST_STATUS_COPY.labels[project.status]}
               </p>
             </div>
-            {newAdventure}
           </div>
           <div className="quest-workspace-rail">
             <nav
@@ -117,7 +127,10 @@ function QuestWorkspace({
         )}
       </div>
     </QuestStatusFeedback>
+    {conversation}
+    </>
   );
 }
 
+export type { QuestSection };
 export { QuestWorkspace };

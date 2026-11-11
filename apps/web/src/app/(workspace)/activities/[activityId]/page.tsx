@@ -18,13 +18,11 @@ import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { ActivityQuestEntry } from "@/components/quest-library.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
-import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   ACTIVITIES_COPY,
@@ -177,10 +175,7 @@ export default async function ActivityPage({
   if (isActivityId(activityId)) {
     const options = await workshopOptions(user.id);
     const activity = getActivity(activityId);
-    const [chatChoices, questChoices] = await Promise.all([
-      newChatChoices(user.id),
-      questCreationChoices(user.id),
-    ]);
+    const chatChoices = await newChatChoices(user.id);
     return (
       <Workshop
         options={options}
@@ -199,7 +194,6 @@ export default async function ActivityPage({
           fixedActivity={true}
           selectedActivityId={activity.id}
         />
-        <ActivityQuestEntry activityId={activity.id} choices={questChoices} />
       </Workshop>
     );
   }

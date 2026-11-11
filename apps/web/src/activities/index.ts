@@ -5,11 +5,13 @@ import {
   type ActivitySnapshot,
 } from "@/activities/activity.ts";
 import { brainstorming } from "@/activities/brainstorming.ts";
+import { dailies } from "@/activities/dailies.ts";
 import { findSomethingToMake } from "@/activities/find-something-to-make.ts";
 import {
   interview,
   isInterviewOpeningRequest,
 } from "@/activities/interview.ts";
+import { learnAThing } from "@/activities/learn-a-thing.ts";
 import { openChat } from "@/activities/open-chat.ts";
 import { projectBreakdown } from "@/activities/project-breakdown.ts";
 
@@ -21,6 +23,8 @@ const activitiesById: Readonly<Record<ActivityId, Activity>> = {
   brainstorming,
   "project-breakdown": projectBreakdown,
   "find-something-to-make": findSomethingToMake,
+  dailies,
+  "learn-a-thing": learnAThing,
 };
 
 export type {
