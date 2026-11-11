@@ -15,7 +15,7 @@ const WORKSPACES_COPY = {
     "This Quick Note will be added to the selected quest’s Journal.",
   versions: "Versions",
   journal: "Quest Journal",
-  members: "Members and check-ins",
+  members: "Members",
   settingsIntro: "Your profile, appearance, batteries and security.",
   openWorkshop: "Open Workshop",
   books: "Library books",

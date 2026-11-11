@@ -17,9 +17,7 @@ import type {
   getOwnActivity,
   listOwnActivities,
 } from "@/activities/activity-store.ts";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
-import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
-import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import type { getChat, listMessages } from "@/chats/store.ts";
 import type {
   getOwnConstruct,
   listConstructs,
@@ -91,17 +89,7 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
   listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn().mockResolvedValue(undefined),
-}));
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
-}));
-vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
-  readCheckInsOffLink: vi.fn<typeof readCheckInsOffLink>(),
-}));
-vi.mock("@/app/check-ins/off/actions.ts", () => ({
-  turnOffCheckInsAction: vi.fn(),
 }));
 vi.mock("@/conversations/start-quest.ts", () => ({
   readQuestConversation: vi.fn(),
@@ -204,7 +192,6 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
   deleteNoteAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   removeMemberAction: vi.fn(),

@@ -40,8 +40,7 @@ function SharedMark({ project }: { readonly project: Project }): ReactNode {
 
 // The projects as compact rows, each named by the project alone; the
 // whole row is the link's target, the quest's conversation. A team project
-// is marked as shared, and one whose conversation has messages the user
-// hasn't read, such as a check-in, as unread.
+// is marked as shared.
 export function ProjectList({
   projects,
   emptyMessage = PROJECTS_COPY.none,
@@ -68,11 +67,6 @@ export function ProjectList({
               {project.name}
             </Link>
             <SharedMark project={project} />
-            {project.unread === true && (
-              <span className="self-start rounded-control border border-primary px-2 text-sm">
-                {PROJECTS_COPY.unread}
-              </span>
-            )}
 
             <span className="text-muted text-sm">
               <CopyWithTime
