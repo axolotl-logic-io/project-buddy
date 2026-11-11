@@ -692,6 +692,12 @@
   /* A conversation's pinned header (src/components/chat-screen.tsx): the
      construct's portrait button and any page action, such as Start a
      quest from this, which wraps under it on a phone. */
+  /* A quest's conversation under its frame, its pinned header clear of
+     the frame's border. */
+  .quest-conversation {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
   .conversation-header {
     @apply flex min-w-0 flex-wrap items-center justify-between gap-2;
   }
@@ -1727,7 +1733,8 @@
   }
 
   @media (width >= --theme(--breakpoint-xl)) {
-    .page-column:has(.adventure-layout) {
+    .page-column:has(.adventure-layout),
+    .page-frame-quest {
       @apply max-w-6xl;
     }
 

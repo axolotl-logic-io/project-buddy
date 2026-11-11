@@ -1,9 +1,10 @@
-// What the landing page's Today section reads, against the test database:
-// the owner's most recently active projects with their next steps and
-// latest chats, and their other recent chats. "use_case_today_on_landing".
+// What Home reads to offer Continue, against the test database: the
+// Active quest whose conversation was most recently active, with its next
+// step and whether it is unread for the viewer. "use_case_today_on_landing".
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { markChatUnreadFor } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -12,25 +13,18 @@ import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
 import { removeProjectMember } from "@/projects/members-store.ts";
 import { changeQuestStatus } from "@/projects/quest-status-store.ts";
-import { hasToday } from "@/today/today.ts";
-import { readHomeSummary, readToday } from "@/today/today-store.ts";
+import { readHomeSummary } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { teamProject } from "../projects/team-project-test-kit.ts";
 
-// Explicit start times, oldest first, decide the order of chats with no
-// messages; a message saved now is newer than any of them.
+// Explicit start times, oldest first, decide the order of conversations
+// with no messages; a message saved now is newer than any of them.
 const STARTED_AT = [
   new Date("2026-01-01T00:00:00Z"),
   new Date("2026-01-02T00:00:00Z"),
   new Date("2026-01-03T00:00:00Z"),
-  new Date("2026-01-04T00:00:00Z"),
-  new Date("2026-01-05T00:00:00Z"),
-  new Date("2026-01-06T00:00:00Z"),
 ] as const;
-
-// One more chat than Today lists.
-const MORE_THAN_TODAY_LISTS = 4;
 
 const HELLO = [
   { message: "Hello", reply: [{ type: "text", text: "Hi!" }] },
@@ -61,110 +55,74 @@ async function saveText(
 }
 
 describe("use_case_today_on_landing", () => {
-  test("a new user has nothing waiting", async () => {
+  test("a new user has nothing to continue, on their first visit", async () => {
     const user = await testUser();
-    const today = await readToday(user.id);
+
     expect(await readHomeSummary(user.id)).toEqual({
-      latestQuest: today.projects[0],
-      firstVisit: today.projects.length === 0 && today.chats.length === 0,
+      latestQuest: undefined,
+      firstVisit: true,
     });
-    expect(today).toEqual({ projects: [], chats: [] });
-    expect(hasToday(today)).toBe(false);
   });
 
-  test("lists the most recently active projects with their next steps and latest chats", async () => {
+  test("continues the quest whose conversation was most recently active, with its next step", async () => {
     const [user, other] = await Promise.all([testUser(), testUser()]);
     const data = testData(user);
-    const [turtle, garden, fox, idle] = await Promise.all([
+    const [turtle, garden, idle] = await Promise.all([
       data.project("Sea turtle model"),
       data.project("Garden planner"),
-      data.project("Low-poly fox"),
       data.project("Idle project"),
     ]);
-    const [turtleOld, turtleNew, gardenChat, foxChat, idleChat] =
-      await Promise.all([
-        data.chat(turtle),
-        data.chat(turtle),
-        data.chat(garden),
-        data.chat(fox),
-        data.chat(idle),
-      ]);
+    const [turtleChat, gardenChat, idleChat] = await Promise.all([
+      data.chat(turtle),
+      data.chat(garden),
+      data.chat(idle),
+    ]);
     const otherData = testData(other);
-    const foreign = await otherData.project("Private project");
-    await otherData.chat(foreign);
+    await otherData.chat(await otherData.project("Private project"));
     await Promise.all([
       setStartedAt(user.id, idleChat.id, STARTED_AT[0]),
-      setStartedAt(user.id, turtleOld.id, STARTED_AT[1]),
-      setStartedAt(user.id, foxChat.id, STARTED_AT[2]),
-      setStartedAt(user.id, turtleNew.id, STARTED_AT[3]),
-      setStartedAt(user.id, gardenChat.id, STARTED_AT[4]),
+      setStartedAt(user.id, turtleChat.id, STARTED_AT[1]),
+      setStartedAt(user.id, gardenChat.id, STARTED_AT[2]),
       saveText(user.id, turtle.id, "# Turtle\n\nNext step: retopo the flipper"),
-      saveText(user.id, garden.id, "Goal: a vegetable garden."),
     ]);
-    // A message makes the oldest turtle chat the most recently active chat.
-    await data.exchanges(turtleOld, HELLO);
+    expect((await readHomeSummary(user.id)).latestQuest?.project.id).toBe(
+      garden.id,
+    );
 
-    const today = await readToday(user.id);
+    // A message makes the turtle's conversation the most recently active.
+    await data.exchanges(turtleChat, HELLO);
+
     expect(await readHomeSummary(user.id)).toEqual({
-      latestQuest: today.projects[0],
-      firstVisit: today.projects.length === 0 && today.chats.length === 0,
-    });
-
-    expect(today.projects).toEqual([
-      {
+      latestQuest: {
         project: { id: turtle.id, name: "Sea turtle model" },
         nextStep: "retopo the flipper",
-        latestChat: turtleOld.id,
+        unread: false,
       },
-      {
-        project: { id: garden.id, name: "Garden planner" },
-        nextStep: undefined,
-        latestChat: gardenChat.id,
-      },
-      {
-        project: { id: fox.id, name: "Low-poly fox" },
-        nextStep: undefined,
-        latestChat: foxChat.id,
-      },
-    ]);
-    // The chats a Continue link opens aren't repeated.
-    expect(today.chats.map(({ id }) => id)).toEqual([
-      turtleNew.id,
-      idleChat.id,
-    ]);
-    expect(hasToday(today)).toBe(true);
+      firstVisit: false,
+    });
   });
 
-  test("lists standalone chats, at most three, and never another user's", async () => {
-    const [user, other] = await Promise.all([testUser(), testUser()]);
-    const standalone = await Promise.all(
-      STARTED_AT.slice(0, MORE_THAN_TODAY_LISTS).map(() =>
-        privateChat(user.id),
-      ),
-    );
-    await privateChat(other.id);
-    await Promise.all(
-      standalone.map((chat, index) =>
-        setStartedAt(user.id, chat.id, STARTED_AT[index] ?? STARTED_AT[0]),
-      ),
-    );
+  test("marks the quest unread for the viewer alone", async () => {
+    const team = await teamProject();
+    await markChatUnreadFor(team.chat.id, [team.member.id]);
 
-    const today = await readToday(user.id);
+    const [owner, member] = await Promise.all([
+      readHomeSummary(team.owner.id),
+      readHomeSummary(team.member.id),
+    ]);
+
+    expect(owner.latestQuest?.unread).toBe(false);
+    expect(member.latestQuest?.unread).toBe(true);
+  });
+
+  test("Chat alone is no quest to continue, and no first visit", async () => {
+    const user = await testUser();
+    await privateChat(user.id);
+
     expect(await readHomeSummary(user.id)).toEqual({
-      latestQuest: today.projects[0],
-      firstVisit: today.projects.length === 0 && today.chats.length === 0,
+      latestQuest: undefined,
+      firstVisit: false,
     });
-
-    expect(today.projects).toEqual([]);
-    expect(today.chats.map(({ id }) => id)).toEqual(
-      standalone
-        .slice(1)
-        .reverse()
-        .map(({ id }) => id),
-    );
-    expect(today.chats.every(({ project }) => project === undefined)).toBe(
-      true,
-    );
   });
 });
 
@@ -181,14 +139,12 @@ test("Home continues only active quests for owners and members", async () => {
     revision: 0,
   });
   const active = await Promise.all(
-    [team.owner, team.member].map((user) => readToday(user.id)),
+    [team.owner, team.member].map((user) => readHomeSummary(user.id)),
   );
-  for (const today of active) {
-    expect(today.projects.map(({ project }) => project.id)).toEqual([
-      team.project.id,
-    ]);
+  for (const summary of active) {
+    expect(summary.latestQuest?.project.id).toBe(team.project.id);
   }
-  expect((await readToday(other.id)).projects).toEqual([]);
+  expect((await readHomeSummary(other.id)).latestQuest).toBeUndefined();
   await changeQuestStatus(team.owner.id, {
     projectId: team.project.id,
     fromStatus: "active",
@@ -196,10 +152,10 @@ test("Home continues only active quests for owners and members", async () => {
     revision: 0,
   });
   const finished = await Promise.all(
-    [team.owner, team.member].map((user) => readToday(user.id)),
+    [team.owner, team.member].map((user) => readHomeSummary(user.id)),
   );
-  for (const today of finished) {
-    expect(today.projects).toEqual([]);
+  for (const summary of finished) {
+    expect(summary.latestQuest).toBeUndefined();
   }
 });
 

@@ -28,15 +28,11 @@ export function FormDialog({
   closeLabel,
   children,
   trigger,
-  defaultOpen = false,
 }: {
   title: string;
   closeLabel: string;
   children: ReactNode;
   trigger?: ReactNode;
-  // Whether the dialog starts open, as when the page was opened to start
-  // this very thing.
-  defaultOpen?: boolean;
 }): JSX.Element {
   let triggerButton = trigger;
   if (triggerButton === undefined) {
@@ -48,7 +44,7 @@ export function FormDialog({
     );
   }
   return (
-    <Dialog.Root defaultOpen={defaultOpen}>
+    <Dialog.Root>
       <Dialog.Trigger asChild={true}>{triggerButton}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />

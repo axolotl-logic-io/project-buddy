@@ -71,7 +71,7 @@ export const QUEST_START_COPY = {
   choose: "Choose",
   chooseLabel: (name: string): string => `Choose ${name}`,
   openDailies: "Open Dailies",
-  close: "Close",
+  back: "Back to the starting points",
   journalLabel: "Starting Journal",
   journalHint:
     "Change anything here, or later in the Journal. Possible milestones are plans, not completed progress.",

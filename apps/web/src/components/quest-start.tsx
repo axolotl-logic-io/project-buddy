@@ -6,7 +6,11 @@ import {
   type SubmitEvent,
   startTransition,
   useActionState,
+  useCallback,
+  useEffect,
   useId,
+  useRef,
+  useState,
 } from "react";
 import {
   type StartQuestState,
@@ -14,10 +18,10 @@ import {
 } from "@/app/(workspace)/projects/actions.ts";
 import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
-import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { type ConstructId, isConstructId } from "@/constructs/index.ts";
 import type { OwnPromptId, ProjectId } from "@/ids.ts";
 import {
@@ -125,21 +129,21 @@ function QuestStartForm({
   );
 }
 
-// One starting point as a card: what it is and the button that opens its
+// One starting point as a card: what it is and the button that shows its
 // details. The user's Dailies quest, once it exists, opens directly.
 function QuestStartCard({
   quest,
-  choices,
-  preset,
-  open,
   dailiesId,
+  onChoose,
 }: {
   readonly quest: PremadeQuest;
-  readonly choices: QuestCreationChoices;
-  readonly preset: QuestStartPreset;
-  readonly open: boolean;
   readonly dailiesId: ProjectId | undefined;
+  readonly onChoose: (id: PremadeQuestId) => void;
 }): JSX.Element {
+  const { id } = quest;
+  const choose = useCallback((): void => {
+    onChoose(id);
+  }, [onChoose, id]);
   return (
     <li className="card flex min-w-0 flex-col items-start gap-3">
       <h3 className="card-title">{quest.name}</h3>
@@ -152,34 +156,28 @@ function QuestStartCard({
         </Button>
       )}
       {(quest.id !== "dailies" || dailiesId === undefined) && (
-        <FormDialog
-          title={quest.name}
-          closeLabel={QUEST_START_COPY.close}
-          defaultOpen={open}
-          trigger={
-            <Button
-              variant="secondary"
-              aria-label={QUEST_START_COPY.chooseLabel(quest.name)}
-            >
-              {QUEST_START_COPY.choose}
-            </Button>
-          }
+        <Button
+          aria-label={QUEST_START_COPY.chooseLabel(quest.name)}
+          onClick={choose}
+          variant="secondary"
         >
-          <QuestStartForm quest={quest} choices={choices} preset={preset} />
-        </FormDialog>
+          {QUEST_START_COPY.choose}
+        </Button>
       )}
     </li>
   );
 }
 
 // The four ways to start a quest: Dailies, Learn a thing, Make a thing and
-// Do a thing. Choosing one opens its details, already filled in, to edit
-// or start as they are; preset fills in what the page starting it already
-// knows, such as an activity or a Chat's summary, and initialChoice opens
-// that one's details at once. A preset Journal is a goal of its own, so
-// Dailies, the user's one ongoing quest, isn't offered with one.
-// dailiesId is the user's Dailies quest, if they have one, which its card
-// opens instead. Looking and closing create nothing and spend nothing.
+// Do a thing. Choosing one shows its details in their place, already filled
+// in, to edit or start as they are; Back shows the four again. It opens no
+// dialog of its own, so a page can hold it in one. preset fills in what the
+// page starting it already knows, such as an activity or a Chat's summary,
+// and initialChoice shows that one's details at once. A preset Journal is a
+// goal of its own, so Dailies, the user's one ongoing quest, isn't offered
+// with one. dailiesId is the user's Dailies quest, if they have one, which
+// its card opens instead. Looking and going back create nothing and spend
+// nothing.
 function QuestStartChoices({
   choices,
   preset = NO_PRESET,
@@ -192,23 +190,65 @@ function QuestStartChoices({
   readonly dailiesId?: ProjectId | undefined;
 }): JSX.Element {
   const headingId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [chosen, setChosen] = useState(initialChoice);
+  // Whether the next render follows a choice, whose heading takes focus.
+  const focusHeadingRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (focusHeadingRef.current) {
+      focusHeadingRef.current = false;
+      headingRef.current?.focus();
+    }
+  });
+  const show = useCallback((id: PremadeQuestId | undefined): void => {
+    focusHeadingRef.current = true;
+    setChosen(id);
+  }, []);
+  const back = useCallback((): void => {
+    show(undefined);
+  }, [show]);
   const offered = PREMADE_QUESTS.filter(
     (quest) => quest.id !== "dailies" || preset.journal === undefined,
   );
+  const shown = offered.find(({ id }) => id === chosen);
+  if (shown !== undefined) {
+    return (
+      <section className="flex flex-col gap-4" aria-labelledby={headingId}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2
+            className="section-heading"
+            id={headingId}
+            ref={headingRef}
+            tabIndex={-1}
+          >
+            {shown.name}
+          </h2>
+          <Button onClick={back} variant="quiet">
+            <Icon name="arrow-left" />
+            {QUEST_START_COPY.back}
+          </Button>
+        </div>
+        <QuestStartForm quest={shown} choices={choices} preset={preset} />
+      </section>
+    );
+  }
   return (
     <section className="flex flex-col gap-4" aria-labelledby={headingId}>
-      <h2 className="section-heading" id={headingId}>
+      <h2
+        className="section-heading"
+        id={headingId}
+        ref={headingRef}
+        tabIndex={-1}
+      >
         {QUEST_START_COPY.heading}
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
-        {offered.map((quest) => (
+        {offered.map((offering) => (
           <QuestStartCard
-            key={quest.id}
-            quest={quest}
-            choices={choices}
-            preset={preset}
-            open={quest.id === initialChoice}
+            key={offering.id}
+            quest={offering}
             dailiesId={dailiesId}
+            onChoose={show}
           />
         ))}
       </ul>

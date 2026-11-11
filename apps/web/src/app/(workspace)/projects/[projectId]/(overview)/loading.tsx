@@ -18,7 +18,9 @@ export default function ProjectLoading(): JSX.Element {
           <LoadingShapes shapes={["line"]} />
         </div>
       </div>
-      <LoadingShapes shapes={["messages"]} />
+      <div className="quest-conversation">
+        <LoadingShapes shapes={["messages"]} />
+      </div>
     </div>
   );
 }

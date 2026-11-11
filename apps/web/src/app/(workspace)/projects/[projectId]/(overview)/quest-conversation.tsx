@@ -20,13 +20,10 @@ const START_THE_DAY: { readonly label: string; readonly text: string } = {
 // nothing: a quest whose conversation hasn't started, as after the move
 // from adventures, offers to start it instead. The Dailies quest offers
 // Start the day, which sends a prepared message like any other.
-async function QuestConversation({
-  project,
-  viewer,
-}: {
-  readonly project: Project;
-  readonly viewer: UserId;
-}): Promise<JSX.Element> {
+async function questConversation(
+  project: Project,
+  viewer: UserId,
+): Promise<JSX.Element> {
   const conversation = await readQuestConversation(viewer, project.id);
   if (conversation === undefined) {
     return (
@@ -58,4 +55,4 @@ async function QuestConversation({
   );
 }
 
-export { QuestConversation };
+export { questConversation };

@@ -164,11 +164,7 @@ The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md
 
 ## Conversation header
 
-The conversation header uses compact spacing and a smaller title, with quest
-navigation above the title and construct identity; Chat's header has no quest
-navigation. Long names truncate visually on phones while retaining their full
-accessible names. The navigation keeps 44-pixel touch targets. The pinned
-header's scroll clearance follows its compact size.
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Start a quest from this. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 
