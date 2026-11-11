@@ -9,13 +9,13 @@ The signed-in pages below group related content under a compact heading and an u
 | Quick Note | Write, Preview | The heading's Save Quick Note submits the same form from either tab. Preview shows the selected quest and the text as one line. Submitting returns to Write so feedback and focus remain visible. Switching tabs keeps the draft. |
 | Settings | General, Appearance | General keeps the New quest construct form. Appearance changes this browser's mode. |
 | Account | Profile, Batteries, Security | Profile keeps the name form. Batteries keeps the balance, purchase options and payment status. Checkout returns and Buy batteries links select Batteries. Security keeps both sign-out actions; loading and error states also offer sign-out. |
-| Quest and Journal | Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, Members | The quest opens on its conversation, below the workspace at full width. Each other section appears inside the quest workspace. The title editor and visible status actions remain in the heading. Member permissions remain unchanged. |
+| Quest and Journal | Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions | The quest opens on its conversation, below the workspace at full width. Each other section appears inside the quest workspace. The title editor and visible status actions remain in the heading. |
 
 ## Navigation and drafts
 
 Local section tabs support keyboard navigation and keep forms mounted while hidden. Switching sections does not discard a typed name, Quick Note or form feedback. The composer saves its draft for its conversation, so leaving a quest's conversation for another section and coming back keeps the unsent message.
 
-Quest overview sections use `?section=plan`, `?section=progress`, `?section=notes` and `?section=members`. The default is the conversation. The Journal uses `?section=versions` for its history and shows the current Journal by default. Unknown section values fall back to the default. These routes retain the acting user's existing access checks.
+Quest overview sections use `?section=plan`, `?section=progress`, and `?section=notes`. The default is the conversation. The Journal uses `?section=versions` for its history and shows the current Journal by default. Unknown section values fall back to the default. These routes retain the acting user's existing access checks.
 
 ## Validation
 

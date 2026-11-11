@@ -33,7 +33,6 @@ import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
-import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
@@ -48,7 +47,6 @@ import { listMessages } from "@/chats/store.ts";
 import {
   getOwnConstruct,
   listConstructs,
-  type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
@@ -60,13 +58,6 @@ import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { NOTE_DAY } from "@/notes/note.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
-import { listProjectMembers } from "@/projects/members-store.ts";
-import {
-  listProjectInvitations,
-  listSentProjectInvitations,
-  type ProjectInvitation,
-  readProjectInvitation,
-} from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import {
   getRetiredDefinition,
@@ -90,22 +81,14 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import {
-  LONG_NAME_INVITATION,
-  SENT_INVITATION,
-} from "../projects/project-invitations-test-kit.ts";
-import {
   RETIRED_CONSTRUCT,
   RETIRED_DEFINITIONS,
 } from "../retirement/retirement-fixtures.ts";
 import {
   FOX_CHAT,
   FOX_CONVERSATION,
-  FOX_MEMBER,
   FOX_MILESTONES,
-  FOX_OWNER,
   FOX_PROJECT,
-  FOX_PROJECT_AS_MEMBER,
-  FOX_TEAM_PROJECT,
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
@@ -231,44 +214,23 @@ async function chatPage(): Promise<JSX.Element> {
   );
 }
 
-// The Projects page, with one project, and with the invitations and the
-// user's own constructs.
-function projectsPageOf(
-  invitations: readonly ProjectInvitation[],
-  ownConstructs: readonly OwnConstruct[] = [],
-): () => Promise<JSX.Element> {
-  return workspacePage(
-    () => {
-      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-      vi.mocked(listConstructs).mockResolvedValue([...ownConstructs]);
-      vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
-    },
-    async () =>
-      ProjectListLayout({
-        params: NO_PARAMS,
-        children: await ProjectsPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-      }),
-  );
-}
-
-const projectsPage = projectsPageOf([]);
-
-// The page a project invitation's email opens.
-const projectInvitationPage = workspacePage(
+// The Projects page, with one project.
+const projectsPage = workspacePage(
   () => {
-    vi.mocked(readProjectInvitation).mockResolvedValue(LONG_NAME_INVITATION);
+    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listConstructs).mockResolvedValue([]);
   },
-  () =>
-    ProjectInvitationPage({
-      params: Promise.resolve({ token: LINK_TOKEN }),
-      searchParams: NO_PARAMS,
+  async () =>
+    ProjectListLayout({
+      params: NO_PARAMS,
+      children: await ProjectsPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
     }),
 );
 
-// A project's page, its owner's view of a team project.
+// A quest's page, as its owner sees it.
 function projectPageFor(
   section = "conversation",
   dailies = false,
@@ -276,16 +238,12 @@ function projectPageFor(
   return workspacePage(
     () => {
       vi.mocked(getProject).mockResolvedValue({
-        ...FOX_TEAM_PROJECT,
+        ...FOX_PROJECT,
         name: LONG_PROJECT_NAME,
         dailies,
       });
       vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue([]);
-      vi.mocked(listProjectMembers).mockResolvedValue([
-        { ...FOX_OWNER, id: SIGNED_IN_USER.id },
-        { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
-      ]);
       vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -462,13 +420,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
-    name: "the projects list with a project invitation",
-    render: projectsPageOf([LONG_NAME_INVITATION]),
-  },
-  { name: "a project invitation's page", render: projectInvitationPage },
-  {
     name: "the projects list's Make a thing details",
-    render: projectsPageOf([]),
+    render: projectsPage,
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
@@ -504,40 +457,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
         page.getByRole("textbox", { name: PROJECT_COPY.titleLabel }).element(),
       );
     },
-  },
-  {
-    name: "a team project, as its member",
-    render: workspacePage(
-      () => {
-        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT_AS_MEMBER);
-        vi.mocked(listProjectMembers).mockResolvedValue([
-          FOX_OWNER,
-          { ...FOX_MEMBER, id: SIGNED_IN_USER.id, name: LONG_PROJECT_NAME },
-        ]);
-        vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
-        vi.mocked(listMessages).mockResolvedValue([]);
-        vi.mocked(listSentProjectInvitations).mockResolvedValue([
-          SENT_INVITATION,
-        ]);
-        vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
-        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-        vi.mocked(listOwnActivities).mockResolvedValue([]);
-        vi.mocked(listConstructs).mockResolvedValue([]);
-        vi.mocked(readRecentNotes).mockResolvedValue([
-          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-        ]);
-      },
-      async () => (
-        <ProjectLayout params={PROJECT_PARAMS}>
-          {
-            await ProjectPage({
-              params: PROJECT_PARAMS,
-              searchParams: NO_PARAMS,
-            })
-          }
-        </ProjectLayout>
-      ),
-    ),
   },
   {
     name: "quick capture",
@@ -705,10 +624,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
   { name: "a quest's Quick Notes", render: projectPageFor("notes") },
-  {
-    name: "a quest's members",
-    render: projectPageFor("members"),
-  },
   { name: "a quest's Journal versions", render: memoryPageFor("versions") },
 ];
 

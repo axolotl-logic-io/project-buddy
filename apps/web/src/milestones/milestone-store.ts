@@ -1,13 +1,12 @@
 // Each project's milestones, its progress timeline, stored in Postgres. A
-// milestone is open to everyone in its project, its owner and its members:
-// every function takes the acting user first, so a project not open to
-// them has no milestones, its milestones read as not found, and nothing is
+// milestone is its project owner's alone: every function takes the acting
+// user first, so another user's project has no milestones, its milestones read as not found, and nothing is
 // written to either. Callers
 // pass text that MILESTONE_TEXT accepts.
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { milestoneOpenTo, opensProject } from "@/accounts/owner-scope.ts";
+import { milestoneOpenTo, ownsProject } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -86,7 +85,7 @@ async function recordMilestone(
               and(
                 eq(chats.id, chatId),
                 eq(chats.projectId, projectId),
-                opensProject(owner, projectId),
+                ownsProject(owner, projectId),
               ),
             ),
         )

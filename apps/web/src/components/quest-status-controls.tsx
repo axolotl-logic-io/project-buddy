@@ -116,7 +116,7 @@ function StatusControls({
   project,
   restoreOnly = false,
 }: {
-  readonly project: Pick<Project, "id" | "status" | "statusRevision" | "role">;
+  readonly project: Pick<Project, "id" | "status" | "statusRevision">;
   readonly restoreOnly?: boolean;
 }): JSX.Element | null {
   const publish = useContext(StatusFeedbackContext);
@@ -124,9 +124,6 @@ function StatusControls({
     changeWithFeedback.bind(null, publish, true),
     IDLE,
   );
-  if (project.role !== "owner") {
-    return null;
-  }
   let control: JSX.Element;
   if (restoreOnly === true) {
     control = (

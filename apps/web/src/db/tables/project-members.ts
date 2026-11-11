@@ -9,11 +9,11 @@ import {
 import { projects } from "./projects-and-chats.ts";
 import { users } from "./users.ts";
 
-// Each row makes a user a member of a team project: someone besides its
-// owner (projects.user_id) who shares its chats, memory, notes and progress
-// timeline (src/accounts/owner-scope.ts). A user is a member of a project at
-// most once, and never of their own. A row goes when the member leaves or
-// the owner removes them, and with its project or its user.
+// Each row is a membership from when quests could be shared (#907): a user
+// besides the project's owner who once worked in it. The site no longer
+// reads or writes the table, and no row grants access
+// (src/accounts/owner-scope.ts). It stays until a later release drops it,
+// once no live build reads it. A row goes with its project or its user.
 export const projectMembers = pgTable(
   "project_members",
   {
