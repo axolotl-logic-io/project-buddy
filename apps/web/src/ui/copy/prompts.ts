@@ -19,7 +19,7 @@ export const PROMPT_COPY = {
   sectionError: " — Needs attention",
   constructFieldsHeading: "Instructions",
   namePlaceholderHint:
-    "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
+    "Any {{name}} here is replaced with your name, as set on Settings, or “the user” if you have none.",
   limit: (max: number): string =>
     `At most ${max.toLocaleString("en-US")} characters.`,
   textHint: (help: string, max: number | undefined): string => {

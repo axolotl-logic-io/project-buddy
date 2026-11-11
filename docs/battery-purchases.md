@@ -1,6 +1,6 @@
 # Battery purchases
 
-When a valid isolated test catalog is available, Account offers **Buy batteries** at `/account?section=batteries#buy-batteries`. Each server-controlled offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. The orb migration pauses all Marketplace buys immediately. With the gate disabled, no sales fund model use; after operator activation, sales earn only separate orbs. Battery grants never change orb balances or historical Marketplace accounting.
+When a valid isolated test catalog is available, Account offers **Buy batteries** at `/settings?section=batteries#buy-batteries`. Each server-controlled offer shows its battery amount and monetary price with currency before Stripe-hosted Checkout. Batteries fund model use. The orb migration pauses all Marketplace buys immediately. With the gate disabled, no sales fund model use; after operator activation, sales earn only separate orbs. Battery grants never change orb balances or historical Marketplace accounting.
 
 When Checkout is unavailable, model-use shortage messages explain that purchases are unavailable and Marketplace sales cannot fund model use. They offer no dead-end purchase link or earning fallback. Marketplace buyer shortages stay independent of Batteries purchases. The Library should describe actual availability and label purchases as test-only until launch approval.
 
