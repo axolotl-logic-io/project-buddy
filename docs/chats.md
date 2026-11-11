@@ -51,7 +51,7 @@ image. There is no compass bar or region caption.
 
 Home has one responsive control panel, with no Map/List switch. The map
 fills the background behind the heading, places, current quest and footer.
-Quests, Adventures, Constructs, Activities, Workshop and Marketplace appear
+Quests, Adventures, Constructs, Activities and Workshop appear
 in that reading and keyboard order, in two columns on phones and three on
 wide screens. The map has no geographic markers, trails or separate phone
 overview. It needs no panning, zooming, hovering or animation.
@@ -335,4 +335,4 @@ The composer shows the acting user's battery balance. A reply's cost shows one d
 
 The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand, Menu and Quick Note row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
 
-Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, Marketplace listings, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.
+Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.

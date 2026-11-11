@@ -14,17 +14,15 @@ If the preferred interview construct is retired, new quests use Vellum. Restorin
 
 The site menu and all three collection pages link to `/retirement`. The page lists the acting user's retired definitions together, most recently retired first, with a retirement date and kind. Name search and kind filters narrow the list. It distinguishes an empty collection from a search with no matches.
 
-View opens `/retirement/ID`, with the saved instructions as read-only text. Restore makes the same definition available immediately, keeping its id, instructions, creation date, source, and bought-copy ownership. Nothing expires automatically.
+View opens `/retirement/ID`, with the saved instructions as read-only text. Restore makes the same definition available immediately, keeping its id, instructions, creation date and source. Nothing expires automatically.
 
 Delete forever asks for confirmation naming the definition. Keep retired cancels. Confirming permanently removes the original, while existing adventure snapshots and past casts remain. A deletion request refuses an active definition, including one restored after the confirmation opened. Unknown and repeated requests change nothing. Originals permanently deleted before this feature cannot be recovered.
 
 Only the definition's owner can read or change it. Team quest membership gives no access to another user's originals or Retirement, even when an adventure shares their snapshots.
 
-## Marketplace
+## Bought copies
 
-Listings are independent published copies. Retirement and permanent deletion do not unlist them; the user unlists them in the Marketplace. A retired source cannot be updated or listed again until restored.
-
-A retired bought copy remains held. Opening it from a listing leads to its Retirement view, and attempting to buy it again does not charge orbs. Restoring it costs nothing. Permanent deletion gives no refund and allows another buy at the listing's current price and instructions.
+A copy bought in the Marketplace before it was removed is an ordinary own definition. It retires, restores and deletes like any other.
 
 ## Storage and release
 

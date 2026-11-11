@@ -126,7 +126,7 @@ export async function resetConstructPromptAction(
   }
   const { constructId } = form.data;
   const construct = await getOwnConstruct(user.id, constructId);
-  if (construct === undefined || construct.boughtFrom !== undefined) {
+  if (construct === undefined) {
     notFound();
   }
   const reset = await editConstructMetadata(user.id, construct.id, {
