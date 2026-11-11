@@ -51,7 +51,7 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-import { listChats, listMessages } from "@/chats/store.ts";
+import { listMessages } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
@@ -62,6 +62,7 @@ import {
 } from "@/constructs/construct-store.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
@@ -89,11 +90,15 @@ import {
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readHomeSummary } from "@/today/today-store.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import {
+  PROJECT_COPY,
+  PROJECTS_COPY,
+  QUEST_START_COPY,
+} from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { QUEST_FROM_CHAT_COPY, START_WORK_COPY } from "@/ui/copy/start-work.ts";
 import {
@@ -118,6 +123,7 @@ import {
 } from "../retirement/retirement-fixtures.ts";
 import {
   FOX_CHAT,
+  FOX_CONVERSATION,
   FOX_MEMBER,
   FOX_MILESTONES,
   FOX_OWNER,
@@ -289,6 +295,7 @@ function sellable(): void {
 
 // Chat, her private conversation.
 async function chatPage(): Promise<JSX.Element> {
+  vi.mocked(listConstructs).mockResolvedValue([]);
   return (
     <StandaloneChatLayout params={NO_PARAMS}>
       {await StandaloneChatPage()}
@@ -334,18 +341,23 @@ const projectInvitationPage = workspacePage(
 );
 
 // A project's page, its owner's view of a team project.
-function projectPageFor(section = "adventures"): () => Promise<JSX.Element> {
+function projectPageFor(
+  section = "conversation",
+  dailies = false,
+): () => Promise<JSX.Element> {
   return workspacePage(
     () => {
       vi.mocked(getProject).mockResolvedValue({
         ...FOX_TEAM_PROJECT,
         name: LONG_PROJECT_NAME,
+        dailies,
       });
+      vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
+      vi.mocked(listMessages).mockResolvedValue([]);
       vi.mocked(listProjectMembers).mockResolvedValue([
         { ...FOX_OWNER, id: SIGNED_IN_USER.id },
         { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
       ]);
-      vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
       vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
@@ -558,63 +570,35 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
-    name: "the premade quests tab",
-    render: projectsPage,
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("tab", { name: "Premade quests", exact: true })
-        .click();
-    },
-  },
-  {
-    name: "the premade quest preview",
-    render: projectsPage,
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("tab", { name: "Premade quests", exact: true })
-        .click();
-      await page
-        .getByRole("button", {
-          name: "Explore quest: Start without inspiration",
-        })
-        .click();
-      await page
-        .getByRole("dialog")
-        .getByRole("textbox", { name: "Starting Journal" })
-        .element();
-    },
-  },
-  {
     name: "the projects list with a project invitation",
     render: projectsPageOf([LONG_NAME_INVITATION]),
   },
   { name: "a project invitation's page", render: projectInvitationPage },
   {
-    name: "the projects list's Start Quest dialog",
+    name: "the projects list's Make a thing details",
     render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
-        .getByRole("button", { name: PROJECTS_COPY.newHeading })
+        .getByRole("button", {
+          name: QUEST_START_COPY.chooseLabel("Make a thing"),
+        })
         .click();
       await vi.waitFor(() =>
         page
-          .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByRole("textbox", { name: PROJECTS_COPY.whyLabel })
+          .getByRole("region", { name: "Make a thing" })
+          .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
           .element(),
       );
     },
   },
   { name: "a project", render: projectPage },
   {
-    name: "a project's New chat dialog",
-    render: projectPage,
+    name: "the Dailies quest, with Start the day",
+    render: projectPageFor("conversation", true),
     open: async (): Promise<void> => {
-      await page
-        .getByRole("button", { name: NEW_CHAT_COPY.dialogHeading })
-        .click();
       await vi.waitFor(() =>
         page
-          .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
+          .getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay })
           .element(),
       );
     },
@@ -638,7 +622,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
           FOX_OWNER,
           { ...FOX_MEMBER, id: SIGNED_IN_USER.id, name: LONG_PROJECT_NAME },
         ]);
-        vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+        vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
+        vi.mocked(listMessages).mockResolvedValue([]);
         vi.mocked(listSentProjectInvitations).mockResolvedValue([
           SENT_INVITATION,
         ]);
@@ -716,7 +701,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
           latestQuest: {
             project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
             nextStep: LONG_PROJECT_NAME,
-            latestChat: FOX_CHAT.id,
+            unread: true,
           },
           firstVisit: false,
         });

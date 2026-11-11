@@ -95,8 +95,8 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   listRetiredDefinitions: vi.fn(),
 }));
 
-vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
-  startPremadeQuestAction: vi.fn(),
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn(),
 }));
 vi.mock("@/projects/quest-creation-choices.ts", () => ({
   questCreationChoices: vi.fn(),
