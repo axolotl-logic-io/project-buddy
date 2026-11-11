@@ -1,4 +1,4 @@
-# Workshop’s Spells tab
+# Spells
 
 The conventions for these cases are in [the index](README.md#conventions).
 
@@ -35,9 +35,9 @@ The user makes a spell of her own from a built-in one, and changes it.
   - She opens Workshop from any signed-in page’s menu, then chooses Spells. It lists the built-in spells, each with its when-to-use line, then her own.
   - She chooses Make a copy beside Ask one question at a time. The site makes a spell of hers named "Ask one question at a time (copy)" and opens its page.
   - She renames it and edits its when-to-use line and instructions, and saves. Each field says how long it may be: the name 80 characters, the when-to-use line 300 and the instructions 20,000.
-  - Back on the Workshop’s Spells tab, she clones it. On its page, she resets the prompt, then saves it.
+  - Back on Workshop’s Spells tab, she chooses Make a copy. On its page, she resets the prompt, then saves it.
   - She retires the first spell.
-- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The copy is named as its source with " (copy)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active Workshop’s Spells tab and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
+- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The copy is named as its source with " (copy)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active spell choices and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
 - **Variations:**
   - A copy that came from no built-in one, such as one bought in the Marketplace before it closed, resets to the default instructions. Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
