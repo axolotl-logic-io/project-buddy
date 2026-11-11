@@ -239,11 +239,15 @@ export function ChatView({
     id: chatId,
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
-    onFinish: (): void => {
+    onFinish: ({ isError }: { isError: boolean }): void => {
       replyCompletedRef.current = true;
       setStopping(false);
       setStopStatus("");
-      router.refresh();
+      // The SDK finishes failed requests too. Keep their error visible; a
+      // refresh after a signed-out reply would redirect away from it.
+      if (!isError) {
+        router.refresh();
+      }
     },
     onError: (error: Error): void => {
       replyCompletedRef.current = true;
