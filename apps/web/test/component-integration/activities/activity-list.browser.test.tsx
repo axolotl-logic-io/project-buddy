@@ -1,4 +1,4 @@
-// The Workshop's Activities tab: each activity's name opens its page, with
+// The Workshop's Activities list: each activity's name opens its page, with
 // no start action, and Craft activity sits among the user's own, with or
 // without any, and crafts a new activity from the keyboard.
 import type { JSX } from "react";
@@ -9,7 +9,7 @@ import type { OwnActivity } from "@/activities/activity-store.ts";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import { newActivityAction } from "@/app/(workspace)/activities/actions.ts";
-import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
+import { ActivityLists } from "@/app/(workspace)/activities/activity-lists.tsx";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BRAINSTORMING_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
@@ -36,13 +36,9 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   retireActivityAction: vi.fn(),
 }));
 
+// The list the Workshop's Activities tab shows.
 async function activitiesTab(): Promise<JSX.Element> {
-  return inWorkspace(
-    await WorkshopPage({
-      params: Promise.resolve({}),
-      searchParams: Promise.resolve({ kind: "activity" }),
-    }),
-  );
+  return inWorkspace(await ActivityLists());
 }
 
 test("each activity's name opens its page, and none offers a start", async () => {
