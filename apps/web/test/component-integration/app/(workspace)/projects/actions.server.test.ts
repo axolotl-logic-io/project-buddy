@@ -10,11 +10,12 @@ import {
   type StartQuestState,
   startQuestAction,
 } from "@/app/(workspace)/projects/actions.ts";
+import type { ChatProject } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import {
   PREMADE_QUESTS,
@@ -59,7 +60,10 @@ function startForm(
 
 // Starts a quest from form as the signed-in user, checks the action opened
 // the quest it made, the newest of theirs, and returns its conversation.
-async function startQuest(user: User, form: FormData): Promise<Conversation> {
+async function startQuest(
+  user: User,
+  form: FormData,
+): Promise<Conversation & { readonly project: ChatProject }> {
   const starting = startQuestAction(IDLE, form);
   await Promise.allSettled([starting]);
   const [project] = await listProjects(user.id);
@@ -68,10 +72,10 @@ async function startQuest(user: User, form: FormData): Promise<Conversation> {
   }
   await expectRedirect(() => starting, `/projects/${project.id}`);
   const conversation = await readQuestConversation(user.id, project.id);
-  if (conversation === undefined) {
+  if (conversation?.project === undefined) {
     throw new Error("The quest has no conversation");
   }
-  return conversation;
+  return { ...conversation, project: conversation.project };
 }
 
 describe("use_case_view_projects", () => {
@@ -242,10 +246,7 @@ describe("use_case_new_project_name_too_long", () => {
     const atLimit = "🦊".repeat(PROJECT_NAME_MAX_LENGTH / 2);
 
     expect(
-      await startQuestAction(
-        IDLE,
-        startForm("make", { name: `${atLimit}🦊` }),
-      ),
+      await startQuestAction(IDLE, startForm("make", { name: `${atLimit}🦊` })),
     ).toMatchObject({ kind: "invalid" });
     expect(await listProjects(user.id)).toEqual([]);
 

@@ -18,7 +18,7 @@ import { GoldBalance } from "@/app/(workspace)/account/gold-balance.tsx";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { ChatView } from "@/components/chat-view.tsx";
-import { NewProjectForm } from "@/components/new-project-form.tsx";
+import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import {
   DEFAULT_FLAG_ATTRIBUTES,
@@ -40,9 +40,6 @@ import { chatIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 // The forms' Server Actions, which this test never submits.
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
-  createProjectAction: vi.fn(),
-}));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
   resetConstructPromptAction: vi.fn(),
@@ -122,7 +119,7 @@ async function renderEveryExtra(): Promise<void> {
         constructName={LUMEN.name}
       />
       <GoldBalance microUsd={GOLD_BALANCE} />
-      <NewProjectForm />
+      <ConstructPicker />
     </>,
   );
 }

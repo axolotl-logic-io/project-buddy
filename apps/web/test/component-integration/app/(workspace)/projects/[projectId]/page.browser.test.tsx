@@ -38,7 +38,7 @@ import {
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import {
-  FOX_CHAT,
+  FOX_CONVERSATION,
   FOX_PROJECT,
   FOX_PROJECT_AS_MEMBER,
 } from "../../page-fixtures.ts";
@@ -131,15 +131,6 @@ vi.mock(
 // The widest the page's column grows: from the xl breakpoint, the quest's
 // conversation and its plan sit side by side.
 const CONVERSATION_WIDTH = 1152;
-
-const FOX_CONVERSATION = {
-  ...FOX_CHAT,
-  activity: {
-    id: "open-chat",
-    name: "Open adventure",
-    definition: { prompt: "", openingRequest: "" },
-  },
-} as const;
 
 const PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 

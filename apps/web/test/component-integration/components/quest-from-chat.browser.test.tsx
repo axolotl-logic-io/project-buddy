@@ -29,7 +29,7 @@ describe("use_case_project_from_standalone_chat", () => {
     const open = page.getByRole("button", { name: QUEST_FROM_CHAT_COPY.open });
 
     await open.click();
-    const doIt = page.getByRole("dialog", { name: "Do a thing" });
+    const doIt = page.getByRole("region", { name: "Do a thing" });
     const journal = doIt.getByRole("textbox", {
       name: QUEST_START_COPY.journalLabel,
     });
@@ -61,7 +61,7 @@ describe("use_case_project_from_standalone_chat", () => {
     await render(<QuestFromChat choices={CHOICES} summary={SUMMARY} />);
 
     await page.getByRole("button", { name: QUEST_FROM_CHAT_COPY.open }).click();
-    const doIt = page.getByRole("dialog", { name: "Do a thing" });
+    const doIt = page.getByRole("region", { name: "Do a thing" });
     await doIt
       .getByRole("textbox", { name: QUEST_START_COPY.journalLabel })
       .fill(EDITED);

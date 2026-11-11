@@ -35,7 +35,7 @@ import {
 } from "../../../viewports-test-kit.ts";
 import { inSiteFrame } from "../../site-frame-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
-import { FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
+import { FOX_PROJECT } from "../page-fixtures.ts";
 
 const stores = vi.hoisted(() => ({
   readHomeSummary:
@@ -63,8 +63,8 @@ const TEXT_CONTRAST = 4.5;
 
 const LATEST: TodayProject = {
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
-  latestChat: FOX_CHAT.id,
   nextStep: "Shape the ears",
+  unread: false,
 };
 const DESTINATIONS = [
   { name: "Quests", href: "/projects" },
@@ -137,9 +137,7 @@ describe("use_case_home_atlas", () => {
       startLink.getAttribute("href") ?? "",
       "https://example.com",
     );
-    expect(destination.pathname).toBe("/chats/new");
-    expect(destination.searchParams.get("activity")).toBe("project-breakdown");
-    expect(destination.searchParams.get("projectId")).toBe("new");
+    expect(destination.pathname).toBe("/projects");
     expect(destinationLinks()).toEqual(DESTINATIONS);
     await expect
       .element(page.getByRole("link", { name: "Spellbook", exact: true }))
@@ -245,12 +243,6 @@ describe("use_case_home_atlas", () => {
         .element(places.getByRole("link", { name, exact: true }))
         .toHaveFocus();
     }, Promise.resolve());
-    await tabForward();
-    await expect
-      .element(
-        page.getByRole("link", { name: LATEST.project.name, exact: true }),
-      )
-      .toHaveFocus();
     await tabForward();
     await expect
       .element(
@@ -632,17 +624,18 @@ describe("use_case_home_atlas", () => {
 });
 
 describe("use_case_today_on_landing", () => {
-  test("continues the most recent quest's real chat and next step", async () => {
+  test("continues the most recent quest in its conversation, with its next step", async () => {
     stores.readHomeSummary.mockResolvedValue({
       latestQuest: LATEST,
       firstVisit: false,
     });
     await render(inWorkspace(await HomePage()));
     await expect
-      .element(
-        page.getByRole("link", { name: LATEST.project.name, exact: true }),
-      )
-      .toHaveAttribute("href", `/projects/${LATEST.project.id}`);
+      .element(page.getByText(LATEST.project.name, { exact: true }))
+      .toBeVisible();
+    await expect
+      .element(page.getByText(HOME_COPY.unread))
+      .not.toBeInTheDocument();
     await expect
       .element(page.getByText(`${HOME_COPY.nextStep} ${LATEST.nextStep}`))
       .toBeVisible();
@@ -653,7 +646,14 @@ describe("use_case_today_on_landing", () => {
           exact: true,
         }),
       )
-      .toHaveAttribute("href", `/chats/${LATEST.latestChat}`);
+      .toHaveAttribute("href", `/projects/${LATEST.project.id}`);
+  });
+
+  test("marks a quest with unread messages", async () => {
+    await render(
+      inWorkspace(<HomeAtlas latestQuest={{ ...LATEST, unread: true }} />),
+    );
+    await expect.element(page.getByText(HOME_COPY.unread)).toBeVisible();
   });
 
   test("shows no invented next step when memory records none", async () => {
@@ -672,6 +672,6 @@ describe("use_case_today_on_landing", () => {
           exact: true,
         }),
       )
-      .toHaveAttribute("href", `/chats/${LATEST.latestChat}`);
+      .toHaveAttribute("href", `/projects/${LATEST.project.id}`);
   });
 });

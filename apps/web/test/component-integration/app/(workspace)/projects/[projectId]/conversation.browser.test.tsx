@@ -60,7 +60,11 @@ import {
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import { FOX_CHAT, FOX_PROJECT } from "../../page-fixtures.ts";
+import {
+  FOX_CHAT,
+  FOX_CONVERSATION,
+  FOX_PROJECT,
+} from "../../page-fixtures.ts";
 
 vi.mock(
   "@/plan/plan-actions.ts",
@@ -143,14 +147,6 @@ vi.mock(
   () => import("../../../../components/router-test-kit.ts"),
 );
 
-const FOX_CONVERSATION = {
-  ...FOX_CHAT,
-  activity: {
-    id: "open-chat",
-    name: "Open adventure",
-    definition: { prompt: "", openingRequest: "" },
-  },
-} as const;
 // The screens the case is checked on: a laptop's and a phone's.
 const VIEWPORTS = [LAPTOP_VIEWPORT, PHONE_VIEWPORT] as const;
 // The Python block that ends each reply, shown once the reply is laid out.
@@ -367,7 +363,9 @@ describe("use_case_hide_extras", () => {
     await expect.element(trail).toBeInViewport({ ratio: 1 });
     expect(
       topmostAtCentre(
-        trail.getByRole("link", { name: PROJECTS_COPY.allProjectsLink }).element(),
+        trail
+          .getByRole("link", { name: PROJECTS_COPY.allProjectsLink })
+          .element(),
       ),
     ).toBe(true);
     const line = lineOneScreenDown(conversation.element());

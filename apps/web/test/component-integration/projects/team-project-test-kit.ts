@@ -52,7 +52,7 @@ import {
   listProjectMembers,
 } from "@/projects/members-store.ts";
 import { getProject, listProjects, type Project } from "@/projects/store.ts";
-import { readToday } from "@/today/today-store.ts";
+import { readHomeSummary } from "@/today/today-store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -184,7 +184,7 @@ async function seenBy(
     listChats(user.id, project.id),
     getChat(user.id, chat.id),
     listAllChats(user.id),
-    readToday(user.id),
+    readHomeSummary(user.id),
     listMessages(user.id, chat.id),
     getImage(user.id, team.imageId),
     getGeneratedImage(user.id, team.generationId),
@@ -201,7 +201,7 @@ async function seenBy(
     chats: chats.map(({ id }) => id),
     chat: openedChat?.id,
     allChats: allChats.filter(({ id }) => id === chat.id).length,
-    today: today.projects.some(({ project: { id } }) => id === project.id),
+    today: today.latestQuest?.project.id === project.id,
     messages: messages.length,
     image: image?.mediaType,
     generation: generation?.id,
