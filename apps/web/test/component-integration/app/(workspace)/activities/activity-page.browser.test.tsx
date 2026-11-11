@@ -8,7 +8,6 @@ import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getOwnActivity } from "@/activities/activity-store.ts";
 import { getActivity } from "@/activities/index.ts";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
-import { readSaleState } from "@/marketplace/listing-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
   SIGNED_IN_USER,
@@ -36,14 +35,6 @@ vi.mock(
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
 }));
-// Her activity's page offers it for sale; selling is the Marketplace's,
-// which marketplace-pages.browser.test.tsx covers.
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  sellListingAction: vi.fn(),
-}));
 // The page exposes these actions; none is submitted here.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   editBuiltInActivityAction: vi.fn(),
@@ -66,7 +57,6 @@ test.each([
 ])("her activity $made names what its reset restores", async ({ activity }) => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(getOwnActivity).mockResolvedValue(activity);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await ActivityPage({

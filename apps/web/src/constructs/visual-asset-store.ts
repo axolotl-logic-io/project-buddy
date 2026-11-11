@@ -1,18 +1,8 @@
-import {
-  and,
-  desc,
-  eq,
-  inArray,
-  isNull,
-  notInArray,
-  type SQL,
-} from "drizzle-orm";
+import { and, desc, eq, inArray, notInArray, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import {
   chatOpenTo,
   constructGenerationOwnedBy,
-  listingOpenTo,
-  listingSoldBy,
   ownPromptOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import type { ConstructDefinition } from "@/constructs/construct.ts";
@@ -30,7 +20,6 @@ import {
   constructAssets,
   constructGenerations,
 } from "@/db/tables/construct-visuals.ts";
-import { listings } from "@/db/tables/listings.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -84,24 +73,19 @@ function visualAssetIds(parts: unknown): string[] {
   return [...new Set(ids)];
 }
 function destinationGrant(destination: VisualDestination): SQL {
-  switch (destination.kind) {
-    case "construct":
-      return eq(constructAssetGrants.constructId, destination.id);
-    case "adventure":
-      return eq(constructAssetGrants.adventureId, destination.id);
-    default:
-      return eq(constructAssetGrants.listingId, destination.id);
+  if (destination.kind === "construct") {
+    return eq(constructAssetGrants.constructId, destination.id);
   }
+  return eq(constructAssetGrants.adventureId, destination.id);
 }
 // Called in the same transaction as a trusted snapshot/write. A parsed UUID alone
-// never grants access. Bought copies can inherit only their published listing.
+// never grants access.
 async function grantVisualAssets(
   owner: UserId,
   tx: Transaction,
   destination: VisualDestination,
   input: {
     readonly parts: unknown;
-    readonly boughtFrom?: string;
     readonly retainDraft?: boolean;
   },
 ): Promise<void> {
@@ -112,17 +96,11 @@ async function grantVisualAssets(
       .from(ownPrompts)
       .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, destination.id)))
       .for("share");
-  } else if (destination.kind === "adventure") {
+  } else {
     [snapshot] = await tx
       .select({ parts: chats.constructParts })
       .from(chats)
       .where(and(chatOpenTo(owner), eq(chats.id, destination.id)))
-      .for("share");
-  } else {
-    [snapshot] = await tx
-      .select({ parts: listings.parts })
-      .from(listings)
-      .where(and(listingSoldBy(owner), eq(listings.id, destination.id)))
       .for("share");
   }
   if (snapshot === undefined) {
@@ -169,32 +147,6 @@ async function grantVisualAssets(
         allowed.add(row.assetId);
       }
     }
-    if (input.boughtFrom !== undefined) {
-      const listed = await tx
-        .select({
-          assetId: constructAssetGrants.assetId,
-          parts: listings.parts,
-        })
-        .from(listings)
-        .innerJoin(
-          constructAssetGrants,
-          eq(constructAssetGrants.listingId, listings.id),
-        )
-        .where(
-          and(
-            eq(listings.id, input.boughtFrom),
-            listingOpenTo(owner),
-            isNull(listings.unlistedAt),
-            inArray(constructAssetGrants.assetId, ids),
-          ),
-        )
-        .for("share", { of: listings });
-      for (const row of listed) {
-        if (visualAssetIds(row.parts).includes(row.assetId)) {
-          allowed.add(row.assetId);
-        }
-      }
-    }
     if (ids.some((id) => !allowed.has(id))) {
       throw new AppError("not-found", undefined);
     }
@@ -205,10 +157,7 @@ async function grantVisualAssets(
           if (destination.kind === "construct") {
             return { assetId, constructId: destination.id };
           }
-          if (destination.kind === "adventure") {
-            return { assetId, adventureId: destination.id };
-          }
-          return { assetId, listingId: destination.id };
+          return { assetId, adventureId: destination.id };
         }),
       )
       .onConflictDoNothing();
@@ -312,7 +261,7 @@ async function getVisualAsset(
         eq(ownPrompts.id, constructAssetGrants.constructId),
       )
       .where(and(...predicates, ownPromptOwnedBy(owner)));
-  } else if (destination.kind === "adventure") {
+  } else {
     [asset] = await getDb()
       .select({ ...selection, parts: chats.constructParts })
       .from(constructAssets)
@@ -322,16 +271,6 @@ async function getVisualAsset(
       )
       .innerJoin(chats, eq(chats.id, constructAssetGrants.adventureId))
       .where(and(...predicates, chatOpenTo(owner)));
-  } else {
-    [asset] = await getDb()
-      .select({ ...selection, parts: listings.parts })
-      .from(constructAssets)
-      .innerJoin(
-        constructAssetGrants,
-        eq(constructAssetGrants.assetId, constructAssets.id),
-      )
-      .innerJoin(listings, eq(listings.id, constructAssetGrants.listingId))
-      .where(and(...predicates, listingOpenTo(owner)));
   }
   if (
     asset !== undefined &&
