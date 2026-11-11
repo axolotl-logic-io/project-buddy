@@ -14,14 +14,11 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 | Edit Journal, add and delete Quick Notes | Yes | Yes |
 | Record, edit and delete milestones | Yes | Yes |
 | See the Members section | Yes | Yes |
-| Set check-ins | Yes | No |
 | Complete, abandon or restore a quest, including construct approval | Yes | No |
 | Remove a member | Yes | No |
 | Leave the quest | No | Yes |
 
 The owner can't leave their own quest. Transferring ownership is out of scope.
-
-Check-ins stay the owner's: their setting, their email and their batteries. A check-in appends the construct's message to the quest's conversation, which members read like any other message. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
 
 Each user's Chat, own constructs, own activities, own spells and each user's image gallery stay private to their user.
 
@@ -34,7 +31,7 @@ The conversation's messages hold only what the conversation shows. When the cons
 `src/accounts/owner-scope.ts` is the only module that decides access. Every store builds its `where` from its predicates and takes the acting user first.
 
 - **Open to** predicates, such as `projectOpenTo`, `chatOpenTo` and `memoryVersionOpenTo`, select what the user's own quests and the team quests they are a member of reach. A standalone adventure is open only to the user it names.
-- **Owned by** predicates, such as `projectOwnedBy`, select only what the user owns. Owner-only actions use them: the check-in setting and removing a member.
+- **Owned by** predicates, such as `projectOwnedBy`, select only what the user owns. Owner-only actions use them, such as removing a member.
 - **Membership** predicates, `projectMemberOpenTo`, `projectMemberOwnedBy` and `membershipOf`, decide who can see, remove and leave a `project_members` row.
 
 A quest that isn't open to the user reads as not found, exactly like a quest that doesn't exist. Server tests in `test/component-integration/projects/team-project-access.server.test.ts` check each kind of quest data as a member, a non-member, a removed member and a member who left.

@@ -9,7 +9,7 @@ The user looks over their quests and the ways to start one.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - They go to Quests.
-- **Outcome:** Start a quest offers four starting points, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Below them, Active, Completed and Abandoned tabs list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. Team quests they are a member of are listed too, marked "Shared with you"; their own quests that have members are marked "Shared". A quest whose conversation has messages they haven't read, such as a check-in, is marked "New messages", for them alone. With no quests, the page says there are none yet and points to the starting points above. Merely opening the page creates nothing. Invitations to other people's quests that they haven't answered are listed above, under Quest invitations, each with Join and Decline (`use_case_join_project`).
+- **Outcome:** Start a quest offers four starting points, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Below them, Active, Completed and Abandoned tabs list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. Team quests they are a member of are listed too, marked "Shared with you"; their own quests that have members are marked "Shared". With no quests, the page says there are none yet and points to the starting points above. Merely opening the page creates nothing. Invitations to other people's quests that they haven't answered are listed above, under Quest invitations, each with Join and Decline (`use_case_join_project`).
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_join_project`: join a quest they were invited to.
@@ -75,7 +75,7 @@ The user opens one of their quests, from Quests or Home.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, and Members and check-ins. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The owner sees the status actions. Controls wrap on phones, without sideways scrolling.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, and Members. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest writes nothing and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The owner sees the status actions. Controls wrap on phones, without sideways scrolling.
 - **Variations:**
   - A quest without a conversation yet, as after the move from adventures: `use_case_start_quest_conversation`.
   - The Dailies quest: `use_case_dailies`.
@@ -83,7 +83,6 @@ The user opens one of their quests, from Quests or Home.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
-  - `use_case_set_check_ins`: have the construct check in on the quest.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note they no longer need.
   - `use_case_remove_member`: someone should no longer work on their quest.
   - `use_case_view_progress_timeline`: see how far they have come.
@@ -112,20 +111,6 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Outcome:** Dailies is a quest like any other, with its name, Journal, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Start the day sends "Let's start the day." as their own message, in the same conversation, and the construct helps them notice what matters and choose one manageable next step. It is an ordinary message, charged as any other, and leaves the composer's draft. Nothing is cleared or reset: the conversation, Journal, Plan and status carry on from day to day. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
   - A member of a team quest named Dailies sees no Start the day: only a quest started as Dailies offers it.
-
-## use_case_set_check_ins
-
-The user asks the quest's construct to check in on the quest on a schedule.
-
-- **Prerequisites:** `use_case_open_project`.
-- **Steps:**
-  - On the quest's Members and check-ins section, under Check-ins, she sees that check-ins are Off.
-  - She chooses how often the construct checks in: Daily, A few times a week or Weekly, and saves.
-- **Outcome:** the page says the setting is saved, and shows her choice when she opens the quest again. The setting is for this quest alone: her other quests stay as they were, and no one else's quest can be changed this way. Choosing Off again stops the check-ins.
-- **Variations:**
-  - The site's scheduler secret isn't set: the quest's page has no Check-ins section, and the site refuses to save the setting.
-- **Next:**
-  - [`use_case_check_in`](chats.md#use_case_check_in): the construct checks in.
 
 ## use_case_construct_records_milestone
 
@@ -175,7 +160,7 @@ The user works in a team quest: someone else's quest that she is a member of.
   - She finds the quest in her quests list, and, while Active, in Home's Continue and the Quick Note choices. Completing or abandoning removes it from those choices; restoring it makes it available again.
   - She opens the quest and its Journal. She writes in its conversation, edits the Journal, adds and deletes a Quick Note, and edits and deletes a milestone.
   - She looks at the quest's Members section.
-- **Outcome:** the quest, its conversation with its messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her Chat, her own constructs and activities, and her image gallery stay hers alone, except that when the construct moves the quest's conversation into her own activity, it runs on that activity's instructions for everyone in the quest. The conversation shows the change of activity by its name, and never holds its instructions. A check-in marks the conversation unread for each of them separately. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
+- **Outcome:** the quest, its conversation with its messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't remove anyone. Her Chat, her own constructs and activities, and her image gallery stay hers alone, except that when the construct moves the quest's conversation into her own activity, it runs on that activity's instructions for everyone in the quest. The conversation shows the change of activity by its name, and never holds its instructions. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - `use_case_leave_project`: she is done with the quest.
 

@@ -34,7 +34,6 @@ const TURTLE_PROJECT = {
   role: "owner" as const,
   shared: false,
   dailies: false,
-  unread: false,
 };
 
 const NOTE = "try a subdivision cage on the shell";
