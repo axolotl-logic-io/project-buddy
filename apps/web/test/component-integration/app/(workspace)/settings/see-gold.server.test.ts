@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-// "use_case_see_gold" in use-cases/accounts.md: her account page states her
+// "use_case_see_gold" in use-cases/accounts.md: Settings states her
 // batteries, in whole batteries rounded down, as a number under its
 // "Batteries" label, and her balance falls as the construct replies.
 import { afterEach, expect, test, vi } from "vitest";
@@ -14,7 +14,7 @@ import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-// The balance Account shows: the number under its "Batteries" label.
+// The balance Settings shows: the number under its "Batteries" label.
 const BALANCE = /Batteries<\/h2><p[^>]*>(?<amount>[^<]*)<\/p>/u;
 
 // 13 gold, in micro-USD, of the starting 100, leaving exactly 87.
@@ -26,13 +26,13 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-// The number markup shows under Account's "Batteries" label.
+// The number markup shows under Settings's "Batteries" label.
 function balanceIn(markup: string): string | undefined {
   const { amount } = BALANCE.exec(markup)?.groups ?? {};
   return amount;
 }
 
-// The number Account's Batteries tab shows.
+// The number Settings Batteries section shows.
 async function balanceShown(): Promise<string | undefined> {
   return balanceIn(renderToStaticMarkup(await SettingsPage()));
 }
@@ -67,7 +67,7 @@ test("a balance below 0 shows as 0", async () => {
 });
 
 test.each(["disabled", "production", "malformed"])(
-  "Account remains usable with %s Checkout",
+  "Settings remains usable with %s Checkout",
   async (configuration) => {
     const user = await testUser();
     await signIn(user);
