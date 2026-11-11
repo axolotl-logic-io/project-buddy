@@ -1,6 +1,3 @@
-import type { Route } from "next";
-import type { PromptKind } from "@/prompts/prompt.ts";
-
 // The app's route paths that code refers to.
 import type { Route } from "next";
 import type { PromptKind } from "@/prompts/prompt.ts";
@@ -45,14 +42,6 @@ function localPath(value: unknown): string | undefined {
     return value;
   }
   return undefined;
-}
-
-// The one customization collection, showing the requested prompt kind.
-function workshopPath(kind: PromptKind): Route {
-  if (kind === "construct") {
-    return "/workshop";
-  }
-  return `/workshop?kind=${kind}`;
 }
 
 export {
