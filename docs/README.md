@@ -25,7 +25,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Team quests](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 - [Quest invitations](project-invitations.md): inviting someone to a quest by address, the invitation email, joining and declining, and the send limits.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
-- [Marketplace](marketplace.md): listing, updating and unlisting own constructs, activities and spells, what other users see, buying listings, and bought copies.
 
 - [Images](images.md): image generation, gallery, battery accounting and deletion.
 - [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.

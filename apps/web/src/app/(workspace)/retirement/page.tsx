@@ -32,7 +32,6 @@ async function RetirementPage({
       <RetirementList definitions={definitions}>
         <footer className="flex flex-col gap-2 text-muted text-sm">
           <p>{RETIREMENT_COPY.help}</p>
-          <p>{RETIREMENT_COPY.marketplace}</p>
         </footer>
       </RetirementList>
     </PageWorkspace>

@@ -5,7 +5,6 @@ import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
-import { getListing } from "@/marketplace/listing-store.ts";
 import { readProjectInvitation } from "@/projects/project-invitations.ts";
 import { getProject } from "@/projects/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
@@ -16,7 +15,6 @@ import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECT_INVITATION_COPY } from "@/ui/copy/project-invitations.ts";
@@ -45,7 +43,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
     ["library", { label: LIBRARY_COPY.heading, href: "/library" }],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
-    ["marketplace", { label: MARKETPLACE_COPY.heading, href: "/marketplace" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
     ["gallery", { label: GENERATION_COPY.heading, href: "/gallery" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
@@ -137,8 +134,6 @@ async function headerBreadcrumbs(
     } else {
       name = (await getOwnSpell(user, id))?.name;
     }
-  } else if (section === "marketplace") {
-    name = (await getListing(user, id))?.name;
   } else if (section === "retirement") {
     name = (await getRetiredDefinition(user, id))?.name;
   }

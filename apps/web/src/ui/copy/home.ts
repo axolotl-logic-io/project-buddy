@@ -20,7 +20,6 @@ const HOME_COPY = {
   constructs: "Meet the constructs you work with, or customize your own.",
   activities: "Choose what you and your construct do together.",
   workshop: "Make, clone and tweak constructs, activities and spells.",
-  marketplace: "Discover constructs, activities and spells.",
   settings: "Settings",
 } as const;
 
