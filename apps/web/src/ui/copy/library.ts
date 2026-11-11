@@ -73,7 +73,7 @@ const LIBRARY_COPY: {
         },
         {
           id: "craft",
-          title: "Craft and share",
+          title: "Craft your own",
           links: [
             { href: "/workshop", label: "Craft in Workshop" },
             { href: "/marketplace", label: "Browse Marketplace" },
