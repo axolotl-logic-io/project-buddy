@@ -162,13 +162,12 @@ test("the read-only retired view shows its saved instructions and restores the s
     ),
   );
   await expect
-    .element(
-      page.getByRole("heading", { level: 1, name: RETIRED_CONSTRUCT.name }),
-    )
-    .toBeVisible();
-  await expect
     .element(page.getByText("Voice: calm and curious.", { exact: false }))
     .toBeVisible();
+  expect(
+    page.getByRole("heading", { level: 1 }).query(),
+    "the trail band, not the page, names it",
+  ).toBeNull();
   expect(page.getByRole("textbox").elements()).toHaveLength(0);
   await page
     .getByRole("button", {

@@ -55,9 +55,11 @@ describe("image gallery", () => {
   test("use_case_image_gallery", async () => {
     vi.mocked(listGeneratedImages).mockResolvedValue([IMAGE]);
     await render(await GalleryPage({ searchParams: Promise.resolve({}) }));
-    await expect
-      .element(page.getByRole("heading", { name: GENERATION_COPY.heading }))
-      .toBeVisible();
+    await expect.element(page.getByText(GENERATION_COPY.context)).toBeVisible();
+    expect(
+      page.getByRole("heading", { level: 1 }).query(),
+      "the trail band, not the page, names it",
+    ).toBeNull();
     const image = page
       .getByRole("link", { name: GENERATION_COPY.view })
       .element()

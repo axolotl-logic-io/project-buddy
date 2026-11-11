@@ -12,32 +12,48 @@
    disabled looks), and every role ships in the stylesheet whether or not a
    page uses it. globals.css imports this file into the components layer. */
 @layer roles {
-  .quests-index {
-    @apply min-w-0 rounded-box border border-line bg-surface;
+  /* The quest Quests offers to pick up again: its label, name and next
+     step, with Continue beside them, or below them on a narrow screen. */
+  .current-quest {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-3 rounded-box border border-line bg-surface px-4 py-3 shadow-control;
   }
 
-  .quests-index-heading {
-    @apply flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6;
+  .current-quest-body {
+    flex: 1 1 10rem;
+    @apply flex min-w-0 flex-col gap-0.5;
   }
 
-  .quests-index-tablist {
-    @apply grid grid-cols-2 border-line border-y px-4 sm:flex sm:flex-wrap sm:gap-x-4 sm:px-6;
+  .current-quest-label {
+    @apply font-body font-semibold text-muted text-xs uppercase tracking-wide;
   }
 
+  /* The ways to start a quest, as a strip of tiles: two by two in a narrow
+     space, such as a phone or a dialog, and side by side where they fit. */
+  .quest-start {
+    @apply @container flex flex-col gap-3;
+  }
+
+  .quest-start-tiles {
+    @apply grid grid-cols-2 gap-2 @lg:grid-cols-4;
+  }
+
+  /* One starting point: the whole tile is its target. */
+  .quest-start-tile {
+    min-block-size: var(--target-size);
+    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-box border border-line bg-surface px-3 py-2.5 text-left shadow-control transition-shadow hover:shadow-raised motion-safe:active:translate-y-px;
+  }
+
+  /* A tab's count, raised beside its name. */
   .quests-index-count {
-    @apply text-muted text-xs;
+    @apply -ms-1 -translate-y-1.5 text-muted text-xs;
   }
 
   .quests-index-content {
-    @apply min-w-0 p-4 sm:px-6;
+    @apply min-w-0;
   }
 
   .quests-index-content > .text-muted {
     @apply py-6;
-  }
-
-  .quests-index-footer {
-    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 py-2 text-muted text-sm sm:px-6;
   }
 
   .quests-index-list {
@@ -45,7 +61,7 @@
   }
 
   .quests-index-row {
-    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-4 last:border-b-0;
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-3 last:border-b-0;
   }
 
   .quests-index-restore {
@@ -72,16 +88,22 @@
     @apply min-w-0 rounded-box border border-line bg-surface;
   }
 
+  /* A quest's actions, the first row under the trail band: Rename, or the
+     title's editor across the row, then the status and its controls. */
   .quest-workspace-heading {
-    @apply flex flex-wrap items-start justify-between gap-4 p-4 sm:p-6;
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6;
   }
 
-  .quest-workspace-heading > :first-child {
-    flex: 1 1 20rem;
+  .quest-title:has(form) {
+    flex: 1 1 100%;
+  }
+
+  .quest-workspace-state {
+    @apply flex flex-wrap items-center gap-x-3;
   }
 
   .quest-workspace-status {
-    @apply mt-2 text-muted text-sm;
+    @apply text-muted text-sm;
   }
 
   .quest-workspace-rail {
@@ -98,10 +120,6 @@
     @apply border-primary text-foreground;
   }
 
-  .quests-index-tablist .quest-workspace-tab {
-    @apply justify-center sm:justify-start;
-  }
-
   .quest-status-actions {
     @apply flex flex-wrap items-center gap-2 py-2;
   }
@@ -113,7 +131,7 @@
   }
 
   /* A status change's result and its Undo, side by side, under the
-     workspace or inside the Quests list's frame. */
+     workspace or the Quests list. */
   .quest-status-feedback {
     @apply grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4;
   }
@@ -123,10 +141,6 @@
      mounted for announcements. */
   .quest-status-feedback:has(> .notice:empty) {
     @apply absolute;
-  }
-
-  .quests-index .quest-status-feedback:has(> .notice:not(:empty)) {
-    @apply px-4 pb-4 sm:px-6;
   }
 
   .quest-status-abandoned {
@@ -354,6 +368,12 @@
     @apply inline-flex min-h-(--target-size) items-center gap-1.5 rounded-control font-medium text-primary text-sm underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-60;
   }
 
+  /* A quest's Rename, boxed like the status action it shares the row
+     with. */
+  .quest-title > .button-quiet {
+    @apply border border-line px-3;
+  }
+
   /* A labelled control: its label, the control, a hint and an error, in a
      column. */
   .field {
@@ -556,28 +576,58 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
-  /* Compact navigation above the title and construct. Keep touch targets full
-     size while giving the conversation more room, including on phones. */
+  /* What stays pinned of the site's header: nothing, or the trail band
+     under its bar. Jumps and the conversation's pinned header leave room
+     for it. HeaderSize (src/components/header-size.tsx) measures the band;
+     this is its one-line height, for the first paint. */
+  /* The header's sizes. The trail band's room above the heading leaves the
+     parents' targets whole on screen while the band is pinned. On a phone
+     the room below is less, and the band at least a target's height, so a
+     two-line heading and the conversation's pinned header stay within the
+     pinned budget. */
   html {
+    --header-gutter: --spacing(4);
+    --header-rim: 4px;
+    --trail-band-padding-top: --spacing(2.5);
+    --trail-band-padding-bottom: --spacing(1);
+    --trail-band-min-height: calc(var(--target-size) + --spacing(1));
+    --trail-heading-leading: 1.15;
     --site-header-height: 0px;
     scroll-padding-top: var(--site-header-height);
   }
 
-  html:has(.header-breadcrumbs) {
-    --site-header-height: 52px;
+  html:has(.trail-band) {
+    --site-header-height: var(--trail-band-min-height);
   }
 
+  @media (width >= 40rem) {
+    html {
+      --header-gutter: --spacing(6);
+      --trail-band-padding-bottom: --spacing(2.5);
+      --trail-heading-leading: 1.2;
+    }
+
+    html:has(.trail-band) {
+      --site-header-height: calc(
+        var(--trail-band-padding-top) +
+        var(--trail-band-padding-bottom) +
+        --theme(--text-page-heading-phone) *
+        var(--trail-heading-leading) +
+        var(--line-width)
+      );
+    }
+  }
+
+  /* A conversation's pinned header, under the trail band. With the band's
+     two-line heading it stays within the pinned budget (112 px on a
+     phone; docs/chats.md). */
   .chat-header {
     inset-block-start: var(--site-header-height);
-    @apply sticky z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
+    @apply sticky z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-0.5;
   }
 
   .memory-text p {
     @apply whitespace-pre-line;
-  }
-
-  .chat-heading {
-    @apply min-w-0 font-heading font-semibold text-section-heading tracking-tight;
   }
 
   @supports (mask-image: none) {
@@ -608,17 +658,13 @@
     @apply flex min-w-0 flex-wrap items-center justify-between gap-2;
   }
 
-  /* Leave room for the pinned conversation header and its fade when
-     jumping to a message: a touch target, or Chat's one-line heading. */
+  /* Leave room for the pinned conversation header, a touch target's
+     height, and its fade when jumping to a message. */
   html:has(.chat-header) {
     scroll-padding-top: calc(
       var(--site-header-height) +
-      --spacing(2) +
-      max(
-        var(--target-size),
-        --theme(--text-section-heading) *
-        --theme(--text-section-heading--line-height)
-      ) +
+      --spacing(1) +
+      var(--target-size) +
       --spacing(4)
     );
   }
@@ -629,73 +675,27 @@
      <dialog> is hidden by the browser's own display: none, so the panel is
      a flex column only while open. The page under it doesn't scroll. Each
      theme dresses it through the menu tokens (src/themes/themes.ts). */
-  /* The header is a game's HUD in every theme, with an independent ink and gold palette:
-     the site's name behind a compass medallion, the place the page belongs
-     to, and the buttons as ink tiles with a gold rim. The menu's panel inside it keeps the theme's own
-     look, so only the header's own children are dressed. */
+  /* The header is a game's HUD in every theme, with an independent ink and
+     gold palette: one row of the brand, a compass medallion and the site's
+     name, then the balance and the buttons as ink tiles with a gold rim.
+     The menu's panel inside it keeps the theme's own look, so only the
+     header's own children are dressed. */
   .site-header {
-    @apply relative z-20 flex flex-wrap items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
+    @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
     container-type: inline-size;
+    padding-inline: var(--header-gutter);
     background: var(--hud-ink);
     color: var(--hud-paper);
-    border-color: var(--hud-gold);
+    border-block-end: var(--header-rim) solid var(--hud-gold);
   }
 
-  .header-breadcrumbs {
-    flex-basis: 100%;
-    min-inline-size: 0;
-    order: 1;
-  }
-
-  .header-breadcrumbs ol {
-    @apply flex min-w-0 items-center gap-1;
-  }
-
-  .header-breadcrumbs li {
-    @apply flex min-w-0 items-center gap-1;
-    flex: 0 1 auto;
-  }
-
-  .header-breadcrumbs li:not(:first-child) {
-    min-inline-size: calc(var(--target-size) + 1rem);
-  }
-
-  .header-breadcrumbs li:first-child {
-    flex-shrink: 0;
-  }
-
-  .header-breadcrumbs li:has([aria-current]) {
-    flex-shrink: 2;
-  }
-
-  .header-breadcrumbs a,
-  .header-breadcrumbs [aria-current] {
-    @apply flex min-w-0 min-h-(--target-size) items-center;
-  }
-
-  .header-breadcrumbs a {
-    @apply min-w-(--target-size) max-w-full underline underline-offset-4;
-  }
-
-  /* The words, not their flex box, are shortened: text-overflow draws no
-     ellipsis for a flex container's own text. */
-  .header-breadcrumbs a > span,
-  .header-breadcrumbs [aria-current] > span {
-    @apply truncate;
-  }
-
-  .breadcrumb-separator {
-    @apply shrink-0;
-  }
-
-  .site-header > :not(.site-menu) {
+  .site-header > :not(.site-menu, .trail-band) {
     --focus-outline: 3px solid var(--hud-gold);
   }
 
-  /* The title pushes the controls to the right edge, or the place beside
-     it does where it shows (from a 40rem header, below). */
+  /* The brand pushes the balance and the buttons to the right edge. */
   .hud-title {
-    @apply mr-auto inline-flex min-w-0 shrink items-center gap-2 whitespace-nowrap;
+    @apply mr-auto inline-flex min-h-(--target-size) min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
 
   .hud-medallion {
@@ -705,6 +705,18 @@
     background: var(--hud-paper);
     color: var(--hud-ink);
     border-color: var(--hud-gold);
+  }
+
+  /* On a phone the brand is its medallion alone, a whole target, and the
+     site's name stays its accessible name. */
+  @media (width < 32rem) {
+    .hud-title {
+      @apply min-w-(--target-size) justify-center;
+    }
+
+    .hud-name {
+      @apply sr-only;
+    }
   }
 
   .site-header > .button-secondary {
@@ -735,33 +747,89 @@
     color: var(--hud-gold);
   }
 
-  @media (width < 32rem) {
-    .hud-medallion {
-      display: none;
-    }
-
-    .site-header:has(.header-balance) .hud-title {
-      @apply min-h-(--target-size);
-    }
-  }
-
-  /* Narrower than a 360 px phone, the site's name steps down a size so the
-     balance and both buttons still fit beside it on one row. */
-  @media (width < 22.5rem) {
-    .site-header:has(.header-balance) .hud-title {
-      @apply text-base;
-    }
-  }
-
-  .site-header:has(.header-breadcrumbs) {
-    @apply pb-1;
-    --header-controls-height: 60px;
+  /* A page with a trail: the bar and its rim scroll away, and the trail
+     band under them stays pinned. The rim moves to the band's top edge.
+     HeaderSize measures how far the header sticks above the screen; this
+     is the bar's height, for the first paint. */
+  .site-header:has(.trail-band) {
+    --header-controls-height: calc(
+      var(--target-size) +
+      --spacing(4) +
+      var(--header-rim)
+    );
     position: sticky;
     inset-block-start: calc(-1 * var(--header-controls-height));
+    padding-block-end: 0;
+    border-block-end: 0;
   }
 
-  .site-header:has(.header-breadcrumbs) > .hud-title {
-    margin-inline-end: auto;
+  /* The trail band: a parchment strip, the header's full width, of the
+     parent pages' links leading into the page's heading. */
+  .trail-band {
+    flex: none;
+    inline-size: calc(100% + 2 * var(--header-gutter));
+    margin-inline: calc(-1 * var(--header-gutter));
+    min-block-size: calc(var(--header-rim) + var(--trail-band-min-height));
+    padding: var(--trail-band-padding-top) var(--header-gutter)
+      var(--trail-band-padding-bottom);
+    border-block-start: var(--header-rim) solid var(--hud-gold);
+    @apply flex min-w-0 items-baseline gap-2 border-line border-b bg-surface text-foreground;
+  }
+
+  /* The parents give up their room before the heading does, while it keeps
+     its words. Each parent's column shrinks toward a target's width and
+     shares what room is left, so a short name, such as Quests, stays whole
+     while a long one ends in an ellipsis. */
+  .trail-parents {
+    flex: 0 1000 auto;
+    @apply text-muted text-sm;
+  }
+
+  .trail-parents ol {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(
+      calc(var(--target-size) + --spacing(4)),
+      max-content
+    );
+    @apply grid items-baseline gap-1.5;
+  }
+
+  .trail-parents li {
+    @apply flex min-w-0 items-baseline gap-1.5;
+  }
+
+  /* A target's height without making the band taller. */
+  .trail-parents a {
+    --target-reach: calc((var(--target-size) - 1lh) / 2);
+    padding-block: var(--target-reach);
+    margin-block: calc(-1 * var(--target-reach));
+    @apply block min-w-(--target-size) truncate rounded-control underline underline-offset-4 hover:text-foreground;
+  }
+
+  .breadcrumb-separator {
+    @apply shrink-0;
+  }
+
+  /* On a phone the medallion leads to Quests, so a deeper trail leaves
+     out its Quests link. */
+  @media (width < 32rem) {
+    .trail-parents li:first-child:not(:last-child) {
+      display: none;
+    }
+  }
+
+  /* Under a trail band, a page starts close to it: the band is its
+     heading. */
+  .site-header:has(.trail-band) + main .page-column {
+    @apply pt-4 sm:pt-6;
+  }
+
+  /* The page's one heading: its whole name, on at most two lines. */
+  .trail-heading {
+    flex: 0 1 auto;
+    min-inline-size: 8ch;
+    overflow-wrap: anywhere;
+    @apply line-clamp-2 font-heading font-semibold text-section-heading leading-(--trail-heading-leading) tracking-tight sm:text-page-heading-phone;
   }
 
   .site-menu {
@@ -902,7 +970,7 @@
   }
 
   .workspace-intro {
-    @apply mt-2 text-muted text-sm;
+    @apply text-muted text-sm;
   }
 
   .workspace-rail {

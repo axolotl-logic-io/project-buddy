@@ -1,24 +1,29 @@
 // "use_case_use_on_phone" in use-cases, the header and its menu in Chromium
-// and WebKit, in every theme: the header takes one row at every width, the
-// site's name and the menu's button, so the page starts high on the
-// screen. The button stays a touch target's height (44 px), the site's name
-// at least WCAG 2.5.8's minimum (24 px), and nothing scrolls sideways. The
+// and WebKit, in every theme: the header's bar takes one row at every
+// width, the brand and the menu's button, so the page starts high on the
+// screen. On a phone the brand is its medallion alone, still named for the
+// site. The button stays a touch target's height (44 px), the brand at
+// least WCAG 2.5.8's minimum (24 px), and nothing scrolls sideways. The
 // open menu fits the narrowest phone, with every link a target's height.
 // The header is laid out by width alone (no pointer media query in src/),
 // so the test's viewport stands in for the phone. The theme fonts are
-// loaded, since the site's name's width depends on them.
+// loaded, since the site's name's width depends on them. The trail band
+// under the bar: parent links leading into the page's one heading, which
+// keeps its words while the parents shorten, and stays pinned while the bar
+// scrolls away.
 // test/component-integration/app/phone-pages.touch.browser.test.tsx checks every page's reflow
 // and targets.
 import type { JSX } from "react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import {
   AccountLinks,
-  Breadcrumbs,
   HeaderBalance,
   SignedInLinks,
   SiteHeader,
+  TrailBand,
 } from "@/components/site-header.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
 import { readGoldBalance } from "@/gold/gold-store.ts";
@@ -74,6 +79,9 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 // src/app/page-roles.css.
 const BUTTON_HEIGHT_PX = 44;
 const LOCATION_BALANCE = 870_000;
+// Narrower than this (32rem), the brand is its medallion alone and a deeper
+// trail leaves out its Quests link.
+const PHONE_LAYOUT_BELOW_PX = 512;
 
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
@@ -94,6 +102,20 @@ const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
   { name: "a tablet", viewport: { width: 800, height: 720 } },
   { name: "a laptop", viewport: LAPTOP_VIEWPORT },
 ];
+
+// How many lines the text inside element takes.
+function textLines(element: Element): number {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  let lines = 0;
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    if (node.textContent?.trim() !== "") {
+      range.selectNodeContents(node);
+      lines += range.getClientRects().length;
+    }
+  }
+  return lines;
+}
 
 function heightOf(target: Locator): number {
   return target.element().getBoundingClientRect().height;
@@ -164,19 +186,13 @@ describe("use_case_use_on_phone", () => {
             titleBox.bottom > buttonBox.top && buttonBox.bottom > titleBox.top,
             "the site's name and the menu's button share one row",
           ).toBe(true);
-          const brandText = [...title.element().childNodes].find(
-            (node) =>
-              node.nodeType === Node.TEXT_NODE &&
-              node.textContent?.trim() !== "",
-          );
-          if (brandText === undefined) {
-            throw new Error("The brand text is missing");
-          }
-          const brandRange = document.createRange();
-          brandRange.selectNodeContents(brandText);
           expect(
-            brandRange.getClientRects().length,
-            "brand remains on one text line",
+            titleBox.width === BUTTON_HEIGHT_PX,
+            "on a phone the brand is its medallion alone, a target wide",
+          ).toBe(screen.viewport.width < PHONE_LAYOUT_BELOW_PX);
+          expect(
+            textLines(title.element()),
+            "the brand's name is on one line",
           ).toBe(1);
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
@@ -334,8 +350,36 @@ describe("the site menu", () => {
 });
 
 const LONG_NAME_REPEATS = 20;
+const LONG_NAME = "Long quest and adventure name ".repeat(LONG_NAME_REPEATS);
+// Enough lines of page to scroll the header away, on any screen.
+const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
+const QUESTS: Breadcrumb = { label: PROJECTS_COPY.heading, href: "/projects" };
 
-describe("breadcrumbs in the shared header", () => {
+// The signed-in header with the trail band of items, as the @header slot
+// renders it.
+function bandedHeader(items: readonly Breadcrumb[]): JSX.Element {
+  return (
+    <SiteHeader
+      links={
+        <>
+          <HeaderBalance microUsd={LOCATION_BALANCE} />
+          <SiteMenu links={<AccountLinks />} />
+          <TrailBand items={items} />
+        </>
+      }
+    />
+  );
+}
+
+function trailNavigation(): Locator {
+  return page.getByRole("navigation", { name: SITE_COPY.breadcrumbs });
+}
+
+function pageHeading(): Locator {
+  return page.getByRole("heading", { level: 1 });
+}
+
+describe("the trail band", () => {
   test.each(
     [NARROWEST_VIEWPORT, IPHONE_15_VIEWPORT, LAPTOP_VIEWPORT].flatMap(
       (viewport) => ["light", "dark"].map((mode) => ({ viewport, mode })),
@@ -348,35 +392,27 @@ describe("breadcrumbs in the shared header", () => {
       vi.mocked(readGoldBalance).mockResolvedValue(LOCATION_BALANCE);
       await setViewport(viewport);
       async function location(quests: boolean): Promise<JSX.Element> {
-        let trail: Parameters<typeof Breadcrumbs>[0]["items"] = [
-          { label: PROJECTS_COPY.heading },
-        ];
-        let heading: string = PROJECTS_COPY.heading;
+        let trail: readonly Breadcrumb[] = [{ label: PROJECTS_COPY.heading }];
         if (!quests) {
-          trail = [
-            { label: PROJECTS_COPY.heading, href: "/projects" },
-            { label: "Settings" },
-          ];
-          heading = "Settings";
+          trail = [QUESTS, { label: SETTINGS_COPY.heading }];
         }
         return (
           <>
             <SiteHeader links={await SignedInLinks({ breadcrumbs: trail })} />
-            <main>
-              <h1>{heading}</h1>
-            </main>
+            <main />
           </>
         );
       }
       const screen = await render(await location(true));
       await loadFonts();
-      const navigation = page.getByRole("navigation", {
-        name: SITE_COPY.breadcrumbs,
-      });
+      await expect
+        .element(pageHeading())
+        .toHaveTextContent(PROJECTS_COPY.heading);
       expect(
-        navigation.element().querySelector('[aria-current="page"]')
-          ?.textContent,
-      ).toBe(PROJECTS_COPY.heading);
+        page.getByRole("banner").getByRole("heading", { level: 1 }).elements(),
+        "Quests' one heading is the band's",
+      ).toHaveLength(1);
+      await expect.element(trailNavigation()).not.toBeInTheDocument();
       const before = page
         .getByRole("banner")
         .element()
@@ -385,12 +421,17 @@ describe("breadcrumbs in the shared header", () => {
       const main = page.getByRole("main").element();
       const origin = main.getBoundingClientRect().y;
       await screen.rerender(await location(false));
+      await expect
+        .element(pageHeading())
+        .toHaveTextContent(SETTINGS_COPY.heading);
       expect(
         page.getByRole("banner").element().getBoundingClientRect().toJSON(),
       ).toEqual(before);
       expect(main.getBoundingClientRect().y).toBe(origin);
       await expect
-        .element(navigation.getByRole("link", { name: PROJECTS_COPY.heading }))
+        .element(
+          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        )
         .toHaveAttribute("href", "/projects");
       await openMenu();
       await closeMenu();
@@ -405,89 +446,162 @@ describe("breadcrumbs in the shared header", () => {
     },
   );
 
-  for (const mode of ["light", "dark"]) {
-    test(`long names keep parent targets and controls usable at 320 px in ${mode}`, async () => {
-      applyTheme("parchment", mode);
-      await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
-      const longName = "Long quest and adventure name ".repeat(
-        LONG_NAME_REPEATS,
+  test("leads the parent links into the page's one heading, on the bar's row below", async () => {
+    applyTheme("parchment");
+    await setViewport(LAPTOP_VIEWPORT);
+    await render(
+      bandedHeader([
+        QUESTS,
+        { label: "Our quest", href: "/projects/quest" },
+        { label: "Journal" },
+      ]),
+    );
+    await loadFonts();
+    const links = trailNavigation().getByRole("link").all();
+    expect(links.map((link) => link.element().textContent)).toEqual([
+      PROJECTS_COPY.heading,
+      "Our quest",
+    ]);
+    await expect.element(pageHeading()).toHaveTextContent("Journal");
+    expect(
+      page.getByRole("heading", { level: 1 }).elements(),
+      "one heading",
+    ).toHaveLength(1);
+    const heading = pageHeading().element().getBoundingClientRect();
+    const brand = page
+      .getByRole("link", { name: SITE_COPY.name })
+      .element()
+      .getBoundingClientRect();
+    const menu = menuButton().element().getBoundingClientRect();
+    expect(heading.top, "the band is under the bar").toBeGreaterThanOrEqual(
+      Math.max(brand.bottom, menu.bottom),
+    );
+    for (const link of links) {
+      const bounds = link.element().getBoundingClientRect();
+      expect(bounds.right, "parents lead into the heading").toBeLessThan(
+        heading.left,
       );
+      expect(
+        Math.abs(bounds.bottom - heading.bottom),
+        "on the heading's line",
+      ).toBeLessThan(heading.height);
+    }
+  });
+
+  test("stays pinned while the bar scrolls away", async () => {
+    applyTheme("parchment");
+    await setViewport(IPHONE_15_VIEWPORT);
+    await render(
+      <>
+        {bandedHeader([QUESTS, { label: LONG_NAME }])}
+        <main>
+          {SCROLL_LINES.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </main>
+      </>,
+    );
+    await loadFonts();
+    window.scrollTo(0, window.innerHeight);
+    await expect
+      .poll(() => pageHeading().element().getBoundingClientRect().top)
+      .toBeGreaterThanOrEqual(0);
+    await expect.element(pageHeading()).toBeInViewport({ ratio: 1 });
+    await expect
+      .element(
+        trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+      )
+      .toBeInViewport({ ratio: 1 });
+    await expect
+      .element(page.getByRole("link", { name: SITE_COPY.name }))
+      .not.toBeInViewport();
+    await expect.element(menuButton()).not.toBeInViewport();
+    window.scrollTo(0, 0);
+  });
+
+  for (const mode of ["light", "dark"]) {
+    test(`long names shorten the parents, keep the heading's words and fit 320 px in ${mode}`, async () => {
+      applyTheme("parchment", mode);
+      await setViewport(NARROWEST_VIEWPORT);
       const screen = await render(
-        <SiteHeader
-          links={
-            <>
-              <SiteMenu links={<AccountLinks />} />
-              <HeaderBalance microUsd={870_000} />
-              <Breadcrumbs
-                items={[
-                  { label: "Quests", href: "/projects" },
-                  { label: longName, href: "/projects/quest" },
-                  { label: longName },
-                ]}
-              />
-            </>
-          }
-        />,
+        bandedHeader([
+          QUESTS,
+          { label: LONG_NAME, href: "/projects/quest" },
+          { label: "Journal" },
+        ]),
       );
       await loadFonts();
-      const navigation = page.getByRole("navigation", { name: "Breadcrumbs" });
-      await expect.element(navigation).toBeVisible();
-      expect(navigation.element().closest("header")).not.toBeNull();
+      await expect.element(trailNavigation()).toBeVisible();
+      await expect
+        .element(
+          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        )
+        .not.toBeInTheDocument();
+      const parent = trailNavigation().getByRole("link", { name: LONG_NAME });
       expect(
-        navigation.element().querySelector('[aria-current="page"]')
-          ?.textContent,
-      ).toBe(longName);
-      const currentWords = navigation
-        .element()
-        .querySelector('[aria-current="page"] > span');
-      if (currentWords === null) {
-        throw new Error("The current page's words are missing");
-      }
-      expect(
-        getComputedStyle(currentWords).textOverflow,
-        "the shortened current page ends in an ellipsis",
+        getComputedStyle(parent.element()).textOverflow,
+        "the shortened parent ends in an ellipsis",
       ).toBe("ellipsis");
-      expect(currentWords.scrollWidth).toBeGreaterThan(
-        currentWords.clientWidth,
+      expect(parent.element().scrollWidth).toBeGreaterThan(
+        parent.element().clientWidth,
       );
-      const parent = navigation.getByRole("link", { name: longName });
       parent.element().focus();
       await expect.element(parent).toHaveFocus();
       const bounds = parent.element().getBoundingClientRect();
       expect(bounds.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
       expect(bounds.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+      await expect.element(pageHeading()).toHaveTextContent("Journal");
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,
       );
+      await expect.element(menuButton()).toBeVisible();
+
+      await screen.rerender(bandedHeader([QUESTS, { label: LONG_NAME }]));
       await expect
-        .element(page.getByRole("button", { name: "Menu", exact: true }))
+        .element(
+          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        )
         .toBeVisible();
-      await screen.rerender(
-        <SiteHeader
-          links={
-            <Breadcrumbs
-              items={[
-                { label: "Quests", href: "/projects" },
-                { label: "Settings" },
-              ]}
-            />
-          }
-        />,
+      const heading = pageHeading().element();
+      expect(heading.textContent, "the heading keeps its words").toBe(
+        LONG_NAME,
+      );
+      const lineHeight = Number.parseFloat(
+        getComputedStyle(heading).lineHeight,
       );
       expect(
-        page.getByRole("navigation", { name: "Breadcrumbs" }).elements(),
-      ).toHaveLength(1);
-      await expect
-        .element(page.getByRole("link", { name: longName }))
-        .not.toBeInTheDocument();
+        heading.getBoundingClientRect().height,
+        "on at most two lines",
+      ).toBeLessThanOrEqual(lineHeight * 2 + 1);
       expect(
-        navigation.element().querySelector('[aria-current="page"]')
-          ?.textContent,
-      ).toBe("Settings");
+        heading.getBoundingClientRect().width,
+        "the heading takes the room the parents give up",
+      ).toBeGreaterThan(NARROWEST_VIEWPORT.width / 2);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+
       await screen.rerender(<SiteHeader />);
-      await expect.element(navigation).not.toBeInTheDocument();
+      await expect.element(trailNavigation()).not.toBeInTheDocument();
+      await expect.element(pageHeading()).not.toBeInTheDocument();
     });
   }
+
+  test("keeps the Quests link in deeper trails wider than a phone", async () => {
+    await setViewport({ width: 544, height: 720 });
+    await render(
+      bandedHeader([
+        QUESTS,
+        { label: "Our quest", href: "/projects/quest" },
+        { label: "Journal" },
+      ]),
+    );
+    await expect
+      .element(
+        trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+      )
+      .toBeVisible();
+  });
 });
 
 describe("header battery balance", () => {

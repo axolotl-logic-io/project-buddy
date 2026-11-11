@@ -36,7 +36,6 @@ function ChatScreen({
   stoppedReplyId,
   viewer,
   plan,
-  title,
   actions,
   starter,
 }: {
@@ -45,8 +44,6 @@ function ChatScreen({
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
   readonly plan?: PlanState | undefined;
-  // The page's heading, for a page without one of its own, such as Chat.
-  readonly title?: string | undefined;
   readonly actions?: ReactNode;
   readonly starter?:
     | { readonly label: string; readonly text: string }
@@ -61,9 +58,6 @@ function ChatScreen({
             construct={construct}
             destination={{ kind: "adventure", id: conversation.id }}
           />
-          {title !== undefined && (
-            <h1 className="chat-heading flex-1">{title}</h1>
-          )}
           {actions}
         </div>
       </header>
