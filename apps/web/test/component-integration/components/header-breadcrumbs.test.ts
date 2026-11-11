@@ -118,7 +118,7 @@ describe("header navigation hierarchy", () => {
     expect(
       await headerBreadcrumbs(USER, ["activities", "brainstorming"]),
     ).toEqual([
-      { label: "Home", href: "/home" },
+      { label: "Quests", href: "/projects" },
       {
         label: "Workshop",
         href: `/workshop?${new URLSearchParams({ kind: "activity" })}`,
