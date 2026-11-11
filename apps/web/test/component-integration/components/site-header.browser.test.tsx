@@ -24,7 +24,6 @@ import { SiteMenu } from "@/components/site-menu.tsx";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
@@ -84,7 +83,6 @@ const PLACES = [
   PROJECTS_COPY.headerLink,
   CHAT_COPY.headerLink,
   CONSTRUCTS_COPY.headerLink,
-  ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
   LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,

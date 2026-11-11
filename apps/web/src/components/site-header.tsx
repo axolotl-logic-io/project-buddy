@@ -8,7 +8,6 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { wholeGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
@@ -100,9 +99,6 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <MenuLink href="/constructs">{CONSTRUCTS_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>
         </li>
         <li>
           <MenuLink href="/spellbook">{SPELLBOOK_COPY.headerLink}</MenuLink>

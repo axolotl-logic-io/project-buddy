@@ -129,7 +129,6 @@ describe("use_case_project_from_standalone_chat", () => {
         premadeId: "do",
         name: QUEST_NAME,
         journal: edited,
-        activityId: "project-breakdown",
         constructId: "vellum",
       }),
     );
