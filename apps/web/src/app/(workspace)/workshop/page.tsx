@@ -68,10 +68,7 @@ export default async function WorkshopPage({
   return (
     <>
       <RetirementFeedback completed={retired === "1"} />
-      <div className="flex flex-col gap-2">
-        <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
-        <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>
-      </div>
+      <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>
       <KindTabs shown={kind} />
       {await kindLists(kind)}
     </>

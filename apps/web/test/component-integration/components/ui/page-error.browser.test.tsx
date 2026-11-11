@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { PageError } from "@/components/ui/page-error.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {
@@ -13,6 +14,14 @@ import {
 } from "@/themes/theme-choice.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
+
+// site-header.tsx reads the session and balance for SignedInLinks, server
+// code these tests never call.
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("../../auth/current-user-test-kit.ts"),
+);
+vi.mock("@/gold/gold-store.ts", () => ({ readGoldBalance: vi.fn() }));
 
 // The browser's cookies when Dark is saved, beside a stale cookie from the
 // removed Extras switches, which must hide nothing.
@@ -48,6 +57,27 @@ describe("the error page's message", () => {
     expect(
       page.getByText(PROBLEMS_COPY.errorHeading, { exact: false }).elements(),
     ).toHaveLength(1);
+  });
+
+  test("under a trail band, which names the page, its heading is a section's", async () => {
+    await render(
+      <>
+        <SiteHeader links={<TrailBand items={[{ label: "Settings" }]} />} />
+        <main>
+          <PageError error={FAILURE} retry={noRetry} />
+        </main>
+      </>,
+    );
+    await expect
+      .element(page.getByRole("heading", { level: 2 }))
+      .toHaveTextContent(PROBLEMS_COPY.errorHeading);
+    expect(
+      page
+        .getByRole("heading", { level: 1 })
+        .elements()
+        .map((heading) => heading.textContent),
+      "the page's one heading is the band's",
+    ).toEqual(["Settings"]);
   });
 
   test("a recognised failure says what went wrong", async () => {

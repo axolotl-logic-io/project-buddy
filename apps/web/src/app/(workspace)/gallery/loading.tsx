@@ -6,7 +6,7 @@ export default function GalleryLoading(): JSX.Element {
   return (
     <LoadingSkeleton
       label={GENERATION_COPY.loading}
-      shapes={["heading", "cards"]}
+      shapes={["line", "cards"]}
     />
   );
 }

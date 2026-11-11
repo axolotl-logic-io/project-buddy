@@ -24,7 +24,7 @@ export const PROJECTS_COPY = {
 
 export const PROJECT_COPY = {
   navigation: "Quest workspace",
-  rename: "Edit quest title",
+  rename: "Rename",
   titleLabel: "Quest title",
   saveTitle: "Save title",
   cancelTitle: "Cancel title edit",

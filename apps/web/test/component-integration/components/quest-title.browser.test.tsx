@@ -8,7 +8,10 @@ import { FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
 
 beforeEach(() => vi.clearAllMocks());
 
-function pencil(): ReturnType<typeof page.getByRole> {
+// The quest's title is the trail band's heading, which the saved title
+// reaches through the action's page refresh. Rename's editor starts from the
+// latest title.
+function rename(): ReturnType<typeof page.getByRole> {
   return page.getByRole("button", { name: PROJECT_COPY.rename });
 }
 function field(): ReturnType<typeof page.getByRole> {
@@ -16,21 +19,18 @@ function field(): ReturnType<typeof page.getByRole> {
 }
 
 describe("use_case_rename_quest", () => {
-  test("saves with Enter and returns focus to the pencil", async () => {
+  test("saves with Enter and returns focus to Rename", async () => {
     vi.mocked(renameProjectAction).mockResolvedValue({
       kind: "saved",
       name: "Fox den",
     });
     await render(<QuestTitle project={FOX_PROJECT} />);
-    await pencil().click();
+    await rename().click();
     await expect.element(field()).toHaveFocus();
     await expect.element(field()).toHaveValue(FOX_PROJECT.name);
     await field().fill("Fox den");
     await userEvent.keyboard("{Enter}");
-    await expect
-      .element(page.getByRole("heading", { name: "Fox den" }))
-      .toBeVisible();
-    await expect.element(pencil()).toHaveFocus();
+    await expect.element(rename()).toHaveFocus();
     await expect
       .element(page.getByRole("status"))
       .toHaveTextContent(PROJECT_COPY.titleSaved);
@@ -40,7 +40,7 @@ describe("use_case_rename_quest", () => {
   });
   test.each(["Escape", "Cancel"])("%s discards the draft", async (method) => {
     await render(<QuestTitle project={FOX_PROJECT} />);
-    await pencil().click();
+    await rename().click();
     await field().fill("Discard me");
     if (method === "Escape") {
       await userEvent.keyboard("{Escape}");
@@ -49,9 +49,9 @@ describe("use_case_rename_quest", () => {
         .getByRole("button", { name: PROJECT_COPY.cancelTitle })
         .click();
     }
-    await expect.element(pencil()).toHaveFocus();
+    await expect.element(rename()).toHaveFocus();
     expect(renameProjectAction).not.toHaveBeenCalled();
-    await pencil().click();
+    await rename().click();
     await expect.element(field()).toHaveValue(FOX_PROJECT.name);
   });
   test.each(["A quest needs a name.", "Storage is unavailable."])(
@@ -62,7 +62,7 @@ describe("use_case_rename_quest", () => {
         message,
       });
       await render(<QuestTitle project={FOX_PROJECT} />);
-      await pencil().click();
+      await rename().click();
       await field().fill("My draft");
       await page.getByRole("button", { name: PROJECT_COPY.saveTitle }).click();
       await expect.element(page.getByRole("alert")).toHaveTextContent(message);
@@ -74,8 +74,9 @@ describe("use_case_rename_quest", () => {
       });
       await page.getByRole("button", { name: PROJECT_COPY.saveTitle }).click();
       await expect
-        .element(page.getByRole("heading", { name: "My draft" }))
-        .toBeVisible();
+        .element(page.getByRole("status"))
+        .toHaveTextContent(PROJECT_COPY.titleSaved);
+      await expect.element(field()).not.toBeInTheDocument();
     },
   );
   test("pending saves prevent cancellation and duplicate saves", async () => {
@@ -83,7 +84,7 @@ describe("use_case_rename_quest", () => {
       Promise.withResolvers<Awaited<ReturnType<typeof renameProjectAction>>>();
     vi.mocked(renameProjectAction).mockReturnValue(save.promise);
     await render(<QuestTitle project={FOX_PROJECT} />);
-    await pencil().click();
+    await rename().click();
     await page.getByRole("button", { name: PROJECT_COPY.saveTitle }).click();
     await expect
       .element(page.getByRole("button", { name: PROJECT_COPY.saveTitle }))
@@ -96,6 +97,6 @@ describe("use_case_rename_quest", () => {
     await expect.element(field()).toBeVisible();
     expect(renameProjectAction).toHaveBeenCalledTimes(1);
     save.resolve({ kind: "saved", name: FOX_PROJECT.name });
-    await expect.element(pencil()).toHaveFocus();
+    await expect.element(rename()).toHaveFocus();
   });
 });

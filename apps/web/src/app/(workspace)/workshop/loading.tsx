@@ -6,7 +6,7 @@ export default function WorkshopLoading(): JSX.Element {
   return (
     <LoadingSkeleton
       label={WORKSHOP_PAGE_COPY.loading}
-      shapes={["heading", "cards"]}
+      shapes={["line", "cards"]}
     />
   );
 }

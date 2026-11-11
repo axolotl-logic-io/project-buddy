@@ -74,7 +74,7 @@ The user opens one of their quests, from Quests.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress and Versions. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The status actions are there too. Controls wrap on phones, without sideways scrolling.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and the quest's frame: Rename, the status and its actions, then the sections Conversation, Quest Journal, Plan, Progress and Versions. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. Controls wrap on phones, without sideways scrolling.
 - **Variations:**
   - A quest without a conversation yet, as after the move from adventures: `use_case_start_quest_conversation`.
   - The Dailies quest: `use_case_dailies`.
@@ -170,5 +170,5 @@ The user looks at the ways to start a quest without starting one.
 The owner changes the quest title inline on its overview or Journal page.
 
 - **Prerequisites:** signed in as the quest owner.
-- **Steps:** choose Edit quest title, enter the name, then choose Save title or press Enter.
-- **Outcome:** the trimmed title is saved and appears on the quest and its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to the pencil. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Other users, including former members, cannot rename the quest.
+- **Steps:** choose Rename, enter the name, then choose Save title or press Enter.
+- **Outcome:** the trimmed title is saved and appears as the quest's heading, in the trail band of its Journal and in its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to Rename. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Other users, including former members, cannot rename the quest.
