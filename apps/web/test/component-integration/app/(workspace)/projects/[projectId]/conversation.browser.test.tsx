@@ -131,7 +131,6 @@ vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
 vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
-vi.mock("@/marketplace/listing-store.ts", () => ({ getListing: vi.fn() }));
 vi.mock("@/projects/project-invitations.ts", () => ({
   readProjectInvitation: vi.fn(),
   listSentProjectInvitations: vi.fn(),
