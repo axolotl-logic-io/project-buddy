@@ -39,4 +39,4 @@ Everything the user saved is still there after a site update that renames how it
   - She comes back to the site.
 - **Outcome:** every construct of hers has the same name, parts and origin as before, and every adventure keeps the construct it was started with, as it was when the adventure started.
 - **Next:**
-  - [`use_case_switch_construct`](chats.md#use_case_switch_construct): carry on chatting with her constructs.
+  - [`use_case_continue_chat`](chats.md#use_case_continue_chat): carry on talking with her constructs.

@@ -1,34 +1,25 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A project chat is open to everyone in its
-// project, its owner and its members; a standalone chat only to the user it
-// names (src/accounts/owner-scope.ts). Every function takes the acting user
+// saved by new-chat-store.ts. A project chat is open to its project's owner
+// alone; a standalone chat only to the user it names (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's construct and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, not, type SQL, sql } from "drizzle-orm";
+import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import {
-  chatOpenTo,
-  chatUnreadOwnedBy,
-  messageOpenTo,
-} from "@/accounts/owner-scope.ts";
+import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
-import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
   chatWithProjectColumns,
-  isProjectChat,
   messageColumns,
   type NewMessage,
   openChat,
   openMessage,
-  type ProjectChat,
   replyUnclaimed,
   toChats,
-  toConstructWithId,
 } from "@/chats/chat-rows.ts";
 import {
   type ChatMessage,
@@ -36,10 +27,7 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
-import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
-import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -47,7 +35,6 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ChatId,
   type MessageId,
-  type ProjectId,
   parseChatId,
   parseUserId,
   type UserId,
@@ -137,48 +124,6 @@ type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 
 export type { MessageSaveResult };
 
-// The chats in the owner's project, newest first; none if the project is
-// another user's. A standalone chat is in no project, so never among them.
-export function listChats(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<ProjectChat[]> {
-  return withAppErrors("listChats", async () =>
-    toChats(
-      await getDb()
-        .select(chatWithProjectColumns(owner))
-        .from(chats)
-        .leftJoin(projects, eq(chats.projectId, projects.id))
-        .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
-        .orderBy(desc(chats.createdAt)),
-    ).filter(isProjectChat),
-  );
-}
-
-// The construct of the newest chat in the owner's project, as a new chat would
-// keep it; undefined if the project has no chats or is another user's.
-export async function latestConstruct(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<NewChatConstruct | undefined> {
-  const [row] = await withAppErrors("latestConstruct", () =>
-    getDb()
-      .select({
-        constructId: chats.constructId,
-        constructName: chats.constructName,
-        constructParts: chats.constructParts,
-      })
-      .from(chats)
-      .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
-      .orderBy(desc(chats.createdAt), desc(chats.id))
-      .limit(1),
-  );
-  if (row === undefined) {
-    return undefined;
-  }
-  return toConstructWithId(row);
-}
-
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(
@@ -192,7 +137,7 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns(owner))
+        .select(chatWithProjectColumns())
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
@@ -207,11 +152,13 @@ export async function getChat(
 // user who sent it or, for a message saved with no author, the chat's
 // owner, who is its project's user or the standalone chat's user. None if
 // the chat is another user's. A stored message whose role or parts are
-// invalid is left out and logged. Only a reply reads these; people read
+// invalid is left out and logged. With newest, only that many of the newest
+// messages, still oldest first. Only a reply reads these; people read
 // listMessages.
 export async function listMessagesForModel(
   owner: UserId,
   chatId: ChatId,
+  newest?: number,
 ): Promise<ChatMessage[]> {
   // The joins only read the author's columns; messageOpenTo is what keeps
   // a message open to the owner.
@@ -239,16 +186,16 @@ export async function listMessagesForModel(
         ),
       )
       .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
-      .orderBy(asc(messages.createdAt), asc(messages.id)),
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(newest ?? Number.MAX_SAFE_INTEGER),
   );
-  const parsed = await Promise.all(rows.map(toChatMessage));
+  const parsed = await Promise.all(rows.reverse().map(toChatMessage));
   return parsed.filter((message) => message !== undefined);
 }
 
 // The messages of the owner's chat as people see them, such as on the
 // chat's page: as listMessagesForModel reads them, but without the
-// instructions of the spells the construct cast (withoutSpellInstructions), so
-// a spell of one member's reaches no one else in a team project.
+// instructions of the spells the construct cast (withoutSpellInstructions).
 export async function listMessages(
   owner: UserId,
   chatId: ChatId,
@@ -479,72 +426,5 @@ export async function releaseReply(
       .update(messages)
       .set({ replyStartedAt: null })
       .where(openMessage(owner, chatId, messageId)),
-  );
-}
-
-// Marks the chat unread for each of userIds who can read it, as a check-in
-// does for its project's owner. A user named twice, or already marked, keeps
-// one mark; a user who can't read the chat gets none.
-export async function markChatUnreadFor(
-  chatId: ChatId,
-  userIds: readonly UserId[],
-): Promise<void> {
-  if (userIds.length === 0) {
-    return;
-  }
-  await withAppErrors("markChatUnreadFor", () =>
-    getDb()
-      .insert(chatUnreads)
-      .select(unreadMarks(chatId, userIds))
-      .onConflictDoNothing(),
-  );
-}
-
-// Clears the viewer's unread mark on the chat, as the viewer opening it
-// does; anyone else's mark stays. A chat already read, unknown or another
-// user's is left as it is.
-export async function markChatRead(
-  viewer: UserId,
-  chatId: ChatId,
-): Promise<void> {
-  await withAppErrors("markChatRead", () =>
-    getDb()
-      .delete(chatUnreads)
-      .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
-  );
-}
-
-// Names the owner's chat as she typed it. Haiku never renames it after
-// this. Whether the chat was found: an unknown chat or another user's is
-// left alone.
-export async function renameChat(
-  owner: UserId,
-  chatId: ChatId,
-  name: ChatName,
-): Promise<boolean> {
-  const renamed = await withAppErrors("renameChat", () =>
-    getDb()
-      .update(chats)
-      .set({ name, renamedByHand: true })
-      .where(and(eq(chats.id, chatId), chatOpenTo(owner)))
-      .returning({ id: chats.id }),
-  );
-  return renamed.length > 0;
-}
-
-// Names the owner's chat with the name Haiku suggested, unless she has
-// renamed it by hand, even while Haiku was answering.
-export async function saveAutomaticChatName(
-  owner: UserId,
-  chatId: ChatId,
-  name: ChatName,
-): Promise<void> {
-  await withAppErrors("saveAutomaticChatName", () =>
-    getDb()
-      .update(chats)
-      .set({ name })
-      .where(
-        and(eq(chats.id, chatId), chatOpenTo(owner), not(chats.renamedByHand)),
-      ),
   );
 }

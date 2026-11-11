@@ -1,7 +1,7 @@
 // "use_case_install_app" in use-cases/notifications.md, in Chromium and
 // WebKit: the web app manifest names Project Buddy, opens the landing page
 // in its own window, and lists icons that are served at the sizes it gives;
-// the service worker is served; and the colours a phone shows outside the
+// the colours a phone shows outside the
 // pages are the default theme's backgrounds, as the browser renders them.
 // That the proxy serves these files without a session is
 // web-app-access.test.ts's to check.
@@ -104,13 +104,6 @@ describe("use_case_install_app", () => {
       width: APP_ICONS.apple.size,
       height: APP_ICONS.apple.size,
     });
-  });
-
-  test("the service worker that shows notifications is served", async () => {
-    const response = await fetch("/sw.js");
-
-    expect(response.ok).toBe(true);
-    expect(await response.text()).toContain("notificationclick");
   });
 
   test("the colours outside the pages are the default theme's backgrounds", () => {

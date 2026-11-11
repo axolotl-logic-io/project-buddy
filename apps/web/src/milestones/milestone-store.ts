@@ -1,13 +1,12 @@
 // Each project's milestones, its progress timeline, stored in Postgres. A
-// milestone is open to everyone in its project, its owner and its members:
-// every function takes the acting user first, so a project not open to
-// them has no milestones, its milestones read as not found, and nothing is
+// milestone is its project owner's alone: every function takes the acting
+// user first, so another user's project has no milestones, its milestones read as not found, and nothing is
 // written to either. Callers
 // pass text that MILESTONE_TEXT accepts.
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { milestoneOpenTo, opensProject } from "@/accounts/owner-scope.ts";
+import { milestoneOpenTo, ownsProject } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -38,9 +37,11 @@ const MILESTONE_COLUMNS: Pick<
   recordedAt: milestones.recordedAt,
 };
 
+// A milestone's conversation is null once it is gone, as after the removal
+// of adventures; the milestone stays, with no conversation.
 const MILESTONE_ROW = z.object({
   id: MILESTONE_ID,
-  chatId: CHAT_ID,
+  chatId: CHAT_ID.nullable().transform((id) => id ?? undefined),
   text: z.string(),
   recordedAt: z.date(),
 });
@@ -84,7 +85,7 @@ async function recordMilestone(
               and(
                 eq(chats.id, chatId),
                 eq(chats.projectId, projectId),
-                opensProject(owner, projectId),
+                ownsProject(owner, projectId),
               ),
             ),
         )

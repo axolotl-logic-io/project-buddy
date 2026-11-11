@@ -4,6 +4,7 @@ import { cleanup, render } from "vitest-browser-react";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -22,8 +23,12 @@ describe("use_case_library", () => {
     signInAs(SIGNED_IN_USER);
     await render(await LibraryPage());
     await expect
-      .element(page.getByRole("heading", { name: "Library", exact: true }))
+      .element(page.getByRole("navigation", { name: WORKSPACES_COPY.books }))
       .toBeVisible();
+    expect(
+      page.getByRole("heading", { level: 1 }).query(),
+      "the trail band, not the page, names it",
+    ).toBeNull();
     await Promise.all(
       LIBRARY_COPY.books.map((book) =>
         expect
@@ -38,9 +43,11 @@ describe("use_case_library", () => {
       await render(
         await BookPage({ params: Promise.resolve({ book: book.id }) }),
       );
-      await expect
-        .element(page.getByRole("heading", { name: book.title, level: 1 }))
-        .toBeVisible();
+      await expect.element(page.getByText(book.intro)).toBeVisible();
+      expect(
+        page.getByRole("heading", { level: 1 }).query(),
+        "the trail band, not the page, names it",
+      ).toBeNull();
       const chapters = page.getByRole("navigation", {
         name: "Chapters",
         exact: true,

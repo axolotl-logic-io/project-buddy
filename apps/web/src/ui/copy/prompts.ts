@@ -10,8 +10,6 @@ function resetTarget(source: string | undefined): string {
 // The text every prompt's page shares, a construct's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
-  boughtResetHint:
-    "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Constructs, Activities or Spellbook list.",
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",
@@ -19,7 +17,7 @@ export const PROMPT_COPY = {
   sectionError: " — Needs attention",
   constructFieldsHeading: "Instructions",
   namePlaceholderHint:
-    "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
+    "Any {{name}} here is replaced with your name, as set on Settings, or “the user” if you have none.",
   limit: (max: number): string =>
     `At most ${max.toLocaleString("en-US")} characters.`,
   textHint: (help: string, max: number | undefined): string => {
@@ -34,7 +32,7 @@ export const PROMPT_COPY = {
   resetDone: "The prompt is back to its default. Save to keep it.",
   undoReset: "Undo reset",
   restored: "Your unsaved changes from before are back. Save to keep them.",
-  discard: "Discard changes",
+  discard: "Cancel",
   save: "Save",
   saved: "Saved.",
   // The button that resets an own construct's, activity's or spell's prompt
@@ -46,7 +44,7 @@ export const PROMPT_COPY = {
   resetTitle: (part: string, source: string | undefined): string =>
     `Reset ${part} to ${resetTarget(source)}?`,
   resetDescription: (part: string, source: string | undefined): string =>
-    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing adventures keep their saved instructions.`,
+    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing conversations keep their saved instructions.`,
   resetComplete: (part: string, source: string | undefined): string =>
     `Reset complete: ${part} restored to ${resetTarget(source)}.`,
   resetConfirm: (part: string): string => `Reset ${part}`,

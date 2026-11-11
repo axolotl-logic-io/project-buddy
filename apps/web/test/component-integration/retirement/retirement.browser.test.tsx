@@ -132,7 +132,11 @@ test("Delete forever names the definition, supports cancellation, and submits on
   await expect.element(trigger).toHaveFocus();
   await trigger.click();
   await expect
-    .element(dialog.getByText(RETIREMENT_COPY.marketplace, { exact: false }))
+    .element(
+      dialog.getByText(
+        RETIREMENT_COPY.deleteDescription(RETIRED_CONSTRUCT.kind),
+      ),
+    )
     .toBeVisible();
   const deleteForever = dialog.getByRole("button", {
     name: RETIREMENT_COPY.delete,
@@ -158,13 +162,12 @@ test("the read-only retired view shows its saved instructions and restores the s
     ),
   );
   await expect
-    .element(
-      page.getByRole("heading", { level: 1, name: RETIRED_CONSTRUCT.name }),
-    )
-    .toBeVisible();
-  await expect
     .element(page.getByText("Voice: calm and curious.", { exact: false }))
     .toBeVisible();
+  expect(
+    page.getByRole("heading", { level: 1 }).query(),
+    "the trail band, not the page, names it",
+  ).toBeNull();
   expect(page.getByRole("textbox").elements()).toHaveLength(0);
   await page
     .getByRole("button", {

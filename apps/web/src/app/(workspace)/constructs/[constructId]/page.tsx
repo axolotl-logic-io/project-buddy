@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { cache } from "react";
-import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualPreview } from "@/components/constructs/construct-visual-preview.tsx";
@@ -20,7 +19,6 @@ import {
   getConstruct,
   isConstructId,
 } from "@/constructs/index.ts";
-import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
@@ -31,26 +29,10 @@ import {
 } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
-import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInConstructAction, saveConstructAction } from "../actions.ts";
 import { RetireConstructForm } from "../retire-construct-form.tsx";
 
 const PROMPT_HEADING_ID = "construct-parts-heading";
-
-function ConstructHeading({
-  name,
-  intro,
-}: {
-  readonly name: string;
-  readonly intro: string;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-2">
-      <h1 className="page-heading wrap-anywhere">{name}</h1>
-      <p className="text-muted">{intro}</p>
-    </div>
-  );
-}
 
 function BuiltInConstruct({
   construct,
@@ -59,10 +41,7 @@ function BuiltInConstruct({
 }): JSX.Element {
   return (
     <>
-      <ConstructHeading
-        intro={CONSTRUCT_COPY.builtInIntro}
-        name={construct.name}
-      />
+      <p className="text-muted">{CONSTRUCT_COPY.builtInIntro}</p>
       <form action={editBuiltInConstructAction}>
         <input name="constructId" type="hidden" value={construct.id} />
         <Button type="submit">{CONSTRUCTS_COPY.customize}</Button>
@@ -106,11 +85,9 @@ function visualRequiredMessage(
 
 function OwnConstructForm({
   construct,
-  sale,
   viewer,
 }: {
   readonly construct: OwnConstruct;
-  readonly sale: SaleState;
   readonly viewer: string;
 }): JSX.Element {
   // Artwork attachments must not invalidate an otherwise current browser draft.
@@ -121,15 +98,11 @@ function OwnConstructForm({
   ]);
   return (
     <>
-      <ConstructHeading intro={CONSTRUCT_COPY.ownIntro} name={construct.name} />
+      <p className="text-muted">{CONSTRUCT_COPY.ownIntro}</p>
       <ConstructEditor
         action={saveConstructAction}
         construct={construct}
-        defaultPrompt={
-          (construct.boughtFrom === undefined &&
-            constructResetPrompt(construct.clonedFrom).prompt) ||
-          undefined
-        }
+        defaultPrompt={constructResetPrompt(construct.clonedFrom).prompt}
         heading={PROMPT_COPY.constructFieldsHeading}
         idName="constructId"
         key={draftRevision}
@@ -155,15 +128,7 @@ function OwnConstructForm({
           },
         ]}
       />
-      {construct.boughtFrom !== undefined && (
-        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
-      )}
-      <RetireConstructForm
-        sale={sale.kind}
-        name={construct.name}
-        constructId={construct.id}
-      />
-      <SellSection kind="construct" promptId={construct.id} sale={sale} />
+      <RetireConstructForm name={construct.name} constructId={construct.id} />
     </>
   );
 }
@@ -197,30 +162,16 @@ export default async function ConstructPage({
   const { saved } = await searchParams;
   const user = await requireUser();
   if (isConstructId(constructId)) {
-    const options = await workshopOptions(user.id);
     const construct = getConstruct(constructId);
     return (
-      <Workshop
-        options={options}
-        initial={{
-          kind: "construct",
-          id: construct.id,
-          name: construct.name,
-          prompt: construct.definition.prompt,
-          whenToUse: "",
-          openingRequest: "",
-        }}
-      >
+      <Workshop kind="construct">
         <BuiltInConstruct construct={construct} />
       </Workshop>
     );
   }
-  const [construct, options] = await Promise.all([
-    measureServerOperation("construct-data", () =>
-      readOwnDefinition(user.id, constructId),
-    ),
-    workshopOptions(user.id),
-  ]);
+  const construct = await measureServerOperation("construct-data", () =>
+    readOwnDefinition(user.id, constructId),
+  );
   if (construct === undefined) {
     const retired = await getRetiredDefinition(user.id, constructId);
     if (retired?.kind === "construct") {
@@ -228,24 +179,10 @@ export default async function ConstructPage({
     }
     notFound();
   }
-  const sale = await readSaleState(user.id, {
-    kind: "construct",
-    promptId: construct.id,
-  });
   return (
-    <Workshop
-      options={options}
-      initial={{
-        kind: "construct",
-        id: construct.id,
-        name: construct.name,
-        prompt: construct.definition.prompt,
-        whenToUse: "",
-        openingRequest: "",
-      }}
-    >
+    <Workshop kind="construct">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
-      <OwnConstructForm viewer={user.id} construct={construct} sale={sale} />
+      <OwnConstructForm viewer={user.id} construct={construct} />
     </Workshop>
   );
 }

@@ -12,7 +12,6 @@ export function pageTitle(page: string): string {
 export const SITE_COPY = {
   breadcrumbSeparator: "/",
   breadcrumbs: "Breadcrumbs",
-  home: "Home",
   name: SITE_NAME,
   tagline: "Work through your own quests and ideas with your constructs.",
 } as const;

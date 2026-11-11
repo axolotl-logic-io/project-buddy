@@ -12,12 +12,11 @@ const CREATE_PROJECT_TOOL = "create_project";
 
 // The tool's description.
 const CREATE_PROJECT_DESCRIPTION = [
-  "Offer a new quest for the user in this adventure's construct. The user edits and confirms the summary before any quest is created.",
+  "Offer to turn this Chat into a quest. It creates nothing: the app shows the user Turn Chat into a quest with your name and summary filled in, and the user edits, picks a construct and confirms it there, or doesn't.",
   "Call it only when the user asks for a new quest, or asks to make the idea you talked through a quest.",
-  "The app offers an editable summary to confirm, then writes the quest's first message, in Break Down a Project, and the user sees a link to that adventure here. Refer to the quest link without saying above or below: the app chooses its position.",
+  "Nothing said here moves into the quest except the Journal the user confirms. Refer to the offer without saying above or below: the app chooses its position.",
   `The name has at most ${PROJECT_NAME_MAX_LENGTH} characters; if the user's name is longer, suggest a shorter one.`,
-  "A proposed result is awaiting the user's editable summary confirmation; do not say a quest exists yet. The summary must not claim planned milestones are completed.",
-  "If the result says Claude is unavailable or the user is out of batteries, no quest was created: tell the user so.",
+  "A proposed result awaits the user's confirmation; do not say a quest exists. The summary must not claim planned milestones are completed.",
 ].join(" ");
 
 const TRANSFER_SUMMARY_MAX = 12_000;
@@ -41,14 +40,15 @@ const CREATE_PROJECT_INPUT = z.object({
   ),
 });
 
-// The project the tool created, with its interview chat, or why it created
-// nothing: Claude could not write the interview's opening, or the user is
-// out of gold. quotaUsedUp is how chats saved before gold say the user was
-// out, and is read as outOfGold.
+// The quest the tool offers: its suggested name, summary and motivation,
+// for the user to confirm in Turn Chat into a quest. Results saved before
+// that carry a proposalId, or say what the tool did then: created a quest,
+// or none because Claude was unavailable or the user was out of gold
+// (quotaUsedUp, from before gold, reads as outOfGold).
 const CREATE_PROJECT_OUTPUT = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("proposed"),
-    proposalId: z.uuid(),
+    proposalId: z.uuid().optional(),
     name: z.string(),
     summary: z.string(),
     motivation: z.string(),
@@ -67,12 +67,25 @@ const CREATE_PROJECT_OUTPUT = z.discriminatedUnion("status", [
 type CreateProjectInput = z.infer<typeof CREATE_PROJECT_INPUT>;
 type CreateProjectOutput = z.infer<typeof CREATE_PROJECT_OUTPUT>;
 
+// The Journal an offer suggests: its summary, then the motivation, if any,
+// under its own heading.
+function offeredJournal({
+  summary,
+  motivation,
+}: Pick<CreateProjectInput, "summary" | "motivation">): string {
+  if (motivation === "") {
+    return summary;
+  }
+  return `${summary}\n\n## Motivation\n${motivation}`;
+}
+
 export type { CreateProjectInput, CreateProjectOutput };
 export {
   CREATE_PROJECT_DESCRIPTION,
   CREATE_PROJECT_INPUT,
   CREATE_PROJECT_OUTPUT,
   CREATE_PROJECT_TOOL,
+  offeredJournal,
   TRANSFER_MOTIVATION_MAX,
   TRANSFER_SUMMARY_MAX,
 };

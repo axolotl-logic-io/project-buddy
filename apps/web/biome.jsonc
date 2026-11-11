@@ -255,29 +255,6 @@
       }
     },
 
-    // web-push's time-to-live option, which it names after the Web Push
-    // protocol's TTL header: set in send-push-notification.ts.
-    {
-      "includes": ["src/push/send-push-notification.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "TTL|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-
     // Anthropic's usage fields, as its API names them
     // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts.
     {
@@ -496,54 +473,12 @@
       }
     },
 
-    // The push notification tests' fake push service is an HTTP server on
-    // loopback, which only node:http can start, and its fake browsers
-    // decrypt what the site sent them with node:crypto, as a browser does.
+    // Retirement tests execute the public worker in its own Node VM context.
     {
       "includes": [
-        "test/component-integration/push/fake-push-service-test-kit.ts"
+        "test/component-integration/app/retire-service-worker.test.ts"
       ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          }
-        }
-      }
-    },
-
-    // The push notification tests run the service worker, public/sw.js, in
-    // a context of its own, which only node:vm makes, after reading it with
-    // node:fs/promises. Its fake PushSubscription has the method the
-    // browser's has, toJSON.
-    {
-      "includes": [
-        "test/component-integration/push/service-worker-test-kit.ts"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          },
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "toJSON|(.+)"
-                  },
-                  {
-                    "selector": { "kind": "typeProperty" },
-                    "match": "toJSON|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
     }
   ]
 }

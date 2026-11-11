@@ -5,20 +5,14 @@
 // (chat-images.browser.test.tsx).
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  type StartChatState,
-  startChatAction,
-} from "@/app/(workspace)/chats/actions.ts";
-import {
-  type CreateProjectState,
-  createProjectAction,
-} from "@/app/(workspace)/projects/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { listMessages } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
-import { mockChatName } from "@/replies/mock-chat-name.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   spendAllGold,
@@ -35,8 +29,6 @@ import { signIn } from "../test-database/session-test-kit.ts";
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
 const SECOND_MESSAGE = "Now add sprinkles";
-// The messages the chat has after her first message and its reply.
-const AFTER_FIRST_EXCHANGE = 2;
 // The first and last lines of the mock construct's reply to her first message
 // (mock-script.ts): a reply holding both was saved in full.
 const REPLY_OPENING = `This is the mock construct. You said: "${FIRST_MESSAGE}".`;
@@ -85,13 +77,11 @@ function refusal({
 }
 
 // What sending her first message, which spends the last of her gold, did: the answer's
-// status, the roles of the chat's messages, the reply's text and the
-// chat's name.
+// status, the roles of the chat's messages and the reply's text.
 interface CrossingReply {
   readonly status: number;
   readonly roles: readonly string[];
   readonly reply: string;
-  readonly name: string | undefined;
 }
 
 // Sends her first message, which spends the last of her gold, and says
@@ -105,43 +95,24 @@ async function sendCrossingMessage({
   const [reply = ""] = saved
     .filter(({ role }) => role === "assistant")
     .map(messageText);
-  const name = (await getChat(user.id, chat.id))?.name;
-  return { status, roles: saved.map(({ role }) => role), reply, name };
+  return { status, roles: saved.map(({ role }) => role), reply };
 }
 
-// The message a start-chat or create-project form shows for state, or its
-// kind if it is no out-of-gold refusal.
-function refusalMessage(state: StartChatState | CreateProjectState): string {
-  if (state.kind === "outOfGold") {
-    return state.message;
-  }
-  return state.kind;
-}
-
-// What starting a chat in the scene's project, and a new project, showed,
-// and the scene user's chats and projects after.
+// What starting a new quest answered once the scene user is out of
+// batteries, and their quests after.
 interface StartAttempts {
-  readonly newChat: string;
-  readonly newProject: string;
-  readonly chatCount: number;
+  readonly newQuest: string;
   readonly projectIds: readonly string[];
 }
 
-async function tryToStart({
-  user,
-  project,
-}: GoldScene): Promise<StartAttempts> {
-  const newChat = new FormData();
-  newChat.set("projectId", project.id);
-  newChat.set("constructId", "lumen");
-  const newProject = new FormData();
-  newProject.set("name", `Fox ${crypto.randomUUID()}`);
-  const chatState = await startChatAction({ kind: "idle" }, newChat);
-  const projectState = await createProjectAction({ kind: "idle" }, newProject);
+async function tryToStart({ user }: GoldScene): Promise<StartAttempts> {
+  const started = await startProject(
+    user.id,
+    PROJECT_NAME.parse("Fox"),
+    getConstruct("lumen"),
+  );
   return {
-    newChat: refusalMessage(chatState),
-    newProject: refusalMessage(projectState),
-    chatCount: (await listChats(user.id, project.id)).length,
+    newQuest: started.kind,
     projectIds: (await listProjects(user.id)).map(({ id }) => id),
   };
 }
@@ -155,7 +126,6 @@ test("use_case_out_of_gold", async () => {
   expect(crossing.roles).toStrictEqual(["user", "assistant"]);
   expect(crossing.reply).toContain(REPLY_OPENING);
   expect(crossing.reply).toMatch(ENDS_WITH_CODE_BLOCK);
-  expect(crossing.name).toBe(mockChatName(FIRST_MESSAGE, AFTER_FIRST_EXCHANGE));
 
   const afterFirst = await listMessages(user.id, chat.id);
   const next = refusal(await sendChatMessage(chat.id, SECOND_MESSAGE));
@@ -164,9 +134,7 @@ test("use_case_out_of_gold", async () => {
   expect(await listMessages(user.id, chat.id)).toStrictEqual(afterFirst);
 
   const attempts = await tryToStart(scene);
-  expect(attempts.newChat).toBe(OUT_OF_GOLD);
-  expect(attempts.newProject).toBe(OUT_OF_GOLD);
-  expect(attempts.chatCount).toBe(1);
+  expect(attempts.newQuest).toBe("outOfGold");
   expect(attempts.projectIds).toStrictEqual([project.id]);
 });
 

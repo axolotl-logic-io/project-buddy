@@ -4,11 +4,12 @@
 // unknown project, and writes nothing of hers or theirs.
 // private-data-chats.server.test.ts covers renaming a chat.
 import { describe, expect, test } from "vitest";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { listChats } from "@/chats/store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
-import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
+import {
+  readQuestConversation,
+  startQuestConversation,
+} from "@/conversations/start-quest.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
   readMemory,
@@ -16,7 +17,6 @@ import {
   saveMemory,
 } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import {
   restoreFromHistory,
@@ -28,15 +28,6 @@ import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 const HER_MEMORY = "- [ ] Rig the fox";
 const THEIR_MEMORY = "- [ ] Mine now";
-
-// What the signed-in user's New Chat form answers for the project with
-// this id and the default construct.
-function startChatIn(projectId: string): Promise<unknown> {
-  const form = new FormData();
-  form.set("projectId", projectId);
-  form.set("constructId", DEFAULT_CONSTRUCT_ID);
-  return startChatAction({ kind: "idle" }, form);
-}
 
 describe("use_case_private_data", () => {
   // Over her memory, which the editor showed as its newest version.
@@ -65,20 +56,15 @@ describe("use_case_private_data", () => {
     expect(await readMemoryHistory(other.id, theirs.id)).toEqual([]);
   });
 
-  test("starting a chat in another user's project answers as for an unknown project, and starts none", async () => {
+  test("starting the conversation of another user's quest answers as for an unknown quest, and starts none", async () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.project();
-    const herChats = await listChats(her.id, hers.id);
-    await signIn(other);
 
-    const unknown = await startChatIn(projectIdFixture());
+    const unknown = await startQuestConversation(other.id, projectIdFixture());
 
-    expect(unknown).toEqual({
-      kind: "invalid",
-      message: NEW_CHAT_COPY.chooseProject,
-    });
-    expect(await startChatIn(hers.id)).toEqual(unknown);
-    expect(await listChats(her.id, hers.id)).toEqual(herChats);
+    expect(unknown).toEqual({ kind: "notFound" });
+    expect(await startQuestConversation(other.id, hers.id)).toEqual(unknown);
+    expect(await readQuestConversation(her.id, hers.id)).toBeUndefined();
   });
 });
 
