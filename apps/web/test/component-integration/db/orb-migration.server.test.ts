@@ -14,6 +14,7 @@ import {
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
 const BEFORE_ORBS = 47;
+const ORB_ROLLOUT = 48;
 const STARTING = 100;
 const REMAINING = 7;
 const LEGACY_PRICE = 99;
@@ -24,6 +25,7 @@ const LISTING = "00000000-0000-4000-8000-000000000781";
 test("orb rollout preserves gold purchases and prices, grants once and blocks both builds until cutover", async () => {
   const database = scratchDatabase("_orbs");
   const migrations = await copyMigrationsUpTo(BEFORE_ORBS);
+  const rollout = await copyMigrationsUpTo(ORB_ROLLOUT);
   const pool = openPool(database.url);
   try {
     await resetTestDatabase(database, migrations);
@@ -39,7 +41,7 @@ test("orb rollout preserves gold purchases and prices, grants once and blocks bo
       "insert into purchases (listing_id,buyer_id,price) values ($1,$2,$3)",
       [LISTING, LEGACY_BUYER, LEGACY_PRICE],
     );
-    await migrateTestDatabase(database);
+    await migrateTestDatabase(database, rollout);
     const { rows: balances } = await pool.query(
       "select orbs from orb_balances where user_id=$1",
       [LEGACY_BUYER],
@@ -102,5 +104,6 @@ test("orb rollout preserves gold purchases and prices, grants once and blocks bo
     await pool.end();
     await dropTestDatabase(database);
     await removeOldMigrations(migrations);
+    await removeOldMigrations(rollout);
   }
 });

@@ -14,7 +14,6 @@ import {
 import { beginReplyRun, finishReplyRun } from "@/replies/reply-runs.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
@@ -26,7 +25,6 @@ describe("use_case_see_gold", () => {
   test("reply costs include naming, retain fractions, and are private to the acting user", async () => {
     const [owner, formerMember] = await Promise.all([testUser(), testUser()]);
     const project = await testData(owner).project();
-    await formerMembership(owner, formerMember, project.id);
     const chat = await testData(owner).chat(project);
     await signIn(owner);
     await sendChatMessage(chat.id, "Help with this quest.");

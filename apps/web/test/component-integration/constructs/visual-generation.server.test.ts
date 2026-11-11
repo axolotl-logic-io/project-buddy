@@ -34,7 +34,6 @@ import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
 import { matchingBuiltInConstruct } from "@/prompts/matching-built-in.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import {
   goldSpent,
   spendGold,
@@ -413,7 +412,6 @@ describe("use_case_generate_construct_visual", () => {
       throw new Error("No construct");
     }
     const project = await testData(user).project();
-    await formerMembership(user, member, project.id);
     const chat = await createChat(user.id, {
       project,
       construct: {
