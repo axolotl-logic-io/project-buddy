@@ -369,7 +369,9 @@ A note in a quest's conversation that the construct updated the quest's Journal.
 
 ### Goal
 
-The outcome the user wants to make or learn through a quest.
+The outcome the user wants to make or learn through a quest. The Journal's typed Goal holds the agreed outcome, apart from free notes, with versions and Undo. The construct changes it with `set_goal`; the owner can edit or clear it without a model call.
+
+- **UI:** "Goal".
 
 ### Milestone
 
@@ -476,6 +478,12 @@ A link to a Blender manual section the construct used in its reply.
 The licence attribution for the Blender Reference Manual.
 
 ## Preferences
+
+### Quest preferences
+
+The owner's stated ways of working in a quest: an ordered, typed list in the Journal, apart from free notes and the Plan. Each preference has a stable number. The construct changes them with `change_preferences`; the owner can add, edit, move and remove them without a model call. Versions keep each change and support Undo. These preferences are distinct from site appearance settings.
+
+- **UI:** "Preferences", "Preference".
 
 ### Theme, mode
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { QuestJournal } from "@/components/journal/quest-journal.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
@@ -41,6 +42,7 @@ export default async function MemoryPage({
     <QuestWorkspace project={project} current={current}>
       {current === "journal" && (
         <>
+          <QuestJournal owner={user.id} projectId={project.id} />
           <p className="text-muted">{MEMORY_COPY.intro}</p>
           <PlanInJournal projectId={project.id} plan={plan ?? EMPTY_PLAN} />
           <MemoryView

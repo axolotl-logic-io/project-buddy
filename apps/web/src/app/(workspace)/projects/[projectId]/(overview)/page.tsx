@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { QuestJournal } from "@/components/journal/quest-journal.tsx";
 import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { listMilestones } from "@/milestones/milestone-store.ts";
@@ -47,6 +48,7 @@ export default async function ProjectPage({
         current={current}
         conversation={await questConversation(project, user.id)}
       >
+        <QuestJournal owner={user.id} projectId={project.id} />
         {project.status !== "active" && (
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
         )}
@@ -60,6 +62,7 @@ export default async function ProjectPage({
 
   return (
     <QuestWorkspace project={project} current={current}>
+      <QuestJournal owner={user.id} projectId={project.id} />
       {project.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}

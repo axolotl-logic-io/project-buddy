@@ -24,6 +24,8 @@ import {
   type ProjectId,
   type UserId,
 } from "@/ids.ts";
+import { runPreferenceCommand } from "@/journal/preference-command-action.ts";
+import { preferenceCommand } from "@/journal/preference-commands.ts";
 import {
   PLAN_OPERATION,
   type PlanChangeLine,
@@ -321,7 +323,11 @@ async function runChatCommandAction(
   }
   const projectId = chat.project?.id;
   const command = parsePlanCommand(text, { steps: [], nextNumber: 1 });
-  if (command.kind === "problem" && command.problem.kind === "unknown") {
+  if (
+    preferenceCommand(text) === undefined &&
+    command.kind === "problem" &&
+    command.problem.kind === "unknown"
+  ) {
     return {
       kind: "problem",
       text: CHAT_COMMANDS_COPY.problem(command.problem),
@@ -338,6 +344,13 @@ async function runChatCommandAction(
   // come between a message and the reply it awaits.
   if (await chatAwaitsReply(user.id, chat.id)) {
     return { kind: "failed", reason: "awaiting-reply", state };
+  }
+  if (preferenceCommand(text) !== undefined) {
+    const result = await runPreferenceCommand(user.id, projectId, chatId, text);
+    if (typeof result === "string") {
+      return { kind: "problem", text: result };
+    }
+    return { kind: "shown", state, message: result };
   }
   const planCommand = parsePlanCommand(text, state.plan);
   switch (planCommand.kind) {

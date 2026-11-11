@@ -54,6 +54,7 @@ import {
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { JOURNAL_SECTIONS_COPY } from "@/ui/copy/journal.ts";
 import {
   CHAT_COMMANDS_COPY,
   PLAN_COPY,
@@ -434,7 +435,11 @@ export function ChatView({
     }
     let listings: readonly CommandListing[] = mockCommands;
     if (projectId !== undefined) {
-      listings = [...PLAN_COMMAND_LISTINGS, ...mockCommands];
+      listings = [
+        ...PLAN_COMMAND_LISTINGS,
+        ...JOURNAL_SECTIONS_COPY.commands,
+        ...mockCommands,
+      ];
     }
     return {
       listings,
