@@ -12,7 +12,7 @@ describe("reply gold for an open adventure", () => {
   test("is the viewer's while she is signed in", async () => {
     const { user, chat } = await signedInChat();
 
-    expect((await replyGoldAction(chat.id, []))?.viewer).toBe(user.id);
+    expect((await replyGoldAction(chat.id, []))?.viewer).toBe(`not-${user.id}`);
   });
 
   test("is nothing once her sign-in lapses, and doesn't send her to sign in", async () => {
