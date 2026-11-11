@@ -11,11 +11,11 @@ import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import {
   type QuestCreationChoices,
   questCreationChoices,
 } from "@/projects/quest-creation-choices.ts";
+import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { RetirementList } from "../retirement/retirement-list.tsx";
