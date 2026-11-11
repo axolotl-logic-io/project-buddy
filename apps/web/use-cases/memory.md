@@ -88,7 +88,7 @@ The user asks the construct what to work on next, and it answers from the quest'
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on that milestone.
   - `use_case_construct_updates_memory`: tell the construct she has already done it.
-  - [`use_case_today_on_landing`](chats.md#use_case_today_on_landing): agree on the next step, and find it on the landing page next time.
+  - `use_case_construct_changes_plan`: agree on the next step and keep it in the Plan.
 
 
 ## use_case_construct_changes_plan
@@ -99,7 +99,7 @@ The construct keeps the quest's plan: the steps she agreed to, in order.
 - **Steps:**
   - She agrees to the next stretch of work, or tells the construct she finished a step or changed her mind.
   - The construct changes the plan: it adds, checks off, changes, moves or removes steps.
-- **Outcome:** the adventure shows a Plan change, set apart from the construct's words, with what each operation did and Undo, as soon as the construct makes it and again when she reopens the adventure. Every adventure in the quest gets the plan in its instructions from its next reply on, each step with its number and the done ones marked. The quest's next step, on the landing page and the quest's Plan section, is the plan's first open step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)); a quest whose plan has never had a step still shows its Journal's "Next step:" line, but once it has had one, a plan emptied or with every step done has no next step. The construct adds only steps she agreed to, checks off a step when she says she finished it, and never counts open steps or days *(checked by the real-Claude smoke test)*.
+- **Outcome:** the adventure shows a Plan change, set apart from the construct's words, with what each operation did and Undo, as soon as the construct makes it and again when she reopens the adventure. Every adventure in the quest gets the plan in its instructions from its next reply on, each step with its number and the done ones marked. The quest’s Plan section shows its remaining steps. A plan emptied or with every step done has no next step. The construct adds only steps she agreed to, checks off a step when she says she finished it, and never counts open steps or days *(checked by the real-Claude smoke test)*.
 - **Variations:**
   - The construct names a step that is gone, such as one she removed meanwhile: nothing changes, and the construct gets the plan as it is to try again.
   - In an adventure with no quest, the construct has no plan to change.

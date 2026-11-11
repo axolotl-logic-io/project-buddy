@@ -46,7 +46,7 @@ async function emailedLoginToken(
   return new URL(url).searchParams.get("token") ?? "";
 }
 
-// Continues signing in with the link's token, which lands on the new chat page.
+// Continues signing in with the link's token, which lands on Quests.
 async function continueSignIn(token: string): Promise<void> {
   const form = new FormData();
   form.set("token", token);

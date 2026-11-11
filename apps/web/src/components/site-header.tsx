@@ -134,13 +134,10 @@ function AccountLinks(): JSX.Element {
 }
 
 // Reads the session for the header slot and supplies the signed-in menu
-// or the public menu for a visitor. place names the map's
-// place the page belongs to, if any, beside the site's name.
+// or the public menu for a visitor.
 async function SignedInLinks({
-  place,
   breadcrumbs,
 }: {
-  readonly place?: string | undefined;
   readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
   const user = await currentUser();
@@ -150,7 +147,6 @@ async function SignedInLinks({
   const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
-      {place !== undefined && <p className="hud-place">{place}</p>}
       <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
@@ -162,7 +158,7 @@ async function SignedInLinks({
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim, whose
-// title, behind a compass, leads back to Home. The controls scroll away;
+// title, behind a compass, leads back to Quests. The controls scroll away;
 // pages with breadcrumbs keep only that navigation row pinned.
 function SiteHeader({
   links = VISITOR_MENU,

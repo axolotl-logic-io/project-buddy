@@ -1,4 +1,4 @@
-import { Bot, ListChecks, MessagesSquare, Pencil, Shield } from "lucide-react";
+import { ListChecks, Pencil } from "lucide-react";
 import type { JSX } from "react";
 
 // What each icon draws on a 16 by 16 grid: an outline, in strokes, and
@@ -69,19 +69,15 @@ const ICON_PATHS = {
     stroke:
       "M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4",
   },
-  // A compass rose, for the way back to the map.
+  // A compass rose, for the way back to Quests.
   compass: {
     stroke:
       "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10.75 5.25 9 9l-3.75 1.75L7 7z",
   },
 } as const;
 
-// Place symbols share these six named imports. Pencil also marks editing
-// controls and edit summaries throughout the interface.
+// Shared symbols for Plan and editing controls.
 const PLACE_ICONS = {
-  shield: Shield,
-  messages: MessagesSquare,
-  bot: Bot,
   checklist: ListChecks,
   pencil: Pencil,
 } as const;
