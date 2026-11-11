@@ -19,7 +19,6 @@ import { builtInActivity } from "@/activities/chosen-activity.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
-import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
@@ -58,8 +57,6 @@ import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { NOTE_DAY } from "@/notes/note.ts";
-import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import {
   getRetiredDefinition,
@@ -250,9 +247,6 @@ function projectPageFor(
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
       vi.mocked(listConstructs).mockResolvedValue([]);
-      vi.mocked(readRecentNotes).mockResolvedValue([
-        { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-      ]);
     },
     async () => (
       <ProjectLayout params={PROJECT_PARAMS}>
@@ -461,26 +455,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "quick capture",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([
-          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
-        ]);
-      },
-      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
-    ),
-  },
-  {
-    name: "quick capture with no projects",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([]);
-      },
-      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
-    ),
-  },
-  {
     name: "a project's memory",
     render: memoryPage,
   },
@@ -650,10 +624,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   ...tabVariants("the constructs page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),
   ...tabVariants("the account page", ["Batteries", "Security"]),
-  ...tabVariants("quick capture", ["Preview"]),
   { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
-  { name: "a quest's Quick Notes", render: projectPageFor("notes") },
   { name: "a quest's Journal versions", render: memoryPageFor("versions") },
 ];
 

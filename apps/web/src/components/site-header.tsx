@@ -134,7 +134,7 @@ function AccountLinks(): JSX.Element {
 }
 
 // Reads the session for the header slot and supplies the signed-in menu
-// and its shortcuts, or the public menu for a visitor. place names the map's
+// or the public menu for a visitor. place names the map's
 // place the page belongs to, if any, beside the site's name.
 async function SignedInLinks({
   place,
@@ -152,7 +152,7 @@ async function SignedInLinks({
     <>
       {place !== undefined && <p className="hud-place">{place}</p>}
       <HeaderBalance microUsd={balance} />
-      <SiteMenu links={<AccountLinks />} shortcuts={true} />
+      <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
     </>
   );

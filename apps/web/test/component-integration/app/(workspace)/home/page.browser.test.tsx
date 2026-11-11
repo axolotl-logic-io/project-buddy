@@ -10,7 +10,7 @@ import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { HomeFrame } from "@/components/ui/page-frame.tsx";
 import type { TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
-import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -110,8 +110,8 @@ function cachedPages(showHome: boolean): Promise<JSX.Element> {
         <HomeAtlas latestQuest={undefined} />
       </React.Activity>
       <React.Activity mode={captureMode}>
-        <h1 className="page-heading">{QUICK_CAPTURE_COPY.heading}</h1>
-        <p>{QUICK_CAPTURE_COPY.intro}</p>
+        <h1 className="page-heading">{MEMORY_COPY.heading}</h1>
+        <p>{MEMORY_COPY.intro}</p>
       </React.Activity>
     </div>,
   );
@@ -283,11 +283,6 @@ describe("use_case_home_atlas", () => {
         .element(header.getByRole("button", { name: SITE_MENU_COPY.title }))
         .toBeVisible();
       await expect
-        .element(
-          header.getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink }),
-        )
-        .toBeVisible();
-      await expect
         .element(header.getByRole("link", { name: SITE_COPY.name }))
         .toBeVisible();
       await expect
@@ -309,12 +304,6 @@ describe("use_case_home_atlas", () => {
         NARROWEST_VIEWPORT.width,
       );
       title.element().focus();
-      await tabForward();
-      await expect
-        .element(
-          header.getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink }),
-        )
-        .toHaveFocus();
       await tabForward();
       await expect
         .element(header.getByRole("button", { name: SITE_MENU_COPY.title }))
@@ -370,7 +359,7 @@ describe("use_case_home_atlas", () => {
       .getByRole("banner")
       .getByRole("link", { name: SITE_COPY.name });
     const capture = page.getByRole("heading", {
-      name: QUICK_CAPTURE_COPY.heading,
+      name: MEMORY_COPY.heading,
       exact: true,
     });
 
@@ -409,8 +398,8 @@ describe("use_case_home_atlas", () => {
     await screen.rerender(
       await inSiteFrame(
         <div className="page-column">
-          <h1 className="page-heading">{QUICK_CAPTURE_COPY.heading}</h1>
-          <p>{QUICK_CAPTURE_COPY.intro}</p>
+          <h1 className="page-heading">{MEMORY_COPY.heading}</h1>
+          <p>{MEMORY_COPY.intro}</p>
         </div>,
       ),
     );
@@ -435,7 +424,7 @@ describe("use_case_home_atlas", () => {
         );
       }
       const screen = await render(
-        await inSiteFrame(<h1>{QUICK_CAPTURE_COPY.heading}</h1>),
+        await inSiteFrame(<h1>{MEMORY_COPY.heading}</h1>),
       );
       const paper = getComputedStyle(document.body).backgroundColor;
       const art = getComputedStyle(document.body).backgroundImage;

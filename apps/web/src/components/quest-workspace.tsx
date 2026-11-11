@@ -9,7 +9,6 @@ import { QuestTitle } from "@/components/quest-title.tsx";
 import type { Project } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -22,7 +21,6 @@ type QuestSection =
   | "journal"
   | "plan"
   | "progress"
-  | "notes"
   | "versions";
 
 // A quest's frame: its title and status, with the rail of its sections, the
@@ -66,11 +64,6 @@ function QuestWorkspace({
       id: "progress",
       label: PROGRESS_TIMELINE_COPY.heading,
       href: `/projects/${project.id}?section=progress`,
-    },
-    {
-      id: "notes",
-      label: PROJECT_NOTES_COPY.heading,
-      href: `/projects/${project.id}?section=notes`,
     },
     {
       id: "versions",

@@ -16,7 +16,6 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -49,7 +48,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["gallery", { label: GENERATION_COPY.heading, href: "/gallery" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
     ["account", { label: ACCOUNT_COPY.heading, href: "/account" }],
-    ["capture", { label: QUICK_CAPTURE_COPY.heading, href: "/capture" }],
     ["invitations", { label: INVITATIONS_COPY.heading, href: "/invitations" }],
   ]);
 
