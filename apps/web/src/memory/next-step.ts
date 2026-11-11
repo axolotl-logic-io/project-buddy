@@ -5,8 +5,9 @@
 // the user used to keep there. Once the plan has had a step, it alone says:
 // a plan emptied, or with every step done, has no next step. Reading it takes no model call. It imports
 // nothing from the server, so pages, prompts and tests can use it.
-import type { Memory } from "@/memory/memory.ts";
-import { nextPlanStep, type Plan } from "@/plan/plan.ts";
+
+import { nextPlanStep, type Plan } from "../plan/plan.ts";
+import type { Memory } from "./memory.ts";
 
 // What starts the Journal's line, as the construct was asked to write it.
 const NEXT_STEP_LABEL = "Next step:";
