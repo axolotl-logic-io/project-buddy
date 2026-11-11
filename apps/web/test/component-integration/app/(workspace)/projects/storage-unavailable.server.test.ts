@@ -71,7 +71,6 @@ describe("use_case_storage_unavailable", () => {
           premadeId: "make",
           name: `Unsaved quest ${crypto.randomUUID()}`,
           journal: quest.journal,
-          activityId: "find-something-to-make",
           constructId: "vellum",
         }),
       ),
