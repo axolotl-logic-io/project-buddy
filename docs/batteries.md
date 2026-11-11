@@ -4,11 +4,9 @@ Batteries are the model-use balance formerly called gold. Headings and labels us
 
 Replies, generated adventure openings and names, and images spend the acting user's batteries. Existing payer isolation and idempotent accounting apply unchanged.
 
-## Marketplace cutover
+## Marketplace history
 
-Before the orb migration, the existing gold accounting, now called Batteries for model use, also backed legacy Marketplace transfers. The orb migration pauses all Marketplace buys immediately, including old and free forms. While the gate is disabled, no sales can fund model use. After operator activation, Marketplace transfers use separate orbs and cannot fund model use. Batteries and orbs cannot be converted.
-
-The [Marketplace cutover plan](marketplace.md#currency-cutover-proposal) documents policy review, migration, old-build drain, history and grant verification, and separate operator activation. Merging code alone does not activate orb buys or authorize production changes. [Battery purchases](battery-purchases.md) retire legacy earning guidance regardless of Checkout availability or the orb gate. Disabled purchases show an honest unavailable message; only configured isolated test Checkout offers the Account purchase link.
+Batteries fund model use only. The Marketplace, which was removed in [#902](design/simplification-902.md), once moved this balance between users and later moved a separate orb balance. No code moves either balance between users now. The ledger keeps its historical sale and purchase rows, and the orb tables stay unread.
 
 ## Compatibility boundaries
 

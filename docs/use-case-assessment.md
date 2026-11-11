@@ -28,7 +28,7 @@ Paths in the evidence column are relative to `apps/web/test/`. They identify exi
 | Marketplace | 4 | Listing, browsing, buying, seller controls and retirement | Marketplace integrations and `component-integration/retirement/retirement.server.test.ts`. Added Retire → Delete forever, held retired copies, free restoration and source restoration before republishing. |
 | Retirement | 4 | Retire, read-only view, restore and permanent deletion | Retirement browser/server integrations. Existing cases cover held purchases, retained snapshots and listing independence. |
 | Appearance | 2 | Parchment modes and phone layout | Theme, phone and menu integrations. Existing cases cover current modes and phone widths. |
-| Installed app and notifications | 2 | Installation, per-device opt-in, tests, renewal and sign-out | Web-app and push integrations. Existing cases distinguish installation from notification configuration and device ownership. |
+| Installed app | 1 | Home Screen launch and public assets | Manifest, icon and appearance integrations; older workers retire without renewing subscriptions. |
 | When things go wrong | 4 | Reply retry, storage failure, opening failure and concurrent messages | Reply, storage and opening integrations. Replaced the old Interview construct setting name with New quest construct. |
 | Site upkeep | 3 | Credits, manual replacement and saved-data compatibility | Credits, manual-index and storage compatibility integrations. Existing cases describe the supported operations and preservation contract. |
 
@@ -42,4 +42,4 @@ The use case index now describes the current product contract and labels preserv
 
 The planned API access vocabulary in the glossary belongs to [issue #684](https://github.com/axolotl-logic-io/project-buddy/issues/684). This assessment adds no API or connection-management cases implying that work is available. When its behavior is agreed and implemented, add explicit cases and tests with it.
 
-Real-model choices, mobile installation, actual push delivery, provider availability and production deployment behavior still need their relevant manual or environment-specific validation. The repository guard proves no such behavior. Future feature changes must update their cases and behavioral tests together; the index guard supplements that review rather than replacing it.
+Real-model choices, mobile installation, provider availability and production deployment behavior still need their relevant manual or environment-specific validation. The repository guard proves no such behavior. Future feature changes must update their cases and behavioral tests together; the index guard supplements that review rather than replacing it.

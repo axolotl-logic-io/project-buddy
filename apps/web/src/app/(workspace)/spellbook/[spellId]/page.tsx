@@ -2,14 +2,12 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { cache } from "react";
-import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
-import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { spellResetPrompt } from "@/spells/default-prompt.ts";
@@ -79,11 +77,9 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
 
 function OwnSpellForm({
   spell,
-  sale,
   viewer,
 }: {
   readonly spell: OwnSpell;
-  readonly sale: SaleState;
   readonly viewer: string;
 }): JSX.Element {
   return (
@@ -91,11 +87,7 @@ function OwnSpellForm({
       <SpellHeading intro={SPELL_COPY.ownIntro} name={spell.name} />
       <PromptEditor
         action={saveSpellAction}
-        defaultPrompt={
-          (spell.boughtFrom === undefined &&
-            spellResetPrompt(spell.clonedFrom).prompt) ||
-          undefined
-        }
+        defaultPrompt={spellResetPrompt(spell.clonedFrom).prompt}
         heading={PROMPT_COPY.spellFieldsHeading}
         idName="spellId"
         key={spell.updatedAt.toISOString()}
@@ -120,11 +112,7 @@ function OwnSpellForm({
           },
         ]}
       />
-      {spell.boughtFrom !== undefined && (
-        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
-      )}
-      <RetireSpellForm sale={sale.kind} name={spell.name} spellId={spell.id} />
-      <SellSection kind="spell" promptId={spell.id} sale={sale} />
+      <RetireSpellForm name={spell.name} spellId={spell.id} />
     </>
   );
 }
@@ -175,14 +163,10 @@ export default async function SpellPage({
     }
     notFound();
   }
-  const sale = await readSaleState(user.id, {
-    kind: "spell",
-    promptId: spell.id,
-  });
   return (
     <Workshop>
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
-      <OwnSpellForm viewer={user.id} spell={spell} sale={sale} />
+      <OwnSpellForm viewer={user.id} spell={spell} />
     </Workshop>
   );
 }
