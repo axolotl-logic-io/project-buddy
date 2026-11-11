@@ -1,5 +1,4 @@
 const IMAGE_COPY = {
-  newAdventure: "Start a new adventure",
   add: "Attach images",
   preview: "Image attachment",
   remove: "Remove image",

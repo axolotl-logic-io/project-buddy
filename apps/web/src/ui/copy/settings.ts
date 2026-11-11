@@ -16,19 +16,19 @@ export const SETTINGS_COPY = {
 export const FLAG_COPY = {
   workingNotes: {
     label: "Working notes",
-    hint: "Your construct's short notes in an adventure before it looks something up.",
+    hint: "Your construct's short notes in a conversation before it looks something up.",
   },
   memoryChangeCards: {
     label: "Journal changes",
-    hint: "The cards in an adventure that show what your construct changed in the quest's Journal.",
+    hint: "The cards in a conversation that show what your construct changed in the quest's Journal.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in an adventure that say what your construct searched the manual for, or that a tool failed.",
+    hint: "The lines in a conversation that say what your construct searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
-    label: "Pinned adventure header",
-    hint: "Keeps an adventure's links and name at the top while you scroll. Off, they scroll away with the adventure.",
+    label: "Pinned conversation header",
+    hint: "Keeps the conversation's construct and actions at the top while you scroll. Off, they scroll away with the conversation.",
   },
   pageDecorations: {
     label: "Page decorations",
@@ -65,7 +65,7 @@ export const NOTIFICATIONS_COPY = {
 
 export const INTERVIEW_CONSTRUCT_COPY = {
   heading: "New quest construct",
-  hint: "This construct starts quests from the quest creation form. Adventure forms use the construct you choose. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
+  hint: "New quests start with this construct unless you choose another. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
   save: "Save new quest construct",
   saved: "New quest construct saved.",
   invalid: "Choose a construct for new quests.",

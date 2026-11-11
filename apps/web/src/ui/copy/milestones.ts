@@ -10,7 +10,7 @@ export const MILESTONE_COPY = {
 
 export const PROGRESS_TIMELINE_COPY = {
   heading: "Progress",
-  none: "Nothing here yet. When you finish something in an adventure in this quest, your construct adds it here.",
+  none: "Nothing here yet. When you finish something in this quest, your construct adds it here.",
   edit: "Edit",
   editLabel: (text: string): string => `Edit the milestone "${text}"`,
   textLabel: "Milestone",
@@ -23,7 +23,7 @@ export const PROGRESS_TIMELINE_COPY = {
   deleteLabel: (text: string): string => `Delete the milestone "${text}"`,
   deleteTitle: "Delete this milestone?",
   deleteDescription: (text: string): string =>
-    `"${text}" leaves the progress timeline. Its adventure stays as it is.`,
+    `"${text}" leaves the progress timeline. The conversation stays as it is.`,
   deleteConfirm: "Delete milestone",
   deleteCancel: "Keep it",
 } as const;

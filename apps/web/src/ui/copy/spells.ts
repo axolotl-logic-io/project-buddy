@@ -16,7 +16,7 @@ export const SPELLBOOK_COPY = {
   homeLink: "Home",
   heading: "Spellbook",
   intro:
-    "A spell is a set of instructions your construct casts when it fits what you need. Every adventure lists your spells by name and when to use them; a spell's instructions reach your construct only in the adventures that cast it.",
+    "A spell is a set of instructions your construct casts when it fits what you need. Every conversation lists your spells by name and when to use them; a spell's instructions reach your construct only in the adventures that cast it.",
   loading: "Loading spells…",
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
@@ -43,7 +43,7 @@ export const SPELL_COPY = {
   builtInIntro:
     "A built-in spell can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your spell’s instructions and when-to-use description. An adventure that cast it keeps what it said then, so a change applies to the casts after it.",
+    "Your spell’s instructions and when-to-use description. A conversation that cast it keeps what it said then, so a change applies to the casts after it.",
 } as const;
 
 // Each part of a spell's prompt, by its key, so a part added to SpellDefinition
@@ -53,10 +53,10 @@ export const SPELL_DEFINITION_COPY: Readonly<
 > = {
   whenToUse: {
     label: "When to use",
-    help: "One line that tells your construct when to cast the spell. Every adventure's instructions carry it, so keep it short.",
+    help: "One line that tells your construct when to cast the spell. Every conversation's instructions carry it, so keep it short.",
   },
   prompt: {
     label: "Instructions",
-    help: "The name identifies the spell; the Spell Sheet contains its instructions. These reach your construct only in adventures that cast it.",
+    help: "The name identifies the spell; the Spell Sheet contains its instructions. These reach your construct only in conversations that cast it.",
   },
 };
