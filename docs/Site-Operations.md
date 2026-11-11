@@ -35,7 +35,7 @@ npm run ops:query -- production "select count(*) from projects"
 
 ## Token spend boundaries
 
-The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `CONSTRUCT_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
+The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, the Full suite workflow (`full-suite.yml`) runs the tests with the mock model, and no script calls a model. The web app's tests refuse to run unless `CONSTRUCT_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
 At runtime, the web app spends tokens on users' construct chats, charged per user to each user's battery balance. That spend isn't commit-driven, so this page doesn't cover it.
 

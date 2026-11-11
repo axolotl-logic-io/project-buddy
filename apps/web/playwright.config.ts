@@ -1,6 +1,10 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
 // test:playwright runs selected files alone; test:e2e runs server tests first.
-import { defineConfig, devices } from "@playwright/test";
+import {
+  defineConfig,
+  devices,
+  type ReporterDescription,
+} from "@playwright/test";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   emailFromAddressEnvironment,
@@ -15,23 +19,26 @@ const SERVER_START_TIMEOUT_MS = 180_000;
 
 interface RunSettings {
   forbidOnly: boolean;
-  retries: number;
-  reporter: "github" | "list";
+  reporter: ReporterDescription[];
+  trace: "retain-on-failure" | "on-first-retry";
   workers: string;
 }
 
 const CI_RUN: RunSettings = {
   forbidOnly: true,
-  retries: 2,
-  reporter: "github",
+  // Annotations on the PR, and an HTML report with each failure's trace,
+  // which the Full suite workflow uploads when the run fails.
+  reporter: [["github"], ["html", { open: "never" }]],
+  trace: "retain-on-failure",
   // Playwright's default, half the cores: more is unmeasured on CI's runners.
   workers: "50%",
 };
 
 const LOCAL_RUN: RunSettings = {
   forbidOnly: false,
-  retries: 0,
-  reporter: "list",
+  reporter: [["list"]],
+  // `-- --retries 1` records a trace of a failing test's retry.
+  trace: "on-first-retry",
   // Playwright's default, half the cores. `-- --workers N` overrides it.
   workers: "50%",
 };
@@ -67,12 +74,14 @@ export default defineConfig({
   testDir: "./test/system",
   fullyParallel: true,
   forbidOnly: run.forbidOnly,
-  retries: run.retries,
+  // No run retries a failed test, in CI or locally: a test that passes only
+  // on a retry is a flake, and a flake is a failure (flakes-are-failures).
+  retries: 0,
   reporter: run.reporter,
   workers: run.workers,
   use: {
     baseURL: baseUrl,
-    trace: "on-first-retry",
+    trace: run.trace,
   },
   projects: [
     {
