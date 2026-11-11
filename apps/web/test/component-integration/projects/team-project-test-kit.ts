@@ -10,15 +10,12 @@ import {
   enterActivity,
 } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
+import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import {
-  getChat,
-  listChats,
-  listMessages,
-  saveMessage,
-} from "@/chats/store.ts";
-import { startQuestConversation } from "@/conversations/start-quest.ts";
+  readQuestConversation,
+  startQuestConversation,
+} from "@/conversations/start-quest.ts";
 import type { MilestoneId } from "@/ids.ts";
 import type { GenerationId } from "@/images/generation-contract.ts";
 import {
@@ -165,9 +162,8 @@ async function seenBy(
   const [
     found,
     listed,
-    chats,
+    conversation,
     openedChat,
-    allChats,
     today,
     messages,
     image,
@@ -181,9 +177,8 @@ async function seenBy(
   ] = await Promise.all([
     getProject(user.id, project.id),
     listProjects(user.id),
-    listChats(user.id, project.id),
+    readQuestConversation(user.id, project.id),
     getChat(user.id, chat.id),
-    listAllChats(user.id),
     readHomeSummary(user.id),
     listMessages(user.id, chat.id),
     getImage(user.id, team.imageId),
@@ -198,9 +193,8 @@ async function seenBy(
   return {
     project: found?.name,
     listed: listed.some(({ id }) => id === project.id),
-    chats: chats.map(({ id }) => id),
+    conversation: conversation?.id,
     chat: openedChat?.id,
-    allChats: allChats.filter(({ id }) => id === chat.id).length,
     today: today.latestQuest?.project.id === project.id,
     messages: messages.length,
     image: image?.mediaType,
@@ -219,9 +213,8 @@ async function seenBy(
 const NOTHING: Record<string, unknown> = {
   project: undefined,
   listed: false,
-  chats: [],
+  conversation: undefined,
   chat: undefined,
-  allChats: 0,
   today: false,
   messages: 0,
   image: undefined,

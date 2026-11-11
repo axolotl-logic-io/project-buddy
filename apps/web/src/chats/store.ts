@@ -16,16 +16,13 @@ import {
   messageOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
-import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
   chatWithProjectColumns,
-  isProjectChat,
   messageColumns,
   type NewMessage,
   openChat,
   openMessage,
-  type ProjectChat,
   replyUnclaimed,
   toChats,
 } from "@/chats/chat-rows.ts";
@@ -45,7 +42,6 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ChatId,
   type MessageId,
-  type ProjectId,
   parseChatId,
   parseUserId,
   type UserId,
@@ -137,22 +133,6 @@ export type { MessageSaveResult };
 
 // The chats in the owner's project, newest first; none if the project is
 // another user's. A standalone chat is in no project, so never among them.
-export function listChats(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<ProjectChat[]> {
-  return withAppErrors("listChats", async () =>
-    toChats(
-      await getDb()
-        .select(chatWithProjectColumns(owner))
-        .from(chats)
-        .leftJoin(projects, eq(chats.projectId, projects.id))
-        .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
-        .orderBy(desc(chats.createdAt)),
-    ).filter(isProjectChat),
-  );
-}
-
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(
@@ -489,22 +469,4 @@ export async function markChatRead(
       .delete(chatUnreads)
       .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
   );
-}
-
-// Names the owner's chat as she typed it. Haiku never renames it after
-// this. Whether the chat was found: an unknown chat or another user's is
-// left alone.
-export async function renameChat(
-  owner: UserId,
-  chatId: ChatId,
-  name: ChatName,
-): Promise<boolean> {
-  const renamed = await withAppErrors("renameChat", () =>
-    getDb()
-      .update(chats)
-      .set({ name, renamedByHand: true })
-      .where(and(eq(chats.id, chatId), chatOpenTo(owner)))
-      .returning({ id: chats.id }),
-  );
-  return renamed.length > 0;
 }
