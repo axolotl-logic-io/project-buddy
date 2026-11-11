@@ -8,7 +8,6 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { wholeGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
@@ -132,9 +131,6 @@ function AccountLinks(): JSX.Element {
       <ul aria-labelledby={YOU_LABEL_ID} className="flex flex-col">
         <li>
           <MenuLink href="/settings">{SETTINGS_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/account">{ACCOUNT_COPY.headerLink}</MenuLink>
         </li>
       </ul>
     </nav>

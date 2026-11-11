@@ -24,7 +24,6 @@ import { SiteMenu } from "@/components/site-menu.tsx";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
@@ -94,7 +93,7 @@ const PLACES = [
   GENERATION_COPY.heading,
   MARKETPLACE_COPY.headerLink,
 ] as const;
-const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
+const YOU = [SETTINGS_COPY.headerLink] as const;
 
 // The screens the header is checked on.
 const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
@@ -290,7 +289,7 @@ test.each(SCREENS)(
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
