@@ -30,10 +30,6 @@ export const FLAG_COPY = {
     label: "Pinned adventure header",
     hint: "Keeps an adventure's links and name at the top while you scroll. Off, they scroll away with the adventure.",
   },
-  chatNames: {
-    label: "Adventure names",
-    hint: "The names in a quest's list of adventures. Off, each adventure shows its construct's name alone.",
-  },
   pageDecorations: {
     label: "Page decorations",
     hint: "The theme's pattern behind every page.",

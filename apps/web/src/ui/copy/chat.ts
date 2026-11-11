@@ -1,81 +1,14 @@
-// The text of chats: the new-chat form, the chat page and its conversation,
+// The text of conversations: the construct picker, the conversation,
 // the construct's tool parts, and chat names.
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
-import { pageTitle } from "@/ui/copy/site.ts";
-
-// The word joining a named chat's name to its construct's in its link.
-const LIST_NAME_JOIN = "with";
-
-// The words before the construct's name in a named chat's link, so hiding them
-// (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
-function listNamePrefix(name: string): string {
-  return `${name} ${LIST_NAME_JOIN}`;
-}
 
 export const NEW_CHAT_COPY = {
-  fixedChoice: (label: string, name: string | undefined): string =>
-    `${label}: ${name ?? ""}`,
-  revisitInterviewHint:
-    "Discuss this quest’s goals and next step using its Journal. Existing Journal content is kept.",
-  title: pageTitle("New adventure"),
-  heading: "Start an adventure",
-  // The button on the Chats page and a project's page, and the dialog it
-  // opens with the form.
-  dialogHeading: "New adventure",
-  closeDialog: "Close",
-  loading: "Loading quests…",
-  activityLabel: "Activity",
-  projectLabel: "Quest",
-  noProject: "No quest",
-  newProject: "New quest",
-  projectOptions: "Other options",
-  existingProjects: "Your quests",
-  projectNameHeading: "Name your new quest",
-  projectNameLabel: "Quest name",
-  startProject: "Start quest",
-  cancelProjectName: "Cancel",
-  needsProjectName: "Give the new quest a name.",
-  projectNameTooLong: (maxLength: number): string =>
-    `Use a shorter name, of at most ${maxLength} characters.`,
   constructLabel: "Construct",
   previousConstruct: "Previous construct",
   nextConstruct: "Next construct",
   constructPosition: (position: number, count: number): string =>
     `${position} of ${count}`,
   ownConstructDescription: "One of your own constructs.",
-  start: "Start adventure",
-  starting: "Starting the adventure…",
-  chooseProject: "Choose a quest for the adventure, or no quest.",
-  chooseActivity: "Choose an activity for the adventure.",
-  interviewNeedsProject:
-    "The quest interview needs a quest. Start a new quest to have one.",
-  chooseConstruct: "Choose a construct for the adventure.",
-} as const;
-
-// The landing page's Today section, above the new-chat form: the projects
-// the user was recently active in, with their next steps, and recent chats.
-export const TODAY_COPY = {
-  heading: "Today",
-  projectsHeading: "Your quests",
-  nextStepLabel: "Next step:",
-  continue: "Continue",
-  continueLabel: (projectName: string): string => `Continue ${projectName}`,
-  chatsHeading: "Recent adventures",
-} as const;
-
-export const STANDALONE_CHATS_COPY = {
-  title: pageTitle("Adventures"),
-  heading: "Adventures",
-  homeLink: "Home",
-  backLink: "Adventures",
-  listHeading: "Previous adventures",
-  noChats: "No adventures yet. Choose New adventure to start one.",
-  emptyHeading: "No adventures yet",
-  emptyIntro:
-    "An adventure is a conversation with a construct, on its own or in one of your quests. Start your first one here.",
-  loading: "Loading adventures…",
-  projectFilterLabel: "Show adventures from",
-  allProjects: "All",
 } as const;
 
 export const CHAT_COPY = {
@@ -158,23 +91,6 @@ export const CREATE_PROJECT_COPY = {
   openQuest: "Open the quest",
   claudeUnavailable:
     "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
-} as const;
-
-export const CHAT_NAME_COPY = {
-  fallback: "New adventure",
-  listNameJoin: LIST_NAME_JOIN,
-  // What a named chat's link reads.
-  listTitle: (name: string, constructName: string): string =>
-    `${listNamePrefix(name)} ${constructName}`,
-  rename: "Rename adventure",
-  label: "Adventure name",
-  save: "Save name",
-  saved: "Renamed.",
-  cancel: "Cancel",
-  needsName: "An adventure needs a name.",
-  tooLong: (maxLength: number): string =>
-    `An adventure name is one line of at most ${maxLength} characters.`,
-  multiLine: "An adventure name is one line. Take out the line break.",
 } as const;
 
 // What the new-project and new-chat forms say when Claude can't write the new
