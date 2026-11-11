@@ -2,14 +2,13 @@
 // construct: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
 import { describe, expect, test } from "vitest";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { getChat, listMessages } from "@/chats/store.ts";
 import {
   type ConstructId,
   getConstruct,
   snapshotOf,
 } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { mockChatName } from "@/replies/mock-chat-name.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/replies/mock-slow.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
@@ -23,8 +22,6 @@ import {
 
 // The last line of the mock construct's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
-// Her first message and its reply, which the mock names the chat from.
-const FIRST_EXCHANGE = 2;
 const SYSTEM_PROMPT = "/mock-system-prompt";
 const NO_NAME = "{{name}}";
 const SLOW_QUESTION = "/mock-slow Tell me about bevels.";
@@ -76,10 +73,6 @@ test("use_case_reopen_chat", async () => {
   expect(await savedConversation(user, chat)).toEqual([
     ...exchange(first),
     ...exchange(second),
-  ]);
-  const listed = await listChats(user.id, chat.project.id);
-  expect(listed.map(({ id, name }) => ({ id, name }))).toEqual([
-    { id: chat.id, name: mockChatName(first, FIRST_EXCHANGE) },
   ]);
 });
 

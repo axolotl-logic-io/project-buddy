@@ -12,8 +12,8 @@ import {
   editMilestoneAction,
 } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
 import {
@@ -117,17 +117,13 @@ describe("use_case_construct_records_milestone", () => {
     ]);
   });
 
-  test("another chat in the project gets the milestone in its prompt, so the construct can see it is recorded", async () => {
+  test("the conversation's next reply gets the milestone in its prompt, so the construct can see it is recorded", async () => {
     const { her: user, herData } = await twoUsers();
-    const project = await herData.project();
-    const [chat, otherChat] = await Promise.all([
-      herData.chat(project),
-      herData.chat(project),
-    ]);
-    const standalone = await createStandaloneChat(user.id);
+    const chat = await herData.chat(await herData.project());
+    const standalone = await privateChat(user.id);
     await sendChatMessage(chat.id, recordCommand({ text: SHELL }));
 
-    const prompt = await constructPrompt(otherChat.id);
+    const prompt = await constructPrompt(chat.id);
     const standalonePrompt = await constructPrompt(standalone.id);
 
     const [recorded] = await listMilestones(user.id, chat.project.id);
@@ -139,7 +135,7 @@ describe("use_case_construct_records_milestone", () => {
 
   test("a standalone chat records no milestone, and its reply saves the failed call", async () => {
     const { user } = await signedInChat();
-    const standalone = await createStandaloneChat(user.id);
+    const standalone = await privateChat(user.id);
 
     await sendChatMessage(standalone.id, recordCommand({ text: SHELL }));
 
