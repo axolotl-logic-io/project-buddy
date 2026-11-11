@@ -6,7 +6,6 @@ import { z } from "zod";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
-import { stopNotificationsToThisBrowser } from "@/push/push-device-cookie.ts";
 import {
   HOME_PATH,
   localPath,
@@ -21,7 +20,7 @@ const TOKEN_FIELD = z.string().catch("");
 // token, then shows the link's destination, if it has a local one, or else
 // Quests. If the link has
 // expired since its page opened, or no longer works, shows that page again,
-// which says so. Another user's notifications stop going to this browser.
+// which says so.
 export async function continueSignInAction(formData: FormData): Promise<never> {
   const token = TOKEN_FIELD.parse(formData.get("token"));
   const destination = localPath(formData.get(SIGN_IN_DESTINATION_PARAMETER));
@@ -31,7 +30,6 @@ export async function continueSignInAction(formData: FormData): Promise<never> {
     const linkPage = new URLSearchParams({ token });
     return redirect(`${SIGN_IN_LINK_PATH}?${linkPage.toString()}`);
   }
-  await stopNotificationsToThisBrowser(found.id);
   (await cookies()).set(await sessionCookie(found, readSessionSecret(), now));
   return redirect(destination ?? HOME_PATH);
 }
