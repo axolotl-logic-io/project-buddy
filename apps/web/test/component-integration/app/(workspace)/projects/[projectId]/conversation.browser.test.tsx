@@ -255,7 +255,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
       await render(await chatPage());
       const backLink = page
         .getByRole("navigation", { name: "Breadcrumbs" })
-        .getByRole("link", { name: PROJECTS_COPY.allProjectsLink });
+        .getByRole("link", { name: PROJECTS_COPY.heading, exact: true });
       const pinned = page.getByRole("button", {
         name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
       });
