@@ -2,10 +2,6 @@ import type { Metadata, Viewport } from "next";
 import type { JSX } from "react";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import {
-  DEFAULT_FLAG_ATTRIBUTES,
-  FLAGS_PRE_PAINT_SCRIPT,
-} from "@/flags/flag-choice.ts";
-import {
   DEFAULT_THEME_ATTRIBUTES,
   THEME_PRE_PAINT_SCRIPT,
 } from "@/themes/theme-choice.ts";
@@ -47,9 +43,9 @@ export const viewport: Viewport = {
 export const instant = false;
 
 // Every page renders per request, because the header (the @header slot's
-// links) reads who is signed in. The HTML still carries the default theme
-// and shows every extra, and the pre-paint scripts apply the visitor's saved
-// theme and hidden extras before the first paint. suppressHydrationWarning,
+// links) reads who is signed in. The HTML still carries the default theme,
+// and the pre-paint script applies the visitor's saved theme before the
+// first paint. suppressHydrationWarning,
 // on <html> alone, lets that choice stand when React hydrates. The not-found
 // page of an address the site doesn't have gets no @header slot, so it
 // reads the session for the header itself, as every other page does.
@@ -60,14 +56,12 @@ export default function RootLayout({
   return (
     <html
       {...DEFAULT_THEME_ATTRIBUTES}
-      {...DEFAULT_FLAG_ATTRIBUTES}
       className={`${THEME_FONT_VARIABLES} h-full antialiased`}
       lang="en"
       suppressHydrationWarning={true}
     >
       <head>
         <script>{THEME_PRE_PAINT_SCRIPT}</script>
-        <script>{FLAGS_PRE_PAINT_SCRIPT}</script>
       </head>
       <body className="flex min-h-full flex-col">
         <SiteHeader links={header ?? <SignedInLinks />} />
