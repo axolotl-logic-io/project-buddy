@@ -24,7 +24,7 @@ import {
   CHANGE_PLAN_OUTPUT,
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
-import { readToday } from "@/today/today-store.ts";
+import { readHomeSummary } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -298,7 +298,7 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
   });
 
-  test("Today's next step is the plan's first open step, or the Journal's line before the plan has had a step", async () => {
+  test("Home's next step is the plan's first open step, or the Journal's line before the plan has had a step", async () => {
     const { user, chat } = await signedInChat();
     await sendChatMessage(chat.id, "Hello");
     await saveMemory(user.id, {
@@ -307,12 +307,12 @@ describe("a quest's plan, changed without the construct", () => {
       basedOn: MEMORY_VERSION_NUMBER.parse(0),
       author: "user",
     });
-    const before = await readToday(user.id);
-    expect(before.projects[0]?.nextStep).toBe("pick a bed layout");
+    const before = await readHomeSummary(user.id);
+    expect(before.latestQuest?.nextStep).toBe("pick a bed layout");
 
     await laidOut(chat.project.id);
-    const after = await readToday(user.id);
-    expect(after.projects[0]?.nextStep).toBe(BLOCK_OUT);
+    const after = await readHomeSummary(user.id);
+    expect(after.latestQuest?.nextStep).toBe(BLOCK_OUT);
 
     // An emptied plan has no next step, whatever the Journal still says.
     await changePlanAction({
@@ -323,8 +323,8 @@ describe("a quest's plan, changed without the construct", () => {
         { op: "remove", step: 3 },
       ],
     });
-    const emptied = await readToday(user.id);
-    expect(emptied.projects[0]?.nextStep).toBeUndefined();
+    const emptied = await readHomeSummary(user.id);
+    expect(emptied.latestQuest?.nextStep).toBeUndefined();
   });
 
   test(`a change may add a step and remove another at the ${MOST_OPEN_STEPS}-step limit`, async () => {
