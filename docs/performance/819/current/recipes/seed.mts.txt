@@ -1,0 +1,25 @@
+import {builtInActivity} from './src/activities/chosen-activity.ts';
+import {DEFAULT_ACTIVITY_ID} from './src/activities/activity.ts';
+import {milestoneIdFixture} from './test/support/id-fixtures.ts';
+import {markdownReplyText} from './test/component-integration/replies/mock-markdown-test-kit.ts';
+import {RECORD_MILESTONE_TOOL} from './src/replies/tools/record-milestone-contract.ts';
+import {writeFile} from 'node:fs/promises';
+import {testUser} from './test/support/test-database/user-test-kit.ts';
+import {testData} from './test/support/test-database/data-test-kit.ts';
+import {findOrCreateConversation} from './src/conversations/conversation-store.ts';
+import {getConstruct,DEFAULT_CONSTRUCT_ID} from './src/constructs/index.ts';
+import {createSessionToken} from './src/auth/session-token.ts';
+import {readSessionSecret} from './src/env.ts';
+import {checkTestEnvironment} from './scripts/test-db/test-database.ts';
+checkTestEnvironment();
+const user=await testUser(); const kit=testData(user); const routes=[];
+for(const count of [0,20,200]) {
+const p=await kit.project('Synthetic performance quest');
+const found=await findOrCreateConversation(user.id,p,{construct:getConstruct(DEFAULT_CONSTRUCT_ID),activity:builtInActivity(DEFAULT_ACTIVITY_ID)});
+if(!found) throw Error('Missing conversation');
+await kit.exchanges(found.conversation,Array.from({length:count/2},(_,i)=>({message:`Synthetic question ${i}`,reply:count===20&&i===0?[{type:'text' as const,text:markdownReplyText()+'\n\n![Synthetic image](/constructs/vellum-v1-512.webp)'}]:count===20&&i===1?[{type:'text' as const,text:'Synthetic tool result.'},{type:`tool-${RECORD_MILESTONE_TOOL}` as const,toolCallId:'synthetic-call',state:'output-available' as const,input:{text:'Synthetic milestone'},output:{status:'recorded',milestoneId:milestoneIdFixture(),projectId:p.id,text:'Synthetic milestone',recordedAt:'2026-11-11T00:00:00.000Z'}}]:[{type:'text' as const,text:`Synthetic reply ${i}. `+'A synthetic paragraph for repeatable rendering. '.repeat(20)}]})));
+routes.push({name:`quest-${count}`,path:`/projects/${p.id}`,count});
+}
+const c=await kit.editedConstruct(); routes.push({name:'editor',path:`/constructs/${c.id}`,count:0});
+await writeFile('/tmp/pb-current-diag/private.json',JSON.stringify({session:await createSessionToken(user,readSessionSecret(),new Date()),routes}),{mode:0o600});
+process.exit(0);

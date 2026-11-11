@@ -1,0 +1,15 @@
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {readFile,writeFile,rm} from 'node:fs/promises';
+process.loadEnvFile('.env.test');
+async function command(cmd,args){const p=spawn(cmd,args,{stdio:'inherit'});const [code]=await once(p,'exit');if(code!==0)throw Error('Command failed');}
+let server;
+try {
+await command('npm',['run','test-db:reset']);
+await command('node',['--import','tsx','seed-current.local.mts']);
+
+server=spawn('node',['../../node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port',process.env.E2E_PORT],{stdio:['ignore','pipe','inherit']});
+await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('server deadline')),30000);server.stdout.on('data',c=>{if(c.toString().includes('Ready in')){clearTimeout(t);resolve();}});server.once('exit',()=>reject(Error('server exited')));});
+await command('node',['/tmp/pb-current-diag/ablate.mjs']);
+} catch(e){await writeFile('/tmp/pb-current-diag/failure.json',JSON.stringify({complete:false,error:e.message}));process.exitCode=1;}
+finally {if(server){const done=once(server,'exit');server.kill('SIGTERM');await done;}await rm('/tmp/pb-current-diag/private.json',{force:true});await command('npm',['run','test-db:reset']);}

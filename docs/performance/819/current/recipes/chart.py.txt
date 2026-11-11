@@ -1,0 +1,9 @@
+import json,statistics
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+x=json.load(open('/tmp/pb-current-diag/input-v3-results.json'))
+names=['quest-0','quest-20','quest-200','editor'];fig,ax=plt.subplots(figsize=(8,4.4))
+for offset,mode,label,color in [(-.18,'direct','Cold direct','#255d85'),(.18,'transition','Prepared transition','#bd631f')]:
+ cells=[[r['control']['at']-r['origin']for r in x['rows']if r['name']==n and r.get('mode')==mode]for n in names];m=[statistics.median(c)for c in cells];lo=[a-min(c)for a,c in zip(m,cells)];hi=[max(c)-a for a,c in zip(m,cells)];ax.bar([i+offset for i in range(4)],m,width=.35,label=label,color=color,yerr=[lo,hi],capsize=4)
+ax.set_xticks(range(4),['Empty quest','20 mixed messages','200 plain messages','Own editor']);ax.set_ylabel('Input confirmation upper bound (ms)');ax.set_title('Current-source phone screen: median and range, n=3');ax.legend();ax.set_ylim(bottom=0);ax.grid(axis='y',alpha=.2);ax.set_axisbelow(True);fig.text(.01,.01,'Chrome 156 · 4× CPU · applied network throttle · build EdH_eq2nPEyGKni-9TT0c',fontsize=9);fig.tight_layout(rect=(0,.04,1,1));fig.savefig('docs/performance/819/current/input-screen.png',dpi=150)
