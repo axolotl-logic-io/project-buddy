@@ -10,7 +10,6 @@ import { PlanDataPart } from "@/components/chat/plan-change-part.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { extraTag } from "@/flags/flags.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
@@ -52,7 +51,7 @@ export function ChatPart({
       }
       if (part.isError === true) {
         return (
-          <p className="error-text icon-line" {...extraTag("tool-lines")}>
+          <p className="error-text icon-line">
             <Icon name="alert" />
             {toolPart.failure}
           </p>

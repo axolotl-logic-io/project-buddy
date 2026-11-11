@@ -6,7 +6,6 @@ import { z } from "zod";
 import { acceptInvitation } from "@/accounts/invitations.ts";
 import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
-import { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import { stopNotificationsToThisBrowser } from "@/push/push-device-cookie.ts";
 import { HOME_PATH } from "@/routes.ts";
 
@@ -23,7 +22,6 @@ export async function confirmSetupAction(formData: FormData): Promise<never> {
     const linkPage = new URLSearchParams({ token });
     return redirect(`/setup?${linkPage.toString()}`);
   }
-  await seedHiddenFlags([]);
   await stopNotificationsToThisBrowser(found.id);
   (await cookies()).set(
     await sessionCookie(found, readSessionSecret(), new Date()),
