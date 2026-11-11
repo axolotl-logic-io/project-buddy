@@ -73,8 +73,8 @@ export const projects = pgTable(
 // constructs can be added without a migration, and the chat store narrows it
 // when reading, so an id no construct has reads as the default construct.
 // name and renamed_by_hand are a legacy adventure's name, which nothing
-// writes any more; that later release drops them, once no live build reads
-// them.
+// writes any more. They stay for now: dropping them needs a later release,
+// after a build that neither reads nor writes them is live.
 // Unread marks are per user, in chat_unreads (chat-unreads.ts).
 export const chats = pgTable(
   "chats",
