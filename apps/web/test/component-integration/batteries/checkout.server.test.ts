@@ -34,6 +34,8 @@ const GRANT = 250_000;
 const INITIAL = 1_000_000;
 let server: Server;
 let purchase = "";
+let successUrl: string | null = null;
+let cancelUrl: string | null = null;
 let paymentStatus: PaymentSession["payment_status"] = "unpaid";
 let checkoutStatus: PaymentSession["status"] = "open";
 let priceId = "price_fixture";
@@ -89,6 +91,8 @@ beforeAll(async () => {
       request.on("end", () => {
         const form = new URLSearchParams(body);
         purchase = form.get("client_reference_id") ?? "";
+        successUrl = form.get("success_url");
+        cancelUrl = form.get("cancel_url");
         if (ambiguousCreation) {
           response.statusCode = HTTP_STATUS.internalServerError;
           response.setHeader("stripe-should-retry", "false");
@@ -218,6 +222,12 @@ test("signed events, rather than browser return, credit the catalog offer once",
   const buyer = await testUser();
   expect(await startBatteryPurchase(buyer.id, "test")).toBe(
     "https://checkout.stripe.com/test",
+  );
+  expect(successUrl).toBe(
+    "http://localhost/settings?battery=returned#buy-batteries",
+  );
+  expect(cancelUrl).toBe(
+    "http://localhost/settings?battery=canceled#buy-batteries",
   );
   expect(await readGoldBalance(buyer.id)).toBe(INITIAL);
   expect((await deliver("evt_unpaid")).status).toBe(HTTP_STATUS.ok);

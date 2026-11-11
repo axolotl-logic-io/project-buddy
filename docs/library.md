@@ -6,8 +6,7 @@ The signed-in Library at `/library` contains Getting Started and books on Constr
 
 Product contributors own the reader-facing text in `apps/web/src/ui/copy/library.ts`. The renderer is in `apps/web/src/library/library.tsx`; route files are thin authenticated adapters. Keep existing book ids and chapter anchors stable when editing headings. Use the glossary and the docs style guide. The content uses Batteries for model use. Character Sheet, Activity Sheet and Spell Sheet are headings inside prompt text, not replacements for the editor labels Prompt and Instructions. A construct's Prompt field sits under its Instructions heading. Craft construct, Craft activity and Craft spell are the creation controls; compatibility fields stay unchanged.
 
-The Library describes the site as a reader finds it today, as a guide rather than release notes. Keep change and migration history out of it: the earlier gold balance belongs in [Batteries](batteries.md), and test-only purchases in [Battery purchases](battery-purchases.md). For Batteries, the Library points readers to Account.
-
+The Library describes the site as a reader finds it today, as a guide rather than release notes. Keep change and migration history out of it: the earlier gold balance belongs in [Batteries](batteries.md), and test-only purchases in [Battery purchases](battery-purchases.md). For Batteries, the Library points readers to Settings.
 Changes to prompts, model inputs, tools, access rules, snapshots, limits or relevant user flows must update the corresponding Library chapters in the same PR. The reviewer compares technical claims with the source map below and checks whether the call-site inventory changed. Explain conditional context rather than claiming all operations receive all data. Use fictional examples only.
 
 ## Source map

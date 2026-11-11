@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { PageError } from "@/components/ui/page-error.tsx";
 import { SignOutButtons } from "./sign-out-buttons.tsx";
 
-export default function AccountError({
+export default function SettingsError({
   error,
   retry,
 }: {

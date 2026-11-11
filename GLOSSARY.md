@@ -497,6 +497,12 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 ## Accounts and access
 
+### Settings
+
+The single destination for profile name, appearance, the new quest construct, Batteries and security. Old Account links redirect here.
+
+- **UI:** "Settings".
+
 ### User
 
 A person with an account, found by email.
