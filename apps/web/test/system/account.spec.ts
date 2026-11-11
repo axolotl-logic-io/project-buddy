@@ -13,10 +13,11 @@ import { userMessage } from "@/errors/app-error.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn } from "./page-helpers.ts";
+import { alertIn, clickWhenReady } from "./page-helpers.ts";
 import { newSignInLink, signInByLink } from "./sign-in-pages.ts";
 
 // A page in another browser, signed in as account, at address.
@@ -31,6 +32,14 @@ async function anotherBrowser(
   return other;
 }
 
+// On the account page, opens its Security tab, where the sign-out buttons
+// are.
+async function openSecurity(page: Page): Promise<void> {
+  const tab = page.getByRole("tab", { name: WORKSPACES_COPY.security });
+  await clickWhenReady(tab);
+  await expect(tab).toHaveAttribute("aria-selected", "true");
+}
+
 test("use_case_sign_out", async ({ account, browser, page }) => {
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
@@ -38,6 +47,7 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
   const other = await anotherBrowser(browser, account, "/projects");
 
   await test.step("Sign out shows the sign-in page", async () => {
+    await openSecurity(page);
     await page
       .getByRole("button", { exact: true, name: ACCOUNT_COPY.signOut })
       .click();
@@ -76,13 +86,14 @@ function signOutEverywhereDialog(page: Page): Locator {
   });
 }
 
-// On the account page, presses Sign out everywhere, and checks the dialog
-// says what it does before she answers it with answer.
+// On the account page's Security tab, presses Sign out everywhere, and
+// checks the dialog says what it does before she answers it with answer.
 async function answerSignOutEverywhere(
   page: Page,
   answer: string,
 ): Promise<void> {
   const dialog = signOutEverywhereDialog(page);
+  await openSecurity(page);
   await page
     .getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere })
     .click();
