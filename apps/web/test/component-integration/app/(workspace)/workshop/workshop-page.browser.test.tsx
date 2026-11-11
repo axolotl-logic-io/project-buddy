@@ -14,7 +14,7 @@ import { listOwnSpells } from "@/spells/spell-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
-import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
+import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { userConstructIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
@@ -116,10 +116,12 @@ describe("use_case_workshop_page", () => {
   test("shows Constructs first, with a tab for each kind", async () => {
     await showWorkshop();
     await expect
-      .element(
-        page.getByRole("heading", { level: 1, name: WORKSHOP_COPY.heading }),
-      )
+      .element(page.getByText(WORKSHOP_PAGE_COPY.intro))
       .toBeVisible();
+    expect(
+      page.getByRole("heading", { level: 1 }).query(),
+      "the trail band, not the page, names it",
+    ).toBeNull();
     await expect
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");

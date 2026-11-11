@@ -39,10 +39,7 @@ async function GalleryPage({
   const last = images.at(-1);
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <h1 className="page-heading">{GENERATION_COPY.heading}</h1>
-        <p className="text-muted">{GENERATION_COPY.context}</p>
-      </div>
+      <p className="text-muted">{GENERATION_COPY.context}</p>
       {images.length === 0 && <p>{GENERATION_COPY.empty}</p>}
       <ul className="grid min-w-0 gap-4 sm:grid-cols-2">
         {images.map((image) => (

@@ -61,16 +61,15 @@ test.each([
 
   await expect
     .element(
-      page.getByRole("heading", { level: 1, name: activity.name, exact: true }),
-    )
-    .toBeVisible();
-  await expect
-    .element(
       page.getByRole("button", {
         name: PROMPT_COPY.resetPrompt,
       }),
     )
     .toBeVisible();
+  expect(
+    page.getByRole("heading", { level: 1 }).query(),
+    "the trail band, not the page, names it",
+  ).toBeNull();
 });
 
 vi.mock("@/retirement/retirement-store.ts", () => ({

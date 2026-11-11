@@ -3,9 +3,11 @@
 // with the quest's sections a tap away, and no adventure list or New
 // adventure button. "use_case_breadcrumbs_in_long_chat" in
 // use-cases/chats.md: a conversation longer than the screen, scrolled to its
-// end. The way back to the quests, the conversation's pinned header and the
+// end. The trail band, with the way back to the quests and the quest's
+// name as the page's heading, the conversation's pinned header and the
 // composer stay wholly on screen and in reach, on a laptop and on a phone,
-// and a jump to a message lands below the pinned header. The page sits in
+// within the pinned budget even for a name on two lines, and a jump to a
+// message lands below the pinned header. The page sits in
 // the main landmark and the workspace's column, as the layouts render it;
 // the site's stylesheet comes from vitest.browser-setup.ts.
 // "use_case_send_message": a reply streams in the quest's conversation.
@@ -117,8 +119,15 @@ vi.mock(
   () => import("../../../../components/router-test-kit.ts"),
 );
 
-// The screens the case is checked on: a laptop's and a phone's.
-const VIEWPORTS = [LAPTOP_VIEWPORT, PHONE_VIEWPORT] as const;
+// The screens the case is checked on, a laptop's and a phone's, and the
+// most the trail band and the conversation's pinned header may take of
+// each together, in CSS px.
+const SCREENS = [
+  { viewport: LAPTOP_VIEWPORT, pinnedBudget: 140 },
+  { viewport: PHONE_VIEWPORT, pinnedBudget: 112 },
+] as const;
+// A quest's name that takes the band's heading to two lines on a phone.
+const LONG_QUEST_NAME = "One layer up: interface, associativity explorer";
 // The Python block that ends each reply, shown once the reply is laid out.
 const REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 // Three replies fill a laptop's screen several times over.
@@ -249,63 +258,78 @@ afterEach(() => {
 });
 
 describe("use_case_breadcrumbs_in_long_chat", () => {
-  for (const viewport of VIEWPORTS) {
-    test(`${viewport.width} px wide`, async () => {
-      await page.viewport(viewport.width, viewport.height);
-      await render(await chatPage());
-      const backLink = page
-        .getByRole("navigation", { name: "Breadcrumbs" })
-        .getByRole("link", { name: PROJECTS_COPY.heading, exact: true });
-      const pinned = page.getByRole("button", {
-        name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
+  for (const { viewport, pinnedBudget } of SCREENS) {
+    for (const name of [FOX_PROJECT.name, LONG_QUEST_NAME]) {
+      test(`${viewport.width} px wide, for ${name}`, async () => {
+        store.getProject.mockResolvedValue({ ...FOX_PROJECT, name });
+        await page.viewport(viewport.width, viewport.height);
+        await render(await chatPage());
+        const backLink = page
+          .getByRole("navigation", { name: "Breadcrumbs" })
+          .getByRole("link", { name: PROJECTS_COPY.heading, exact: true });
+        const pinned = page.getByRole("button", {
+          name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
+        });
+        const conversation = page.getByRole("list", {
+          name: CHAT_COPY.conversationLabel,
+        });
+        await expect
+          .poll(() => conversation.element().textContent)
+          .toContain(REPLY_END);
+
+        await expect
+          .element(
+            page.getByRole("combobox", { name: "Activity", exact: true }),
+          )
+          .not.toBeInTheDocument();
+
+        await scrollToBottom();
+        const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
+        await expect.element(trail).toBeInViewport({ ratio: 1 });
+        const shared = trail.element().closest("header");
+        const controls = pinned.element().closest("header");
+        expect(shared).not.toBeNull();
+        expect(controls).not.toBeNull();
+        await expect
+          .poll(() => controls?.getBoundingClientRect().top)
+          .toBeCloseTo(shared?.getBoundingClientRect().bottom ?? -1, 0);
+        const heading = page.getByRole("heading", { level: 1 });
+        await expect.element(heading).toHaveTextContent(name);
+        await expect.element(heading).toBeInViewport({ ratio: 1 });
+        expect(heading.element().closest("header")).toBe(shared);
+        expect(
+          (controls?.getBoundingClientRect().bottom ??
+            Number.POSITIVE_INFINITY) -
+            Math.max(0, shared?.getBoundingClientRect().top ?? 0),
+          "the band and the pinned header stay within the budget",
+        ).toBeLessThanOrEqual(pinnedBudget);
+        // Each wholly on screen, and in reach.
+        const targets = [
+          backLink,
+          pinned,
+          page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
+        ];
+        await Promise.all(
+          targets.map((target) =>
+            expect.element(target).toBeInViewport({ ratio: 1 }),
+          ),
+        );
+        expect(
+          targets.map((target) => topmostAtCentre(target.element())),
+        ).toEqual([true, true, true]);
+
+        const first = conversation.element().firstElementChild;
+        if (first === null) {
+          throw new Error("The conversation is empty");
+        }
+        first.scrollIntoView({ block: "start" });
+        expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          controls?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
+        );
+
+        expect(backLink.element()).toHaveAttribute("href", "/projects");
       });
-      const conversation = page.getByRole("list", {
-        name: CHAT_COPY.conversationLabel,
-      });
-      await expect
-        .poll(() => conversation.element().textContent)
-        .toContain(REPLY_END);
-
-      await expect
-        .element(page.getByRole("combobox", { name: "Activity", exact: true }))
-        .not.toBeInTheDocument();
-
-      await scrollToBottom();
-      const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
-      await expect.element(trail).toBeInViewport({ ratio: 1 });
-      const shared = trail.element().closest("header");
-      const controls = pinned.element().closest("header");
-      expect(shared).not.toBeNull();
-      expect(controls).not.toBeNull();
-      await expect
-        .poll(() => controls?.getBoundingClientRect().top)
-        .toBeCloseTo(shared?.getBoundingClientRect().bottom ?? -1, 0);
-      // Each wholly on screen, and in reach.
-      const targets = [
-        backLink,
-        pinned,
-        page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
-      ];
-      await Promise.all(
-        targets.map((target) =>
-          expect.element(target).toBeInViewport({ ratio: 1 }),
-        ),
-      );
-      expect(
-        targets.map((target) => topmostAtCentre(target.element())),
-      ).toEqual([true, true, true]);
-
-      const first = conversation.element().firstElementChild;
-      if (first === null) {
-        throw new Error("The conversation is empty");
-      }
-      first.scrollIntoView({ block: "start" });
-      expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-        controls?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
-      );
-
-      expect(backLink.element()).toHaveAttribute("href", "/projects");
-    });
+    }
   }
 });
 

@@ -67,21 +67,15 @@ test("her copy of a built-in construct resets to that construct's prompt, by nam
   await openPage(ownConstruct({ clonedFrom: "lumen" }));
   await expect
     .element(
-      page.getByRole("heading", {
-        level: 1,
-        name: "Garden planner",
-        exact: true,
-      }),
-    )
-    .toBeVisible();
-
-  await expect
-    .element(
       page.getByRole("button", {
         name: PROMPT_COPY.resetPrompt,
       }),
     )
     .toBeVisible();
+  expect(
+    page.getByRole("heading", { level: 1 }).query(),
+    "the trail band, not the page, names it",
+  ).toBeNull();
 });
 
 // A construct that came from no built-in one, such as a copy bought in the
