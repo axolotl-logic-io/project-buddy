@@ -1,5 +1,5 @@
 {
-  "id": "6d5cc6c7-fb36-4b95-913e-14add0de4500",
+  "id": "f34b1783-1b9d-43ab-ae3e-078728d4c7ab",
   "prevId": "da6a6886-5597-4a23-b883-ede3346d62f5",
   "version": "7",
   "dialect": "postgresql",
@@ -97,6 +97,88 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.battery_cash_events": {
+      "name": "battery_cash_events",
+      "schema": "",
+      "columns": {
+        "event_id": {
+          "name": "event_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "purchase_id": {
+          "name": "purchase_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "object_id": {
+          "name": "object_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "observed_at": {
+          "name": "observed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "battery_cash_events_purchase_id_battery_purchases_id_fk": {
+          "name": "battery_cash_events_purchase_id_battery_purchases_id_fk",
+          "tableFrom": "battery_cash_events",
+          "tableTo": "battery_purchases",
+          "columnsFrom": [
+            "purchase_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.battery_purchases": {
       "name": "battery_purchases",
       "schema": "",
@@ -184,21 +266,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "battery_purchases_user_id_users_id_fk": {
-          "name": "battery_purchases_user_id_users_id_fk",
-          "tableFrom": "battery_purchases",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "battery_purchases_session_id_unique": {
@@ -1043,176 +1111,6 @@
         "invitations_email_normalized": {
           "name": "invitations_email_normalized",
           "value": "\"invitations\".\"email\" = lower(btrim(\"invitations\".\"email\")) and \"invitations\".\"email\" <> ''"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "public.journal_versions": {
-      "name": "journal_versions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "project_id": {
-          "name": "project_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "version": {
-          "name": "version",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "before": {
-          "name": "before",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "author": {
-          "name": "author",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "undoes_version": {
-          "name": "undoes_version",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "journal_versions_section_version_idx": {
-          "name": "journal_versions_section_version_idx",
-          "columns": [
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "kind",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "version",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "journal_versions_section_undo_idx": {
-          "name": "journal_versions_section_undo_idx",
-          "columns": [
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "kind",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "undoes_version",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "journal_versions_project_id_projects_id_fk": {
-          "name": "journal_versions_project_id_projects_id_fk",
-          "tableFrom": "journal_versions",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "journal_versions_user_id_users_id_fk": {
-          "name": "journal_versions_user_id_users_id_fk",
-          "tableFrom": "journal_versions",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "journal_versions_kind_valid": {
-          "name": "journal_versions_kind_valid",
-          "value": "\"journal_versions\".\"kind\" in ('goal', 'preferences')"
-        },
-        "journal_versions_author_valid": {
-          "name": "journal_versions_author_valid",
-          "value": "\"journal_versions\".\"author\" in ('person', 'construct')"
-        },
-        "journal_versions_version_positive": {
-          "name": "journal_versions_version_positive",
-          "value": "\"journal_versions\".\"version\" > 0"
         }
       },
       "isRLSEnabled": false
