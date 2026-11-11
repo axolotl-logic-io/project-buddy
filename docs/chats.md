@@ -36,88 +36,16 @@ In Chat only, the construct can offer a quest with `create_project`. The tool cr
 
 `/chats/[chatId]` is a redirect kept for links, bookmarks and emails. `resolveConversation` sends the viewer to the quest that owns the conversation when they can open it, to `/chat` for their own Chat, and otherwise to not found. A foreign, removed or malformed id is not found, so the address reveals nothing. `/chats/new` redirects to `/chat` and makes nothing.
 
-## Home atlas
+## Quests landing page
 
-Home shows the approved heading "Your projects await". The
-heading deliberately uses the user's chosen wording; the domain term for
-ongoing work elsewhere is quest.
+Quests (`/projects`) opens after sign-in when no explicit return destination
+was supplied. The site name and root address lead there too; old `/home`
+bookmarks redirect to Quests. Signed-out visitors still need to sign in.
+Opening these pages makes no model call and spends no batteries.
 
-The yellowed parchment landscape is the original generated artwork, encoded
-as WebP at `public/atlas/parchment.webp`. Its geography was carried forward
-from the northern relief study and restyled as sepia ink engraving on aged
-paper. It is a decorative CSS background, with no map labels baked into the
-image. There is no compass bar or region caption.
-
-Home has one responsive control panel, with no Map/List switch. The map
-fills the background behind the heading, places, current quest and footer.
-Quests, Adventures, Constructs, Activities and Workshop appear
-in that reading and keyboard order, in two columns on phones and three on
-wide screens. The map has no geographic markers, trails or separate phone
-overview. It needs no panning, zooming, hovering or animation.
-
-`src/home/places.ts` names the six destinations once. Each is a normal link
-to an existing page. Descriptions show on wide screens and remain accessible
-to assistive technology on phones. Spellbook and Image gallery remain
-available from the menu; spells are also available in Workshop. The
-Spellbook pages belong to Workshop in the header.
-
-A uniform 75% palette wash preserves visible parchment artwork while making
-focus rings outside the panels readable over dark and bright terrain.
-Strongly tinted parchment panels blur the terrain behind the title,
-destination buttons, current quest and footer. Ink and muted text have known
-contrast even over the darkest marks in the artwork. Browsers without
-backdrop blur use opaque paper. Forced-colors mode removes the artwork and
-blur. The artwork wash, paper, ink, labels, icons and controls follow the
-active Light, Dark or System palette. System updates while Home is open;
-explicit Light or Dark overrides it.
-
-Home uses the shared site header above its content, with the site's name,
-Quick Note and Menu. A current-page Home breadcrumb uses the same location
-row as other signed-in pages, keeping the content origin stable during
-navigation. Quests and Adventures remain in the menu and Home's
-destinations, without shortcuts beside Quick Note on any page.
-Leaving a cached Home page restores the usual page background and content
-column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
-
-The atlas continues only the most recently active quest returned by
-`readToday`, with its real next step and a direct link to its latest adventure.
-The quest sits below all six destinations. With no quest, the same position
-offers Start a quest, leading to a new quest in Break Down a Project.
-The existing site header keeps Quick Note and Menu available; Settings and
-Account also appear below the map. Home reads no new data source, creates
-nothing and makes no model call.
-
-## Today
-
-The new adventure page opens with a **Today** section above the new-adventure form
-(#610), so the form page shows what is waiting for the user. The page's
-heading is "Today", and the form follows under its own heading, "Start a
-adventure". A user with no adventures sees only the form, under the heading "Start a
-adventure", with no empty Today section.
-
-Today lists two things, both by most recent activity. An adventure is active when
-it starts or gains a message, and a quest is as active as its most active
-adventure:
-
-- **Your quests:** up to three quests. Each shows its name, linking to
-  the quest, its next step if it has one, and a Continue link
-  to its most recently active adventure. Each Continue link's accessible name
-  includes the quest's name, such as "Continue Sea turtle model".
-- **Recent adventures:** up to three other adventures, quest or standalone, each
-  linking to its conversation with its quest's badge. An adventure that a
-  Continue link already opens isn't listed again.
-
-The next step is the first open step of the quest's
-[plan](quest-plan.md), read by `nextStepOfQuest` in
-`src/memory/next-step.ts`. A quest whose plan has no steps yet, such as one
-from before plans, falls back to its Journal's first line that starts
-"Next step:" (`nextStepOf`); list markers, headings and bold around the label
-are allowed. A plan whose steps are all done, or a Journal without such a
-line, shows the quest without a next step.
-
-The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries, and makes
-no model call.
+Quests lists existing work and offers Dailies, Learn a thing, Make a thing
+and Do a thing. Open a quest to continue its conversation. The Home atlas,
+duplicate destination panels and recent-quest summary are removed.
 
 ## Activities and constructs
 
@@ -323,7 +251,7 @@ status and the message's busy state remain available independently of motion.
 `construct-presence.browser.test.tsx` covers this behavior with fake streams
 under `use_case_construct_presence`.
 
-Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.
+Quests offers the four premade starting points before the first quest and lists existing quests on later visits. The site menu keeps Quests and Chat available.
 
 ## Reply control and batteries
 
@@ -333,6 +261,6 @@ The composer shows the acting user's battery balance. A reply's cost shows one d
 
 ## Header navigation
 
-The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand, Menu and Quick Note row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
+The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand and Menu row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
 
-Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.
+Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Quests has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.

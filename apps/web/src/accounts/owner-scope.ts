@@ -5,8 +5,7 @@
 //
 // A project belongs to its owner, the user who made it, and to no one else.
 // Everything reached through a project is open to its owner alone: its
-// chats, their messages, images and activity sessions, its memory (with its
-// notes), its plan and its milestones. A standalone chat, which is in no
+// chats, their messages, images and activity sessions, its memory, its plan and its milestones. A standalone chat, which is in no
 // project, and what is reached through it are open to the user the chat
 // names alone. A historical project_members or project_invitations row
 // grants nothing: no predicate reads either table. An own prompt, a

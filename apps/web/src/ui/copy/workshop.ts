@@ -12,7 +12,6 @@ const WORKSHOP_COPY = {
 // The Workshop's own page: one tab for each kind, where the user crafts one,
 // customizes a built-in one, or tweaks or clones their own.
 const WORKSHOP_PAGE_COPY = {
-  homeLink: "Home",
   intro:
     "Craft a construct, activity or spell, customize a built-in one, or tweak or clone one of your own.",
   loading: "Loading the Workshop…",

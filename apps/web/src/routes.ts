@@ -5,9 +5,8 @@ import type { PromptKind } from "@/prompts/prompt.ts";
 // Where a visitor without a session is sent.
 const SIGN_IN_PATH = "/login";
 
-// Where a signed-in user lands, and where "/" and the links home go: the
-// atlas homepage.
-const HOME_PATH = "/home";
+// Quests is the signed-in landing destination.
+const HOME_PATH = "/projects";
 
 // Chat, the user's one private conversation for talking without a goal.
 const STANDALONE_CHAT_PATH = "/chat";

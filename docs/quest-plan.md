@@ -6,7 +6,7 @@ Each quest has a plan: its ordered steps of remaining work, which the construct 
 
 A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the plan's first open step. Home's Continue and the Plan panel read it through `nextStepOfQuest` in `src/memory/next-step.ts`. A quest whose plan has never had a step falls back to its Journal's line that starts "Next step:", which the construct kept before plans. Once the plan has had one, it alone says: an emptied plan, or one with every step done, has no next step. The premade quests' Journals hold no next step.
+The next step is the plan's first open step. The Plan panel shows the remaining work. The premade quests' Journals hold no next step. Older Journal text stays intact until the user or construct edits it; the retired Home summary no longer parses it.
 
 ## Operations
 
@@ -64,4 +64,6 @@ The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per c
 
 ## Later
 
-Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854), Preferences (#855) and Quick Notes (#856) sections, are separate issues.
+Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854) and Preferences (#855) sections, are separate issues.
+
+Quick Notes removal supersedes the separate-storage proposal (#856). Historical Note paragraphs remain ordinary Journal content, with no rewrite or migration.

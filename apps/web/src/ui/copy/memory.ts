@@ -9,7 +9,7 @@ export const MEMORY_COPY = {
   link: "Quest Journal",
   heading: "Journal",
   intro:
-    "The goals, milestones, preferences and Quick Notes your constructs know about this quest. The quest's conversation works from this Journal, and both you and your construct can change it.",
+    "The goals, milestones and preferences your constructs know about this quest. The quest's conversation works from this Journal, and both you and your construct can change it.",
   currentLabel: "Current Journal",
   loading: "Loading Journal…",
   empty:

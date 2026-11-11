@@ -40,7 +40,6 @@ import {
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
 import { getProject, listProjects, type Project } from "@/projects/store.ts";
-import { readHomeSummary } from "@/today/today-store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
@@ -48,8 +47,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
 const MEMORY = "Goal: a sea turtle model.";
-// The Journal's second version, which holds a Quick Note as such a version
-// once did.
+// A second Journal version with historical text.
 const MEMORY_WITH_NOTE = `${MEMORY}\n\n## Notes\n\n- 2026-11-02: Bevel the shell`;
 const MILESTONE = "Modelled the shell";
 const PNG = pngBytes();
@@ -161,7 +159,6 @@ async function seenBy(
     listed,
     conversation,
     openedChat,
-    today,
     messages,
     image,
     generation,
@@ -174,7 +171,6 @@ async function seenBy(
     listProjects(user.id),
     readQuestConversation(user.id, project.id),
     getChat(user.id, chat.id),
-    readHomeSummary(user.id),
     listMessages(user.id, chat.id),
     getImage(user.id, quest.imageId),
     getGeneratedImage(user.id, quest.generationId),
@@ -188,7 +184,6 @@ async function seenBy(
     listed: listed.some(({ id }) => id === project.id),
     conversation: conversation?.id,
     chat: openedChat?.id,
-    today: today.latestQuest?.project.id === project.id,
     messages: messages.length,
     image: image?.mediaType,
     generation: generation?.id,
@@ -206,7 +201,6 @@ const NOTHING: Record<string, unknown> = {
   listed: false,
   conversation: undefined,
   chat: undefined,
-  today: false,
   messages: 0,
   image: undefined,
   generation: undefined,

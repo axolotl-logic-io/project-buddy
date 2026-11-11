@@ -14,7 +14,6 @@ import type { getProject } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -31,6 +30,12 @@ import {
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CONVERSATION, FOX_PROJECT } from "../../page-fixtures.ts";
+
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: (): never => {
+    throw new Error("Quest creation is not available in a quest conversation");
+  },
+}));
 
 vi.mock(
   "@/plan/plan-actions.ts",
@@ -72,11 +77,7 @@ vi.mock(
   "@/plan/plan-store.ts",
   () => import("../../../../plan/plan-store-test-kit.ts"),
 );
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: () => Promise.resolve([]),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
@@ -121,21 +122,11 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-test("an Active quest page offers Quick Note with its quest chosen", async () => {
-  await renderProject("notes");
-  await expect
-    .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
-    .toHaveAttribute("href", `/capture?projectId=${FOX_PROJECT.id}`);
-});
-
 test.each(["completed", "abandoned"] as const)(
-  "a %s quest page keeps its Journal and conversation without an Add a Quick Note link",
+  "a %s quest page keeps its Journal and conversation after its status changes",
   async (status) => {
     stores.getProject.mockResolvedValue({ ...FOX_PROJECT, status });
     await renderProject();
-    await expect
-      .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
-      .not.toBeInTheDocument();
     await expect
       .element(page.getByRole("link", { name: MEMORY_COPY.link }))
       .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}/memory`);

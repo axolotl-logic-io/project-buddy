@@ -13,7 +13,7 @@ Changes to prompts, model inputs, tools, access rules, snapshots, limits or rele
 
 | Reader chapter | Implementation sources under `apps/web/src/` |
 | --- | --- |
-| Getting Started / first-adventure, continue | `chats/`, `projects/`, `notes/`, `memory/`, `plan/`, `app/(workspace)/chat/`, `app/(workspace)/projects/` |
+| Getting Started / first-adventure, continue | `chats/`, `projects/`, `memory/`, `plan/`, `app/(workspace)/chat/`, `app/(workspace)/projects/` |
 | Getting Started / craft | `batteries/catalog.ts`, `components/earn-gold-link.tsx`, `components/chat/reply-cost.tsx` |
 | Constructs / character, craft, test | `constructs/`, `components/constructs/`, `constructs/visual-generation.ts`, `constructs/avatar-frame.ts`, `prompts/` |
 | Spells / selection, craft, test | `spells/spell-choices.ts`, `spells/cast-spell.ts`, `spells/cast-spell-contract.ts` |

@@ -26,12 +26,10 @@ import type { privateChat } from "@/conversations/private-chat.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { readRecentNotes } from "@/notes/note-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readHomeSummary } from "@/today/today-store.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -90,9 +88,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 vi.mock("@/conversations/private-chat.ts", () => ({
   privateChat: vi.fn<typeof privateChat>(),
 }));
-vi.mock("@/today/today-store.ts", () => ({
-  readHomeSummary: vi.fn<typeof readHomeSummary>(),
-}));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
 }));
@@ -100,9 +95,6 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: vi.fn<typeof readRecentNotes>(),
-}));
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
@@ -153,11 +145,7 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/capture/actions.ts", () => ({
-  saveNoteAction: vi.fn(),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),

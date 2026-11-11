@@ -6,7 +6,6 @@ const RETIREMENT_COPY = {
   heading: "Retirement",
   intro:
     "Your retired constructs, activities, and spells. Kept here until you restore or permanently delete them.",
-  home: "Home",
   retire: "Retire",
   retireLabel: (name: string): string => `Retire ${name}`,
   retired:

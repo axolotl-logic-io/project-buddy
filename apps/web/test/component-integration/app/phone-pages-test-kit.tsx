@@ -17,13 +17,11 @@ import {
 } from "@/activities/activity-store.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
-import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
-import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
@@ -57,15 +55,12 @@ import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { NOTE_DAY } from "@/notes/note.ts";
-import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import {
   getRetiredDefinition,
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
-import { readHomeSummary } from "@/today/today-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -249,9 +244,6 @@ function projectPageFor(
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
       vi.mocked(listConstructs).mockResolvedValue([]);
-      vi.mocked(readRecentNotes).mockResolvedValue([
-        { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-      ]);
     },
     async () => (
       <ProjectLayout params={PROJECT_PARAMS}>
@@ -460,26 +452,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "quick capture",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([
-          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
-        ]);
-      },
-      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
-    ),
-  },
-  {
-    name: "quick capture with no projects",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([]);
-      },
-      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
-    ),
-  },
-  {
     name: "a project's memory",
     render: memoryPage,
   },
@@ -492,33 +464,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
         page.getByRole("textbox", { name: MEMORY_COPY.textLabel }).element(),
       );
     },
-  },
-  {
-    name: "the atlas before the first quest",
-    render: workspacePage(
-      () => {
-        vi.mocked(readHomeSummary).mockResolvedValue({
-          latestQuest: undefined,
-          firstVisit: true,
-        });
-      },
-      () => HomePage(),
-    ),
-  },
-  {
-    name: "the atlas with a long quest and next step",
-    render: workspacePage(
-      () => {
-        vi.mocked(readHomeSummary).mockResolvedValue({
-          latestQuest: {
-            project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
-            nextStep: LONG_PROJECT_NAME,
-          },
-          firstVisit: false,
-        });
-      },
-      () => HomePage(),
-    ),
   },
   {
     name: "the Settings page",
@@ -638,10 +583,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   ...tabVariants("the constructs page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),
-  ...tabVariants("quick capture", ["Preview"]),
   { name: "a quest's Plan", render: projectPageFor("plan") },
   { name: "a quest's Progress", render: projectPageFor("progress") },
-  { name: "a quest's Quick Notes", render: projectPageFor("notes") },
   { name: "a quest's Journal versions", render: memoryPageFor("versions") },
 ];
 

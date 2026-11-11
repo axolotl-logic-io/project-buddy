@@ -318,7 +318,7 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its Journal, plan, progress timeline and Quick Notes. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
+Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its Journal, plan and progress timeline. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
@@ -337,17 +337,17 @@ The other way to create a quest: from [Chat](#chat-destination), the same form a
 - **UI:** "Turn Chat into a quest".
 - **Avoid:** "Start a quest from this", "transfer".
 
-The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. The Home heading "Your projects await" is the user-approved copy exception; other labels use Quest and Quests.
+The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. Quests is the signed-in landing page; labels use Quest and Quests.
 
 ### Personal quest
 
-Every quest is its [owner](#owner)'s alone: no one else can open, read or change its conversation, Journal, plan, progress timeline or Quick Notes. Quests were once shareable with members through quest invitations; those were removed (#907). A former member's past messages and Journal versions keep their author, but their old membership or invitation grants nothing.
+Every quest is its [owner](#owner)'s alone: no one else can open, read or change its conversation, Journal, plan and progress timeline. Quests were once shareable with members through quest invitations; those were removed (#907). A former member's past messages and Journal versions keep their author, but their old membership or invitation grants nothing.
 
 - **Avoid:** "team quest", "shared quest", "member", "quest invitation" for anything current.
 
 ### Journal
 
-One editable Markdown document per quest, read by every reply in its conversation. It holds the quest's goals, milestones, progress, preferences and Quick Notes. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
+One editable Markdown document per quest, read by every reply in its conversation. It holds the quest's goals, milestones, progress and preferences. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
 
 - **UI:** "Journal", "Quest Journal".
 - **Earlier name:** "Memory" or "Quest memory".
@@ -369,13 +369,6 @@ A note in a quest's conversation that the construct updated the quest's Journal.
 
 - **UI:** "Journal change".
 - **Avoid:** "Journal change card", "Journal change notice".
-
-### Quick Note
-
-A short, dated line the user saves to a quest outside its conversation, without a model call. It becomes part of the Journal, so the construct can read it in later replies. Saving or deleting one makes a new Journal version by the user. **Quick Notes** names the feature and a quest's collection of them.
-
-- **UI:** "Quick Note" for a single item and "Quick Notes" for the feature and collection.
-- **Avoid:** "note" alone or "quick capture" for this feature in UI copy and docs; "memo", "jot", "inbox".
 
 ### Goal
 
@@ -639,7 +632,7 @@ Use conversation, Chat and Journal in new product copy and prompts. The existing
 route paths, database names, API fields, tool names and prompt boundary tags
 remain compatibility names in this release. The Chat activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
-Quick Note paragraphs and historical migration fixtures are never rewritten.
+historical Note paragraphs and migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.
 
 ### Premade quest

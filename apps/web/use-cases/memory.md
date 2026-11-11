@@ -19,7 +19,7 @@ The construct records goals, knowledge, purpose, constraints, progress, preferen
 
 ## use_case_view_memory
 
-The user reads the quest's Journal.
+The user reads the quest's Journal. Historical `Note (YYYY-MM-DD):` paragraphs remain ordinary Journal text, preserved verbatim in the current text and every saved version.
 
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
@@ -88,41 +88,8 @@ The user asks the construct what to work on next, and it answers from the quest'
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on that milestone.
   - `use_case_construct_updates_memory`: tell the construct she has already done it.
-  - [`use_case_today_on_landing`](chats.md#use_case_today_on_landing): agree on the next step, and find it on the landing page next time.
+  - `use_case_construct_changes_plan`: agree on the next step and keep it in the Plan.
 
-## use_case_quick_note
-
-The user saves a Quick Note to a quest between sessions, without starting an adventure, so the construct knows it next time.
-
-- **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project).
-- **Steps:**
-  - On any page of the signed-in site, she opens the Quick Note page from the header's **Quick Note** link in one tap.
-  - She chooses one of her Active quests, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
-- **Outcome:** the site says the Quick Note is saved to the quest's Journal, clears its text for the next one and keeps the quest chosen. The quest's Journal ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her batteries. The quest's page lists the Quick Note among its newest Quick Notes, newest first. Every adventure in the quest works from the Journal with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
-- **Variations:**
-  - She leaves and returns: the chosen accessible Active quest and its unsaved Quick Note return in this browser. Each quest keeps its own draft; Discard changes removes it.
-  - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
-  - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
-  - The Quick Note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.
-  - She opens an Active quest's page: Add a Quick Note opens the Quick Note page with that quest chosen. Completed and Abandoned quest pages have no Add a Quick Note link; their existing Quick Notes remain available to read and delete. Restoring the quest brings the link back.
-  - She has no Active quests: the Quick Note page says Quick Notes need a quest and links to her quests.
-- **Next:**
-  - `use_case_view_memory`: see the Quick Note in the Journal.
-  - `use_case_delete_note`: take the Quick Note back.
-  - [`use_case_send_message`](chats.md#use_case_send_message): talk it over with the construct.
-
-Write and Preview share one retained draft. The heading's Save Quick Note works in either tab and returns to Write with feedback and focus on the text. Preview shows the selected quest's name as a small label above the Quick Note, and the Quick Note as the dated line it will become in the Journal, such as "Note (2026-11-02): try a subdivision cage on the shell", with its line breaks and runs of spaces made single spaces, as saving makes them.
-
-## use_case_delete_note
-
-The user deletes a Quick Note she no longer needs.
-
-- **Prerequisites:** `use_case_quick_note`, then [`use_case_open_project`](projects.md#use_case_open_project).
-- **Steps:**
-  - She deletes a Quick Note from the quest's Quick Notes.
-- **Outcome:** the Quick Note is gone from the quest's Quick Notes and from its Journal, and the rest of the Journal is as it was. The Journal's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the quest's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
-- **Next:**
-  - `use_case_quick_note`: write a better one.
 
 ## use_case_construct_changes_plan
 
@@ -132,7 +99,7 @@ The construct keeps the quest's plan: the steps she agreed to, in order.
 - **Steps:**
   - She agrees to the next stretch of work, or tells the construct she finished a step or changed her mind.
   - The construct changes the plan: it adds, checks off, changes, moves or removes steps.
-- **Outcome:** the adventure shows a Plan change, set apart from the construct's words, with what each operation did and Undo, as soon as the construct makes it and again when she reopens the adventure. Every adventure in the quest gets the plan in its instructions from its next reply on, each step with its number and the done ones marked. The quest's next step, on the landing page and the quest's Plan section, is the plan's first open step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)); a quest whose plan has never had a step still shows its Journal's "Next step:" line, but once it has had one, a plan emptied or with every step done has no next step. The construct adds only steps she agreed to, checks off a step when she says she finished it, and never counts open steps or days *(checked by the real-Claude smoke test)*.
+- **Outcome:** the adventure shows a Plan change, set apart from the construct's words, with what each operation did and Undo, as soon as the construct makes it and again when she reopens the adventure. Every adventure in the quest gets the plan in its instructions from its next reply on, each step with its number and the done ones marked. The quest’s Plan section shows its remaining steps. A plan emptied or with every step done has no next step. The construct adds only steps she agreed to, checks off a step when she says she finished it, and never counts open steps or days *(checked by the real-Claude smoke test)*.
 - **Variations:**
   - The construct names a step that is gone, such as one she removed meanwhile: nothing changes, and the construct gets the plan as it is to try again.
   - In an adventure with no quest, the construct has no plan to change.
