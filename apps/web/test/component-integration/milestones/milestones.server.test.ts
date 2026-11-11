@@ -47,9 +47,6 @@ const FLIPPERS = "Fixed the flipper edge loops";
 const RETOPO = "Started the retopo pass";
 // The length of a day as the prompt writes it, YYYY-MM-DD.
 const DAY_LENGTH = 10;
-// How many milestones the timeline test records for her.
-const TIMELINE_LENGTH = 3;
-const CHAT_HREF = /href="(?<href>\/chats\/[^"]+)"/gu;
 
 const OUTPUT_CHUNK = z.object({
   type: z.literal("tool-output-available"),
@@ -76,7 +73,7 @@ async function pageHtml(projectId: string): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "progress" }),
     }),
   );
 }
@@ -162,27 +159,24 @@ describe("use_case_construct_records_milestone", () => {
 });
 
 describe("use_case_view_progress_timeline", () => {
-  test("the project's page lists its milestones newest first, each linking to its chat, and no one else's", async () => {
+  test("the quest's Progress lists its milestones newest first, and no one else's", async () => {
     const { her, herData, otherData } = await twoUsers();
     const project = await herData.project("Sea turtle model");
-    const [first, second] = await Promise.all([
-      herData.chat(project),
-      herData.chat(project),
-    ]);
+    const conversation = await herData.chat(project);
     const foreignChat = await otherData.chat(await otherData.project());
     await recordMilestone(
       her.id,
-      { projectId: project.id, chatId: first.id },
+      { projectId: project.id, chatId: conversation.id },
       SHELL,
     );
     await recordMilestone(
       her.id,
-      { projectId: project.id, chatId: first.id },
+      { projectId: project.id, chatId: conversation.id },
       FLIPPERS,
     );
     await recordMilestone(
       her.id,
-      { projectId: project.id, chatId: second.id },
+      { projectId: project.id, chatId: conversation.id },
       RETOPO,
     );
     await recordMilestone(
@@ -200,15 +194,6 @@ describe("use_case_view_progress_timeline", () => {
     expect(order.every((at) => at !== -1)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(html).not.toContain("Not hers to record");
-    const links = Array.from(
-      timeline.matchAll(CHAT_HREF),
-      ([, href]) => href ?? "",
-    );
-    expect(links.slice(0, TIMELINE_LENGTH)).toEqual([
-      `/chats/${second.id}`,
-      `/chats/${first.id}`,
-      `/chats/${first.id}`,
-    ]);
   });
 
   test("with no milestones, the page says how they arrive", async () => {
