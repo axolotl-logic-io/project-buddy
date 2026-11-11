@@ -50,7 +50,7 @@ Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spel
 
 ## Casting a spell
 
-Every adventure's system prompt lists the user's spells, built in and own, in a "Spells" section after the activities (`spellsSection` in `src/replies/system-prompt.ts`). Each line gives the spell's id, its name and its when-to-use line. In a team quest's adventure, the list is the replying user's.
+Every adventure's system prompt lists the user's spells, built in and own, in a "Spells" section after the activities (`spellsSection` in `src/replies/system-prompt.ts`). Each line gives the spell's id, its name and its when-to-use line.
 
 The list sits in the system prompt's shared part, which is cached across one user's adventures. It depends only on the user's spells, so the global prompt stays the same for every user, and the cached part changes only when the user changes a spell.
 
@@ -62,7 +62,7 @@ An id that is not one of the user's spells, such as an unknown id or another use
 
 The saved reply keeps the cast's result, instructions included, so the construct reads them in later replies of that adventure. Editing, retiring, or permanently deleting the spell later changes no past adventure, as a [snapshot](../GLOSSARY.md#snapshot) would.
 
-The message store has two reads (`src/chats/store.ts`). A reply reads the adventure with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the adventure's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team quest](team-projects.md), a member's own spell therefore steers the adventure's later replies, whoever writes them, but reaches no one else's browser.
+The message store has two reads (`src/chats/store.ts`). A reply reads the adventure with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the adventure's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`).
 
 ## Storage
 

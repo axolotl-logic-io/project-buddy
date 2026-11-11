@@ -8,7 +8,7 @@ The user puts aside an own construct, activity, or spell.
 
 - **Prerequisites:** the user is signed in and has an own definition.
 - **Steps:** on its collection card or editing page, the user chooses Retire.
-- **Outcome:** the definition disappears from active lists, choices, future spell casts, and new activity entries. Stale edits, clones, and starts cannot use it. The central Retirement page preserves its name, instructions, source, identity, and retirement date. Existing adventures keep their snapshots and past casts. A retired preferred interview construct falls back to Vellum. Built-in and foreign definitions cannot be retired; team quest membership does not grant access to originals.
+- **Outcome:** the definition disappears from active lists, choices, future spell casts, and new activity entries. Stale edits, clones, and starts cannot use it. The central Retirement page preserves its name, instructions, source, identity, and retirement date. Existing adventures keep their snapshots and past casts. A retired preferred interview construct falls back to Vellum. Built-in and foreign definitions cannot be retired, and a former quest membership grants no access to originals.
 
 ## use_case_view_retirement
 

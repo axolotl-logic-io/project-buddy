@@ -10,7 +10,6 @@ import ProjectLoading from "@/app/(workspace)/projects/[projectId]/(overview)/lo
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
-import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
@@ -73,31 +72,13 @@ vi.mock(
   "@/plan/plan-store.ts",
   () => import("../../../../plan/plan-store-test-kit.ts"),
 );
-vi.mock(
-  "@/projects/project-invitations.ts",
-  () => import("../../../../projects/project-invitations-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: async (): Promise<ProjectMember[]> => {
-    const { FOX_OWNER } = await import("../../page-fixtures.ts");
-    return [FOX_OWNER];
-  },
-}));
 vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
 vi.mock("@/constructs/own-construct-choices.ts", () => ({

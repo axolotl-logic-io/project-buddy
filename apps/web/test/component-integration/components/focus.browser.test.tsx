@@ -152,8 +152,6 @@ async function linkCardFocus(): Promise<
             createdAt: new Date(),
             status: "active",
             statusRevision: 0,
-            role: "owner",
-            shared: false,
             dailies: false,
           },
         ]}

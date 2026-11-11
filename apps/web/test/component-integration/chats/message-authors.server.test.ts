@@ -3,9 +3,8 @@
 // saved with no author as the chat owner's, and, once more than one person
 // has written in it, sends each user turn to the construct with its author's
 // name. A chat only its owner writes in sends exactly what it sent before.
-// A project's member writes in its chats through the chat route, as the
-// owner does; the other tests write another person's messages through the
-// test kit.
+// Another person's messages, saved while quests could be shared, are
+// written through the test kit.
 // How the names are put on the turns is checked in author-names.test.ts,
 // and the chat screen in message-authors.browser.test.tsx.
 import { and, eq } from "drizzle-orm";
@@ -21,7 +20,6 @@ import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type Exchange,
@@ -156,58 +154,22 @@ describe("use_case_chat_with_several_people", () => {
     expect(messageText(saved.at(-2))).toBe("/mock-system-prompt");
   });
 
-  test("a project's member writing in its chat is recorded, shown and named to the construct", async () => {
+  test("the owner sees another author's messages under their name, without a named author's address", async () => {
     const { sam, alex, chat } = await samAndAlex();
     await saveUserName(alex.id, "Alex");
-    expect(await addProjectMember(alex.id, chat.project.id)).toBe(true);
-    await sendToEnd(sam, chat, "The flipper loops are fixed.");
-    await signIn(alex);
+    await testData(sam).exchanges(chat, [
+      { message: "The flipper loops are fixed.", reply: REPLY, author: alex },
+    ]);
+    await sendToEnd(sam, chat, "Nice. Can we look at the shell next?");
 
-    // The mock construct recalls the lines the model got that hold the word:
-    // each turn's header, by its author's name.
-    const recalled = messageText(
-      await constructReply(chat.id, "/mock-recall Message from"),
-    );
-    expect(recalled).toContain('- [Message from "Sam"]');
-    expect(recalled).toContain('- [Message from "Alex"]');
-    expect(await constructPrompt(chat.id)).toContain(SEVERAL_AUTHORS_RULES);
-
-    const [ownersView, membersView] = await Promise.all([
-      listMessages(sam.id, chat.id),
-      listMessages(alex.id, chat.id),
-    ]);
-    // Sam's message, then Alex's two, each with the construct's reply.
-    expect(await savedAuthorIds(chat)).toStrictEqual([
-      sam.id,
-      null,
-      alex.id,
-      null,
-      alex.id,
-      null,
-    ]);
-    const samAuthor = { id: sam.id, name: "Sam" };
-    const alexAuthor = { id: alex.id, name: "Alex" };
-    expect(ownersView.map(({ metadata }) => metadata?.author)).toStrictEqual([
-      samAuthor,
-      undefined,
-      alexAuthor,
-      undefined,
-      alexAuthor,
-      undefined,
-    ]);
-    // Each sees the other's messages under the other's name, and no named
-    // author's email address reaches either of them.
-    const [, , alexsMessage] = ownersView;
-    const [samsMessage] = membersView;
+    const ownersView = await listMessages(sam.id, chat.id);
+    const [alexsMessage] = ownersView;
     expect(
       otherAuthorNames(ownersView, sam.id).get(alexsMessage?.id ?? ""),
     ).toBe("Alex");
-    expect(
-      otherAuthorNames(membersView, alex.id).get(samsMessage?.id ?? ""),
-    ).toBe("Sam");
-    const payloads = JSON.stringify([ownersView, membersView]);
-    expect(payloads).not.toContain(sam.email);
-    expect(payloads).not.toContain(alex.email);
+    const payload = JSON.stringify(ownersView);
+    expect(payload).not.toContain(sam.email);
+    expect(payload).not.toContain(alex.email);
   });
 
   test("a chat only its owner writes in sends what it sent before", async () => {

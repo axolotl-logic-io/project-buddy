@@ -12,17 +12,13 @@ import {
 import { projects } from "./projects-and-chats.ts";
 import { users } from "./users.ts";
 
-// Each row is one invitation from a project's owner (the inviter) to join the
-// project (src/projects/project-invitations.ts). It names its invitee in one
-// of two ways: by user (invitee_id), for an address that had an account when
-// it was sent, or by normalized address alone (invitee_email), for one that
-// had none, which whoever has that address now may answer. The invitee acts
-// on it; the project's owner sees and revokes it (src/accounts/
-// owner-scope.ts). The invitation email's link holds a random token, and the
-// row holds only its SHA-256. A project has at most one pending invitation
-// per invitee: a newer one revokes it. Rows stay once acted on, as accepted,
-// declined or revoked, and go with the project, the inviter or the invitee's
-// user.
+// Each row is a quest invitation from when quests could be shared (#907):
+// one from a project's owner (the inviter) to join the project, naming its
+// invitee by user (invitee_id) or by normalized address (invitee_email),
+// with the SHA-256 of its link's token. The site no longer reads or writes
+// the table, and no row grants access (src/accounts/owner-scope.ts). It
+// stays until a later release drops it, once no live build reads it. Rows
+// go with the project, the inviter or the invitee's user.
 export const projectInvitations = pgTable(
   "project_invitations",
   {

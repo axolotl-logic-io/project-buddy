@@ -33,7 +33,7 @@ async function anotherBrowser(
 
 // Opens Settings, where both sign-out actions are visible.
 async function openSecurity(page: Page): Promise<void> {
-  await page.goto("/settings");
+  await page.goto("/settings#security");
 }
 
 test("use_case_sign_out", async ({ account, browser, page }) => {
@@ -114,7 +114,7 @@ test("use_case_sign_out_everywhere", async ({
 
     await expect(signOutEverywhereDialog(page)).toBeHidden();
     await page.reload();
-    await expect(page).toHaveURL("/settings");
+    await expect(page).toHaveURL("/settings#security");
     await openSecurity(page);
   });
 
