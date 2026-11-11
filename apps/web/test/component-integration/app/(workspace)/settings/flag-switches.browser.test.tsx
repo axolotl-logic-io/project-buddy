@@ -41,14 +41,6 @@ const action = vi.hoisted(() => ({
   saveHiddenFlagsAction: vi.fn<typeof saveHiddenFlagsAction>(),
 }));
 vi.mock("@/flags/save-hidden-flags-action.ts", () => action);
-// The page's notifications section is notification-switch.browser.test.tsx's
-// to check; without VAPID keys here, it shows no switch.
-vi.mock("@/push/notification-actions.ts", () => ({
-  restoreNotificationsAction: vi.fn(),
-  turnOnNotificationsAction: vi.fn(),
-  turnOffNotificationsAction: vi.fn(),
-  sendTestNotificationAction: vi.fn(),
-}));
 
 // Vitest's own viewport for browser tests, restored after each test.
 const VITEST_VIEWPORT = { width: 414, height: 896 } as const;

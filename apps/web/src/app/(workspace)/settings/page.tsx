@@ -7,26 +7,22 @@ import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
-import { readVapidKeysIfSet } from "@/env.ts";
-import { NOTIFICATIONS_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
+import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { FlagSwitches } from "./flag-switches.tsx";
 import { InterviewConstructForm } from "./interview-construct-form.tsx";
-import { NotificationSwitch } from "./notification-switch.tsx";
 
 const EXTRAS_HEADING_ID = "extras-heading";
-const NOTIFICATIONS_HEADING_ID = "notifications-heading";
 
 export const metadata: Metadata = { title: SETTINGS_COPY.title };
 
-// Account preferences and the current device's notification switch.
+// Account preferences.
 export default async function SettingsPage(): Promise<JSX.Element> {
   const user = await requireUser();
   const [chosen, constructs] = await Promise.all([
     interviewConstruct(user.id),
     ownConstructChoices(),
   ]);
-  const publicKey = readVapidKeysIfSet()?.publicKey;
   const sections: WorkspaceSection[] = [
     {
       id: "general",
@@ -60,24 +56,6 @@ export default async function SettingsPage(): Promise<JSX.Element> {
       ),
     },
   ];
-  if (publicKey !== undefined) {
-    sections.push({
-      id: "notifications",
-      label: NOTIFICATIONS_COPY.heading,
-      content: (
-        <section
-          aria-labelledby={NOTIFICATIONS_HEADING_ID}
-          className="flex flex-col gap-3"
-        >
-          <h2 className="section-heading" id={NOTIFICATIONS_HEADING_ID}>
-            {NOTIFICATIONS_COPY.heading}
-          </h2>
-          <p className="field-hint">{NOTIFICATIONS_COPY.hint}</p>
-          <NotificationSwitch publicKey={publicKey} />
-        </section>
-      ),
-    });
-  }
   return (
     <PageWorkspace
       title={SETTINGS_COPY.heading}
