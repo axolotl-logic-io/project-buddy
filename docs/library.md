@@ -6,7 +6,7 @@ The signed-in Library at `/library` contains Getting Started and books on Constr
 
 Product contributors own the reader-facing text in `apps/web/src/ui/copy/library.ts`. The renderer is in `apps/web/src/library/library.tsx`; route files are thin authenticated adapters. Keep existing book ids and chapter anchors stable when editing headings. Use the glossary and the docs style guide. The content uses Batteries for model use. Character Sheet, Activity Sheet and Spell Sheet are headings inside prompt text, not replacements for the editor labels Prompt and Instructions. A construct's Prompt field sits under its Instructions heading. Craft construct, Craft activity and Craft spell are the creation controls; compatibility fields stay unchanged.
 
-The Library describes the site as a reader finds it today, as a guide rather than release notes. Keep change and migration history out of it: the orb rollout and the earlier gold balance belong in the [Marketplace cutover procedure](marketplace.md#currency-cutover-proposal), and test-only purchases in [Battery purchases](battery-purchases.md). For the Marketplace, the Library says only that orbs are separate from Batteries and that the Marketplace's own message says whether buying is open. For Batteries, it points readers to Account.
+The Library describes the site as a reader finds it today, as a guide rather than release notes. Keep change and migration history out of it: the earlier gold balance belongs in [Batteries](batteries.md), and test-only purchases in [Battery purchases](battery-purchases.md). For Batteries, the Library points readers to Account.
 
 Changes to prompts, model inputs, tools, access rules, snapshots, limits or relevant user flows must update the corresponding Library chapters in the same PR. The reviewer compares technical claims with the source map below and checks whether the call-site inventory changed. Explain conditional context rather than claiming all operations receive all data. Use fictional examples only.
 
@@ -15,7 +15,7 @@ Changes to prompts, model inputs, tools, access rules, snapshots, limits or rele
 | Reader chapter | Implementation sources under `apps/web/src/` |
 | --- | --- |
 | Getting Started / first-adventure, continue | `chats/`, `projects/`, `notes/`, `memory/`, `plan/`, `app/(workspace)/chat/`, `app/(workspace)/projects/` |
-| Getting Started / craft | `marketplace/cutover.ts`, `batteries/catalog.ts`, `components/earn-gold-link.tsx`, `components/chat/reply-cost.tsx` |
+| Getting Started / craft | `batteries/catalog.ts`, `components/earn-gold-link.tsx`, `components/chat/reply-cost.tsx` |
 | Constructs / character, craft, test | `constructs/`, `components/constructs/`, `constructs/visual-generation.ts`, `constructs/avatar-frame.ts`, `prompts/`, `workshop/test-draft.ts` |
 | Spells / selection, craft, test | `spells/spell-choices.ts`, `spells/cast-spell.ts`, `spells/cast-spell-contract.ts`, `workshop/test-draft.ts` |
 | Activities / sessions, craft, test | `activities/activity-sessions.ts`, `activities/select-activity.ts`, `activities/prepared-openings.ts`, `replies/chat-opening.ts`, `conversations/start-quest.ts` |
