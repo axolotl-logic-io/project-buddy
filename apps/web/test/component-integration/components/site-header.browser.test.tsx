@@ -31,7 +31,6 @@ import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -92,7 +91,6 @@ const PLACES = [
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
   GENERATION_COPY.heading,
-  MARKETPLACE_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 
@@ -290,7 +288,7 @@ test.each(SCREENS)(
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Constructs, Activities and Spellbook apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 

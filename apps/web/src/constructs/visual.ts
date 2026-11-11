@@ -40,7 +40,7 @@ const CONSTRUCT_VISUAL = z.object({
 });
 
 const VISUAL_DESTINATION = z.object({
-  kind: z.enum(["construct", "adventure", "listing"]),
+  kind: z.enum(["construct", "adventure"]),
   id: z.uuid(),
 });
 type VisualDestination = z.infer<typeof VISUAL_DESTINATION>;

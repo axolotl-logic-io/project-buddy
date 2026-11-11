@@ -11,7 +11,6 @@ import {
   newSpellAction,
   retireSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
-import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
@@ -44,15 +43,6 @@ vi.mock(
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
-// Her spell's page offers it for sale; selling is the Marketplace's, which
-// marketplace-pages.browser.test.tsx covers.
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  sellListingAction: vi.fn(),
 }));
 // The pages expose these actions; only Craft spell and Delete are submitted.
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
@@ -169,7 +159,6 @@ test("Retire submits the spell from its existing card", async () => {
 test("her spell's page names each limit, and its fields keep within them", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await SpellPage({
@@ -217,7 +206,6 @@ test.each([
 ])("her spell $made names what its reset restores", async ({ spell }) => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(getOwnSpell).mockResolvedValue(spell);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await SpellPage({

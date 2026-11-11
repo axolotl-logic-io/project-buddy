@@ -58,7 +58,6 @@ const VELLUM_CLONE: OwnConstruct = {
   name: `${getConstruct("vellum").name} (clone)`,
   definition: getConstruct("vellum").definition,
   clonedFrom: "vellum",
-  boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
@@ -155,7 +154,6 @@ const BRAINSTORMING_CLONE: OwnActivity = {
   name: `${getActivity("brainstorming").name} (clone)`,
   definition: getActivity("brainstorming").definition,
   clonedFrom: "brainstorming",
-  boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
@@ -167,7 +165,6 @@ const ASK_ONE_QUESTION_CLONE: OwnSpell = {
   name: "Unbroken".repeat(10),
   definition: getSpell("ask-one-question").definition,
   clonedFrom: "ask-one-question",
-  boughtFrom: undefined,
   createdAt: new Date("2026-10-13T09:00:00Z"),
   updatedAt: new Date("2026-10-13T09:00:00Z"),
 };
