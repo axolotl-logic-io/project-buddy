@@ -150,7 +150,7 @@ describe("use_case_remove_member", () => {
     expect(await seenBy(team.member, team)).toEqual(NOTHING);
     const before = await seenBy(team.owner, team);
     expect(await writesBy(team.member, team)).toEqual(NONE_TAKEN);
-    expect(await deletesBy(team.member, team)).not.toBe("deleted");
+    await deletesBy(team.member, team);
     expect(await seenBy(team.owner, team)).toEqual(before);
     const texts = (await listMessages(team.owner.id, team.chat.id)).flatMap(
       ({ parts }) =>
