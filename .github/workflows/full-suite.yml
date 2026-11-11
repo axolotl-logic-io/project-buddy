@@ -1,0 +1,113 @@
+# Runs the site's costly test stages on each PR and on each push to
+# integration, beside the Check workflow: the browser tests (Chromium and
+# WebKit), the server tests against a local test database, and the Playwright
+# end-to-end tests against a production build. Each is its own job, so they
+# run at once and a failure names its stage.
+#
+# It needs no secrets and reaches no outside service but the package, image
+# and browser downloads. The server and end-to-end jobs start the test
+# database from apps/web/compose.test-db.yml on the runner, and
+# `npm run test-env:init` writes .env.test for it from .env.test.example: a
+# localhost DATABASE_URL, the mock model and the email outbox. The test
+# commands refuse any other (scripts/test-db/test-database.ts), so no job can
+# reach the shared Neon database, Claude or Resend. Nothing here deploys.
+name: Full suite
+
+on:
+  pull_request:
+  push:
+    branches: [integration]
+
+permissions:
+  contents: read
+
+# A newer push to a PR cancels that PR's older run, since only its newest
+# head can merge. Runs on integration always finish.
+concurrency:
+  group: full-suite-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: apps/web
+
+jobs:
+  browser:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # As the root mise.toml says.
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+        working-directory: .
+
+      # The browsers and the system libraries WebKit needs, which a local
+      # machine has and a fresh runner doesn't.
+      - run: npx playwright install --with-deps chromium webkit
+
+      - run: npm run test:browser
+
+  server:
+    name: Server tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+        working-directory: .
+
+      - run: npm run test-env:init
+      - run: npm run test-db:up
+      # Resets and migrates the test database first.
+      - run: npm run test:server
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+        working-directory: .
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run test-env:init
+      - run: npm run test-db:up
+      # test:playwright uses the database as it finds it, so migrate it first.
+      - run: npm run test-db:reset
+      # Builds the site and serves it on .env.test's port for the tests.
+      - run: npm run test:playwright
+
+      # The HTML report holds each failed test's trace (playwright.config.ts).
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+            !apps/web/test-results/email-outbox/
+          retention-days: 14

@@ -11,6 +11,8 @@ import { render } from "vitest-browser-react";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
+import { appErrorResponse, userMessage } from "@/errors/app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { replyGoldAction } from "@/replies/reply-gold-action.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -350,5 +352,38 @@ describe("use_case_see_gold", () => {
       .toBeVisible();
     await expect.poll(() => refresh.mock.calls.length).toBe(2);
     first.resolve({ viewer, balance: 100, costs: [] });
+  });
+});
+
+describe("use_case_session_expired_in_chat", () => {
+  test("a refused reply keeps its signed-out message without refreshing to sign in", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(() =>
+        Promise.resolve(
+          appErrorResponse("signed-out", HTTP_STATUS.unauthorized),
+        ),
+      ),
+    );
+    await render(
+      <ChatView
+        viewer={userIdFixture()}
+        constructName="Vellum"
+        chatId={chatIdFixture()}
+        initialMessages={[STOPPED]}
+        stoppedReplyId={STOPPED.id}
+      />,
+    );
+
+    await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
+
+    await expect
+      .element(
+        page
+          .getByRole("alert")
+          .getByText(userMessage("signed-out"), { exact: true }),
+      )
+      .toBeVisible();
+    expect(refresh).not.toHaveBeenCalled();
   });
 });
