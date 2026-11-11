@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-11",
+  "baselineSource": "957f06d5d6b52ee815b9a5bf371442f751c13276",
+  "candidateSource": "22de8bab0547d958489e4e5b3df63910d44b0f92",
+  "baselineBuild": "8RkYjsfZqyctkmG0QXLqZ",
+  "candidateBuild": "EdH_eq2nPEyGKni-9TT0c",
+  "scope": "focused local diagnosis and mitigation; not a full performance audit",
+  "productionAccess": false,
+  "paidModels": false,
+  "reactProfilingBuild": false,
+  "historicalCohortsPooled": false,
+  "sharedLock": "/tmp/project-buddy-unattended-full-suite.lock",
+  "recipes": {
+    "pair-capture.mjs.txt": "16511e91c2ad262a986886ed52e6d827cb53183ea995771910eafcd8373a8018",
+    "input-v3-run.mjs.txt": "adee203de28fe19de7a49eeb7e2e9eac61dd2350c4c49f511539cfe5efb558f7",
+    "ablate-run.mjs.txt": "26ab53dbb662b3dc5d0ab61959477bcf9f1aa72c4cabc27fd9f69c8f9b3ff6b6",
+    "capture-v1.mjs.txt": "2133643fb93a2e22a53bcd03e7d7207d8a7cb529de07a7486a898a7e631eae6d",
+    "run.mjs.txt": "813bec20564ad4019c9f06d3fa01fecab44b212ee53f666df9aa9e371891dff7",
+    "pair-run.mjs.txt": "0534aae6c57fe201c6c722b996acb090adf1198fab23e47af493c8e25376bc0d",
+    "capture-v2.mjs.txt": "262658d09e1756896231a0a3c4d7181be4168aee9de764abe0a4798d5f21515b",
+    "capture-v3.mjs.txt": "2e831d7210cc318003103d34b9e9a2d4aac7c961b3905ea80b4790a4e4191744",
+    "chart.py.txt": "66e07b7d12faadaaa7130de53da6b1477335a41ee330d5bd5fad2bae6a5fb3b2",
+    "README.md": "5c3e344fa8ef2b32b111621667d76f26fa0d695659c0b763c757f343a2663c2f",
+    "ablate.mjs.txt": "4d05a5a7b204b0f35f960cf0fb07390d025d64781ea9b9bb855af6cbe8db443e",
+    "reduce.py.txt": "387b81976b8fff5b7efbe1993315dab6e3fc0330c496950a96264fa21d65dd1b",
+    "seed.mts.txt": "d5391074c34543fbf5e2f3f3c6b05a19a30a465d09adad1709ac5380df03a0b7",
+    "pair-run-v2.mjs.txt": "0033192224cb4122714eb7c4e6cfcdba35a108d3fa983ee51b3a95981b0aa9ae"
+  },
+  "integrationMergedAfterMeasurement": "0a5d5471cae5381e07c91373a7bbb4a7c7c42902",
+  "validation": {
+    "privacyNegativeCases": 6,
+    "pairedRows": 40,
+    "inputRows": 24,
+    "controlledReplies": 3,
+    "focusedBrowserCases": 52,
+    "mergedFastTests": 342
+  }
+}

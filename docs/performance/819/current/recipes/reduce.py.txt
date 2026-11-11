@@ -1,0 +1,45 @@
+import json,gzip,statistics,math,re
+from pathlib import Path
+root=Path('/tmp/pb-current-diag');out=Path('docs/performance/819/current')
+# Closed vocabulary: this validator also reads back each compressed artifact.
+keys={'source','build','browser','protocol','rows','origin','name','profile','intervention','mode','present','control','closed','load','end','tasks','keys','resources','count','network','at','attempts','type','start','duration','route','prefetch','initiator','bytes','sample','target','removed','prior','after','kind','variant','tabConfirmation','started','completed'}
+words={'current-screen-v1','current-screen-v2','current-screen-v3','tab-prefetch-pair-v1','quest-0','quest-20','quest-200','editor','workshop','stream','desktop','phone','phone-4x','phone-4x-cpu-only','none','keyboard','pointer','input','direct','transition','static','other','quest','all-workshop','active-tab','activity','spell','construct','script','parser','preload','link','css','img','fetch','xmlhttprequest','navigation','before','after','workshop-construct','workshop-activity','workshop-spell'}
+def validate(x):
+ if isinstance(x,dict):
+  assert set(x)<=keys,set(x)-keys
+  for v in x.values():validate(v)
+ elif isinstance(x,list):
+  for v in x:validate(v)
+ elif isinstance(x,str):assert x in words or re.fullmatch(r'[0-9a-f]{40}|[A-Za-z0-9_-]{20,24}|Chrome/156\.0\.8078\.4',x),x
+ elif isinstance(x,(int,float)):assert math.isfinite(x)
+ else:assert x is None or isinstance(x,bool)
+def stats(a):return {'median':statistics.median(a),'min':min(a),'max':max(a),'n':len(a)}
+negative=[]
+for name,value in [('raw address',{'route':'https://private.invalid/example'}),('headers',{'headers':{'cookie':'private'}}),('private query',{'kind':'private-session'}),('prompt',{'prompt':'private text'}),('selector',{'selector':'textarea'}),('nonfinite',{'duration':float('inf')})]:
+ rejected=False
+ try:validate(value)
+ except AssertionError:rejected=True
+ assert rejected,name
+ negative.append({'case':name,'rejected':rejected})
+(out/'negative-validation.json').write_text(json.dumps(negative,indent=2)+'\n')
+inputs={'initial-partial':'results.json','source-probe-partial':'input-results.json','current-input':'input-v3-results.json','link-ablation':'ablation.json','paired-tabs':'pair.json'}
+data={}
+for name,file in inputs.items():
+ d=json.loads((root/file).read_text());validate(d);raw=json.dumps(d,separators=(',',':')).encode();fileout=out/(name+'.json.gz');fileout.write_bytes(gzip.compress(raw,mtime=0));assert json.loads(gzip.decompress(fileout.read_bytes()))==d;data[name]=d
+pair=data['paired-tabs']['rows'];assert len(pair)==40
+summary={'tabs':{},'input':{},'stream':{}}
+for profile in ['desktop','phone']:
+ for variant in ['before','after']:
+  rows=[r for r in pair if r['profile']==profile and r['variant']==variant];assert len(rows)==10
+  prefetch=[sum(n['prefetch'] and n['route'].startswith('workshop-') and 0<=n['start']<=n['end']<=5000 for n in r['network']) for r in rows]
+  if variant=='after':assert max(prefetch)<=1,prefetch
+  summary['tabs'][profile+'-'+variant]={'completedFiveSecondWorkshopPrefetches':stats(prefetch),'completedFiveSecondBytes':stats([sum(n['bytes'] for n in r['network'] if 0<=n['start']<=n['end']<=5000)for r in rows]),'tabConfirmationMs':stats([r['tabConfirmation']for r in rows]),'windowEndMs':stats([r['end']for r in rows])}
+rows=data['current-input']['rows'];normal=[r for r in rows if r['name']!='stream'];assert len(normal)==24
+for name in ['quest-0','quest-20','quest-200','editor']:
+ for mode in ['direct','transition']:
+  cell=[r for r in normal if r['name']==name and r['mode']==mode];assert len(cell)==3
+  summary['input'][name+'-'+mode]={'presenceMs':stats([r['present']-r['origin']for r in cell]),'confirmationMs':stats([r['control']['at']-r['origin']for r in cell]),'fiveSecondLongTaskOverlapMs':stats([sum(max(0,min(t['start']+t['duration'],r['origin']+5000)-max(t['start'],r['origin']))for t in r['tasks'])for r in cell]),'worstKeyMs':stats([max(r['keys'],default=0)for r in cell]),'fiveSecondResourceTransferBytes':stats([sum(n['bytes']for n in r['resources']if r['origin']<=n['start']<=n['end']<=r['origin']+5000)for r in cell])}
+streams=[r for r in rows if r['name']=='stream'];assert len(streams)==3
+summary['stream']={'durationMs':stats([r['completed']-r['started']for r in streams]),'longTaskSumMs':stats([sum(t['duration']for t in r['tasks'])for r in streams])}
+(out/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
+print('Validated compressed privacy vocabulary, 40 paired rows, 24 input rows, 3 streams; candidate prefetch bound passed.')
