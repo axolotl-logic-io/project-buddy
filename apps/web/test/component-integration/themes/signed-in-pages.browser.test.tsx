@@ -76,11 +76,7 @@ vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: () => Promise.resolve([]),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),

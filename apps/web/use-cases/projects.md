@@ -74,7 +74,7 @@ The user opens one of their quests, from Quests or Home.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Quick Notes and Versions. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The status actions are there too. Controls wrap on phones, without sideways scrolling.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress and Versions. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The status actions are there too. Controls wrap on phones, without sideways scrolling.
 - **Variations:**
   - A quest without a conversation yet, as after the move from adventures: `use_case_start_quest_conversation`.
   - The Dailies quest: `use_case_dailies`.
@@ -82,7 +82,6 @@ The user opens one of their quests, from Quests or Home.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
-  - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note they no longer need.
   - `use_case_view_progress_timeline`: see how far they have come.
 
 ## use_case_start_quest_conversation

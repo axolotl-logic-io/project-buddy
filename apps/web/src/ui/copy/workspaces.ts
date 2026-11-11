@@ -8,11 +8,6 @@ const WORKSPACES_COPY = {
   appearance: "Appearance",
   conversation: "Conversation",
   standalone: "Standalone",
-  write: "Write",
-  preview: "Preview",
-  previewEmpty: "Write a Quick Note to preview it here.",
-  previewIntro:
-    "This Quick Note will be added to the selected quest’s Journal.",
   versions: "Versions",
   journal: "Quest Journal",
   accountIntro: "Your name, batteries and sign-in controls.",
