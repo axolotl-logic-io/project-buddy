@@ -43,7 +43,6 @@ A case written before its test is listed in `test/component-integration/use-case
 
 The Outcome items the mock cannot establish need a manual check with real Claude. Listing them here does not mean the check has passed:
 
-- [`use_case_project_interview`](projects.md#use_case_project_interview): in a preserved Quest interview adventure, once the Journal holds goal, what the user already knows, purpose and milestones, the construct stops interviewing and helps from the Journal. New quests default to Break Down a Project; any quest adventure can update the Journal.
 - [`use_case_construct_changes_activity`](activities.md#use_case_construct_changes_activity): asked for a breakdown or a brainstorm, the construct calls `select_activity` and follows the new activity in the same reply; older requests for the retired interview enter Break Down a Project, with or without a quest.
 - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): asked how to do something in Blender, the construct casts Blender manual lookup, then searches the Blender manual and cites what it read; it gives no Blender steps without a search.
 - [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
