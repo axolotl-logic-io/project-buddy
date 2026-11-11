@@ -1,7 +1,6 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A project chat is open to everyone in its
-// project, its owner and its members; a standalone chat only to the user it
-// names (src/accounts/owner-scope.ts). Every function takes the acting user
+// saved by new-chat-store.ts. A project chat is open to its project's owner
+// alone; a standalone chat only to the user it names (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's construct and name, and each message's role and
@@ -196,8 +195,7 @@ export async function listMessagesForModel(
 
 // The messages of the owner's chat as people see them, such as on the
 // chat's page: as listMessagesForModel reads them, but without the
-// instructions of the spells the construct cast (withoutSpellInstructions), so
-// a spell of one member's reaches no one else in a team project.
+// instructions of the spells the construct cast (withoutSpellInstructions).
 export async function listMessages(
   owner: UserId,
   chatId: ChatId,

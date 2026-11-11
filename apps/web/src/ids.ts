@@ -1,6 +1,6 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, project invitation, chat, milestone and user
-// construct ids are Postgres UUIDs. The parsers, and the
+// expected. User, project, chat, milestone and user construct ids are
+// Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
@@ -48,12 +48,6 @@ const MILESTONE_ID = z
   .toLowerCase()
   .brand<"MilestoneId">();
 
-const PROJECT_INVITATION_ID = z
-  .string()
-  .regex(CANONICAL_UUID)
-  .toLowerCase()
-  .brand<"ProjectInvitationId">();
-
 const OWN_PROMPT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -80,9 +74,6 @@ type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
 
 // A milestone's id, as `parseMilestoneId` returns it.
 type MilestoneId = z.infer<typeof MILESTONE_ID>;
-
-// A project invitation's id, as `parseProjectInvitationId` returns it.
-type ProjectInvitationId = z.infer<typeof PROJECT_INVITATION_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -116,14 +107,6 @@ function parseMilestoneId(value: string): MilestoneId | undefined {
   return MILESTONE_ID.safeParse(value).data;
 }
 
-// The value as a lowercase ProjectInvitationId, or undefined unless it is a
-// canonical UUID.
-function parseProjectInvitationId(
-  value: string,
-): ProjectInvitationId | undefined {
-  return PROJECT_INVITATION_ID.safeParse(value).data;
-}
-
 // The value as a MessageId, or undefined if it is empty or longer than
 // MESSAGE_ID_MAX_LENGTH.
 function parseMessageId(value: string): MessageId | undefined {
@@ -137,7 +120,6 @@ export type {
   MilestoneId,
   OwnPromptId,
   ProjectId,
-  ProjectInvitationId,
   UserId,
 };
 export {
@@ -148,14 +130,12 @@ export {
   MILESTONE_ID,
   OWN_PROMPT_ID,
   PROJECT_ID,
-  PROJECT_INVITATION_ID,
   parseChatId,
   parseImageId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,
   parseProjectId,
-  parseProjectInvitationId,
   parseUserId,
   USER_ID,
 };
