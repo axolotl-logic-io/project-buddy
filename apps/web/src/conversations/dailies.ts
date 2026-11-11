@@ -37,6 +37,7 @@ type StartDailiesResult =
 interface DailiesStart {
   readonly name: ProjectName;
   readonly journal: string;
+  readonly motivation?: string;
   readonly construct: NewChatConstruct;
   readonly activity: ChatActivity;
 }
@@ -85,6 +86,7 @@ async function startDailies(
   }
   const started = await startNewQuest(user, start.name, start.construct, {
     journal: start.journal,
+    motivation: start.motivation ?? "",
     activity: start.activity,
     dailies: true,
   });
