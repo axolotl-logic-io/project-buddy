@@ -12,7 +12,7 @@
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own
 // prompt, a construct or an activity, a gold balance and its ledger, an image
-// generation's claim and a push subscription belong to their user alone. A
+// generation's claim belong to their user alone. A
 // transfer of gold changes the payee's balance too, only by adding to it
 // (goldBalancesOfTransfer). The one
 // exception is by design: a chat keeps a snapshot of its construct, and each
@@ -63,7 +63,6 @@ import { planVersions } from "@/db/tables/plan-versions.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
-import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
 import { questTransfers } from "@/db/tables/quest-transfers.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
@@ -255,12 +254,6 @@ function generationOpenTo(user: UserId): SQL {
   return inArray(imageGenerations.chatId, openChatIds(user));
 }
 
-// A `push_subscriptions` row of owner's: a browser where owner turned
-// notifications on.
-function pushSubscriptionOwnedBy(owner: UserId): SQL {
-  return eq(pushSubscriptions.userId, owner);
-}
-
 // A `listings` row that every signed-in user may read: one still listed in
 // the Marketplace.
 function listingListed(): SQL {
@@ -392,7 +385,6 @@ export {
   projectOwnedBy,
   purchaseMadeBy,
   purchaseOfListingSoldBy,
-  pushSubscriptionOwnedBy,
   questTransferOwnedBy,
   replyRunOpenTo,
   replyRunOwnedBy,

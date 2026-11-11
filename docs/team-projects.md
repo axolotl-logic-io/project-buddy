@@ -20,7 +20,7 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 
 The owner can't leave their own quest. Transferring ownership is out of scope.
 
-Each user's Chat, own constructs, own activities, own spells, push subscriptions and each user's image gallery stay private to their user.
+Each user's Chat, own constructs, own activities, own spells and each user's image gallery stay private to their user.
 
 In a team quest's conversation, the chosen construct's and activity's instructions are shared with the quest's members. The conversation keeps a snapshot of the construct it started with, and each activity session keeps a snapshot of its activity. So when the owner starts a quest with an own construct, or the construct moves the conversation into someone's own activity, that snapshot's instructions become the conversation's prompt for every member's replies. The same goes for spells: when the construct casts one of the replying member's own [spells](spellbook.md), the saved reply keeps the spell's instructions, so they steer the construct in every later reply in the conversation, whoever writes. The site shows no warning for this. The own construct, activity or spell itself stays private: no one else can open, edit or use it elsewhere.
 
