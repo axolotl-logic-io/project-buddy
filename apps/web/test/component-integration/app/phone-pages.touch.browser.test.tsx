@@ -230,12 +230,6 @@ vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
-vi.mock("@/push/notification-actions.ts", () => ({
-  restoreNotificationsAction: vi.fn(),
-  turnOnNotificationsAction: vi.fn(),
-  turnOffNotificationsAction: vi.fn(),
-  sendTestNotificationAction: vi.fn(),
-}));
 
 vi.mock(
   "@/activities/activity-choices.ts",

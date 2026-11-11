@@ -146,11 +146,11 @@ The site uses one parchment theme with Light, Dark and System modes. Theme contr
 
 Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with adventure uploads and spend the same batteries as adventure. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
 
-## Installed app and notifications
+## Installed app
 
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
 
-To send push notifications, set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in `.env.local` and in the Vercel project, then redeploy. Without them, Settings says notifications aren't set up. See [notifications](docs/notifications.md) for generating the keys, how each device turns notifications on, and how code sends one with `sendPushNotification`.
+Notifications have been removed. See [installed app](docs/notifications.md) for Home Screen installation and older service worker retirement.
 
 ## Adventure image attachments
 

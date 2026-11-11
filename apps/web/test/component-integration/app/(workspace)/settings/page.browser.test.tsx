@@ -42,7 +42,6 @@ vi.mock("@/batteries/purchases.ts", () => ({
 vi.mock("@/batteries/catalog.ts", () => ({
   availableBatteryCatalog: () => [],
 }));
-vi.mock("@/push/notification-actions.ts", () => ({}));
 
 beforeEach(() => vi.clearAllMocks());
 
