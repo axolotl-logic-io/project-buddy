@@ -24,7 +24,6 @@ export const CONSTRUCTS_COPY = {
   newConstruct: "Craft construct",
   // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",
-  startLabel: (name: string): string => `Start a quest with ${name}`,
   customize: "Customize",
   customizeLabel: (name: string): string =>
     `Customize ${name}: make your own copy`,

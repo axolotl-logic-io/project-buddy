@@ -42,10 +42,6 @@ const RETIREMENT_COPY = {
     openingRequest: "Opening request",
     whenToUse: "When to use",
   },
-  marketplace:
-    "Published Marketplace listings remain available until you unlist them. Retirement and permanent deletion do not unlist them.",
-  bought:
-    "This copy came from the Marketplace. Restoring it costs no orbs. Permanent deletion gives no refund; buying another copy may cost orbs.",
   fallback:
     "If this was your preferred interview construct, new quests use Vellum while it is retired. Restoring makes it available as your preference again.",
   loading: "Loading retirement…",

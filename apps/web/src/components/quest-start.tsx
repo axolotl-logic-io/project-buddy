@@ -68,8 +68,8 @@ function presetConstructId(
 }
 
 // A starting point's details, ready to edit: its name, its starting
-// Journal and who to work with. Its activity rides along unseen; the
-// construct can change it later in the conversation.
+// Journal and who to work with. The server gives it the starting point's
+// activity, which the construct can change later in the conversation.
 function QuestStartForm({
   quest,
   choices,
@@ -90,11 +90,6 @@ function QuestStartForm({
     <form className="flex flex-col gap-5" onSubmit={onSubmit}>
       <p className="text-muted">{quest.description}</p>
       <input type="hidden" name="premadeId" value={quest.id} />
-      <input
-        type="hidden"
-        name="activityId"
-        value={preset.activityId ?? quest.activityId}
-      />
       <TextField
         label={PROJECTS_COPY.nameLabel}
         name="name"
@@ -172,7 +167,7 @@ function QuestStartCard({
 // Do a thing. Choosing one shows its details in their place, already filled
 // in, to edit or start as they are; Back shows the four again. It opens no
 // dialog of its own, so a page can hold it in one. preset fills in what the
-// page starting it already knows, such as an activity or a Chat's summary,
+// page starting it already knows, such as a construct or a Chat's summary,
 // and initialChoice shows that one's details at once. A preset Journal is a
 // goal of its own, so Dailies, the user's one ongoing quest, isn't offered
 // with one. dailiesId is the user's Dailies quest, if they have one, which
