@@ -19,6 +19,7 @@ import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
+import { userConstructIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -329,3 +330,22 @@ test.each(PROMPT_KINDS)(
       .not.toBeInTheDocument();
   },
 );
+
+test("Workshop keeps private constructs in the store’s oldest-first order", async () => {
+  vi.mocked(listConstructs).mockResolvedValue([
+    { ...VELLUM_CLONE, name: "Zebra guide" },
+    {
+      ...VELLUM_CLONE,
+      id: userConstructIdFixture("3d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+      name: "Alpine guide",
+    },
+  ]);
+  await showWorkshop();
+  const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
+  expect(
+    own
+      .getByRole("link")
+      .elements()
+      .map((link) => link.textContent),
+  ).toEqual(["Zebra guide", "Edit", "Alpine guide", "Edit"]);
+});
