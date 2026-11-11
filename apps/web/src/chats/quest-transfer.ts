@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { questTransferOwnedBy } from "@/accounts/owner-scope.ts";
-import { startProject } from "@/chats/start-chat.ts";
 import { getChat } from "@/chats/store.ts";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { questTransfers } from "@/db/tables/quest-transfers.ts";
 import { AppError } from "@/errors/app-error.ts";

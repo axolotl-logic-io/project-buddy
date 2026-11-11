@@ -1,14 +1,15 @@
-// Check-ins: on the schedule the user picks for a project, its construct starts
-// a new chat in it, unread, with a short message about where the user left
-// off and one small next step (src/chats/start-chat.ts, startCheckIn), and
-// emails it to the user with a link to the chat. The scheduler runs
+// Check-ins: on the schedule the user picks for a quest, its construct
+// appends a short message about where the user left off and one small next
+// step to the quest's conversation, unread (src/conversations/check-in.ts),
+// and emails it to the user with a link to the quest. The scheduler runs
 // runCheckIns; check-in-store.ts says which projects are due. Each project
 // is claimed before its construct writes, so a second run at the same time, or
 // soon after, starts no second check-in. A check-in skipped because the
 // owner is out of gold keeps its claim, so the project waits its interval
 // like any other, rather than going first in every run. One that failed, because Claude is unavailable or something
 // broke, is given up, so the next run tries again.
-import { startCheckIn } from "@/chats/start-chat.ts";
+
+import type { NewMessage } from "@/chats/chat-rows.ts";
 import {
   claimCheckIn,
   type DueCheckIn,
@@ -16,6 +17,7 @@ import {
   releaseCheckIn,
 } from "@/check-ins/check-in-store.ts";
 import { checkInsOffUrl } from "@/check-ins/check-ins-off-link.ts";
+import { appendCheckIn } from "@/conversations/check-in.ts";
 import { checkInEmail } from "@/email/check-in-email.ts";
 import { EmailFailure } from "@/email/email-failure.ts";
 import { sendEmail } from "@/email/send-email.ts";
@@ -34,7 +36,8 @@ const CHECK_INS_AT_ONCE = 5;
 const CHECK_INS_PER_RUN = 25;
 
 // What one run did with each due project: started its check-in; skipped
-// it, because another run claimed it or the owner is out of gold; or
+// it, because another run claimed it, the owner is out of gold or the
+// conversation awaits a reply; or
 // failed to, because Claude is unavailable or something broke, which is
 // logged.
 type CheckInOutcome = "started" | "skipped" | "failed";
@@ -42,27 +45,40 @@ type CheckInOutcome = "started" | "skipped" | "failed";
 // How many due projects each outcome had.
 type CheckInsRun = Readonly<Record<CheckInOutcome, number>>;
 
-// Emails the owner the check-in's message, with links on origin. A failure
-// is logged and the chat stays, unread, on the Chats page.
+// A message's text, its text parts one after another.
+function messageText({ parts }: NewMessage): string {
+  return parts
+    .flatMap((part) => {
+      if (part.type === "text") {
+        return [part.text];
+      }
+      return [];
+    })
+    .join("\n\n");
+}
+
+// Emails the owner the check-in's message, with links on origin, once per
+// message. A failure is logged and the message stays, unread, in the quest's
+// conversation.
 async function emailCheckIn(
   { owner, email, project }: DueCheckIn,
-  started: { readonly chatId: string; readonly constructName: string },
-  message: string,
+  constructName: string,
+  message: NewMessage,
   origin: string,
 ): Promise<void> {
   try {
     await sendEmail(
       checkInEmail({
         to: email,
-        constructName: started.constructName,
+        constructName,
         projectName: project.name,
-        message,
-        chatUrl: new URL(`/chats/${started.chatId}`, origin).href,
+        message: messageText(message),
+        questUrl: new URL(`/projects/${project.id}`, origin).href,
         offUrl: await checkInsOffUrl(origin, {
           owner,
           projectId: project.id,
         }),
-        idempotencyKey: `check-in/${started.chatId}`,
+        idempotencyKey: `check-in/${message.id}`,
       }),
     );
   } catch (error) {
@@ -85,20 +101,15 @@ async function checkIn(
     return "skipped";
   }
   try {
-    const result = await startCheckIn(owner, project);
-    if (result.kind === "outOfGold") {
+    const result = await appendCheckIn(owner, project);
+    if (result.kind === "outOfGold" || result.kind === "awaitingReply") {
       return "skipped";
     }
     if (result.kind === "claudeUnavailable") {
       await releaseCheckIn(owner, project.id);
       return "failed";
     }
-    await emailCheckIn(
-      due,
-      { chatId: result.chat.id, constructName: result.chat.construct.name },
-      result.message,
-      origin,
-    );
+    await emailCheckIn(due, result.chat.construct.name, result.message, origin);
     return "started";
   } catch (error) {
     toAppError(error, "check-in");

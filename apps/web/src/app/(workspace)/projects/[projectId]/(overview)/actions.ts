@@ -10,7 +10,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { CHECK_IN_FREQUENCY } from "@/check-ins/check-in-frequency.ts";
 import { saveCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
-import { startQuestConversation } from "@/conversations/quest-conversation.ts";
+import { startQuestConversation } from "@/conversations/start-quest.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
 import { MILESTONE_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
 import {
