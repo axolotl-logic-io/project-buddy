@@ -15,6 +15,7 @@ interface RetirementKind {
   readonly source: string;
   readonly field: string;
   readonly path: string;
+  readonly query: Record<string, string>;
   readonly clone: typeof cloneConstruct | typeof cloneActivity;
   readonly read: typeof getOwnConstruct | typeof getOwnActivity;
   readonly remove: typeof retireConstructAction;
@@ -25,6 +26,7 @@ const KINDS: readonly RetirementKind[] = [
     source: "vellum",
     field: "constructId",
     path: "/constructs",
+    query: { retired: "1" },
     clone: cloneConstruct,
     read: getOwnConstruct,
     remove: retireConstructAction,
@@ -33,7 +35,8 @@ const KINDS: readonly RetirementKind[] = [
     name: "activity",
     source: "brainstorming",
     field: "activityId",
-    path: "/activities",
+    path: "/workshop",
+    query: { kind: "activity", retired: "1" },
     clone: cloneActivity,
     read: getOwnActivity,
     remove: retireActivityAction,
@@ -49,10 +52,10 @@ describe("retiring own constructs and activities", () => {
     const form = new FormData();
     form.set(kind.field, copy.id);
     await signIn(other);
-    await expectRedirect(() => kind.remove(form), `${kind.path}?retired=1`);
+    await expectRedirect(() => kind.remove(form), kind.path, kind.query);
     expect(await kind.read(owner.id, copy.id)).toBeDefined();
     await signIn(owner);
-    await expectRedirect(() => kind.remove(form), `${kind.path}?retired=1`);
+    await expectRedirect(() => kind.remove(form), kind.path, kind.query);
     expect(await kind.read(owner.id, copy.id)).toBeUndefined();
   });
 });

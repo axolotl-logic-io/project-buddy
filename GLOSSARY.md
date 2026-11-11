@@ -147,11 +147,11 @@ What the user and construct are doing together in a conversation, such as brains
 
 A conversation has one [current activity](#current-activity). Its instructions guide the construct. Changing activities keeps the conversation and construct, but changes those instructions.
 
-Each activity has a name, a prompt and an [opening request](#activity-opening). The user can start a quest with it. The conversation saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
+Each activity has a name, a prompt and an [opening request](#activity-opening). The conversation saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
 
-The construct chooses from the acting user's built-in and own activities. Start actions use activity names directly. Display name changes do not rename own activities or rewrite saved snapshots. Built-in instruction text and ids stay compatible, including `open-chat` for Chat.
+An activity is internal instructions, not a destination. The site has no Activities page and no activity start action, and the user never picks an activity to start a quest: each [starting point](#premade-quest) begins in its own activity, and Chat begins in Chat. After that, the construct chooses from the acting user's built-in and own activities with its activity tool. The user customizes activities in the [Workshop](#workshop)'s Activities tab. Display name changes do not rename own activities or rewrite saved snapshots. Built-in instruction text and ids stay compatible, including `open-chat` for Chat.
 
-- **UI:** "Activity", "Activities".
+- **UI:** "Activity", "Activities" (the Workshop tab only).
 - **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
 
 ### Find something to make
@@ -162,7 +162,7 @@ A built-in activity for discovering a small achievable creative project, even wh
 
 ### Current activity
 
-The activity a conversation is in now. The user chooses the starting activity when a quest starts; only the construct changes it after that, with its activity tool. A [check-in](#check-in) leaves it as it is.
+The activity a conversation is in now. A quest starts in its starting point's activity; only the construct changes it after that, with its activity tool. A [check-in](#check-in) leaves it as it is.
 
 ### Activity session
 
@@ -184,7 +184,7 @@ A user's private, editable activity, made by customizing a built-in activity, cl
 
 ### Break Down a Project
 
-The built-in activity that helps the user split a goal into milestones and small next steps. It can run with no quest, an existing quest or a new quest. The quest creation form defaults to this activity.
+The built-in activity that helps the user split a goal into milestones and small next steps. It can run with no quest, an existing quest or a new quest. Do a thing starts in it.
 
 - **UI:** "Break Down a Project".
 
@@ -706,7 +706,7 @@ The global prompt explains earlier names so constructs understand them.
 
 ### Premade quest
 
-One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each gives an editable name, a starting Journal, an activity and a construct, and starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
+One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each gives an editable name, starting Journal and construct, and its own activity, which the user doesn't choose; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
 
 - **UI:** “Dailies”, “Learn a thing”, “Make a thing”, “Do a thing”.
 - **Avoid:** "quest type", "template".

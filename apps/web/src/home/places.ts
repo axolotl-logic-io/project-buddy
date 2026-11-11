@@ -1,6 +1,5 @@
 import type { ComponentProps } from "react";
 import type { Icon } from "@/components/ui/icon.tsx";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
@@ -40,13 +39,6 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     icon: "bot",
   },
   {
-    id: "activities",
-    href: "/activities",
-    name: ACTIVITIES_COPY.heading,
-    description: HOME_COPY.activities,
-    icon: "checklist",
-  },
-  {
     id: "workshop",
     href: "/workshop",
     name: WORKSHOP_COPY.heading,
@@ -66,6 +58,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
 const PLACE_ALIASES: ReadonlyMap<string, string> = new Map([
   ["chats", "/chat"],
   ["spellbook", "/workshop"],
+  ["activities", "/workshop"],
 ]);
 
 // The place a page belongs to, by its path's segments, for the HUD to name.

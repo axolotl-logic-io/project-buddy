@@ -1,10 +1,9 @@
-// The text of the start actions on Activities and Constructs, of Chat, and
-// of Chat's Start a quest from this.
+// The text of the start action on Constructs, of Chat, and of Chat's Start
+// a quest from this.
 import { pageTitle } from "@/ui/copy/site.ts";
 
-// An Activity's or Construct's start action, which starts a quest with it.
+// A Construct's start action, which starts a quest with it.
 export const START_WORK_COPY = {
-  activityDialogHeading: (name: string): string => `Start a quest in ${name}`,
   constructDialogHeading: (name: string): string =>
     `Start a quest with ${name}`,
   closeDialog: "Close",

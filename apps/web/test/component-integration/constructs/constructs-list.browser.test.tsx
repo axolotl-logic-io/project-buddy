@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { listActivities } from "@/activities/index.ts";
 import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
 import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
@@ -60,7 +59,6 @@ const OWN_CONSTRUCTS: OwnConstruct[] = [
 
 beforeEach(() => {
   vi.mocked(questCreationChoices).mockResolvedValue({
-    activities: listActivities(),
     userConstructs: OWN_CONSTRUCTS.map(({ id, name }) => ({ id, name })),
     preferredConstructId: "vellum",
   });

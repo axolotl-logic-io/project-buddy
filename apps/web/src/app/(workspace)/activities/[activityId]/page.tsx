@@ -16,13 +16,11 @@ import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
-import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   ACTIVITIES_COPY,
@@ -175,7 +173,6 @@ export default async function ActivityPage({
   if (isActivityId(activityId)) {
     const options = await workshopOptions(user.id);
     const activity = getActivity(activityId);
-    const choices = await questCreationChoices(user.id);
     return (
       <Workshop
         options={options}
@@ -189,10 +186,6 @@ export default async function ActivityPage({
         }}
       >
         <BuiltInActivity activity={activity} />
-        <StartWorkDialog
-          choices={choices}
-          startWith={{ kind: "activity", id: activity.id, name: activity.name }}
-        />
       </Workshop>
     );
   }

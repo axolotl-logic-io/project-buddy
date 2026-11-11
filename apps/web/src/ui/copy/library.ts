@@ -53,7 +53,7 @@ const LIBRARY_COPY: {
             "Chat is your private conversation with a construct, for talking without a goal. A quest is something you want to learn, make or do. Each quest has one continuing conversation, with its Journal, plan and progress beside it.",
             "To explore an idea, open Chat and tell the construct what you are thinking about and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.” When the idea becomes a goal, choose Start a quest from this. You edit the new quest’s name and Journal before anything is made, and your Chat stays private.",
             "Each part has its own job. The construct brings a voice and habits, the activity brings an approach, and spells add focused instructions when they fit.",
-            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name, a starting Journal and an approach; change any of them and the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
+            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name and a starting Journal and begins in an activity that suits it; change the name, the Journal or the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
             "The construct’s first message is its opening. Reply with what you need now, and ask for a smaller step or a clearer explanation if an answer is too broad. AI answers can be wrong, so check advice that matters.",
           ],
         },
@@ -83,7 +83,7 @@ const LIBRARY_COPY: {
             },
           ],
           paragraphs: [
-            "Constructs, Activities and Spellbook each show the built-in ones, your own and the ones you’ve retired, in tabs. To make your own, choose Craft in the page’s heading, or Customize on a built-in one to start from a copy.",
+            "Constructs and Spellbook each show the built-in ones, your own and the ones you’ve retired, in tabs. Activities are in Workshop, under Activities. To make your own, choose Craft, or Customize on a built-in one to start from a copy.",
             "Workshop is where you edit and test. Edit one section of the instructions at a time, then choose Try your draft to test it in a drawer before you save. Back to editing or Escape closes the drawer, and reopening it brings your test back. Tests disappear when you leave or reload the page.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a test sends to the model.",
             "Batteries pay for model use: replies, generated openings, Workshop tests and images. Each uses the balance of the person who asked, and an automatic check-in uses the quest owner’s. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
@@ -201,14 +201,14 @@ const LIBRARY_COPY: {
       id: "activities",
       title: "Activities",
       intro:
-        "An activity shapes what happens in a conversation: planning, exploring or working through a task. It combines with the construct’s voice and any spells the construct casts.",
+        "An activity is a set of instructions that shapes what happens in a conversation: planning, exploring or working through a task. It isn’t a place to go or something to pick before you start. It combines with the construct’s voice and any spells the construct casts.",
       chapters: [
         {
           id: "sessions",
           title: "Activity sessions",
           links: [],
           paragraphs: [
-            "Choose an activity when you start a quest, or start one from its card on Activities. To switch, ask the construct: it can change to any activity you have. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
+            "Each starting point begins in its own activity: Dailies in Dailies, Learn a thing in Learn a thing, Make a thing in Find something to make, and Do a thing in Break Down a Project. Chat starts in Chat. To switch, ask the construct: it can change to any activity you have, including your own. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
             "A session keeps the activity as it was when the session started, so later edits to the activity don’t change it. The conversation shows which activity it changed to, not the activity’s instructions.",
             "The Activity Sheet heading starts the Instructions field. The separate Opening request asks the construct for its first message when a new quest needs one written. It isn’t repeated with every reply, and changing activity during a conversation doesn’t replay it.",
           ],
@@ -218,7 +218,7 @@ const LIBRARY_COPY: {
           title: "Craft an activity",
           links: [],
           paragraphs: [
-            "To make an activity, open Activities or Workshop, then customize or clone one, or choose Craft activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
+            "To make an activity, open Workshop and choose Activities, then customize or clone one, or choose Craft activity. To use it, ask the construct to change to it in a conversation. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
             "For example, a “Small experiment” activity might say: “Help the user define one experiment they can finish today. Identify a clear observation that would make it useful. Keep plans provisional until the user agrees. Respect their current request if they change subject.” Its Opening request: “Greet the user briefly and ask what they want to try today.”",
             "An opening should start the conversation, not ask for a life story. Don’t ask the construct to repeat the same questions every turn, or to say a tool worked before its result arrives. Reset puts back the built-in instructions and keeps the Opening request; Save keeps the change. A copy bought in the Marketplace has nothing to reset to.",
           ],
@@ -240,10 +240,7 @@ const LIBRARY_COPY: {
           ],
         },
       ],
-      action: {
-        href: "/activities",
-        label: "Choose or craft an activity",
-      },
+      action: workshopTestLink("activity", "Craft an activity in Workshop"),
     },
     {
       id: "model-context",

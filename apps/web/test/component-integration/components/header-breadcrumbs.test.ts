@@ -113,4 +113,20 @@ describe("header navigation hierarchy", () => {
       (await headerBreadcrumbs(USER, ["constructs", "lumen"])).at(-1)?.label,
     ).toBe("Lumen");
   });
+
+  test("leads from an activity's page to the Workshop's Activities tab", async () => {
+    if (USER === undefined) {
+      throw new Error("Invalid fixture user");
+    }
+    expect(
+      await headerBreadcrumbs(USER, ["activities", "brainstorming"]),
+    ).toEqual([
+      { label: "Home", href: "/home" },
+      {
+        label: "Workshop",
+        href: `/workshop?${new URLSearchParams({ kind: "activity" })}`,
+      },
+      { label: "Brainstorm" },
+    ]);
+  });
 });

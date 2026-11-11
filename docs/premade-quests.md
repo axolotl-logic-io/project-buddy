@@ -1,6 +1,6 @@
 # Premade quests
 
-Every quest starts from one of four premade starting points: **Dailies**, **Learn a thing**, **Make a thing** and **Do a thing**. They are offered under Start a quest at the top of Quests (`apps/web/src/components/quest-start.tsx`), and on Activities, Constructs and Chat's Start a quest from this, which use the same component. There is no blank start and no other catalog. The definitions are in `apps/web/src/projects/premade-quests.ts`.
+Every quest starts from one of four premade starting points: **Dailies**, **Learn a thing**, **Make a thing** and **Do a thing**. They are offered under Start a quest at the top of Quests (`apps/web/src/components/quest-start.tsx`), and on Constructs and Chat's Start a quest from this, which use the same component. There is no blank start and no other catalog. The definitions are in `apps/web/src/projects/premade-quests.ts`.
 
 | Starting point | Activity | What it guides |
 | --- | --- | --- |
@@ -13,9 +13,9 @@ The guidance lives in each activity's instructions and opening, so it carries in
 
 ## Starting
 
-Choosing a starting point shows its details in place of the four, already filled in: a name, a starting Journal and the construct, which defaults to the user's New quest construct, or Vellum. Back shows the four again. A page that knows more fills it in (a preset): an activity's start uses that activity, a construct's start that construct, and Chat's Start a quest from this puts the Chat's summary in the Journal and opens Do a thing at once. Dailies isn't offered with a summary, since it is the user's one ongoing quest.
+Choosing a starting point shows its details in place of the four, already filled in: a name, a starting Journal and the construct, which defaults to the user's New quest construct, or Vellum. Back shows the four again. A page that knows more fills it in (a preset): a construct's start uses that construct, and Chat's Start a quest from this puts the Chat's summary in the Journal and opens Do a thing at once. Dailies isn't offered with a summary, since it is the user's one ongoing quest.
 
-Start quest calls `startQuestAction` (`apps/web/src/app/(workspace)/projects/actions.ts`), the one quest start. It checks the name, construct and activity for the acting user and starts an ordinary quest with its conversation and opening (`startProject`), then opens the quest. Invalid details, no batteries or Claude being unavailable save nothing, and the details keep every edit. Looking, choosing and going back make nothing and spend nothing.
+Start quest calls `startQuestAction` (`apps/web/src/app/(workspace)/projects/actions.ts`), the one quest start. It checks the name and construct for the acting user, takes the activity from the starting point (the form sends none, and an older form's `activityId` is ignored) and starts an ordinary quest with its conversation and opening (`startProject`), then opens the quest. Invalid details, no batteries or Claude being unavailable save nothing, and the details keep every edit. Looking, choosing and going back make nothing and spend nothing.
 
 The starting Journal becomes the user's first Journal version. Its possible milestones are plans, not progress, and it holds no next step: the plan keeps the steps the user agrees to. Learn, Make and Do can be started again for other goals; each is a separate quest with no link to its starting point.
 
