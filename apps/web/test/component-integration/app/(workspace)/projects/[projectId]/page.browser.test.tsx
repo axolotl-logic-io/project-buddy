@@ -1,5 +1,5 @@
 // A quest's page in Chromium and WebKit: its frame, sections, status
-// actions and owner-only check-in setting, and its loading and error
+// actions, and its loading and error
 // states. The conversation it opens on is conversation.browser.test.tsx's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -8,17 +8,11 @@ import ProjectError from "@/app/(workspace)/projects/[projectId]/(overview)/erro
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectLoading from "@/app/(workspace)/projects/[projectId]/(overview)/loading.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
-import type {
-  listMessages,
-  markChatRead,
-  readStoppedReply,
-} from "@/chats/store.ts";
-import type { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
+import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
@@ -37,11 +31,7 @@ import {
   setViewport,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import {
-  FOX_CONVERSATION,
-  FOX_PROJECT,
-  FOX_PROJECT_AS_MEMBER,
-} from "../../page-fixtures.ts";
+import { FOX_CONVERSATION, FOX_PROJECT } from "../../page-fixtures.ts";
 
 vi.mock(
   "@/plan/plan-actions.ts",
@@ -53,22 +43,16 @@ vi.mock(
 );
 const stores = vi.hoisted(() => ({
   listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn<typeof readStoppedReply>(),
   readQuestConversation: vi.fn<typeof readQuestConversation>(),
   getProject: vi.fn<typeof getProject>(),
-  checkInsAreOn: vi.fn<typeof checkInsAreOn>(() => false),
 }));
 vi.mock("@/projects/store.ts", () => ({
   getProject: stores.getProject,
 }));
-vi.mock("@/check-ins/check-ins-enabled.ts", () => ({
-  checkInsAreOn: stores.checkInsAreOn,
-}));
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn(),
   listMessages: stores.listMessages,
-  markChatRead: stores.markChatRead,
   readStoppedReply: stores.readStoppedReply,
 }));
 vi.mock("@/conversations/start-quest.ts", () => ({
@@ -89,9 +73,6 @@ vi.mock(
   "@/plan/plan-store.ts",
   () => import("../../../../plan/plan-store-test-kit.ts"),
 );
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
-}));
 vi.mock(
   "@/projects/project-invitations.ts",
   () => import("../../../../projects/project-invitations-test-kit.ts"),
@@ -112,7 +93,6 @@ vi.mock("@/notes/note-store.ts", () => ({
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
@@ -154,35 +134,10 @@ beforeEach(() => {
   stores.readQuestConversation.mockResolvedValue(FOX_CONVERSATION);
   stores.listMessages.mockResolvedValue([]);
   stores.getProject.mockResolvedValue(FOX_PROJECT);
-  stores.checkInsAreOn.mockReturnValue(false);
 });
 
 afterEach(() => {
   vi.clearAllMocks();
-});
-
-function checkInSetting(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("region", { name: CHECK_IN_SETTING_COPY.heading });
-}
-
-describe("use_case_set_check_ins", () => {
-  test("with check-ins on, the owner's project page has the check-in setting", async () => {
-    stores.checkInsAreOn.mockReturnValue(true);
-    await renderProject("members");
-
-    await expect.element(checkInSetting()).toBeVisible();
-  });
-
-  test("with check-ins on, a member's view of the project has no check-in setting", async () => {
-    stores.checkInsAreOn.mockReturnValue(true);
-    stores.getProject.mockResolvedValue(FOX_PROJECT_AS_MEMBER);
-    await renderProject("members");
-
-    await expect
-      .element(page.getByRole("heading", { name: FOX_PROJECT.name }))
-      .toBeVisible();
-    await expect.element(checkInSetting()).not.toBeInTheDocument();
-  });
 });
 
 test("an Active quest page offers Quick Note with its quest chosen", async () => {

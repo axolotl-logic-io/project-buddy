@@ -5,7 +5,6 @@
 // their own, and the team quests they are a member of.
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { unreadFor } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -52,7 +51,6 @@ function readHomeSummary(owner: UserId): Promise<{
           .select({
             id: projects.id,
             name: projects.name,
-            unread: unreadFor(owner),
           })
           .from(chats)
           .innerJoin(projects, eq(chats.projectId, projects.id))
@@ -82,7 +80,6 @@ function readHomeSummary(owner: UserId): Promise<{
         latestQuest: {
           project: { id, name: latest.name },
           nextStep: await readNextStep(owner, id),
-          unread: latest.unread,
         },
         firstVisit: false,
       };

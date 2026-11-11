@@ -41,8 +41,7 @@ import type { ProjectName } from "@/projects/project-name.ts";
 type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 
 // The chat a new chat is: its project, or none for a standalone chat, and
-// its construct. A new chat is unread for no one until markChatUnreadFor
-// (store.ts) marks it, as a check-in does.
+// its construct.
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly construct: NewChatConstruct;
@@ -65,8 +64,8 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it into project, or into none, returned, unread
-// for no one. The not-found failure when nothing was inserted, because the
+// The chat that inserting it into project, or into none, returned. The
+// not-found failure when nothing was inserted, because the
 // owner has no such project.
 function insertedChat(
   rows: readonly ChatRow[],
@@ -76,7 +75,6 @@ function insertedChat(
     rows.map((row) => ({
       ...row,
       projectName: project?.name ?? null,
-      unread: false,
     })),
   );
   if (chat === undefined) {

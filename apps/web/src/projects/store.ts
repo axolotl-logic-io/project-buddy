@@ -6,7 +6,6 @@
 import { and, desc, eq, exists, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { projectOpenTo, projectOwnedBy } from "@/accounts/owner-scope.ts";
-import { questUnreadFor } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
@@ -29,9 +28,6 @@ interface Project {
   // Whether it is the acting user's own Dailies quest
   // (src/conversations/dailies.ts); a member sees another's as a quest.
   dailies: boolean;
-  // Whether its conversation is unread for the acting user, as after a
-  // check-in they haven't opened yet.
-  unread: boolean;
 }
 
 interface ProjectRow {
@@ -43,7 +39,6 @@ interface ProjectRow {
   readonly owned: boolean;
   readonly shared: boolean;
   readonly dailies: boolean;
-  readonly unread: boolean;
 }
 
 // The columns a project is read from, for the acting user. Select only the
@@ -58,7 +53,6 @@ function projectColumns(user: UserId): {
   readonly owned: SQL<boolean>;
   readonly shared: SQL<boolean>;
   readonly dailies: SQL<boolean>;
-  readonly unread: SQL.Aliased<boolean>;
 } {
   return {
     status: projects.status,
@@ -74,7 +68,6 @@ function projectColumns(user: UserId): {
         .where(eq(projectMembers.projectId, projects.id)),
     )}`,
     dailies: sql<boolean>`(${projects.dailies} and ${projectOwnedBy(user)})`,
-    unread: questUnreadFor(user),
   };
 }
 
@@ -98,7 +91,6 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
       status,
       statusRevision,
       dailies,
-      unread,
     }) => {
       const projectId = parseProjectId(id);
       if (projectId === undefined) {
@@ -114,7 +106,6 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
           status: QUEST_STATUS.parse(status),
           statusRevision,
           dailies,
-          unread,
         },
       ];
     },
@@ -176,7 +167,6 @@ export function createProject(
         owned: sql<boolean>`true`,
         shared: sql<boolean>`false`,
         dailies: projects.dailies,
-        unread: sql<boolean>`false`,
       }),
     );
     if (project === undefined) {
