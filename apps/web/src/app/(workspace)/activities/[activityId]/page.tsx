@@ -156,7 +156,7 @@ export default async function ActivityPage({
   if (isActivityId(activityId)) {
     const activity = getActivity(activityId);
     return (
-      <Workshop>
+      <Workshop kind="activity">
         <BuiltInActivity activity={activity} />
       </Workshop>
     );
@@ -172,7 +172,7 @@ export default async function ActivityPage({
     notFound();
   }
   return (
-    <Workshop>
+    <Workshop kind="activity">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnActivityForm viewer={user.id} activity={activity} />
     </Workshop>

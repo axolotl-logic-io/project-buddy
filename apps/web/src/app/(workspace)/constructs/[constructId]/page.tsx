@@ -182,7 +182,7 @@ export default async function ConstructPage({
   if (isConstructId(constructId)) {
     const construct = getConstruct(constructId);
     return (
-      <Workshop>
+      <Workshop kind="construct">
         <BuiltInConstruct construct={construct} />
       </Workshop>
     );
@@ -198,7 +198,7 @@ export default async function ConstructPage({
     notFound();
   }
   return (
-    <Workshop>
+    <Workshop kind="construct">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnConstructForm viewer={user.id} construct={construct} />
     </Workshop>

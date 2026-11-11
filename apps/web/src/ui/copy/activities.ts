@@ -14,17 +14,16 @@ export const ACTIVITIES_COPY = {
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
   noOwn:
-    "No activities of your own yet. Customize a built-in one, or choose Craft activity to make one without copying another.",
-  newActivity: "Craft activity",
+    "No activities of your own yet. Make a copy of a built-in one, or choose Create activity to make one without copying another.",
+  newActivity: "Create activity",
   // The name of a crafted activity, until the user renames it.
   newActivityName: "New activity",
-  customize: "Customize",
-  customizeLabel: (name: string): string =>
-    `Customize ${name}: make your own copy`,
+  customize: "Make a copy",
+  customizeLabel: (name: string): string => `Make a copy of ${name}`,
   tweak: "Edit",
   tweakLabel: (name: string): string => `Edit your ${name}`,
-  clone: "Clone",
-  cloneLabel: (name: string): string => `Clone ${name}`,
+  clone: "Make a copy",
+  cloneLabel: (name: string): string => `Make a copy of ${name}`,
 } as const;
 
 // The text of an activity's page: its prompt as named parts, editable for an
@@ -33,7 +32,7 @@ export const ACTIVITY_COPY = {
   title: pageTitle("Activity"),
   loading: "Loading activity…",
   builtInIntro:
-    "A built-in activity can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
+    "A built-in activity can't be changed. Choose Make a copy to edit your own version.",
   ownIntro:
     "Your activity's instructions and opening request. A conversation keeps the activity as it was when it entered it, so a change applies to conversations that enter it later.",
 } as const;

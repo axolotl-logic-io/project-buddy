@@ -101,7 +101,7 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
 
 const VISUAL_ROLE_COUNT = 4;
 
-test("built-in visuals stay read-only beside Customize and all four role previews", async () => {
+test("built-in visuals stay read-only beside Make a copy and all four role previews", async () => {
   signInAs(SIGNED_IN_USER);
   await render(
     inWorkspace(
@@ -112,7 +112,7 @@ test("built-in visuals stay read-only beside Customize and all four role preview
     ),
   );
   await expect
-    .element(page.getByRole("button", { name: "Customize", exact: true }))
+    .element(page.getByRole("button", { name: "Make a copy", exact: true }))
     .toBeVisible();
   await expect
     .element(page.getByRole("textbox", { name: "Visual description" }))

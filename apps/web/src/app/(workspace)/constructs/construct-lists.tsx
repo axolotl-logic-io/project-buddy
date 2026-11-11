@@ -1,13 +1,9 @@
-// Constructs shared by the Constructs page and the Workshop: the
-// built-in constructs, each of which she can customize, and her own, oldest
-// first, each of which she can tweak or clone, with a button that crafts a new one.
+// Workshop’s construct collection: inspect built-ins and edit private definitions.
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
-import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
 import {
   type ConstructId,
@@ -15,11 +11,8 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
-import { RetirementList } from "../retirement/retirement-list.tsx";
 import {
   cloneConstructAction,
   editBuiltInConstructAction,
@@ -36,9 +29,8 @@ interface ListedConstruct extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its avatar beside its name, which opens its page,
-// its temperament and its actions, in one column. Quests start only from
-// Start a quest, where the construct is chosen.
+// A construct as a card: its avatar beside its name, which opens its editor,
+// its temperament and its actions, in one column.
 function ConstructCard({
   construct,
   actions,
@@ -55,7 +47,7 @@ function ConstructCard({
       />
       <div className="flex min-w-0 flex-col gap-2">
         <Link
-          className="card-title wrap-anywhere self-start text-link"
+          className="card-title wrap-anywhere self-start text-left text-link"
           href={`/constructs/${construct.id}`}
         >
           {construct.name}
@@ -69,8 +61,7 @@ function ConstructCard({
   );
 }
 
-// The built-in constructs as cards, each with a button that customizes it:
-// makes a clone of her own and opens it to edit.
+// Built-in constructs remain read-only; Make a copy opens a private editor.
 function BuiltInConstructCards({
   constructs,
 }: {
@@ -100,7 +91,7 @@ function BuiltInConstructCards({
   );
 }
 
-// Her own constructs as cards, each with a link that tweaks it in place and a
+// The user's own constructs as cards, each with a link that tweaks it in place and a
 // button that clones it.
 function OwnConstructList({
   constructs,
@@ -145,7 +136,7 @@ function OwnConstructList({
   );
 }
 
-// Her own constructs as cards, or, if she has none, a line that says so.
+// The user's own constructs as cards, or, if the user has none, a line that says so.
 function OwnConstructCards({
   constructs,
 }: {
@@ -157,60 +148,10 @@ function OwnConstructCards({
   return <OwnConstructList constructs={constructs} />;
 }
 
-async function ConstructLists({
-  workspace = false,
-}: {
-  readonly workspace?: boolean;
-} = {}): Promise<JSX.Element> {
+async function ConstructLists(): Promise<JSX.Element> {
   const user = await requireUser();
   const own = await listOwnConstructs(user.id);
-  if (workspace === true) {
-    const retired = await listRetiredDefinitions(user.id);
-    return (
-      <PageWorkspace
-        title={CONSTRUCTS_COPY.heading}
-        intro={CONSTRUCTS_COPY.intro}
-        action={
-          <form action={newConstructAction}>
-            <Button type="submit">{CONSTRUCTS_COPY.newConstruct}</Button>
-          </form>
-        }
-      >
-        <WorkspaceTabs
-          label={CONSTRUCTS_COPY.heading}
-          sections={[
-            {
-              id: "built-in",
-              label: WORKSPACES_COPY.builtIn,
-              content: (
-                <div className="workspace-rows">
-                  <BuiltInConstructCards constructs={listBuiltInConstructs()} />
-                </div>
-              ),
-            },
-            {
-              id: "yours",
-              label: WORKSPACES_COPY.yours,
-              content: (
-                <div className="workspace-rows">
-                  <OwnConstructCards constructs={own} />
-                </div>
-              ),
-            },
-            {
-              id: "retired",
-              label: WORKSPACES_COPY.retired,
-              content: (
-                <div className="flex flex-col gap-4">
-                  <RetirementList definitions={retired} kind="construct" />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </PageWorkspace>
-    );
-  }
+
   return (
     <>
       <section

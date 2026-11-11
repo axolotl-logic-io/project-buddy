@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Three concepts shape every [conversation](#conversation):
 
-- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Constructs page](#constructs-page).
+- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
 
@@ -40,7 +40,7 @@ A construct, activity or spell that ships with the site.
 
 ### Own construct, activity or spell
 
-A user's private, editable construct, activity or spell, made by copying another or crafting one. Using it in a conversation gives no one else access to the original.
+A user's private, editable construct, activity or spell, made by copying another or creating one. Using it in a conversation gives no one else access to the original.
 
 ### Retire, Retirement, restore, delete forever
 
@@ -50,11 +50,14 @@ To **retire** an own construct, activity, or spell is to put it aside without lo
 **Restore** makes the same definition available again, preserving its source, without charging batteries.
 **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
-### Customize, craft, tweak, clone, rename
+### Create, make a copy, edit, save, cancel
 
-To **customize** is to make an own copy of a built-in construct, activity or spell. To **craft** is to create an own construct, activity or spell without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
+**Create construct**, **Create activity** and **Create spell** make a private definition from starter instructions. **Make a copy** makes a private, editable copy of either a built-in or an own definition and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
 
-- **Avoid:** "Write new", "write from scratch" and "New construct/activity/spell" as creation action labels; use "Craft" with the kind where needed.
+**Edit** opens an own definition. **Save** stores its name and instructions. **Cancel** puts back the saved fields and clears the browser draft without changing saved data. Leaving the editor without Save or Cancel preserves draft recovery. These actions never start a quest. Creating, copying and saving prompt text spend no batteries; construct artwork keeps its explicit generation and battery rules. **Rename** means changing the name in the editor.
+
+- **UI:** "Create construct", "Create activity", "Create spell", "Make a copy", "Edit", "Save", "Cancel".
+- **Avoid:** "Craft", "Customize", "Clone" and "Tweak" as action labels. Internal identifiers and saved user text may retain earlier names.
 
 ### Message
 
@@ -88,11 +91,11 @@ Instructions that every conversation gets, whatever its construct and activity: 
 
 ## Constructs
 
-### Constructs page
+### Workshop
 
-The page listing the built-in [constructs](#construct) and the user's own. It starts no quest: the user picks a construct inside [Start a quest](#start-a-quest).
+The single collection destination for inspecting built-in constructs, activities and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Quest starts keep their own construct choice. Old Constructs and Spellbook collection URLs redirect here.
 
-- **UI:** "Constructs".
+- **UI:** "Workshop", "Constructs", "Activities", "Spells".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
 
 ### Construct
@@ -101,7 +104,7 @@ An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice
 
 A construct is not a prompt; it has one.
 
-- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Craft construct".
+- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Create construct".
 - **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
 
 ### Earlier names (compatibility)
@@ -210,13 +213,6 @@ The built-in activity with no set scene. It is the default when the user picks n
 - **UI:** "Chat".
 
 ## Spells
-
-### Spellbook
-
-A user's list of [spells](#spell), built in and their own, and the page that shows it. It is the user's lorebook of spells; use "lorebook" only to explain it.
-
-- **UI:** "Spellbook", "Built-in spells", "Your spells", "Craft spell".
-- **Avoid:** "skill library", "lorebook" outside explanations.
 
 ### Spell
 
@@ -651,6 +647,6 @@ The user's one ongoing quest for starting the day, continued every day in its on
 
 ## Library
 
-The in-site reading area with Getting Started and books on Constructs, Spells, Activities and Model context. A book explains a subject through navigable chapters, practical examples and links to site actions. This Library is distinct from the Spellbook and the Quest library of premade quests.
+The in-site reading area with Getting Started and books on Constructs, Spells, Activities and Model context. A book explains a subject through navigable chapters, practical examples and links to site actions. This Library is distinct from Workshop and the Quest library of premade quests.
 
 - **UI:** “Library”, “Getting Started”, “Chapters”.

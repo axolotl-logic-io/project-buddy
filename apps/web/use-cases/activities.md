@@ -9,7 +9,7 @@ An activity is a set of instructions that sets the scene of a conversation. It i
 - **Find something to make:** the construct helps the user discover a small achievable creative project and supports uncertainty and challenges while they make it. No idea or inspiration source is required.
 - **Break Down a Project:** the construct helps her split a goal into milestones and the next small steps.
 
-Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Craft activity” to distinguish it from an own definition named “New activity”.
+Successful saves in an own activity’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Create activity” to distinguish it from an own definition named “New activity”.
 
 Built-in, starter, customized and reset prompts use `# Activity Sheet`. The separate name identifies the activity; renaming leaves the sheet heading alone. Edited instructions and existing activity snapshots keep their text.
 
@@ -30,11 +30,11 @@ The user makes an activity of her own from a built-in one, and changes it.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens the built-in Break Down a Project activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text, and the Markdown's own headings sit below the field's heading. Literal placeholders such as `{{name}}` stay visible.
-  - In the Workshop's Activities tab, she chooses Customize beside Brainstorm. The site makes an activity of hers named "Brainstorm (clone)" and opens its page.
+  - In the Workshop's Activities tab, she chooses Make a copy beside Brainstorm. The site makes an activity of hers named "Brainstorm (copy)" and opens its page.
   - She renames it and edits its prompt, which guides the activity. She edits the separate opening request, which tells the construct how to open a new adventure when the activity has no prepared opening. She saves. The editable fields show the original Markdown source.
   - She asks the construct to move a conversation into it, then edits it again.
-  - Back in the Workshop's Activities tab, she clones it. On its page, she resets its prompt, then saves it.
-- **Outcome:** her activity has her name and text, and the adventure follows her text, with any `{{name}}` replaced by her name. The adventure keeps the activity as it was when the adventure entered it, so her later edit changes only adventures that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The construct offers her own activities beside the built-in ones.
+  - Back in the Workshop's Activities tab, she chooses Make a copy. On its page, she resets its prompt, then saves it.
+- **Outcome:** her activity has her name and text, and the adventure follows her text, with any `{{name}}` replaced by her name. The adventure keeps the activity as it was when the adventure entered it, so her later edit changes only adventures that enter it afterwards. The clone is named as its source with " (copy)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The construct offers her own activities beside the built-in ones.
 - **Variations:**
   - A copy that came from no built-in one, such as one bought in the Marketplace before it closed, resets to the default instructions. Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
@@ -43,14 +43,14 @@ The user makes an activity of her own from a built-in one, and changes it.
 
 ## use_case_new_activity
 
-The user crafts an activity of her own without copying another.
+The user creates an activity of her own without copying another.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - In the Workshop's Activities tab, she chooses Craft activity. The site makes a new activity of hers and opens its page to edit.
+  - In the Workshop's Activities tab, she chooses Create activity. The site makes a new activity of hers and opens its page to edit.
   - She names it, writes its instructions and opening request, and saves.
   - She resets its prompt.
   - In a conversation, the construct moves the conversation into it.
-- **Outcome:** the new activity is named "New activity" and starts with Chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. The Workshop's Activities tab lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, and the construct can move a conversation into it. Choosing Craft activity again makes another activity named "New activity". Another user never sees it.
+- **Outcome:** the new activity is named "New activity" and starts with Chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. The Workshop's Activities tab lists it with her own, and it works as any activity of hers does: she can edit, rename and copy it, and the construct can move a conversation into it. Choosing Create activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_construct_changes_activity`: the construct moves a conversation into it.

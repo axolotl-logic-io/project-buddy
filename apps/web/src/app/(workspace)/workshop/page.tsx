@@ -59,9 +59,8 @@ function kindLists(kind: PromptKind): Promise<JSX.Element> {
 
 export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
-// Where the user makes, customizes, tweaks and clones constructs, activities
-// and spells, one kind at a time. Each opens in its own Workshop to edit
-// and test.
+// The single collection for creating, copying and editing private definitions.
+// Built-in instructions open read-only; Make a copy opens the shared editor.
 export default async function WorkshopPage({
   searchParams,
 }: PageProps<"/workshop">): Promise<JSX.Element> {

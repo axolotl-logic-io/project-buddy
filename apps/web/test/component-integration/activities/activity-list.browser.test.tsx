@@ -1,6 +1,6 @@
 // The Workshop's Activities list: each activity's name opens its page, with
-// no start action, and Craft activity sits among the user's own, with or
-// without any, and crafts a new activity from the keyboard.
+// no start action, and Create activity sits among the user's own, with or
+// without any, and creates a new activity from the keyboard.
 import type { JSX } from "react";
 import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
@@ -27,7 +27,7 @@ const SAVED_ACTIVITY: OwnActivity = {
   name: "Brainstorming (clone)",
 };
 
-// Listing exposes these actions; only Craft activity is submitted, from the
+// Listing exposes these actions; only Create activity is submitted, from the
 // keyboard.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
@@ -59,24 +59,24 @@ test("each activity's name opens its page, and none offers a start", async () =>
   await expect.element(page.getByRole("dialog")).not.toBeInTheDocument();
 });
 
-test("her activities offer Craft activity, with or without activities of her own", async () => {
+test("her activities offer Create activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnActivities).mockResolvedValue([SAVED_ACTIVITY]);
   const screen = await render(await activitiesTab());
 
   await expect
-    .element(page.getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Create activity" }))
     .toBeEnabled();
 
   vi.mocked(listOwnActivities).mockResolvedValue([]);
   await screen.rerender(await activitiesTab());
   await expect.element(page.getByText(ACTIVITIES_COPY.noOwn)).toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Create activity" }))
     .toBeEnabled();
 });
 
-test("Craft activity supports keyboard submission", async () => {
+test("Create activity supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnActivities).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
@@ -87,11 +87,11 @@ test("Craft activity supports keyboard submission", async () => {
   });
   await render(await activitiesTab());
   page
-    .getByRole("button", { name: "Craft activity", exact: true })
+    .getByRole("button", { name: "Create activity", exact: true })
     .element()
     .focus();
   await expect
-    .element(page.getByRole("button", { name: "Craft activity" }))
+    .element(page.getByRole("button", { name: "Create activity" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 

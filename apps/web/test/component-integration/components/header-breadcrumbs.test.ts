@@ -100,7 +100,7 @@ describe("header navigation hierarchy", () => {
     const trail = await headerBreadcrumbs(USER, ["constructs", "own"]);
     expect(trail).toEqual([
       { label: "Quests", href: "/projects" },
-      { label: "Constructs", href: "/constructs" },
+      { label: "Workshop", href: "/workshop" },
       { label: "My construct" },
     ]);
     expect(stores.getOwnConstruct).toHaveBeenCalledWith(USER, "own");
