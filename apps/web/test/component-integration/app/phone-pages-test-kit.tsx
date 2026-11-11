@@ -700,8 +700,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   ...tabVariants("the Settings page", ["Appearance"]),
-  ...tabVariants("the constructs page", ["Yours", "Retired"]),
-  ...tabVariants("the Spellbook", ["Yours", "Retired"]),
   ...tabVariants("the account page", ["Batteries", "Security"]),
   ...tabVariants("quick capture", ["Preview"]),
   { name: "a quest's Plan", render: projectPageFor("plan") },
