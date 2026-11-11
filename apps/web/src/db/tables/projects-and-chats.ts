@@ -8,6 +8,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
@@ -36,9 +37,13 @@ export const projects = pgTable(
       .defaultNow(),
     checkInFrequency: text("check_in_frequency").notNull().default("off"),
     lastCheckInAt: timestamp("last_check_in_at", { withTimezone: true }),
+    dailies: boolean("dailies").notNull().default(false),
   },
   (table) => [
     index("projects_user_id_idx").on(table.userId),
+    uniqueIndex("projects_dailies_user_idx")
+      .on(table.userId)
+      .where(sql`${table.dailies}`),
     check(
       "projects_status_valid",
       sql`${table.status} in ('active', 'completed', 'abandoned')`,
@@ -51,21 +56,25 @@ export const projects = pgTable(
   ],
 );
 
-// A chat is in a project or belongs directly to a user, with no project:
-// exactly one of project_id and user_id is set. A user can have many
-// standalone chats. A chat's place and construct are fixed at creation.
-// The construct is a
-// snapshot, buddy_name and buddy_parts, taken when the chat starts, so
-// editing the construct later leaves the chat as it was. buddy_id is the
-// built-in construct's id, or the default construct's for a construct of the
-// user's own; it is still written so the build before the snapshot can read
-// new chats, and goes once no build reads it. A chat saved before the
-// snapshot has null snapshot columns and reads as its built-in construct: the
-// id is text so constructs can be added without a migration, and the chat
-// store narrows it when reading, so an id no construct has reads as the
-// default construct.
-// The name is null until Claude Haiku first names the chat or the user
-// renames it; once they have, renamed_by_hand stops Haiku renaming it.
+// A chat is a conversation, in a project or belonging directly to a user,
+// with no project: exactly one of project_id and user_id is set. A
+// continuing chat is the one conversation of its place: a quest's
+// conversation or a user's private Chat (src/conversations/). The partial
+// unique indexes allow at most one continuing chat per project and per user,
+// so starting one is an atomic get-or-create. A chat that isn't continuing is
+// a legacy adventure, which the site no longer makes; migration 0052 deletes
+// them, and the live build during that release still writes them, with
+// continuing false.
+// buddy_name and buddy_parts are the construct's snapshot, and
+// buddy_id the built-in construct's id, or the default construct's for a
+// construct of the user's own, so builds that read only ids keep working.
+// The construct is chosen when the chat starts and kept as it was then, so
+// editing the construct later leaves the chat as it is. A chat saved before the snapshot has null
+// snapshot columns and reads as its built-in construct: the id is text so
+// constructs can be added without a migration, and the chat store narrows it
+// when reading, so an id no construct has reads as the default construct.
+// name and renamed_by_hand are a legacy adventure's name, which nothing
+// writes any more.
 // Unread marks are per user, in chat_unreads (chat-unreads.ts).
 export const chats = pgTable(
   "chats",
@@ -85,10 +94,17 @@ export const chats = pgTable(
     userId: uuid("user_id").references(() => users.id, {
       onDelete: "cascade",
     }),
+    continuing: boolean("continuing").notNull().default(false),
   },
   (table) => [
     index("chats_project_id_idx").on(table.projectId),
     index("chats_user_id_idx").on(table.userId),
+    uniqueIndex("chats_continuing_project_idx")
+      .on(table.projectId)
+      .where(sql`${table.continuing} and ${table.projectId} is not null`),
+    uniqueIndex("chats_continuing_user_idx")
+      .on(table.userId)
+      .where(sql`${table.continuing} and ${table.userId} is not null`),
     check(
       "chats_one_owner",
       sql`num_nonnulls(${table.projectId}, ${table.userId}) = 1`,

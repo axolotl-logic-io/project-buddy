@@ -48,6 +48,9 @@ type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly construct: NewChatConstruct;
+  // Whether it is its place's one continuing conversation
+  // (src/conversations/); a legacy adventure otherwise.
+  readonly continuing?: boolean;
 }
 
 // A new project chat, with no messages and no activity session, as the
@@ -117,13 +120,14 @@ function chatColumns(
     renamedByHand: sql`false`.as("renamed_by_hand"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
+    continuing: sql`${chat.continuing === true}::boolean`.as("continuing"),
   };
 }
 
 // The select that yields the new chat's row, with this id: in its project
 // when that is the owner's, and nothing otherwise; or, with no project, the
 // owner's standalone chat.
-function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
+export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
   const { project } = chat;
   if (project === undefined) {
     return new QueryBuilder()
@@ -213,9 +217,11 @@ export function createChatWithOpening(
   );
 }
 
-// A new project of the owner's named projectName, with its first chat in
-// construct and activity, which opening starts: the project, the chat, the
-// message and the activity session are saved together, in one transaction.
+// A new quest of the owner's named projectName, with its conversation in
+// construct and activity, which opening starts: the quest, the
+// conversation, the message and the activity session are saved together,
+// in one transaction. A Dailies quest (dailies) is saved only when the owner
+// has none; undefined when they have one already, and nothing is saved.
 export function createProjectWithChat(
   owner: UserId,
   projectName: ProjectName,
@@ -224,10 +230,11 @@ export function createProjectWithChat(
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
     readonly journal?: string;
+    readonly dailies?: boolean;
   },
   transaction?: Transaction,
-): Promise<ProjectChat> {
-  async function save(db: Transaction): Promise<ProjectChat> {
+): Promise<ProjectChat | undefined> {
+  async function save(db: Transaction): Promise<ProjectChat | undefined> {
     const projectId = randomId(parseProjectId);
     const id = randomId(parseChatId);
     const initialMemory = [chat.journal].flatMap((text) => {
@@ -244,14 +251,24 @@ export function createProjectWithChat(
         },
       ];
     });
-    await db
+    const dailies = chat.dailies === true;
+    const inserted = await db
       .insert(projects)
-      .values({ id: projectId, userId: owner, name: projectName });
+      .values({ id: projectId, userId: owner, name: projectName, dailies })
+      .onConflictDoNothing({
+        target: projects.userId,
+        where: sql`dailies`,
+      })
+      .returning({ id: projects.id });
+    if (inserted.length === 0) {
+      return undefined;
+    }
     const created = await db
       .insert(chats)
       .values({
         id,
         projectId,
+        continuing: true,
         constructId: chat.construct.id,
         constructName: chat.construct.name,
         constructParts: storedConstructPrompt(chat.construct.definition),
@@ -286,3 +303,4 @@ export function createProjectWithChat(
 }
 
 export type { NewChat, NewChatConstruct };
+export { randomId };

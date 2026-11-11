@@ -6,6 +6,7 @@
 import { and, desc, eq, exists, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { projectOpenTo, projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { questUnreadFor } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
@@ -25,6 +26,11 @@ interface Project {
   role: ProjectRole;
   // Whether it is a team project: one with members besides its owner.
   shared: boolean;
+  // Whether it is its owner's one Dailies quest (src/conversations/dailies.ts).
+  dailies: boolean;
+  // Whether its conversation is unread for the acting user, as after a
+  // check-in they haven't opened yet.
+  unread: boolean;
 }
 
 interface ProjectRow {
@@ -35,6 +41,8 @@ interface ProjectRow {
   readonly statusRevision: number;
   readonly owned: boolean;
   readonly shared: boolean;
+  readonly dailies: boolean;
+  readonly unread: boolean;
 }
 
 // The columns a project is read from, for the acting user. Select only the
@@ -48,6 +56,8 @@ function projectColumns(user: UserId): {
   readonly createdAt: typeof projects.createdAt;
   readonly owned: SQL<boolean>;
   readonly shared: SQL<boolean>;
+  readonly dailies: typeof projects.dailies;
+  readonly unread: SQL<boolean>;
 } {
   return {
     status: projects.status,
@@ -62,6 +72,8 @@ function projectColumns(user: UserId): {
         .from(projectMembers)
         .where(eq(projectMembers.projectId, projects.id)),
     )}`,
+    dailies: projects.dailies,
+    unread: questUnreadFor(user),
   };
 }
 
@@ -76,7 +88,17 @@ function roleOf(owned: boolean): ProjectRole {
 // column never holds one.
 function toProjects(rows: readonly ProjectRow[]): Project[] {
   return rows.flatMap(
-    ({ id, name, createdAt, owned, shared, status, statusRevision }) => {
+    ({
+      id,
+      name,
+      createdAt,
+      owned,
+      shared,
+      status,
+      statusRevision,
+      dailies,
+      unread,
+    }) => {
       const projectId = parseProjectId(id);
       if (projectId === undefined) {
         return [];
@@ -90,6 +112,8 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
           shared,
           status: QUEST_STATUS.parse(status),
           statusRevision,
+          dailies,
+          unread,
         },
       ];
     },
@@ -133,8 +157,8 @@ export async function getProject(
   return project;
 }
 
-// A new project of the owner's, with no chats. The site starts every project
-// with its first chat (src/chats/start-chat.ts); the end-to-end tests make
+// A new project of the owner's, with no conversation. The site starts every
+// quest with its conversation (src/conversations/start-quest.ts); tests make
 // empty ones.
 export function createProject(
   owner: UserId,
@@ -150,6 +174,8 @@ export function createProject(
         createdAt: projects.createdAt,
         owned: sql<boolean>`true`,
         shared: sql<boolean>`false`,
+        dailies: projects.dailies,
+        unread: sql<boolean>`false`,
       }),
     );
     if (project === undefined) {

@@ -16,14 +16,14 @@ function htmlLink(leadIn: string, url: string): string {
 }
 
 // The email that brings the user a check-in: the construct's message, as the
-// chat shows it, a link to the chat and a link to turn the project's
-// check-ins off. One email per check-in chat, keyed by the chat.
+// conversation shows it, a link to the quest and a link to turn the quest's
+// check-ins off. One email per check-in, keyed by its message.
 function checkInEmail({
   to,
   constructName,
   projectName,
   message,
-  chatUrl,
+  questUrl,
   offUrl,
   idempotencyKey,
 }: {
@@ -31,24 +31,24 @@ function checkInEmail({
   readonly constructName: string;
   readonly projectName: string;
   readonly message: string;
-  readonly chatUrl: string;
+  readonly questUrl: string;
   readonly offUrl: string;
   readonly idempotencyKey: string;
 }): EmailMessage {
-  const { subject, openChat, turnOff } = CHECK_IN_EMAIL_COPY;
+  const { subject, openQuest, turnOff } = CHECK_IN_EMAIL_COPY;
   return {
     to,
     subject: subject(constructName, projectName),
     text: [
       `${constructName}:`,
       message,
-      `${openChat}\n${chatUrl}`,
+      `${openQuest}\n${questUrl}`,
       `${turnOff}\n${offUrl}`,
     ].join("\n\n"),
     html: [
       `<p><strong>${escapeHtml(constructName)}:</strong></p>`,
       ...message.split(PARAGRAPH_BREAK).map(htmlParagraph),
-      htmlLink(openChat, chatUrl),
+      htmlLink(openQuest, questUrl),
       htmlLink(turnOff, offUrl),
     ].join(""),
     idempotencyKey,
