@@ -106,6 +106,7 @@
     {
       "includes": [
         "src/batteries/purchases.ts",
+        "src/batteries/cash-events.ts",
         "test/component-integration/batteries/purchases.server.test.ts",
         "test/component-integration/batteries/checkout.server.test.ts"
       ],
