@@ -5,10 +5,6 @@
 // the owner's actions.
 import { describe, expect, test } from "vitest";
 import { listMessages } from "@/chats/store.ts";
-import {
-  readCheckInFrequency,
-  saveCheckInFrequency,
-} from "@/check-ins/check-in-store.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import {
   addProjectMember,
@@ -91,17 +87,8 @@ describe("use_case_team_project_access", () => {
     const [team, another] = await Promise.all([teamProject(), testUser()]);
     await addProjectMember(another.id, team.project.id);
 
-    expect(await readCheckInFrequency(team.member.id, team.project.id)).toBe(
-      undefined,
-    );
-    expect(
-      await saveCheckInFrequency(team.member.id, team.project.id, "daily"),
-    ).toBe(false);
     await removeProjectMember(team.member.id, team.project.id, another.id);
 
-    expect(await readCheckInFrequency(team.owner.id, team.project.id)).toBe(
-      "off",
-    );
     expect(
       (await listProjectMembers(team.owner.id, team.project.id)).map(
         ({ id }) => id,

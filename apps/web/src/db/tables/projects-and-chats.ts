@@ -18,10 +18,9 @@ import { users } from "./users.ts";
 // messages and memory, to its owner and its members (project_members,
 // src/accounts/owner-scope.ts); a user's standalone chat, which is in no
 // project, belongs to that user alone.
-// check_in_frequency is how often the project's construct checks in
-// (src/check-ins/): one of CHECK_IN_FREQUENCIES, "off" until the user turns
-// check-ins on. last_check_in_at is when the latest check-in was claimed,
-// null before the first.
+// check_in_frequency and last_check_in_at are inert: they held the removed
+// automatic check-ins' schedule (#903) and stay until a held cleanup drops
+// them, once no live build reads them.
 export const projects = pgTable(
   "projects",
   {
@@ -75,7 +74,6 @@ export const projects = pgTable(
 // when reading, so an id no construct has reads as the default construct.
 // name and renamed_by_hand are a legacy adventure's name, which nothing
 // writes any more.
-// Unread marks are per user, in chat_unreads (chat-unreads.ts).
 export const chats = pgTable(
   "chats",
   {
