@@ -34,9 +34,6 @@ function ContinueQuest({
       <div className="atlas-quest">
         <p className="atlas-hud-label">{HOME_COPY.currentQuest}</p>
         <p className="atlas-quest-name">{quest.project.name}</p>
-        {quest.unread === true && (
-          <p className="atlas-next-step">{HOME_COPY.unread}</p>
-        )}
         {quest.nextStep !== undefined && (
           <p className="atlas-next-step">
             {HOME_COPY.nextStep} {quest.nextStep}

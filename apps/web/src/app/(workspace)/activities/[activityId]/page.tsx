@@ -29,7 +29,6 @@ import {
 } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
-import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInActivityAction, saveActivityAction } from "../actions.ts";
 import { RetireActivityForm } from "../retire-activity-form.tsx";
 
@@ -171,30 +170,16 @@ export default async function ActivityPage({
   const { saved } = await searchParams;
   const user = await requireUser();
   if (isActivityId(activityId)) {
-    const options = await workshopOptions(user.id);
     const activity = getActivity(activityId);
     return (
-      <Workshop
-        options={options}
-        initial={{
-          kind: "activity",
-          id: activity.id,
-          name: activity.name,
-          prompt: activity.definition.prompt,
-          whenToUse: "",
-          openingRequest: activity.definition.openingRequest,
-        }}
-      >
+      <Workshop>
         <BuiltInActivity activity={activity} />
       </Workshop>
     );
   }
-  const [activity, options] = await Promise.all([
-    measureServerOperation("activity-data", () =>
-      readOwnDefinition(user.id, activityId),
-    ),
-    workshopOptions(user.id),
-  ]);
+  const activity = await measureServerOperation("activity-data", () =>
+    readOwnDefinition(user.id, activityId),
+  );
   if (activity === undefined) {
     const retired = await getRetiredDefinition(user.id, activityId);
     if (retired?.kind === "activity") {
@@ -207,17 +192,7 @@ export default async function ActivityPage({
     promptId: activity.id,
   });
   return (
-    <Workshop
-      options={options}
-      initial={{
-        kind: "activity",
-        id: activity.id,
-        name: activity.name,
-        prompt: activity.definition.prompt,
-        whenToUse: "",
-        openingRequest: activity.definition.openingRequest,
-      }}
-    >
+    <Workshop>
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnActivityForm viewer={user.id} activity={activity} sale={sale} />
     </Workshop>
