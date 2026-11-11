@@ -17,19 +17,14 @@ import type {
   getOwnActivity,
   listOwnActivities,
 } from "@/activities/activity-store.ts";
-import type { listAllChats } from "@/chats/all-chats.ts";
-import type {
-  getChat,
-  listChats,
-  listMessages,
-  markChatRead,
-} from "@/chats/store.ts";
+import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import type {
   getOwnConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
+import type { privateChat } from "@/conversations/private-chat.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
@@ -46,7 +41,7 @@ import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readHomeSummary, readToday } from "@/today/today-store.ts";
+import type { readHomeSummary } from "@/today/today-store.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -103,7 +98,6 @@ vi.mock("@/projects/store.ts", () => ({
 }));
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
-  listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn().mockResolvedValue(undefined),
@@ -117,11 +111,14 @@ vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
 vi.mock("@/app/check-ins/off/actions.ts", () => ({
   turnOffCheckInsAction: vi.fn(),
 }));
-vi.mock("@/chats/all-chats.ts", () => ({
-  listAllChats: vi.fn<typeof listAllChats>(),
+vi.mock("@/conversations/start-quest.ts", () => ({
+  readQuestConversation: vi.fn(),
+  startQuestConversation: vi.fn(),
+}));
+vi.mock("@/conversations/private-chat.ts", () => ({
+  privateChat: vi.fn<typeof privateChat>(),
 }));
 vi.mock("@/today/today-store.ts", () => ({
-  readToday: vi.fn<typeof readToday>(),
   readHomeSummary: vi.fn<typeof readHomeSummary>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
@@ -199,7 +196,7 @@ vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
-  createProjectAction: vi.fn(),
+  startQuestAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
@@ -220,6 +217,7 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   deleteMilestoneAction: vi.fn(),
   removeMemberAction: vi.fn(),
   leaveProjectAction: vi.fn(),
+  startConversationAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
@@ -440,8 +438,4 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
 vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
-}));
-
-vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
-  startPremadeQuestAction: vi.fn(),
 }));

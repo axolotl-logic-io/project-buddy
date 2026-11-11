@@ -1,69 +1,44 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { JSX } from "react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
-import { newChatChoices } from "@/chats/new-chat-choices.ts";
-import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
-import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
-import { NoAdventures } from "@/components/no-adventures.tsx";
-import { PageWorkspace } from "@/components/page-workspace.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
-import { PROJECT_ID } from "@/ids.ts";
-import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { listMessages, readStoppedReply } from "@/chats/store.ts";
+import { ChatScreen } from "@/components/chat-screen.tsx";
+import { QuestFromChat } from "@/components/quest-from-chat.tsx";
+import { privateChat } from "@/conversations/private-chat.ts";
+import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
+import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
+import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 
-export const metadata: Metadata = { title: STANDALONE_CHATS_COPY.title };
+export const metadata: Metadata = { title: STANDALONE_CHAT_COPY.title };
 
-// The Chats page, for finding a chat again: every chat of hers, newest first,
-// with a filter by project. A new chat starts from the "New chat" dialog.
-// Before her first chat, the page welcomes her with the dialog's button in
-// place of the list and its filters.
-export default async function StandaloneChatsPage({
-  searchParams,
-}: PageProps<"/chat">): Promise<JSX.Element> {
-  const { project } = await searchParams;
+// An on-screen keyboard shrinks the page rather than covering its bottom, so
+// the pinned header and the composer both stay above it.
+export const viewport: Viewport = { interactiveWidget: "resizes-content" };
+
+// Chat: the user's one private conversation for talking without a goal,
+// the same each time she opens it, with no list, name or chooser. Opening
+// it makes the conversation if she has none, without an opening, so it
+// spends nothing. Start a quest from this begins a quest from a summary she
+// edits and confirms. Chat has no quest, so its replies never write a
+// Journal, Plan or milestone.
+export default async function StandaloneChatPage(): Promise<JSX.Element> {
   const user = await requireUser();
-  const [choices, chats] = await Promise.all([
-    newChatChoices(user.id),
-    listAllChats(user.id),
+  const conversation = await privateChat(user.id);
+  const [messages, stoppedReplyId, choices] = await Promise.all([
+    listMessages(user.id, conversation.id),
+    readStoppedReply(user.id, conversation.id),
+    questCreationChoices(user.id),
   ]);
-  const { projects } = choices;
-  const projectId = PROJECT_ID.safeParse(project).data;
-  const selected = projects.find((choice) => choice.id === projectId);
-  if (chats.length === 0) {
-    // The welcome centres its button, which the heading's would not be.
-    return (
-      <PageWorkspace title={STANDALONE_CHATS_COPY.heading}>
-        <NoAdventures
-          action={
-            <NewChatDialog
-              {...choices}
-              selectedActivityId={DEFAULT_ACTIVITY_ID}
-              trigger={
-                <Button>
-                  <Icon name="plus" />
-                  {NEW_CHAT_COPY.dialogHeading}
-                </Button>
-              }
-            />
-          }
-        />
-      </PageWorkspace>
-    );
-  }
-  const newChat = (
-    <NewChatDialog {...choices} selectedActivityId={DEFAULT_ACTIVITY_ID} />
-  );
   return (
-    <PageWorkspace title={STANDALONE_CHATS_COPY.heading} action={newChat}>
-      <ChatProjectFilter
-        key={selected?.id ?? ""}
-        projects={projects}
-        chats={chats}
-        selectedProjectId={selected?.id}
-        workspace={true}
-      />
-    </PageWorkspace>
+    <ChatScreen
+      conversation={conversation}
+      messages={messages}
+      stoppedReplyId={stoppedReplyId}
+      viewer={user.id}
+      title={STANDALONE_CHAT_COPY.heading}
+      actions={
+        <QuestFromChat choices={choices} summary={chatSummaryDraft(messages)} />
+      }
+    />
   );
 }

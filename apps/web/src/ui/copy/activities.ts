@@ -16,7 +16,7 @@ export const ACTIVITIES_COPY = {
   homeLink: "Home",
   heading: "Activities",
   intro:
-    "An activity sets the scene an adventure plays out. Start an adventure in one, or let your construct move an adventure into one when it suits what you are doing.",
+    "An activity guides the work in a quest's conversation. Start a quest in one, or let your construct move the conversation into one when it suits what you are doing.",
   loading: "Loading activities…",
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
@@ -44,7 +44,7 @@ export const ACTIVITY_COPY = {
   builtInIntro:
     "A built-in activity can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your activity's instructions and opening request. Adventures keep the activity as it was when they entered it, so a change applies to adventures that enter it later.",
+    "Your activity's instructions and opening request. A conversation keeps the activity as it was when it entered it, so a change applies to conversations that enter it later.",
 } as const;
 
 // Each part of an activity's prompt, by its key, so a part added to
@@ -58,6 +58,6 @@ export const ACTIVITY_DEFINITION_COPY: Readonly<
   },
   openingRequest: {
     label: "Opening request",
-    help: "How your construct opens an adventure that starts in the activity, asked as if by you before its first message.",
+    help: "How your construct opens a quest that starts in the activity, asked as if by you before its first message.",
   },
 };

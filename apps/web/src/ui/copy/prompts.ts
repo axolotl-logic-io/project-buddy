@@ -46,7 +46,7 @@ export const PROMPT_COPY = {
   resetTitle: (part: string, source: string | undefined): string =>
     `Reset ${part} to ${resetTarget(source)}?`,
   resetDescription: (part: string, source: string | undefined): string =>
-    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing adventures keep their saved instructions.`,
+    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing conversations keep their saved instructions.`,
   resetComplete: (part: string, source: string | undefined): string =>
     `Reset complete: ${part} restored to ${resetTarget(source)}.`,
   resetConfirm: (part: string): string => `Reset ${part}`,
