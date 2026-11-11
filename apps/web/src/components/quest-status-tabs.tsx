@@ -36,37 +36,33 @@ function QuestStatusTabs({
     emptyMessage = PROJECTS_COPY.none;
   }
   const [status, setStatus] = useState(initialStatus);
-  // The list's order says nothing while the selected tab lists no quests.
-  let footer: string | undefined;
-  if (projects.some((project) => project.status === status)) {
-    footer = PROJECTS_COPY.newestFirst;
-  }
   const onValueChange = selectStatus.bind(null, setStatus);
   return (
     <QuestStatusFeedback>
-      <Tabs.Root
-        value={status}
-        onValueChange={onValueChange}
-        className="quests-index-tabs"
-      >
-        <Tabs.List
-          aria-label={QUEST_STATUS_COPY.tabs}
-          className="quests-index-tablist"
-        >
-          {QUEST_STATUSES.map((choice) => (
-            <Tabs.Trigger
-              key={choice}
-              value={choice}
-              className="quest-workspace-tab"
-              {...POINTER_FOCUS_HANDLERS}
-            >
-              {QUEST_STATUS_COPY.labels[choice]}
-              <span aria-hidden="true" className="quests-index-count">
-                {projects.filter((project) => project.status === choice).length}
-              </span>
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
+      <Tabs.Root value={status} onValueChange={onValueChange}>
+        <div className="border-line border-b">
+          <Tabs.List
+            aria-label={QUEST_STATUS_COPY.tabs}
+            className="workspace-tablist"
+          >
+            {QUEST_STATUSES.map((choice) => (
+              <Tabs.Trigger
+                key={choice}
+                value={choice}
+                className="workspace-tab"
+                {...POINTER_FOCUS_HANDLERS}
+              >
+                {QUEST_STATUS_COPY.labels[choice]}
+                <span aria-hidden="true" className="quests-index-count">
+                  {
+                    projects.filter((project) => project.status === choice)
+                      .length
+                  }
+                </span>
+              </Tabs.Trigger>
+            ))}
+          </Tabs.List>
+        </div>
         {QUEST_STATUSES.map((choice) => (
           <Tabs.Content
             key={choice}
@@ -79,9 +75,6 @@ function QuestStatusTabs({
             />
           </Tabs.Content>
         ))}
-        <footer className="quests-index-footer">
-          {footer !== undefined && <p>{footer}</p>}
-        </footer>
       </Tabs.Root>
     </QuestStatusFeedback>
   );
