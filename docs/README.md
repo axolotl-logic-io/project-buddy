@@ -53,6 +53,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Site operations](Site-Operations.md): production boundaries, the signed-out smoke checks and troubleshooting notes that supplement the README, and the production validation gap.
 
+- [Retired storage cleanup](storage/retired-storage.md): held migration sequence, retained data, generated SQL audit and rollback floor.
+
 ## Issue pipeline
 
 The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works this repo's issues. Its docs are in that repository's `docs/` folder.
