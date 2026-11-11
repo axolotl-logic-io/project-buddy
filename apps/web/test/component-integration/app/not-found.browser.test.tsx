@@ -3,8 +3,8 @@
 // notFound() runs while rendering, such as Invitations for an
 // ordinary user, reaches the browser without <head>'s pre-paint scripts,
 // and React renders <html> with the default theme attributes. The
-// not-found page applies the saved mode and hidden extras itself, so it
-// looks like every other page.
+// not-found page applies the saved mode itself, so it looks like every
+// other page.
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -14,10 +14,6 @@ import JournalNotFound from "@/app/(workspace)/projects/[projectId]/memory/not-f
 import NotFound from "@/app/not-found.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {
-  DEFAULT_FLAG_ATTRIBUTES,
-  HIDE_ATTRIBUTE,
-} from "@/flags/flag-choice.ts";
-import {
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
   THEME_ATTRIBUTE,
@@ -25,15 +21,12 @@ import {
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 
-// The browser's cookies when Dark and hidden page decorations are saved.
+// The browser's cookies when Dark is saved, beside a stale cookie from the
+// removed Extras switches, which must hide nothing.
 const SAVED_COOKIES = "theme=parchment.dark; hidden-extras=page-decorations";
 
 afterEach(() => {
   vi.restoreAllMocks();
-  document.documentElement.setAttribute(
-    HIDE_ATTRIBUTE,
-    DEFAULT_FLAG_ATTRIBUTES[HIDE_ATTRIBUTE],
-  );
 });
 
 describe("use_case_open_missing_page", () => {
@@ -63,7 +56,7 @@ describe("use_case_open_missing_page", () => {
 });
 
 describe("use_case_choose_theme", () => {
-  test("a page that isn't found keeps the saved mode and hidden extras", async () => {
+  test("a page that isn't found keeps the saved mode and hides nothing", async () => {
     vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(
       SAVED_COOKIES,
     );
@@ -72,6 +65,6 @@ describe("use_case_choose_theme", () => {
 
     const root = document.documentElement;
     expect(root.getAttribute(MODE_ATTRIBUTE)).toBe("dark");
-    expect(root.getAttribute(HIDE_ATTRIBUTE)).toBe("page-decorations");
+    expect(root.hasAttribute("data-hide")).toBe(false);
   });
 });
