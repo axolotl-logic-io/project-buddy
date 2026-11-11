@@ -11,6 +11,8 @@ import {
   type User,
 } from "@/accounts/users-store.ts";
 import { getDb } from "@/db/client.ts";
+import { batteryCashEvents } from "@/db/tables/battery-cash-events.ts";
+import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import { users } from "@/db/tables/users.ts";
 import { grantStartingGold } from "@/gold/gold-store.ts";
 
@@ -62,6 +64,19 @@ async function deleteTestUsers(): Promise<void> {
   if (made.length === 0) {
     return;
   }
+  // Payment audit intentionally outlives accounts. Remove fixture audit
+  // explicitly, including rows for users a retention test already deleted.
+  const buyerIds = made.map(({ id }) => id);
+  const purchases = getDb()
+    .select({ id: batteryPurchases.id })
+    .from(batteryPurchases)
+    .where(inArray(batteryPurchases.userId, buyerIds));
+  await getDb()
+    .delete(batteryCashEvents)
+    .where(inArray(batteryCashEvents.purchaseId, purchases));
+  await getDb()
+    .delete(batteryPurchases)
+    .where(inArray(batteryPurchases.userId, buyerIds));
   await getDb()
     .delete(users)
     .where(
