@@ -1,89 +1,40 @@
 // Each user's gold (gold.ts), stored in Postgres's gold_balances, and the
-// ledger of every grant and transfer of it, gold_ledger. A balance is made
-// with its account, holding the starting grant; model calls take their cost
-// from it in place (spend-meter.ts), and the Marketplace moves it between
-// users with transferGold. An account that has no balance yet, such as one
+// ledger of its grants, gold_ledger. A balance is made with its account,
+// holding the starting grant; model calls take their cost from it in place
+// (spend-meter.ts). An account that has no balance yet, such as one
 // made while the build before gold was live, is given its starting grant
 // the first time its balance is read or paid from.
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   goldBalanceOwnedBy,
-  goldBalancesOfTransfer,
   goldLedgerOwnedBy,
 } from "@/accounts/owner-scope.ts";
-import {
-  type Database,
-  getDb,
-  inTransaction,
-  type Transaction,
-} from "@/db/client.ts";
+import { type Database, getDb, type Transaction } from "@/db/client.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { users } from "@/db/tables/users.ts";
 import { databaseErrorCase } from "@/errors/neon-errors.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import {
-  goldInMicroUsd,
-  goldOfMicroUsd,
-  STARTING_GOLD,
-  wholeGold,
-} from "@/gold/gold.ts";
+import { goldInMicroUsd, goldOfMicroUsd, STARTING_GOLD } from "@/gold/gold.ts";
 import { parseUserId, type UserId } from "@/ids.ts";
 
-// Why gold moved from one user to another: a Marketplace sale, where the
-// buyer pays the seller.
-type GoldTransferReason = "marketplace-sale";
-
-// A transfer of gold to payee, from the user who pays it.
-interface GoldTransfer {
-  readonly payee: UserId;
-  // Whole gold, at least 1.
-  readonly gold: number;
-  readonly reason: GoldTransferReason;
-  // What the transfer is for, such as the Marketplace purchase's id; the
-  // ledger keeps it with both sides of the transfer.
-  readonly referenceId: string;
-}
-
-// What a transfer did: moved the gold; or moved nothing because a transfer
-// with the same reason and reference id from the same payer already moved
-// it, the payer has less than the amount (their balance in whole gold), or
-// there is no one else to pay (payee is the payer, or has no account).
-type GoldTransferResult =
-  | { readonly kind: "moved" }
-  | { readonly kind: "alreadyMoved" }
-  | { readonly kind: "notEnoughGold"; readonly gold: number }
-  | { readonly kind: "noPayee" };
-
-// Why a ledger row changed its user's gold.
+// Why a ledger row changed its user's gold. Only the starting grant is
+// written now; the Marketplace reasons are kept for historical rows.
 type GoldLedgerReason =
   | "starting-grant"
   | "marketplace-sale"
   | "marketplace-purchase";
 
-// A grant or transfer that changed a user's gold, as the ledger keeps it.
+// A grant or historical transfer that changed a user's gold, as the ledger keeps it.
 interface GoldLedgerEntry {
   readonly reason: GoldLedgerReason;
   // Whole gold: added, or negative when the user paid.
   readonly gold: number;
-  // The other user of a transfer, while their account exists.
+  // The other user of a historical transfer, while their account exists.
   readonly counterparty: UserId | undefined;
   readonly referenceId: string | undefined;
   readonly createdAt: Date;
 }
-
-// The ledger rows each side of a transfer writes.
-const TRANSFER_LEDGER_REASONS: Readonly<
-  Record<
-    GoldTransferReason,
-    { readonly payer: GoldLedgerReason; readonly payee: GoldLedgerReason }
-  >
-> = {
-  "marketplace-sale": {
-    payer: "marketplace-purchase",
-    payee: "marketplace-sale",
-  },
-};
 
 const LEDGER_ROW = z.object({
   reason: z.enum([
@@ -254,117 +205,7 @@ async function adjustGold(
     .where(goldBalanceOwnedBy(owner));
 }
 
-// Whether payer's side of a transfer with reason and referenceId is in the
-// ledger already.
-async function alreadyTransferred(
-  payer: UserId,
-  reason: GoldLedgerReason,
-  referenceId: string,
-  tx: Transaction,
-): Promise<boolean> {
-  const [row] = await tx
-    .select({ id: goldLedger.id })
-    .from(goldLedger)
-    .where(
-      and(
-        goldLedgerOwnedBy(payer),
-        eq(goldLedger.reason, reason),
-        eq(goldLedger.referenceId, referenceId),
-      ),
-    );
-  return row !== undefined;
-}
-
-async function transferWithin(
-  payer: UserId,
-  { payee, gold, reason, referenceId }: GoldTransfer,
-  tx: Transaction,
-): Promise<GoldTransferResult> {
-  if (!Number.isSafeInteger(gold) || gold < 1) {
-    throw new RangeError("A transfer moves at least 1 whole gold");
-  }
-  if (payee === payer) {
-    return { kind: "noPayee" };
-  }
-  await grantMissingStartingGold(tx, [payer, payee]);
-  // Both balances locked in one order, so transfers each way between the
-  // same two users wait for each other rather than deadlock.
-  const rows = await tx
-    .select({ userId: goldBalances.userId, microUsd: goldBalances.microUsd })
-    .from(goldBalances)
-    .where(goldBalancesOfTransfer(payer, payee))
-    .orderBy(asc(goldBalances.userId))
-    .for("update");
-  // Read under the payer's lock, so of two transfers with one reference the
-  // second, which waited for the first to commit, sees its ledger rows.
-  // gold_ledger_one_per_reference_idx holds it even if it didn't.
-  const reasons = TRANSFER_LEDGER_REASONS[reason];
-  if (await alreadyTransferred(payer, reasons.payer, referenceId, tx)) {
-    return { kind: "alreadyMoved" };
-  }
-  const payerBalance = rows.find(({ userId }) => userId === payer)?.microUsd;
-  if (!rows.some(({ userId }) => userId === payee)) {
-    return { kind: "noPayee" };
-  }
-  const microUsd = goldInMicroUsd(gold);
-  if (payerBalance === undefined || payerBalance < microUsd) {
-    return { kind: "notEnoughGold", gold: wholeGold(payerBalance ?? 0) };
-  }
-  await adjustGold(payer, -microUsd, tx);
-  await tx
-    .update(goldBalances)
-    .set({ microUsd: sql`${goldBalances.microUsd} + ${microUsd}` })
-    .where(
-      and(goldBalancesOfTransfer(payer, payee), eq(goldBalances.userId, payee)),
-    );
-  const transferId = crypto.randomUUID();
-  await tx.insert(goldLedger).values([
-    {
-      userId: payer,
-      microUsd: -microUsd,
-      reason: reasons.payer,
-      transferId,
-      counterpartyId: payee,
-      referenceId,
-    },
-    {
-      userId: payee,
-      microUsd,
-      reason: reasons.payee,
-      transferId,
-      counterpartyId: payer,
-      referenceId,
-    },
-  ]);
-  return { kind: "moved" };
-}
-
-// Moves transfer.gold whole gold from payer, the acting user, to
-// transfer.payee, all or nothing: both balances change and the ledger keeps
-// both sides, with the reason and reference id, or nothing changes. It
-// moves nothing when payer has less than the amount, or there is no one
-// else to pay. It moves gold once per payer, reason and reference id: a
-// repeat, such as a retried purchase, answers alreadyMoved, also when the
-// two run at once. Concurrent transfers wait for each other on the balances
-// they share, so a payer can't spend the same gold twice. It runs in tx
-// when given one, such as a purchase's, which then commits or rolls back
-// the transfer with the rest of its work; otherwise in a transaction of its
-// own. An amount that is not a whole gold of at least 1 throws a
-// RangeError and moves nothing.
-async function transferGold(
-  payer: UserId,
-  transfer: GoldTransfer,
-  tx?: Transaction,
-): Promise<GoldTransferResult> {
-  if (tx !== undefined) {
-    return await transferWithin(payer, transfer, tx);
-  }
-  return await withAppErrors("transferGold", () =>
-    inTransaction((own) => transferWithin(payer, transfer, own)),
-  );
-}
-
-// Owner's ledger: every grant and transfer that changed owner's gold,
+// Owner's ledger: every grant and historical transfer that changed owner's gold,
 // oldest first.
 async function readGoldLedger(owner: UserId): Promise<GoldLedgerEntry[]> {
   const rows = await withAppErrors("readGoldLedger", () =>
@@ -396,13 +237,7 @@ async function readGoldLedger(owner: UserId): Promise<GoldLedgerEntry[]> {
   });
 }
 
-export type {
-  GoldLedgerEntry,
-  GoldLedgerReason,
-  GoldTransfer,
-  GoldTransferReason,
-  GoldTransferResult,
-};
+export type { GoldLedgerEntry, GoldLedgerReason };
 export {
   adjustGold,
   chargeGold,
@@ -411,5 +246,4 @@ export {
   readGoldBalance,
   readGoldLedger,
   reserveGold,
-  transferGold,
 };

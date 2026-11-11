@@ -1,6 +1,5 @@
 import { refresh } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { renameProjectAction } from "@/projects/rename-project-action.ts";
 import { getProject } from "@/projects/store.ts";
@@ -18,10 +17,9 @@ function form(projectId: string, name: string): FormData {
 }
 
 describe("use_case_rename_quest", () => {
-  test("the owner saves a trimmed name visible to members", async () => {
-    const { her, herData, other } = await twoUsers();
+  test("the owner saves a trimmed name", async () => {
+    const { her, herData } = await twoUsers();
     const project = await herData.project();
-    await addProjectMember(other.id, project.id);
     expect(
       await renameProjectAction(
         { kind: "idle" },
@@ -29,7 +27,6 @@ describe("use_case_rename_quest", () => {
       ),
     ).toEqual({ kind: "saved", name: "Fox den" });
     expect((await getProject(her.id, project.id))?.name).toBe("Fox den");
-    expect((await getProject(other.id, project.id))?.name).toBe("Fox den");
     expect(refresh).toHaveBeenCalled();
   });
   test.each(["", "   ", "x".repeat(PROJECT_NAME_MAX_LENGTH + 1)])(
@@ -43,19 +40,18 @@ describe("use_case_rename_quest", () => {
       expect((await getProject(her.id, project.id))?.name).toBe(project.name);
     },
   );
-  test("members and outsiders cannot rename a quest", async () => {
+  test("former members and outsiders cannot rename a quest", async () => {
     const { her, herData, other, otherData } = await twoUsers();
     const project = await herData.project();
     const foreign = await otherData.project();
     await expectNotFound(() =>
       renameProjectAction({ kind: "idle" }, form(foreign.id, "Stolen")),
     );
-    await addProjectMember(other.id, project.id);
     await signIn(other);
     await expectNotFound(() =>
       renameProjectAction(
         { kind: "idle" },
-        form(project.id, "Changed by member"),
+        form(project.id, "Changed by former member"),
       ),
     );
     expect((await getProject(her.id, project.id))?.name).toBe(project.name);

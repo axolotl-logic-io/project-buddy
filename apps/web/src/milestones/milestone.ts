@@ -22,8 +22,8 @@ const MILESTONE_TEXT = z
 
 interface Milestone {
   readonly id: MilestoneId;
-  // The chat it was recorded in.
-  readonly chatId: ChatId;
+  // The conversation it was recorded in; undefined once that is gone.
+  readonly chatId: ChatId | undefined;
   readonly text: string;
   readonly recordedAt: Date;
 }

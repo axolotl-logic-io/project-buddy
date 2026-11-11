@@ -108,18 +108,22 @@ function TitleEditor({
   );
 }
 
+// The quest title's Rename action, in the first row under the trail band,
+// whose heading is the title. Rename opens the title's editor in its place;
+// saving refreshes the page, and so the heading, and returns focus to
+// Rename.
 function QuestTitle({
   project,
 }: {
-  readonly project: Pick<Project, "id" | "name" | "role">;
+  readonly project: Pick<Project, "id" | "name">;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState<string | undefined>(undefined);
-  const pencilRef = useRef<HTMLButtonElement>(null);
+  const renameRef = useRef<HTMLButtonElement>(null);
   const restoreFocusRef = useRef(false);
   useEffect(() => {
     if (editing === false && restoreFocusRef.current === true) {
-      pencilRef.current?.focus();
+      renameRef.current?.focus();
       restoreFocusRef.current = false;
     }
   }, [editing]);
@@ -137,26 +141,21 @@ function QuestTitle({
     title = saved;
   }
   return (
-    <div className="min-w-0 flex-1">
+    <div className="quest-title">
       {editing === true && (
         <TitleEditor projectId={project.id} name={title} onClose={close} />
       )}
       {editing === false && (
-        <div className="flex min-w-0 items-start gap-2">
-          <h1 className="page-heading">{title}</h1>
-          {project.role === "owner" && (
-            <Button
-              ref={pencilRef}
-              variant="quiet"
-              className="quest-title-edit"
-              aria-label={PROJECT_COPY.rename}
-              aria-expanded={false}
-              onClick={open}
-            >
-              <Icon name="pencil" />
-            </Button>
-          )}
-        </div>
+        <Button
+          ref={renameRef}
+          variant="quiet"
+          className="quest-title-edit"
+          aria-expanded={false}
+          onClick={open}
+        >
+          <Icon name="pencil" />
+          {PROJECT_COPY.rename}
+        </Button>
       )}
       <FormStatus>{saved !== undefined && PROJECT_COPY.titleSaved}</FormStatus>
     </div>

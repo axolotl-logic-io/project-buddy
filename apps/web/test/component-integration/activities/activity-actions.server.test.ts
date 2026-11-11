@@ -1,4 +1,4 @@
-// Her activities, from the activities pages' forms, in the test database
+// Her activities, from the Workshop's and the activity pages' forms, in the test database
 // with the mock construct: customizing a built-in activity makes a copy of her
 // own, and Craft activity makes one, which she edits, clones,
 // resets and starts chats in; a chat keeps the activity as it was when it
@@ -17,6 +17,7 @@ import {
   listOwnActivities,
   type OwnActivity,
 } from "@/activities/activity-store.ts";
+import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import {
@@ -26,11 +27,16 @@ import {
   resetActivityPromptAction,
   saveActivityAction,
 } from "@/app/(workspace)/activities/actions.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import OldActivitiesPage from "@/app/(workspace)/activities/page.tsx";
+import { getChat } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import type { ChatId } from "@/ids.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
+import { listProjects } from "@/projects/store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
+import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
@@ -110,18 +116,34 @@ async function resetPrompt(activityId: string): Promise<void> {
   await resetActivityPromptAction(formOf({ activityId }));
 }
 
-// Starts a standalone chat in the activity with this id, and returns it.
+// Starts a quest in the activity with this id, and returns its
+// conversation's id.
 async function startIn(user: User, activityId: string): Promise<ChatId> {
-  const starting = startChatAction(
-    { kind: "idle" },
-    formOf({ projectId: "", activityId, constructId: "vellum" }),
-  );
-  await Promise.allSettled([starting]);
-  const [chat] = await listAllChats(user.id);
-  if (chat === undefined) {
-    throw new Error("No chat started");
+  const activity = await chosenActivity(user.id, activityId);
+  if (activity === undefined) {
+    throw new Error(`No activity ${activityId}`);
   }
-  return chat.id;
+  const started = await startProject(
+    user.id,
+    PROJECT_NAME.parse("Activity quest"),
+    getConstruct("vellum"),
+    { activity },
+  );
+  if (started.kind !== "started") {
+    throw new Error(`The quest didn't start: ${started.kind}`);
+  }
+  return started.chat.id;
+}
+
+// Making a copy opens that new private definition in the editor.
+async function copyOwn(user: User, sourceId: string): Promise<void> {
+  const copying = cloneActivityAction(formOf({ sourceId }));
+  await Promise.allSettled([copying]);
+  const copy = (await listOwnActivities(user.id)).at(-1);
+  if (copy === undefined) {
+    throw new Error("No copy was created");
+  }
+  await expectRedirect(() => copying, `/activities/${copy.id}`);
 }
 
 describe("use_case_customize_activity", () => {
@@ -131,7 +153,7 @@ describe("use_case_customize_activity", () => {
 
     const copy = await customizeBrainstorming(user);
     expect(copy).toMatchObject({
-      name: `${BRAINSTORMING.name} (clone)`,
+      name: `${BRAINSTORMING.name} (copy)`,
       definition: BRAINSTORMING.definition,
       clonedFrom: "brainstorming",
     });
@@ -160,7 +182,7 @@ describe("use_case_customize_activity", () => {
     const user = await signedInUser();
     const copy = await customizeBrainstorming(user);
     const chatId = await startIn(user, copy.id);
-    const [chat] = await listAllChats(user.id);
+    const chat = await getChat(user.id, chatId);
     if (chat === undefined) {
       throw new Error("No chat started");
     }
@@ -192,13 +214,10 @@ describe("use_case_customize_activity", () => {
       }),
     ).catch(() => undefined);
 
-    await expectRedirect(
-      () => cloneActivityAction(formOf({ sourceId: copy.id })),
-      "/activities",
-    );
+    await copyOwn(user, copy.id);
     const clone = (await listOwnActivities(user.id)).at(-1);
     expect(clone).toMatchObject({
-      name: `${copy.name} (clone)`,
+      name: `${copy.name} (copy)`,
       definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
 
@@ -221,6 +240,18 @@ describe("use_case_customize_activity", () => {
       editBuiltInActivityAction(formOf({ activityId: copy.id })),
     );
     expect((await stored(owner, copy.id)).name).toBe(copy.name);
+  });
+
+  test("the old Activities address opens the Workshop's Activities tab and makes nothing", async () => {
+    const user = await signedInUser();
+
+    await expectRedirect(() => OldActivitiesPage(), "/workshop", {
+      kind: "activity",
+    });
+
+    expect(await listOwnActivities(user.id)).toEqual([]);
+    expect(await listProjects(user.id)).toEqual([]);
+    expect(await goldSpent(user)).toBe(0);
   });
 });
 
@@ -273,7 +304,7 @@ describe("use_case_new_activity", () => {
     const started = await startIn(user, activity.id);
     expect(await constructPrompt(started)).toContain(parts.prompt);
 
-    const chat = await createStandaloneChat(user.id);
+    const chat = await privateChat(user.id);
     await constructReply(
       chat.id,
       `/mock-tool ${SELECT_ACTIVITY_TOOL} ${JSON.stringify({ activityId: activity.id })}`,
@@ -284,12 +315,9 @@ describe("use_case_new_activity", () => {
       definition: parts,
     });
 
-    await expectRedirect(
-      () => cloneActivityAction(formOf({ sourceId: activity.id })),
-      "/activities",
-    );
+    await copyOwn(user, activity.id);
     expect((await listOwnActivities(user.id)).at(-1)).toMatchObject({
-      name: "Picnic (clone)",
+      name: "Picnic (copy)",
       definition: parts,
     });
 

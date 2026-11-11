@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { setInterviewConstructAction } from "@/app/(workspace)/settings/actions.ts";
+import { setInterviewConstructAction } from "@/app/(workspace)/settings/interview-construct-action.ts";
 import {
   cloneConstruct,
   deleteConstruct,

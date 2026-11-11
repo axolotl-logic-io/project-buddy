@@ -17,8 +17,8 @@ const MOST_OPERATIONS = 40;
 
 // The tool's description.
 const CHANGE_PLAN_DESCRIPTION = [
-  "Change the quest's plan: its ordered steps of remaining work, shown in your instructions with their numbers, such as #3. The quest's page, the adventure's Plan panel and the composer's commands show the same plan, and the user changes it there too.",
-  "Each call applies its operations in order, all or none, and saves one change that the user sees in the adventure and can undo: add a step, at the end or before another; change a step's text; complete a step the user finished; reopen one; move one before another or to the end; remove one.",
+  "Change the quest's plan: its ordered steps of remaining work, shown in your instructions with their numbers, such as #3. The quest's page, the conversation's Plan panel and the composer's commands show the same plan, and the user changes it there too.",
+  "Each call applies its operations in order, all or none, and saves one change that the user sees in the conversation and can undo: add a step, at the end or before another; change a step's text; complete a step the user finished; reopen one; move one before another or to the end; remove one.",
   "The first open step is the quest's next step, which the site shows the user.",
   "Name steps by their numbers. If a step you name is gone, for example because the user changed the plan meanwhile, nothing is saved and the result gives the plan as it is now.",
 ].join(" ");

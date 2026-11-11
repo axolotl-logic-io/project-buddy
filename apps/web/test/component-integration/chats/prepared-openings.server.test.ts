@@ -1,26 +1,21 @@
-import { retireDefinition } from "@/retirement/retirement-store.ts";
-// "use_case_prepared_opening" in use-cases/: a chat in a built-in construct and
-// a built-in activity, or in copies of the user's own that she has only
-// renamed, starts at once with the opening prepared for them
+// "use_case_prepared_opening" in use-cases/: a quest started in a built-in
+// construct and a built-in activity, or in copies of the user's own that she
+// has only renamed, opens at once with the opening prepared for them
 // (src/activities/prepared-openings.ts), asking nothing of Claude. The mock
 // construct fails any model call whose prompt holds `/mock-error <type>`
-// (mock-opening.ts), which a project's name puts there, so a chat that
-// starts in such a project asked nothing of Claude. An edited construct, which
-// writes its opening, is use_case_new_chat's.
+// (mock-opening.ts), which a quest's name puts there, so a quest that starts
+// with such a name asked nothing of Claude.
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { ActivityId } from "@/activities/activity.ts";
 import { cloneActivity, updateActivity } from "@/activities/activity-store.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { getActivity, listActivities } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import {
   cloneConstruct,
   deleteConstruct,
@@ -32,17 +27,13 @@ import {
   listConstructs,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
+import { listProjects } from "@/projects/store.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import {
-  constructReply,
-  formOf,
-  messageText,
-} from "../test-database/chat-test-kit.ts";
-import { expectRedirect } from "../test-database/navigation-test-kit.ts";
+import { constructReply, messageText } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 // A project name that fails any model call whose prompt holds it.
@@ -63,34 +54,31 @@ function builtInOpening(
   );
 }
 
-// The chat the signed-in user's form starts, with start, which redirects to
-// it.
-async function started(
-  user: User,
-  start: () => Promise<unknown>,
-): Promise<Chat> {
-  const starting = start();
-  await Promise.allSettled([starting]);
-  const [newest] = await listAllChats(user.id);
-  if (newest === undefined) {
-    throw new Error("No chat started");
-  }
-  await expectRedirect(() => starting, `/chats/${newest.id}`);
-  return newest;
-}
-
-// A standalone chat the signed-in user starts in the construct and activity.
-function standaloneChat(
+// The conversation of a new quest of the user's, named name, in the
+// construct and activity with these ids, as the start form gives them.
+async function questIn(
   user: User,
   constructId: string,
   activityId: string,
+  name = "Fox",
 ): Promise<Chat> {
-  return started(user, () =>
-    startChatAction(
-      { kind: "idle" },
-      formOf({ projectId: "", constructId, activityId }),
-    ),
+  const [construct, activity] = await Promise.all([
+    chosenConstruct(user.id, constructId),
+    chosenActivity(user.id, activityId),
+  ]);
+  if (construct === undefined || activity === undefined) {
+    throw new Error("No such construct or activity");
+  }
+  const result = await startProject(
+    user.id,
+    PROJECT_NAME.parse(name),
+    construct.construct,
+    { activity },
   );
+  if (result.kind !== "started") {
+    throw new Error(`The quest didn't start: ${result.kind}`);
+  }
+  return result.chat;
 }
 
 // The texts of the chat's messages, in order, by role.
@@ -100,7 +88,7 @@ async function savedLines(user: User, chat: Chat): Promise<string[]> {
 }
 
 describe("use_case_prepared_opening", () => {
-  test("every built-in construct opens a chat in each activity with its own prepared opening", async () => {
+  test("every built-in construct opens a quest in each activity with its own prepared opening", async () => {
     const user = await testUser();
     const pairs = listConstructs().flatMap((construct) =>
       NEW_CHAT_ACTIVITIES.map((activity) => ({ construct, activity })),
@@ -108,16 +96,9 @@ describe("use_case_prepared_opening", () => {
 
     const openings = await Promise.all(
       pairs.map(async ({ construct, activity }) => {
-        const result = await startChat(user.id, {
-          project: undefined,
-          construct: { id: construct.id, ...snapshotOf(construct) },
-          activity: builtInActivity(activity.id),
-        });
-        if (result.kind !== "started") {
-          throw new Error(`The chat didn't start: ${result.kind}`);
-        }
+        const chat = await questIn(user, construct.id, activity.id);
         return {
-          saved: await savedLines(user, result.chat),
+          saved: await savedLines(user, chat),
           opening: builtInOpening(construct.id, activity.id),
         };
       }),
@@ -132,7 +113,7 @@ describe("use_case_prepared_opening", () => {
     expect(await goldSpent(user)).toBe(0);
   });
 
-  test("every built-in construct opens a new project's interview with its prepared opening", async () => {
+  test("every built-in construct opens a new quest with its prepared opening while Claude is unavailable", async () => {
     const user = await testUser();
     await Promise.all(
       listConstructs().map(async (construct) => {
@@ -154,37 +135,6 @@ describe("use_case_prepared_opening", () => {
     );
   });
 
-  test("a project chat and a new project start with their prepared openings while Claude is unavailable", async () => {
-    const user = await testUser();
-    const [project] = await Promise.all([
-      testData(user).project(UNAVAILABLE_PROJECT_NAME),
-      signIn(user),
-    ]);
-
-    const projectChat = await started(user, () =>
-      startChatAction(
-        { kind: "idle" },
-        formOf({ projectId: project.id, constructId: "lumen" }),
-      ),
-    );
-    await saveInterviewConstruct(user.id, "lumen");
-    const interview = await started(user, () =>
-      createProjectAction(
-        { kind: "idle" },
-        formOf({ name: UNAVAILABLE_PROJECT_NAME, constructId: "lumen" }),
-      ),
-    );
-
-    expect(projectChat.project?.id).toBe(project.id);
-    expect(await savedLines(user, projectChat)).toEqual([
-      `assistant: ${builtInOpening("lumen", "open-chat")}`,
-    ]);
-    expect(interview.project?.name).toBe(UNAVAILABLE_PROJECT_NAME);
-    expect(await savedLines(user, interview)).toEqual([
-      `assistant: ${builtInOpening("lumen", "project-breakdown")}`,
-    ]);
-  });
-
   test("renamed copies of a built-in construct and activity open as the built-in ones do", async () => {
     const user = await testUser();
     const [construct, activity] = await Promise.all([
@@ -200,7 +150,7 @@ describe("use_case_prepared_opening", () => {
       updateActivity(user.id, activity.id, { name: "Idea jam" }),
     ]);
 
-    const chat = await standaloneChat(user, construct.id, activity.id);
+    const chat = await questIn(user, construct.id, activity.id);
 
     expect(chat.construct.name).toBe("Professor Notebook");
     expect(await savedLines(user, chat)).toEqual([
@@ -224,16 +174,23 @@ describe("use_case_prepared_opening", () => {
       },
     });
 
-    const result = await startChatAction(
-      { kind: "idle" },
-      formOf({ projectId: "", constructId: "vellum", activityId: activity.id }),
+    const edited = await chosenActivity(user.id, activity.id);
+    if (edited === undefined) {
+      throw new Error("Her activity is not hers");
+    }
+
+    const result = await startProject(
+      user.id,
+      PROJECT_NAME.parse("Fox"),
+      getConstruct("vellum"),
+      { activity: edited },
     );
 
     expect(result.kind).toBe("claudeUnavailable");
-    expect(await listAllChats(user.id)).toEqual([]);
+    expect(await listProjects(user.id)).toEqual([]);
   });
 
-  test("a second chat is separate, with the same opening, and the first keeps its opening first, once, after her message and a later delete of her construct", async () => {
+  test("a second quest has its own conversation, with the same opening, and the first keeps its opening first, once, after her message and a later delete of her construct", async () => {
     const user = await testUser();
     const [construct] = await Promise.all([
       cloneConstruct(user.id, "lumen"),
@@ -244,12 +201,8 @@ describe("use_case_prepared_opening", () => {
     }
     const opening = `assistant: ${builtInOpening("lumen", "project-breakdown")}`;
 
-    const first = await standaloneChat(user, construct.id, "project-breakdown");
-    const second = await standaloneChat(
-      user,
-      construct.id,
-      "project-breakdown",
-    );
+    const first = await questIn(user, construct.id, "project-breakdown");
+    const second = await questIn(user, construct.id, "project-breakdown");
     const reply = await constructReply(first.id, FIRST_MESSAGE);
     await updateConstruct(user.id, construct.id, {
       definition: { ...construct.definition, prompt: "A different voice." },

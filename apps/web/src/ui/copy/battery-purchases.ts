@@ -3,9 +3,8 @@ import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 const BATTERY_PURCHASES_COPY = {
   heading: "Buy batteries",
   testOnly:
-    "Stripe test mode: no real money is charged. Batteries fund model use. Marketplace orbs are separate and cannot fund model use.",
-  unavailable:
-    "Battery purchases are currently unavailable. Marketplace sales cannot fund model use.",
+    "Stripe test mode: no real money is charged. Batteries fund model use.",
+  unavailable: "Battery purchases are currently unavailable.",
   buy: "Continue to Stripe Checkout",
   refresh: "Refresh payment status and balance",
   canceled:

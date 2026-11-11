@@ -1,6 +1,5 @@
 // Small helpers any spec may need, whatever page it is on: finding the page's
-// own alert, and typing into a field or clicking a control once the page has
-// hydrated.
+// own alert, and typing into a field once the page has hydrated.
 import { expect, type Locator, type Page } from "@playwright/test";
 
 // The start of the key React puts on a DOM node when it hydrates it, which
@@ -41,11 +40,4 @@ async function fillWhenReady(field: Locator, text: string): Promise<void> {
   await expect(field).toHaveValue(text);
 }
 
-// Clicks control once React has hydrated it, so a click right after
-// page.goto is never lost on a page that hasn't hydrated.
-async function clickWhenReady(control: Locator): Promise<void> {
-  await waitForHydrated(control);
-  await control.click();
-}
-
-export { alertIn, clickWhenReady, fillWhenReady };
+export { alertIn, fillWhenReady };

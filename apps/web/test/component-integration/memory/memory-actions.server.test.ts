@@ -180,3 +180,36 @@ describe("Memory restore refusals", () => {
     expect(await readMemoryHistory(user.id, chat.project.id)).toEqual(before);
   });
 });
+
+test("historical Note paragraphs stay verbatim through Journal edits and version restores", async () => {
+  const { user, chat } = await signedInChat();
+  const historical =
+    "Goal: grow herbs.\n\nNote (2026-11-02): Keep  two spaces and **Markdown**.\n\nNote (2026-10-31): Older text stays.";
+  expect(await saveFromEditor(chat.project.id, historical, 0)).toEqual({
+    kind: "saved",
+  });
+  const original = await readMemory(user.id, chat.project.id);
+  expect(original.text).toBe(historical);
+  const before = await readMemoryHistory(user.id, chat.project.id);
+  const edited = historical.replace("grow herbs", "grow basil");
+  expect(
+    await saveFromEditor(chat.project.id, edited, original.version),
+  ).toEqual({ kind: "saved" });
+  expect((await readMemory(user.id, chat.project.id)).text).toBe(edited);
+  const current = await readMemory(user.id, chat.project.id);
+  expect(
+    await restoreFromHistory(
+      chat.project.id,
+      original.version,
+      current.version,
+    ),
+  ).toEqual({ kind: "saved" });
+  expect((await readMemory(user.id, chat.project.id)).text).toBe(historical);
+  const history = await readMemoryHistory(user.id, chat.project.id);
+  expect(history.map(({ text }) => text)).toEqual([
+    historical,
+    edited,
+    historical,
+  ]);
+  expect(history.slice(2)).toEqual(before);
+});

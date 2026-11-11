@@ -1,14 +1,13 @@
 import type { JSX } from "react";
 
-// The shapes a page's skeleton is built from, top to bottom: a heading, a
-// line of text, a list of cards, a panel (such as a form), or a chat's
-// messages.
-type SkeletonShape = "heading" | "line" | "cards" | "panel" | "messages";
+// The shapes a page's skeleton is built from, top to bottom: a line of text,
+// a list of cards, a panel (such as a form), or a chat's messages. A page's
+// heading is the trail band's, which shows while the page loads.
+type SkeletonShape = "line" | "cards" | "panel" | "messages";
 
 // Each shape's blocks, by their size; no two blocks of a shape are the same
 // size.
 const SHAPE_BLOCKS: Readonly<Record<SkeletonShape, readonly string[]>> = {
-  heading: ["h-9 w-2/3"],
   line: ["h-5 w-1/3"],
   cards: ["h-14", "h-14 w-11/12", "h-14 w-5/6"],
   panel: ["h-44 rounded-box"],

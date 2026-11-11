@@ -153,23 +153,31 @@ async function resetPrompt(constructId: string): Promise<void> {
   await resetConstructPromptAction(form({ constructId }));
 }
 
+// Making a copy opens that new private definition in the editor.
+async function copyOwn(user: User, sourceId: string): Promise<void> {
+  const copying = cloneConstructAction(form({ sourceId }));
+  await Promise.allSettled([copying]);
+  const copy = (await listOwnConstructs(user.id)).at(-1);
+  if (copy === undefined) {
+    throw new Error("No copy was created");
+  }
+  await expectRedirect(() => copying, `/constructs/${copy.id}`);
+}
+
 describe("use_case_customize_construct", () => {
   test("customizing a built-in construct makes a copy of her own, and cloning a clone works", async () => {
     const user = await signedInUser();
 
     const copy = await customize(user, "vellum");
     expect(copy).toMatchObject({
-      name: "Vellum (clone)",
+      name: "Vellum (copy)",
       definition: getConstruct("vellum").definition,
     });
 
-    await expectRedirect(
-      () => cloneConstructAction(form({ sourceId: copy.id })),
-      "/constructs",
-    );
+    await copyOwn(user, copy.id);
     expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
-      "Vellum (clone)",
-      "Vellum (clone) (clone)",
+      "Vellum (copy)",
+      "Vellum (copy) (copy)",
     ]);
   });
 });
@@ -223,12 +231,9 @@ describe("use_case_new_construct", () => {
       id: construct.id,
       construct: { id: DEFAULT_CONSTRUCT_ID, name: "Pal", definition: parts },
     });
-    await expectRedirect(
-      () => cloneConstructAction(form({ sourceId: construct.id })),
-      "/constructs",
-    );
+    await copyOwn(user, construct.id);
     expect((await listOwnConstructs(user.id)).at(-1)).toMatchObject({
-      name: "Pal (clone)",
+      name: "Pal (copy)",
       definition: parts,
     });
 
