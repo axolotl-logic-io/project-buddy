@@ -9,8 +9,7 @@ const WORKSHOP_COPY = {
   edit: "At the workbench",
 } as const;
 
-// The Workshop's own page: one tab for each kind, where the user crafts one,
-// customizes a built-in one, or tweaks or clones their own.
+// Workshop has one collection tab per kind and the same editing actions.
 const WORKSHOP_PAGE_COPY = {
   homeLink: "Home",
   intro:

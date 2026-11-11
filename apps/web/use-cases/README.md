@@ -66,7 +66,7 @@ Each area's cases are in their own file:
 - [Library](library.md)
 - [Workshop](workshop.md): edit and test unsaved constructs, activities and spells.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
-- [Spellbook](spellbook.md)
+- [Spells](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
 - [Installed app and notifications](notifications.md)
