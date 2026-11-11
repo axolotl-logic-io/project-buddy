@@ -1,6 +1,4 @@
-// The Workshop's own page in the browser: a tab for each kind, Constructs
-// first, each offering Craft, Customize for the built-in ones, and Tweak and
-// Clone for the user's own.
+// Workshop offers the same Create, Make a copy and Edit actions for each kind.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
@@ -10,8 +8,6 @@ import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import { listConstructs } from "@/constructs/construct-store.ts";
 import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
-import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
-import { listProjects } from "@/projects/store.ts";
 import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { listSpells } from "@/spells/index.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
@@ -49,13 +45,6 @@ vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
 }));
-vi.mock("@/projects/store.ts", () => ({
-  getProject: vi.fn(),
-  listProjects: vi.fn<typeof listProjects>(),
-}));
-vi.mock("@/projects/quest-creation-choices.ts", () => ({
-  questCreationChoices: vi.fn<typeof questCreationChoices>(),
-}));
 // The page offers these actions; their own pages' tests submit them.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
@@ -69,18 +58,11 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
-  startQuestAction: vi.fn(),
-}));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
   retireSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
-}));
-
-vi.mock("@/constructs/interview-construct.ts", () => ({
-  interviewConstruct: async () => ({ id: "vellum" }),
 }));
 
 const QUEST_START = /Start a quest/u;
@@ -92,11 +74,6 @@ beforeEach(() => {
   vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
   vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-  vi.mocked(listProjects).mockResolvedValue([]);
-  vi.mocked(questCreationChoices).mockResolvedValue({
-    userConstructs: [],
-    preferredConstructId: "vellum",
-  });
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -292,10 +269,6 @@ describe("use_case_workshop_page", () => {
     expect(listConstructs).not.toHaveBeenCalled();
   });
 });
-
-vi.mock("@/constructs/interview-construct.ts", () => ({
-  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
-}));
 
 test("Create construct supports keyboard submission in Workshop", async () => {
   const submitted = Promise.withResolvers<void>();
