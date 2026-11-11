@@ -67,12 +67,12 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Steps:**
   - The user opens Home or follows the site's name after signing in.
   - They follow a labeled destination in the responsive control panel.
-- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Adventures, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Adventures have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
+- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chat, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Chat have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
 - **Variations:**
   - Following a link away from Home restores the destination's page background and content column without a refresh, with the same shared header. Returning to Home restores the map layout, including with browser back and forward.
   - While Home loads, it shows its heading, a tile where each place will be and the map's artwork, so the background doesn't change when Home arrives.
-  - Before the first quest, Start a quest opens Break Down a Project with a new quest selected.
-  - With no adventures or Active quests, Home briefly explains Project Buddy and the first action. Returning users keep Continue and Today unobscured.
+  - Before the first quest, Start a quest opens Quests, with its four starting points.
+  - With no quest conversation or Chat yet, Home briefly explains Project Buddy and the first action. Returning users keep Continue unobscured.
   - The six place icons come from one library and stay decorative, with visible destination names and no duplicate screen-reader announcement in Light and Dark modes, including at 320 px. The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
   - A signed-out visitor is sent to sign in before any recent work is read.
 
@@ -80,15 +80,14 @@ The user finds the site's places on an illustrated parchment atlas.
 
 The user returns to the quest they were most recently working on.
 
-- **Prerequisites:** a signed-in account with a quest adventure.
+- **Prerequisites:** a signed-in account with an Active quest that has a conversation.
 - **Steps:**
   - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
+- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
-  - The new adventure page at `/chats/new` retains Today above its form: up to three recent Active quests with their next steps and Continue links, plus up to three other recent adventures. With no recent work, it shows the form alone.
 - **Next:**
-  - `use_case_continue_chat`: carry on in the quest's latest adventure.
+  - `use_case_continue_chat`: carry on in the quest's conversation.
   - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): ask the construct for a next step.
 
 
@@ -96,7 +95,7 @@ The user returns to the quest they were most recently working on.
 
 The user writes to the construct and gets a reply.
 
-- **Prerequisites:** `use_case_standalone_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She types a message and sends it.
   - Her message appears in the adventure at once, under her name.
@@ -159,7 +158,7 @@ The user leaves the adventure while the construct is still replying.
 
 The user asks how to do something in Blender and gets an answer backed by the manual.
 
-- **Prerequisites:** `use_case_standalone_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
   - The construct casts Blender manual lookup, unless it has cast it in this adventure already. The adventure shows "Cast Blender manual lookup" where the cast happened.
@@ -206,7 +205,7 @@ The user opens the manual section the construct cited.
 
 The user asks about something the Blender manual does not cover.
 
-- **Prerequisites:** `use_case_standalone_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She asks about something the manual has nothing on, such as a third-party add-on.
   - The construct looks the topic up in the manual and finds nothing about it.
@@ -220,26 +219,13 @@ The user asks about something the Blender manual does not cover.
 
 The user asks the construct about something that has nothing to do with Blender.
 
-- **Prerequisites:** `use_case_standalone_chat` or `use_case_reopen_chat`.
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She asks about something else, such as a recipe.
   - The construct answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
 - **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to consult the Journal or advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. Relevant quest information still follows the Journal rules. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
-
-## use_case_reopen_chat
-
-The user returns to an earlier adventure.
-
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), in a quest with at least one adventure.
-- **Steps:**
-  - She picks an adventure.
-  - The site shows the whole conversation so far, with the same construct.
-- **Outcome:** the adventure shows its name (or "New adventure" before it has one) and the same construct's name, then every message, hers and the construct's, in the order they were sent, under the construct's name. Replies keep their formatting and their manual links. She can send a new message.
-- **Next:**
-  - `use_case_continue_chat`: pick up the conversation.
-  - `use_case_construct_voice_consistent`: check the construct still sounds like itself.
 
 ## use_case_check_in
 
@@ -256,13 +242,12 @@ The quest's construct checks in on her, on the schedule she chose.
 
 ## use_case_open_unread_check_in
 
-The user opens a check-in she hasn't read.
+The user opens a check-in they haven't read.
 
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
-  - She opens Adventures, or the quest's page, and finds the check-in, marked Unread.
-  - She opens it, from the list or from the email's link.
-- **Outcome:** the adventure shows the construct's check-in message, and she can answer it as in any adventure. Back on the Adventures page, the adventure is no longer marked Unread. Adventures she started herself are never marked. The mark is hers alone: anyone else's mark on the adventure doesn't show to her, and her opening the adventure clears only her own mark. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
+  - On Quests or Home, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
+- **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the construct.
 
@@ -282,26 +267,13 @@ The user turns off a quest's check-ins from a check-in email.
 
 The user carries on an earlier conversation, and the construct remembers it.
 
-- **Prerequisites:** `use_case_reopen_chat`.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation has earlier messages.
 - **Steps:**
   - She sends a message that refers to something said earlier, such as "repeat that shortcut".
   - The construct answers with the earlier conversation in mind.
-- **Outcome:** the reply uses what was said earlier in the adventure. Asked to repeat a shortcut, it gives the same shortcut as before.
+- **Outcome:** the reply uses what was said earlier in the conversation. Asked to repeat a shortcut, it gives the same shortcut as before.
 - **Next:**
   - `use_case_send_message`: keep going.
-
-## use_case_switch_construct
-
-The user wants a different voice for the same quest.
-
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
-- **Steps:**
-  - She starts a new adventure in the same quest and picks a different construct.
-  - The new construct already knows the quest's goals and progress from its Journal: the adventure uses its prepared opening when the construct and activity have one; otherwise the generated opening gives a synopsis of the Journal.
-- **Outcome:** the quest lists the new adventure with the new construct, and the earlier adventures with their own constructs. Each earlier adventure still shows its original construct when opened. Asked what comes next, the new construct names the same milestone that the quest's Journal gives.
-- **Next:**
-  - `use_case_ask_blender_question`: hear the new construct explain something.
-  - `use_case_same_facts_any_construct`: check that the new voice teaches the same steps.
 
 ## use_case_construct_voice_consistent
 
@@ -313,15 +285,15 @@ The construct keeps its voice for the whole adventure, across visits.
   - Every reply comes from the same construct, in its own manner of speech, such as Vellum's calm talk of a quest as a map being drawn.
 - **Outcome:** the adventure's heading and every reply show the same construct's name, before and after she reopens it. Every reply speaks in that construct's manner, from the first to the last, and none speaks as another construct or in a plain assistant voice.
 - **Next:**
-  - `use_case_switch_construct`: try a different voice in a new adventure.
+  - `use_case_same_facts_any_construct`: hear another construct teach the same steps.
 
 ## use_case_same_facts_any_construct
 
 The user asks two constructs the same question and gets the same facts in different voices.
 
-- **Prerequisites:** `use_case_switch_construct`, so the quest has adventures with two different constructs.
+- **Prerequisites:** [`use_case_new_project_with_construct`](projects.md#use_case_new_project_with_construct), twice, so two quests have different constructs.
 - **Steps:**
-  - She asks the same Blender question in both adventures, such as how to bevel an edge.
+  - She asks the same Blender question in both quests, such as how to bevel an edge.
   - Each construct answers in its own voice.
 - **Outcome:** the two replies are worded differently, but they give the same steps, menu paths and keyboard shortcuts. The manual links under both replies lead to the same sections.
 - **Next:**
@@ -341,13 +313,13 @@ The user follows a link to a quest or adventure that does not exist.
 
 ## use_case_breadcrumbs_in_long_chat
 
-The user is deep in a long adventure and wants to go back to the quest, without scrolling up.
+The user is deep in a quest's long conversation and wants to go back to their quests, without scrolling up.
 
-- **Prerequisites:** `use_case_reopen_chat`, in an adventure longer than the screen.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation is longer than the screen.
 - **Steps:**
   - The user scrolls down to the newest message, on a laptop or a phone.
-  - The user follows the quest link in the shared site header.
-- **Outcome:** wherever the user has scrolled, the link back to the quest, the adventure's name and the box they write in stay on screen, and nothing covers them. On a phone, in every theme, the combined visible pinned headers are at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long quest, adventure and construct names fit at 320 CSS pixels without horizontal page overflow. The shared site header contains one accessible breadcrumb trail, including the current adventure and its quest parents. Standalone adventures keep the link back to Adventures. The trail stays on screen even when the pinned adventure controls extra is off. Client navigation and browser back/forward replace the trail with the destination’s trail. Jumping to a message shows it below both headers.
+  - The user follows the Quests link in the shared site header.
+- **Outcome:** wherever the user has scrolled, the link back to their quests, the conversation's pinned header with its construct, and the box they write in stay on screen, and nothing covers them. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The shared site header contains one accessible breadcrumb trail, ending in the quest. The trail stays on screen even when the pinned conversation header extra is off. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below both headers.
 - **Next:**
   - [`use_case_open_project`](projects.md#use_case_open_project): back on the quest.
 
@@ -355,7 +327,7 @@ The user is deep in a long adventure and wants to go back to the quest, without 
 
 The user follows the latest messages without repeatedly scrolling down.
 
-- **Prerequisites:** `use_case_reopen_chat` or `use_case_send_message`.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project) or `use_case_send_message`.
 - **Steps:**
   - The user opens an existing adventure. It opens at the latest message.
   - The user sends a message. The latest message comes into view.

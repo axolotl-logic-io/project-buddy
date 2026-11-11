@@ -5,9 +5,11 @@
 // @header/error.test.tsx for the empty header), and saves nothing. The
 // sign-in form's part is test/component-integration/app/login/storage-unavailable.server.test.ts's.
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
+import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
-import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
+import { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
+import { PREMADE_QUESTS } from "@/projects/premade-quests.ts";
+import { formOf } from "../../../test-database/chat-test-kit.ts";
 import { spyOnErrorLog } from "../../../errors/error-log-spy.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 import {
@@ -36,7 +38,7 @@ afterAll(() => {
 });
 
 describe("use_case_storage_unavailable", () => {
-  test("her projects and a chat fail with the storage case", async () => {
+  test("her quests and a quest fail with the storage case", async () => {
     await signIn(user);
 
     await Promise.all([
@@ -47,21 +49,32 @@ describe("use_case_storage_unavailable", () => {
         }),
       ).rejects.toMatchObject(UNREACHABLE),
       expect(
-        ChatPage({
-          params: Promise.resolve({ chatId: crypto.randomUUID() }),
+        ProjectPage({
+          params: Promise.resolve({ projectId: crypto.randomUUID() }),
           searchParams: Promise.resolve({}),
         }),
       ).rejects.toMatchObject(UNREACHABLE),
     ]);
   });
 
-  test("saving a project fails with the storage case", async () => {
+  test("starting a quest fails with the storage case", async () => {
     await signIn(user);
-    const form = new FormData();
-    form.set("name", `Unsaved project ${crypto.randomUUID()}`);
+    const [quest] = PREMADE_QUESTS;
+    if (quest === undefined) {
+      throw new Error("No starting points");
+    }
 
     await expect(
-      createProjectAction({ kind: "idle" }, form),
+      startQuestAction(
+        { kind: "idle" },
+        formOf({
+          premadeId: "make",
+          name: `Unsaved quest ${crypto.randomUUID()}`,
+          journal: quest.journal,
+          activityId: "find-something-to-make",
+          constructId: "vellum",
+        }),
+      ),
     ).rejects.toMatchObject(UNREACHABLE);
   });
 });
