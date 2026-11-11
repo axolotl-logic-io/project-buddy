@@ -1,5 +1,6 @@
-// Who wrote each user message of a chat: its author. Several people can
-// write in one chat, so the chat store reads every user message with its
+// Who wrote each user message of a chat: its author. Messages written while
+// quests could be shared may name someone other than the chat's owner, so
+// the chat store reads every user message with its
 // author in its metadata, and the chat screen and the construct's prompt name
 // the author from there. A construct's message has no author. The browser
 // imports this module, so it imports nothing server-only.
@@ -8,9 +9,7 @@ import type { UserId } from "@/ids.ts";
 
 // The user who wrote a message: their name, the one they asked the construct to
 // call them (src/accounts/user-name.ts), and, only when they have no name,
-// their email address. Everyone who shares the chat sees the author by name,
-// as the project's members see each other (docs/team-projects.md), so a
-// named author's address never leaves the server. The chat screen shows the
+// their email address. A named author's address never leaves the server. The chat screen shows the
 // name, or the address without one (authorDisplayName); the construct is never
 // sent the address (src/replies/author-names.ts).
 type MessageAuthor = { readonly id: UserId } & (

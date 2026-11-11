@@ -1,7 +1,9 @@
-// For the server tests of team projects: a project whose owner has saved one
-// of each kind of data reached through it, with a member added through the
-// members store, and two probes over the stores: everything a user can read
-// of the project, and every write a user can try on it.
+// For the server tests of use_case_private_data with a quest's former
+// member: a quest whose owner has saved one of each kind of data reached
+// through it, with the membership and accepted invitation another user kept
+// from when quests could be shared, and two probes over the stores:
+// everything a user can read of the quest, and every write a user can try
+// on it.
 
 import type { User } from "@/accounts/users-store.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
@@ -37,32 +39,24 @@ import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { NOTE_DAY } from "@/notes/note.ts";
-import {
-  deleteNote,
-  type NoteDeleteResult,
-  readRecentNotes,
-  saveNote,
-} from "@/notes/note-store.ts";
-import {
-  addProjectMember,
-  listProjectMembers,
-} from "@/projects/members-store.ts";
 import { getProject, listProjects, type Project } from "@/projects/store.ts";
 import { readHomeSummary } from "@/today/today-store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
-const NOTE = { day: NOTE_DAY.parse("2026-11-02"), text: "Bevel the shell" };
 const MEMORY = "Goal: a sea turtle model.";
+// The Journal's second version, which holds a Quick Note as such a version
+// once did.
+const MEMORY_WITH_NOTE = `${MEMORY}\n\n## Notes\n\n- 2026-11-02: Bevel the shell`;
 const MILESTONE = "Modelled the shell";
 const PNG = pngBytes();
 
-// A team project, its owner and a member, with one of each kind of data the
+// A quest, its owner and a former member, with one of each kind of data the
 // owner saved in it.
-interface TeamProject {
+interface FormerMemberQuest {
   readonly owner: User;
   readonly member: User;
   readonly project: Project;
@@ -107,10 +101,10 @@ async function generatedImage(
   return claim.id;
 }
 
-// A new project of a new owner's, with a chat holding a message and an
-// image, an interview activity session, a memory with a note, a milestone
-// and a generated image; and a new user added as its member.
-async function teamProject(): Promise<TeamProject> {
+// A new quest of a new owner's, with a chat holding a message and an image,
+// an interview activity session, a memory of two versions, a milestone and a
+// generated image; and a new user with a saved membership of it.
+async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const data = testData(owner);
   const project = await data.project();
@@ -128,7 +122,12 @@ async function teamProject(): Promise<TeamProject> {
     basedOn: MEMORY_VERSION_NUMBER.parse(0),
     author: "user",
   });
-  await saveNote(owner.id, { projectId: project.id, note: NOTE });
+  await saveMemory(owner.id, {
+    projectId: project.id,
+    text: MEMORY_WITH_NOTE,
+    basedOn: MEMORY_VERSION_NUMBER.parse(1),
+    author: "user",
+  });
   const milestone = await recordMilestone(
     owner.id,
     { projectId: project.id, chatId: chat.id },
@@ -138,9 +137,7 @@ async function teamProject(): Promise<TeamProject> {
     throw new Error("The milestone was not recorded");
   }
   const generationId = await generatedImage(owner, chat);
-  if (!(await addProjectMember(member.id, project.id))) {
-    throw new Error("The member was not added");
-  }
+  await formerMembership(owner, member, project.id);
   return {
     owner,
     member,
@@ -152,13 +149,13 @@ async function teamProject(): Promise<TeamProject> {
   };
 }
 
-// Everything user can read of the team project, through each store that
+// Everything user can read of the quest, through each store that
 // reads project data.
 async function seenBy(
   user: User,
-  team: TeamProject,
+  quest: FormerMemberQuest,
 ): Promise<Record<string, unknown>> {
-  const { project, chat } = team;
+  const { project, chat } = quest;
   const [
     found,
     listed,
@@ -171,9 +168,7 @@ async function seenBy(
     activity,
     memory,
     history,
-    notes,
     milestones,
-    members,
   ] = await Promise.all([
     getProject(user.id, project.id),
     listProjects(user.id),
@@ -181,14 +176,12 @@ async function seenBy(
     getChat(user.id, chat.id),
     readHomeSummary(user.id),
     listMessages(user.id, chat.id),
-    getImage(user.id, team.imageId),
-    getGeneratedImage(user.id, team.generationId),
+    getImage(user.id, quest.imageId),
+    getGeneratedImage(user.id, quest.generationId),
     currentActivity(user.id, chat),
     readMemory(user.id, project.id),
     readMemoryHistory(user.id, project.id),
-    readRecentNotes(user.id, project.id),
     listMilestones(user.id, project.id),
-    listProjectMembers(user.id, project.id),
   ]);
   return {
     project: found?.name,
@@ -202,14 +195,12 @@ async function seenBy(
     activity: activity.id,
     memory: memory.text,
     history: history.length,
-    notes: notes.map(({ text }) => text),
     milestones: milestones.map(({ text }) => text),
-    members: members.map(({ id }) => id),
   };
 }
 
-// What someone who isn't in the project reads of it: nothing, exactly as
-// of a project that doesn't exist.
+// What someone other than the owner reads of the quest: nothing, exactly
+// as of a quest that doesn't exist.
 const NOTHING: Record<string, unknown> = {
   project: undefined,
   listed: false,
@@ -222,19 +213,17 @@ const NOTHING: Record<string, unknown> = {
   activity: DEFAULT_ACTIVITY_ID,
   memory: EMPTY_MEMORY.text,
   history: 0,
-  notes: [],
   milestones: [],
-  members: [],
 };
 
-// Tries every write a member may make in the team project, as user, and
-// says what each answered: whether it took effect.
+// Tries every write the owner may make in the quest, as user, and says what
+// each answered: whether it took effect.
 async function writesBy(
   user: User,
-  team: TeamProject,
+  quest: FormerMemberQuest,
 ): Promise<Record<string, unknown>> {
-  const { project, chat } = team;
-  const memory = await readMemory(team.owner.id, project.id);
+  const { project, chat } = quest;
+  const memory = await readMemory(quest.owner.id, project.id);
   const message = await saveMessage(user.id, chat.id, {
     ...question("Mine"),
     id: newMessageId(),
@@ -252,16 +241,12 @@ async function writesBy(
     basedOn: memory.version,
     author: "user",
   });
-  const note = await saveNote(user.id, {
-    projectId: project.id,
-    note: { ...NOTE, text: "Paint the flippers" },
-  });
   const milestone = await recordMilestone(
     user.id,
     { projectId: project.id, chatId: chat.id },
     "Rigged the flippers",
   );
-  const edited = await editMilestone(user.id, team.milestoneId, "Edited");
+  const edited = await editMilestone(user.id, quest.milestoneId, "Edited");
   const started = await startQuestConversation(user.id, project.id);
   const conversation =
     started.kind === "started" && started.conversation.id === chat.id;
@@ -276,7 +261,6 @@ async function writesBy(
     image: image !== undefined,
     activity,
     memory: memorySave.kind,
-    note,
     milestone: milestone !== undefined,
     edited,
     conversation,
@@ -284,54 +268,43 @@ async function writesBy(
   };
 }
 
-// What every write answers for someone who isn't in the project: nothing
+// What every write answers for someone other than the owner: nothing
 // taken.
 const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
   image: false,
   activity: false,
   memory: "outdated",
-  note: false,
   milestone: false,
   edited: false,
   conversation: false,
   generation: "failed",
 };
 
-// What every write answers for someone in the project: each one taken.
+// What every write answers for the owner: each one taken.
 const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
   image: true,
   activity: true,
   memory: "saved",
-  note: true,
   milestone: true,
   edited: true,
   conversation: true,
   generation: "claimed",
 };
 
-// Deletes the note and the milestone as user, the two deletes a member may
-// make, which answer nothing of their own.
-async function deletesBy(
-  user: User,
-  team: TeamProject,
-): Promise<NoteDeleteResult> {
-  const note = await deleteNote(user.id, {
-    projectId: team.project.id,
-    note: NOTE,
-  });
-  await deleteMilestone(user.id, team.milestoneId);
-  return note;
+// Deletes the milestone as user, which answers nothing of its own.
+async function deletesBy(user: User, quest: FormerMemberQuest): Promise<void> {
+  await deleteMilestone(user.id, quest.milestoneId);
 }
 
-export type { TeamProject };
+export type { FormerMemberQuest };
 export {
   ALL_TAKEN,
   deletesBy,
+  formerMemberQuest,
   NONE_TAKEN,
   NOTHING,
   seenBy,
-  teamProject,
   writesBy,
 };

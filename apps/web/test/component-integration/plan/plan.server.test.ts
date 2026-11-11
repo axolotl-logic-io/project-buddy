@@ -18,7 +18,6 @@ import {
 } from "@/plan/plan-actions.ts";
 import { isPlanMessage } from "@/plan/plan-message.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { PLAN_NOTE_MARK } from "@/replies/plan-message-prompt.ts";
 import {
   CHANGE_PLAN_OUTPUT,
@@ -26,6 +25,7 @@ import {
 } from "@/replies/tools/change-plan-contract.ts";
 import { readHomeSummary } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
@@ -269,31 +269,36 @@ describe("a quest's plan, changed without the construct", () => {
     expect(messageText(reply)).toContain("Beveling an edge");
   });
 
-  test("everyone in a team quest can change its plan; no one else can", async () => {
-    const owner = await testUser();
-    const member = await testUser();
-    const stranger = await testUser();
-    const project = await testData(owner).project();
-    await addProjectMember(member.id, project.id);
-    const memberChat = await testData(member).chat(project);
+  test("only the quest's owner can change its plan, whatever membership another user kept", async () => {
+    const [owner, member, stranger] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const data = testData(owner);
+    const project = await data.project();
+    const chat = await data.chat(project);
+    await formerMembership(owner, member, project.id);
 
-    await signIn(member);
+    await signIn(owner);
     await laidOut(project.id);
-    expect(await command(memberChat.id, "/done")).toMatchObject({
+    expect(await command(chat.id, "/done")).toMatchObject({
       kind: "changed",
     });
     expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
 
-    await signIn(stranger);
+    await signIn(member);
     expect(
       await changePlanAction({
         projectId: project.id,
         operations: [{ op: "remove", step: 2 }],
       }),
     ).toEqual({ kind: "not-found" });
-    expect(await command(memberChat.id, "/done")).toEqual({
-      kind: "not-found",
-    });
+    expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
+    expect(await readPlanState(member.id, project.id)).toBeUndefined();
+
+    await signIn(stranger);
+    expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
     expect(await readPlanState(stranger.id, project.id)).toBeUndefined();
     expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
   });
