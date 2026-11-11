@@ -27,7 +27,7 @@ import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectMembers } from "./project-members.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
-import { QuestConversation } from "./quest-conversation.tsx";
+import { questConversation } from "./quest-conversation.tsx";
 import { QuestPlan } from "./quest-plan.tsx";
 
 // The project's check-in frequency for its setting, off when unsaved, or
@@ -82,7 +82,7 @@ export default async function ProjectPage({
       <QuestWorkspace
         project={project}
         current={current}
-        conversation={<QuestConversation project={project} viewer={user.id} />}
+        conversation={await questConversation(project, user.id)}
       >
         {project.status !== "active" && (
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
