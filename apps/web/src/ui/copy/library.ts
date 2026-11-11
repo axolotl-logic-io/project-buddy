@@ -94,8 +94,8 @@ const LIBRARY_COPY: {
         },
       ],
       action: {
-        href: "/chat",
-        label: "Open Chat",
+        href: "/projects",
+        label: "Start a quest",
       },
     },
     {
