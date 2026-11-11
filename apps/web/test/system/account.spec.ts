@@ -154,47 +154,51 @@ test("use_case_sign_out_everywhere", async ({
   });
 });
 
-test("sign out submits without JavaScript", async ({ account, browser }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  try {
-    const page = await context.newPage();
-    await logIn(page, account);
-    await page.goto("/settings");
-    await page
-      .getByRole("button", { name: ACCOUNT_COPY.signOut, exact: true })
-      .click();
-    await expect(page).toHaveURL("/login");
-    await page.goto("/settings");
-    await expect(page).toHaveURL("/login");
-  } finally {
-    await context.close();
-  }
+test.describe("use_case_sign_out", () => {
+  test("sign out submits without JavaScript", async ({ account, browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const page = await context.newPage();
+      await logIn(page, account);
+      await page.goto("/settings");
+      await page
+        .getByRole("button", { name: ACCOUNT_COPY.signOut, exact: true })
+        .click();
+      await expect(page).toHaveURL("/login");
+      await page.goto("/settings");
+      await expect(page).toHaveURL("/login");
+    } finally {
+      await context.close();
+    }
+  });
 });
 
-test("sign out everywhere submits without JavaScript and ends other sessions", async ({
-  account,
-  browser,
-}) => {
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  const otherContext = await browser.newContext();
-  try {
-    const page = await context.newPage();
-    const other = await otherContext.newPage();
-    await logIn(page, account);
-    await logIn(other, account);
-    await page.goto("/settings");
-    await page
-      .locator("noscript")
-      .getByRole("button", {
-        name: ACCOUNT_COPY.signOutEverywhere,
-        exact: true,
-      })
-      .click();
-    await expect(page).toHaveURL("/login");
-    await other.goto("/settings");
-    await expect(other).toHaveURL("/login");
-  } finally {
-    await context.close();
-    await otherContext.close();
-  }
+test.describe("use_case_sign_out_everywhere", () => {
+  test("sign out everywhere submits without JavaScript and ends other sessions", async ({
+    account,
+    browser,
+  }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const otherContext = await browser.newContext();
+    try {
+      const page = await context.newPage();
+      const other = await otherContext.newPage();
+      await logIn(page, account);
+      await logIn(other, account);
+      await page.goto("/settings");
+      await page
+        .locator("noscript")
+        .getByRole("button", {
+          name: ACCOUNT_COPY.signOutEverywhere,
+          exact: true,
+        })
+        .click();
+      await expect(page).toHaveURL("/login");
+      await other.goto("/settings");
+      await expect(other).toHaveURL("/login");
+    } finally {
+      await context.close();
+      await otherContext.close();
+    }
+  });
 });

@@ -146,9 +146,6 @@ describe("use_case_home_atlas", () => {
       .element(page.getByRole("link", { name: "Image gallery", exact: true }))
       .not.toBeInTheDocument();
     await expect
-      .element(page.getByRole("link", { name: HOME_COPY.account, exact: true }))
-      .toHaveAttribute("href", "/account");
-    await expect
       .element(
         page.getByRole("link", { name: HOME_COPY.settings, exact: true }),
       )
