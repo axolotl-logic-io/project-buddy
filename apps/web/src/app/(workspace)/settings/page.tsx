@@ -46,23 +46,46 @@ export default async function SettingsPage({
           </Button>
         )}
       </div>
-      <section id="appearance" aria-labelledby="appearance-heading" className="panel">
+      <section
+        id="appearance"
+        aria-labelledby="appearance-heading"
+        className="panel"
+      >
         <h2 id="appearance-heading" className="section-heading">
           {WORKSPACES_COPY.appearance}
         </h2>
         <AppearanceChoices settings={true} />
       </section>
       <div id="general">
-        <InterviewConstructForm constructId={chosen.id} userConstructs={constructs} />
+        <InterviewConstructForm
+          constructId={chosen.id}
+          userConstructs={constructs}
+        />
       </div>
-      <section id="batteries" aria-label={ACCOUNT_COPY.goldHeading} className="flex flex-col gap-3">
+      <section
+        id="batteries"
+        aria-label={ACCOUNT_COPY.goldHeading}
+        className="flex flex-col gap-3"
+      >
         <GoldBalance microUsd={gold} />
-        {(catalog.length > 0 || purchases.length > 0 || battery !== undefined) && (
-          <BatteryPurchases result={battery} catalog={catalog} purchases={purchases} />
+        {(catalog.length > 0 ||
+          purchases.length > 0 ||
+          battery !== undefined) && (
+          <BatteryPurchases
+            result={battery}
+            catalog={catalog}
+            purchases={purchases}
+          />
         )}
       </section>
-      <section id="security" aria-labelledby="security-heading" className="panel flex flex-col gap-4">
-        <h2 id="security-heading" className="section-heading">{WORKSPACES_COPY.security}</h2>
+      <section
+        id="security"
+        aria-labelledby="security-heading"
+        className="panel flex flex-col gap-4"
+      >
+        <h2 id="security-heading" className="section-heading">
+          {WORKSPACES_COPY.security}
+        </h2>
         <SignOutButtons />
       </section>
     </div>
