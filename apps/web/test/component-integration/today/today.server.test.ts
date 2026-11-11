@@ -4,7 +4,7 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
@@ -139,10 +139,10 @@ describe("use_case_today_on_landing", () => {
     const [user, other] = await Promise.all([testUser(), testUser()]);
     const standalone = await Promise.all(
       STARTED_AT.slice(0, MORE_THAN_TODAY_LISTS).map(() =>
-        createStandaloneChat(user.id),
+        privateChat(user.id),
       ),
     );
-    await createStandaloneChat(other.id);
+    await privateChat(other.id);
     await Promise.all(
       standalone.map((chat, index) =>
         setStartedAt(user.id, chat.id, STARTED_AT[index] ?? STARTED_AT[0]),

@@ -14,7 +14,7 @@ import {
   retireSpellAction,
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
@@ -284,7 +284,7 @@ describe("use_case_new_spell", () => {
       `/spellbook/${spell.id}?saved=1`,
     );
 
-    const chat = await createStandaloneChat(user.id);
+    const chat = await privateChat(user.id);
     expect(await constructPrompt(chat.id)).toContain(
       `\`${spell.id}\`: Picnic plan. ${parts.whenToUse}`,
     );

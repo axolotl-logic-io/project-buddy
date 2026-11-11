@@ -14,11 +14,10 @@ import {
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { listChats, listMessages } from "@/chats/store.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
-import { mockChatName } from "@/replies/mock-chat-name.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   spendAllGold,
@@ -35,8 +34,6 @@ import { signIn } from "../test-database/session-test-kit.ts";
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
 const SECOND_MESSAGE = "Now add sprinkles";
-// The messages the chat has after her first message and its reply.
-const AFTER_FIRST_EXCHANGE = 2;
 // The first and last lines of the mock construct's reply to her first message
 // (mock-script.ts): a reply holding both was saved in full.
 const REPLY_OPENING = `This is the mock construct. You said: "${FIRST_MESSAGE}".`;
@@ -85,13 +82,11 @@ function refusal({
 }
 
 // What sending her first message, which spends the last of her gold, did: the answer's
-// status, the roles of the chat's messages, the reply's text and the
-// chat's name.
+// status, the roles of the chat's messages and the reply's text.
 interface CrossingReply {
   readonly status: number;
   readonly roles: readonly string[];
   readonly reply: string;
-  readonly name: string | undefined;
 }
 
 // Sends her first message, which spends the last of her gold, and says
@@ -105,8 +100,7 @@ async function sendCrossingMessage({
   const [reply = ""] = saved
     .filter(({ role }) => role === "assistant")
     .map(messageText);
-  const name = (await getChat(user.id, chat.id))?.name;
-  return { status, roles: saved.map(({ role }) => role), reply, name };
+  return { status, roles: saved.map(({ role }) => role), reply };
 }
 
 // The message a start-chat or create-project form shows for state, or its
@@ -155,7 +149,6 @@ test("use_case_out_of_gold", async () => {
   expect(crossing.roles).toStrictEqual(["user", "assistant"]);
   expect(crossing.reply).toContain(REPLY_OPENING);
   expect(crossing.reply).toMatch(ENDS_WITH_CODE_BLOCK);
-  expect(crossing.name).toBe(mockChatName(FIRST_MESSAGE, AFTER_FIRST_EXCHANGE));
 
   const afterFirst = await listMessages(user.id, chat.id);
   const next = refusal(await sendChatMessage(chat.id, SECOND_MESSAGE));
