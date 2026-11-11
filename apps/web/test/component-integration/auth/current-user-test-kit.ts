@@ -15,7 +15,6 @@ const SIGNED_IN_USER: User = {
   email: "fox@example.com",
   role: "user",
   sessionEpoch: 0,
-  hiddenExtras: [],
   name: undefined,
 };
 
