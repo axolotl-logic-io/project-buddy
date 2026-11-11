@@ -70,7 +70,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 ## use_case_open_project
 
-The user opens one of their quests, from Quests, Home or a notification.
+The user opens one of their quests, from Quests or Home.
 
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**

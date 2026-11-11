@@ -28,7 +28,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Marketplace](marketplace.md): listing, updating and unlisting own constructs, activities and spells, what other users see, buying listings, and bought copies.
 
 - [Images](images.md): image generation, gallery, battery accounting and deletion.
-- [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
+- [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
 
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 
