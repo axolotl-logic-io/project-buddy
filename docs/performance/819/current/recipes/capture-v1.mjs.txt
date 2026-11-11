@@ -1,0 +1,61 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {setTimeout as delay} from 'node:timers/promises';
+import {loadavg} from 'node:os';
+import {execFileSync} from 'node:child_process';
+const require=createRequire(process.cwd()+'/package.json'); const puppeteer=require('puppeteer-core');
+const f=JSON.parse(await readFile('/tmp/pb-current-diag/private.json','utf8'));
+const browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const output={source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),build:(await readFile('.next/BUILD_ID','utf8')).trim(),browser:await browser.version(),protocol:'current-screen-v1',rows:[]};
+const base='http://localhost:'+process.env.E2E_PORT;
+async function measure(route,profile,intervention,mode,context,page){
+ const cdp=await page.createCDPSession(); await cdp.send('Network.enable');
+ let requests=[];const pending=new Map();
+ cdp.on('Network.requestWillBeSent',e=>{const u=new URL(e.request.url);if(u.origin!==base)return;const h=e.request.headers;pending.set(e.requestId,{route:u.pathname==='/workshop'?'workshop':u.pathname.startsWith('/projects/')?'quest':u.pathname.startsWith('/_next/')?'static':'other',start:e.timestamp*1000,prefetch:Object.entries(h).some(([k,v])=>/prefetch/i.test(k+' '+v)),initiator:e.initiator.type});});
+ cdp.on('Network.loadingFinished',e=>{const r=pending.get(e.requestId);if(r)requests.push({...r,bytes:e.encodedDataLength,end:e.timestamp*1000});});
+ const source=mode==='transition'?(route.name==='editor'?'/workshop':'/projects'):route.path;
+ let origin=0;let originalTimeOrigin;
+ await page.goto(base+source,{waitUntil:'domcontentloaded'});
+ if(mode==='transition'){
+ await page.waitForSelector(`a[href="${route.path}"]`,{timeout:15000});
+ originalTimeOrigin=await page.evaluate(()=>performance.timeOrigin);origin=await page.evaluate(()=>performance.now()); await page.evaluate(()=>performance.clearResourceTimings()); requests=[];
+ await page.evaluate(path=>document.querySelector(`a[href="${path}"]`).click(),route.path);
+ }
+ const selector=route.name==='workshop'?'main a[href^="/constructs/"]':route.name==='editor'?'textarea[name="prompt"]':'textarea[aria-label="Message"]';
+ await page.waitForSelector(selector,{timeout:20000});
+ const present=await page.evaluate(()=>performance.now());
+ if(mode==='transition'&&await page.evaluate(()=>performance.timeOrigin)!==originalTimeOrigin)throw Error('Full navigation');
+ await page.evaluate(()=>{window.diag={tasks:[],keys:[]};new PerformanceObserver(l=>window.diag.tasks.push(...l.getEntries().map(e=>({start:e.startTime,duration:e.duration})))).observe({type:'longtask',buffered:true});new PerformanceObserver(l=>window.diag.keys.push(...l.getEntries().filter(e=>e.name==='keydown').map(e=>e.duration))).observe({type:'event',durationThreshold:16,buffered:true});});
+ let control=null,closed=null;
+ if(route.name==='workshop'){
+ if(intervention!=='none'){
+ if(intervention==='pointer')await page.click('header button[aria-haspopup="dialog"]');
+ else {await page.focus('header button[aria-haspopup="dialog"]');await page.keyboard.press('Enter');}
+ await page.waitForSelector('dialog[open]'); await page.keyboard.press('Escape'); closed=await page.evaluate(()=>performance.now());
+ }
+ } else {
+ const start=Date.now();let attempts=0;
+ do {attempts++;const input=await page.$(selector);await input.focus();await page.keyboard.down('Control');await page.keyboard.press('KeyA');await page.keyboard.up('Control');await page.keyboard.type('audit-123456789012345678901234567890123456');await delay(100);
+ const ready=await page.evaluate(name=>name==='editor'?Object.values(localStorage).some(v=>v.includes('audit-123456789012345678901234567890123456')):Array.from(document.querySelectorAll('button')).some(b=>b.textContent.trim()==='Send'&&!b.disabled),route.name);
+ if(ready){control={at:await page.evaluate(()=>performance.now()),attempts};break;}
+ }while(Date.now()-start<20000);
+ if(!control)throw Error('Control unconfirmed');
+ }
+ await delay(5000);
+ const metrics=await page.evaluate(()=>({end:performance.now(),...window.diag,resources:performance.getEntriesByType('resource').map(e=>({type:e.initiatorType,start:e.startTime,end:e.responseEnd,bytes:e.transferSize})),count:document.querySelector('ol[aria-label="Conversation"]')?.children.length??null}));
+ if(route.name.startsWith('quest-')&&metrics.count!==route.count)throw Error('Message count mismatch');
+ output.rows.push({origin,name:route.name,profile,intervention,mode,present,control,closed,load:loadavg(),...metrics,network:requests});
+ await writeFile('/tmp/pb-current-diag/results.json',JSON.stringify(output));await cdp.detach();
+}
+try{
+for(let i=0;i<3;i++)for(const profile of ['desktop','phone'])for(const intervention of ['none','keyboard','pointer']){
+ const context=await browser.createBrowserContext();await context.setCookie({name:'session',value:f.session,url:base});const page=await context.newPage();await page.setViewport({width:1440,height:900});
+ if(profile==='phone')await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+ await measure({name:'workshop',path:'/workshop'},profile,intervention,'direct',context,page);await context.close();
+}
+for(let i=0;i<3;i++)for(const route of f.routes)for(const mode of ['direct','transition']){
+ const context=await browser.createBrowserContext();await context.setCookie({name:'session',value:f.session,url:base});const page=await context.newPage();await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});const cdp=await page.createCDPSession();await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});await cdp.send('Network.enable');await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750});
+ await measure(route,'phone-4x','input',mode,context,page);await context.close();
+}
+
+}finally{await browser.close();}

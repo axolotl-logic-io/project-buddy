@@ -1,0 +1,13 @@
+import {readFile,writeFile} from 'node:fs/promises';import {createRequire} from 'node:module';import {setTimeout as delay} from 'node:timers/promises';import {loadavg} from 'node:os';
+const require=createRequire(process.cwd()+'/package.json');const puppeteer=require('puppeteer-core');const f=JSON.parse(await readFile('/tmp/pb-current-diag/private.json','utf8'));const base='http://localhost:'+process.env.E2E_PORT;
+const browser=await puppeteer.launch({executablePath:'/home/bestieboots/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});const rows=[];
+try{for(let i=0;i<3;i++)for(const target of (i%2?['all-workshop','active-tab','none']:['none','active-tab','all-workshop'])){
+const context=await browser.createBrowserContext();await context.setCookie({name:'session',value:f.session,url:base});const page=await context.newPage();await page.setViewport({width:1440,height:900});const cdp=await page.createCDPSession();await cdp.send('Network.enable');const requests=[];
+cdp.on('Network.requestWillBeSent',e=>{const u=new URL(e.request.url);if(u.origin!==base||u.pathname!=='/workshop')return;requests.push({at:e.timestamp*1000,kind:u.searchParams.get('kind')??'construct',prefetch:Object.entries(e.request.headers).some(([k,v])=>/prefetch/i.test(k+' '+v))});});
+await page.goto(base+'/workshop',{waitUntil:'domcontentloaded'});await page.waitForSelector('a[aria-current="page"]');
+// Establish hydration before the ablation. Lab waits below define capture windows.
+await page.focus('header button[aria-haspopup="dialog"]');await page.keyboard.press('Enter');await page.waitForSelector('dialog[open]');await page.keyboard.press('Escape');
+const before=requests.length;await delay(2000);const prior=requests.slice(before);let removed=0;
+if(target!=='none')removed=await page.evaluate(target=>{const links=Array.from(document.querySelectorAll('a[href]')).filter(a=>target==='active-tab'?a.matches('main a[aria-current="page"]'):new URL(a.href).pathname==='/workshop');for(const a of links)a.remove();return links.length;},target);
+const split=requests.length;await delay(2000);rows.push({sample:i+1,target,removed,load:loadavg(),prior,after:requests.slice(split)});await writeFile('/tmp/pb-current-diag/ablation.json',JSON.stringify({build:(await readFile('.next/BUILD_ID','utf8')).trim(),rows}));await context.close();
+}}finally{await browser.close();}
