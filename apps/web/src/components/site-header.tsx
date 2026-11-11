@@ -9,13 +9,11 @@ import { wholeGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -104,9 +102,6 @@ function AccountLinks(): JSX.Element {
           <MenuLink href="/constructs">{CONSTRUCTS_COPY.headerLink}</MenuLink>
         </li>
         <li>
-          <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
           <MenuLink href="/spellbook">{SPELLBOOK_COPY.headerLink}</MenuLink>
         </li>
         <li>
@@ -120,9 +115,6 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <MenuLink href="/gallery">{GENERATION_COPY.heading}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/marketplace">{MARKETPLACE_COPY.headerLink}</MenuLink>
         </li>
       </ul>
       <hr className="menu-rule" />

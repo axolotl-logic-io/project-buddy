@@ -54,9 +54,6 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/projects/quest-creation-choices.ts", () => ({
   questCreationChoices: vi.fn<typeof questCreationChoices>(),
 }));
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-}));
 // The page offers these actions; their own pages' tests submit them.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
@@ -91,7 +88,6 @@ beforeEach(() => {
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   vi.mocked(listProjects).mockResolvedValue([]);
   vi.mocked(questCreationChoices).mockResolvedValue({
-    activities: [],
     userConstructs: [],
     preferredConstructId: "vellum",
   });
@@ -141,12 +137,9 @@ describe("use_case_workshop_page", () => {
       [...listBuiltInConstructs(), VELLUM_CLONE].map(async (construct) => {
         await expect
           .element(
-            page.getByRole("button", {
-              name: CONSTRUCTS_COPY.startLabel(construct.name),
-              exact: true,
-            }),
+            page.getByRole("link", { name: construct.name, exact: true }),
           )
-          .toHaveTextContent(CONSTRUCTS_COPY.startLabel(construct.name));
+          .toHaveAttribute("href", `/constructs/${construct.id}`);
       }),
     );
     await expect

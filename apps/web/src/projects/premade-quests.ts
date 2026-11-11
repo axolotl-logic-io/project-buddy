@@ -17,12 +17,11 @@ interface PremadeQuest {
 }
 
 // What a start point fills in for the user, overriding the premade quest's
-// own suggestions, such as an activity chosen on its page or a summary of
-// a Chat.
+// own suggestions, such as a construct chosen on its page or a summary of
+// a Chat. The activity is always the premade quest's.
 interface QuestStartPreset {
   readonly name?: string | undefined;
   readonly journal?: string | undefined;
-  readonly activityId?: string | undefined;
   readonly constructId?: string | undefined;
 }
 

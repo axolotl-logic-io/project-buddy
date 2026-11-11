@@ -18,7 +18,6 @@ import {
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
-import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
@@ -29,9 +28,6 @@ import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
-import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
-import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
-import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
@@ -61,12 +57,6 @@ import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
-import {
-  getListing,
-  listListings,
-  listOwnListings,
-  readSaleState,
-} from "@/marketplace/listing-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { NOTE_DAY } from "@/notes/note.ts";
@@ -86,7 +76,6 @@ import {
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import {
   PROJECT_COPY,
@@ -94,19 +83,12 @@ import {
   QUEST_START_COPY,
 } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { QUEST_FROM_CHAT_COPY, START_WORK_COPY } from "@/ui/copy/start-work.ts";
+import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "../auth/current-user-test-kit.ts";
-import {
-  CONSTRUCT_LISTING,
-  CONSTRUCT_LISTING_AS_SELLER,
-  CONSTRUCT_LISTING_TO_BUY,
-  OWN_LISTINGS,
-  SPELL_LISTING,
-} from "../marketplace/marketplace-fixtures.ts";
 import {
   LONG_NAME_INVITATION,
   SENT_INVITATION,
@@ -163,8 +145,6 @@ const LONG_PROJECT_NAME_REPEATS = 40;
 const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
-// The gold a refused buyer has, short of the listing's price.
-const SHORT_GOLD = 12;
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
 // A page signed out, as a visitor sees it.
@@ -239,27 +219,6 @@ function spellPage(spellId: string): Promise<JSX.Element> {
     params: Promise.resolve({ spellId }),
     searchParams: NO_PARAMS,
   });
-}
-
-// A listing's page, as the store gives it.
-function listingPage(
-  listing: Awaited<ReturnType<typeof getListing>>,
-): () => Promise<JSX.Element> {
-  return workspacePage(
-    () => {
-      vi.mocked(getListing).mockResolvedValue(listing);
-    },
-    () =>
-      ListingPage({
-        params: Promise.resolve({ listingId: CONSTRUCT_LISTING.id }),
-        searchParams: NO_PARAMS,
-      }),
-  );
-}
-
-// Her own prompts' pages offer to sell them, the section at its widest.
-function sellable(): void {
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
 }
 
 // Chat, her private conversation.
@@ -370,19 +329,6 @@ function memoryPageFor(section = "journal"): () => Promise<JSX.Element> {
 
 const memoryPage = memoryPageFor();
 
-const activitiesPage = workspacePage(
-  () => {
-    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-  },
-  () =>
-    ActivitiesPage({
-      params: Promise.resolve({}),
-      searchParams: Promise.resolve({}),
-    }),
-);
-
 // The Workshop's page on the kind's tab, with one of her own of each kind.
 function workshopPage(
   kind: "construct" | "activity" | "spell",
@@ -418,23 +364,6 @@ function tabVariants(subject: string, labels: readonly string[]): PhonePage[] {
       await page.getByRole("tab", { name: label, exact: true }).click();
     },
   }));
-}
-
-function marketplacePageFor(view?: string): () => Promise<JSX.Element> {
-  const query: { view?: string } = {};
-  if (view !== undefined) {
-    query.view = view;
-  }
-  return workspacePage(
-    () => {
-      vi.mocked(listListings).mockResolvedValue([
-        CONSTRUCT_LISTING,
-        SPELL_LISTING,
-      ]);
-      vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
-    },
-    () => MarketplacePage({ searchParams: Promise.resolve(query) }),
-  );
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
@@ -677,33 +606,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnConstruct).mockResolvedValue(VELLUM_CLONE);
-        sellable();
       },
       () => constructPage(VELLUM_CLONE.id),
     ),
-  },
-  {
-    name: "the activities page",
-    render: activitiesPage,
-  },
-  {
-    name: "the activities page's start dialog",
-    render: activitiesPage,
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("button", {
-          name: "Brainstorm",
-          exact: true,
-        })
-        .click();
-      await vi.waitFor(() =>
-        page
-          .getByRole("dialog", {
-            name: START_WORK_COPY.activityDialogHeading("Brainstorm"),
-          })
-          .element(),
-      );
-    },
   },
   {
     name: "the discovery activity's page",
@@ -718,7 +623,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
-        sellable();
       },
       () => activityPage(BRAINSTORMING_CLONE.id),
     ),
@@ -748,56 +652,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
-        sellable();
       },
       () => spellPage(ASK_ONE_QUESTION_CLONE.id),
     ),
-  },
-  {
-    name: "the Marketplace",
-    render: marketplacePageFor(),
-  },
-  { name: "a listing's page", render: listingPage(CONSTRUCT_LISTING_TO_BUY) },
-  {
-    name: "a listing's page, as its seller",
-    render: listingPage(CONSTRUCT_LISTING_AS_SELLER),
-  },
-  {
-    name: "a listing's page, as its unlisted seller",
-    render: listingPage({ ...CONSTRUCT_LISTING_AS_SELLER, listed: false }),
-  },
-  {
-    name: "a listing's page, for a buyer who has a copy",
-    render: listingPage({
-      ...CONSTRUCT_LISTING_TO_BUY,
-      copy: CONSTRUCT_LISTING_AS_SELLER.source,
-    }),
-  },
-  {
-    name: "a listing's page, refused for too few orbs",
-    render: listingPage(CONSTRUCT_LISTING_TO_BUY),
-    open: async (): Promise<void> => {
-      vi.mocked(buyListingAction).mockResolvedValue({
-        kind: "refused",
-        message: LISTING_COPY.tooLittleGold(
-          CONSTRUCT_LISTING.price,
-          SHORT_GOLD,
-        ),
-        earnGold: false,
-      });
-      await page
-        .getByRole("button", {
-          name: LISTING_COPY.buy(CONSTRUCT_LISTING.price),
-        })
-        .click();
-      await vi.waitFor(() =>
-        page
-          .getByText(
-            LISTING_COPY.tooLittleGold(CONSTRUCT_LISTING.price, SHORT_GOLD),
-          )
-          .element(),
-      );
-    },
   },
   {
     name: "the account page",
@@ -825,7 +682,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     }, chatPage),
   },
   {
-    name: "Chat's Start a quest from this",
+    name: "Chat's Turn Chat into a quest",
     render: workspacePage(() => {
       vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
@@ -843,7 +700,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   ...tabVariants("the Settings page", ["Appearance"]),
   ...tabVariants("the constructs page", ["Yours", "Retired"]),
-  ...tabVariants("the activities page", ["Yours", "Retired"]),
   ...tabVariants("the Spellbook", ["Yours", "Retired"]),
   ...tabVariants("the account page", ["Batteries", "Security"]),
   ...tabVariants("quick capture", ["Preview"]),
@@ -855,16 +711,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: projectPageFor("members"),
   },
   { name: "a quest's Journal versions", render: memoryPageFor("versions") },
-  { name: "your Marketplace listings", render: marketplacePageFor("yours") },
 ];
-
-const PHONE_ORB_BALANCE = 100;
-vi.mock("@/orbs/orb-store.ts", () => ({
-  readOrbsBalance: vi.fn(() => Promise.resolve(PHONE_ORB_BALANCE)),
-}));
-vi.mock("@/marketplace/cutover.ts", () => ({
-  orbPurchasesEnabled: vi.fn(() => Promise.resolve(true)),
-}));
 
 vi.mock("@/batteries/catalog.ts", () => ({
   availableBatteryCatalog: () => [],

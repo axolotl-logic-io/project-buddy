@@ -4,14 +4,12 @@ import {
   storedActivityPrompt,
 } from "@/activities/activity-definition.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
-import type { Transaction } from "@/db/client.ts";
-import type { OwnPromptId, UserId } from "@/ids.ts";
+import type { UserId } from "@/ids.ts";
 import {
   currentActivityText,
   earlierActivityText,
 } from "@/prompts/earlier-built-in-texts.ts";
 import {
-  type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
   type DefinitionEdit,
@@ -20,7 +18,6 @@ import {
   getOwnPrompt,
   listOwnPrompts,
   type OwnPrompt,
-  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { NamedDefinition } from "@/prompts/prompt.ts";
@@ -83,14 +80,6 @@ export function updateActivity(
 
 export function deleteActivity(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(ACTIVITY_STORE, owner, id);
-}
-
-export function saveBoughtActivity(
-  transaction: Transaction,
-  owner: UserId,
-  bought: BoughtPrompt,
-): Promise<OwnPromptId | undefined> {
-  return saveBoughtPrompt(ACTIVITY_STORE, transaction, owner, bought);
 }
 
 export type { ActivityEdit, OwnActivity };
