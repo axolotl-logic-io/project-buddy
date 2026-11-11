@@ -40,16 +40,20 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
+  let statusNotice: JSX.Element | undefined;
+  if (project.status !== "active") {
+    statusNotice = <Notice>{QUEST_STATUS_COPY.effects}</Notice>;
+  }
   if (current === "conversation") {
+    const conversation = await questConversation(project, user.id);
     return (
       <QuestWorkspace
         project={project}
         current={current}
-        conversation={await questConversation(project, user.id)}
+        conversation={conversation.content}
+        navigationStart={conversation.portrait}
       >
-        {project.status !== "active" && (
-          <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-        )}
+        {statusNotice}
       </QuestWorkspace>
     );
   }
@@ -60,9 +64,7 @@ export default async function ProjectPage({
 
   return (
     <QuestWorkspace project={project} current={current}>
-      {project.status !== "active" && (
-        <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-      )}
+      {statusNotice}
       {current === "plan" && plan !== undefined && (
         <section className="page-slot">
           <div className="flex flex-col gap-2">

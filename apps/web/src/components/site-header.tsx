@@ -49,6 +49,7 @@ function TrailBand({
                 <Link href={parent.href} title={parent.label}>
                   {parent.label}
                 </Link>
+                {parent.action}
                 <span aria-hidden="true" className="breadcrumb-separator">
                   {SITE_COPY.breadcrumbSeparator}
                 </span>
@@ -58,6 +59,7 @@ function TrailBand({
         </nav>
       )}
       <h1 className="trail-heading">{current.label}</h1>
+      {current.action}
     </div>
   );
 }
