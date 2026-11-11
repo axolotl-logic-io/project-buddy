@@ -64,6 +64,6 @@ The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per c
 
 ## Later
 
-Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854), Preferences (#855) sections, are separate issues.
+Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854) and Preferences (#855) sections, are separate issues.
 
 Quick Notes removal supersedes the separate-storage proposal (#856). Historical Note paragraphs remain ordinary Journal content, with no rewrite or migration.

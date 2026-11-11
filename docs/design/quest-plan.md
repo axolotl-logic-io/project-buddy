@@ -111,7 +111,7 @@ Each phase ships on its own and leaves the site working. Each moves one piece of
 6. **Preferences.** A list like the plan, with a `change_preferences` tool and the same operations.
 Quick Notes were removed in #917. Historical Note paragraphs remain ordinary Journal text; no separate note store is planned.
 
-After phase 7, `update_memory` edits only the Journal's free notes. Whether to keep that free section is a decision for then, with evidence from how constructs use it.
+After the remaining Goal and Preferences phases, `update_memory` edits only the Journal's free notes. Whether to keep that free section is a decision for then, with evidence from how constructs use it.
 
 ## Decisions
 
