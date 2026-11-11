@@ -22,7 +22,7 @@ previews remain separate and keep their editable name, Journal and activity.
 
 ## Chat
 
-`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: quest members can't open it, and old addresses of it reveal nothing to anyone else.
+`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: old addresses of it reveal nothing to anyone else.
 
 Chat has no Journal, plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
 
@@ -117,8 +117,7 @@ are allowed. A plan whose steps are all done, or a Journal without such a
 line, shows the quest without a next step.
 
 The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries, which
-include the team quests the user is a member of, and makes
+`src/today/today-store.ts` reads Today with owner-scoped queries, and makes
 no model call. Unread check-ins (#609) can join Today as another part above
 the quests: add a list to the `Today` type in `src/today/today.ts` and a
 part to `TodaySection` in `src/components/today-section.tsx`.
@@ -156,7 +155,7 @@ The link to turn check-ins off names the user and the quest, signed with `SESSIO
 
 ### Unread quests
 
-Unread marks are per user. A row in `chat_unreads` marks one conversation unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a conversation, for the quest's owner and every member. A user who can't read the conversation gets no mark, and a user named twice or already marked keeps one mark.
+Unread marks are per user. A row in `chat_unreads` marks one conversation unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a conversation, for the quest's owner. A user who can't read the conversation gets no mark, and a user named twice or already marked keeps one mark.
 
 `Project.unread` (`src/projects/store.ts`) says whether the quest's conversation is unread for the user reading it, so quest lists show the viewer's own mark. Opening the conversation clears the viewer's mark and no one else's (`markChatRead`).
 
@@ -182,7 +181,7 @@ someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
 The author in a message's metadata holds the email address only for an
 author with no name, so a named author's address never reaches anyone's
-browser, as with the members list ([team quests](team-projects.md)).
+browser.
 The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. An adventure that only the viewer writes in looks as
 it did before authors were recorded.
@@ -207,7 +206,7 @@ one author sends the model exactly what it sent before, and the saved
 messages never hold the headers. The mock model reads a command past the
 header, and `/mock-recall` also searches it.
 
-The quest owner and current members can write in a team quest adventure. Replies, generated images and automatic adventure names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
+Only the quest's owner can write in its adventure. Messages other people wrote while quests could be shared keep their authors. Replies, generated images and automatic adventure names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
 Server tests write other authors' messages through the `author` field of
 the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
 `use_case_chat_with_several_people` covers this behavior.
