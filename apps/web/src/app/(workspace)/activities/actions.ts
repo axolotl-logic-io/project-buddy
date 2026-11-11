@@ -95,7 +95,7 @@ async function resetActivityPromptAction(formData: FormData): Promise<void> {
   }
   const { activityId } = form.data;
   const activity = await getOwnActivity(user.id, activityId);
-  if (activity === undefined || activity.boughtFrom !== undefined) {
+  if (activity === undefined) {
     notFound();
   }
   const reset = await updateActivity(user.id, activity.id, {

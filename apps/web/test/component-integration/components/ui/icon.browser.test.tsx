@@ -14,7 +14,6 @@ const SYMBOLS = [
   { name: "bot", label: "Constructs" },
   { name: "checklist", label: "Activities" },
   { name: "pencil", label: "Edit" },
-  { name: "store", label: "Marketplace" },
 ] as const;
 
 test.each(["light", "dark"] as const)(

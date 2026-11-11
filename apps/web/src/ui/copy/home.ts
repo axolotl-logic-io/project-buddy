@@ -18,7 +18,6 @@ const HOME_COPY = {
   chats: "Talk something through without a goal.",
   constructs: "Meet the constructs you work with, or customize your own.",
   workshop: "Make, clone and tweak constructs, activities and spells.",
-  marketplace: "Discover constructs, activities and spells.",
   settings: "Settings",
 } as const;
 
