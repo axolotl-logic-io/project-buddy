@@ -45,8 +45,6 @@ import {
   listOwnSpells,
   updateSpell,
 } from "@/spells/spell-store.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   expectNotFound,
@@ -176,8 +174,6 @@ describe("use_case_retire_definitions", () => {
   });
   test("a former quest membership gives no access to originals or Retirement changes", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
-    const project = await testData(owner).project("Formerly shared quest");
-    await formerMembership(owner, member, project.id);
     await Promise.all(
       KINDS.map(async (kind) => {
         const copy = await kind.clone(owner.id, kind.source);

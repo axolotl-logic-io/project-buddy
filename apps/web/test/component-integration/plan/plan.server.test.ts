@@ -22,7 +22,6 @@ import {
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
@@ -275,7 +274,6 @@ describe("a quest's plan, changed without the construct", () => {
     const data = testData(owner);
     const project = await data.project();
     const chat = await data.chat(project);
-    await formerMembership(owner, member, project.id);
 
     await signIn(owner);
     await laidOut(project.id);
