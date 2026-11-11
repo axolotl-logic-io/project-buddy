@@ -205,16 +205,6 @@
     }
   }
 
-  /* The user has hidden the page decorations (src/flags/flags.ts), and the
-     menu's with them. Set on <body>, not <html>, where the theme's own value
-     would win (the themes' layer comes after this one), so the body and
-     every part that paints the decoration again inside it, such as a pinned
-     header, draw none. */
-  html[data-hide~="page-decorations"] body {
-    --page-decoration: none;
-    --menu-decoration: none;
-  }
-
   h1,
   h2,
   h3,
