@@ -39,16 +39,11 @@ async function saveStatus(
   user: UserId,
   change: StatusChange,
 ): Promise<void> {
-  let checkInFrequency: string | undefined;
-  if (change.toStatus !== "active") {
-    checkInFrequency = "off";
-  }
   await tx
     .update(projects)
     .set({
       status: change.toStatus,
       statusRevision: sql`${projects.statusRevision} + 1`,
-      checkInFrequency,
     })
     .where(and(eq(projects.id, change.projectId), projectOwnedBy(user)));
 }

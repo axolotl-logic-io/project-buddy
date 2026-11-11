@@ -1,8 +1,8 @@
 # Quest status
 
-A quest starts Active. Its owner can mark it Completed or Abandoned with the visible Complete and Abandon buttons in the quest workspace rail. Both choices keep the conversation, Journal, Quick Notes and progress available, and turn off check-ins. No one else can change its status.
+A quest starts Active. Its owner can mark it Completed or Abandoned with the visible Complete and Abandon buttons in the quest workspace rail. Both choices keep the conversation, Journal, Quick Notes and progress available. No one else can change its status.
 
-Quests has an underlined tab rail for Active, Completed and Abandoned quests, below the four starting points, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the quest page offers the same action. Restoring returns the quest to Active. Check-ins stay off until the owner turns them on. A successful change offers Undo, which restores the previous status only if there has been no later status change.
+Quests has an underlined tab rail for Active, Completed and Abandoned quests, below the four starting points, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the quest page offers the same action. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
 Home features only Active quests. Quest choices, such as Quick Note's and an activity's start, offer only the user's own Active quests. Completing or abandoning removes a quest from subsequent choices; restoring it makes it available again. An unavailable selection falls back to the newest Active quest in Quick Note. A quest's conversation remains available to continue, including in Completed and Abandoned quests. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
 

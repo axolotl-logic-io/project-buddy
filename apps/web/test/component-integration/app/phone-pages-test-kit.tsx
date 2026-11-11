@@ -44,16 +44,12 @@ import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
-import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { listMessages } from "@/chats/store.ts";
-import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
-import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
-import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import {
   getOwnConstruct,
   listConstructs,
@@ -183,31 +179,6 @@ function setupPage(email: string | undefined): () => Promise<JSX.Element> {
     signOut();
     vi.mocked(readInvitation).mockResolvedValue(email);
     return await SetupPage({
-      params: NO_PARAMS,
-      searchParams: Promise.resolve({ token: LINK_TOKEN }),
-    });
-  };
-}
-
-// The page a check-in email's link to turn check-ins off opens, signed out,
-// for a project with a long name whose check-ins are at frequency, or for
-// a link that isn't signed when frequency is undefined.
-function checkInsOffPage(
-  frequency: CheckInFrequency | undefined,
-): () => Promise<JSX.Element> {
-  return async (): Promise<JSX.Element> => {
-    signOut();
-    let target: Awaited<ReturnType<typeof readCheckInsOffLink>>;
-    if (frequency !== undefined) {
-      target = { owner: SIGNED_IN_USER.id, projectId: FOX_PROJECT.id };
-    }
-    vi.mocked(readCheckInsOffLink).mockResolvedValue(target);
-    vi.mocked(getProject).mockResolvedValue({
-      ...FOX_PROJECT,
-      name: LONG_PROJECT_NAME,
-    });
-    vi.mocked(readCheckInFrequency).mockResolvedValue(frequency);
-    return await CheckInsOffPage({
       params: NO_PARAMS,
       searchParams: Promise.resolve({ token: LINK_TOKEN }),
     });
@@ -519,12 +490,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the setup page", render: setupPage("learner@example.com") },
   { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
-  { name: "the turn-off-check-ins page", render: checkInsOffPage("daily") },
-  { name: "check-ins turned off", render: checkInsOffPage("off") },
-  {
-    name: "an unusable turn-off-check-ins link",
-    render: checkInsOffPage(undefined),
-  },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
@@ -620,7 +585,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
           latestQuest: {
             project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
             nextStep: LONG_PROJECT_NAME,
-            unread: true,
           },
           firstVisit: false,
         });
@@ -723,15 +687,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the Workshop's Constructs tab", render: workshopPage("construct") },
   { name: "the Workshop's Activities tab", render: workshopPage("activity") },
   { name: "the Workshop's Spells tab", render: workshopPage("spell") },
-  {
-    name: "the Workshop test drawer",
-    render: workspacePage(noData, () => spellPage("ask-one-question")),
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("button", { name: "Try your draft", exact: true })
-        .click();
-    },
-  },
   {
     name: "a built-in spell's page",
     render: workspacePage(noData, () => spellPage("ask-one-question")),
