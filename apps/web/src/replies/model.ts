@@ -1,6 +1,5 @@
 // The one place the construct's models are chosen: Claude, or the deterministic
-// mock when CONSTRUCT_MODEL=mock. Sonnet replies in chats; the smaller Haiku names
-// them. No model exists without a quota grant (src/quota/quota.ts), so no
+// mock when CONSTRUCT_MODEL=mock. Sonnet writes replies and openings. No model exists without a quota grant (src/quota/quota.ts), so no
 // call starts unless the gold was checked. Every model is made for the user
 // the grant is for: each call starts with the user (chat-kickoff.ts) and is
 // charged to them at the Claude model's prices (src/quota/spend-meter.ts), the
@@ -13,12 +12,10 @@ import type { ClaudeModelId } from "@/quota/prices.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { spendMeter } from "@/quota/spend-meter.ts";
 import { NEUTRAL_KICKOFF, userFirst } from "@/replies/chat-kickoff.ts";
-import { mockChatNameScript } from "@/replies/mock-chat-name.ts";
 import { mockConstructModel } from "@/replies/mock-model.ts";
 import { defaultMockScript, type MockScript } from "@/replies/mock-script.ts";
 
 const REPLY_MODEL_ID: ClaudeModelId = "claude-sonnet-5-5";
-const CHAT_NAME_MODEL_ID: ClaudeModelId = "claude-haiku-5-5";
 
 function claudeModel(modelId: ClaudeModelId): LanguageModelV4 {
   const apiKey = readAnthropicApiKeyIfSet();
@@ -76,11 +73,4 @@ function replyModel(grant: QuotaGrant): LanguageModelV4 {
   return chooseModel(REPLY_MODEL_ID, defaultMockScript, grant);
 }
 
-// The model that names a chat, for the reply whose grant it reuses, read from
-// the environment on every call. The mock names a chat from the
-// conversation's first message (mock-chat-name.ts).
-function chatNameModel(grant: QuotaGrant): LanguageModelV4 {
-  return chooseModel(CHAT_NAME_MODEL_ID, mockChatNameScript, grant);
-}
-
-export { CHAT_NAME_MODEL_ID, chatNameModel, REPLY_MODEL_ID, replyModel };
+export { REPLY_MODEL_ID, replyModel };

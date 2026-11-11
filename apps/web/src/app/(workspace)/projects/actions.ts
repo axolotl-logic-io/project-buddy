@@ -3,12 +3,12 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { startProject } from "@/chats/start-chat.ts";
 import {
   type ChosenConstruct,
   chosenConstruct,
 } from "@/constructs/chosen-construct.ts";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import {
   checkProjectName,

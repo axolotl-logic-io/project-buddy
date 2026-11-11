@@ -3,9 +3,11 @@ import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { chats, projects } from "./projects-and-chats.ts";
 
 // Each row is one milestone of a project's progress timeline: something the
-// user got done, as the construct recorded it in one of the project's chats. It
-// is open to everyone in its project (src/accounts/owner-scope.ts), and goes with
-// its project or its chat. The user can change its text or delete it;
+// user got done, as the construct recorded it in the project's conversation.
+// It is open to everyone in its project (src/accounts/owner-scope.ts), and
+// goes with its project; chat_id, the conversation it was recorded in, is
+// null once that conversation is gone, as the removal of legacy adventures
+// (migration 0052) leaves it. The user can change its text or delete it;
 // recorded_at stays as the construct recorded it.
 export const milestones = pgTable(
   "milestones",
@@ -14,9 +16,9 @@ export const milestones = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    chatId: uuid("chat_id")
-      .notNull()
-      .references(() => chats.id, { onDelete: "cascade" }),
+    chatId: uuid("chat_id").references(() => chats.id, {
+      onDelete: "set null",
+    }),
     text: text("text").notNull(),
     recordedAt: timestamp("recorded_at", { withTimezone: true })
       .notNull()

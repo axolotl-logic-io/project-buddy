@@ -1,6 +1,6 @@
 // The text of check-ins: the setting on a project's page, the check-in
 // email, the page its link to turn check-ins off opens, and the unread mark
-// on chat lists.
+// on quests.
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { pageTitle } from "./site.ts";
 
@@ -15,7 +15,7 @@ interface QuestSentence {
 export const CHECK_IN_SETTING_COPY = {
   heading: "Check-ins",
   intro:
-    "Your construct can start an adventure on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your batteries.",
+    "Your construct can write in this quest on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your batteries.",
   label: "How often",
   frequencies: {
     off: "Off",
@@ -32,7 +32,7 @@ export const CHECK_IN_SETTING_COPY = {
 export const CHECK_IN_EMAIL_COPY = {
   subject: (constructName: string, projectName: string): string =>
     `${constructName} checked in on ${projectName}`,
-  openChat: "Open the adventure:",
+  openQuest: "Open the quest:",
   turnOff: "To stop check-ins for this quest, open:",
 } as const;
 

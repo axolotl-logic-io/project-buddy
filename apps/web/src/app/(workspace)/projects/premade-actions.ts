@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { startProject } from "@/chats/start-chat.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import {
   checkProjectName,
