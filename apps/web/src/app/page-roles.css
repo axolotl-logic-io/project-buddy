@@ -1327,10 +1327,6 @@
     @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
   }
 
-  .workspace-catalog-action {
-    @apply flex flex-wrap items-center gap-2;
-  }
-
   .workspace-reader {
     @apply grid min-w-0 gap-6 p-4 sm:p-6;
     @media (width >= 48rem) {
