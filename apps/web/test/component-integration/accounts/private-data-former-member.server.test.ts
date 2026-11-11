@@ -27,6 +27,7 @@ describe("use_case_private_data", () => {
     expect(await seenBy(quest.owner, quest)).toMatchObject({
       project: quest.project.name,
       listed: true,
+      conversation: quest.chat.id,
       chat: quest.chat.id,
       messages: EXCHANGE_MESSAGES,
       image: "image/png",
