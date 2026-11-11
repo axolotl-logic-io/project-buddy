@@ -253,6 +253,11 @@ describe("a construct's start action", () => {
       await expect
         .element(doIt.getByRole("button", { name: QUEST_START_COPY.start }))
         .toBeVisible();
+      // The starting point takes focus as it opens; Escape closes the dialog
+      // holding focus.
+      await expect
+        .poll(() => doIt.element().contains(document.activeElement))
+        .toBe(true);
       await userEvent.keyboard("{Escape}");
       await expect.element(doIt).not.toBeInTheDocument();
       await expect
