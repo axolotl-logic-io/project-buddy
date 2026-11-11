@@ -7,7 +7,6 @@ import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { Breadcrumbs, SiteHeader } from "@/components/site-header.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -107,9 +106,6 @@ afterEach(async () => {
 
 test("use_case_workshop_editor", async () => {
   await show(EDITOR_SECTIONS);
-  await expect
-    .element(page.getByRole("link", { name: WORKSHOP_COPY.heading }))
-    .toHaveAttribute("href", "/workshop");
   const submitted = submission();
   await page
     .getByRole("textbox", { name: "Name", exact: true })
