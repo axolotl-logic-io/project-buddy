@@ -114,7 +114,6 @@ The user opens one of her quests.
 - **Outcome:** the page shows the quest's name, a way to open its Journal, the quest's progress timeline (`use_case_view_progress_timeline`), and every adventure in the quest, newest first. Opening the page starts no adventure. Each adventure links to the adventure by its name and its construct's name (by the construct's name alone before it has a name), then shows when it started. Adventures from other quests do not appear. With no adventures, the page says there are none yet. Below the adventures, the page lists the quest's newest Quick Notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier adventure.
-  - [`use_case_switch_construct`](chats.md#use_case_switch_construct): hear the quest from a different voice.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
   - `use_case_set_check_ins`: have the construct check in on the quest.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note she no longer needs.
