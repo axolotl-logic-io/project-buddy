@@ -1,7 +1,7 @@
 // "use_case_project_from_standalone_chat" in use-cases/chats.md, in Chromium
 // and WebKit: Turn Chat into a quest, from Chat's button or the construct's
 // offer, opens the shared quest start on Do a thing with the draft as the
-// Journal to edit. Closing sends nothing; starting sends exactly what the
+// Journal. Closing sends nothing; starting sends exactly what the
 // user confirmed, and Dailies, the one ongoing quest, isn't offered for a
 // Chat's summary. Outside Chat an offer has nothing to open.
 import type { JSX } from "react";
@@ -23,7 +23,6 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
 }));
 
 const SUMMARY = "- a balcony herb garden\n- one sunny shelf";
-const EDITED = "Grow basil and thyme on the morning-sun shelf.";
 const CHOICES = {
   userConstructs: [],
   preferredConstructId: "vellum",
@@ -41,10 +40,6 @@ describe("use_case_project_from_standalone_chat", () => {
 
     await open.click();
     const doIt = page.getByRole("region", { name: "Do a thing" });
-    const journal = doIt.getByRole("textbox", {
-      name: QUEST_START_COPY.journalLabel,
-    });
-    await expect.element(journal).toHaveValue(SUMMARY);
     await doIt.getByRole("button", { name: QUEST_START_COPY.back }).click();
     await expect
       .element(page.getByRole("button", { name: "Make a thing", exact: true }))
@@ -61,7 +56,7 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(startQuestAction).not.toHaveBeenCalled();
   });
 
-  test("starting sends the Journal as the user edited it", async () => {
+  test("starting carries the Chat summary into the quest with the optional Why", async () => {
     const submitted = Promise.withResolvers<FormData>();
     vi.mocked(startQuestAction).mockImplementation((_state, form) => {
       submitted.resolve(form);
@@ -72,15 +67,16 @@ describe("use_case_project_from_standalone_chat", () => {
     await page.getByRole("button", { name: QUEST_FROM_CHAT_COPY.open }).click();
     const doIt = page.getByRole("region", { name: "Do a thing" });
     await doIt
-      .getByRole("textbox", { name: QUEST_START_COPY.journalLabel })
-      .fill(EDITED);
+      .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+      .fill("Fresh herbs at home.");
     await doIt
       .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
       .click();
 
     const sent = await submitted.promise;
     expect(sent.get("premadeId")).toBe("do");
-    expect(sent.get("journal")).toBe(EDITED);
+    expect(sent.get("journal")).toBe(SUMMARY);
+    expect(sent.get("motivation")).toBe("Fresh herbs at home.");
   });
 
   test("the construct's offer opens the same form, filled in, and creates nothing until confirmed", async () => {
@@ -111,13 +107,10 @@ describe("use_case_project_from_standalone_chat", () => {
     await open.click();
     const doIt = page.getByRole("region", { name: "Do a thing" });
     await expect
-      .element(doIt.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
-      .toHaveValue("Balcony herbs");
-    await expect
       .element(
-        doIt.getByRole("textbox", { name: QUEST_START_COPY.journalLabel }),
+        doIt.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
       )
-      .toHaveValue(`${SUMMARY}\n\n## Motivation\nFresh basil.`);
+      .toBeVisible();
     await userEvent.keyboard("{Escape}");
     await expect.element(open).toHaveFocus();
     expect(startQuestAction).not.toHaveBeenCalled();
@@ -129,6 +122,9 @@ describe("use_case_project_from_standalone_chat", () => {
     const sent = await submitted.promise;
     expect(sent.get("premadeId")).toBe("do");
     expect(sent.get("name")).toBe("Balcony herbs");
+    expect(sent.get("journal")).toBe(
+      `${SUMMARY}\n\n## Motivation\nFresh basil.`,
+    );
   });
 
   test("an offer outside Chat, as in an older quest conversation, has nothing to open", async () => {

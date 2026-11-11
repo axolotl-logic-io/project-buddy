@@ -21,6 +21,7 @@ const START_DETAILS = z.object({
   name: z.string(),
   journal: z.string().trim(),
   constructId: z.string(),
+  motivation: z.string().trim().default(""),
 });
 
 // What came of starting: nothing yet, or why nothing started. A start
@@ -47,7 +48,7 @@ export async function startQuestAction(
   if (!parsed.success) {
     return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
-  const { premadeId, name, journal, constructId } = parsed.data;
+  const { premadeId, name, journal, constructId, motivation } = parsed.data;
   const checked = checkProjectName(name);
   if (checked.kind !== "named") {
     let message: string = PROJECTS_COPY.needsName;
@@ -65,6 +66,7 @@ export async function startQuestAction(
   const details = {
     name: checked.name,
     journal,
+    motivation,
     construct: construct.construct,
     activity,
   };
@@ -74,6 +76,7 @@ export async function startQuestAction(
   } else {
     result = await startProject(user.id, checked.name, construct.construct, {
       journal,
+      motivation,
       activity,
     });
   }
