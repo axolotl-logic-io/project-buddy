@@ -45,9 +45,7 @@ export const CURRENT_QUEST_COPY = {
 export const QUEST_START_COPY = {
   heading: "Start a quest",
   back: "Back to the starting points",
-  journalLabel: "Starting Journal",
-  journalHint:
-    "Change anything here, or later in the Journal. Possible milestones are plans, not completed progress.",
+  close: "Cancel starting quest",
   start: "Start quest",
   starting: "Starting the quest…",
   invalid: "Check the details and choose an available construct.",
