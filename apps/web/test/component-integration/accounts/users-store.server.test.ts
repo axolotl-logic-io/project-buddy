@@ -37,7 +37,5 @@ test("endEverySession ends the user's sessions and sign-in links, and no one els
   expect((await readSessionUser(other.id, other.sessionEpoch))?.id).toBe(
     other.id,
   );
-  expect((await readSignInLinkUser(otherToken, new Date()))?.user.id).toBe(
-    other.id,
-  );
+  expect((await readSignInLinkUser(otherToken, new Date()))?.id).toBe(other.id);
 });
