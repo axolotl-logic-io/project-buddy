@@ -6,8 +6,8 @@ import { chats, projects } from "./projects-and-chats.ts";
 // user got done, as the construct recorded it in the project's conversation.
 // It is open to everyone in its project (src/accounts/owner-scope.ts), and
 // goes with its project; chat_id, the conversation it was recorded in, is
-// null once that conversation is gone, as the removal of legacy adventures
-// (migration 0052) leaves it. The user can change its text or delete it;
+// null once that conversation is gone, as the later removal of legacy
+// adventures (#898) leaves it. The user can change its text or delete it;
 // recorded_at stays as the construct recorded it.
 export const milestones = pgTable(
   "milestones",
