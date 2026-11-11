@@ -216,7 +216,7 @@ function smallestAcrossMiddle(conversation: Element): Element | undefined {
   return smallest;
 }
 
-// Scrolls the page so that a point about one screen down from its top sits
+// Scrolls the page so a point about one screen into the conversation sits
 // in the window's middle, below anything pinned at the top, and returns the
 // smallest part of the conversation drawn across the band around that
 // middle: where a header that has lost its pinned place would draw its fade
@@ -226,8 +226,12 @@ function smallestAcrossMiddle(conversation: Element): Element | undefined {
 // paragraphs, the page moves a step at a time, each way, until one does.
 function lineOneScreenDown(conversation: Element): Element {
   const clearOfHeader = window.innerHeight / HEADER_SHARE;
+  // Journal sections can precede the messages. Measure from the conversation
+  // so a large first message's centre does not land behind the composer.
+  const conversationTop =
+    conversation.getBoundingClientRect().top + window.scrollY;
   for (const offset of SCROLL_OFFSETS) {
-    window.scrollTo(0, window.innerHeight / 2 + offset);
+    window.scrollTo(0, conversationTop + window.innerHeight / 2 + offset);
     const smallest = smallestAcrossMiddle(conversation);
     if (
       smallest !== undefined &&

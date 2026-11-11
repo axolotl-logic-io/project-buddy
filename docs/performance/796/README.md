@@ -188,3 +188,7 @@ No passing repeat erases a failure.
 Compressed artifacts export no sessions, cookies, prompts, input marker values, response bodies, raw resource URLs, private IDs, request headers, stacks, DOM snapshots or screenshots. Trace arguments and every screenshot event are removed. The #773 screenshot allowlist remains unchanged; none of this issue's trace names may contain screenshot events. The local strict validator passes the complete artifact set and rejects ten negative cases: private UUID, raw URL, prompt payload, request headers, wrong build, unknown event name, screenshot with arguments, screenshot without arguments, screenshot category and moved visible reading anchor. Archived recipes extend the #773 capture/test kits and describe this experiment; #797 owns the maintained command/schema.
 
 Collection remains local and opt-in, with hosted collection off.
+
+## Simplified-app follow-up
+
+The [current quest/editor screen and Workshop investigation](../819/current/README.md) uses the simplified app's quest conversations and a separate build lineage. Its three-run input screen and controlled mock replies do not update the historical renderer comparison above or establish a new performance improvement. Shared conversation startup, confirmation runs and reading-position acceptance remain open in #796.

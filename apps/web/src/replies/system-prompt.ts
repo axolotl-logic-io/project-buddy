@@ -23,6 +23,8 @@ import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
+import type { Content } from "@/journal/journal.ts";
+import { readCurrentSections } from "@/journal/journal-store.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
@@ -36,6 +38,7 @@ import {
   GLOBAL_PROMPT_SECTIONS,
   SEVERAL_AUTHORS_RULES,
 } from "@/replies/global-prompt.ts";
+import { journalPromptSection } from "@/replies/journal-prompt.ts";
 import { memoryPromptSection } from "@/replies/memory-prompt.ts";
 import {
   MILESTONES_IN_PROMPT,
@@ -81,6 +84,8 @@ interface PromptProject {
   readonly latestApproval?: StatusApproval | undefined;
   readonly name: string;
   readonly memory: Memory;
+  readonly goal?: Content | undefined;
+  readonly preferences?: Content | undefined;
   readonly plan: Plan;
   readonly milestones: readonly Milestone[];
 }
@@ -183,6 +188,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
     return `Latest status proposal in this conversation: ${approval.fromStatus} to ${approval.toStatus}; decision: ${approval.decision}. This live decision supersedes the original tool result. Only pending cards have confirmation buttons. A declined, approved or outdated card cannot be confirmed again. If the user requests a change after that decision, create a fresh proposal; do not claim an old card is still waiting. This context never authorizes a status change.`;
   },
   severalAuthorsSection,
+  journalPromptSection,
   memoryPromptSection,
   planPromptSection,
   milestonesPromptSection,
@@ -247,15 +253,18 @@ async function readPromptProject(
   actingUser: UserId,
   project: { readonly id: ProjectId; readonly name: string },
 ): Promise<PromptProject> {
-  const [quest, memory, plan, milestones] = await Promise.all([
+  const [quest, memory, plan, milestones, sections] = await Promise.all([
     getProject(actingUser, project.id),
     readMemory(actingUser, project.id),
     readPlan(actingUser, project.id),
     listMilestones(actingUser, project.id, MILESTONES_IN_PROMPT),
+    readCurrentSections(actingUser, project.id),
   ]);
   return {
     name: project.name,
     memory,
+    goal: sections.goal,
+    preferences: sections.preferences,
     plan: plan ?? EMPTY_PLAN,
     milestones,
     status: quest?.status,

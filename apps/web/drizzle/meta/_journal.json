@@ -379,6 +379,20 @@
       "when": 1794375386390,
       "tag": "0053_remove_retired_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794423738681,
+      "tag": "0054_yellow_vance_astro",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794425222455,
+      "tag": "0055_lying_inertia",
+      "breakpoints": true
     }
   ]
 }
