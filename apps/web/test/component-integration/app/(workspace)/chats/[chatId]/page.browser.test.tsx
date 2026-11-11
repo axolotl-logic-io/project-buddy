@@ -11,7 +11,7 @@
 import type { UIMessageChunk } from "ai";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
@@ -29,7 +29,7 @@ import {
 } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
 import {
   SIGNED_IN_USER,
@@ -39,13 +39,11 @@ import {
   answerChat,
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
-import { tabForward } from "../../../../components/keyboard-test-kit.ts";
 import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
-  type ViewportSize,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT, STANDALONE_CHAT } from "../../page-fixtures.ts";
