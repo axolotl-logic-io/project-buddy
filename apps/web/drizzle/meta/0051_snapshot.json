@@ -1,5 +1,5 @@
 {
-  "id": "03ee2d65-fe89-4fea-9e04-f6ab9bf830f0",
+  "id": "f185dbf8-dad0-4295-968d-698d78a31e73",
   "prevId": "4fec3edb-57e8-4a49-bcdf-c9c540f5f289",
   "version": "7",
   "dialect": "postgresql",
@@ -2916,12 +2916,11 @@
           "primaryKey": false,
           "notNull": false
         },
-        "dailies": {
-          "name": "dailies",
-          "type": "boolean",
+        "premade": {
+          "name": "premade",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": false
+          "notNull": false
         }
       },
       "indexes": {
@@ -2951,7 +2950,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"projects\".\"dailies\"",
+          "where": "\"projects\".\"premade\" = 'dailies'",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -2976,6 +2975,10 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
+        "projects_premade_valid": {
+          "name": "projects_premade_valid",
+          "value": "\"projects\".\"premade\" in ('dailies', 'learn', 'make', 'do')"
+        },
         "projects_status_valid": {
           "name": "projects_status_valid",
           "value": "\"projects\".\"status\" in ('active', 'completed', 'abandoned')"

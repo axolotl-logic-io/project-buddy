@@ -35,6 +35,7 @@ import {
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
+import type { PremadeId } from "@/projects/premade.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 
 // The construct a new chat keeps: the snapshot of its name and parts, and the
@@ -237,8 +238,9 @@ export function createChatWithOpening(
 // A new quest of the owner's named projectName, with its conversation in
 // construct and activity, which opening starts: the quest, the
 // conversation, the message and the activity session are saved together,
-// in one transaction. A Dailies quest (dailies) is saved only when the owner
-// has none; undefined when they have one already, and nothing is saved.
+// in one transaction, with the premade quest it starts from, if any. A
+// Dailies quest is saved only when the owner has none; undefined when they
+// have one already, and nothing is saved.
 export function createProjectWithChat(
   owner: UserId,
   projectName: ProjectName,
@@ -247,7 +249,7 @@ export function createProjectWithChat(
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
     readonly journal?: string;
-    readonly dailies?: boolean;
+    readonly premade?: PremadeId | undefined;
   },
   transaction?: Transaction,
 ): Promise<ProjectChat | undefined> {
@@ -268,13 +270,17 @@ export function createProjectWithChat(
         },
       ];
     });
-    const dailies = chat.dailies === true;
     const inserted = await db
       .insert(projects)
-      .values({ id: projectId, userId: owner, name: projectName, dailies })
+      .values({
+        id: projectId,
+        userId: owner,
+        name: projectName,
+        premade: chat.premade ?? null,
+      })
       .onConflictDoNothing({
         target: projects.userId,
-        where: sql`dailies`,
+        where: sql`premade = 'dailies'`,
       })
       .returning({ id: projects.id });
     if (inserted.length === 0) {

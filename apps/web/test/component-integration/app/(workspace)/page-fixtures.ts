@@ -22,6 +22,7 @@ const FOX_PROJECT: Project = {
   role: "owner",
   shared: false,
   dailies: false,
+  premade: undefined,
   unread: false,
 };
 

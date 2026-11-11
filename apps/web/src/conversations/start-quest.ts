@@ -36,6 +36,7 @@ import type { Transaction } from "@/db/client.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
+import type { PremadeId } from "@/projects/premade.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 import { getProject } from "@/projects/store.ts";
 import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
@@ -118,9 +119,9 @@ function openingFor(
 // A new quest of the owner's named name, with its conversation in the
 // construct, kept as it is now, and the chosen activity, opened as the
 // activity asks, and seeded with the journal and the motivation in its
-// Journal. A Dailies quest (dailies) is saved only when the owner has none:
-// with one already, the result is undefined and nothing is saved
-// (src/conversations/dailies.ts). A storage failure throws.
+// Journal, from premade if given. A Dailies quest is saved only when the
+// owner has none: with one already, the result is undefined and nothing is
+// saved (src/conversations/dailies.ts). A storage failure throws.
 async function startNewQuest(
   owner: UserId,
   name: ProjectName,
@@ -129,14 +130,14 @@ async function startNewQuest(
     motivation = "",
     journal = "",
     activity = builtInActivity("project-breakdown"),
-    dailies = false,
+    premade,
     transaction,
   }: {
     readonly transaction?: Transaction;
-    readonly motivation?: string;
+    readonly motivation?: string | undefined;
     readonly journal?: string;
     readonly activity?: ChatActivity;
-    readonly dailies?: boolean;
+    readonly premade?: PremadeId | undefined;
   } = {},
 ): Promise<StartProjectResult | undefined> {
   const gold = await checkGold(owner);
@@ -166,7 +167,7 @@ async function startNewQuest(
   const chat = await createProjectWithChat(
     owner,
     name,
-    { construct, activity, opening, journal: initialJournal, dailies },
+    { construct, activity, opening, journal: initialJournal, premade },
     transaction,
   );
   if (chat === undefined) {
@@ -181,11 +182,11 @@ async function startProject(
   owner: UserId,
   name: ProjectName,
   construct: NewChatConstruct,
-  options: Omit<Parameters<typeof startNewQuest>[3], "dailies"> = {},
+  options: Parameters<typeof startNewQuest>[3] = {},
 ): Promise<StartProjectResult> {
   const started = await startNewQuest(owner, name, construct, options);
   if (started === undefined) {
-    throw new Error("A quest that isn't Dailies was refused as a duplicate");
+    throw new Error("A quest was refused as a duplicate Dailies");
   }
   return started;
 }

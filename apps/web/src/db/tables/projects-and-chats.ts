@@ -37,13 +37,17 @@ export const projects = pgTable(
       .defaultNow(),
     checkInFrequency: text("check_in_frequency").notNull().default("off"),
     lastCheckInAt: timestamp("last_check_in_at", { withTimezone: true }),
-    dailies: boolean("dailies").notNull().default(false),
+    premade: text("premade"),
   },
   (table) => [
     index("projects_user_id_idx").on(table.userId),
     uniqueIndex("projects_dailies_user_idx")
       .on(table.userId)
-      .where(sql`${table.dailies}`),
+      .where(sql`${table.premade} = 'dailies'`),
+    check(
+      "projects_premade_valid",
+      sql`${table.premade} in ('dailies', 'learn', 'make', 'do')`,
+    ),
     check(
       "projects_status_valid",
       sql`${table.status} in ('active', 'completed', 'abandoned')`,

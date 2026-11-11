@@ -34,6 +34,7 @@ const TURTLE_PROJECT = {
   role: "owner" as const,
   shared: false,
   dailies: false,
+  premade: undefined,
   unread: false,
 };
 
