@@ -22,7 +22,7 @@ The product: a personal site where constructs help each user with their own ques
 
 ### Workshop
 
-The shared editing and testing experience for constructs, activities and spells.
+The shared editor for constructs, activities and spells. It has no test drawer: a saved definition is tried in a quest or Chat.
 
 ## Prompts and context
 
@@ -111,7 +111,6 @@ Constructs were first called buddies. Use the new names everywhere except these 
 - The `buddies` table (`ownPrompts` in code), its `buddies_*` constraint and index names, and the `buddy_id`, `buddy_name` and `buddy_parts` columns of `chats`.
 - The stored kind `buddy` of an own construct and a listing (`STORED_PROMPT_KINDS` in `src/prompts/prompt.ts`), and the stored Journal author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's reader accepts both names; the stored Journal author is `user` or `buddy` only. Writers write `buddy`.
 - The `kind` in a saved prompt draft's browser storage key, and old `?kind=buddy` Marketplace links, which are read as constructs.
-- The `buddyId` a Workshop test request also carries, for the earlier build.
 - The `/buddies`, `/buddies/<id>`, `/guild` and `/guild/<id>` links, which redirect, temporarily, to `/constructs` and `/constructs/<id>`.
 - `BUDDY_MODEL`, read when `CONSTRUCT_MODEL` is unset.
 - An own copy of a built-in construct, activity or spell whose text is unchanged is stored in the built-in one's text from before the rename, recorded in `src/prompts/earlier-built-ins.ts`, and read back in today's text, so both builds know it as a copy of the built-in one.
