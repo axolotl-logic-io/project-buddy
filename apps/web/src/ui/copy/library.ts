@@ -240,7 +240,7 @@ const LIBRARY_COPY: {
           ],
         },
       ],
-      action: workshopTestLink("activity", "Craft an activity in Workshop"),
+      action: workshopLink("activity", "Craft an activity in Workshop"),
     },
     {
       id: "model-context",
