@@ -1,40 +1,27 @@
 # Quest workspace without adventures (#893)
 
-This is the working contract for [#893](https://github.com/axolotl-logic-io/project-buddy/issues/893). It builds on the domain foundation in [#892](https://github.com/axolotl-logic-io/project-buddy/issues/892) and shares conversation controls with standalone Chat in [#894](https://github.com/axolotl-logic-io/project-buddy/issues/894).
+This note records what [#893](https://github.com/axolotl-logic-io/project-buddy/issues/893) changed in the quest UI, after the scope correction that asked for fewer features. It builds on the domain in [#892](simplification-892.md) and shares the conversation screen and quest start with standalone Chat ([#894](simplification-894.md)).
 
 ## What the user sees
 
-- `/projects/<id>` opens the quest's continuing conversation and its composer. There is no Adventures section, adventure list, adventure name or New adventure form.
-- The quest's next step (the first open Plan step) shows above the conversation.
-- Journal, Plan, Progress, Quick Notes, Versions and Members stay one tap away in the quest's section rail. Changing section keeps the composer's draft, which is saved per conversation.
-- The conversation header offers the current construct and current activity as two small controls. Switching applies to future replies; the history keeps each reply's construct identity and shows activity changes where they happened.
-- New quest creation opens the quest itself, with the chosen construct and activity.
-- Home, Today, quest cards, notifications and milestone links resume at `/projects/<id>`, with `#message-<id>` when a specific message is known.
-- Quest cards show an unread mark while the quest's conversation has messages the viewer has not read.
-- Global navigation has Home, Quests and Chat; there are no adventure lists.
+- `/projects/<id>` opens the quest's one conversation and composer, under the quest's frame: title, status, the section rail (Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, Members and check-ins) and the owner's status actions. The Plan panel beside the conversation names the next step.
+- A quest without a conversation, as after the cutover, offers Start the conversation; opening the page starts nothing.
+- Quests starts with four premade starting points, Dailies, Learn a thing, Make a thing and Do a thing ([premade quests](../premade-quests.md)). Choosing one shows its details in place; Start quest opens the new quest's conversation.
+- Dailies is one ongoing quest. Its conversation offers Start the day, a prepared message sent through the composer.
+- Home's Continue, quest rows, check-in emails and old adventure links lead to `/projects/<id>`. Quest rows and Home mark a quest with unread messages for the viewer.
 
-## Ownership
+## Removed
 
-| Area | Owner |
-| --- | --- |
-| Schema, migrations, conversation storage, replies, check-ins, unread state, cutover | #892 |
-| Quest routes, quest workspace, Home, Today, global navigation, resume links | #893 |
-| Shared conversation screen and its construct/activity controls | #893 |
-| `/chat`, stale `/chats/*` URLs, Activities and Constructs start actions | #894 |
+- The Adventures section of a quest, its adventure list and New adventure dialog, on the quest page and the Journal page.
+- The blank Start Quest dialog and form (`new-project-dialog.tsx`, `new-project-form.tsx`, `createProjectAction`), the Premade quests tab, Find a starting point, the quest library and its activity entry (`quest-library.tsx`, `premade-actions.ts`, `quest-index.ts`), and the four narrowly themed premade quests.
+- The rename form in the conversation header, Today's lists (`today-section.tsx`, `readToday`), the milestone links to adventures, and Start a new adventure on a too-long request.
+- Use cases and tests for them: project interview, resume interview, new-project motivation, start premade quest, two-field start, reopen adventure, switch construct.
 
-## Interfaces this work consumes from #892
+## Added
 
-Names follow the foundation PR; until it lands, these are the shapes the UI needs:
+- `src/components/quest-start.tsx` (the one quest start) and `startQuestAction`.
+- `src/activities/dailies.ts` and `src/activities/learn-a-thing.ts`, two built-in activities that carry the starting points' guidance.
+- `QuestFrame`, a page frame wide enough for the conversation and its Plan panel, so the quest page doesn't shift as it loads or fails.
+- An optional `title` and `starter` on the shared conversation screen, for Chat's heading and Start the day.
 
-- Reading the quest's conversation without side effects: no opening and no battery charge on page load.
-- An explicit start that atomically gets or creates the quest's conversation and its opening.
-- Changing a conversation's current construct or activity, recorded in its history.
-- Per-viewer unread state per quest.
-
-## Shared conversation screen
-
-`ChatScreen` becomes the one conversation screen for a quest and for Chat. It takes the conversation, its messages, the viewer and optional quest context (plan and section links). It has no rename form. Its header holds the construct and activity controls. #894 renders it for `/chat` without quest context.
-
-## Rollout
-
-This PR changes no schema. It ships together with #892 and #894 in one release, after the foundation's cutover sequencing.
+No schema change is in this PR. Its one persistent state, `projects.dailies`, is #892's.

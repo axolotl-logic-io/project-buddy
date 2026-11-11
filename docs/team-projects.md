@@ -1,6 +1,6 @@
 # Team quests
 
-A team quest is a quest that its owner shares with members. The owner and the members work in it together: they share its adventures, Journal, Quick Notes and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
+A team quest is a quest that its owner shares with members. The owner and the members work in it together: they share its conversation, Journal, Quick Notes and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
 
 Inviting someone by email and accepting an invitation are in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). Who wrote each message is in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). Per-user unread marks and spend attribution are in [#630](https://github.com/axolotl-logic-io/project-buddy/issues/630).
 
@@ -10,7 +10,7 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 
 | Action | Owner | Member |
 | --- | --- | --- |
-| Read and continue every adventure, start adventures, rename adventures | Yes | Yes |
+| Read and continue the quest's conversation | Yes | Yes |
 | Edit Journal, add and delete Quick Notes | Yes | Yes |
 | Record, edit and delete milestones | Yes | Yes |
 | See the Members section | Yes | Yes |
@@ -21,13 +21,13 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 
 The owner can't leave their own quest. Transferring ownership is out of scope.
 
-Check-ins stay the owner's: their setting, their email and their batteries. A check-in starts a new adventure in the quest, which members can read like any other adventure. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
+Check-ins stay the owner's: their setting, their email and their batteries. A check-in appends the construct's message to the quest's conversation, which members read like any other message. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the quest's next check-in.
 
-Standalone adventures, own constructs, own activities, own spells, push subscriptions and each user's image gallery stay private to their user.
+Each user's Chat, own constructs, own activities, own spells, push subscriptions and each user's image gallery stay private to their user.
 
-In a team quest adventure, the chosen construct's and activity's instructions are shared with the quest's members. An adventure keeps a snapshot of its construct, and each activity session keeps a snapshot of its activity. So when someone starts a team quest adventure with an own construct, or the construct moves the adventure into one of their own activities, that snapshot's instructions become the adventure's prompt for every member's replies. The same goes for spells: when the construct casts one of the replying member's own [spells](spellbook.md), the saved reply keeps the spell's instructions, so they steer the construct in every later reply in the adventure, whoever writes. The site shows no warning for this. The own construct, activity or spell itself stays private: no one else can open, edit or use it in another adventure.
+In a team quest's conversation, the chosen construct's and activity's instructions are shared with the quest's members. The conversation keeps a snapshot of the construct it started with, and each activity session keeps a snapshot of its activity. So when the owner starts a quest with an own construct, or the construct moves the conversation into someone's own activity, that snapshot's instructions become the conversation's prompt for every member's replies. The same goes for spells: when the construct casts one of the replying member's own [spells](spellbook.md), the saved reply keeps the spell's instructions, so they steer the construct in every later reply in the conversation, whoever writes. The site shows no warning for this. The own construct, activity or spell itself stays private: no one else can open, edit or use it elsewhere.
 
-The adventure's messages hold only what the adventure shows. When the construct changes the activity, the saved `select_activity` result keeps the activity's id and name, not its instructions, which only that reply's model call receives. `listMessages` also strips the instructions from results saved before this change, without rewriting the stored rows, so the pages never send them to the browser. A `cast_spell` result keeps the spell's instructions in the stored message for the model, which reads the adventure with `listMessagesForModel`, but `listMessages`, which every page reads, leaves them out, so other members can't see them. A generated image in a quest adventure is open to everyone in the quest, but only its maker's gallery lists it.
+The conversation's messages hold only what the conversation shows. When the construct changes the activity, the saved `select_activity` result keeps the activity's id and name, not its instructions, which only that reply's model call receives. `listMessages` also strips the instructions from results saved before this change, without rewriting the stored rows, so the pages never send them to the browser. A `cast_spell` result keeps the spell's instructions in the stored message for the model, which reads the conversation with `listMessagesForModel`, but `listMessages`, which every page reads, leaves them out, so other members can't see them. A generated image in a quest's conversation is open to everyone in the quest, but only its maker's gallery lists it.
 
 ## Access model
 
