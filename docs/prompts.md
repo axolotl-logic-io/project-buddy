@@ -18,7 +18,7 @@ Construct, activity and spell detail pages share the Workshop. In the single Wor
 
 Make a copy opens a new private copy in the same editor, for built-ins and private definitions alike. Edit opens an existing private definition. Save stores edits; Cancel puts back saved fields and clears the browser draft. Reset and retirement remain available. Workshop actions never start quests. The editor uses the available width and shows one instruction section at a time. Save stays pinned at the foot of the form, with Reset and Cancel after it.
 
-The Workshop has no test drawer and makes no model call of its own. A prompt save makes no model call and spends no batteries. To try a change, save it and use the definition in a quest or in Chat. A conversation keeps the construct and activity texts it started with, so an edit shows in conversations started after it, and a spell's next cast reads its saved instructions.
+The Workshop has no test drawer. Saving prompt text makes no model call and spends no batteries. Construct artwork keeps its explicit generation actions and battery rules below. To try a change, save it and use the definition in a quest or in Chat. A conversation keeps the construct and activity texts it started with, so an edit shows in conversations started after it, and a spell's next cast reads its saved instructions.
 
 ## Construct images
 

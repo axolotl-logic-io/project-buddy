@@ -4,7 +4,7 @@ The signed-in pages below group related content under a compact heading and an u
 
 | Page | Navigation | Actions and state |
 | --- | --- | --- |
-| Workshop | Constructs, Activities, Spells | Each kind lists built-ins and private definitions with inspection, Customize, Craft, edit, clone and retire. Retirement remains the destination for restore and permanent deletion. Old collection URLs redirect to Workshop. |
+| Workshop | Constructs, Activities, Spells | Each kind lists built-ins and private definitions with inspection, Create, Make a copy, Edit and Retire. Retirement remains the destination for restore and permanent deletion. Old collection URLs redirect to Workshop. |
 | Marketplace | All, Constructs, Activities, Spells, Your listings | Kind and pagination links retain their URLs. Your listings uses `?view=yours`. Orb balance and purchase availability stay visible. Open Workshop leads to definitions the user can sell. |
 | Library | Book links, then a chapter index beside the reading | The index opens Getting Started. Existing book routes, chapter anchors, action links and related books remain available. Chapters stack below the index on phones. |
 | Quick Note | Write, Preview | The heading's Save Quick Note submits the same form from either tab. Preview shows the selected quest and the text as one line. Submitting returns to Write so feedback and focus remain visible. Switching tabs keeps the draft. |

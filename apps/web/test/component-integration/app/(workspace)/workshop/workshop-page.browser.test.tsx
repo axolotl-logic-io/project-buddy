@@ -86,6 +86,8 @@ vi.mock("@/constructs/interview-construct.ts", () => ({
 }));
 
 const QUEST_START = /Start a quest/u;
+const COPY_ACTION = /^Make a copy of /u;
+const OLD_ACTION = /^(?:Craft|Customize|Clone|Tweak|Start a quest)/u;
 
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
@@ -315,3 +317,18 @@ test("Create construct supports keyboard submission in Workshop", async () => {
   await submitted.promise;
   expect(newConstructAction).toHaveBeenCalledOnce();
 });
+
+test.each(PROMPT_KINDS)(
+  "the %s collection uses the shared copy action without a quest start",
+  async (kind) => {
+    await showWorkshop(kind);
+    const copies = page.getByRole("button", { name: COPY_ACTION }).elements();
+    expect(copies.length).toBeGreaterThan(1);
+    expect(copies.map((button) => button.textContent)).toEqual(
+      copies.map(() => "Make a copy"),
+    );
+    await expect
+      .element(page.getByRole("button", { name: OLD_ACTION }))
+      .not.toBeInTheDocument();
+  },
+);

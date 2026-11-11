@@ -1,6 +1,4 @@
-// The spells list, shared by the Spellbook and the Workshop: the built-in
-// spells, each of which the user can customize, and the user's own, each of which she
-// can tweak, clone or delete, with a button that crafts a new one.
+// Workshop’s spell collection: inspect built-ins and edit private definitions.
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";

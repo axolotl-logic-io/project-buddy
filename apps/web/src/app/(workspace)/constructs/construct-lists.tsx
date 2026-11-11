@@ -1,6 +1,4 @@
-// Constructs shared by the Constructs page and the Workshop: the
-// built-in constructs, each of which the user can customize, and the user's own, oldest
-// first, each of which the user can tweak or clone, with a button that crafts a new one.
+// Workshop’s construct collection: inspect built-ins and edit private definitions.
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
@@ -31,7 +29,7 @@ interface ListedConstruct extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its avatar beside its name, which opens its start action,
+// A construct as a card: its avatar beside its name, which opens its editor,
 // its temperament and its actions, in one column.
 function ConstructCard({
   construct,
@@ -63,8 +61,7 @@ function ConstructCard({
   );
 }
 
-// The built-in constructs as cards, each with a button that customizes it:
-// makes a clone of the user's own and opens it to edit.
+// Built-in constructs remain read-only; Make a copy opens a private editor.
 function BuiltInConstructCards({
   constructs,
 }: {
@@ -139,7 +136,7 @@ function OwnConstructList({
   );
 }
 
-// The user's own constructs as cards, or, if she has none, a line that says so.
+// The user's own constructs as cards, or, if the user has none, a line that says so.
 function OwnConstructCards({
   constructs,
 }: {

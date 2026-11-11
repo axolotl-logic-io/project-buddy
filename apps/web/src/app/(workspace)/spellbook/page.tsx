@@ -6,9 +6,9 @@ export default async function CollectionPage({
   searchParams,
 }: PageProps<"/spellbook">): Promise<never> {
   const { retired } = await searchParams;
-  const destination = new URL(workshopPath("spell"), "https://workshop.local");
+  const destination = workshopPath("spell");
   if (retired === "1") {
-    destination.searchParams.set("retired", "1");
+    redirect(`${destination}&retired=1`);
   }
-  redirect(`${destination.pathname}${destination.search}`);
+  redirect(destination);
 }

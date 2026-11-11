@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Three concepts shape every [conversation](#conversation):
 
-- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Workshop](#workshop).
+- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
 
