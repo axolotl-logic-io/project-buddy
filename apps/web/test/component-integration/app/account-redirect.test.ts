@@ -1,34 +1,30 @@
-import {
-  getRedirectUrl,
-  unstable_getResponseFromNextConfig,
-} from "next/experimental/testing/server";
 import { expect, test } from "vitest";
-import nextConfig from "../../../next.config.ts";
+import { GET } from "@/app/(workspace)/account/route.ts";
 
 const TEMPORARY_REDIRECT = 307;
 
-test.each(["", "?battery=returned", "?battery=canceled"])(
-  "old Account links retain their query when redirected to Settings (%s)",
-  async (query) => {
-    const response = await unstable_getResponseFromNextConfig({
-      url: `http://localhost/account${query}`,
-      nextConfig,
-    });
+test.each([
+  ["", ""],
+  ["?section=batteries", "?section=batteries#batteries"],
+  ["?section=security", "?section=security#security"],
+  ["?battery=returned", "?battery=returned#buy-batteries"],
+  ["?battery=canceled", "?battery=canceled#buy-batteries"],
+  [
+    "?section=unknown&battery=returned",
+    "?section=unknown&battery=returned#buy-batteries",
+  ],
+])(
+  "old Account links retain their query and reach the correct Settings section (%s)",
+  (query, target) => {
+    const response = GET(new Request(`http://localhost/account${query}`));
     expect(response.status).toBe(TEMPORARY_REDIRECT);
-    // No fragment in Location lets the browser inherit the original anchor.
-    expect(getRedirectUrl(response)).toBe(`http://localhost/settings${query}`);
-  },
-);
-
-test.each(["batteries", "security"])(
-  "old Account section links reach the corresponding Settings content (%s)",
-  async (section) => {
-    const response = await unstable_getResponseFromNextConfig({
-      url: `http://localhost/account?section=${section}`,
-      nextConfig,
-    });
-    expect(getRedirectUrl(response)).toBe(
-      `http://localhost/settings?section=${section}#${section}`,
+    expect(response.headers.get("location")).toBe(
+      `http://localhost/settings${target}`,
     );
   },
 );
+
+test("a bare Account redirect lets the browser inherit its existing anchor", () => {
+  const response = GET(new Request("http://localhost/account"));
+  expect(new URL(response.headers.get("location") ?? "").hash).toBe("");
+});
