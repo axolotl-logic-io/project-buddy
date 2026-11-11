@@ -49,9 +49,9 @@ test("only confirmation creates a quest; a failure keeps the edited summary for 
   await page.getByRole("button", { name: CREATE_PROJECT_COPY.confirm }).click();
   await expect
     .element(
-      page.getByRole("link", { name: CREATE_PROJECT_COPY.openInterview }),
+      page.getByRole("link", { name: CREATE_PROJECT_COPY.openQuest }),
     )
-    .toHaveAttribute("href", `/chats/${CREATED.interviewChatId}`);
+    .toHaveAttribute("href", `/projects/${CREATED.projectId}`);
   const [form] = vi.mocked(confirmQuestTransferAction).mock.lastCall ?? [];
   expect(form?.get("summary")).toBe(EDITED);
   expect(form?.get("motivation")).toBe(PROPOSAL.motivation);
@@ -63,7 +63,7 @@ test("reopening a confirmed proposal shows the saved quest without another creat
   await render(<QuestTransferForm proposal={PROPOSAL} />);
   await expect
     .element(
-      page.getByRole("link", { name: CREATE_PROJECT_COPY.openInterview }),
+      page.getByRole("link", { name: CREATE_PROJECT_COPY.openQuest }),
     )
     .toBeVisible();
   expect(confirmQuestTransferAction).not.toHaveBeenCalled();

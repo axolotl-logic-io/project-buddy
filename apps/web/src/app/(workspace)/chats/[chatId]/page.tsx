@@ -1,54 +1,23 @@
-import type { Viewport } from "next";
-import { notFound } from "next/navigation";
-import type { JSX } from "react";
+import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  getChat,
-  listMessages,
-  markChatRead,
-  readStoppedReply,
-} from "@/chats/store.ts";
-import { ChatScreen } from "@/components/chat-screen.tsx";
-import type { PlanState } from "@/plan/plan.ts";
-import { readPlanState } from "@/plan/plan-store.ts";
+import { resolveConversation } from "@/conversations/resolve.ts";
+import { STANDALONE_CHAT_PATH } from "@/routes.ts";
 
-// An on-screen keyboard shrinks the page rather than covering its bottom, so
-// the pinned header and the composer both stay above it. Other pages keep
-// the browser's default.
-export const viewport: Viewport = { interactiveWidget: "resizes-content" };
-
-// One of the user's chats, in a project or standalone, by its id, with its
-// saved messages as people see them, each with its author; not found if
-// the chat is unknown or another user's.
-// A chat in a project shows the project's plan beside it. Opening a chat
-// unread for the user, such as a check-in, marks it read for them alone. A last message whose reply stopped, such as after a failure,
-// offers to retry the reply.
-export default async function ChatPage({
+// An old adventure's address, from a link, a bookmark or an email, opens
+// where its conversation lives now: the quest it belongs to, when the user
+// can open that quest, or her own Chat. Any other id, malformed, removed or
+// someone else's, is not found, so the address reveals nothing.
+export default async function OldChatPage({
   params,
-}: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
+}: PageProps<"/chats/[chatId]">): Promise<never> {
   const { chatId } = await params;
   const user = await requireUser();
-  const chat = await getChat(user.id, chatId);
-  if (chat === undefined) {
+  const place = await resolveConversation(user.id, chatId);
+  if (place === undefined) {
     notFound();
   }
-  let plan: Promise<PlanState | undefined> = Promise.resolve(undefined);
-  if (chat.project !== undefined) {
-    plan = readPlanState(user.id, chat.project.id);
+  if (place.kind === "chat") {
+    redirect(STANDALONE_CHAT_PATH);
   }
-  const [messages, stoppedReplyId, planState] = await Promise.all([
-    listMessages(user.id, chat.id),
-    readStoppedReply(user.id, chat.id),
-    plan,
-    chat.unread && markChatRead(user.id, chat.id),
-  ]);
-  return (
-    <ChatScreen
-      conversation={chat}
-      messages={messages}
-      stoppedReplyId={stoppedReplyId}
-      viewer={user.id}
-      plan={planState}
-    />
-  );
+  redirect(`/projects/${place.projectId}`);
 }

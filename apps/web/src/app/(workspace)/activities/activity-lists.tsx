@@ -7,16 +7,14 @@ import type { JSX } from "react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  type NewChatChoices,
-  newChatChoices,
-} from "@/chats/new-chat-choices.ts";
-import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
+import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
-import { interviewConstruct } from "@/constructs/interview-construct.ts";
-import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
+import {
+  type QuestCreationChoices,
+  questCreationChoices,
+} from "@/projects/quest-creation-choices.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -40,8 +38,8 @@ interface ListedActivity {
   readonly description?: string;
 }
 
-// An activity as a card: its name, which opens New chat, what it is, if
-// it says, then its actions.
+// An activity as a card: its name, which opens its start action, what it
+// is, if it says, then its actions.
 function ActivityCard({
   activity,
   actions,
@@ -49,14 +47,13 @@ function ActivityCard({
 }: {
   readonly activity: ListedActivity;
   readonly actions: JSX.Element;
-  readonly choices: NewChatChoices & QuestCreationChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <li className="card flex min-w-0 flex-col gap-2">
-      <NewChatDialog
-        {...choices}
-        fixedActivity={true}
-        selectedActivityId={activity.id}
+      <StartWorkDialog
+        choices={choices}
+        startWith={{ kind: "activity", id: activity.id, name: activity.name }}
         trigger={
           <button
             className="card-title wrap-anywhere self-start text-left text-link"
@@ -76,14 +73,14 @@ function ActivityCard({
   );
 }
 
-// The built-in activities as cards, each with its New chat dialog and a button
+// The built-in activities as cards, each with its start action and a button
 // that customizes it: makes a clone of her own and opens it to edit.
 function BuiltInActivityCards({
   activities,
   choices,
 }: {
   readonly activities: readonly ListedActivity[];
-  readonly choices: NewChatChoices & QuestCreationChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -110,7 +107,7 @@ function BuiltInActivityCards({
   );
 }
 
-// Her own activities as cards, each with its New chat dialog, a link that tweaks
+// Her own activities as cards, each with its start action, a link that tweaks
 // it in place and a button that clones it; or, if she has none, a line that
 // says so.
 function OwnActivityCards({
@@ -118,7 +115,7 @@ function OwnActivityCards({
   choices,
 }: {
   readonly activities: readonly ListedActivity[];
-  readonly choices: NewChatChoices & QuestCreationChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   if (activities.length === 0) {
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
@@ -168,12 +165,10 @@ async function ActivityLists({
   readonly workspace?: boolean;
 } = {}): Promise<JSX.Element> {
   const user = await requireUser();
-  const [own, chatChoices, preferred] = await Promise.all([
+  const [own, choices] = await Promise.all([
     listOwnActivities(user.id),
-    newChatChoices(user.id),
-    interviewConstruct(user.id),
+    questCreationChoices(user.id),
   ]);
-  const choices = { ...chatChoices, preferredConstructId: preferred.id };
   if (workspace === true) {
     const retired = await listRetiredDefinitions(user.id);
     return (

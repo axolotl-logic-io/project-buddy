@@ -1,12 +1,10 @@
-// Activities in chats, in the test database with the mock construct: a chat
-// starts in the activity she chooses, whose opening and instructions it
-// follows; the construct moves the chat into another activity with
+// Activities in conversations, in the test database with the mock construct:
+// the construct moves the conversation into another activity with
 // select_activity. The mock construct only quotes its
 // prompt, so whether a real construct plays each activity well is the real-Claude
 // smoke test's to check (use-cases/README.md).
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { eq } from "drizzle-orm";
-import { renderToString } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import {
   DEFAULT_ACTIVITY_ID,
@@ -19,9 +17,6 @@ import {
   SELECT_ACTIVITY_TOOL,
   type SelectActivityOutput,
 } from "@/activities/select-activity-contract.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
-import { listAllChats } from "@/chats/all-chats.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
@@ -31,24 +26,15 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
   constructReply,
-  formOf,
   question,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
-import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn(), revalidatePath: vi.fn() }));
 
-const BRAINSTORMING = getActivity("brainstorming");
 const BREAKDOWN = getActivity("project-breakdown");
 const OPEN_CHAT = getActivity(DEFAULT_ACTIVITY_ID);
-
-// The project breakdown chosen in the new chat page's activity select.
-const BREAKDOWN_SELECTED =
-  /<option[^>]*value="project-breakdown"[^>]*selected/u;
-// The interview, and a new project, chosen in the new chat page's selects.
-const NEW_PROJECT_SELECTED = /<option[^>]*value="new"[^>]*selected/u;
 
 // What select_activity answered in the reply.
 function selectActivityOutput(reply: UIMessage): SelectActivityOutput {
@@ -71,67 +57,6 @@ async function constructSelects(
     await constructReply(chatId, `/mock-tool ${SELECT_ACTIVITY_TOOL} ${input}`),
   );
 }
-
-describe("use_case_start_chat_in_activity", () => {
-  test("a chat started in an activity opens in it, and its prompt holds the activity", async () => {
-    const user = await testUser();
-    await signIn(user);
-
-    const starting = startChatAction(
-      { kind: "idle" },
-      formOf({
-        projectId: "",
-        activityId: "brainstorming",
-        constructId: "vellum",
-      }),
-    );
-    await Promise.allSettled([starting]);
-    const [chat] = await listAllChats(user.id);
-    if (chat === undefined) {
-      throw new Error("No chat started");
-    }
-    await expectRedirect(() => starting, `/chats/${chat.id}`);
-
-    expect(await currentActivity(user.id, chat)).toEqual({
-      id: "brainstorming",
-      name: BRAINSTORMING.name,
-      definition: BRAINSTORMING.definition,
-    });
-    const messages = await listMessages(user.id, chat.id);
-    expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
-    const prompt = await constructPrompt(chat.id);
-    expect(prompt).toContain(BRAINSTORMING.definition.prompt);
-    expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
-  });
-
-  test("the new chat page chooses the activity its start page names, and omits the retired interview", async () => {
-    await signIn(await testUser());
-
-    const markup = renderToString(
-      await NewChatPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({ activity: "project-breakdown" }),
-      }),
-    );
-
-    expect(markup).toMatch(BREAKDOWN_SELECTED);
-    expect(markup).not.toContain(`value="${INTERVIEW_ACTIVITY_ID}"`);
-  });
-
-  test("the interview's start page chooses a new project", async () => {
-    await signIn(await testUser());
-
-    const markup = renderToString(
-      await NewChatPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({ activity: INTERVIEW_ACTIVITY_ID }),
-      }),
-    );
-
-    expect(markup).toMatch(BREAKDOWN_SELECTED);
-    expect(markup).toMatch(NEW_PROJECT_SELECTED);
-  });
-});
 
 describe("use_case_construct_changes_activity", () => {
   test("select_activity moves the chat into the activity, which the next reply's prompt holds", async () => {
