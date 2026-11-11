@@ -26,7 +26,8 @@ interface Project {
   role: ProjectRole;
   // Whether it is a team project: one with members besides its owner.
   shared: boolean;
-  // Whether it is its owner's one Dailies quest (src/conversations/dailies.ts).
+  // Whether it is the acting user's own Dailies quest
+  // (src/conversations/dailies.ts); a member sees another's as a quest.
   dailies: boolean;
   // Whether its conversation is unread for the acting user, as after a
   // check-in they haven't opened yet.
@@ -56,8 +57,8 @@ function projectColumns(user: UserId): {
   readonly createdAt: typeof projects.createdAt;
   readonly owned: SQL<boolean>;
   readonly shared: SQL<boolean>;
-  readonly dailies: typeof projects.dailies;
-  readonly unread: SQL<boolean>;
+  readonly dailies: SQL<boolean>;
+  readonly unread: SQL.Aliased<boolean>;
 } {
   return {
     status: projects.status,
@@ -72,7 +73,7 @@ function projectColumns(user: UserId): {
         .from(projectMembers)
         .where(eq(projectMembers.projectId, projects.id)),
     )}`,
-    dailies: projects.dailies,
+    dailies: sql<boolean>`(${projects.dailies} and ${projectOwnedBy(user)})`,
     unread: questUnreadFor(user),
   };
 }
