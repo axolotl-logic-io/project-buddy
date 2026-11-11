@@ -43,9 +43,14 @@ was supplied. The site name and root address lead there too; old `/home`
 bookmarks redirect to Quests. Signed-out visitors still need to sign in.
 Opening these pages makes no model call and spends no batteries.
 
-Quests lists existing work and offers Dailies, Learn a thing, Make a thing
-and Do a thing. Open a quest to continue its conversation. The Home atlas,
-duplicate destination panels and recent-quest summary are removed.
+Quests is laid out flush on the page, as Workshop is: its heading and
+introduction, then Continue, for the user's current quest, then Start a
+quest's four tiles, Dailies, Learn a thing, Make a thing and Do a thing, then
+the user's quests under Active, Completed and Abandoned tabs. Continue names
+the user's own Active quest whose conversation was most recently active, with
+its next step, and opens its conversation; with no Active quest it is absent
+(`src/projects/current-quest-store.ts`). Reading it makes no model call. The
+Home atlas and its destination panels are removed.
 
 ## Activities and constructs
 
@@ -72,7 +77,7 @@ Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/p
 
 ## Conversation header
 
-A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Turn Chat into a quest. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action, such as Chat's Turn Chat into a quest. It sits under the site header's trail band, whose heading names the quest or Chat. A quest's Rename and status actions and its sections sit in the quest's frame above the conversation and scroll away; the trail band stays. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 
@@ -261,6 +266,15 @@ The composer shows the acting user's battery balance. A reply's cost shows one d
 
 ## Header navigation
 
-The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand and Menu row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
+The shared site header (`src/components/site-header.tsx`) has two parts:
 
-Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Quests has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.
+- **The bar** is one row of the brand, the battery balance and the menu, in the header's ink and gold. The brand is a compass medallion and the site's name, and it leads to Quests. Below 32rem (512 CSS pixels) the brand shows only its medallion, and "Project Buddy" stays its accessible name. The bar scrolls away.
+- **The trail band** sits under the bar's gold rim, as a parchment strip with a line beneath it. It shows the links to the pages above the current one, small and muted, separated by `/`, leading into the current page's name. That name is the page's one `h1`, so pages don't repeat it in their content. The band stays pinned while the page scrolls.
+
+Every signed-in page with a place in the site has a band: Quests, a quest and its Journal, Chat, the Library and its books, the Workshop and each construct, activity and spell, Retirement and each retired definition, the Image gallery, Settings, and Invitations for an admin. Quests has a heading and no parent links. The header route (`src/app/@header/[...path]/page.tsx`) builds the trail on each navigation, including back and forward, and resolves names through the acting user's access checks (`src/components/header-breadcrumbs.ts`). Unknown or inaccessible pages, such as Invitations for anyone but an admin, have no band and keep their own heading, as signed-out, sign-in and not-found pages do. A page that fails under a band shows its error under a section heading, below the band's.
+
+When names are long, the parent links shorten first, each with an ellipsis. They keep full 44-pixel touch targets and their whole names as accessible names. The heading keeps its words and wraps to at most two lines. On a phone, a trail with more than one parent leaves out its Quests link, because the medallion leads there.
+
+Page actions that sat beside a page's heading stay in the page's content, in the first row under the band: a quest's Rename and status actions, and Chat's Turn Chat into a quest in the conversation's pinned header. A page's loading state draws no heading, since the band already shows it, so moving between pages keeps the header's footprint and the content's starting point.
+
+In a long conversation, the trail band and the conversation's pinned header together stay within 112 CSS pixels on phones and 140 on wide screens, even with a two-line heading. Message jumps land below both.

@@ -15,10 +15,7 @@ async function RetirementPage({
   const { restored, deleted } = await searchParams;
   const definitions = await listRetiredDefinitions(user.id);
   return (
-    <PageWorkspace
-      title={RETIREMENT_COPY.heading}
-      intro={RETIREMENT_COPY.intro}
-    >
+    <PageWorkspace intro={RETIREMENT_COPY.intro}>
       {(restored === "1" || deleted === "1") && (
         <div className="workspace-content">
           {restored === "1" && (

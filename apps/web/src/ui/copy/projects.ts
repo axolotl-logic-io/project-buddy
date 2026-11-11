@@ -6,6 +6,7 @@ export const PROJECTS_COPY = {
   title: pageTitle("Quests"),
   headerLink: "Quests",
   heading: "Quests",
+  intro: "Pick up where you left off, or start something new.",
   loading: "Loading quests…",
   none: "No quests yet. Choose a way to start one above.",
   listHeading: "All quests",
@@ -13,7 +14,6 @@ export const PROJECTS_COPY = {
   nameLabel: "Quest name",
   defaultName: "New quest",
   cancel: "Cancel",
-  newestFirst: "Your quests, newest first",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
@@ -24,7 +24,7 @@ export const PROJECTS_COPY = {
 
 export const PROJECT_COPY = {
   navigation: "Quest workspace",
-  rename: "Edit quest title",
+  rename: "Rename",
   titleLabel: "Quest title",
   saveTitle: "Save title",
   cancelTitle: "Cancel title edit",
@@ -32,12 +32,18 @@ export const PROJECT_COPY = {
   loading: "Loading quest…",
 } as const;
 
+// The Active quest Quests offers to pick up again
+// (src/components/current-quest.tsx).
+export const CURRENT_QUEST_COPY = {
+  label: "Current quest",
+  nextStep: (step: string): string => `Next step: ${step}`,
+  continue: "Continue",
+  continueLabel: (name: string): string => `Continue ${name}`,
+} as const;
+
 // The four ways to start a quest (src/components/quest-start.tsx).
 export const QUEST_START_COPY = {
   heading: "Start a quest",
-  choose: "Choose",
-  chooseLabel: (name: string): string => `Choose ${name}`,
-  openDailies: "Open Dailies",
   back: "Back to the starting points",
   journalLabel: "Starting Journal",
   journalHint:

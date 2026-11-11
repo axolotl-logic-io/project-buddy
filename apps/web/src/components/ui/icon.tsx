@@ -64,6 +64,11 @@ const ICON_PATHS = {
   send: { stroke: "M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7" },
   // A filled square, for stopping a reply that runs.
   stop: { stroke: "M4.5 4.5h7v7h-7z", fill: "M4.5 4.5h7v7h-7z" },
+  // A sun, for starting the day.
+  sun: {
+    stroke:
+      "M8 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M12.95 3.05l-1.06 1.06M4.11 11.89l-1.06 1.06",
+  },
   // A cog, for the site's settings.
   gear: {
     stroke:

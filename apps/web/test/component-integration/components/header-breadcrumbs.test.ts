@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import type { User } from "@/accounts/users-store.ts";
 import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
 import { parseUserId } from "@/ids.ts";
 
@@ -17,50 +18,58 @@ vi.mock("@/retirement/retirement-store.ts", () => stores);
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
 
+// The fixture user, in role.
+function signedIn(role: User["role"]): Pick<User, "id" | "role"> {
+  if (USER === undefined) {
+    throw new Error("Invalid fixture user");
+  }
+  return { id: USER, role };
+}
+
+const MEMBER = signedIn("user");
+
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
 describe("header navigation hierarchy", () => {
   test("keeps Library books under Library and omits unknown books", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
-    expect(await headerBreadcrumbs(USER, ["library"])).toEqual([
+    expect(await headerBreadcrumbs(MEMBER, ["library"])).toEqual([
       { label: "Quests", href: "/projects" },
       { label: "Library" },
     ]);
-    expect(await headerBreadcrumbs(USER, ["library", "model-context"])).toEqual(
-      [
-        { label: "Quests", href: "/projects" },
-        { label: "Library", href: "/library" },
-        { label: "Model context" },
-      ],
-    );
-    expect(await headerBreadcrumbs(USER, ["library", "unknown"])).toEqual([]);
+    expect(
+      await headerBreadcrumbs(MEMBER, ["library", "model-context"]),
+    ).toEqual([
+      { label: "Quests", href: "/projects" },
+      { label: "Library", href: "/library" },
+      { label: "Model context" },
+    ]);
+    expect(await headerBreadcrumbs(MEMBER, ["library", "unknown"])).toEqual([]);
   });
   test("puts Chat under Quests, and the old conversation addresses nowhere", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
-    expect(await headerBreadcrumbs(USER, ["chat"])).toEqual([
+    expect(await headerBreadcrumbs(MEMBER, ["chat"])).toEqual([
       { label: "Quests", href: "/projects" },
       { label: "Chat" },
     ]);
-    expect(await headerBreadcrumbs(USER, ["chats", "new"])).toEqual([]);
-    expect(await headerBreadcrumbs(USER, ["home"])).toEqual([]);
-    expect(await headerBreadcrumbs(USER, ["projects"])).toEqual([
+    expect(await headerBreadcrumbs(MEMBER, ["chats", "new"])).toEqual([]);
+    expect(await headerBreadcrumbs(MEMBER, ["home"])).toEqual([]);
+    expect(await headerBreadcrumbs(MEMBER, ["projects"])).toEqual([
       { label: "Quests" },
     ]);
   });
 
+  test("shows Invitations' trail to an admin alone, who alone can open it", async () => {
+    expect(await headerBreadcrumbs(signedIn("admin"), ["invitations"])).toEqual(
+      [{ label: "Quests", href: "/projects" }, { label: "Invitations" }],
+    );
+    expect(await headerBreadcrumbs(MEMBER, ["invitations"])).toEqual([]);
+  });
+
   test("keeps the quest parent on its Journal", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
     stores.getProject.mockResolvedValue({ id: "quest", name: "Our quest" });
     expect(
-      await headerBreadcrumbs(USER, ["projects", "quest", "memory"]),
+      await headerBreadcrumbs(MEMBER, ["projects", "quest", "memory"]),
     ).toEqual([
       { label: "Quests", href: "/projects" },
       { label: "Our quest", href: "/projects/quest" },
@@ -70,9 +79,6 @@ describe("header navigation hierarchy", () => {
   });
 
   test("exposes no private name or parent for inaccessible and unknown pages", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
     const trails = await Promise.all(
       [
         "projects",
@@ -81,23 +87,20 @@ describe("header navigation hierarchy", () => {
         "activities",
         "spellbook",
         "retirement",
-      ].map((section) => headerBreadcrumbs(USER, [section, "foreign"])),
+      ].map((section) => headerBreadcrumbs(MEMBER, [section, "foreign"])),
     );
     for (const trail of trails) {
       expect(trail).toEqual([]);
     }
     expect(
-      await headerBreadcrumbs(USER, ["projects", "foreign", "unknown"]),
+      await headerBreadcrumbs(MEMBER, ["projects", "foreign", "unknown"]),
     ).toEqual([]);
-    expect(await headerBreadcrumbs(USER, ["missing"])).toEqual([]);
+    expect(await headerBreadcrumbs(MEMBER, ["missing"])).toEqual([]);
   });
 
   test("keeps definition names and their existing destinations", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
     stores.getOwnConstruct.mockResolvedValue({ name: "My construct" });
-    const trail = await headerBreadcrumbs(USER, ["constructs", "own"]);
+    const trail = await headerBreadcrumbs(MEMBER, ["constructs", "own"]);
     expect(trail).toEqual([
       { label: "Quests", href: "/projects" },
       { label: "Workshop", href: "/workshop" },
@@ -105,16 +108,13 @@ describe("header navigation hierarchy", () => {
     ]);
     expect(stores.getOwnConstruct).toHaveBeenCalledWith(USER, "own");
     expect(
-      (await headerBreadcrumbs(USER, ["constructs", "lumen"])).at(-1)?.label,
+      (await headerBreadcrumbs(MEMBER, ["constructs", "lumen"])).at(-1)?.label,
     ).toBe("Lumen");
   });
 
   test("leads from an activity's page to the Workshop's Activities tab", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
     expect(
-      await headerBreadcrumbs(USER, ["activities", "brainstorming"]),
+      await headerBreadcrumbs(MEMBER, ["activities", "brainstorming"]),
     ).toEqual([
       { label: "Quests", href: "/projects" },
       {

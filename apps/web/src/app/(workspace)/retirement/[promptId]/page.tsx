@@ -21,15 +21,12 @@ async function RetiredDefinitionPage({
   }
   return (
     <>
-      <header className="flex flex-col gap-2">
-        <h1 className="page-heading">{definition.name}</h1>
-        <p className="text-muted">
-          {RETIREMENT_COPY.kind[definition.kind]}
-          {RETIREMENT_COPY.separator}
-          {RETIREMENT_COPY.dateLabel}{" "}
-          <LocalTime dateTime={definition.retiredAt} detail="day" />
-        </p>
-      </header>
+      <p className="text-muted">
+        {RETIREMENT_COPY.kind[definition.kind]}
+        {RETIREMENT_COPY.separator}
+        {RETIREMENT_COPY.dateLabel}{" "}
+        <LocalTime dateTime={definition.retiredAt} detail="day" />
+      </p>
       <RetirementActions definition={definition} />
       {definition.kind === "construct" && (
         <Notice>{RETIREMENT_COPY.fallback}</Notice>

@@ -250,8 +250,8 @@ The user is deep in a quest's long conversation and wants to go back to their qu
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation is longer than the screen.
 - **Steps:**
   - The user scrolls down to the newest message, on a laptop or a phone.
-  - The user follows the Quests link in the shared site header.
-- **Outcome:** wherever the user has scrolled, the link back to their quests, the conversation's pinned header with its construct, and the box they write in stay on screen, and nothing covers them. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The shared site header contains one accessible breadcrumb trail, ending in the quest. The trail stays on screen even when the pinned conversation header extra is off. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below both headers.
+  - The user follows the Quests link in the site header's trail band.
+- **Outcome:** wherever the user has scrolled, the trail band, with the link back to their quests and the quest's name as the page's heading, the conversation's pinned header with its construct, and the box they write in stay on screen, and nothing covers them. The band and the pinned header together stay within 112 CSS pixels on a phone and 140 on a wide screen, even when the quest's name takes two lines. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The site header contains one accessible breadcrumb trail, leading into the quest's name, the page's one heading. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below both headers.
 - **Next:**
   - [`use_case_open_project`](projects.md#use_case_open_project): back on the quest.
 
