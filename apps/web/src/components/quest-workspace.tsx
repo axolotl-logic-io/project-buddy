@@ -127,7 +127,9 @@ function QuestWorkspace({
           )}
         </div>
       </QuestStatusFeedback>
-      {conversation}
+      {conversation !== undefined && (
+        <div className="quest-conversation">{conversation}</div>
+      )}
     </>
   );
 }
