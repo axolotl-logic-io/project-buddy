@@ -78,11 +78,7 @@ describe("use_case_view_progress_timeline", () => {
     await expect
       .element(page.getByRole("listitem"))
       .toMatchTextContent(NEWEST_TEXT);
-    expect(
-      page
-        .getByRole("link", { name: PROGRESS_TIMELINE_COPY.openChat })
-        .elements(),
-    ).toHaveLength(0);
+    expect(page.getByRole("link").elements()).toHaveLength(0);
   });
 
   test("with no milestones, says how they arrive", async () => {
