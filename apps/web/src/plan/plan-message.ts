@@ -7,6 +7,7 @@
 import type { UIMessage } from "ai";
 import { z } from "zod";
 import type { ChatMessage } from "@/chats/message-author.ts";
+import { readJournalPart } from "@/journal/journal-message.ts";
 import { PLAN_CHANGE_LINE } from "@/plan/plan.ts";
 
 // The data part names, as the AI SDK stores them: `data-` and a name.
@@ -61,7 +62,10 @@ function isPlanMessage(message: Pick<UIMessage, "role" | "parts">): boolean {
   return (
     message.role === "user" &&
     message.parts.length > 0 &&
-    message.parts.every((part) => readPlanPart(part) !== undefined)
+    message.parts.every(
+      (part) =>
+        readPlanPart(part) !== undefined || readJournalPart(part) !== undefined,
+    )
   );
 }
 

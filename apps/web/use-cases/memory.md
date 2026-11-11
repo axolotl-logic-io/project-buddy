@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_construct_updates_memory
 
-The construct records goals, knowledge, purpose, constraints, progress, preferences and agreed plans in the quest's Journal, in every activity. A new quest or an empty Journal needs no interview: the construct initializes it from useful information and preserves unrelated content on later edits.
+The construct records knowledge, purpose, constraints and progress in the quest's free Journal notes, in every activity. Agreed goals and stated preferences use the typed sections below; agreed remaining work uses the Plan. A new quest or an empty Journal needs no interview: the construct initializes it from useful information and preserves unrelated content on later edits.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure where she reports progress, changes a goal or states a preference.
 - **Steps:**
@@ -24,7 +24,7 @@ The user reads the quest's Journal. Historical `Note (YYYY-MM-DD):` paragraphs r
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She opens the quest's Journal.
-  - The site shows her goals, milestones, progress and preferences as the construct and she have written them.
+  - The site shows the typed Goal and Preferences first, followed by the Plan and free notes as the construct and she have written them.
 - **Outcome:** the page shows the newest version of the Journal, formatted, exactly as it was last saved, with an Edit button and no editor. The Versions selection lists every version, newest first, with when it was made and who saved it: "you" for her own versions, "a construct" for the construct's, and, for a version someone else saved while quests could be shared, that person's name, or their email address when they have none. A version saved before the site recorded who saved it, or by a person whose account is gone, says "a person (name not recorded)". She never sees another person's version as hers. If nothing has been saved yet, the page says so and lets her write the Journal herself.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
@@ -146,3 +146,30 @@ The user keeps the plan with commands in the message box, without the construct.
   - In an adventure with no quest, plan commands say they need a quest. Any other message that starts with "/", such as "/shrug ok", goes to the construct as written, and typing "/" lists no plan commands.
 - **Next:**
   - `use_case_change_plan`: see the whole plan on the quest's page.
+
+## use_case_edit_quest_goal
+
+The owner changes the agreed Goal on the quest page or at the top of the
+Journal. Saving or clearing it makes a typed version without a model call or
+battery use. An outdated form saves nothing. Section versions keep prior
+values and authors; Undo records another version and refuses to overwrite a
+later edit to the goal. Other owners cannot read, edit or undo the section.
+
+## use_case_edit_quest_preferences
+
+The owner adds, edits, reorders and removes Preferences on the quest page or
+Journal, or uses `/preferences`, `/prefer TEXT`, `/preference NUMBER TEXT`,
+`/unprefer NUMBER`, and `/move-preference NUMBER BEFORE` (or `end`) in the
+quest's composer. Numbers remain stable. Commands show a record without
+asking the construct for a reply or spending batteries. Invalid operations
+save nothing. Undo records a new version and refuses to overwrite later
+edits. Every reply reads the current preferences.
+
+## use_case_construct_changes_typed_journal
+
+When the owner agrees on a goal or states a preference, the construct uses
+`set_goal` or `change_preferences`. The conversation shows the saved change
+with Undo. The Goal and Preferences live apart from free notes and each has
+its own history. The next reply reads the typed values. Proposals stay in the
+conversation until agreed, and preferences are never inferred. Chat has no
+quest sections or tools for changing them.

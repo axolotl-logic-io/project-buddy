@@ -122,7 +122,7 @@ After the remaining Goal and Preferences phases, `update_memory` edits only the 
 - **Storage:** one `plan_versions` table holds the whole plan after each change, rather than one row per step and a separate change log. A plan is small, and one versioned row per change gives Undo, history and safe concurrent changes in one `insert … select`, as the Journal's versions do. Steps have numbers instead of fractional positions.
 - **Merging:** a person's back-to-back changes each show as their own Plan change, one line each, rather than merging, so each keeps its own Undo.
 - **Drag and drop:** left out. The up and down buttons and `/move` reorder steps with a keyboard, a mouse or touch alike.
-- **Phases:** phases 1, 2 and 4 shipped in #838. Phase 3, moving existing "Next step:" lines, needs phase 2 live first; phases 5 to 7 are separate issues.
+- **Phases:** phases 1, 2 and 4 shipped in #838. Phase 3, moving existing "Next step:" lines, needs phase 2 live first; the typed Goal and Preferences phases are documented in [Goal and Preferences](../typed-journal.md).
 
 ## Mockup limits
 

@@ -2,11 +2,13 @@
 
 import { useAuiState } from "@assistant-ui/react";
 import { type JSX, useCallback } from "react";
+import { JournalDataPart } from "@/components/chat/journal-change-part.tsx";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import { usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { readJournalPart } from "@/journal/journal-message.ts";
 import type { PlanChangeLine } from "@/plan/plan.ts";
 import { readPlanPart } from "@/plan/plan-message.ts";
 import { CHANGE_PLAN_OUTPUT } from "@/replies/tools/change-plan-contract.ts";
@@ -150,6 +152,10 @@ function PlanDataPart({
   readonly name: string;
   readonly data: unknown;
 }): JSX.Element | null {
+  const journal = readJournalPart({ type: `data-${name}`, data });
+  if (journal !== undefined) {
+    return <JournalDataPart data={journal} />;
+  }
   const part = readPlanPart({ type: `data-${name}`, data });
   if (part === undefined) {
     return null;
