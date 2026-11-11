@@ -30,7 +30,6 @@ import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import type { readHomeSummary } from "@/today/today-store.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -88,9 +87,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 }));
 vi.mock("@/conversations/private-chat.ts", () => ({
   privateChat: vi.fn<typeof privateChat>(),
-}));
-vi.mock("@/today/today-store.ts", () => ({
-  readHomeSummary: vi.fn<typeof readHomeSummary>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),

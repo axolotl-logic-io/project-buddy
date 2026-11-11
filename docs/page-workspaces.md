@@ -1,6 +1,6 @@
 # Page workspaces
 
-The signed-in pages below group related content under a compact heading and an underlined navigation rail. Existing actions, permissions and saved data keep their meaning. Home, Workshop and Image gallery retain their layouts. The Quests index has its own workspace change.
+The signed-in pages below group related content under a compact heading and an underlined navigation rail. Existing actions, permissions and saved data keep their meaning. Workshop and Image gallery retain their layouts. The Quests index has its own workspace change.
 
 | Page | Navigation | Actions and state |
 | --- | --- | --- |
@@ -18,4 +18,4 @@ Quest overview sections use `?section=plan` and `?section=progress`. The default
 
 ## Validation
 
-Browser coverage checks tab navigation, retained drafts, catalog actions, and quest sections. Phone checks include the additional sections at 320 and 390 CSS pixels, including long names, restore controls, appearance choices and security actions. Existing Home, Workshop and Image gallery tests remain part of the regression checks.
+Browser coverage checks tab navigation, retained drafts, catalog actions, and quest sections. Phone checks include the additional sections at 320 and 390 CSS pixels, including long names, restore controls, appearance choices and security actions. Existing Workshop and Image gallery tests remain part of the regression checks.

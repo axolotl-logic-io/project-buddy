@@ -5,7 +5,6 @@ import { pageTitle } from "@/ui/copy/site.ts";
 export const PROJECTS_COPY = {
   title: pageTitle("Quests"),
   headerLink: "Quests",
-  homeLink: "Home",
   heading: "Quests",
   loading: "Loading quests…",
   none: "No quests yet. Choose a way to start one above.",

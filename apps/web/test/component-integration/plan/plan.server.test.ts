@@ -7,8 +7,6 @@ import { describe, expect, test, vi } from "vitest";
 import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { saveMemory } from "@/memory/memory-store.ts";
 import { MOST_OPEN_STEPS } from "@/plan/plan.ts";
 import {
   changePlanAction,
@@ -23,7 +21,6 @@ import {
   CHANGE_PLAN_OUTPUT,
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
-import { readHomeSummary } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -301,35 +298,6 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
     expect(await readPlanState(stranger.id, project.id)).toBeUndefined();
     expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
-  });
-
-  test("Home's next step is the plan's first open step, or the Journal's line before the plan has had a step", async () => {
-    const { user, chat } = await signedInChat();
-    await sendChatMessage(chat.id, "Hello");
-    await saveMemory(user.id, {
-      projectId: chat.project.id,
-      text: "Next step: pick a bed layout",
-      basedOn: MEMORY_VERSION_NUMBER.parse(0),
-      author: "user",
-    });
-    const before = await readHomeSummary(user.id);
-    expect(before.latestQuest?.nextStep).toBe("pick a bed layout");
-
-    await laidOut(chat.project.id);
-    const after = await readHomeSummary(user.id);
-    expect(after.latestQuest?.nextStep).toBe(BLOCK_OUT);
-
-    // An emptied plan has no next step, whatever the Journal still says.
-    await changePlanAction({
-      projectId: chat.project.id,
-      operations: [
-        { op: "remove", step: 1 },
-        { op: "remove", step: 2 },
-        { op: "remove", step: 3 },
-      ],
-    });
-    const emptied = await readHomeSummary(user.id);
-    expect(emptied.latestQuest?.nextStep).toBeUndefined();
   });
 
   test(`a change may add a step and remove another at the ${MOST_OPEN_STEPS}-step limit`, async () => {
