@@ -34,7 +34,7 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
       "Start each day here: notice what matters and choose one manageable next step. One ongoing quest you come back to.",
     activityId: DAILIES_ACTIVITY_ID,
     journal: `## Goal
-Start each day with a clear head and one manageable next step.
+Start each day with a clear head and one manageable thing to do.
 
 ## What matters to me
 - (Add routines, priorities or things to keep in mind.)`,
