@@ -491,13 +491,6 @@ The licence attribution for the Blender Reference Manual.
 
 ## Preferences
 
-### Extra
-
-An optional part of the site that the user can switch on or off in Settings. Extras only change what is shown.
-
-- **UI:** "Extras", "switch".
-- **Avoid:** "feature flag", which suggests a deploy-time switch.
-
 ### Theme, mode
 
 A **theme** is the site's look. A **mode** is its light, dark or system appearance setting.
