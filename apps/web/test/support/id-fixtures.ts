@@ -8,13 +8,11 @@ import {
   type MilestoneId,
   type OwnPromptId,
   type ProjectId,
-  type ProjectInvitationId,
   parseChatId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,
   parseProjectId,
-  parseProjectInvitationId,
   parseUserId,
   type UserId,
 } from "@/ids.ts";
@@ -54,11 +52,6 @@ const messageIdFixture: IdFixture<MessageId> = idFixture(
   parseMessageId,
 );
 
-const projectInvitationIdFixture: IdFixture<ProjectInvitationId> = idFixture(
-  "projectInvitationIdFixture",
-  parseProjectInvitationId,
-);
-
 const milestoneIdFixture: IdFixture<MilestoneId> = idFixture(
   "milestoneIdFixture",
   parseMilestoneId,
@@ -74,7 +67,6 @@ export {
   messageIdFixture,
   milestoneIdFixture,
   projectIdFixture,
-  projectInvitationIdFixture,
   userConstructIdFixture,
   userIdFixture,
 };
