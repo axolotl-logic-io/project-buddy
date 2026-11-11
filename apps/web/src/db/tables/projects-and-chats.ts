@@ -62,9 +62,8 @@ export const projects = pgTable(
 // conversation or a user's private Chat (src/conversations/). The partial
 // unique indexes allow at most one continuing chat per project and per user,
 // so starting one is an atomic get-or-create. A chat that isn't continuing is
-// a legacy adventure, which the site no longer makes; migration 0052 deletes
-// them, and the live build during that release still writes them, with
-// continuing false.
+// a legacy adventure, which the site no longer reads: they stay until a
+// later release, after this one is live, deletes them (#898).
 // buddy_name and buddy_parts are the construct's snapshot, and
 // buddy_id the built-in construct's id, or the default construct's for a
 // construct of the user's own, so builds that read only ids keep working.
@@ -74,7 +73,8 @@ export const projects = pgTable(
 // constructs can be added without a migration, and the chat store narrows it
 // when reading, so an id no construct has reads as the default construct.
 // name and renamed_by_hand are a legacy adventure's name, which nothing
-// writes any more.
+// writes any more; that later release drops them, once no live build reads
+// them.
 // Unread marks are per user, in chat_unreads (chat-unreads.ts).
 export const chats = pgTable(
   "chats",
