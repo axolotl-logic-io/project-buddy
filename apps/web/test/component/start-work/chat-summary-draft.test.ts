@@ -2,9 +2,9 @@ import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
 
-// A message far longer than any line of the draft, and the most a line keeps.
-const LONG_MESSAGE = "x".repeat(9000);
+// The most a line of the draft keeps, and a message far longer than that.
 const LONGEST_LINE = 500;
+const LONG_MESSAGE = "x".repeat(LONGEST_LINE * LONGEST_LINE);
 
 function said(role: UIMessage["role"], text: string): UIMessage {
   return { id: crypto.randomUUID(), role, parts: [{ type: "text", text }] };

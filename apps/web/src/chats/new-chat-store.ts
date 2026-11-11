@@ -13,9 +13,7 @@ import {
   type ChatProject,
   type ChatRow,
   isProjectChat,
-  messageColumns,
   type NewMessage,
-  openChat,
   type ProjectChat,
   toChats,
 } from "@/chats/chat-rows.ts";
@@ -171,45 +169,6 @@ export function createChat(
         owner,
         tx,
         { kind: "adventure", id: result.id },
-        { parts: chat.construct.definition },
-      );
-      return result;
-    }),
-  );
-}
-
-// A new chat of the owner's, in its project or standalone, saved together
-// with opening, its first message, and its first activity session, in
-// activity, in one transaction. Rejects with the
-// not-found case, saving nothing, if the project is another user's.
-export function createChatWithOpening(
-  owner: UserId,
-  chat: NewChat & { readonly activity: ChatActivity },
-  opening: NewMessage,
-): Promise<Chat> {
-  return withAppErrors("createChatWithOpening", () =>
-    inTransaction(async (db) => {
-      const id = randomId(parseChatId);
-      const created = await db
-        .insert(chats)
-        .select(newChatRow(owner, chat, id))
-        .returning();
-      await db
-        .insert(messages)
-        .select(
-          new QueryBuilder()
-            .select(messageColumns(id, opening))
-            .from(chats)
-            .where(openChat(owner, id)),
-        );
-      await db
-        .insert(activitySessions)
-        .select(newSession(owner, id, chat.activity, undefined));
-      const result = insertedChat(created, chat.project);
-      await grantVisualAssets(
-        owner,
-        db,
-        { kind: "adventure", id },
         { parts: chat.construct.definition },
       );
       return result;

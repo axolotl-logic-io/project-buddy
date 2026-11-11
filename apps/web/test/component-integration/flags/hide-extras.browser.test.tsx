@@ -17,7 +17,6 @@ import { render } from "vitest-browser-react";
 import { GoldBalance } from "@/app/(workspace)/account/gold-balance.tsx";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
-import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { getConstruct } from "@/constructs/index.ts";
@@ -35,13 +34,8 @@ import {
 } from "@/flags/flags.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
-import { chatNameFixture } from "../../support/chats/chat-name-fixtures.ts";
-import {
-  chatIdFixture,
-  projectIdFixture,
-  userIdFixture,
-} from "../../support/id-fixtures.ts";
+import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
+import { chatIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
@@ -102,9 +96,6 @@ const REPLY_PARTS: UIMessage["parts"] = [
 
 const citations = page.getByRole("region", { name: CITATIONS_COPY.heading });
 const composer = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-const chatLink = page.getByRole("link", {
-  name: CHAT_NAME_COPY.listTitle(CHAT_NAME, LUMEN.name),
-});
 const stillShown = page.getByText(CITATIONS_COPY.searched(TOPIC));
 
 // Renders every extra on one page, each in the component that tags it.
@@ -129,19 +120,6 @@ async function renderEveryExtra(): Promise<void> {
           { id: "r1", role: "assistant", parts: REPLY_PARTS },
         ]}
         constructName={LUMEN.name}
-      />
-      <ChatList
-        chats={[
-          {
-            id: chatIdFixture(),
-            project: { id: projectIdFixture(), name: "Low-poly fox" },
-            construct: LUMEN,
-            name: chatNameFixture(CHAT_NAME),
-            renamedByHand: true,
-            unread: false,
-            createdAt: new Date("2026-10-09T12:00:00Z"),
-          },
-        ]}
       />
       <GoldBalance microUsd={GOLD_BALANCE} />
       <NewProjectForm />
@@ -184,7 +162,6 @@ const EXTRA_SCENES: Record<FlagId, ExtraScene> = {
       );
     },
   },
-  "chat-names": tagged("chat-names"),
   // The page decoration has no tag: <body>'s background draws it, not an
   // element of its own (contract.css), so it shows while that background
   // has an image.
@@ -225,10 +202,9 @@ beforeEach(async () => {
     document.documentElement.setAttribute(name, value);
   }
   await renderEveryExtra();
-  // The chat and the list have rendered.
+  // The chat has rendered.
   await vi.waitFor(() => {
     stillShown.element();
-    chatLink.element();
   });
 });
 
@@ -255,14 +231,6 @@ describe("use_case_hide_extras", () => {
       await expect.element(composer).toBeVisible();
     },
   );
-
-  test("a chat whose name is hidden reads as an unnamed chat", async () => {
-    document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
-
-    await expect
-      .element(page.getByRole("link", { name: LUMEN.name, exact: true }))
-      .toBeVisible();
-  });
 
   test("working notes switched off stay hidden after a reload, and the rest as before", () => {
     reloadFlags("");
