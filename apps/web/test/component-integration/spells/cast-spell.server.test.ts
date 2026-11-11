@@ -29,7 +29,6 @@ import {
 } from "@/spells/spell-store.ts";
 import { CAST_SPELL_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
@@ -211,7 +210,6 @@ describe("use_case_construct_casts_spell", () => {
     const data = testData(owner);
     const project = await data.project();
     const chat = await data.chat(project);
-    await formerMembership(owner, other, project.id);
     const [spell, othersSpell] = await Promise.all([
       ownSpell(owner.id),
       ownSpell(other.id),

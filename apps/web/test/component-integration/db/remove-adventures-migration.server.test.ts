@@ -20,6 +20,7 @@ import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 // them.
 const BEFORE_CONVERSATIONS = 50;
 const CONTINUING_CONVERSATIONS = 51;
+const REMOVE_ADVENTURES = 52;
 
 // The adventures the scene starts with: two in its quest and one standalone.
 const ADVENTURES = 3;
@@ -52,9 +53,10 @@ async function count(
 
 test("the cutover removes adventures and what they own, and keeps accounts, balances, definitions and quests", async () => {
   const database = scratchDatabase("_remove_adventures");
-  const [before, throughAdditive] = await Promise.all([
+  const [before, throughAdditive, throughDeletion] = await Promise.all([
     copyMigrationsUpTo(BEFORE_CONVERSATIONS),
     copyMigrationsUpTo(CONTINUING_CONVERSATIONS),
+    copyMigrationsUpTo(REMOVE_ADVENTURES),
   ]);
   const pool = openPool(database.url);
   try {
@@ -158,7 +160,7 @@ test("the cutover removes adventures and what they own, and keeps accounts, bala
       [conversation],
     );
 
-    await migrateTestDatabase(database);
+    await migrateTestDatabase(database, throughDeletion);
 
     const { rows: conversations } = await pool.query(
       "select id, continuing from chats order by id",
@@ -224,6 +226,7 @@ test("the cutover removes adventures and what they own, and keeps accounts, bala
     await Promise.all([
       removeOldMigrations(before),
       removeOldMigrations(throughAdditive),
+      removeOldMigrations(throughDeletion),
     ]);
   }
 });

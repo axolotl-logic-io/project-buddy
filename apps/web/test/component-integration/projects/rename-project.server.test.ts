@@ -3,7 +3,6 @@ import { describe, expect, test, vi } from "vitest";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { renameProjectAction } from "@/projects/rename-project-action.ts";
 import { getProject } from "@/projects/store.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
@@ -48,7 +47,6 @@ describe("use_case_rename_quest", () => {
     await expectNotFound(() =>
       renameProjectAction({ kind: "idle" }, form(foreign.id, "Stolen")),
     );
-    await formerMembership(her, other, project.id);
     await signIn(other);
     await expectNotFound(() =>
       renameProjectAction(
