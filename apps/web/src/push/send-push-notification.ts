@@ -17,7 +17,7 @@ import {
 import { HOME_PATH } from "@/routes.ts";
 
 // A notification: its title and text, and the site path a tap on it opens,
-// such as "/chats/new".
+// such as "/chat".
 interface PushNotification {
   readonly title: string;
   readonly body: string;

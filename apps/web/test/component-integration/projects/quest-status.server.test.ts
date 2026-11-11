@@ -4,7 +4,6 @@ import {
   changeQuestStatusAction,
   readQuestStatusApprovalAction,
 } from "@/app/(workspace)/projects/status-actions.ts";
-import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listMessages } from "@/chats/store.ts";
 import {
   claimCheckIn,
@@ -119,11 +118,6 @@ describe("use_case_change_quest_status", () => {
           expect.objectContaining({ id: team.project.id }),
         ]),
       );
-      expect((await newChatChoices(team.owner.id)).projects).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.project.id }),
-        ]),
-      );
       const change = required(result.change);
       expect(
         await changeQuestStatus(team.owner.id, {
@@ -141,7 +135,7 @@ describe("use_case_change_quest_status", () => {
           expect.objectContaining({ id: team.project.id }),
         ]),
       );
-      expect((await newChatChoices(team.owner.id)).projects).toEqual(
+      expect(await activeProjects(team.owner.id)).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ id: team.project.id }),
         ]),

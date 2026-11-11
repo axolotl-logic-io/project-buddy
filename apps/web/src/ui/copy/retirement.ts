@@ -10,12 +10,12 @@ const RETIREMENT_COPY = {
   retire: "Retire",
   retireLabel: (name: string): string => `Retire ${name}`,
   retired:
-    "Retired. You can restore it from Retirement. Existing adventures keep their saved instructions and past casts.",
+    "Retired. You can restore it from Retirement. Existing conversations keep their saved instructions and past casts.",
   restore: "Restore",
   restoreLabel: (name: string): string => `Restore ${name}`,
   restored: "Restored. Available to use again.",
   deleted:
-    "Permanently deleted. Existing adventures keep their saved instructions and past casts.",
+    "Permanently deleted. Existing conversations keep their saved instructions and past casts.",
   search: "Find something retired",
   searchPlaceholder: "Search by name…",
   kindFilter: "Filter by kind",
@@ -28,14 +28,14 @@ const RETIREMENT_COPY = {
   dateLabel: "Retired",
   empty: "Nothing retired. Things you retire will appear here.",
   noMatches: "No retired matches. Try another name or kind.",
-  help: "Retired definitions are unavailable for new use. Existing adventures keep their saved instructions and past spell casts.",
+  help: "Retired definitions are unavailable for new use. Existing conversations keep their saved instructions and past spell casts.",
   view: "View",
   viewLabel: (name: string): string => `View ${name}`,
   delete: "Delete forever",
   deleteLabel: (name: string): string => `Delete ${name} forever`,
   deleteTitle: (name: string): string => `Delete “${name}” forever?`,
   deleteDescription: (kind: PromptKind): string =>
-    `This permanently removes your retired ${kind} and its saved instructions. You cannot undo this or restore it afterward. Existing adventures keep their saved instructions and past casts.`,
+    `This permanently removes your retired ${kind} and its saved instructions. You cannot undo this or restore it afterward. Existing conversations keep their saved instructions and past casts.`,
   keep: "Keep retired",
   instructions: "Saved instructions",
   fields: {

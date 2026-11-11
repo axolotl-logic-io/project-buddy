@@ -1,5 +1,5 @@
 // "use_case_chat_with_several_people" in use-cases/chats.md, in Chromium and
-// WebKit: the chat page names the author of each user message someone else
+// WebKit: a quest's conversation names the author of each user message someone else
 // wrote, before its text, and shows "You" on the viewer's own, as a chat
 // only the viewer writes in always has. A long name wraps on the narrowest
 // phone. That the store reads each message's author is checked in
@@ -8,18 +8,12 @@ import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import {
   type ChatMessage,
   type MessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import type {
-  getChat,
-  listMessages,
-  markChatRead,
-  readStoppedReply,
-} from "@/chats/store.ts";
+import { ChatScreen } from "@/components/chat-screen.tsx";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -48,22 +42,10 @@ vi.mock(
   () => import("../../../../auth/current-user-test-kit.ts"),
 );
 
-const store = vi.hoisted(() => ({
-  getChat: vi.fn<typeof getChat>(),
-  listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
-  readStoppedReply: vi.fn<typeof readStoppedReply>(),
-}));
-vi.mock("@/chats/store.ts", () => store);
-
 vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
 );
-
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
 
 const VIEWER: MessageAuthor = {
   id: SIGNED_IN_USER.id,
@@ -92,12 +74,15 @@ function reply(id: string, text: string): ChatMessage {
   return { id, role: "assistant", parts: [{ type: "text", text }] };
 }
 
-async function chatPage(): Promise<JSX.Element> {
-  const content = await ChatPage({
-    params: Promise.resolve({ chatId: FOX_CHAT.id }),
-    searchParams: Promise.resolve({}),
-  });
-  return inWorkspace(content);
+function conversation(messages: ChatMessage[]): JSX.Element {
+  return inWorkspace(
+    <ChatScreen
+      conversation={FOX_CHAT}
+      messages={messages}
+      stoppedReplyId={undefined}
+      viewer={SIGNED_IN_USER.id}
+    />,
+  );
 }
 
 // The text of each message in the conversation, in order, as a screen
@@ -130,7 +115,6 @@ beforeEach(() => {
     document.documentElement.setAttribute(name, value);
   }
   signInAs(SIGNED_IN_USER);
-  store.getChat.mockResolvedValue(FOX_CHAT);
 });
 
 afterEach(() => {
@@ -139,12 +123,13 @@ afterEach(() => {
 
 describe("use_case_chat_with_several_people", () => {
   test("someone else's messages show their name, and hers show You", async () => {
-    store.listMessages.mockResolvedValue([
-      said("m1", ALEX, "The flipper loops are fixed."),
-      said("m2", VIEWER, "Nice. Can we look at the shell next?"),
-      reply("r2", "Great work, Alex."),
-    ]);
-    await render(await chatPage());
+    await render(
+      conversation([
+        said("m1", ALEX, "The flipper loops are fixed."),
+        said("m2", VIEWER, "Nice. Can we look at the shell next?"),
+        reply("r2", "Great work, Alex."),
+      ]),
+    );
 
     await expect
       .element(page.getByText("Great work, Alex."))
@@ -157,11 +142,12 @@ describe("use_case_chat_with_several_people", () => {
   });
 
   test("a chat only she writes in shows no names but You", async () => {
-    store.listMessages.mockResolvedValue([
-      said("m1", VIEWER, "The flipper loops are fixed."),
-      reply("r1", "Great work."),
-    ]);
-    await render(await chatPage());
+    await render(
+      conversation([
+        said("m1", VIEWER, "The flipper loops are fixed."),
+        reply("r1", "Great work."),
+      ]),
+    );
 
     await expect.element(page.getByText("Great work.")).toBeInTheDocument();
     expect(messageTexts()).toStrictEqual([
@@ -172,10 +158,9 @@ describe("use_case_chat_with_several_people", () => {
 
   test("a long name wraps at 320 px", async () => {
     await setViewport(NARROWEST_VIEWPORT);
-    store.listMessages.mockResolvedValue([
-      said("m1", LONG_EMAIL, "The flipper loops are fixed."),
-    ]);
-    await render(await chatPage());
+    await render(
+      conversation([said("m1", LONG_EMAIL, "The flipper loops are fixed.")]),
+    );
 
     const name = page.getByText(LONG_EMAIL.email);
     await expect.element(name).toBeVisible();

@@ -41,12 +41,6 @@
     scroll-padding-top: var(--site-header-height);
   }
 
-  /* The chat's name, before its construct's name in a project's list, so a
-     chat whose name is hidden reads as an unnamed chat does. */
-  html[data-hide~="chat-names"] [data-extra="chat-names"] {
-    display: none;
-  }
-
   html[data-hide~="usage-meter"] [data-extra="usage-meter"] {
     display: none;
   }

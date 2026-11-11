@@ -15,20 +15,16 @@ Built-in, starter, customized and reset prompts use `# Activity Sheet`. The sepa
 
 ## use_case_start_chat_in_activity
 
-The user starts an adventure in the activity she wants.
+The user starts a quest in the activity she wants.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens Activities from any signed-in page's menu. The Built-in tab lists the built-in activities, each with what it is. Yours lists her own, Retired holds retired activities, and Craft activity stays in the heading.
-  - She chooses Brainstorm, the activity’s name used directly as its start action. Chat and Break Down a Project also use their names directly; own activities keep their saved names. The New adventure modal opens on Activities with Brainstorm fixed and no Activity field.
-  - She leaves the quest at "No quest", picks a construct and starts the adventure.
-  - Another time, she chooses Break Down a Project and selects a new or existing quest.
-- **Outcome:** the adventure opens in Brainstorm, with the construct's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorm's instructions until the activity changes. Every activity offers no quest, an existing quest or a new quest. A new quest keeps the chosen activity and construct. Closing the modal creates nothing and returns focus to the activity title.
-- **Variations:**
-  - Choose Find something to make with no quest, an existing quest or a new quest. The chosen construct follows its discovery instructions. An existing quest retains its Journal; no extra quest is created. Without a quest there is no Journal or quest progress.
-  - With no activity chosen, as from the Adventures page's "New adventure" dialog, the adventure starts in Chat.
+  - She chooses Brainstorm, the activity's name used directly as its start action. A dialog named "Start a quest in Brainstorm" opens the quest start ([`use_case_new_project`](projects.md#use_case_new_project)) with Brainstorm already chosen.
+  - She closes the dialog. Another time, she picks a starting point, edits the name and starts the quest.
+- **Outcome:** closing the dialog creates nothing, spends nothing and returns focus to the activity's name. Starting creates one quest in Brainstorm and opens its conversation, whose replies follow Brainstorm's instructions until the activity changes ([`use_case_construct_changes_activity`](#use_case_construct_changes_activity)). The same works from a built-in activity's own page and for her own activities.
 - **Next:**
-  - `use_case_construct_changes_activity`: the construct moves the adventure into another activity.
+  - `use_case_construct_changes_activity`: the construct moves the conversation into another activity.
   - `use_case_customize_activity`: make an activity of her own.
   - `use_case_new_activity`: craft an activity of her own.
 

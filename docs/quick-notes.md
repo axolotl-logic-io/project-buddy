@@ -1,6 +1,6 @@
 # Quick Notes
 
-A Quick Note is a short line that the user saves to a quest between adventures, without starting one. Quick Notes feed the quest's Journal, so the construct knows about them from the quest's next reply. The glossary entry is [Quick Note](../GLOSSARY.md#quick-note).
+A Quick Note is a short line that the user saves to a quest without opening its conversation. Quick Notes feed the quest's Journal, so the construct knows about them from the quest's next reply. The glossary entry is [Quick Note](../GLOSSARY.md#quick-note).
 
 ## The Quick Note page
 

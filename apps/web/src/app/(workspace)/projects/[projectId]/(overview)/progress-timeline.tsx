@@ -1,33 +1,11 @@
-import Link from "next/link";
 import type { JSX } from "react";
 import { LocalTime } from "@/components/local-time.tsx";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { MilestoneControls } from "./milestone-controls.tsx";
 
-// The link to the conversation a milestone was recorded in, or nothing once
-// that conversation is gone.
-function ChatLink({
-  chatId,
-}: {
-  readonly chatId: Milestone["chatId"];
-}): JSX.Element | null {
-  if (chatId === undefined) {
-    return null;
-  }
-  return (
-    <Link
-      className="inline-flex min-h-(--target-size) items-center text-link"
-      href={`/chats/${chatId}`}
-    >
-      {PROGRESS_TIMELINE_COPY.openChat}
-    </Link>
-  );
-}
-
 // A project's progress timeline: its milestones, newest first, each with
-// the day it was recorded, a link to its chat and a way to edit or delete
-// it. With none, it says how milestones arrive, without urging her on.
+// the day it was recorded and a way to edit or delete it. With none, it says how milestones arrive, without urging her on.
 export function ProgressTimeline({
   milestones,
 }: {
@@ -43,11 +21,7 @@ export function ProgressTimeline({
           <p className="text-muted text-sm">
             <LocalTime dateTime={milestone.recordedAt} detail="day" />
           </p>
-          <MilestoneControls
-            milestoneId={milestone.id}
-            text={milestone.text}
-            chatLink={<ChatLink chatId={milestone.chatId} />}
-          />
+          <MilestoneControls milestoneId={milestone.id} text={milestone.text} />
         </li>
       ))}
     </ol>
