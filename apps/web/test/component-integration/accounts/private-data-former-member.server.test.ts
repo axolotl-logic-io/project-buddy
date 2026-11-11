@@ -34,10 +34,12 @@ describe("use_case_private_data", () => {
       generation: quest.generationId,
     });
     expect(await writesBy(quest.owner, quest)).toEqual(ALL_TAKEN);
-    expect(await deletesBy(quest.owner, quest)).toBe("deleted");
     expect(await seenBy(quest.owner, quest)).toMatchObject({
       messages: EXCHANGE_MESSAGES + 1,
-      notes: ["Paint the flippers"],
+      milestones: ["Rigged the flippers", "Edited"],
+    });
+    await deletesBy(quest.owner, quest);
+    expect(await seenBy(quest.owner, quest)).toMatchObject({
       milestones: ["Rigged the flippers"],
     });
   });
@@ -48,7 +50,7 @@ describe("use_case_private_data", () => {
 
     expect(await seenBy(quest.member, quest)).toEqual(NOTHING);
     expect(await writesBy(quest.member, quest)).toEqual(NONE_TAKEN);
-    expect(await deletesBy(quest.member, quest)).not.toBe("deleted");
+    await deletesBy(quest.member, quest);
     expect(await listGeneratedImages(quest.member.id)).toEqual([]);
     expect(await seenBy(quest.owner, quest)).toEqual(before);
   });
