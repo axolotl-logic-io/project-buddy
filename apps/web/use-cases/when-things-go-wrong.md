@@ -24,7 +24,6 @@ The construct cannot reply to a message.
 - **Outcome:** the adventure shows the fixed message for that kind of problem and no reply, with Retry reply when retry can help. An adventure that is too long offers Start a new adventure instead; a missing adventure offers no reply retry. Her message is still in the adventure after she reloads the page or reopens the adventure, and the adventure then says the construct didn't reply to it, with Retry reply, which asks for the reply to that same message without sending it again. Either Retry reply leaves the keyboard's focus in the message box, so she can carry on writing. While a reply to the last message is still being made, such as from another tab, the adventure offers no retry. The site's log records the problem, and the adventure shows none of those details.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): try again once the problem is fixed.
-  - [`use_case_new_chat`](chats.md#use_case_new_chat): start fresh if the conversation has grown too long.
 
 ## use_case_storage_unavailable
 
@@ -42,13 +41,13 @@ The site cannot load or save the user's quests and adventures.
 
 The user starts a quest or an adventure, with a construct or an activity of her own that she has edited, while Claude is unavailable, so the construct can't write the adventure's opening. An adventure with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
 
-- **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat).
+- **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat).
 - **Steps:**
   - She names a new quest with motivation or an edited New quest construct saved in Settings; or she picks a quest and an edited construct for a new adventure. She starts it.
   - The site shows that it is working while it asks the construct for the adventure's opening, which fails or takes longer than 30 seconds.
 - **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and construct. It shows one fixed message: Claude is unavailable right now, so adventures are turned off, and to try again later. Nothing is saved: no new quest and no new adventure appear in her lists. The site's log records the problem once. Replies inside an adventure that already exists fail as `use_case_reply_fails` says.
 - **Next:**
-  - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat): try again later.
+  - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat): try again later.
 
 ## use_case_send_while_construct_replies
 

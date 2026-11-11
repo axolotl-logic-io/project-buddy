@@ -149,13 +149,13 @@ export const CREATE_PROJECT_COPY = {
   summary: "Summary for the new Journal",
   motivation: "Motivation (optional)",
   summaryHint:
-    "Review and edit what to carry into the new quest. Only this confirmed summary and motivation enter its Journal. The source adventure stays here; planned steps are not completed milestones.",
+    "Review and edit what to carry into the new quest. Only this confirmed summary and motivation enter its Journal. This Chat stays private and keeps its messages; planned steps are not completed milestones.",
   confirm: "Confirm summary and create quest",
   creating: "Creating your quest…",
   creationFailed:
     "The quest could not be confirmed. Your edits are kept; try again. Repeating confirmation will not create another quest.",
   created: (name: string): string => `Created the quest “${name}”`,
-  openInterview: "Open its first adventure",
+  openQuest: "Open the quest",
   claudeUnavailable:
     "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
 } as const;

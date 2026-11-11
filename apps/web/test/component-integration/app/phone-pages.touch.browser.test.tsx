@@ -17,7 +17,6 @@ import type {
   getOwnActivity,
   listOwnActivities,
 } from "@/activities/activity-store.ts";
-import type { listAllChats } from "@/chats/all-chats.ts";
 import type {
   getChat,
   listChats,
@@ -30,6 +29,7 @@ import type {
   getOwnConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
+import type { privateChat } from "@/conversations/private-chat.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
@@ -117,8 +117,8 @@ vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
 vi.mock("@/app/check-ins/off/actions.ts", () => ({
   turnOffCheckInsAction: vi.fn(),
 }));
-vi.mock("@/chats/all-chats.ts", () => ({
-  listAllChats: vi.fn<typeof listAllChats>(),
+vi.mock("@/conversations/private-chat.ts", () => ({
+  privateChat: vi.fn<typeof privateChat>(),
 }));
 vi.mock("@/today/today-store.ts", () => ({
   readToday: vi.fn<typeof readToday>(),
