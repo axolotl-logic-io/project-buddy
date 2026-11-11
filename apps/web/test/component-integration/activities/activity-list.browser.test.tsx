@@ -184,6 +184,11 @@ describe("use_case_start_chat_in_activity", () => {
           startingPoint.getByRole("button", { name: QUEST_START_COPY.start }),
         )
         .toBeVisible();
+      // The starting point takes focus as it opens; Escape closes the dialog
+      // holding focus.
+      await expect
+        .poll(() => startingPoint.element().contains(document.activeElement))
+        .toBe(true);
       await userEvent.keyboard("{Escape}");
       await expect.element(startingPoint).not.toBeInTheDocument();
       await expect

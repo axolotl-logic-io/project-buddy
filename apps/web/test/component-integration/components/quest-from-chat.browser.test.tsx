@@ -42,6 +42,11 @@ describe("use_case_project_from_standalone_chat", () => {
       )
       .not.toBeInTheDocument();
 
+    // The starting point takes focus as it opens; Escape closes the dialog
+    // holding focus.
+    await expect
+      .poll(() => doIt.element().contains(document.activeElement))
+      .toBe(true);
     await userEvent.keyboard("{Escape}");
     await expect.element(doIt).not.toBeInTheDocument();
     await userEvent.keyboard("{Escape}");
