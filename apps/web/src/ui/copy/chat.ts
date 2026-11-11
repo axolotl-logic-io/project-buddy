@@ -2,15 +2,6 @@
 // the construct's tool parts, and chat names.
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 
-// The word joining a named chat's name to its construct's in its link.
-const LIST_NAME_JOIN = "with";
-
-// The words before the construct's name in a named chat's link, so hiding them
-// (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
-function listNamePrefix(name: string): string {
-  return `${name} ${LIST_NAME_JOIN}`;
-}
-
 export const NEW_CHAT_COPY = {
   constructLabel: "Construct",
   previousConstruct: "Previous construct",
@@ -100,23 +91,6 @@ export const CREATE_PROJECT_COPY = {
   openQuest: "Open the quest",
   claudeUnavailable:
     "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
-} as const;
-
-export const CHAT_NAME_COPY = {
-  fallback: "New adventure",
-  listNameJoin: LIST_NAME_JOIN,
-  // What a named chat's link reads.
-  listTitle: (name: string, constructName: string): string =>
-    `${listNamePrefix(name)} ${constructName}`,
-  rename: "Rename adventure",
-  label: "Adventure name",
-  save: "Save name",
-  saved: "Renamed.",
-  cancel: "Cancel",
-  needsName: "An adventure needs a name.",
-  tooLong: (maxLength: number): string =>
-    `An adventure name is one line of at most ${maxLength} characters.`,
-  multiLine: "An adventure name is one line. Take out the line break.",
 } as const;
 
 // What the new-project and new-chat forms say when Claude can't write the new
