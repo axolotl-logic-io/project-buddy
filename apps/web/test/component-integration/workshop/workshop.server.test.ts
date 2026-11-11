@@ -1,13 +1,16 @@
+import { eq } from "drizzle-orm";
 import { expect, test, vi } from "vitest";
 import { createActivity, getOwnActivity } from "@/activities/activity-store.ts";
 import { POST } from "@/app/api/workshop/route.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
 import {
   createConstruct,
   getOwnConstruct,
 } from "@/constructs/construct-store.ts";
+import { getDb } from "@/db/client.ts";
+import { chats } from "@/db/tables/projects-and-chats.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import type { UserId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { createSpell, getOwnSpell } from "@/spells/spell-store.ts";
 import { WORKSHOP_RESULT, type WorkshopRequest } from "@/workshop/protocol.ts";
@@ -47,6 +50,16 @@ function send(body: unknown): Promise<Response> {
   );
 }
 
+// The ids of the user's private conversations: a Workshop test saves none,
+// and with no quest it can have no other.
+async function chatsOf(user: UserId): Promise<string[]> {
+  const rows = await getDb()
+    .select({ id: chats.id })
+    .from(chats)
+    .where(eq(chats.userId, user));
+  return rows.map(({ id }) => id);
+}
+
 test("a draft reply uses unsaved instructions, spends the acting user's gold and saves no chat", async () => {
   const user = await testUser();
   signInAs(user);
@@ -67,7 +80,7 @@ test("a draft reply uses unsaved instructions, spends the acting user's gold and
     (await getOwnConstruct(user.id, construct.id))?.definition.prompt,
   ).toBe("Saved instruction.");
   expect(await readGoldBalance(user.id)).toBeLessThan(before);
-  expect(await listAllChats(user.id)).toEqual([]);
+  expect(await chatsOf(user.id)).toEqual([]);
   expect(await listProjects(user.id)).toEqual([]);
 });
 
@@ -199,7 +212,7 @@ test("out of gold refuses a test without saving a conversation", async () => {
   const response = await send(REQUEST);
   expect(response.status).toBe(HTTP_STATUS.tooManyRequests);
   expect(await response.text()).toBe("out-of-gold");
-  expect(await listAllChats(user.id)).toEqual([]);
+  expect(await chatsOf(user.id)).toEqual([]);
 });
 
 test("signed-out and malformed requests cannot start tests", async () => {

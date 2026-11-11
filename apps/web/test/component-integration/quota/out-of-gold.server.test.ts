@@ -5,18 +5,13 @@
 // (chat-images.browser.test.tsx).
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  type StartChatState,
-  startChatAction,
-} from "@/app/(workspace)/chats/actions.ts";
-import {
-  type CreateProjectState,
-  createProjectAction,
-} from "@/app/(workspace)/projects/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { listChats, listMessages } from "@/chats/store.ts";
+import { listMessages } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
@@ -103,39 +98,21 @@ async function sendCrossingMessage({
   return { status, roles: saved.map(({ role }) => role), reply };
 }
 
-// The message a start-chat or create-project form shows for state, or its
-// kind if it is no out-of-gold refusal.
-function refusalMessage(state: StartChatState | CreateProjectState): string {
-  if (state.kind === "outOfGold") {
-    return state.message;
-  }
-  return state.kind;
-}
-
-// What starting a chat in the scene's project, and a new project, showed,
-// and the scene user's chats and projects after.
+// What starting a new quest answered once the scene user is out of
+// batteries, and their quests after.
 interface StartAttempts {
-  readonly newChat: string;
-  readonly newProject: string;
-  readonly chatCount: number;
+  readonly newQuest: string;
   readonly projectIds: readonly string[];
 }
 
-async function tryToStart({
-  user,
-  project,
-}: GoldScene): Promise<StartAttempts> {
-  const newChat = new FormData();
-  newChat.set("projectId", project.id);
-  newChat.set("constructId", "lumen");
-  const newProject = new FormData();
-  newProject.set("name", `Fox ${crypto.randomUUID()}`);
-  const chatState = await startChatAction({ kind: "idle" }, newChat);
-  const projectState = await createProjectAction({ kind: "idle" }, newProject);
+async function tryToStart({ user }: GoldScene): Promise<StartAttempts> {
+  const started = await startProject(
+    user.id,
+    PROJECT_NAME.parse("Fox"),
+    getConstruct("lumen"),
+  );
   return {
-    newChat: refusalMessage(chatState),
-    newProject: refusalMessage(projectState),
-    chatCount: (await listChats(user.id, project.id)).length,
+    newQuest: started.kind,
     projectIds: (await listProjects(user.id)).map(({ id }) => id),
   };
 }
@@ -157,9 +134,7 @@ test("use_case_out_of_gold", async () => {
   expect(await listMessages(user.id, chat.id)).toStrictEqual(afterFirst);
 
   const attempts = await tryToStart(scene);
-  expect(attempts.newChat).toBe(OUT_OF_GOLD);
-  expect(attempts.newProject).toBe(OUT_OF_GOLD);
-  expect(attempts.chatCount).toBe(1);
+  expect(attempts.newQuest).toBe("outOfGold");
   expect(attempts.projectIds).toStrictEqual([project.id]);
 });
 

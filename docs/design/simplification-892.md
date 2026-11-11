@@ -1,51 +1,77 @@
 # Conversation foundation (#892)
 
-This is the domain contract for replacing Adventures with one continuing conversation per quest and one private Chat per user. The quest workspace (#893) and standalone Chat (#894) build on it. Paths are relative to `apps/web/`.
+This note records the domain contract that replaces Adventures with one continuing conversation per quest and one private Chat per user. The quest workspace (#893) and standalone Chat (#894) build on it. Paths are relative to `apps/web/`.
 
-## Storage
+The user asked for fewer features and less complexity. The construct is chosen when a conversation starts and never switched. The activity changes only through the construct's existing activity tool. Dailies is an ordinary quest with a mark.
 
-A conversation is still a `chats` row, so `ChatId`, `/api/chat` and the message, image, reply-run and unread tables keep working. Migration 0051 is additive:
+## New persistent state
 
-- `chats.continuing` (boolean, default false). A continuing conversation is a quest's conversation or a user's private Chat. Partial unique indexes allow one continuing row per project and one per standalone user, so get-or-create is atomic (`insert … on conflict do nothing`, then read).
-- `construct_sessions`: like `activity_sessions`, one row per construct the conversation used, with a snapshot of its name and parts and the message it started after. The newest row is the current construct. `chats.buddy_*` is kept as the current construct, written in the same transaction, so the live build keeps reading it.
-- `messages.construct_session_id` (nullable): the construct that wrote a reply. Editing a construct never changes a snapshot.
-- `milestones.chat_id` becomes nullable with `on delete set null`, so Progress outlives the conversation it was recorded in.
+Each addition is the smallest state that the behavior needs.
 
-Migration 0052 removes legacy adventures: every `chats` row that isn't continuing. Its messages, images, image generations, reply runs and usage rows, activity sessions, unread marks, quest transfers, status approvals and construct-visual grants go with it through their foreign keys. Plan versions and milestones keep their rows with no conversation. Accounts, balances (`gold`, `orbs`, purchases), own constructs, activities and spells, Journals, Plans, members and invitations are untouched.
+| State | Why it's needed |
+| --- | --- |
+| `chats.continuing` (boolean, default false) with partial unique indexes on `project_id` and on standalone `user_id` | Gives atomic get-or-create of the one conversation per quest and the one Chat per user. The flag, rather than plain unique indexes, keeps the live build working during the release: it still writes several adventures per quest with `continuing = false`. |
+| `projects.dailies` (boolean, default false) with a partial unique index on `user_id` | Gives the stable identity of the user's one Dailies quest, whatever its name, and atomic reuse under concurrent starts. |
+| `milestones.chat_id` nullable, `on delete set null` | Lets Progress outlive the adventure it was recorded in, so the cutover keeps it. |
+
+Migration 0051 adds all three and is compatible with the live build. There is no new state for construct history, activity history, daily progress or Start the day.
+
+## Cutover
+
+Migration 0052 deletes every chat that isn't continuing: the existing adventures. The user approved removal rather than keeping their history. The following go with the adventures through their foreign keys:
+
+- messages
+- images and image generations
+- reply runs and their usage rows
+- activity sessions
+- unread marks
+- quest transfers and status approvals
+- construct-visual grants, whose last release collects the asset's bytes
+
+Plan versions and milestones stay, with no conversation. Accounts, battery and orb balances, own constructs, activities and spells, quests, Journals, plans, members and invitations stay. `test/component-integration/db/remove-adventures-migration.server.test.ts` checks this on a scratch database.
 
 ### Release sequencing
 
+- 0051 and 0052 run in the release's migration step while the old build is live. The old build keeps working: it reads adventures that are gone as not found and writes new adventures with `continuing = false`.
 - The new build reads only continuing conversations, so it doesn't depend on 0052 having run.
-- The old build keeps working on the 0051 schema. It writes `continuing = false`, so it never conflicts with the unique indexes.
-- Adventures that the old build creates between 0052 and promotion are left over. They are ignored and invisible. Delete them in the next release with the same statement as 0052 (follow-up issue).
-- Rollback restores old code with the conversations removed. No real user data is lost, by the user's approval.
+- **Follow-up release required:** adventures the old build writes between 0052 and promotion are invisible leftovers. The next release must run `DELETE FROM chats WHERE NOT continuing` again. Once no build writes `continuing = false`, it can also drop the unused `chats.name` and `chats.renamed_by_hand` columns.
+- A rollback restores old code without the adventures. No real users are affected, by the user's approval.
+- Nobody runs 0052 by hand in production. It runs only through the release workflow.
 
 ## Domain API (`src/conversations/`)
 
-All functions take the acting user first and treat a foreign or unknown id as not found.
+Every function takes the acting user first. A quest or conversation that isn't open to that user is not found.
 
-| Function | Purpose |
+| Function | Behavior |
 | --- | --- |
-| `readQuestConversation(viewer, projectId)` | The quest's `Conversation`, or `undefined`. Pure read. |
-| `startQuestConversation(actingUser, projectId)` | Atomic get-or-create. Only the request that creates it writes the opening, charged to the acting user. Returns `started`, `outOfGold`, `claudeUnavailable` or `notFound`. Never makes a second opening. |
-| `privateChat(user)` | The user's private Chat, created empty if missing. No opening, no batteries. |
-| `readConversationHistory(viewer, conversationId)` | Messages, each reply with the `construct` (`{ id, name, parts }`) that wrote it, plus `transitions`: `{ kind: "activity" \| "construct", name, afterMessageId }[]`. |
-| `changeConstruct(actingUser, conversationId, constructId)` | Records a construct transition. Applies to later replies. |
-| `changeActivity(actingUser, conversationId, activityId)` | Records an activity transition. Applies to later replies. |
-| `resolveConversation(viewer, chatId)` | `{ kind: "quest", projectId }`, `{ kind: "chat" }` or `undefined`. Use it to redirect old `/chats/[id]` URLs. |
-| `unreadQuestIds(viewer)` | The quests whose conversation is unread for this viewer. |
+| `readQuestConversation(viewer, projectId)` | Returns the quest's `Conversation` (the chat with its current `activity`), or `undefined`. It is a pure read that never starts one. |
+| `startQuestConversation(actingUser, projectId)` | Atomic get-or-create in the default construct and activity. Only the request that creates it writes the opening, charged to that user. Returns `started`, `outOfGold`, `claudeUnavailable` or `notFound`. |
+| `startProject(owner, name, construct, { motivation?, journal?, activity? })` | Creates a new quest with its conversation and opening in one transaction. |
+| `startDailies(user, { name, journal, construct, activity })` | Resumes the user's Dailies unchanged and for free (`resumed`), or starts it (`started`). Concurrent starts make one. |
+| `privateChat(user)` | Returns the user's Chat. Get-or-create, empty, with no model call. |
+| `resolveConversation(viewer, id)` | Returns `{ kind: "quest", projectId }`, `{ kind: "chat" }` or `undefined`. Old adventure links use it. |
+| `appendCheckIn(owner, project)` | Appends a check-in to the quest's conversation and marks it unread for the owner and members (`src/conversations/check-in.ts`). |
 
-A `Conversation` has `id: ChatId`, `project`, the current construct, the current activity and `unread`.
+`Project` (`src/projects/store.ts`) gains `dailies`, which is true only for the viewer's own Dailies, and `unread`, which is the viewer's own mark. Start the day is a prepared user message sent through `/api/chat`, which the Dailies activity guides. It needs no server state. `/api/chat` stays addressed by the conversation's chat id.
 
-## Other behaviour
+## Reply context
 
-- `startProject` creates the quest and its continuing conversation, with its opening, in one transaction.
-- The `create_project` quest transfer opens the new quest's conversation and moves no Chat messages into it.
-- A check-in appends one construct message to the quest's conversation. If the quest has none, the message opens a new one. It marks the conversation unread for the owner and each member. The current activity doesn't change.
-- A reply sends the Journal, the Plan, the current construct and the current activity, plus a bounded window of the newest messages (`CONVERSATION_WINDOW`).
-- Automatic adventure naming is removed.
+A reply reads the newest `CONVERSATION_WINDOW` (60) messages (`src/replies/conversation-to-answer.ts`). Every reply's instructions carry the quest's Journal, plan and newest milestones, so a long-running quest never sends its whole history. Older messages stay readable on the page.
 
-## Ownership
+## Removed
 
-- #892 owns schema, migrations, these domain modules, replies, check-ins and `GLOSSARY.md`.
-- #893 and #894 delete the obsolete multi-chat modules once they remove the last consumers: `startChat`, `listAllChats`, `listChats`, `listStandaloneChats`, `createStandaloneChat`, `newChatChoices`, `new-chat-selection`, `chat-name`, `renameChat` and the routes that use them.
+| Removed | Notes |
+| --- | --- |
+| Automatic adventure naming | `src/replies/chat-naming.ts`, `src/replies/mock-chat-name.ts`, `chatNameModel`, `saveAutomaticChatName` and the naming `after()` task. Each reply no longer makes a second, Haiku, model call. |
+| Old check-in behavior | Check-ins no longer create a conversation per check-in (`startCheckIn`, `latestConstruct`). |
+| `startProject` in `src/chats/start-chat.ts` | Moved to `src/conversations/start-quest.ts`. |
+| Use cases | `use_case_chat_named_automatically` and `use_case_switch_construct`. |
+| Tests | Multi-adventure tests: `all-chats*`, `store-starts`, `new-project-from-new-chat` and `chat-names`. |
+
+Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`, the Adventures list and filters, the New adventure screens and dialogs, the rename route and its use cases. Once those land, the last consumers of `renameChat`, `chat-name.ts`, `all-chats.ts`, `standalone-chat.ts` and `listChats` are gone, and the consolidated branch deletes them.
+
+## Retained compatibility
+
+- **`chats`/`chat` names in code and storage.** They are the conversation's storage, and renaming them would be a broad mechanical rename the ticket advises against.
+- **`chats.name` and `chats.renamed_by_hand`.** The live build reads them during the release. A later release drops them.
+- **`getChat` reading any open chat, continuing or not.** Old links resolve safely through `resolveConversation`. Nothing lists leftovers.
