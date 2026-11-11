@@ -287,11 +287,12 @@ A message the construct once added to a quest's conversation on a schedule its o
 
 - **Avoid:** in product copy, prompts and docs, except when describing the removal; also "nudge", "reminder", "ping" for anything the site sends on its own.
 
-### Today
+### Current quest
 
-A view of what is waiting for the user: their recent quests and next steps. Showing it makes no model call.
+The quest Quests offers to pick up again, in its Continue card above Start a quest: the user's own Active quest whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next step](#next-step). Continue opens its conversation. With no Active quest there is none. Showing it makes no model call.
 
-- **UI:** "Today", "Continue".
+- **UI:** "Current quest", "Continue".
+- **Earlier name:** "Today", on the removed Home page.
 
 ### Image attachment
 
@@ -321,7 +322,7 @@ Something the user wants to do, make or learn, which they work on in the quest's
 
 ### Start a quest
 
-One of the two ways to create a quest: the shared form that offers the four [premade quests](#premade-quest), then the chosen one's name, starting Journal and construct to edit and confirm. Every link that starts a quest opens this same form; no construct or activity page has a start of its own. Browsing or closing it creates nothing and spends nothing.
+One of the two ways to create a quest: the shared form that offers the four [premade quests](#premade-quest) as tiles, each one target with its name and a one-line tagline, then the chosen one's name, starting Journal and construct to edit and confirm. Every link that starts a quest opens this same form; no construct or activity page has a start of its own. Browsing or closing it creates nothing and spends nothing.
 
 - **UI:** "Start a quest".
 - **Avoid:** "New quest" as a separate flow, "Explore".
@@ -333,7 +334,7 @@ The other way to create a quest: from [Chat](#chat-destination), the same form a
 - **UI:** "Turn Chat into a quest".
 - **Avoid:** "Start a quest from this", "transfer".
 
-The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. Quests is the signed-in landing page; labels use Quest and Quests.
+The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. Quests is the signed-in landing page: its [current quest](#current-quest), Start a quest and the user's quests by status; labels use Quest and Quests.
 
 ### Personal quest
 
