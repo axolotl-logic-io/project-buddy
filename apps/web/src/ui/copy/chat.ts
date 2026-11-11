@@ -75,17 +75,10 @@ export const CAST_SPELL_COPY = {
   cast: (name: string): string => `Cast ${name}`,
 } as const;
 
-// The project the construct created from a chat, or why it created none.
+// The quest the construct offers in Chat, or, in a result saved before
+// offers, the quest it created or why it created none.
 export const CREATE_PROJECT_COPY = {
-  review: (name: string): string => `Create quest: ${name}`,
-  summary: "Summary for the new Journal",
-  motivation: "Motivation (optional)",
-  summaryHint:
-    "Review and edit what to carry into the new quest. Only this confirmed summary and motivation enter its Journal. This Chat stays private and keeps its messages; planned steps are not completed milestones.",
-  confirm: "Confirm summary and create quest",
-  creating: "Creating your quest…",
-  creationFailed:
-    "The quest could not be confirmed. Your edits are kept; try again. Repeating confirmation will not create another quest.",
+  offered: (name: string): string => `Suggested quest: ${name}`,
   created: (name: string): string => `Created the quest “${name}”`,
   openQuest: "Open the quest",
   claudeUnavailable:

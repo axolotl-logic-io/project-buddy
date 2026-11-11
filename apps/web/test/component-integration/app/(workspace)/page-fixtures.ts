@@ -6,13 +6,11 @@ import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
 import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
-import type { ProjectMember } from "@/projects/members-store.ts";
 import type { Project } from "@/projects/store.ts";
 import {
   chatIdFixture,
   milestoneIdFixture,
   projectIdFixture,
-  userIdFixture,
 } from "../../../support/id-fixtures.ts";
 
 const FOX_PROJECT: Project = {
@@ -21,10 +19,7 @@ const FOX_PROJECT: Project = {
   createdAt: new Date("2026-10-09T12:00:00Z"),
   status: "active",
   statusRevision: 0,
-  role: "owner",
-  shared: false,
   dailies: false,
-  unread: false,
 };
 
 // A chat in the fox project.
@@ -32,7 +27,6 @@ const FOX_CHAT: ProjectChat = {
   id: chatIdFixture("9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b"),
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
   construct: snapshotOf(getConstruct("lumen")),
-  unread: false,
   createdAt: new Date("2026-10-11T12:00:00Z"),
 };
 
@@ -62,33 +56,7 @@ const STANDALONE_CHAT: Chat = {
   id: chatIdFixture("3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f"),
   project: undefined,
   construct: snapshotOf(getConstruct("lumen")),
-  unread: false,
   createdAt: new Date("2026-10-12T12:00:00Z"),
-};
-
-// The fox project's people, as a team project: its owner, with no name, and
-// a member with one.
-const FOX_OWNER: ProjectMember = {
-  id: userIdFixture("8b7c6d5e-4f3a-4b2c-9d1e-0f9a8b7c6d5e"),
-  name: undefined,
-  email: "owner@example.com",
-  role: "owner",
-  joinedAt: FOX_PROJECT.createdAt,
-};
-const FOX_MEMBER: ProjectMember = {
-  id: userIdFixture("3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f"),
-  name: "Alex",
-  email: "alex@example.com",
-  role: "member",
-  joinedAt: new Date("2026-10-12T12:00:00Z"),
-};
-
-// The fox project shared with a member, and as that member sees it.
-const FOX_TEAM_PROJECT: Project = { ...FOX_PROJECT, shared: true };
-const FOX_PROJECT_AS_MEMBER: Project = {
-  ...FOX_PROJECT,
-  role: "member",
-  shared: true,
 };
 
 // The fox project's one conversation, in its default activity.
@@ -102,12 +70,8 @@ export {
   FOX_BODY_MILESTONE,
   FOX_CHAT,
   FOX_CONVERSATION,
-  FOX_MEMBER,
   FOX_MILESTONES,
-  FOX_OWNER,
   FOX_PROJECT,
-  FOX_PROJECT_AS_MEMBER,
   FOX_TAIL_MILESTONE,
-  FOX_TEAM_PROJECT,
   STANDALONE_CHAT,
 };

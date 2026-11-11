@@ -34,9 +34,6 @@ function ContinueQuest({
       <div className="atlas-quest">
         <p className="atlas-hud-label">{HOME_COPY.currentQuest}</p>
         <p className="atlas-quest-name">{quest.project.name}</p>
-        {quest.unread === true && (
-          <p className="atlas-next-step">{HOME_COPY.unread}</p>
-        )}
         {quest.nextStep !== undefined && (
           <p className="atlas-next-step">
             {HOME_COPY.nextStep} {quest.nextStep}
@@ -98,12 +95,6 @@ function HomeAtlas({
           {firstVisit === true && (
             <p className="atlas-introduction">{HOME_COPY.purpose}</p>
           )}
-          <p className="atlas-introduction">
-            {HOME_COPY.introduction}{" "}
-            <Link className="atlas-inline-link" href="/activities">
-              {HOME_COPY.activitiesLink}
-            </Link>
-          </p>
         </div>
       </div>
       <nav aria-label={HOME_COPY.placesLabel} className="atlas-world">

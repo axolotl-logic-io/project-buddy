@@ -17,30 +17,20 @@ import type {
   getOwnActivity,
   listOwnActivities,
 } from "@/activities/activity-store.ts";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
-import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
-import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import type { getChat, listMessages } from "@/chats/store.ts";
 import type {
   getOwnConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import type { privateChat } from "@/conversations/private-chat.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
-import type {
-  getListing,
-  listListings,
-  listOwnListings,
-  readSaleState,
-} from "@/marketplace/listing-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readHomeSummary } from "@/today/today-store.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -90,17 +80,7 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
   listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn().mockResolvedValue(undefined),
-}));
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
-}));
-vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
-  readCheckInsOffLink: vi.fn<typeof readCheckInsOffLink>(),
-}));
-vi.mock("@/app/check-ins/off/actions.ts", () => ({
-  turnOffCheckInsAction: vi.fn(),
 }));
 vi.mock("@/conversations/start-quest.ts", () => ({
   readQuestConversation: vi.fn(),
@@ -119,17 +99,6 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock(
-  "@/projects/project-invitations.ts",
-  () => import("../projects/project-invitations-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: vi.fn<typeof listProjectMembers>(),
-}));
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
@@ -137,19 +106,6 @@ vi.mock("@/activities/activity-store.ts", () => ({
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-  getListing: vi.fn<typeof getListing>(),
-  listListings: vi.fn<typeof listListings>(),
-  listOwnListings: vi.fn<typeof listOwnListings>(),
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  buyListingAction: vi.fn(),
-  sellListingAction: vi.fn(),
-  unlistListingAction: vi.fn(),
-  updateListingAction: vi.fn(),
 }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
@@ -194,13 +150,8 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
@@ -235,12 +186,6 @@ vi.mock("@/app/(workspace)/account/actions.ts", () => ({
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
-vi.mock("@/push/notification-actions.ts", () => ({
-  restoreNotificationsAction: vi.fn(),
-  turnOnNotificationsAction: vi.fn(),
-  turnOffNotificationsAction: vi.fn(),
-  sendTestNotificationAction: vi.fn(),
-}));
 
 vi.mock(
   "@/activities/activity-choices.ts",
@@ -261,14 +206,12 @@ interface PhoneMeasures {
 }
 
 // The rows of tabs a page may have, besides its tab lists: a quest's
-// sections, an adventure's, the Workshop's kinds, the Marketplace's, the
-// Library's books and the Retirement filter. The Quests list's status tabs
+// sections, an adventure's, the Workshop's kinds, the Library's books and the Retirement filter. The Quests list's status tabs
 // are a grid of two columns on a phone by design, so they aren't one.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [
   PROJECT_COPY.navigation,
   WORKSPACES_COPY.conversation,
   WORKSHOP_PAGE_COPY.kindsLabel,
-  MARKETPLACE_COPY.filterLabel,
   WORKSPACES_COPY.books,
 ];
 

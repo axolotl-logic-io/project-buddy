@@ -100,7 +100,8 @@ function withSettings<ChatTool extends Tool>(
 
 // The tools a chat in a project, or in none when projectId is undefined, can
 // call: every tool, but update_memory, change_plan, record_milestone and
-// request_quest_status only in a project.
+// request_quest_status only in a project, and create_project only in Chat,
+// the one conversation that can be turned into a quest.
 function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
     GENERATE_IMAGE_TOOL,
@@ -108,9 +109,10 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
     CITE_BLENDER_MANUAL_TOOL,
     SELECT_ACTIVITY_TOOL,
     CAST_SPELL_TOOL,
-    CREATE_PROJECT_TOOL,
   ];
-  if (projectId !== undefined) {
+  if (projectId === undefined) {
+    tools.push(CREATE_PROJECT_TOOL);
+  } else {
     tools.push(
       UPDATE_MEMORY_TOOL,
       CHANGE_PLAN_TOOL,
@@ -239,7 +241,6 @@ function streamChatToolCalls(
       [GENERATE_IMAGE_TOOL]: context,
       [SELECT_ACTIVITY_TOOL]: context,
       [CAST_SPELL_TOOL]: context,
-      [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
       [CHANGE_PLAN_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,

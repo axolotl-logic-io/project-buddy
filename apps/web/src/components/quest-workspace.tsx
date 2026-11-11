@@ -21,8 +21,7 @@ type QuestSection =
   | "journal"
   | "plan"
   | "progress"
-  | "versions"
-  | "members";
+  | "versions";
 
 // A quest's frame: its title and status, with the rail of its sections, the
 // conversation first, and the status controls. children is the current
@@ -70,11 +69,6 @@ function QuestWorkspace({
       id: "versions",
       label: WORKSPACES_COPY.versions,
       href: `/projects/${project.id}/memory?section=versions`,
-    },
-    {
-      id: "members",
-      label: WORKSPACES_COPY.members,
-      href: `/projects/${project.id}?section=members`,
     },
   ];
   return (

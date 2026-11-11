@@ -1,11 +1,11 @@
-// New chats, saved in Postgres: in a project open to the acting user, their
-// own or a team project they are a member of, or standalone, in none. A chat that starts with the construct's opening is saved with it, and
+// New chats, saved in Postgres: in a project of the acting user's, or
+// standalone, in none. A chat that starts with the construct's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOpenTo } from "@/accounts/owner-scope.ts";
+import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
@@ -41,8 +41,7 @@ import type { ProjectName } from "@/projects/project-name.ts";
 type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 
 // The chat a new chat is: its project, or none for a standalone chat, and
-// its construct. A new chat is unread for no one until markChatUnreadFor
-// (store.ts) marks it, as a check-in does.
+// its construct.
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly construct: NewChatConstruct;
@@ -65,8 +64,8 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it into project, or into none, returned, unread
-// for no one. The not-found failure when nothing was inserted, because the
+// The chat that inserting it into project, or into none, returned. The
+// not-found failure when nothing was inserted, because the
 // owner has no such project.
 function insertedChat(
   rows: readonly ChatRow[],
@@ -76,7 +75,6 @@ function insertedChat(
     rows.map((row) => ({
       ...row,
       projectName: project?.name ?? null,
-      unread: false,
     })),
   );
   if (chat === undefined) {
@@ -147,7 +145,7 @@ export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
       }),
     )
     .from(projects)
-    .where(and(eq(projects.id, project.id), projectOpenTo(owner)))
+    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)))
     .getSQL();
 }
 

@@ -2,12 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { chosenActivity } from "@/activities/chosen-activity.ts";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import { startDailies } from "@/conversations/dailies.ts";
 import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
+import { PREMADE_QUESTS } from "@/projects/premade-quests.ts";
 import {
   checkProjectName,
   PROJECT_NAME_MAX_LENGTH,
@@ -19,7 +20,6 @@ const START_DETAILS = z.object({
   premadeId: z.enum(["dailies", "learn", "make", "do"]),
   name: z.string(),
   journal: z.string().trim(),
-  activityId: z.string(),
   constructId: z.string(),
 });
 
@@ -35,8 +35,9 @@ type StartQuestState =
 // The one way to start a quest, from any of its four starting points: an
 // ordinary quest, with its conversation and opening, then opens it.
 // Dailies resumes the user's one Dailies quest if they have it, changing
-// nothing and spending nothing. The construct and activity are checked for
-// the acting user, never trusted from the form. A failure saves nothing.
+// nothing and spending nothing. The construct is checked for the acting
+// user, never trusted from the form; the activity is the starting point's
+// own, which the construct can change later. A failure saves nothing.
 export async function startQuestAction(
   _previous: StartQuestState,
   data: FormData,
@@ -46,7 +47,7 @@ export async function startQuestAction(
   if (!parsed.success) {
     return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
-  const { premadeId, name, journal, activityId, constructId } = parsed.data;
+  const { premadeId, name, journal, constructId } = parsed.data;
   const checked = checkProjectName(name);
   if (checked.kind !== "named") {
     let message: string = PROJECTS_COPY.needsName;
@@ -55,13 +56,12 @@ export async function startQuestAction(
     }
     return { kind: "invalid", message };
   }
-  const [activity, construct] = await Promise.all([
-    chosenActivity(user.id, activityId),
-    chosenConstruct(user.id, constructId),
-  ]);
-  if (activity === undefined || construct === undefined) {
+  const premade = PREMADE_QUESTS.find(({ id }) => id === premadeId);
+  const construct = await chosenConstruct(user.id, constructId);
+  if (premade === undefined || construct === undefined) {
     return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
+  const activity = builtInActivity(premade.activityId);
   const details = {
     name: checked.name,
     journal,

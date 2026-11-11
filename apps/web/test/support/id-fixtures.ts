@@ -4,19 +4,15 @@
 // builds. Add a fixture for a new id type as one more `idFixture` line.
 import {
   type ChatId,
-  type ListingId,
   type MessageId,
   type MilestoneId,
   type OwnPromptId,
   type ProjectId,
-  type ProjectInvitationId,
   parseChatId,
-  parseListingId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,
   parseProjectId,
-  parseProjectInvitationId,
   parseUserId,
   type UserId,
 } from "@/ids.ts";
@@ -56,11 +52,6 @@ const messageIdFixture: IdFixture<MessageId> = idFixture(
   parseMessageId,
 );
 
-const projectInvitationIdFixture: IdFixture<ProjectInvitationId> = idFixture(
-  "projectInvitationIdFixture",
-  parseProjectInvitationId,
-);
-
 const milestoneIdFixture: IdFixture<MilestoneId> = idFixture(
   "milestoneIdFixture",
   parseMilestoneId,
@@ -71,18 +62,11 @@ const userConstructIdFixture: IdFixture<OwnPromptId> = idFixture(
   parseOwnPromptId,
 );
 
-const listingIdFixture: IdFixture<ListingId> = idFixture(
-  "listingIdFixture",
-  parseListingId,
-);
-
 export {
   chatIdFixture,
-  listingIdFixture,
   messageIdFixture,
   milestoneIdFixture,
   projectIdFixture,
-  projectInvitationIdFixture,
   userConstructIdFixture,
   userIdFixture,
 };

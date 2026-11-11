@@ -98,11 +98,4 @@ describe("use_case_rename_quest", () => {
     save.resolve({ kind: "saved", name: FOX_PROJECT.name });
     await expect.element(pencil()).toHaveFocus();
   });
-  test("members have no edit control", async () => {
-    await render(<QuestTitle project={{ ...FOX_PROJECT, role: "member" }} />);
-    await expect
-      .element(page.getByRole("heading", { name: FOX_PROJECT.name }))
-      .toBeVisible();
-    await expect.element(pencil()).not.toBeInTheDocument();
-  });
 });

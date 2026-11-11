@@ -23,8 +23,8 @@ A case written before its test is listed in `test/component-integration/use-case
 - The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
 - **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; setup links do not expire. They stop working when accepted or replaced. Sign-in links for existing accounts expire after 30 minutes. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
-- **Private data:** each user's quests, adventures, Journal and milestones are hers alone, except that a quest's owner can share it with members, who then work in it with her ([`use_case_team_project_access`](projects.md#use_case_team_project_access)). A quest or adventure that isn't hers or shared with her looks exactly like one that doesn't exist.
-- **Batteries:** each user has one balance of batteries, which model calls spend, including image generation and check-ins. Every account starts with 100 batteries, once; batteries never reset.
+- **Private data:** each user's quests, adventures, Journal and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
+- **Batteries:** each user has one balance of batteries, which model calls spend, including image generation. Every account starts with 100 batteries, once; batteries never reset.
 
 ## Conventions
 
@@ -65,10 +65,9 @@ Each area's cases are in their own file:
 - [Activities](activities.md)
 - [Library](library.md)
 - [Workshop](workshop.md): edit and test unsaved constructs, activities and spells.
-- [Marketplace](marketplace.md): publish listings, buy copies and manage sales.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
 - [Spellbook](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
-- [Installed app and notifications](notifications.md)
+- [Installed app](notifications.md)
 - [Site upkeep](site-upkeep.md)

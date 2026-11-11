@@ -5,11 +5,6 @@ import {
   readQuestStatusApprovalAction,
 } from "@/app/(workspace)/projects/status-actions.ts";
 import { listMessages } from "@/chats/store.ts";
-import {
-  claimCheckIn,
-  readCheckInFrequency,
-  saveCheckInFrequency,
-} from "@/check-ins/check-in-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { activeProjects } from "@/projects/active-projects.ts";
@@ -33,9 +28,13 @@ import {
 } from "@/replies/tools/quest-status-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import {
+  formerMemberQuest,
+  NOTHING,
+  seenBy,
+} from "../accounts/former-member-quest-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
-import { seenBy, teamProject } from "./team-project-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
@@ -67,23 +66,21 @@ async function quest(): Promise<{
 
 describe("use_case_change_quest_status", () => {
   test.each(["completed", "abandoned"] as const)(
-    "the owner can mark %s and undo without losing team quest contents",
+    "the owner can mark %s and undo without losing quest contents",
     async (target) => {
-      const team = await teamProject();
-      const before = await seenBy(team.member, team);
-      const outsider = await testUser();
-      expect(await activeProjects(team.member.id)).toEqual(
+      const team = await formerMemberQuest();
+      const before = await seenBy(team.owner, team);
+      expect(await activeProjects(team.owner.id)).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ id: team.project.id }),
         ]),
       );
-      expect(await activeProjects(outsider.id)).not.toEqual(
+      expect(await activeProjects(team.member.id)).not.toEqual(
         expect.arrayContaining([
           expect.objectContaining({ id: team.project.id }),
         ]),
       );
       await signIn(team.owner);
-      await saveCheckInFrequency(team.owner.id, team.project.id, "daily");
       const result = await changeQuestStatusAction(
         { kind: "idle" },
         form({
@@ -94,26 +91,14 @@ describe("use_case_change_quest_status", () => {
         }),
       );
       expect(result.kind).toBe("saved");
-      expect(await seenBy(team.member, team)).toEqual({
+      expect(await seenBy(team.owner, team)).toEqual({
         ...before,
         today: false,
       });
-      expect(await getProject(team.member.id, team.project.id)).toMatchObject({
+      expect(await getProject(team.owner.id, team.project.id)).toMatchObject({
         status: target,
       });
-      expect(await readCheckInFrequency(team.owner.id, team.project.id)).toBe(
-        "off",
-      );
-      expect(
-        await saveCheckInFrequency(team.owner.id, team.project.id, "daily"),
-      ).toBe(false);
-      expect(await claimCheckIn(team.owner.id, team.project.id)).toBe(false);
       expect(await activeProjects(team.owner.id)).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.project.id }),
-        ]),
-      );
-      expect(await activeProjects(team.member.id)).not.toEqual(
         expect.arrayContaining([
           expect.objectContaining({ id: team.project.id }),
         ]),
@@ -126,15 +111,8 @@ describe("use_case_change_quest_status", () => {
           toStatus: "active",
         }),
       ).toMatchObject({ revision: 2 });
-      expect(await readCheckInFrequency(team.owner.id, team.project.id)).toBe(
-        "off",
-      );
-      expect(await seenBy(team.member, team)).toEqual(before);
-      expect(await activeProjects(team.member.id)).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.project.id }),
-        ]),
-      );
+      expect(await seenBy(team.owner, team)).toEqual(before);
+      expect(await seenBy(team.member, team)).toEqual(NOTHING);
       expect(await activeProjects(team.owner.id)).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ id: team.project.id }),
@@ -142,10 +120,10 @@ describe("use_case_change_quest_status", () => {
       );
     },
   );
-  test.each(["member", "outsider"] as const)(
+  test.each(["former member", "outsider"] as const)(
     "a %s cannot change or restore a quest",
     async (role) => {
-      const team = await teamProject();
+      const team = await formerMemberQuest();
       const outsider = await testUser();
       const change: StatusChange = {
         projectId: team.project.id,
@@ -292,7 +270,7 @@ describe("use_case_construct_changes_quest_status", () => {
     });
   });
   test("only the requesting owner can read or answer a card; a mismatched adventure cannot propose", async () => {
-    const team = await teamProject();
+    const team = await formerMemberQuest();
     const outsider = await testUser();
     const approval = required(
       await requestQuestStatus(
@@ -375,7 +353,7 @@ describe("use_case_restore_quest", () => {
 test.each(["pending", "declined", "approved", "outdated"] as const)(
   "reply context supplies the live %s proposal only to its requesting owner",
   async (decision) => {
-    const team = await teamProject();
+    const team = await formerMemberQuest();
     const stranger = await testUser();
     const proposal = required(
       await requestQuestStatus(

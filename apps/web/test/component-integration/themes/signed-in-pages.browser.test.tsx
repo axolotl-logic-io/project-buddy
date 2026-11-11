@@ -14,12 +14,11 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
+import type { getChat, listMessages } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -60,7 +59,6 @@ const stores = vi.hoisted(() => ({
   chats: {
     getChat: vi.fn<typeof getChat>(),
     listMessages: vi.fn<typeof listMessages>(),
-    markChatRead: vi.fn<typeof markChatRead>(),
     readStoppedReply: vi.fn().mockResolvedValue(undefined),
   },
   conversations: {
@@ -78,33 +76,9 @@ vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
-}));
-vi.mock(
-  "@/projects/project-invitations.ts",
-  () => import("../projects/project-invitations-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: async (): Promise<ProjectMember[]> => {
-    const { FOX_OWNER, FOX_MEMBER } = await import(
-      "../app/(workspace)/page-fixtures.ts"
-    );
-    return [FOX_OWNER, FOX_MEMBER];
-  },
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
 
