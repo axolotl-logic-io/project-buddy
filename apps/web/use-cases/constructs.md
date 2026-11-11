@@ -14,10 +14,10 @@ Workshop’s Constructs tab lists built-ins and private constructs. Create const
 - **Steps:**
   - She goes to Workshop, by the menu's Workshop link on any signed-in page, or by an old link to the Workshop’s Constructs tab.
   - The site explains that her constructs are constructs, then lists the built-in constructs, then hers.
-- **Outcome:** an old link to the Workshop’s Constructs tab, or to a construct's page there, opens Workshop or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to make a copy of it, and each of her own offers to tweak it or clone it. Her own constructs also offer Create construct to make one without copying another. Each construct name opens its instructions for inspection or editing. Choose a construct when starting a quest from Quests. Another user's constructs are never listed.
+- **Outcome:** an old link to the Workshop’s Constructs tab, or to a construct's page there, opens Workshop or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to make a copy of it, and each of her own offers to edit it or make a copy. Her own constructs also offer Create construct to make one without copying another. Each construct name opens its instructions for inspection or editing. Choose a construct when starting a quest from Quests. Another user's constructs are never listed.
 - **Next:**
   - `use_case_customize_construct`: make a construct of her own from one of them.
-  - `use_case_new_construct`: craft a construct of her own.
+  - `use_case_new_construct`: create a construct of her own.
   - `use_case_edit_construct`: change the name and prompt of one of hers.
   - `use_case_reset_construct_part`: put her prompt back to its default.
   - `use_case_customize_built_in_construct`: make a copy of a built-in construct from its page, which starts a copy of her own.
@@ -30,8 +30,8 @@ The user makes a construct of her own from one she can see: she makes a copy of 
 - **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
   - She chooses to make a copy of a built-in construct from the Workshop’s Constructs tab. The site makes a new construct of hers from it and opens its page to edit.
-  - Back in the Workshop’s Constructs tab, she chooses to tweak one of her own, which opens its page.
-  - Back in the Workshop’s Constructs tab, she chooses to clone one of her own. The site makes a new construct of hers from it and shows the Workshop’s Constructs tab.
+  - Back in the Workshop’s Constructs tab, she chooses Edit on one of her own, which opens its page.
+  - Back in the Workshop’s Constructs tab, she chooses Make a copy on one of her own. The site makes a new construct of hers from it and opens the copy’s editor.
 - **Outcome:** each new construct is named as the construct it came from, with " (copy)" after: customizing Vellum gives "Vellum (copy)", and cloning that gives "Vellum (copy) (copy)". The construct she customized or cloned is unchanged and still listed. Another user never sees the new one.
 - **Next:**
   - `use_case_edit_construct`: change the new construct.
@@ -47,7 +47,7 @@ The user crafts a construct of her own without copying another.
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts an adventure with the construct.
   - Back in Workshop, she clones it.
-- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing Create construct again makes another construct named "New construct". Another user never sees it.
+- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can edit, rename and copy it, and choose it for a new adventure. Choosing Create construct again makes another construct named "New construct". Another user never sees it.
 - **Next:**
   - `use_case_edit_construct`: change it again.
   - `use_case_view_constructs`: look over the Workshop’s Constructs tab again.

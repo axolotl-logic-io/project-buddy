@@ -11,7 +11,7 @@ A spell has a name, a when-to-use description and a [prompt](../GLOSSARY.md#prom
 
 Any `{{name}}` in either field becomes the user's name: in the when-to-use line in the construct's list, and in the instructions a cast gives. The saved text keep it as written. The construct's list puts each spell on one line, with each run of white space as one space, so a line break or a heading in a when-to-use line can't break out of the list.
 
-A spell's name is at most 80 characters. The spell page's fields say each limit and keep typing within it, and the server refuses a save that is longer (`saveSpellAction` in `src/app/(workspace)/spellbook/actions.ts`). The store keeps to the same limits on every write: the spell kind gives the shared store its limits (`PromptLimits` in `src/prompts/own-prompt-store.ts`), and a write beyond them throws, saving nothing. A clone's name is its source's with " (copy)" after, cut short so it fits.
+A spell's name is at most 80 characters. The spell page's fields say each limit and keep typing within it, and the server refuses a save that is longer (`saveSpellAction` in `src/app/(workspace)/spellbook/actions.ts`). The store keeps to the same limits on every write: the spell kind gives the shared store its limits (`PromptLimits` in `src/prompts/own-prompt-store.ts`), and a write beyond them throws, saving nothing. A copy’s name is its source's with " (copy)" after, cut short so it fits.
 
 The site ships built-in spells (`src/spells/index.ts`), which are read-only. Built-in spell ids are stable, since past casts and own spells' `cloned_from` name them.
 

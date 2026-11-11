@@ -1,4 +1,5 @@
 import type { PromptKind } from "@/prompts/prompt.ts";
+import { workshopPath } from "@/routes.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 interface LibraryChapter {
@@ -32,7 +33,7 @@ const LIBRARY_COPY: {
   title: pageTitle("Library"),
   heading: "Library",
   intro:
-    "Learn your way around Project Buddy, then craft the help you need. Start with Getting Started or choose a book.",
+    "Learn your way around Project Buddy, then create the help you need. Start with Getting Started or choose a book.",
   contents: "Chapters",
   related: "Related books",
   books: [
@@ -146,7 +147,7 @@ const LIBRARY_COPY: {
       ],
       action: {
         href: "/workshop",
-        label: "Choose or craft a construct",
+        label: "Edit constructs in Workshop",
       },
     },
     {
@@ -170,7 +171,7 @@ const LIBRARY_COPY: {
           title: "Create focused instructions",
           links: [],
           paragraphs: [
-            "To make a spell, open Workshop’s Spells tab, then make a copy of a built-in spell, clone one of yours, or choose Create spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
+            "To make a spell, open Workshop’s Spells tab, then choose Make a copy on a built-in or private spell, or Create spell. Give each spell one job. Write its When to use line around a need you can recognize, not “always use this” or a description of the spell.",
             "For example, name a spell “Compare options”, with the When to use line “When the user needs to choose between two or more approaches with trade-offs.” Its Spell Sheet says: “List the options and the user’s stated constraints. Compare effort, reversibility and likely benefit. Separate known facts from assumptions. Recommend one small experiment. Ask at most one question if a missing constraint changes the choice.”",
             "Keep the When to use line short: every conversation’s instructions carry it, and a procedure there doesn’t replace the Spell Sheet. Reset puts back the built-in instructions and keeps the name and When to use line; Save keeps the reset. A copy bought in the Marketplace has nothing to reset to.",
           ],
@@ -193,7 +194,7 @@ const LIBRARY_COPY: {
         },
       ],
       action: {
-        href: "/workshop?kind=spell",
+        href: workshopPath("spell"),
         label: "Open Workshop’s Spells tab",
       },
     },
@@ -218,7 +219,7 @@ const LIBRARY_COPY: {
           title: "Create an activity",
           links: [],
           paragraphs: [
-            "To make an activity, open Activities or Workshop, then customize or clone one, or choose Create activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
+            "To make an activity, open Workshop’s Activities tab, then choose Make a copy or Create activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
             "For example, a “Small experiment” activity might say: “Help the user define one experiment they can finish today. Identify a clear observation that would make it useful. Keep plans provisional until the user agrees. Respect their current request if they change subject.” Its Opening request: “Greet the user briefly and ask what they want to try today.”",
             "An opening should start the conversation, not ask for a life story. Don’t ask the construct to repeat the same questions every turn, or to say a tool worked before its result arrives. Reset puts back the built-in instructions and keeps the Opening request; Save keeps the change. A copy bought in the Marketplace has nothing to reset to.",
           ],
@@ -241,8 +242,8 @@ const LIBRARY_COPY: {
         },
       ],
       action: {
-        href: "/activities",
-        label: "Choose or craft an activity",
+        href: workshopPath("activity"),
+        label: "Edit activities in Workshop",
       },
     },
     {
