@@ -12,7 +12,6 @@ export const PROJECTS_COPY = {
   listHeading: "All quests",
   shared: "Shared",
   sharedWithYou: "Shared with you",
-  unread: "New messages",
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Quest name",
   defaultName: "New quest",

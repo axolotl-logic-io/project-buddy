@@ -8,9 +8,6 @@ interface TodayProject {
   readonly project: ChatProject;
   // The next step its plan or Journal records, or undefined if none.
   readonly nextStep: string | undefined;
-  // Whether its conversation has messages the user hasn't read, such as a
-  // check-in.
-  readonly unread: boolean;
 }
 
 export type { TodayProject };
