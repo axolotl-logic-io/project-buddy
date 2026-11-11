@@ -266,7 +266,7 @@ The user's private conversation for talking without a goal, in no quest. It has 
 
 ### Adventure (removed)
 
-The earlier name for one of several conversations in a quest, or a standalone one. Adventures were removed (#892): a quest has one conversation, and the user has one Chat. Existing adventures were deleted at the cutover. `chat`/`chats` names in code and storage remain for conversations.
+The earlier name for one of several conversations in a quest, or a standalone one. Adventures were removed (#892): a quest has one conversation, and the user has one Chat. Existing adventures are deleted by a later cutover release. `chat`/`chats` names in code and storage remain for conversations.
 
 - **Avoid:** in product copy, prompts and docs, except when describing the removal.
 
