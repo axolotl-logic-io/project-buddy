@@ -57,7 +57,7 @@ export default async function SettingsPage({
       </div>
       <section id="batteries" aria-label={ACCOUNT_COPY.goldHeading} className="flex flex-col gap-3">
         <GoldBalance microUsd={gold} />
-        {(catalog.length > 0 || purchases.length > 0) && (
+        {(catalog.length > 0 || purchases.length > 0 || battery !== undefined) && (
           <BatteryPurchases result={battery} catalog={catalog} purchases={purchases} />
         )}
       </section>

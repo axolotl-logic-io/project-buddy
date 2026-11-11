@@ -59,7 +59,7 @@ test("closed Checkout does not claim a paid purchase failed", async () => {
     .toHaveTextContent(BATTERY_PURCHASES_COPY.canceled);
 });
 
-test("out of batteries links to Account purchase guidance", async () => {
+test("out of batteries links to Settings purchase guidance", async () => {
   await render(
     <BatteryPurchasesAvailable available={true}>
       <EarnGoldLink />
