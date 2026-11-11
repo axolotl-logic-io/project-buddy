@@ -58,7 +58,7 @@ A reply reads the newest `CONVERSATION_WINDOW` (60) messages (`src/replies/conve
 | Use cases | `use_case_chat_named_automatically` and `use_case_switch_construct`. |
 | Tests | Multi-adventure tests: `all-chats*`, `store-starts`, `new-project-from-new-chat` and `chat-names`. |
 
-Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`, the Adventures list and filters, the New adventure screens and dialogs, the rename route and its use cases. Once those land, the last consumers of `renameChat`, `chat-name.ts`, `all-chats.ts`, `standalone-chat.ts` and `listChats` are gone, and the consolidated branch deletes them.
+Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`, the Adventures list and filters, the New adventure screens and dialogs, the rename route and its use cases. With those gone, the consolidation deleted `renameChat`, `chat-name.ts`, `all-chats.ts`, `standalone-chat.ts`, `listChats` and the chat name fields on `Chat`. The `chats.name` and `chats.renamed_by_hand` columns stay; see below.
 
 ## Retained compatibility
 
