@@ -1,6 +1,6 @@
 // Profile, Batteries and security forms in Settings.
 export const ACCOUNT_COPY = {
-  loading: "Loading your batteries…",
+  loading: "Loading Settings…",
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
@@ -14,7 +14,6 @@ export const ACCOUNT_COPY = {
   goldHeading: "Batteries",
   goldHint:
     "What your constructs spend on your replies and images. It doesn't reset.",
-  signOutHeading: "Signing out",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",
