@@ -25,7 +25,6 @@ import type {
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import type { privateChat } from "@/conversations/private-chat.ts";
-import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
   getListing,
@@ -240,9 +239,6 @@ vi.mock("@/app/(workspace)/account/actions.ts", () => ({
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));
-vi.mock("@/flags/save-hidden-flags-action.ts", () => ({
-  saveHiddenFlagsAction: vi.fn(),
-}));
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
@@ -363,9 +359,6 @@ beforeAll(async () => {
 beforeEach(() => {
   vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
   vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
-  for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
-    document.documentElement.setAttribute(name, value);
-  }
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
 });
