@@ -176,29 +176,21 @@ describe("use_case_start_chat_in_activity", () => {
         exact: true,
       });
       await trigger.click();
-      const startingPoint = page.getByRole("dialog", {
-        name: activity.startName,
+      const dialog = page.getByRole("dialog", {
+        name: START_WORK_COPY.activityDialogHeading(activity.name),
       });
       await expect
-        .element(
-          startingPoint.getByRole("button", { name: QUEST_START_COPY.start }),
-        )
+        .element(dialog.getByRole("heading", { name: activity.startName }))
         .toBeVisible();
-      await userEvent.keyboard("{Escape}");
-      await expect.element(startingPoint).not.toBeInTheDocument();
-      await expect
-        .element(
-          page.getByRole("dialog", {
-            name: START_WORK_COPY.activityDialogHeading(activity.name),
-          }),
-        )
-        .toBeVisible();
-      await userEvent.keyboard("{Escape}");
+      await page
+        .getByRole("button", { name: START_WORK_COPY.closeDialog })
+        .click();
+      await expect.element(dialog).not.toBeInTheDocument();
       await expect.element(trigger).toHaveFocus();
       expect(startQuestAction).not.toHaveBeenCalled();
 
       await userEvent.keyboard("{Enter}");
-      await startingPoint
+      await dialog
         .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
         .click();
       const sent = await submitted.promise;
