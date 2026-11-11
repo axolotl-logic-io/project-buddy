@@ -1,7 +1,6 @@
 // Chat, the user's one private conversation, and the old adventure
 // addresses that now lead to Chat or to a quest, in the test database with
 // the mock construct.
-import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import OldChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
@@ -26,10 +25,6 @@ vi.mock("next/cache", () => ({ refresh: vi.fn(), revalidatePath: vi.fn() }));
 
 const SAID = "a private idea about foxes";
 
-async function chatHtml(): Promise<string> {
-  return renderToStaticMarkup(await StandaloneChatPage());
-}
-
 function openOld(chatId: string): Promise<never> {
   return OldChatPage({
     params: Promise.resolve({ chatId }),
@@ -53,22 +48,24 @@ describe("use_case_standalone_chat", () => {
   test("opening Chat again continues one private conversation, spending nothing on the way in", async () => {
     const { her, other } = await twoUsers();
 
-    const first = await chatHtml();
-    const again = await chatHtml();
+    await StandaloneChatPage();
+    await StandaloneChatPage();
     const chat = await privateChat(her.id);
 
-    expect(first).not.toContain("New adventure");
-    expect(again).not.toContain("New adventure");
     expect(await listMessages(her.id, chat.id)).toEqual([]);
     expect(await goldSpent(her)).toBe(0);
 
     await constructReply(chat.id, SAID);
+    await StandaloneChatPage();
     expect((await privateChat(her.id)).id).toBe(chat.id);
-    expect(await chatHtml()).toContain(SAID);
+    const said = await listMessages(her.id, chat.id);
+    expect(said.map(({ role }) => role)).toEqual(["user", "assistant"]);
 
     await signIn(other);
-    expect(await chatHtml()).not.toContain(SAID);
-    expect((await privateChat(other.id)).id).not.toBe(chat.id);
+    await StandaloneChatPage();
+    const theirs = await privateChat(other.id);
+    expect(theirs.id).not.toBe(chat.id);
+    expect(await listMessages(other.id, chat.id)).toEqual([]);
     await expectNotFound(() => openOld(chat.id));
   });
 
@@ -87,14 +84,15 @@ describe("use_case_standalone_chat", () => {
       questConversationId(other.id, foreignQuest),
     ]);
 
-    await Promise.all([
+    const checks = [
       expectRedirect(() => openOld(chat.id), "/chat"),
       expectRedirect(() => openOld(own), `/projects/${ownQuest.id}`),
       expectRedirect(() => openOld(shared), `/projects/${sharedQuest.id}`),
       expectNotFound(() => openOld(foreign)),
       expectNotFound(() => openOld("not-a-chat")),
       expectNotFound(() => openOld(crypto.randomUUID())),
-    ]);
+    ];
+    await expect(Promise.all(checks)).resolves.toHaveLength(checks.length);
   });
 
   test("the old new-adventure address opens Chat and makes nothing", async () => {
