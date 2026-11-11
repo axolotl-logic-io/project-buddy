@@ -44,6 +44,7 @@ describe("use_case_team_project_access", () => {
     expect(members).toMatchObject({
       project: team.project.name,
       listed: true,
+      conversation: team.chat.id,
       chat: team.chat.id,
       messages: EXCHANGE_MESSAGES,
       image: "image/png",
