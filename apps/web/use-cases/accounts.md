@@ -18,7 +18,7 @@ An invited recipient sets up their account with one confirmation.
 
 - **Prerequisites:** `use_case_admin_invites`, for an address without an account.
 - **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
-- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching Home. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
+- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching Quests. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
 - **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
@@ -39,8 +39,8 @@ The user signs in with a link the site emails her, on this device or another.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.
-  - The site signs her in and shows Home.
-- **Outcome:** she is on Home, where she can choose a destination or start an adventure, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
+  - The site signs her in and shows Quests.
+- **Outcome:** she is on Quests, where she can continue a quest or choose one of the four premade starting points, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): see what she has been working on.
   - [`use_case_new_project`](projects.md#use_case_new_project): start learning something new.
@@ -114,7 +114,7 @@ The user checks how many Batteries they have left.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - They read their Batteries balance in the shared header, including Home, without opening a menu.
+  - They read their Batteries balance in the shared header, including Quests, without opening a menu.
   - They open Account and select Batteries to see the same balance and its explanation. Profile holds the name form; Security holds Sign out and Sign out everywhere. Checkout return links select Batteries. Loading and failed balance states still offer sign-out.
   - They send an adventure message and wait for its reply and accounting to finish.
 - **Outcome:** the header shows the viewing user's own Batteries, including in a team quest. Account and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including Workshop tests and construct image generation. A failed or cancelled Workshop test still refreshes after its request settles; checking a recovered image generation updates any reserved or settled balance. Account shows the number large, under a small "Batteries" label. The header shows a battery and the number on one line, which screen readers read as "Batteries: 100". An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.

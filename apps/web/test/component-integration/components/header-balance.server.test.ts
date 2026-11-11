@@ -10,16 +10,16 @@ const FRACTIONAL_SPEND = 10_001;
 const TRANSFER = 5;
 
 describe("use_case_see_gold", () => {
-  test("header reads the viewer's own balance beside a quest place and reflects charges and transfers", async () => {
+  test("header reads the viewer's own balance and reflects charges and transfers", async () => {
     const [viewer, other] = await Promise.all([testUser(), testUser()]);
     await signIn(viewer);
-    expect(
-      renderToStaticMarkup(await SignedInLinks({ place: "Team quest" })),
-    ).toContain("<span>100</span>");
+    expect(renderToStaticMarkup(await SignedInLinks())).toContain(
+      "<span>100</span>",
+    );
     await spendGold(other, FRACTIONAL_SPEND);
-    expect(
-      renderToStaticMarkup(await SignedInLinks({ place: "Team quest" })),
-    ).toContain("<span>100</span>");
+    expect(renderToStaticMarkup(await SignedInLinks())).toContain(
+      "<span>100</span>",
+    );
     await spendGold(viewer, FRACTIONAL_SPEND);
     expect(renderToStaticMarkup(await SignedInLinks())).toContain(
       "<span>98</span>",

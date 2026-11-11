@@ -70,7 +70,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 ## use_case_open_project
 
-The user opens one of their quests, from Quests, Home or a notification.
+The user opens one of their quests, from Quests or a notification.
 
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
@@ -107,7 +107,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - Under Start a quest, they choose Dailies and start it, as in `use_case_new_project`.
-  - On a later day, Dailies under Start a quest reads Open Dailies; they open it, or open it from Quests or Home.
+  - On a later day, Dailies under Start a quest reads Open Dailies; they open it, or open it from Quests.
   - They choose Start the day, beside the composer.
 - **Outcome:** Dailies is a quest like any other, with its name, Journal, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Start the day sends "Let's start the day." as their own message, in the same conversation, and the construct helps them notice what matters and choose one manageable next step. It is an ordinary message, charged as any other, and leaves the composer's draft. Nothing is cleared or reset: the conversation, Journal, Plan and status carry on from day to day. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
@@ -172,7 +172,7 @@ The user works in a team quest: someone else's quest that she is a member of.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the quest's owner has made her a member, as accepting a quest invitation does.
 - **Steps:**
-  - She finds the quest in her quests list, and, while Active, in Home's Continue and the Quick Note choices. Completing or abandoning removes it from those choices; restoring it makes it available again.
+  - She finds the quest in her quests list, and, while Active, in the Quick Note choices. Completing or abandoning removes it from those choices; restoring it makes it available again.
   - She opens the quest and its Journal. She writes in its conversation, edits the Journal, adds and deletes a Quick Note, and edits and deletes a milestone.
   - She looks at the quest's Members section.
 - **Outcome:** the quest, its conversation with its messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her Chat, her own constructs and activities, and her image gallery stay hers alone, except that when the construct moves the quest's conversation into her own activity, it runs on that activity's instructions for everyone in the quest. The conversation shows the change of activity by its name, and never holds its instructions. A check-in marks the conversation unread for each of them separately. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).

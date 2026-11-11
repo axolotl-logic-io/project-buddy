@@ -59,38 +59,6 @@ The user turns what she talked through in Chat into a quest.
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
 
-## use_case_home_atlas
-
-The user finds the site's places on an illustrated parchment atlas.
-
-- **Prerequisites:** a signed-in account.
-- **Steps:**
-  - The user opens Home or follows the site's name after signing in.
-  - They follow a labeled destination in the responsive control panel.
-- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chat, Constructs, Activities, Workshop and Marketplace are ordinary links to their existing pages, in that reading and keyboard order. They form a two-column grid on phones and a three-column grid on wide screens, with no Map/List switch or separate map overview. The original parchment artwork is a decorative background behind the heading and controls, tinted by the active Light, Dark or System palette so Dark has no forced-light map field. Strongly tinted parchment panels blur the terrain behind the text, with readable surfaces when blur is unavailable. Descriptions are visible on wider screens and remain accessible on phones. The current quest or Start a quest follows all six places. Spellbook is reached through the menu or Workshop. Image gallery is reached through the menu. Settings sits beside Account below the quest. Home uses the same shared header as the other pages, above its content in the normal layout. The site's name links to Home; Quick Note and the menu remain available at every width. Home has one current-page breadcrumb label in the same location row as other signed-in pages; that row remains visible after the controls scroll away. Quests and Chat have no shortcuts beside Quick Note on any page; both remain available in the menu and Home's destinations. The header names the place the page belongs to where there is room. Viewing the page creates nothing and makes no model call.
-- **Variations:**
-  - Following a link away from Home restores the destination's page background and content column without a refresh, with the same shared header. Returning to Home restores the map layout, including with browser back and forward.
-  - While Home loads, it shows its heading, a tile where each place will be and the map's artwork, so the background doesn't change when Home arrives.
-  - Before the first quest, Start a quest opens Quests, with its four starting points.
-  - With no quest conversation or Chat yet, Home briefly explains Project Buddy and the first action. Returning users keep Continue unobscured.
-  - The six place icons come from one library and stay decorative, with visible destination names and no duplicate screen-reader announcement in Light and Dark modes, including at 320 px. The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
-  - A signed-out visitor is sent to sign in before any recent work is read.
-
-## use_case_today_on_landing
-
-The user returns to the quest they were most recently working on.
-
-- **Prerequisites:** a signed-in account with an Active quest that has a conversation.
-- **Steps:**
-  - The user opens Home and follows Continue beside their most recent quest.
-- **Outcome:** below the destinations, the atlas shows that quest's name and its next step from its plan, or from its Journal before the plan has steps, if one is recorded, and "New messages" while its conversation has messages they haven't read. Continue opens the quest on its conversation ([`use_case_open_project`](projects.md#use_case_open_project)); its accessible name includes the quest's name. The most recent quest is the one whose conversation last had a message. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
-- **Variations:**
-  - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
-- **Next:**
-  - `use_case_continue_chat`: carry on in the quest's conversation.
-  - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): ask the construct for a next step.
-
-
 ## use_case_send_message
 
 The user writes to the construct and gets a reply.
@@ -246,7 +214,7 @@ The user opens a check-in they haven't read.
 
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
-  - On Quests or Home, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
+  - On Quests, the quest is marked "New messages". They open it, or follow the email's link, which opens the quest.
 - **Outcome:** the quest's conversation shows the construct's check-in message at its end, and they can answer it as any other. Back on Quests, the quest is no longer marked. The mark is theirs alone: anyone else's mark doesn't show to them, and their opening the quest clears only their own. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the construct.
@@ -259,7 +227,7 @@ The user turns off a quest's check-ins from a check-in email.
 - **Steps:**
   - She follows the email's link to turn check-ins off. She needn't be signed in.
   - The page names the quest and asks her to confirm, and she does.
-- **Outcome:** the page says the quest's check-ins are off, with the quest's name in semibold, and links to the quest. The quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing, says it doesn't work and links to Home.
+- **Outcome:** the page says the quest's check-ins are off, with the quest's name in semibold, and links to the quest. The quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing, says it doesn't work and links to Quests.
 - **Next:**
   - [`use_case_set_check_ins`](projects.md#use_case_set_check_ins): turn them on again later.
 

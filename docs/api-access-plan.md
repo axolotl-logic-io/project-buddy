@@ -62,7 +62,7 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 | Transfer, grant or buy balances; read transaction history | Deferred | Undecided | No model call implied. Expose no new commercial policy or administrative balance capability; reconcile supported operations with #779/#782. |
 | Site sign-up/invitations, sign-in links, sign-out, Sign out everywhere; API authorization consent and connection revocation | Site-only browser workflows; connection lifecycle required for API launch | No domain operation permission | D. Reuse current sign-in limits; connections remain distinct from site sessions. Lifecycle semantics below require decisions. |
 | Account name, New quest construct, notification preferences and other account/settings changes | Deferred | Undecided | D. Keep initial domain access small; own-account access never grants admin invitation authority. |
-| Appearance, hidden extras, installed app, device push registration, Home atlas and navigation | Site-only | None | D. Device and presentation behavior, with no proposed command equivalent. Underlying quest/adventure data comes from exposed reads. |
+| Appearance, hidden extras, installed app, device push registration, navigation | Site-only | None | D. Device and presentation behavior, with no proposed command equivalent. Underlying quest/adventure data comes from exposed reads. |
 | Site setup, manual reindex and operational maintenance | Site-only | None | Administrative operations are outside a user's API connection. |
 
 ## Proposed reply tool restrictions

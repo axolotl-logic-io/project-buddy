@@ -13,7 +13,6 @@ interface FieldCopy {
 export const ACTIVITIES_COPY = {
   title: pageTitle("Activities"),
   headerLink: "Activities",
-  homeLink: "Home",
   heading: "Activities",
   intro:
     "An activity guides the work in a quest's conversation. Start a quest in one, or let your construct move the conversation into one when it suits what you are doing.",

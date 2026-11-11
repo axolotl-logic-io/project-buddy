@@ -76,7 +76,7 @@ export const metadata: Metadata = { title: CHECK_INS_OFF_COPY.title };
 // or not. Opening it changes nothing, so a mail scanner that opens the link
 // leaves check-ins on; the user confirms to turn them off, and the page
 // then links to the quest. A link that isn't signed, or whose project is
-// gone, says so and links to Home.
+// gone, says so and links to Quests.
 export default async function CheckInsOffPage({
   searchParams,
 }: PageProps<"/check-ins/off">): Promise<JSX.Element> {

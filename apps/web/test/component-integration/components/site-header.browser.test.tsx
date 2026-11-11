@@ -389,23 +389,23 @@ describe("breadcrumbs in the shared header", () => {
       (viewport) => ["light", "dark"].map((mode) => ({ viewport, mode })),
     ),
   )(
-    "keeps the main origin and header footprint from Home to Quests at $viewport.width px in $mode",
+    "keeps the main origin and header footprint from Quests to Settings at $viewport.width px in $mode",
     async ({ viewport, mode }) => {
       applyTheme("parchment", mode);
       signInAs(SIGNED_IN_USER);
       vi.mocked(readGoldBalance).mockResolvedValue(LOCATION_BALANCE);
       await setViewport(viewport);
-      async function location(home: boolean): Promise<JSX.Element> {
+      async function location(quests: boolean): Promise<JSX.Element> {
         let trail: Parameters<typeof Breadcrumbs>[0]["items"] = [
-          { label: SITE_COPY.home },
+          { label: PROJECTS_COPY.heading },
         ];
-        let heading: string = SITE_COPY.home;
-        if (!home) {
+        let heading: string = PROJECTS_COPY.heading;
+        if (!quests) {
           trail = [
-            { label: SITE_COPY.home, href: "/home" },
-            { label: PROJECTS_COPY.heading },
+            { label: PROJECTS_COPY.heading, href: "/projects" },
+            { label: "Settings" },
           ];
-          ({ heading } = PROJECTS_COPY);
+          heading = "Settings";
         }
         return (
           <>
@@ -424,7 +424,7 @@ describe("breadcrumbs in the shared header", () => {
       expect(
         navigation.element().querySelector('[aria-current="page"]')
           ?.textContent,
-      ).toBe(SITE_COPY.home);
+      ).toBe(PROJECTS_COPY.heading);
       const before = page
         .getByRole("banner")
         .element()
@@ -438,8 +438,8 @@ describe("breadcrumbs in the shared header", () => {
       ).toEqual(before);
       expect(main.getBoundingClientRect().y).toBe(origin);
       await expect
-        .element(navigation.getByRole("link", { name: SITE_COPY.home }))
-        .toHaveAttribute("href", "/home");
+        .element(navigation.getByRole("link", { name: PROJECTS_COPY.heading }))
+        .toHaveAttribute("href", "/projects");
       await openMenu();
       await closeMenu();
       await screen.rerender(await location(true));
@@ -468,8 +468,7 @@ describe("breadcrumbs in the shared header", () => {
               <HeaderBalance microUsd={870_000} />
               <Breadcrumbs
                 items={[
-                  { label: "Home", href: "/home" },
-                  { label: "All quests", href: "/projects" },
+                  { label: "Quests", href: "/projects" },
                   { label: longName, href: "/projects/quest" },
                   { label: longName },
                 ]}
@@ -518,7 +517,10 @@ describe("breadcrumbs in the shared header", () => {
         <SiteHeader
           links={
             <Breadcrumbs
-              items={[{ label: "Home", href: "/home" }, { label: "Settings" }]}
+              items={[
+                { label: "Quests", href: "/projects" },
+                { label: "Settings" },
+              ]}
             />
           }
         />,
@@ -556,7 +558,7 @@ describe("header battery balance", () => {
   });
 
   test.each(["light", "dark"])(
-    "fits Home and shared controls at 320px in %s",
+    "fits Quests and shared controls at 320px in %s",
     async (mode) => {
       applyTheme("parchment", mode);
       await setViewport(NARROWEST_VIEWPORT);
@@ -571,7 +573,7 @@ describe("header battery balance", () => {
             }
           />
           <main>
-            <div className="atlas" />
+            <h1>{PROJECTS_COPY.heading}</h1>
           </main>
         </>,
       );

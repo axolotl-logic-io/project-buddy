@@ -62,9 +62,9 @@ const LIBRARY_COPY: {
           title: "Continue and find your work",
           links: [{ href: "/projects", label: "Find your quests" }],
           paragraphs: [
-            "The header shows where you are. Its links lead back through the pages that contain this one, up to Home.",
+            "The header shows where you are. Its links lead back through the pages that contain this one, up to Quests.",
             "Chat is always one conversation, so open Chat to carry on where you left off. A quest’s conversation opens with the quest.",
-            "To find a quest, open Quests, or follow Continue on Home. Its tabs show Active, Completed and Abandoned quests, and a quest with messages you haven’t read, such as a check-in, is marked New messages. A quest opens on its conversation, with its Journal, plan, progress, Quick Notes, Journal versions, and members and check-ins one tap away. If you own the quest, rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
+            "Quests opens after sign-in. Open an existing quest or start one from Dailies, Learn a thing, Make a thing or Do a thing. Its tabs show Active, Completed and Abandoned quests, and a quest with messages you haven’t read, such as a check-in, is marked New messages. A quest opens on its conversation, with its Journal, plan, progress, Quick Notes, Journal versions, and members and check-ins one tap away. If you own the quest, rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
             "The Journal holds what a quest needs to remember: its goals, preferences, limits and agreed plans. The construct is asked to save useful information there, and you can read and edit it yourself. If a reply misunderstands your goal, check the Journal first.",
             "To note something without a conversation, save a Quick Note. Quick Notes become part of the Journal, so the quest’s replies can use them. Replies read the Journal and the newest part of the conversation, so keep lasting information in the Journal.",
             "For example, save “The shelf gets sun only in the morning” as a Quick Note. Later in the quest’s conversation, ask which plants would suit it. Chat has no Journal.",

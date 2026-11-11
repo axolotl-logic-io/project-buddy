@@ -52,7 +52,7 @@ export const CHECK_INS_OFF_COPY = {
   questLink: "Go to the quest",
   unusable:
     "This link doesn't work. Turn check-ins off on the quest's page instead.",
-  homeLink: "Go to Home",
+  homeLink: "Go to Quests",
   loading: "Checking your link…",
 } as const;
 
