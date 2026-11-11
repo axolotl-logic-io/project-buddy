@@ -13,6 +13,7 @@ import { projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
 import type { ProjectRole } from "@/projects/members-store.ts";
+import { type PremadeId, parsePremadeId } from "@/projects/premade.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/projects/quest-status.ts";
 
@@ -26,6 +27,9 @@ interface Project {
   role: ProjectRole;
   // Whether it is a team project: one with members besides its owner.
   shared: boolean;
+  // The premade quest it started from, its stable identity; undefined for
+  // a quest started otherwise.
+  premade: PremadeId | undefined;
   // Whether it is the acting user's own Dailies quest
   // (src/conversations/dailies.ts); a member sees another's as a quest.
   dailies: boolean;
@@ -43,6 +47,7 @@ interface ProjectRow {
   readonly owned: boolean;
   readonly shared: boolean;
   readonly dailies: boolean;
+  readonly premade: string | null;
   readonly unread: boolean;
 }
 
@@ -58,6 +63,7 @@ function projectColumns(user: UserId): {
   readonly owned: SQL<boolean>;
   readonly shared: SQL<boolean>;
   readonly dailies: SQL<boolean>;
+  readonly premade: typeof projects.premade;
   readonly unread: SQL.Aliased<boolean>;
 } {
   return {
@@ -73,7 +79,8 @@ function projectColumns(user: UserId): {
         .from(projectMembers)
         .where(eq(projectMembers.projectId, projects.id)),
     )}`,
-    dailies: sql<boolean>`(${projects.dailies} and ${projectOwnedBy(user)})`,
+    dailies: sql<boolean>`(coalesce(${projects.premade} = 'dailies', false) and ${projectOwnedBy(user)})`,
+    premade: projects.premade,
     unread: questUnreadFor(user),
   };
 }
@@ -98,6 +105,7 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
       status,
       statusRevision,
       dailies,
+      premade,
       unread,
     }) => {
       const projectId = parseProjectId(id);
@@ -114,6 +122,7 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
           status: QUEST_STATUS.parse(status),
           statusRevision,
           dailies,
+          premade: parsePremadeId(premade),
           unread,
         },
       ];
@@ -175,7 +184,8 @@ export function createProject(
         createdAt: projects.createdAt,
         owned: sql<boolean>`true`,
         shared: sql<boolean>`false`,
-        dailies: projects.dailies,
+        dailies: sql<boolean>`false`,
+        premade: projects.premade,
         unread: sql<boolean>`false`,
       }),
     );

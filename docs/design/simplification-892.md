@@ -2,7 +2,7 @@
 
 This note records the domain contract that replaces Adventures with one continuing conversation per quest and one private Chat per user. The quest workspace (#893) and standalone Chat (#894) build on it. Paths are relative to `apps/web/`.
 
-The user asked for fewer features and less complexity. The construct is chosen when a conversation starts and never switched. The activity changes only through the construct's existing activity tool. Dailies is an ordinary quest with a mark.
+The user asked for fewer features and less complexity. The construct is chosen when a conversation starts and never switched. The activity changes only through the construct's existing activity tool. The four premade starting points (Dailies, Learn a thing, Make a thing, Do a thing) start one ordinary kind of quest. Dailies is the user's one ongoing quest.
 
 ## New persistent state
 
@@ -11,7 +11,7 @@ Each addition is the smallest state that the behavior needs.
 | State | Why it's needed |
 | --- | --- |
 | `chats.continuing` (boolean, default false) with partial unique indexes on `project_id` and on standalone `user_id` | Gives atomic get-or-create of the one conversation per quest and the one Chat per user. The flag, rather than plain unique indexes, keeps the live build working while 0051 runs: it still writes several adventures per quest with `continuing = false`, and existing adventures stay until #898. |
-| `projects.dailies` (boolean, default false) with a partial unique index on `user_id` | Gives the stable identity of the user's one Dailies quest, whatever its name, and atomic reuse under concurrent starts. |
+| `projects.premade` (nullable text: `dailies`, `learn`, `make` or `do`) with a partial unique index on `user_id` where it is `dailies` | Gives the stable identity of the premade quest a quest started from, whatever its name. The index gives the user one Dailies and atomic reuse under concurrent starts. Null for quests started before it or otherwise. |
 | `milestones.chat_id` nullable, `on delete set null` | Lets Progress outlive the adventure it was recorded in, so the cutover (#898) keeps it. A milestone with no conversation still reads and shows. |
 
 Migration 0051 is additive. It adds all three and is compatible with the live build. There is no new state for construct history, activity history, daily progress or Start the day.
@@ -37,12 +37,13 @@ Every function takes the acting user first. A quest or conversation that isn't o
 | `readQuestConversation(viewer, projectId)` | Returns the quest's `Conversation` (the chat with its current `activity`), or `undefined`. It is a pure read that never starts one. |
 | `startQuestConversation(actingUser, projectId)` | Atomic get-or-create in the default construct and activity. Only the request that creates it writes the opening, charged to that user. Returns `started`, `outOfGold`, `claudeUnavailable` or `notFound`. |
 | `startProject(owner, name, construct, { motivation?, journal?, activity? })` | Creates a new quest with its conversation and opening in one transaction. |
-| `startDailies(user, { name, journal, construct, activity })` | Resumes the user's Dailies unchanged and for free (`resumed`), or starts it (`started`). Concurrent starts make one. |
+| `startPremadeQuest(user, { premade, name, journal, motivation?, construct, activity })` (`premade-quest.ts`) | The one quest start for every premade, used by #893 and #894. Returns `started \| resumed {chat} \| outOfGold \| claudeUnavailable`. Learn, Make and Do start a new quest for each goal. Dailies resumes the user's one Dailies unchanged and for free, or starts it; concurrent starts make one (`startDailies` in `dailies.ts`). |
+| `startTheDay(user, projectId, message)` (`dailies.ts`) | Returns `started {chat, messageId} \| notFound`. Adds the user's prepared message to the end of their own Dailies conversation and clears nothing. Appends are serialized per conversation: a message already awaiting its reply is the day's start, so concurrent clicks add one. The browser then asks `/api/chat` for the reply, which is charged like any reply. Not found for anyone else's quest. |
 | `privateChat(user)` | Returns the user's Chat. Get-or-create, empty, with no model call. |
 | `resolveConversation(viewer, id)` | Returns `{ kind: "quest", projectId }`, `{ kind: "chat" }` or `undefined`. Old adventure links use it. |
 | `appendCheckIn(owner, project)` | Appends a check-in to the quest's conversation and marks it unread for the owner and members (`src/conversations/check-in.ts`). |
 
-`Project` (`src/projects/store.ts`) gains `dailies`, which is true only for the viewer's own Dailies, and `unread`, which is the viewer's own mark. Start the day is a prepared user message sent through `/api/chat`, which the Dailies activity guides. It needs no server state. `/api/chat` stays addressed by the conversation's chat id.
+`Project` (`src/projects/store.ts`) gains three fields. `premade` is the quest's premade. `dailies` is true only for the viewer's own Dailies. `unread` is the viewer's own mark. Start the day keeps no state: it is the user's message, which the Dailies activity guides. `/api/chat` stays addressed by the conversation's chat id.
 
 ## Reply context
 
