@@ -12,7 +12,7 @@ const QUEST_STATUS_OUTPUT = z.object({
   approval: STATUS_APPROVAL,
 });
 const QUEST_STATUS_DESCRIPTION = [
-  "Propose completing, abandoning or restoring this adventure's quest. This only creates an approval card; it does not change status.",
+  "Propose completing, abandoning or restoring this conversation's quest. This only creates an approval card; it does not change status.",
   "Verify the user's intent first: ask whether they want the entire quest marked completed or abandoned, or restored, rather than assuming a finished milestone or frustration ends the quest.",
   "Explain the exact change and ask the user to confirm it on the approval card. Even a direct request must be confirmed on the card before the change executes.",
   "Only the quest owner may request or approve a change. All quest contents stay available. Completed and abandoned quests stop check-ins; restoring does not resume check-ins automatically.",
