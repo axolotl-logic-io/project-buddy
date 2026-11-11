@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
   // Keep saved links from earlier names working. Temporary redirects allow
   // a rollback to a build that still serves either earlier route.
   redirects: async () => [
+    {
+      source: "/account",
+      has: [{ type: "query", key: "section", value: "security" }],
+      destination: "/settings#security",
+      permanent: false,
+    },
+    {
+      source: "/account",
+      has: [{ type: "query", key: "section", value: "batteries" }],
+      destination: "/settings#batteries",
+      permanent: false,
+    },
     { source: "/account", destination: "/settings", permanent: false },
     { source: "/guild", destination: "/constructs", permanent: false },
     {

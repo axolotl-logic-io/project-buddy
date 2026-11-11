@@ -141,6 +141,6 @@ vi.mock("@/constructs/own-construct-choices.ts", () => ({
 vi.mock("@/constructs/interview-construct.ts", () => ({
   interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
 }));
-vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/interview-construct-action.ts", () => ({
   setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
 }));

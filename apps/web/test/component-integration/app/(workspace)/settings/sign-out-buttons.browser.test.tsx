@@ -11,18 +11,18 @@ import { render } from "vitest-browser-react";
 import type {
   signOutAction,
   signOutEverywhereAction,
-} from "@/app/(workspace)/account/actions.ts";
-import AccountError from "@/app/(workspace)/account/error.tsx";
-import AccountLoading from "@/app/(workspace)/account/loading.tsx";
-import { SignOutButtons } from "@/app/(workspace)/account/sign-out-buttons.tsx";
-import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/account/sign-out-form.ts";
+} from "@/app/(workspace)/settings/actions.ts";
+import AccountError from "@/app/(workspace)/settings/error.tsx";
+import AccountLoading from "@/app/(workspace)/settings/loading.tsx";
+import { SignOutButtons } from "@/app/(workspace)/settings/sign-out-buttons.tsx";
+import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/settings/sign-out-form.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
 const actions = vi.hoisted(() => ({
   signOutAction: vi.fn<typeof signOutAction>(),
   signOutEverywhereAction: vi.fn<typeof signOutEverywhereAction>(),
 }));
-vi.mock("@/app/(workspace)/account/actions.ts", () => actions);
+vi.mock("@/app/(workspace)/settings/actions.ts", () => actions);
 // Signing out turns notifications off without them.
 vi.mock("@/push/notification-actions.ts", () => ({
   restoreNotificationsAction: vi.fn(),

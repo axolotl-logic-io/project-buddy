@@ -14,7 +14,7 @@ import {
   expect,
   test,
 } from "vitest";
-import { signOutAction } from "@/app/(workspace)/account/actions.ts";
+import { signOutAction } from "@/app/(workspace)/settings/actions.ts";
 import { POST } from "@/app/api/push-subscription/route.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import {

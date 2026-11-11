@@ -14,7 +14,7 @@ import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { GoldBalance } from "@/app/(workspace)/account/gold-balance.tsx";
+import { GoldBalance } from "@/app/(workspace)/settings/gold-balance.tsx";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { ChatView } from "@/components/chat-view.tsx";

@@ -7,7 +7,7 @@ import { readUserName, type User } from "@/accounts/users-store.ts";
 import {
   type SetNameResult,
   setNameAction,
-} from "@/app/(workspace)/account/actions.ts";
+} from "@/app/(workspace)/settings/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { getChat } from "@/chats/store.ts";

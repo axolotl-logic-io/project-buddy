@@ -21,8 +21,8 @@ import {
 import {
   signOutAction,
   signOutEverywhereAction,
-} from "@/app/(workspace)/account/actions.ts";
-import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/account/sign-out-form.ts";
+} from "@/app/(workspace)/settings/actions.ts";
+import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/settings/sign-out-form.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import {
