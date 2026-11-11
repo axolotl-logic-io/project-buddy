@@ -33,15 +33,15 @@ The user starts a quest to learn, make or do something.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), with batteries.
 - **Steps:**
-  - Under Start a quest, they choose Learn a thing, Make a thing or Do a thing. Its details open filled in: a name, a starting Journal and the construct, their New quest construct or Vellum.
-  - They change anything they like, or nothing, and choose Start quest.
-- **Outcome:** the quest opens straight on its one conversation, with no further step, and already holds the construct's opening in its voice, guided by the starting point's activity, which they never choose themselves: Learn a thing asks what they want to learn and where they start from, Make a thing helps find something to make, and Do a thing helps break a goal into steps. The Journal holds the starting Journal as their first version; its possible milestones are plans, not progress. Each starting point can be started again for another goal, as a quest of its own. With a built-in construct and the starting point's Journal unchanged, the opening is the construct's prepared one ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). The quest is first in their quests list.
+  - Under Start a quest, they choose Learn a thing, Make a thing or Do a thing. A modal opens with the construct, their New quest construct or Vellum, and an optional Why field. The name and starting Journal come from the starting point automatically.
+  - They choose a construct, optionally fill in Why, and choose Start quest.
+- **Outcome:** the quest opens straight on its one conversation, with no further step, and already holds the construct's opening in its voice, guided by the starting point's activity, which they never choose themselves: Learn a thing asks what they want to learn and where they start from, Make a thing helps find something to make, and Do a thing helps break a goal into steps. The Journal holds the starting Journal and optional Why as their first version; its possible milestones are plans, not progress. Each starting point can be started again for another goal, as a quest of its own. With a built-in construct and no Why, the opening is the construct's prepared one ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). The quest is first in their quests list.
 - **Variations:**
   - Closing the details instead creates nothing and spends nothing.
   - They are out of batteries, or Claude is unavailable: the details stay open with every edit, say why, and nothing is saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
 - **Next:**
   - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans from the conversation.
-  - `use_case_new_project_without_name`: they clear its name.
+  - `use_case_new_project_without_name`: an invalid request has no name.
   - `use_case_new_project_with_construct`: they want another construct, one of their own.
   - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): they talked the idea through in Chat first.
 
@@ -58,24 +58,24 @@ The user starts a quest with a construct of their own.
 
 ## use_case_new_project_without_name
 
-The user tries to start a quest without a name.
+The site receives a quest start request without a name.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - In a starting point's details, they clear the name, or leave only spaces, and choose Start quest.
-- **Outcome:** the details stay open with their edits and ask for a name. No quest is made.
+  - A malformed request supplies an empty or whitespace-only name. The normal start dialog supplies the starting point’s name automatically.
+- **Outcome:** the request is refused with a name error. No quest is made.
 - **Next:**
-  - `use_case_new_project`: give it a name this time.
+  - `use_case_new_project`: start from a quest’s normal start dialog.
 
 ## use_case_new_project_name_too_long
 
-The user tries to give a new quest a name longer than 80 characters.
+The site receives a quest start request with a name longer than 80 characters.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - In a starting point's details, they type or paste a name longer than 80 characters.
-  - The name field takes no more than 80 characters. If a longer name reaches the site anyway, the site refuses it.
-- **Outcome:** the details say to use a shorter name of at most 80 characters, and keep their edits. No quest is made. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Quests named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
+  - A malformed request supplies a name longer than 80 characters.
+  - The site refuses it before creating a quest.
+- **Outcome:** the request fails with a shorter-name error. No quest is made. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Quests named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
 - **Next:**
   - `use_case_new_project`: give it a shorter name.
 
@@ -174,8 +174,8 @@ The user chooses which construct new quests start with.
 The user looks at the ways to start a quest without starting one.
 
 - **Prerequisites:** signed in on Quests.
-- **Steps:** under Start a quest, they read the four starting points, choose one, look at its name, starting Journal and construct, then choose Back to the starting points.
-- **Outcome:** Dailies, Learn a thing, Make a thing and Do a thing are tiles, each with an icon, its name and one short line on what it is for. A whole tile is one target, named by its starting point; there is no separate Choose button. Choosing one shows its details in the strip's place, with what it is for in full, and moves focus to their heading; Back shows the tiles again, with focus on their heading. Opening and closing details makes no quest and no model call, and spends nothing. Once they have a Dailies quest, its tile opens it instead.
+- **Steps:** under Start a quest, they read the four starting points, choose one, review its construct and optional Why, then cancel.
+- **Outcome:** Dailies, Learn a thing, Make a thing and Do a thing are tiles, each with an icon, its name and one short line on what it is for. A whole tile is one target, named by its starting point; there is no separate Choose button. Choosing one opens a modal dialog with what it is for in full, its construct and optional Why. The only setup fields are Construct and Why. Focus stays in the dialog until Cancel, Escape or a click outside closes it and returns focus to its tile. Opening and closing details makes no quest and no model call, and spends nothing. Once they have a Dailies quest, its tile opens it instead.
 
 ## use_case_rename_quest
 
