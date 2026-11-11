@@ -7,6 +7,9 @@ const SIGN_IN_PATH = "/login";
 // atlas homepage.
 const HOME_PATH = "/home";
 
+// Chat, the user's one private conversation for talking without a goal.
+const STANDALONE_CHAT_PATH = "/chat";
+
 // The Settings page, which a test notification opens.
 const SETTINGS_PATH = "/settings";
 
@@ -42,4 +45,5 @@ export {
   SIGN_IN_DESTINATION_PARAMETER,
   SIGN_IN_LINK_PATH,
   SIGN_IN_PATH,
+  STANDALONE_CHAT_PATH,
 };

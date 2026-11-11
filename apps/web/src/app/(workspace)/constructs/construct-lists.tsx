@@ -3,15 +3,10 @@
 // first, each of which she can tweak or clone, with a button that crafts a new one.
 import Link from "next/link";
 import type { JSX } from "react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  type NewChatChoices,
-  newChatChoices,
-} from "@/chats/new-chat-choices.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
-import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
+import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
@@ -22,6 +17,10 @@ import {
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
+import {
+  type QuestCreationChoices,
+  questCreationChoices,
+} from "@/projects/quest-creation-choices.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -42,7 +41,7 @@ interface ListedConstruct extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its avatar beside its name, which opens New chat,
+// A construct as a card: its avatar beside its name, which opens its start action,
 // its temperament and its actions, in one column.
 function ConstructCard({
   construct,
@@ -51,7 +50,7 @@ function ConstructCard({
 }: {
   readonly construct: ListedConstruct;
   readonly actions: JSX.Element;
-  readonly choices: NewChatChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <li className="card construct-card">
@@ -61,10 +60,13 @@ function ConstructCard({
         decorative={true}
       />
       <div className="flex min-w-0 flex-col gap-2">
-        <NewChatDialog
-          {...choices}
-          fixedConstructId={construct.id}
-          selectedActivityId={DEFAULT_ACTIVITY_ID}
+        <StartWorkDialog
+          choices={choices}
+          startWith={{
+            kind: "construct",
+            id: construct.id,
+            name: construct.name,
+          }}
           trigger={
             <button
               className="card-title wrap-anywhere self-start text-left text-link"
@@ -90,7 +92,7 @@ function BuiltInConstructCards({
   choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: NewChatChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -124,7 +126,7 @@ function OwnConstructList({
   choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: NewChatChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -171,7 +173,7 @@ function OwnConstructCards({
   choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
-  readonly choices: NewChatChoices;
+  readonly choices: QuestCreationChoices;
 }): JSX.Element {
   if (constructs.length === 0) {
     return <p className="text-muted">{CONSTRUCTS_COPY.noOwn}</p>;
@@ -187,7 +189,7 @@ async function ConstructLists({
   const user = await requireUser();
   const [own, choices] = await Promise.all([
     listOwnConstructs(user.id),
-    newChatChoices(user.id),
+    questCreationChoices(user.id),
   ]);
   if (workspace === true) {
     const retired = await listRetiredDefinitions(user.id);
