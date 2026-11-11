@@ -34,7 +34,6 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -139,7 +138,6 @@ describe("a quest's conversation", () => {
     const data = testData(owner);
     const project = await data.project();
     const chat = await data.chat(project);
-    await formerMembership(owner, member, project.id);
     const before = await listMessages(owner.id, chat.id);
 
     await signIn(member);
@@ -297,7 +295,6 @@ describe("Dailies", () => {
     if (hers.kind !== "started") {
       throw new Error(`Dailies didn't start: ${hers.kind}`);
     }
-    await formerMembership(her, other, hers.chat.project.id);
 
     const theirs = await startDailies(other.id, dailiesStart());
 

@@ -1,9 +1,7 @@
-// For the server tests of use_case_private_data with a quest's former
-// member: a quest whose owner has saved one of each kind of data reached
-// through it, with the membership and accepted invitation another user kept
-// from when quests could be shared, and two probes over the stores:
-// everything a user can read of the quest, and every write a user can try
-// on it.
+// Current-schema fixture for owner isolation after shared quest storage is gone.
+// The real historical membership/invitation transition is exercised in
+// db/retired-storage-migration.server.test.ts. Here the former member has
+// no membership rows, as after cleanup, and every store must still deny them.
 
 import type { User } from "@/accounts/users-store.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
@@ -42,7 +40,6 @@ import {
 import { getProject, listProjects, type Project } from "@/projects/store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
@@ -101,7 +98,7 @@ async function generatedImage(
 
 // A new quest of a new owner's, with a chat holding a message and an image,
 // an interview activity session, a memory of two versions, a milestone and a
-// generated image; and a new user with a saved membership of it.
+// generated image; and a second user with no access to it.
 async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const data = testData(owner);
@@ -135,7 +132,6 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
     throw new Error("The milestone was not recorded");
   }
   const generationId = await generatedImage(owner, chat);
-  await formerMembership(owner, member, project.id);
   return {
     owner,
     member,
