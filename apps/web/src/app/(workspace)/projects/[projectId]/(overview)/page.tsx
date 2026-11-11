@@ -50,8 +50,8 @@ async function checkInSetting(
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
-// its composer; the others are its plan, its progress timeline, its newest
-// members, with, for its owner, the invite form with its
+// its composer; the others are its plan, progress timeline and members,
+// with, for its owner, the invite form with its
 // pending invitations and its check-in setting, once check-ins are on for
 // the site. Journal and Versions are pages of their own (memory/).
 export default async function ProjectPage({

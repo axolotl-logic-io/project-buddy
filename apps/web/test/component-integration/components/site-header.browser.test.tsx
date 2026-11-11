@@ -153,6 +153,11 @@ describe("use_case_use_on_phone", () => {
           await setViewport(screen.viewport);
           await renderSignedIn();
           await expect.element(menuButton()).toBeVisible();
+          await expect
+            .element(
+              page.getByRole("link", { name: "Quick Note", exact: true }),
+            )
+            .not.toBeInTheDocument();
           await loadFonts();
 
           const title = page
