@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
 import { parseUserId } from "@/ids.ts";
-import { CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const stores = vi.hoisted(() => ({
-  getChat: vi.fn(),
   getProject: vi.fn(),
   getOwnConstruct: vi.fn(),
   getOwnActivity: vi.fn(),
@@ -13,7 +11,6 @@ const stores = vi.hoisted(() => ({
   getRetiredDefinition: vi.fn(),
   readProjectInvitation: vi.fn(),
 }));
-vi.mock("@/chats/store.ts", () => stores);
 vi.mock("@/projects/store.ts", () => stores);
 vi.mock("@/activities/activity-store.ts", () => stores);
 vi.mock("@/constructs/construct-store.ts", () => stores);
@@ -46,53 +43,18 @@ describe("header navigation hierarchy", () => {
     );
     expect(await headerBreadcrumbs(USER, ["library", "unknown"])).toEqual([]);
   });
-  test("uses the accessible quest for an adventure and updates to standalone and Home", async () => {
+  test("puts Chat under Home, and the old conversation addresses nowhere", async () => {
     if (USER === undefined) {
       throw new Error("Invalid fixture user");
     }
-    stores.getChat.mockResolvedValue({
-      name: "A discovery",
-      project: { id: "quest", name: "Our quest" },
-    });
-    expect(await headerBreadcrumbs(USER, ["chats", "adventure"])).toEqual([
+    expect(await headerBreadcrumbs(USER, ["chat"])).toEqual([
       { label: "Home", href: "/home" },
-      { label: "All quests", href: "/projects" },
-      { label: "Our quest", href: "/projects/quest" },
-      { label: "A discovery" },
+      { label: "Chat" },
     ]);
-    expect(stores.getChat).toHaveBeenCalledWith(USER, "adventure");
-    stores.getChat.mockResolvedValue({ name: "An idea" });
-    expect(await headerBreadcrumbs(USER, ["chats", "standalone"])).toEqual([
-      { label: "Home", href: "/home" },
-      { label: "Adventures", href: "/chat" },
-      { label: "An idea" },
-    ]);
+    expect(await headerBreadcrumbs(USER, ["chats", "new"])).toEqual([]);
     expect(await headerBreadcrumbs(USER, ["home"])).toEqual([
       { label: "Home" },
     ]);
-  });
-
-  test("puts a new adventure under Adventures", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
-    expect(await headerBreadcrumbs(USER, ["chats", "new"])).toEqual([
-      { label: "Home", href: "/home" },
-      { label: "Adventures", href: "/chat" },
-      { label: NEW_CHAT_COPY.heading },
-    ]);
-  });
-
-  test("names an unnamed adventure with the shared fallback", async () => {
-    if (USER === undefined) {
-      throw new Error("Invalid fixture user");
-    }
-    stores.getChat.mockResolvedValue({});
-    expect(
-      (await headerBreadcrumbs(USER, ["chats", "unnamed"])).at(-1),
-    ).toEqual({
-      label: CHAT_NAME_COPY.fallback,
-    });
   });
 
   test("keeps the quest parent on its Journal", async () => {

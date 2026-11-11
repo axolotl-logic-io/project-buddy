@@ -1,23 +1,21 @@
-import { beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { listActivities } from "@/activities/index.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
 import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
-import { newChatChoices } from "@/chats/new-chat-choices.ts";
+import { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
 import {
   listConstructs,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
+import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
+import { QUEST_START_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import {
-  projectIdFixture,
-  userConstructIdFixture,
-} from "../../support/id-fixtures.ts";
+import { START_WORK_COPY } from "@/ui/copy/start-work.ts";
+import { userConstructIdFixture } from "../../support/id-fixtures.ts";
 import { VELLUM_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -38,26 +36,12 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
 }));
 
-const PROJECT = {
-  id: projectIdFixture(),
-  name: "Low-poly fox",
-  status: "active" as const,
-};
-vi.mock("@/chats/new-chat-choices.ts", () => ({
-  newChatChoices: vi.fn<typeof newChatChoices>(),
+vi.mock("@/projects/quest-creation-choices.ts", () => ({
+  questCreationChoices: vi.fn<typeof questCreationChoices>(),
 }));
-vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn<typeof startChatAction>(),
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn<typeof startQuestAction>(),
 }));
-beforeEach(() => {
-  vi.mocked(newChatChoices).mockResolvedValue({
-    projects: [PROJECT],
-    activities: listActivities(),
-    userConstructs: [],
-  });
-  vi.mocked(startChatAction).mockClear();
-});
-
 const BUILT_INS = [
   { id: "vellum", name: "Vellum" },
   { id: "lumen", name: "Lumen" },
@@ -73,6 +57,15 @@ const OWN_CONSTRUCTS: OwnConstruct[] = [
     createdAt: new Date("2026-10-13T09:00:00Z"),
   },
 ];
+
+beforeEach(() => {
+  vi.mocked(questCreationChoices).mockResolvedValue({
+    activities: listActivities(),
+    userConstructs: OWN_CONSTRUCTS.map(({ id, name }) => ({ id, name })),
+    preferredConstructId: "vellum",
+  });
+  vi.mocked(startQuestAction).mockClear();
+});
 
 test("use_case_view_constructs", async () => {
   signInAs(SIGNED_IN_USER);
@@ -106,7 +99,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           builtIn.getByRole("button", {
-            name: `Adventure with ${construct.name}`,
+            name: CONSTRUCTS_COPY.startLabel(construct.name),
             exact: true,
           }),
         )
@@ -132,7 +125,9 @@ test("use_case_view_constructs", async () => {
       .filter((button) => button.hasAttribute("aria-haspopup"))
       .map((button) => button.textContent),
   ).toEqual(
-    OWN_CONSTRUCTS.map((construct) => `Adventure with ${construct.name}`),
+    OWN_CONSTRUCTS.map((construct) =>
+      CONSTRUCTS_COPY.startLabel(construct.name),
+    ),
   );
 
   expect(
@@ -146,7 +141,7 @@ test("use_case_view_constructs", async () => {
       await expect
         .element(
           own.getByRole("button", {
-            name: `Adventure with ${construct.name}`,
+            name: CONSTRUCTS_COPY.startLabel(construct.name),
             exact: true,
           }),
         )
@@ -226,66 +221,63 @@ test("the header Craft construct action supports keyboard submission", async () 
   expect(newConstructAction).toHaveBeenCalledOnce();
 });
 
-// Built-in and own titles must submit the clicked construct, including a
+// Built-in and own titles must start with the clicked construct, including a
 // non-default built-in, rather than silently falling back to Vellum.
-test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
-  "$name opens New chat from its title with that construct fixed",
-  async (construct) => {
-    signInAs(SIGNED_IN_USER);
-    vi.mocked(listConstructs).mockResolvedValue(OWN_CONSTRUCTS);
-    const submitted = Promise.withResolvers<FormData>();
-    vi.mocked(startChatAction).mockImplementation((_state, form) => {
-      submitted.resolve(form);
-      return new Promise<never>(() => undefined);
-    });
-    await render(
-      inWorkspace(
-        await ConstructsPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-      ),
-    );
-    if (OWN_CONSTRUCTS.some((own) => own.id === construct.id)) {
-      await page.getByRole("tab", { name: "Yours", exact: true }).click();
-    }
-    const trigger = page.getByRole("button", {
-      name: `Adventure with ${construct.name}`,
-      exact: true,
-    });
-    await expect
-      .element(trigger)
-      .toHaveTextContent(`Adventure with ${construct.name}`);
-    await trigger.click();
-    const dialog = page.getByRole("dialog", {
-      name: NEW_CHAT_COPY.dialogHeading,
-    });
-    await expect.element(dialog).toBeVisible();
-    await expect
-      .element(
-        dialog.getByRole("button", { name: NEW_CHAT_COPY.nextConstruct }),
-      )
-      .not.toBeInTheDocument();
-    await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
-    await expect.element(trigger).toHaveFocus();
-    expect(startChatAction).not.toHaveBeenCalled();
-    await userEvent.keyboard("{Enter}");
-    await expect.element(dialog).toBeVisible();
-    await dialog
-      .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
-      .selectOptions(PROJECT.id);
-    await dialog
-      .getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel })
-      .selectOptions("brainstorming");
-    await dialog
-      .getByRole("button", { name: NEW_CHAT_COPY.start, exact: true })
-      .click();
-    const sent = await submitted.promise;
-    expect(sent.get("constructId")).toBe(construct.id);
-    expect(sent.get("activityId")).toBe("brainstorming");
-    expect(sent.get("projectId")).toBe(PROJECT.id);
-  },
-);
+describe("a construct's start action", () => {
+  test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
+    "$name opens the quest start from its title with that construct chosen",
+    async (construct) => {
+      signInAs(SIGNED_IN_USER);
+      vi.mocked(listConstructs).mockResolvedValue(OWN_CONSTRUCTS);
+      const submitted = Promise.withResolvers<FormData>();
+      vi.mocked(startQuestAction).mockImplementation((_state, form) => {
+        submitted.resolve(form);
+        return new Promise<never>(() => undefined);
+      });
+      await render(
+        inWorkspace(
+          await ConstructsPage({
+            params: Promise.resolve({}),
+            searchParams: Promise.resolve({}),
+          }),
+        ),
+      );
+      if (OWN_CONSTRUCTS.some((own) => own.id === construct.id)) {
+        await page.getByRole("tab", { name: "Yours", exact: true }).click();
+      }
+      const label = CONSTRUCTS_COPY.startLabel(construct.name);
+      const trigger = page.getByRole("button", { name: label, exact: true });
+      await expect.element(trigger).toHaveTextContent(label);
+      await trigger.click();
+      const dialog = page.getByRole("dialog", {
+        name: START_WORK_COPY.constructDialogHeading(construct.name),
+      });
+      await expect
+        .element(
+          dialog.getByRole("heading", { name: QUEST_START_COPY.heading }),
+        )
+        .toBeVisible();
+      await page
+        .getByRole("button", { name: START_WORK_COPY.closeDialog })
+        .click();
+      await expect.element(trigger).toHaveFocus();
+      expect(startQuestAction).not.toHaveBeenCalled();
+
+      await userEvent.keyboard("{Enter}");
+      await page
+        .getByRole("button", {
+          name: QUEST_START_COPY.chooseLabel("Learn a thing"),
+        })
+        .click();
+      await page
+        .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
+        .click();
+      const sent = await submitted.promise;
+      expect(sent.get("constructId")).toBe(construct.id);
+      expect(sent.get("premadeId")).toBe("learn");
+    },
+  );
+});
 
 test("crafting a construct is distinct from starting with an own construct named New construct", async () => {
   signInAs(SIGNED_IN_USER);
