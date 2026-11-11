@@ -94,7 +94,6 @@ beforeEach(() => {
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   vi.mocked(listProjects).mockResolvedValue([]);
   vi.mocked(questCreationChoices).mockResolvedValue({
-    activities: [],
     userConstructs: [],
     preferredConstructId: "vellum",
   });

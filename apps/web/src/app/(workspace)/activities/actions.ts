@@ -17,6 +17,7 @@ import {
 import { isActivityId } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
+import { workshopPath } from "@/routes.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 
 const CLONE_ACTIVITY_FORM = z.object({ sourceId: z.string() });
@@ -141,5 +142,5 @@ export async function retireActivityAction(formData: FormData): Promise<never> {
     await retireDefinition(user.id, "activity", form.data.activityId);
     revalidatePath("/", "layout");
   }
-  return redirect("/activities?retired=1");
+  return redirect(`${workshopPath("activity")}&retired=1`);
 }

@@ -8,10 +8,10 @@ import type { UserId } from "@/ids.ts";
 import { readProjectInvitation } from "@/projects/project-invitations.ts";
 import { getProject } from "@/projects/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
+import { workshopPath } from "@/routes.ts";
 import { getSpell, isSpellId } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
@@ -37,11 +37,17 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["projects", { label: PROJECTS_COPY.heading, href: "/projects" }],
     ["chat", { label: STANDALONE_CHAT_COPY.heading, href: "/chat" }],
-    ["constructs", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
-    ["activities", { label: ACTIVITIES_COPY.heading, href: "/activities" }],
+    [
+      "constructs",
+      { label: WORKSHOP_COPY.heading, href: workshopPath("construct") },
+    ],
+    [
+      "activities",
+      { label: WORKSHOP_COPY.heading, href: workshopPath("activity") },
+    ],
     [
       "spellbook",
-      { label: WORKSHOP_COPY.heading, href: "/workshop?kind=spell" },
+      { label: WORKSHOP_COPY.heading, href: workshopPath("spell") },
     ],
     ["library", { label: LIBRARY_COPY.heading, href: "/library" }],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],

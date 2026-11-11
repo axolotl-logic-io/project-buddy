@@ -1,11 +1,10 @@
-import Link from "next/link";
 import type { JSX } from "react";
 import { AtlasShell } from "@/components/home-atlas.tsx";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton.tsx";
 import { ATLAS_PLACES } from "@/home/places.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
-// Home while its quest streams in: the same heading and introduction, and
+// Home while its quest streams in: the same heading, and
 // a tile where each destination will be, on the map's artwork, so nothing
 // moves or changes behind it when Home arrives.
 export default function HomeLoading(): JSX.Element {
@@ -14,12 +13,6 @@ export default function HomeLoading(): JSX.Element {
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
-          <p className="atlas-introduction">
-            {HOME_COPY.introduction}{" "}
-            <Link className="atlas-inline-link" href="/activities">
-              {HOME_COPY.activitiesLink}
-            </Link>
-          </p>
         </div>
       </div>
       <div className="atlas-world">

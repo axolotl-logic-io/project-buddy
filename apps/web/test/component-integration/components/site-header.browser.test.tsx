@@ -25,7 +25,6 @@ import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
@@ -82,7 +81,6 @@ const LOCATION_BALANCE = 870_000;
 const PLACES = [
   PROJECTS_COPY.headerLink,
   CHAT_COPY.headerLink,
-  ACTIVITIES_COPY.headerLink,
   LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
@@ -284,7 +282,7 @@ test.each(SCREENS)(
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Workshop and Activities apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Workshop apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 

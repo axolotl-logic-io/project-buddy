@@ -12,6 +12,7 @@ import { SpellLists } from "../spellbook/spell-lists.tsx";
 
 const QUERY = z.object({
   kind: z.enum(PROMPT_KINDS).catch("construct"),
+  retired: z.literal("1").optional().catch(undefined),
 });
 
 // A link to each kind's tab, the shown one marked, styled as the site's
@@ -63,9 +64,7 @@ export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 export default async function WorkshopPage({
   searchParams,
 }: PageProps<"/workshop">): Promise<JSX.Element> {
-  const query = await searchParams;
-  const { retired } = query;
-  const { kind } = QUERY.parse(query);
+  const { kind, retired } = QUERY.parse(await searchParams);
   return (
     <>
       <RetirementFeedback completed={retired === "1"} />
