@@ -2,13 +2,13 @@
 
 Batteries are the model-use balance formerly called gold. Headings and labels use “Batteries”; sentences use “1 battery” and “100 batteries”. Insufficient-balance messages say “You're out of batteries.” The rename changes no balances, starting grants, precision, rates, reservations or charging behavior. A balance displays whole batteries rounded down and clamped at zero; a reply's cost shows one decimal place, and reads “less than 0.1 batteries” rather than zero for a smaller one; accounting keeps every fraction.
 
-Replies, generated adventure openings and names, images and Workshop tests spend the acting user's batteries. Automatic check-ins spend the quest owner's batteries. Existing payer isolation and idempotent accounting apply unchanged.
+Replies, generated adventure openings and names, and images spend the acting user's batteries. Automatic check-ins spend the quest owner's batteries. Existing payer isolation and idempotent accounting apply unchanged.
 
 ## Marketplace cutover
 
 Before the orb migration, the existing gold accounting, now called Batteries for model use, also backed legacy Marketplace transfers. The orb migration pauses all Marketplace buys immediately, including old and free forms. While the gate is disabled, no sales can fund model use. After operator activation, Marketplace transfers use separate orbs and cannot fund model use. Batteries and orbs cannot be converted.
 
-The [Marketplace cutover plan](marketplace.md#currency-cutover-proposal) documents policy review, migration, old-build drain, history and grant verification, and separate operator activation. Merging code alone does not activate orb buys or authorize production changes. [Battery purchases](battery-purchases.md) retire legacy earning guidance regardless of Checkout availability or the orb gate. Disabled purchases show an honest unavailable message; only configured isolated test Checkout offers the Account purchase link.
+The [Marketplace cutover plan](marketplace.md#currency-cutover-proposal) documents policy review, migration, old-build drain, history and grant verification, and separate operator activation. Merging code alone does not activate orb buys or authorize production changes. [Battery purchases](battery-purchases.md) retire legacy earning guidance regardless of Checkout availability or the orb gate. Disabled purchases show an honest unavailable message; only configured isolated test Checkout offers the Settings purchase link.
 
 ## Compatibility boundaries
 
