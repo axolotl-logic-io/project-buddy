@@ -31,7 +31,7 @@ async function saversSeenBy(
 
 describe("use_case_view_memory", () => {
   test("a team project's history names who saved each version, to each viewer", async () => {
-    // The owner saved the memory (version 1) and a Quick Note (version 2).
+    // The owner saved the memory (version 1) and historical Note text (version 2).
     const { owner, member, project } = await teamProject();
     await saveUserName(owner.id, "Ada");
     const memory = await readMemory(member.id, project.id);

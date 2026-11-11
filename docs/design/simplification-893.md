@@ -4,7 +4,7 @@ This note records what [#893](https://github.com/axolotl-logic-io/project-buddy/
 
 ## What the user sees
 
-- `/projects/<id>` opens the quest's one conversation and composer, under the quest's frame: title, status, the section rail (Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, Members and check-ins) and the owner's status actions. The Plan panel beside the conversation names the next step.
+- `/projects/<id>` opens the quest's one conversation and composer, under the quest's frame: title, status, the section rail (Conversation, Quest Journal, Plan, Progress, Versions, Members and check-ins) and the owner's status actions. The Plan panel beside the conversation names the next step.
 - A quest without a conversation, as after the cutover, offers Start the conversation; opening the page starts nothing.
 - Quests starts with four premade starting points, Dailies, Learn a thing, Make a thing and Do a thing ([premade quests](../premade-quests.md)). Choosing one shows its details in place; Start quest opens the new quest's conversation.
 - Dailies is one ongoing quest. Its conversation offers Start the day, a prepared message sent through the composer.

@@ -1,6 +1,6 @@
 # Quest invitations
 
-A quest's owner invites someone to work on the quest with them. The invitee joins or declines. Joining makes them a member of the quest, who shares its adventures, Journal, Quick Notes and progress timeline. Members and what they can do are described in [Team quests](team-projects.md).
+A quest's owner invites someone to work on the quest with them. The invitee joins or declines. Joining makes them a member of the quest, who shares its adventures, Journal and progress timeline. Members and what they can do are described in [Team quests](team-projects.md).
 
 ## Who can be invited
 

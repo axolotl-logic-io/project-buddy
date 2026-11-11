@@ -75,7 +75,7 @@ The user opens one of their quests, from Quests, Home or a notification.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, and Members and check-ins. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The owner sees the status actions. Controls wrap on phones, without sideways scrolling.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Versions, and Members and check-ins. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The owner sees the status actions. Controls wrap on phones, without sideways scrolling.
 - **Variations:**
   - A quest without a conversation yet, as after the move from adventures: `use_case_start_quest_conversation`.
   - The Dailies quest: `use_case_dailies`.
@@ -84,7 +84,6 @@ The user opens one of their quests, from Quests, Home or a notification.
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
   - `use_case_set_check_ins`: have the construct check in on the quest.
-  - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note they no longer need.
   - `use_case_remove_member`: someone should no longer work on their quest.
   - `use_case_view_progress_timeline`: see how far they have come.
   - `use_case_invite_to_project`: work on the quest with someone else.
@@ -172,10 +171,10 @@ The user works in a team quest: someone else's quest that she is a member of.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the quest's owner has made her a member, as accepting a quest invitation does.
 - **Steps:**
-  - She finds the quest in her quests list, and, while Active, in Home's Continue and the Quick Note choices. Completing or abandoning removes it from those choices; restoring it makes it available again.
-  - She opens the quest and its Journal. She writes in its conversation, edits the Journal, adds and deletes a Quick Note, and edits and deletes a milestone.
+  - She finds the quest in her quests list, and, while Active, in Home's Continue. Completing or abandoning removes it from those choices; restoring it makes it available again.
+  - She opens the quest and its Journal. She writes in its conversation, edits the Journal, and edits and deletes a milestone.
   - She looks at the quest's Members section.
-- **Outcome:** the quest, its conversation with its messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her Chat, her own constructs and activities, and her image gallery stay hers alone, except that when the construct moves the quest's conversation into her own activity, it runs on that activity's instructions for everyone in the quest. The conversation shows the change of activity by its name, and never holds its instructions. A check-in marks the conversation unread for each of them separately. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
+- **Outcome:** the quest, its conversation with its messages and images, its Journal and history and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her Chat, her own constructs and activities, and her image gallery stay hers alone, except that when the construct moves the quest's conversation into her own activity, it runs on that activity's instructions for everyone in the quest. The conversation shows the change of activity by its name, and never holds its instructions. A check-in marks the conversation unread for each of them separately. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - `use_case_leave_project`: she is done with the quest.
 
@@ -187,7 +186,7 @@ The owner takes a member out of her team quest.
 - **Steps:**
   - In the quest's Members section, she chooses Remove beside the member. A dialog asks her to confirm; she can keep them instead.
   - She confirms.
-- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the quest, its conversation, Journal, Quick Notes and milestones look to the removed member exactly like a quest that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the quest's conversation. An image they generated in it leaves their gallery. Members can't remove anyone.
+- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the quest, its conversation, Journal and milestones look to the removed member exactly like a quest that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the quest's conversation. An image they generated in it leaves their gallery. Members can't remove anyone.
 - **Next:**
   - `use_case_open_project`: carry on with the quest.
 

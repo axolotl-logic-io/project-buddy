@@ -37,13 +37,6 @@ import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { NOTE_DAY } from "@/notes/note.ts";
-import {
-  deleteNote,
-  type NoteDeleteResult,
-  readRecentNotes,
-  saveNote,
-} from "@/notes/note-store.ts";
 import {
   addProjectMember,
   listProjectMembers,
@@ -55,7 +48,6 @@ import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
-const NOTE = { day: NOTE_DAY.parse("2026-11-02"), text: "Bevel the shell" };
 const MEMORY = "Goal: a sea turtle model.";
 const MILESTONE = "Modelled the shell";
 const PNG = pngBytes();
@@ -128,7 +120,12 @@ async function teamProject(): Promise<TeamProject> {
     basedOn: MEMORY_VERSION_NUMBER.parse(0),
     author: "user",
   });
-  await saveNote(owner.id, { projectId: project.id, note: NOTE });
+  await saveMemory(owner.id, {
+    projectId: project.id,
+    text: `${MEMORY}\n\nNote (2026-11-02): Bevel the shell`,
+    basedOn: MEMORY_VERSION_NUMBER.parse(1),
+    author: "user",
+  });
   const milestone = await recordMilestone(
     owner.id,
     { projectId: project.id, chatId: chat.id },
@@ -171,7 +168,6 @@ async function seenBy(
     activity,
     memory,
     history,
-    notes,
     milestones,
     members,
   ] = await Promise.all([
@@ -186,7 +182,6 @@ async function seenBy(
     currentActivity(user.id, chat),
     readMemory(user.id, project.id),
     readMemoryHistory(user.id, project.id),
-    readRecentNotes(user.id, project.id),
     listMilestones(user.id, project.id),
     listProjectMembers(user.id, project.id),
   ]);
@@ -202,7 +197,6 @@ async function seenBy(
     activity: activity.id,
     memory: memory.text,
     history: history.length,
-    notes: notes.map(({ text }) => text),
     milestones: milestones.map(({ text }) => text),
     members: members.map(({ id }) => id),
   };
@@ -222,7 +216,6 @@ const NOTHING: Record<string, unknown> = {
   activity: DEFAULT_ACTIVITY_ID,
   memory: EMPTY_MEMORY.text,
   history: 0,
-  notes: [],
   milestones: [],
   members: [],
 };
@@ -252,10 +245,6 @@ async function writesBy(
     basedOn: memory.version,
     author: "user",
   });
-  const note = await saveNote(user.id, {
-    projectId: project.id,
-    note: { ...NOTE, text: "Paint the flippers" },
-  });
   const milestone = await recordMilestone(
     user.id,
     { projectId: project.id, chatId: chat.id },
@@ -276,7 +265,6 @@ async function writesBy(
     image: image !== undefined,
     activity,
     memory: memorySave.kind,
-    note,
     milestone: milestone !== undefined,
     edited,
     conversation,
@@ -291,7 +279,6 @@ const NONE_TAKEN: Record<string, unknown> = {
   image: false,
   activity: false,
   memory: "outdated",
-  note: false,
   milestone: false,
   edited: false,
   conversation: false,
@@ -304,25 +291,15 @@ const ALL_TAKEN: Record<string, unknown> = {
   image: true,
   activity: true,
   memory: "saved",
-  note: true,
   milestone: true,
   edited: true,
   conversation: true,
   generation: "claimed",
 };
 
-// Deletes the note and the milestone as user, the two deletes a member may
-// make, which answer nothing of their own.
-async function deletesBy(
-  user: User,
-  team: TeamProject,
-): Promise<NoteDeleteResult> {
-  const note = await deleteNote(user.id, {
-    projectId: team.project.id,
-    note: NOTE,
-  });
+// Deletes the milestone as the acting user.
+async function deletesBy(user: User, team: TeamProject): Promise<void> {
   await deleteMilestone(user.id, team.milestoneId);
-  return note;
 }
 
 export type { TeamProject };

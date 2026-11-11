@@ -1,6 +1,6 @@
 # Team quests
 
-A team quest is a quest that its owner shares with members. The owner and the members work in it together: they share its conversation, Journal, Quick Notes and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
+A team quest is a quest that its owner shares with members. The owner and the members work in it together: they share its conversation, Journal and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
 
 Inviting someone by email and accepting an invitation are in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). Who wrote each message is in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). Per-user unread marks and spend attribution are in [#630](https://github.com/axolotl-logic-io/project-buddy/issues/630).
 
@@ -11,7 +11,7 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 | Action | Owner | Member |
 | --- | --- | --- |
 | Read and continue the quest's conversation | Yes | Yes |
-| Edit Journal, add and delete Quick Notes | Yes | Yes |
+| Edit Journal | Yes | Yes |
 | Record, edit and delete milestones | Yes | Yes |
 | See the Members section | Yes | Yes |
 | Set check-ins | Yes | No |

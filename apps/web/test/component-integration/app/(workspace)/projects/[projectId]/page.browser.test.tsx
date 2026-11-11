@@ -21,7 +21,6 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -106,14 +105,10 @@ vi.mock("@/projects/members-store.ts", () => ({
     return [FOX_OWNER];
   },
 }));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: () => Promise.resolve([]),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   removeMemberAction: vi.fn(),
@@ -185,21 +180,11 @@ describe("use_case_set_check_ins", () => {
   });
 });
 
-test("an Active quest page offers Quick Note with its quest chosen", async () => {
-  await renderProject("notes");
-  await expect
-    .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
-    .toHaveAttribute("href", `/capture?projectId=${FOX_PROJECT.id}`);
-});
-
 test.each(["completed", "abandoned"] as const)(
-  "a %s quest page keeps its Journal and conversation without an Add a Quick Note link",
+  "a %s quest page keeps its Journal and conversation after its status changes",
   async (status) => {
     stores.getProject.mockResolvedValue({ ...FOX_PROJECT, status });
     await renderProject();
-    await expect
-      .element(page.getByRole("link", { name: PROJECT_NOTES_COPY.addLink }))
-      .not.toBeInTheDocument();
     await expect
       .element(page.getByRole("link", { name: MEMORY_COPY.link }))
       .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}/memory`);
