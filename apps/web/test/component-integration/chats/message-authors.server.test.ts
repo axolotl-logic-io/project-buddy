@@ -16,8 +16,8 @@ import {
   type MessageAuthor,
   otherAuthorNames,
 } from "@/chats/message-author.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
@@ -112,7 +112,7 @@ describe("use_case_chat_with_several_people", () => {
     await saveUserName(sam.id, "Sam");
     const data = testData(sam);
     const projectChat = await data.chat(await data.project());
-    const standaloneChat = await createStandaloneChat(solo.id);
+    const standaloneChat = await privateChat(solo.id);
     const hello: Exchange = { message: "Hello", reply: REPLY };
     await Promise.all([
       data.exchanges(projectChat, [hello]),

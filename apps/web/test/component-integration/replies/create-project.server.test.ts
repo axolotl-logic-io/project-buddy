@@ -8,9 +8,10 @@ import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import { confirmQuestTransfer } from "@/chats/quest-transfer.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { listChats, listMessages } from "@/chats/store.ts";
+import { listMessages } from "@/chats/store.ts";
 import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { ChatId } from "@/ids.ts";
 import { readMemory } from "@/memory/memory-store.ts";
@@ -25,7 +26,6 @@ import {
   type CreateProjectOutput,
 } from "@/replies/tools/create-project-contract.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
 import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
@@ -38,21 +38,15 @@ function createCommand(name: string): string {
   return `/mock-tool ${CREATE_PROJECT_TOOL} ${JSON.stringify({ name })}`;
 }
 
-// A signed-in user, and the id of their standalone chat, with the default
-// construct, or with a construct of their own that has no prepared opening when
-// edited is true.
-async function signedInWithStandaloneChat(edited = false): Promise<{
+// A signed-in user, and the id of their private Chat, in the default
+// construct.
+async function signedInWithStandaloneChat(): Promise<{
   user: User;
   chatId: ChatId;
 }> {
   const user = await testUser();
   await signIn(user);
-  let construct = getConstruct(DEFAULT_CONSTRUCT_ID);
-  if (edited) {
-    const own = await testData(user).editedConstruct();
-    construct = { ...construct, name: own.name, definition: own.definition };
-  }
-  const chat = await createStandaloneChat(user.id, construct);
+  const chat = await privateChat(user.id);
   return { user, chatId: chat.id };
 }
 async function sendInStandaloneChat(
@@ -119,7 +113,7 @@ async function callToolDirectly(
   user: User,
   name = PROJECT_NAME,
 ): Promise<{ outputs: unknown[]; errors: string[] }> {
-  const standalone = await createStandaloneChat(user.id);
+  const standalone = await privateChat(user.id);
   const result = streamText({
     model: mockConstructModel(),
     messages: [{ role: "user", content: createCommand(name) }],
@@ -153,7 +147,7 @@ async function callToolDirectly(
 }
 
 describe("use_case_project_from_standalone_chat", () => {
-  test("creates the project, first in her list, with its interview chat opened", async () => {
+  test("creates the quest, first in her list, with its one conversation opened", async () => {
     const { user, chatId } = await signedInWithStandaloneChat();
 
     expect(
@@ -183,14 +177,13 @@ describe("use_case_project_from_standalone_chat", () => {
     if (project === undefined) {
       throw new Error("No project was created");
     }
-    const [interview, ...others] = await listChats(user.id, project.id);
-    expect(others).toEqual([]);
+    const interview = await readQuestConversation(user.id, project.id);
     expect(interview).toMatchObject({
       project: { id: project.id },
       construct: { name: getConstruct(DEFAULT_CONSTRUCT_ID).name },
     });
     if (interview === undefined) {
-      throw new Error("The interview chat is gone");
+      throw new Error("The quest has no conversation");
     }
     expect((await currentActivity(user.id, interview)).id).toBe(
       "project-breakdown",
@@ -206,8 +199,8 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(await savedOutputs(user, chatId)).toEqual([proposal]);
   });
 
-  test("saves no project when Claude can't open its interview in a construct with no prepared opening", async () => {
-    const { user, chatId } = await signedInWithStandaloneChat(true);
+  test("saves no quest when Claude can't write its opening", async () => {
+    const { user, chatId } = await signedInWithStandaloneChat();
 
     expect(
       await sendInStandaloneChat(chatId, createCommand(UNAVAILABLE_NAME)),
@@ -284,7 +277,7 @@ test("confirmed context preserves the selected construct and source, excludes un
   const user = await testUser();
   const outsider = await testUser();
   await signIn(user);
-  const chat = await createStandaloneChat(user.id, getConstruct("lumen"));
+  const chat = await privateChat(user.id);
   const summary = "Plan: shape a fox, then shade it.";
   await sendInStandaloneChat(
     chat.id,
@@ -307,7 +300,7 @@ test("confirmed context preserves the selected construct and source, excludes un
   if (result.status !== "created") {
     throw new Error("Missing quest");
   }
-  const [target] = await listChats(user.id, result.projectId);
+  const target = await readQuestConversation(user.id, result.projectId);
   expect(target?.construct).toEqual(chat.construct);
   expect((await readMemory(user.id, result.projectId)).text).toBe(
     `${confirmed.summary}\n\n## Motivation\n${confirmed.motivation}`,
