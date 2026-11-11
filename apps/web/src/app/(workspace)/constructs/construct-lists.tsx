@@ -62,11 +62,7 @@ function ConstructCard({
       <div className="flex min-w-0 flex-col gap-2">
         <StartWorkDialog
           choices={choices}
-          startWith={{
-            kind: "construct",
-            id: construct.id,
-            name: construct.name,
-          }}
+          construct={construct}
           trigger={
             <button
               className="card-title wrap-anywhere self-start text-left text-link"

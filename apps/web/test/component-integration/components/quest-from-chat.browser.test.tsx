@@ -18,7 +18,6 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
 const SUMMARY = "- a balcony herb garden\n- one sunny shelf";
 const EDITED = "Grow basil and thyme on the morning-sun shelf.";
 const CHOICES = {
-  activities: [],
   userConstructs: [],
   preferredConstructId: "vellum",
 } as const;

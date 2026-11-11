@@ -1,4 +1,6 @@
 // The app's route paths that code refers to.
+import type { Route } from "next";
+import type { PromptKind } from "@/prompts/prompt.ts";
 
 // Where a visitor without a session is sent.
 const SIGN_IN_PATH = "/login";
@@ -9,6 +11,16 @@ const HOME_PATH = "/home";
 
 // Chat, the user's one private conversation for talking without a goal.
 const STANDALONE_CHAT_PATH = "/chat";
+
+// The Workshop's address, showing the kind's tab. Activities live only
+// there: they are instructions a construct follows, not a place to start
+// from.
+function workshopPath(kind: PromptKind): Route {
+  if (kind === "construct") {
+    return "/workshop";
+  }
+  return `/workshop?kind=${kind}`;
+}
 
 // The Settings page, which a test notification opens.
 const SETTINGS_PATH = "/settings";
@@ -46,4 +58,5 @@ export {
   SIGN_IN_LINK_PATH,
   SIGN_IN_PATH,
   STANDALONE_CHAT_PATH,
+  workshopPath,
 };

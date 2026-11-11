@@ -38,8 +38,7 @@ The construct can also propose a quest with `create_project`. The user edits and
 
 ## Home atlas
 
-Home shows the approved heading "Your projects await" and the guidance
-"Don't know where to start? Try an Activity", linking to Activities. The
+Home shows the approved heading "Your projects await". The
 heading deliberately uses the user's chosen wording; the domain term for
 ongoing work elsewhere is quest.
 
@@ -127,7 +126,9 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 
 Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
 
-On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. The start opens on the starting point built on the chosen activity, such as Make a thing for Find something to make, and otherwise on Do a thing, so most starts need only a name. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
+Activities are internal instructions, not a destination or a start choice. Each starting point begins in its own activity, which `startQuestAction` takes from `PREMADE_QUESTS` on the server; the form sends none, and an `activityId` from an older form is ignored. Chat begins in Chat. The user customizes activities in the Workshop's Activities tab, and `/activities` redirects there, making nothing ([#905](design/simplification-905.md)).
+
+On Constructs, “Start a quest with [construct name]” opens the shared quest start on Do a thing with that construct chosen. It is the only start action besides Quests and Chat's Start a quest from this: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
 
 Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
@@ -313,7 +314,7 @@ Start Quest offers a construct picker and optional Why: why the user wants to co
 
 Existing adventure snapshots stay unchanged. If the preferred construct is deleted or unavailable, the picker defaults to Vellum.
 
-New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference that defaults the dedicated Start Quest picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+New adventure pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference that defaults the dedicated Start Quest picker. Quests created by a construct from an existing adventure keep that adventure's construct.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 

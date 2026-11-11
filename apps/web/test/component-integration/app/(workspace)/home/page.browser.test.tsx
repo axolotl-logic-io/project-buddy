@@ -70,10 +70,9 @@ const DESTINATIONS = [
   { name: "Quests", href: "/projects" },
   { name: "Chat", href: "/chat" },
   { name: "Constructs", href: "/constructs" },
-  { name: "Activities", href: "/activities" },
   { name: "Workshop", href: "/workshop" },
   { name: "Marketplace", href: "/marketplace" },
-];
+] as const;
 
 beforeEach(() => {
   applyTheme("parchment");
@@ -121,14 +120,11 @@ function cachedPages(showHome: boolean): Promise<JSX.Element> {
 }
 
 describe("use_case_home_atlas", () => {
-  test("offers every place and activity guidance even before the first quest", async () => {
+  test("offers every place and the quest start even before the first quest", async () => {
     await render(inWorkspace(await HomePage()));
     await expect
       .element(page.getByRole("heading", { level: 1, name: HOME_COPY.heading }))
       .toBeVisible();
-    await expect
-      .element(page.getByRole("link", { name: HOME_COPY.activitiesLink }))
-      .toHaveAttribute("href", "/activities");
     await expect.element(page.getByText(HOME_COPY.purpose)).toBeVisible();
     const startLink = page
       .getByRole("link", { name: HOME_COPY.newQuest })
@@ -229,14 +225,15 @@ describe("use_case_home_atlas", () => {
 
   test("reaches all destinations before the current quest from the keyboard", async () => {
     await render(inWorkspace(<HomeAtlas latestQuest={LATEST} />));
-    page
-      .getByRole("link", { name: HOME_COPY.activitiesLink })
-      .element()
-      .focus();
     const places = page.getByRole("navigation", {
       name: HOME_COPY.placesLabel,
     });
-    await DESTINATIONS.reduce(async (previous, { name }) => {
+    const [first, ...rest] = DESTINATIONS;
+    places
+      .getByRole("link", { name: first.name, exact: true })
+      .element()
+      .focus();
+    await rest.reduce(async (previous, { name }) => {
       await previous;
       await tabForward();
       await expect
