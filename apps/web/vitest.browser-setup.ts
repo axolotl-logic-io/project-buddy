@@ -26,6 +26,19 @@ vi.mock("@/app/(workspace)/projects/status-actions.ts", () => ({
   readQuestStatusApprovalAction: vi.fn(() => Promise.resolve(undefined)),
 }));
 
+// Typed Journal controls are rendered by conversation tool parts and page
+// fixtures. Their RPC and storage boundaries never run in the browser.
+vi.mock("@/journal/journal-actions.ts", () => ({
+  changeSectionAction: vi.fn(() => {
+    throw new Error("Mock the Journal section action in this test");
+  }),
+}));
+vi.mock(
+  "@/journal/journal-store.ts",
+  () =>
+    import("./test/component-integration/journal/journal-store-test-kit.ts"),
+);
+
 // The quest start (src/components/quest-start.tsx) reaches this action from
 // Quests, Workshop and Chat's quest offer, which every chat part can render.
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
