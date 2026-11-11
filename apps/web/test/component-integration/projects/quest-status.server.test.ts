@@ -5,11 +5,6 @@ import {
   readQuestStatusApprovalAction,
 } from "@/app/(workspace)/projects/status-actions.ts";
 import { listMessages } from "@/chats/store.ts";
-import {
-  claimCheckIn,
-  readCheckInFrequency,
-  saveCheckInFrequency,
-} from "@/check-ins/check-in-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { activeProjects } from "@/projects/active-projects.ts";
@@ -83,7 +78,6 @@ describe("use_case_change_quest_status", () => {
         ]),
       );
       await signIn(team.owner);
-      await saveCheckInFrequency(team.owner.id, team.project.id, "daily");
       const result = await changeQuestStatusAction(
         { kind: "idle" },
         form({
@@ -101,13 +95,6 @@ describe("use_case_change_quest_status", () => {
       expect(await getProject(team.member.id, team.project.id)).toMatchObject({
         status: target,
       });
-      expect(await readCheckInFrequency(team.owner.id, team.project.id)).toBe(
-        "off",
-      );
-      expect(
-        await saveCheckInFrequency(team.owner.id, team.project.id, "daily"),
-      ).toBe(false);
-      expect(await claimCheckIn(team.owner.id, team.project.id)).toBe(false);
       expect(await activeProjects(team.owner.id)).not.toEqual(
         expect.arrayContaining([
           expect.objectContaining({ id: team.project.id }),
@@ -126,9 +113,6 @@ describe("use_case_change_quest_status", () => {
           toStatus: "active",
         }),
       ).toMatchObject({ revision: 2 });
-      expect(await readCheckInFrequency(team.owner.id, team.project.id)).toBe(
-        "off",
-      );
       expect(await seenBy(team.member, team)).toEqual(before);
       expect(await activeProjects(team.member.id)).toEqual(
         expect.arrayContaining([

@@ -64,27 +64,9 @@ The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_st
 
 Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
-## Check-ins
+## Removed check-ins
 
-A quest's construct can write in the quest's conversation on its own: a check-in. The quest has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
-
-Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
-
-1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no conversation started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Appends the check-in (`appendCheckIn` in `src/conversations/check-in.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries, or when the conversation's newest message still awaits a reply. The check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct, in the conversation's construct and current activity, for two or three sentences from the quest's Journal about where the user left off and one small next step. The message is added to the end of the quest's one conversation, which keeps its activity; a quest with no conversation yet gets one, opened by the check-in. The conversation is then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`).
-3. Emails the owner the construct's message, with a link to the quest and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). The email's idempotency key is the message's id, so each check-in sends one email. A failed email is logged; the message stays.
-
-When the owner is out of batteries, or the conversation awaits a reply, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
-
-The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
-
-### Unread quests
-
-Unread marks are per user. A row in `chat_unreads` marks one conversation unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a conversation, for the quest's owner and every member. A user who can't read the conversation gets no mark, and a user named twice or already marked keeps one mark.
-
-`Project.unread` (`src/projects/store.ts`) says whether the quest's conversation is unread for the user reading it, so quest lists show the viewer's own mark. Opening the conversation clears the viewer's mark and no one else's (`markChatRead`).
-
-The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one conversation stay apart.
+Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Start the day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
 
 ## Conversation header
 
@@ -131,7 +113,7 @@ one author sends the model exactly what it sent before, and the saved
 messages never hold the headers. The mock model reads a command past the
 header, and `/mock-recall` also searches it.
 
-The quest owner and current members can write in a team quest adventure. Replies, generated images and automatic adventure names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
+The quest owner and current members can write in a team quest adventure. Replies, generated images and automatic adventure names charge the acting user; and generated openings charge the starter.
 Server tests write other authors' messages through the `author` field of
 the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
 `use_case_chat_with_several_people` covers this behavior.
