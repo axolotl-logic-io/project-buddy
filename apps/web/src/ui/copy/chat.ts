@@ -28,10 +28,9 @@ export const CHAT_COPY = {
   reattach:
     "Images from your unsent message were not kept. Attach them again before sending.",
   replyingElsewhere: (name: string): string =>
-    `${name} is still replying. This adventure will update when the reply finishes.`,
-  headerLink: "Adventures",
-  loading: "Loading adventure…",
-  heading: (constructName: string): string => `Adventure with ${constructName}`,
+    `${name} is still replying. This conversation will update when the reply finishes.`,
+  headerLink: "Chat",
+  loading: "Loading Chat…",
   conversationLabel: "Conversation",
   you: "You",
   thinking: (constructName: string): string => `${constructName} is thinking…`,
@@ -60,7 +59,7 @@ export const TOOL_FAILURES_COPY = {
   searchManual: "Your construct couldn't search the manual.",
   updateMemory: "Your construct couldn't update the quest's Journal.",
   createProject: "Your construct couldn't create the quest.",
-  selectActivity: "Your construct couldn't change the adventure's activity.",
+  selectActivity: "Your construct couldn't change the conversation's activity.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
   changePlan: "Your construct couldn't change the quest's plan.",
@@ -97,5 +96,5 @@ export const CREATE_PROJECT_COPY = {
 // chat's opening, so nothing was started.
 export const OPENING_COPY = {
   claudeUnavailable:
-    "Claude is unavailable right now, so adventures are turned off. Please try again later.",
+    "Claude is unavailable right now, so replies are turned off. Please try again later.",
 } as const;

@@ -32,10 +32,6 @@
     @apply grid grid-cols-2 border-line border-y px-4 sm:flex sm:flex-wrap sm:gap-x-4 sm:px-6;
   }
 
-  .quests-index-premade {
-    @apply sm:ml-auto;
-  }
-
   .quests-index-count {
     @apply text-muted text-xs;
   }
@@ -702,37 +698,19 @@
     @apply flex min-w-0 flex-wrap items-center justify-between gap-2;
   }
 
-  .chat-header-name {
-    @apply wrap-anywhere line-clamp-(--chat-header-name-lines);
-  }
-
-  .chat-header-construct {
-    @apply block truncate font-body font-normal text-base text-muted tracking-normal;
-  }
-
-  /* Leave room for the compact header and its fade when jumping to a
-     message. The title can use two lines on wider screens; the rename
-     pencil still reserves a full touch target even for a short title. */
+  /* Leave room for the pinned conversation header and its fade when
+     jumping to a message: a touch target, or Chat's one-line heading. */
   html:has(.chat-header) {
-    --chat-header-name-lines: 1;
     scroll-padding-top: calc(
       var(--site-header-height) +
       --spacing(2) +
       max(
         var(--target-size),
-        var(--chat-header-name-lines) *
         --theme(--text-section-heading) *
-        --theme(--text-section-heading--line-height) +
-        1.5rem
+        --theme(--text-section-heading--line-height)
       ) +
       --spacing(4)
     );
-  }
-
-  @media (width >= --theme(--breakpoint-sm)) {
-    html:has(.chat-header) {
-      --chat-header-name-lines: 2;
-    }
   }
 
   /* The site's menu (src/components/site-menu.tsx): a panel that slides in
@@ -1387,18 +1365,6 @@
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
 
-  /* The Adventures page before the first adventure: a construct's
-     portrait over a short welcome and New adventure, centred under the
-     page's heading, ruled off from it as tabs would be. */
-  .no-adventures {
-    @apply flex flex-col items-center gap-4 border-line border-t px-4 py-8 text-center sm:px-6 sm:py-12;
-  }
-
-  .no-adventures-art {
-    inline-size: calc(var(--target-size) * 3);
-    @apply overflow-hidden rounded-box border border-line shadow-raised;
-  }
-
   .workspace-content[hidden] {
     display: none;
   }
@@ -1468,9 +1434,6 @@
 
   .workspace-reading > section {
     scroll-margin-block-start: var(--site-header-height);
-  }
-  .adventure-workspace-nav {
-    @apply -mt-8 border-line border-b;
   }
   .appearance-settings .menu-modes {
     @apply mx-0 grid-cols-1 gap-2 overflow-visible border-0;

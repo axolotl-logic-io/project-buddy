@@ -10,7 +10,7 @@ const NEXT_CONTROL = "Next";
 
 const SYMBOLS = [
   { name: "shield", label: "Quests" },
-  { name: "messages", label: "Adventures" },
+  { name: "messages", label: "Chat" },
   { name: "bot", label: "Constructs" },
   { name: "checklist", label: "Activities" },
   { name: "pencil", label: "Edit" },
