@@ -6,13 +6,15 @@ Begin by stating the product's intended tone and audience from the available pro
 
 ## Sources
 
-Read the repository's `AGENTS.md` instructions, `docs/project-practices.md` and `apps/web/AGENTS.md`. The "Site UI" section of the practices defines the theme rules: one parchment theme with Light, Dark and System modes, and semantic tokens for every color, font, radius, shadow, border width, page decoration and spacing step. Read `apps/web/src/themes/contract.css`, `apps/web/src/themes/parchment.css`, `apps/web/src/app/page-roles.css` and `apps/web/src/components/chat/chat.css`. Read `docs/construct-visuals.md` for construct artwork and framing, and the design records under `docs/design/` and `docs/mockups/`.
+Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md`, `GLOSSARY.md` and the product documents linked from `docs/README.md`. Distinguish current behavior from plans and historical design records.
+
+The "Site UI" section of the practices defines the theme rules: one parchment theme with Light, Dark and System modes, and semantic tokens for every color, font, radius, shadow, border width, page decoration and spacing step. Read `apps/web/src/themes/contract.css`, `apps/web/src/themes/parchment.css`, `apps/web/src/app/page-roles.css` and `apps/web/src/components/chat/chat.css`. Read `docs/construct-visuals.md` for construct artwork and framing, and the design records under `docs/design/` and `docs/mockups/`.
 
 The token files tell you what the design intends. The rendered site tells you what users see. Base findings on the rendered site, and use the files to explain causes and to aim recommendations.
 
 ## Coverage inventory
 
-Build a screen inventory from `apps/web/use-cases/`, including files omitted from its index, and from the routes in `apps/web/src/routes.ts`. List every page, plus the dialogs, menus, notices and chat states that appear within them. Record the use case slug and documentation path for each screen where one applies. Mark screens that have no visual surface, such as operational cases. Do not substitute a sample of representative screens for complete coverage.
+Build a screen inventory from `apps/web/use-cases/`, including files omitted from its index, and from the page and route files under `apps/web/src/app/`, cross-checking `apps/web/src/routes.ts`. Include the shared header and trail band, local section tabs, query-selected sections and legacy redirects; route constants alone are not a complete page inventory. List every page, plus the dialogs, menus, notices and conversation states that appear within them. Record the use case slug and documentation path for each screen where one applies. Mark screens that have no visual surface, such as operational cases. Do not substitute a sample of representative screens for complete coverage.
 
 View every screen in both Light and Dark mode. View each at widths of 360 px (phone), 768 px (tablet) and 1920 px (desktop). Look at each screen in these states where they apply:
 
@@ -28,7 +30,7 @@ View every screen in both Light and Dark mode. View each at widths of 360 px (ph
 ### Areas the usability review leaves out
 
 - **Visual identity:** Whether the parchment theme reads as one intentional design language. Whether it fits the product's tone, and whether any screen looks borrowed from another product or left at framework defaults.
-- **Typography:** Typeface choice and pairing, the heading roles and type scale, weight, line height, line length and letter spacing. Check rendered Markdown in chat replies, numbers, gold amounts and long words.
+- **Typography:** Typeface choice and pairing, the heading roles and type scale, weight, line height, line length and letter spacing. Check rendered Markdown in construct replies, numbers, battery balances and long words.
 - **Color:** Palette harmony, how accent color earns attention, and how state colors read. Judge Dark mode as its own design, not an inversion of Light. Automated tests check WCAG AA contrast, so judge whether contrast feels comfortable and deliberate rather than merely passing.
 - **Imagery and iconography:** Icon style, stroke weight, size and alignment with text. Check construct artwork for quality, crop, framing within its square, and consistency between built-in and generated art. Check that the initials fallback looks designed, not broken.
 - **Surfaces and depth:** Borders, radii, shadows and page decorations. Check whether elevation is used consistently and whether decorations support content or compete with it.
@@ -58,9 +60,9 @@ Aim recommendations at the token contract where possible. Say whether a fix belo
 
 ## Test data and paid use
 
-Real model use and spending gold are authorized for this review, including replies, generated openings, automatic adventure names, Workshop tests and image generation. Generate construct artwork where needed to judge it in each of its frames. Record paid operations and gold changes where observable.
+Real model use and spending batteries are authorized for this review, including replies, generated quest openings and image generation. Generate construct artwork where needed to judge it in each of its frames. Record paid operations and battery balance changes where observable.
 
-Use isolated review accounts and disposable data in the supported non-production environment. Create the content needed to show empty, typical and crowded states, and clean it up afterward. Do not alter unrelated or shared user data, send invitations or notifications to uninvolved people, or make Marketplace transfers involving their accounts. Follow `docs/Site-Operations.md` for production boundaries; authorization to spend gold does not authorize production test writes. If an account, service or device is unavailable, report the affected screens as coverage gaps.
+Use isolated review accounts and disposable data in a local environment with an isolated local database and separate provider-only credentials. Production, Preview and Development share one database; do not use those deployments for test writes or paid checks. Create the content needed to show empty, typical and crowded states, and clean it up afterward. Do not alter unrelated user data or send account invitations or sign-in emails to uninvolved people. Use the file outbox for review email. Follow `docs/Site-Operations.md` for production boundaries; authorization to spend batteries does not authorize production test writes. If an account, service or device is unavailable, report the affected screens as coverage gaps.
 
 ## Report
 

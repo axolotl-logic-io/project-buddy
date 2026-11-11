@@ -1,6 +1,6 @@
 # Domain alignment reviewer prompt
 
-Review whether this app’s UI accurately represents its conceptual domain. Read `GLOSSARY.md` and relevant product documentation before evaluating the interface.
+Review whether this app’s UI accurately represents its conceptual domain. Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md`, `GLOSSARY.md` and the relevant product documents linked from `docs/README.md` before evaluating the interface. Distinguish current behavior from plans, retained compatibility names and historical documentation.
 
 Use the glossary as a reference, while allowing that it may contain gaps or outdated definitions. The goal is to identify meaningful conceptual drift and its consequences for users.
 
@@ -16,6 +16,10 @@ Inspect representative screens and workflows in both Light and Dark mode, at wid
 
 Do not flag every wording difference as a defect. Prioritize discrepancies that could produce an incorrect mental model, mistaken action, or misunderstanding of a result. Distinguish terminology inconsistencies from deeper problems in the product’s conceptual model.
 
+Use isolated review accounts and disposable data in a local environment with an isolated local database and the mock model. Follow `docs/Site-Operations.md`; Production, Preview and Development share one database and are not review sandboxes. Clean up review data afterward.
+
+Record the revision, environment, roles, modes and widths actually assessed, and distinguish observed UI evidence from code inspection. Do not claim to have viewed a screen or tested a workflow you did not assess.
+
 For each finding, provide:
 
 - **Finding:** A concise description of the discrepancy.
@@ -26,4 +30,4 @@ For each finding, provide:
 - **Recommended resolution:** Change the UI, update the glossary, explain the mapping, or resolve an open domain question.
 - **Confidence:** Whether the evidence establishes drift or requires clarification.
 
-Lead with the most consequential findings. Finish with unresolved domain questions and gaps in review coverage. Do not make changes to the app or documentation.
+Lead with the most consequential findings. Include a coverage table of the screens and workflows selected, their modes and widths, and any unassessed states. Finish with unresolved domain questions, gaps in review coverage and cleanup status. Do not make changes to the app or documentation.
