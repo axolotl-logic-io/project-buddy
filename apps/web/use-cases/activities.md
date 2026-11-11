@@ -20,7 +20,7 @@ The user starts a quest in the activity she wants.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens Activities from any signed-in page's menu. The Built-in tab lists the built-in activities, each with what it is. Yours lists her own, Retired holds retired activities, and Craft activity stays in the heading.
-  - She chooses Brainstorm, the activity's name used directly as its start action. A dialog named "Start a quest in Brainstorm" opens the quest start ([`use_case_start_premade_quest`](projects.md#use_case_start_premade_quest)) with Brainstorm already chosen.
+  - She chooses Brainstorm, the activity's name used directly as its start action. A dialog named "Start a quest in Brainstorm" opens the quest start ([`use_case_start_premade_quest`](projects.md#use_case_start_premade_quest)) with Brainstorm already chosen, open on Do a thing. Find something to make opens on Make a thing instead.
   - She closes the dialog. Another time, she picks a starting point, edits the name and starts the quest.
 - **Outcome:** closing the dialog creates nothing, spends nothing and returns focus to the activity's name. Starting creates one quest in Brainstorm and opens its conversation, whose replies follow Brainstorm's instructions until the activity changes ([`use_case_construct_changes_activity`](#use_case_construct_changes_activity)). The same works from a built-in activity's own page and for her own activities.
 - **Next:**

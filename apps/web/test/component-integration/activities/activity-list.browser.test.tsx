@@ -124,13 +124,33 @@ test("the header Craft activity action supports keyboard submission", async () =
 
 describe("use_case_start_chat_in_activity", () => {
   test.each([
-    { id: "open-chat", name: "Chat" },
-    { id: "find-something-to-make", name: "Find something to make" },
-    { id: "brainstorming", name: "Brainstorm" },
-    { id: BRAINSTORMING_CLONE.id, name: SAVED_ACTIVITY.name },
-    { id: "project-breakdown", name: "Break Down a Project" },
+    { id: "open-chat", name: "Chat", start: "do", startName: "Do a thing" },
+    {
+      id: "find-something-to-make",
+      name: "Find something to make",
+      start: "make",
+      startName: "Make a thing",
+    },
+    {
+      id: "brainstorming",
+      name: "Brainstorm",
+      start: "do",
+      startName: "Do a thing",
+    },
+    {
+      id: BRAINSTORMING_CLONE.id,
+      name: SAVED_ACTIVITY.name,
+      start: "do",
+      startName: "Do a thing",
+    },
+    {
+      id: "project-breakdown",
+      name: "Break Down a Project",
+      start: "do",
+      startName: "Do a thing",
+    },
   ])(
-    "the $name title opens the quest start with it chosen, and closing makes nothing",
+    "the $name title opens $startName with it chosen, and closing makes nothing",
     async (activity) => {
       signInAs(SIGNED_IN_USER);
       vi.mocked(startQuestAction).mockClear();
@@ -156,32 +176,34 @@ describe("use_case_start_chat_in_activity", () => {
         exact: true,
       });
       await trigger.click();
-      const dialog = page.getByRole("dialog", {
-        name: START_WORK_COPY.activityDialogHeading(activity.name),
+      const startingPoint = page.getByRole("dialog", {
+        name: activity.startName,
       });
       await expect
         .element(
-          dialog.getByRole("heading", { name: QUEST_START_COPY.heading }),
+          startingPoint.getByRole("button", { name: QUEST_START_COPY.start }),
         )
         .toBeVisible();
-      await page
-        .getByRole("button", { name: START_WORK_COPY.closeDialog })
-        .click();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(startingPoint).not.toBeInTheDocument();
+      await expect
+        .element(
+          page.getByRole("dialog", {
+            name: START_WORK_COPY.activityDialogHeading(activity.name),
+          }),
+        )
+        .toBeVisible();
+      await userEvent.keyboard("{Escape}");
       await expect.element(trigger).toHaveFocus();
       expect(startQuestAction).not.toHaveBeenCalled();
 
       await userEvent.keyboard("{Enter}");
-      await page
-        .getByRole("button", {
-          name: QUEST_START_COPY.chooseLabel("Make a thing"),
-        })
-        .click();
-      await page
+      await startingPoint
         .getByRole("button", { name: QUEST_START_COPY.start, exact: true })
         .click();
       const sent = await submitted.promise;
       expect(sent.get("activityId")).toBe(activity.id);
-      expect(sent.get("premadeId")).toBe("make");
+      expect(sent.get("premadeId")).toBe(activity.start);
     },
   );
 });

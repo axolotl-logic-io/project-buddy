@@ -121,7 +121,7 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 
 Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
 
-On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
+On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. The start opens on the starting point built on the chosen activity, such as Make a thing for Find something to make, and otherwise on Do a thing, so most starts need only a name. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
 
 Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
