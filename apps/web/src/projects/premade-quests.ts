@@ -1,8 +1,9 @@
 import { type ActivityId, DAILIES_ACTIVITY_ID } from "@/activities/activity.ts";
 
 // The four ways to start a quest. Each is an ordinary quest with a
-// suggested name, starting Journal and activity, all editable before it
-// starts; saved quests keep no connection to their starting point, except
+// starting name, Journal and activity; the user chooses a construct and
+// optionally fills in Why before starting. Saved quests keep no connection
+// to their starting point, except
 // that Dailies is the user's one ongoing quest for starting the day.
 // A Journal holds no next step: the plan keeps the steps the user agrees to
 // (docs/quest-plan.md).

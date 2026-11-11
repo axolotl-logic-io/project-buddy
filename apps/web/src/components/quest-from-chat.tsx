@@ -31,9 +31,10 @@ export function ChatQuestChoices({
 
 // Turn Chat into a quest, one of the two ways to create a quest: a button and
 // the dialog it opens with the shared quest start on Do a thing, its Journal
-// the draft (journal) and, when the construct offered one, its name, all
-// editable before the user confirms. Closing it makes and spends nothing.
-// The new quest gets only what they confirm; the Chat stays private and
+// the draft (journal) and, when the construct offered one, its name.
+// The user chooses a construct and optionally fills in Why before starting.
+// Closing it makes and spends nothing.
+// The new quest gets the summary and optional Why; the Chat stays private and
 // unchanged. Outside Chat it shows nothing.
 export function QuestFromChat({
   journal,
@@ -65,6 +66,7 @@ export function QuestFromChat({
       <QuestStartChoices
         choices={choices}
         initialChoice="do"
+        presentation="inline"
         preset={{ name, journal }}
       />
     </FormDialog>

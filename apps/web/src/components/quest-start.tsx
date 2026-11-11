@@ -19,8 +19,9 @@ import {
 } from "@/app/(workspace)/projects/actions.ts";
 import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
+import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { TextAreaField, TextField } from "@/components/ui/field.tsx";
+import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { type ConstructId, isConstructId } from "@/constructs/index.ts";
@@ -31,7 +32,6 @@ import {
   type PremadeQuestId,
   type QuestStartPreset,
 } from "@/projects/premade-quests.ts";
-import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { PROJECTS_COPY, QUEST_START_COPY } from "@/ui/copy/projects.ts";
 
@@ -68,9 +68,8 @@ function presetConstructId(
   );
 }
 
-// A starting point's details, ready to edit: its name, its starting
-// Journal and who to work with. The server gives it the starting point's
-// activity, which the construct can change later in the conversation.
+// Starts the selected quest with a construct and optional Why. Its name
+// and starting Journal come from the starting point or Chat's preset.
 function QuestStartForm({
   quest,
   choices,
@@ -91,23 +90,21 @@ function QuestStartForm({
     <form className="flex flex-col gap-5" onSubmit={onSubmit}>
       <p className="text-muted">{quest.description}</p>
       <input type="hidden" name="premadeId" value={quest.id} />
-      <TextField
-        label={PROJECTS_COPY.nameLabel}
-        name="name"
-        defaultValue={preset.name ?? quest.name}
-        maxLength={PROJECT_NAME_MAX_LENGTH}
-        required={true}
-      />
-      <TextAreaField
-        label={QUEST_START_COPY.journalLabel}
-        hint={QUEST_START_COPY.journalHint}
-        name="journal"
-        defaultValue={preset.journal ?? quest.journal}
-        rows={8}
-      />
       <ConstructPicker
         defaultConstructId={defaultConstructId}
         userConstructs={choices.userConstructs}
+      />
+      <TextAreaField
+        label={PROJECTS_COPY.motivationLabel}
+        hint={PROJECTS_COPY.motivationHint}
+        name="motivation"
+        rows={3}
+      />
+      <input type="hidden" name="name" value={preset.name ?? quest.name} />
+      <input
+        type="hidden"
+        name="journal"
+        value={preset.journal ?? quest.journal}
       />
       {state.kind !== "idle" && (
         <Alert>
@@ -159,17 +156,22 @@ function QuestStartTileFace({
   );
 }
 
-// One starting point as a tile, which is all one target: it shows the
-// starting point's details. The user's Dailies quest, once it exists, opens
-// directly.
+// One starting point as a single target, opening its form in the chosen
+// presentation. The user's existing Dailies opens directly.
 function QuestStartTile({
   quest,
   dailiesId,
   onChoose,
+  choices,
+  preset,
+  presentation,
 }: {
   readonly quest: PremadeQuest;
   readonly dailiesId: ProjectId | undefined;
   readonly onChoose: (id: PremadeQuestId) => void;
+  readonly choices: QuestCreationChoices;
+  readonly preset: QuestStartPreset;
+  readonly presentation: "dialog" | "inline";
 }): JSX.Element {
   const { id } = quest;
   const nameId = useId();
@@ -194,6 +196,28 @@ function QuestStartTile({
       </li>
     );
   }
+  if (presentation === "dialog") {
+    return (
+      <li>
+        <FormDialog
+          title={quest.name}
+          closeLabel={QUEST_START_COPY.close}
+          trigger={
+            <button
+              aria-describedby={taglineId}
+              aria-labelledby={nameId}
+              className="quest-start-tile"
+              type="button"
+            >
+              {face}
+            </button>
+          }
+        >
+          <QuestStartForm quest={quest} choices={choices} preset={preset} />
+        </FormDialog>
+      </li>
+    );
+  }
   return (
     <li>
       <button
@@ -209,25 +233,20 @@ function QuestStartTile({
   );
 }
 
-// The four ways to start a quest, as tiles: Dailies, Learn a thing, Make a
-// thing and Do a thing. Choosing one shows its details in their place,
-// already filled in, to edit or start as they are; Back shows the four
-// again. It opens no
-// dialog of its own, so a page can hold it in one. preset fills in what the
-// page starting it already knows, such as a construct or a Chat's summary,
-// and initialChoice shows that one's details at once. A preset Journal is a
-// goal of its own, so Dailies, the user's one ongoing quest, isn't offered
-// with one. dailiesId is the user's Dailies quest, if they have one, which
-// its tile opens instead. Looking and going back create nothing and spend
-// nothing.
+// Starting points open a form dialog by default. Inside Chat's existing
+// dialog, inline presentation keeps the choice and form in that dialog.
+// Presets carry the Chat's summary; Dailies isn't offered with one.
+// An existing Dailies opens directly. Browsing and cancelling save nothing.
 function QuestStartChoices({
   choices,
   preset = NO_PRESET,
   initialChoice,
   dailiesId,
+  presentation = "dialog",
 }: {
   readonly choices: QuestCreationChoices;
   readonly preset?: QuestStartPreset;
+  readonly presentation?: "dialog" | "inline";
   readonly initialChoice?: PremadeQuestId | undefined;
   readonly dailiesId?: ProjectId | undefined;
 }): JSX.Element {
@@ -291,6 +310,9 @@ function QuestStartChoices({
             quest={offering}
             dailiesId={dailiesId}
             onChoose={show}
+            choices={choices}
+            preset={preset}
+            presentation={presentation}
           />
         ))}
       </ul>

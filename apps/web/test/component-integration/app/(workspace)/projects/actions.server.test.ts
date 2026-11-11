@@ -45,7 +45,9 @@ function premade(id: PremadeQuestId): (typeof PREMADE_QUESTS)[number] {
 // filled in, with any field changed.
 function startForm(
   id: PremadeQuestId,
-  changes: Partial<Record<"name" | "journal" | "constructId", string>> = {},
+  changes: Partial<
+    Record<"name" | "journal" | "constructId" | "motivation", string>
+  > = {},
 ): FormData {
   const quest = premade(id);
   return formOf({
@@ -123,6 +125,26 @@ describe("use_case_new_project", () => {
       expect(
         await readMemoryHistory(user.id, conversation.project.id),
       ).toMatchObject([{ author: "user", text: premade(id).journal }]);
+    },
+  );
+
+  test.each(["learn", "dailies"] as const)(
+    "%s keeps the optional Why in the first Journal version",
+    async (id) => {
+      const user = await testUser();
+      await signIn(user);
+      const conversation = await startQuest(
+        user,
+        startForm(id, { motivation: "  Make time for myself.  " }),
+      );
+      expect(
+        await readMemoryHistory(user.id, conversation.project.id),
+      ).toMatchObject([
+        {
+          author: "user",
+          text: `${premade(id).journal}\n\nMake time for myself.`,
+        },
+      ]);
     },
   );
 
