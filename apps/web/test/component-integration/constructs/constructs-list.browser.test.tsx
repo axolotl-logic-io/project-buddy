@@ -228,14 +228,12 @@ test("the Retired tab shows only constructs and keeps their restore action", asy
       kind: "construct",
       name: "Retired guide",
       retiredAt: new Date(0),
-      boughtFrom: null,
     },
     {
       id: userConstructIdFixture(),
       kind: "spell",
       name: "Retired spell",
       retiredAt: new Date(0),
-      boughtFrom: null,
     },
   ]);
   await render(

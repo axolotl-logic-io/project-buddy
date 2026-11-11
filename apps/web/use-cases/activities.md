@@ -36,7 +36,7 @@ The user makes an activity of her own from a built-in one, and changes it.
   - Back in the Workshop's Activities tab, she clones it. On its page, she resets its prompt, then saves it.
 - **Outcome:** her activity has her name and text, and the adventure follows her text, with any `{{name}}` replaced by her name. The adventure keeps the activity as it was when the adventure entered it, so her later edit changes only adventures that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The construct offers her own activities beside the built-in ones.
 - **Variations:**
-  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
+  - A copy that came from no built-in one, such as one bought in the Marketplace before it closed, resets to the default instructions. Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
   - `use_case_construct_changes_activity`: ask the construct to move a conversation into it.
   - `use_case_new_activity`: craft an activity of her own.

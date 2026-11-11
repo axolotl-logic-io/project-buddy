@@ -39,7 +39,7 @@ The user makes a spell of her own from a built-in one, and changes it.
   - She retires the first spell.
 - **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active Spellbook and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
 - **Variations:**
-  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
+  - A copy that came from no built-in one, such as one bought in the Marketplace before it closed, resets to the default instructions. Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.
   - `use_case_new_spell`: craft a spell of her own.

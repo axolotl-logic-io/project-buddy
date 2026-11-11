@@ -70,8 +70,7 @@ const DESTINATIONS = [
   { name: "Chat", href: "/chat" },
   { name: "Constructs", href: "/constructs" },
   { name: "Workshop", href: "/workshop" },
-  { name: "Marketplace", href: "/marketplace" },
-] as const;
+];
 
 beforeEach(() => {
   applyTheme("parchment");
@@ -256,7 +255,7 @@ describe("use_case_home_atlas", () => {
       name: HOME_COPY.placesLabel,
     });
     places
-      .getByRole("link", { name: "Marketplace", exact: true })
+      .getByRole("link", { name: "Workshop", exact: true })
       .element()
       .focus();
     await tabForward();

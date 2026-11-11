@@ -54,9 +54,6 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/projects/quest-creation-choices.ts", () => ({
   questCreationChoices: vi.fn<typeof questCreationChoices>(),
 }));
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-}));
 // The page offers these actions; their own pages' tests submit them.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
