@@ -127,7 +127,7 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 
 Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
 
-On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
+On Activities, each activity's name, and a built-in activity's page, open the shared quest start with that activity chosen. On Constructs, “Start a quest with [construct name]” opens it with that construct chosen. The start opens on the starting point built on the chosen activity, such as Make a thing for Find something to make, and otherwise on Do a thing, so most starts need only a name. These are the only start actions: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
 
 Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
@@ -161,6 +161,10 @@ Unread marks are per user. A row in `chat_unreads` marks one conversation unread
 `Project.unread` (`src/projects/store.ts`) says whether the quest's conversation is unread for the user reading it, so quest lists show the viewer's own mark. Opening the conversation clears the viewer's mark and no one else's (`markChatRead`).
 
 The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one conversation stay apart.
+
+## Conversation header
+
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Start a quest from this. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 

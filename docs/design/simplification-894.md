@@ -6,7 +6,7 @@ This page records what issue #894 changes, after the scope correction that the r
 
 - **Chat** at `/chat`: one private conversation per user, for talking without a goal. It has no list, chooser, name or New adventure button. Opening it calls `privateChat`, which gets or creates the conversation without an opening, so it spends nothing. It uses the default construct and the Chat activity. It has no Journal, Plan or milestone tools because it has no quest.
 - **Start a quest from this** in Chat's header: the shared quest start (`QuestStartChoices`, #893) on Do a thing, with a draft Journal made from the user's latest Chat messages. The user edits and confirms; closing creates nothing. No Chat message moves into the quest.
-- **Activity and Construct start actions**: the shared quest start, in a dialog, with that activity or construct preset. There is no other start flow.
+- **Activity and Construct start actions**: the shared quest start, in a dialog, with that activity or construct preset, opened on the starting point built on that activity or else on Do a thing. Dailies stays reachable and reuses the one Dailies quest through #892's `startDailies`. There is no other start flow.
 - **Old addresses**: `/chats/[chatId]` redirects to the owning quest or to `/chat` through `resolveConversation`, and is otherwise not found. `/chats/new` redirects to `/chat`.
 
 ## Removed

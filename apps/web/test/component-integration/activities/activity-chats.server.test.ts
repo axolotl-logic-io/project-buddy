@@ -17,7 +17,6 @@ import {
   SELECT_ACTIVITY_TOOL,
   type SelectActivityOutput,
 } from "@/activities/select-activity-contract.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";

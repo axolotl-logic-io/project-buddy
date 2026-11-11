@@ -195,6 +195,9 @@ vi.mock("@/app/signup/actions.ts", () => ({ signUpAction: vi.fn() }));
 vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn(),
+}));
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
   restoreMemoryAction: vi.fn(),
@@ -435,8 +438,4 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
 vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
-}));
-
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
-  startQuestAction: vi.fn(),
 }));
