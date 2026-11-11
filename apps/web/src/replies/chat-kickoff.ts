@@ -19,7 +19,7 @@ import type {
 // naming calls. It asks for nothing, so the
 // opening's instructions stay in the opening's call.
 const NEUTRAL_KICKOFF =
-  "Application opening context, not a message from a person: this adventure has started. Do not count this context as a participant, attribute it to an unnamed author or mention this trigger in your reply.";
+  "Application opening context, not a message from a person: this conversation has started. Do not count this context as a participant, attribute it to an unnamed author or mention this trigger in your reply.";
 
 // The user's turn that says kickoff.
 function kickoffTurn(kickoff: string): LanguageModelV4Message {

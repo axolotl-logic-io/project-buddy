@@ -3,8 +3,8 @@ import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { POST } from "@/app/api/chat/route.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -84,7 +84,7 @@ describe("use_case_chat_images", () => {
   });
   test("private delivery and chat deletion apply to uploads, and foreign references cannot be sent", async () => {
     const { her, other } = await twoUsers();
-    const chat = await createStandaloneChat(her.id);
+    const chat = await privateChat(her.id);
     const uploaded = await upload(chat.id);
     expect(uploaded.status).toBe(HTTP_STATUS.ok);
     const { url } = z.object({ url: z.string() }).parse(await uploaded.json());
@@ -101,7 +101,7 @@ describe("use_case_chat_images", () => {
     expect((await deliverImage(id)).status).toBe(HTTP_STATUS.notFound);
     expect(await getImage(other.id, id)).toBeUndefined();
     expect((await upload(chat.id)).status).toBe(HTTP_STATUS.notFound);
-    const theirs = await createStandaloneChat(other.id);
+    const theirs = await privateChat(other.id);
     const forged = await post(theirs.id, [imageMessage(url)]);
     expect(forged.status).toBe(HTTP_STATUS.badRequest);
     expect(await listMessages(other.id, theirs.id)).toEqual([]);
@@ -113,7 +113,7 @@ describe("use_case_chat_images", () => {
   });
   test("upload and message boundaries reject oversized, unsupported, forged and too many attachments", async () => {
     const { her } = await twoUsers();
-    const chat = await createStandaloneChat(her.id);
+    const chat = await privateChat(her.id);
     const invalid = await Promise.all([
       upload(chat.id, pngBytes(), "image/svg+xml"),
       upload(chat.id, new Uint8Array(MAX_IMAGE_BYTES + 1)),

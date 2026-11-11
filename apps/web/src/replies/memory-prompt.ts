@@ -10,7 +10,7 @@ const EMPTY_MEMORY_PROMPT =
 
 // The line before the memory.
 const MEMORY_PROMPT_INTRO =
-  "The quest's Journal, which every adventure in this quest shares and works from. It holds the user's goals, milestones, progress and preferences:";
+  "The quest's Journal, which every reply in this quest's conversation works from. It holds the user's goals, milestones, progress and preferences:";
 
 // The tags around the memory.
 const MEMORY_START_TAG = "<project_memory>";
