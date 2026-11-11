@@ -1,10 +1,15 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import Stripe from "stripe";
 import { z } from "zod";
-import { batteryPurchasesOwnedBy } from "@/accounts/owner-scope.ts";
+import {
+  accountOwnedBy,
+  batteryPurchasesOwnedBy,
+} from "@/accounts/owner-scope.ts";
+import { recordBatteryCashEvent } from "@/batteries/cash-events.ts";
 import { batteryCatalog } from "@/batteries/catalog.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
+import { users } from "@/db/tables/users.ts";
 import { readBatteryPayments } from "@/env.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -174,6 +179,17 @@ async function applyBatteryPayment(
         if (buyer === undefined) {
           throw new Error("Invalid purchase buyer.");
         }
+        // Keep deletion from racing a grant now that audit rows outlive users.
+        const [account] = await tx
+          .select({ id: users.id })
+          .from(users)
+          .where(accountOwnedBy(buyer))
+          .for("key share");
+        if (account === undefined) {
+          throw new Error(
+            "Purchase buyer no longer exists; reconcile payment.",
+          );
+        }
         await readGoldBalance(buyer, tx);
         await adjustGold(buyer, goldInMicroUsd(purchase.batteries), tx);
         await tx
@@ -242,6 +258,9 @@ async function receiveBatteryWebhook(
   }
   if (event.livemode || event.account !== undefined) {
     return "invalid";
+  }
+  if (await recordBatteryCashEvent(stripe, event)) {
+    return "accepted";
   }
   if (
     event.type !== "checkout.session.completed" &&
