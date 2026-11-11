@@ -344,12 +344,13 @@ describe("use_case_open_unread_check_in", () => {
   });
 });
 
-// The project's page, as the signed-in user sees it.
+// The project's members and check-ins section, where the check-in setting
+// is, as the signed-in user sees it.
 async function projectPageHtml(project: Project): Promise<string> {
   return renderToStaticMarkup(
     await ProjectPage({
       params: Promise.resolve({ projectId: project.id }),
-      searchParams: Promise.resolve({}),
+      searchParams: Promise.resolve({ section: "members" }),
     }),
   );
 }
