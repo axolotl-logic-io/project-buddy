@@ -13,6 +13,7 @@ import { userMessage } from "@/errors/app-error.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -31,10 +32,18 @@ async function anotherBrowser(
   return other;
 }
 
+// Opens the account page at its Security tab, where the sign-out buttons are.
+async function openSecurity(page: Page): Promise<void> {
+  await page.goto("/account");
+  await page
+    .getByRole("tab", { exact: true, name: WORKSPACES_COPY.security })
+    .click();
+}
+
 test("use_case_sign_out", async ({ account, browser, page }) => {
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
-  await page.goto("/account");
+  await openSecurity(page);
   const other = await anotherBrowser(browser, account, "/projects");
 
   await test.step("Sign out shows the sign-in page", async () => {
@@ -101,7 +110,7 @@ test("use_case_sign_out_everywhere", async ({
   const chat = await testData.chat(await testData.project());
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
-  await page.goto("/account");
+  await openSecurity(page);
   const other = await anotherBrowser(browser, account, `/chats/${chat.id}`);
 
   await test.step("cancelling changes nothing", async () => {
@@ -110,6 +119,7 @@ test("use_case_sign_out_everywhere", async ({
     await expect(signOutEverywhereDialog(page)).toBeHidden();
     await page.reload();
     await expect(page).toHaveURL("/account");
+    await openSecurity(page);
   });
 
   await test.step("once she confirms, this browser shows the sign-in page", async () => {
