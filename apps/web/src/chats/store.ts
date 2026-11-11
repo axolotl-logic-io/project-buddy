@@ -10,11 +10,7 @@
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import {
-  chatOpenTo,
-  chatUnreadOwnedBy,
-  messageOpenTo,
-} from "@/accounts/owner-scope.ts";
+import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import {
   type Chat,
@@ -32,9 +28,7 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
-import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -144,7 +138,7 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns(owner))
+        .select(chatWithProjectColumns())
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
@@ -434,37 +428,5 @@ export async function releaseReply(
       .update(messages)
       .set({ replyStartedAt: null })
       .where(openMessage(owner, chatId, messageId)),
-  );
-}
-
-// Marks the chat unread for each of userIds who can read it, as a check-in
-// does for its project's owner. A user named twice, or already marked, keeps
-// one mark; a user who can't read the chat gets none.
-export async function markChatUnreadFor(
-  chatId: ChatId,
-  userIds: readonly UserId[],
-): Promise<void> {
-  if (userIds.length === 0) {
-    return;
-  }
-  await withAppErrors("markChatUnreadFor", () =>
-    getDb()
-      .insert(chatUnreads)
-      .select(unreadMarks(chatId, userIds))
-      .onConflictDoNothing(),
-  );
-}
-
-// Clears the viewer's unread mark on the chat, as the viewer opening it
-// does; anyone else's mark stays. A chat already read, unknown or another
-// user's is left as it is.
-export async function markChatRead(
-  viewer: UserId,
-  chatId: ChatId,
-): Promise<void> {
-  await withAppErrors("markChatRead", () =>
-    getDb()
-      .delete(chatUnreads)
-      .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
   );
 }

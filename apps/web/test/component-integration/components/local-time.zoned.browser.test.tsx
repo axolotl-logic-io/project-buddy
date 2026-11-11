@@ -186,7 +186,6 @@ describe("use_case_view_projects", () => {
             role: "owner",
             shared: false,
             dailies: false,
-            unread: false,
           },
         ]}
       />,
