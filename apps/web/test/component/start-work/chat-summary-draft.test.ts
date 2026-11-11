@@ -10,7 +10,7 @@ function said(role: UIMessage["role"], text: string): UIMessage {
   return { id: crypto.randomUUID(), role, parts: [{ type: "text", text }] };
 }
 
-describe("Start a quest from this's draft summary", () => {
+describe("Turn Chat into a quest's draft summary", () => {
   test("quotes only the user's latest messages, oldest first, one line each", () => {
     const messages = [
       said("user", "first"),

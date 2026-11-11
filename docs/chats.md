@@ -26,11 +26,11 @@ previews remain separate and keep their editable name, Journal and activity.
 
 Chat has no Journal, plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
 
-### Start a quest from this
+### Turn Chat into a quest
 
-Chat's header offers **Start a quest from this**. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
+Chat's header offers **Turn Chat into a quest**, one of the two ways to create a quest; the other is Start a quest on Quests. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
 
-The construct can also propose a quest with `create_project`. The user edits and confirms the proposed summary in the conversation, and the result links to the new quest.
+In Chat only, the construct can offer a quest with `create_project`. The tool creates nothing and spends nothing: its result holds a name, summary and motivation, and the conversation shows them with a Turn Chat into a quest button that opens the same dialog filled in (`QuestFromChat`, through `ChatQuestChoices`). The user confirms there, through `startQuestAction`, like any quest start. A quest's conversation has no `create_project` tool. An offer saved before this change, or shown outside Chat, shows its name with nothing to open, and a saved "created" result still links to its quest. The `quest_transfers` table is no longer read or written; it stays until the held schema cleanup drops it.
 
 ### Old addresses
 
@@ -128,7 +128,7 @@ Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a 
 
 Activities are internal instructions, not a destination or a start choice. Each starting point begins in its own activity, which `startQuestAction` takes from `PREMADE_QUESTS` on the server; the form sends none, and an `activityId` from an older form is ignored. Chat begins in Chat. The user customizes activities in the Workshop's Activities tab, and `/activities` redirects there, making nothing ([#905](design/simplification-905.md)).
 
-On Constructs, “Start a quest with [construct name]” opens the shared quest start on Do a thing with that construct chosen. It is the only start action besides Quests and Chat's Start a quest from this: there is no separate chooser of quest, conversation, activity and construct. Closing the dialog creates nothing.
+A quest is created only through Start a quest or Turn Chat into a quest, which share one form. Constructs and activities have no start actions: the construct is picked inside the form, and its activity comes from the starting point. Closing the form creates nothing.
 
 Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
@@ -165,7 +165,7 @@ The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md
 
 ## Conversation header
 
-A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Start a quest from this. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Turn Chat into a quest. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 
@@ -314,7 +314,7 @@ Start Quest offers a construct picker and optional Why: why the user wants to co
 
 Existing adventure snapshots stay unchanged. If the preferred construct is deleted or unavailable, the picker defaults to Vellum.
 
-New adventure pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference that defaults the dedicated Start Quest picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+The quest start's construct picker defaults to the New quest construct, and the user can change it before starting.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
