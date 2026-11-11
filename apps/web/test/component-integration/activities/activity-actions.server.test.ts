@@ -17,6 +17,7 @@ import {
   listOwnActivities,
   type OwnActivity,
 } from "@/activities/activity-store.ts";
+import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import {
@@ -26,10 +27,12 @@ import {
   resetActivityPromptAction,
   saveActivityAction,
 } from "@/app/(workspace)/activities/actions.ts";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { listAllChats } from "@/chats/all-chats.ts";
+import { getChat } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import type { ChatId } from "@/ids.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -110,18 +113,23 @@ async function resetPrompt(activityId: string): Promise<void> {
   await resetActivityPromptAction(formOf({ activityId }));
 }
 
-// Starts a standalone chat in the activity with this id, and returns it.
+// Starts a quest in the activity with this id, and returns its
+// conversation's id.
 async function startIn(user: User, activityId: string): Promise<ChatId> {
-  const starting = startChatAction(
-    { kind: "idle" },
-    formOf({ projectId: "", activityId, constructId: "vellum" }),
-  );
-  await Promise.allSettled([starting]);
-  const [chat] = await listAllChats(user.id);
-  if (chat === undefined) {
-    throw new Error("No chat started");
+  const activity = await chosenActivity(user.id, activityId);
+  if (activity === undefined) {
+    throw new Error(`No activity ${activityId}`);
   }
-  return chat.id;
+  const started = await startProject(
+    user.id,
+    PROJECT_NAME.parse("Activity quest"),
+    getConstruct("vellum"),
+    { activity },
+  );
+  if (started.kind !== "started") {
+    throw new Error(`The quest didn't start: ${started.kind}`);
+  }
+  return started.chat.id;
 }
 
 describe("use_case_customize_activity", () => {
@@ -160,7 +168,7 @@ describe("use_case_customize_activity", () => {
     const user = await signedInUser();
     const copy = await customizeBrainstorming(user);
     const chatId = await startIn(user, copy.id);
-    const [chat] = await listAllChats(user.id);
+    const chat = await getChat(user.id, chatId);
     if (chat === undefined) {
       throw new Error("No chat started");
     }
