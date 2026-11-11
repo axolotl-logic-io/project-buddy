@@ -27,29 +27,30 @@ describe("header navigation hierarchy", () => {
       throw new Error("Invalid fixture user");
     }
     expect(await headerBreadcrumbs(USER, ["library"])).toEqual([
-      { label: "Home", href: "/home" },
+      { label: "Quests", href: "/projects" },
       { label: "Library" },
     ]);
     expect(await headerBreadcrumbs(USER, ["library", "model-context"])).toEqual(
       [
-        { label: "Home", href: "/home" },
+        { label: "Quests", href: "/projects" },
         { label: "Library", href: "/library" },
         { label: "Model context" },
       ],
     );
     expect(await headerBreadcrumbs(USER, ["library", "unknown"])).toEqual([]);
   });
-  test("puts Chat under Home, and the old conversation addresses nowhere", async () => {
+  test("puts Chat under Quests, and the old conversation addresses nowhere", async () => {
     if (USER === undefined) {
       throw new Error("Invalid fixture user");
     }
     expect(await headerBreadcrumbs(USER, ["chat"])).toEqual([
-      { label: "Home", href: "/home" },
+      { label: "Quests", href: "/projects" },
       { label: "Chat" },
     ]);
     expect(await headerBreadcrumbs(USER, ["chats", "new"])).toEqual([]);
-    expect(await headerBreadcrumbs(USER, ["home"])).toEqual([
-      { label: "Home" },
+    expect(await headerBreadcrumbs(USER, ["home"])).toEqual([]);
+    expect(await headerBreadcrumbs(USER, ["projects"])).toEqual([
+      { label: "Quests" },
     ]);
   });
 
@@ -61,8 +62,7 @@ describe("header navigation hierarchy", () => {
     expect(
       await headerBreadcrumbs(USER, ["projects", "quest", "memory"]),
     ).toEqual([
-      { label: "Home", href: "/home" },
-      { label: "All quests", href: "/projects" },
+      { label: "Quests", href: "/projects" },
       { label: "Our quest", href: "/projects/quest" },
       { label: "Journal" },
     ]);
@@ -99,7 +99,7 @@ describe("header navigation hierarchy", () => {
     stores.getOwnConstruct.mockResolvedValue({ name: "My construct" });
     const trail = await headerBreadcrumbs(USER, ["constructs", "own"]);
     expect(trail).toEqual([
-      { label: "Home", href: "/home" },
+      { label: "Quests", href: "/projects" },
       { label: "Workshop", href: "/workshop" },
       { label: "My construct" },
     ]);
@@ -116,7 +116,7 @@ describe("header navigation hierarchy", () => {
     expect(
       await headerBreadcrumbs(USER, ["activities", "brainstorming"]),
     ).toEqual([
-      { label: "Home", href: "/home" },
+      { label: "Quests", href: "/projects" },
       {
         label: "Workshop",
         href: `/workshop?${new URLSearchParams({ kind: "activity" })}`,

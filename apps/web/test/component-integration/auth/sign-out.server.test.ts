@@ -2,13 +2,17 @@ import { expect, test } from "vitest";
 import {
   signOutAction,
   signOutEverywhereAction,
-} from "@/app/(workspace)/account/actions.ts";
+} from "@/app/(workspace)/settings/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
-import { sessionCookies, signIn } from "../test-database/session-test-kit.ts";
+import {
+  lapsed,
+  sessionCookies,
+  signIn,
+} from "../test-database/session-test-kit.ts";
 
 test("sign out deletes this session while another session remains usable", async () => {
   const user = await testUser();
@@ -42,4 +46,14 @@ test("sign out everywhere invalidates old sessions only for the acting user", as
   expect(await currentUser()).toBeUndefined();
   cookies.set(otherSession);
   expect((await currentUser())?.id).toBe(other.id);
+});
+
+test("sign out clears an expired session without needing a current user", async () => {
+  const user = await testUser();
+  await lapsed(user);
+  const cookies = await sessionCookies();
+  expect(cookies.get(SESSION_COOKIE_NAME)).toBeDefined();
+  expect(await currentUser()).toBeUndefined();
+  await expectRedirect(signOutAction, SIGN_IN_PATH);
+  expect(cookies.get(SESSION_COOKIE_NAME)).toBeUndefined();
 });

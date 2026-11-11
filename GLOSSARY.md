@@ -333,7 +333,7 @@ The other way to create a quest: from [Chat](#chat-destination), the same form a
 - **UI:** "Turn Chat into a quest".
 - **Avoid:** "Start a quest from this", "transfer".
 
-The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. The Home heading "Your projects await" is the user-approved copy exception; other labels use Quest and Quests.
+The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. Quests is the signed-in landing page; labels use Quest and Quests.
 
 ### Personal quest
 
@@ -492,6 +492,12 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 - **Avoid:** "PWA" and "progressive web app" in copy; "native app".
 
 ## Accounts and access
+
+### Settings
+
+The single destination for profile name, appearance, the new quest construct, Batteries and security. Old Account links redirect here.
+
+- **UI:** "Settings".
 
 ### User
 

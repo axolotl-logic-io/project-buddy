@@ -4,7 +4,6 @@ import { pageTitle } from "@/ui/copy/site.ts";
 const GENERATION_COPY = {
   title: pageTitle("Image gallery"),
   heading: "Image gallery",
-  home: "Home",
   empty:
     "No generated images yet. Ask your construct to create an image in a conversation.",
   context:
