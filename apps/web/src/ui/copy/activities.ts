@@ -1,5 +1,5 @@
-// The text of the activities pages: the built-in activities and the user's
-// own, each with its actions, and an activity's page.
+// The text of the Workshop's activities list: the built-in activities and the
+// user's own, each with its actions, and an activity's page.
 import type { ActivityDefinition } from "@/activities/activity.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
@@ -11,13 +11,6 @@ interface FieldCopy {
 }
 
 export const ACTIVITIES_COPY = {
-  title: pageTitle("Activities"),
-  headerLink: "Activities",
-  homeLink: "Home",
-  heading: "Activities",
-  intro:
-    "An activity guides the work in a quest's conversation. Start a quest in one, or let your construct move the conversation into one when it suits what you are doing.",
-  loading: "Loading activities…",
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
   noOwn:
@@ -25,7 +18,6 @@ export const ACTIVITIES_COPY = {
   newActivity: "Create activity",
   // The name of a crafted activity, until the user renames it.
   newActivityName: "New activity",
-  start: "Start",
   customize: "Make a copy",
   customizeLabel: (name: string): string => `Make a copy of ${name}`,
   tweak: "Edit",
@@ -38,7 +30,6 @@ export const ACTIVITIES_COPY = {
 // activity of the user's own, read-only for a built-in one.
 export const ACTIVITY_COPY = {
   title: pageTitle("Activity"),
-  activitiesLink: "Activities",
   loading: "Loading activity…",
   builtInIntro:
     "A built-in activity can't be changed. Choose Make a copy to edit your own version.",

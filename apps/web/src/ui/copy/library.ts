@@ -52,9 +52,9 @@ const LIBRARY_COPY: {
           ],
           paragraphs: [
             "Chat is your private conversation with a construct, for talking without a goal. A quest is something you want to learn, make or do. Each quest has one continuing conversation, with its Journal, plan and progress beside it.",
-            "To explore an idea, open Chat and tell the construct what you are thinking about and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.” When the idea becomes a goal, choose Start a quest from this. You edit the new quest’s name and Journal before anything is made, and your Chat stays private.",
+            "To explore an idea, open Chat and tell the construct what you are thinking about and one limit, for example: “Help me plan a balcony herb garden. I have one sunny shelf and twenty minutes today.” When the idea becomes a goal, choose Turn Chat into a quest, or ask the construct to suggest one. You edit the new quest’s name and Journal before anything is made, and your Chat stays private.",
             "Each part has its own job. The construct brings a voice and habits, the activity brings an approach, and spells add focused instructions when they fit.",
-            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name, a starting Journal and an approach; change any of them and the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
+            "To work toward a goal over time, open Quests and, under Start a quest, choose Learn a thing, Make a thing or Do a thing. Each fills in a name and a starting Journal and begins in an activity that suits it; change the name, the Journal or the construct before you start, and start each again for another goal. Dailies is your one ongoing quest for starting the day: open it and choose Start the day whenever you begin. A quest keeps its construct; ask it to change activity when you want a different kind of help.",
             "The construct’s first message is its opening. Reply with what you need now, and ask for a smaller step or a clearer explanation if an answer is too broad. AI answers can be wrong, so check advice that matters.",
           ],
         },
@@ -200,14 +200,14 @@ const LIBRARY_COPY: {
       id: "activities",
       title: "Activities",
       intro:
-        "An activity shapes what happens in a conversation: planning, exploring or working through a task. It combines with the construct’s voice and any spells the construct casts.",
+        "An activity is a set of instructions that shapes what happens in a conversation: planning, exploring or working through a task. It isn’t a place to go or something to pick before you start. It combines with the construct’s voice and any spells the construct casts.",
       chapters: [
         {
           id: "sessions",
           title: "Activity sessions",
           links: [],
           paragraphs: [
-            "Choose an activity when you start a quest, or start one from its card on Activities. To switch, ask the construct: it can change to any activity you have. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
+            "Each starting point begins in its own activity: Dailies in Dailies, Learn a thing in Learn a thing, Make a thing in Find something to make, and Do a thing in Break Down a Project. Chat starts in Chat. To switch, ask the construct: it can change to any activity you have, including your own. Each change starts a new activity session, and the session’s Activity Sheet guides the replies that follow.",
             "A session keeps the activity as it was when the session started, so later edits to the activity don’t change it. The conversation shows which activity it changed to, not the activity’s instructions.",
             "The Activity Sheet heading starts the Instructions field. The separate Opening request asks the construct for its first message when a new quest needs one written. It isn’t repeated with every reply, and changing activity during a conversation doesn’t replay it.",
           ],
@@ -217,7 +217,7 @@ const LIBRARY_COPY: {
           title: "Create an activity",
           links: [],
           paragraphs: [
-            "To make an activity, open Workshop’s Activities tab, then choose Make a copy or Create activity. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
+            "To make an activity, open Workshop’s Activities tab, then choose Make a copy or Create activity. To use it, ask the construct to change to it in a conversation. Write one way of working in the Activity Sheet. Keep the construct’s personality in its Character Sheet, and reusable procedures in spells.",
             "For example, a “Small experiment” activity might say: “Help the user define one experiment they can finish today. Identify a clear observation that would make it useful. Keep plans provisional until the user agrees. Respect their current request if they change subject.” Its Opening request: “Greet the user briefly and ask what they want to try today.”",
             "An opening should start the conversation, not ask for a life story. Don’t ask the construct to repeat the same questions every turn, or to say a tool worked before its result arrives. Reset puts back the built-in instructions and keeps the Opening request; Save keeps the change.",
           ],
@@ -282,7 +282,7 @@ const LIBRARY_COPY: {
           title: "Tools, retrieved content and access",
           links: [],
           paragraphs: [
-            "Tools are actions the model can ask the site to take. In an ordinary reply it can generate images, search and cite the Blender manual, change activity, cast spells and propose a new quest. A quest reply can also edit the Journal, change the plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings have no tools.",
+            "Tools are actions the model can ask the site to take. In an ordinary reply it can generate images, search and cite the Blender manual, change activity and cast spells. In Chat it can also suggest a quest, which only fills in Turn Chat into a quest for you to confirm. A quest reply can also edit the Journal, change the plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings have no tools.",
             "Each tool checks your access when it runs. Your own constructs, activities and spells stay private to you. A quest’s owner and current members share the quest’s data, and removal ends a member’s access. Only the owner approves status changes, and buying someone’s spell gives no access to their data.",
             "A manual search returns up to five sections, each with its link and an excerpt of at most 1,500 characters. Citations keep only links that a search in the same conversation returned, and the site shows them apart from the reply’s text. These results are what the model reads; it has no access to the whole web.",
             "The model decides which tools to ask for; the site checks and runs them. A cast returns the spell’s instructions, an activity change returns the new activity’s instructions, and edits return whether they worked. A reply that says the Journal changed isn’t the same as a tool result that says so.",

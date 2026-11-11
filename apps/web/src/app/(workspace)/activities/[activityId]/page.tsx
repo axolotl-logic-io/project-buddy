@@ -15,12 +15,10 @@ import {
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { StartWorkDialog } from "@/components/start-work-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { measureServerOperation } from "@/performance/server-spans.ts";
-import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   ACTIVITIES_COPY,
@@ -157,14 +155,9 @@ export default async function ActivityPage({
   const user = await requireUser();
   if (isActivityId(activityId)) {
     const activity = getActivity(activityId);
-    const choices = await questCreationChoices(user.id);
     return (
       <Workshop kind="activity">
         <BuiltInActivity activity={activity} />
-        <StartWorkDialog
-          choices={choices}
-          startWith={{ kind: "activity", id: activity.id, name: activity.name }}
-        />
       </Workshop>
     );
   }
