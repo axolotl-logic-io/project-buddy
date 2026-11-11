@@ -19,7 +19,7 @@ import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { startChat, startProject } from "@/chats/start-chat.ts";
+import { startChat } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import {
   cloneConstruct,
@@ -33,6 +33,7 @@ import {
   snapshotOf,
 } from "@/constructs/index.ts";
 import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
+import { startProject } from "@/conversations/start-quest.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";

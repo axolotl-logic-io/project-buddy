@@ -17,9 +17,9 @@ import {
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
@@ -55,7 +55,7 @@ async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const project = await data.project();
   const projectChat = await data.chat(project);
-  const standaloneChat = await createStandaloneChat(user.id);
+  const standaloneChat = await privateChat(user.id);
   await data.exchanges(projectChat, [EXCHANGE]);
   await data.exchanges(standaloneChat, [EXCHANGE]);
   await saveMemory(user.id, {

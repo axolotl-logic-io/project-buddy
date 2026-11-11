@@ -235,7 +235,7 @@ The quest's construct checks in on her, on the schedule she chose.
 - **Steps:**
   - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the quest has a new adventure, with the construct of its newest adventure. The adventure already holds the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. A check-in opening has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The adventure is unread. She gets an email from the construct with the same message, a link to the adventure and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of batteries, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the quest's conversation ends with the construct's short message, in its voice: where she left off, from the quest's Journal, and one small next step at the task level. No new conversation is made, and the conversation keeps its construct and current activity. A check-in has no lookup tools and gives no unverified Blender commands, settings, shortcuts or technical steps; technical guidance belongs in a reply where the manual can be searched. The quest is unread. She gets an email from the construct with the same message, a link to the quest and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, while the last check-in is still unread, or while her last message still awaits a reply. Once she is out of batteries, the check-in is skipped and nothing is saved or sent. A quest with no conversation yet gets one, which the check-in opens.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -271,7 +271,7 @@ The user carries on an earlier conversation, and the construct remembers it.
 - **Steps:**
   - She sends a message that refers to something said earlier, such as "repeat that shortcut".
   - The construct answers with the earlier conversation in mind.
-- **Outcome:** the reply uses what was said earlier in the conversation. Asked to repeat a shortcut, it gives the same shortcut as before.
+- **Outcome:** the reply uses what was said earlier in the conversation. Asked to repeat a shortcut, it gives the same shortcut as before. A long conversation's reply reads its newest messages, and the quest's Journal, Plan and Progress, which carry what matters from earlier.
 - **Next:**
   - `use_case_send_message`: keep going.
 
