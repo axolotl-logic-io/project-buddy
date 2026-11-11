@@ -1,25 +1,69 @@
-import type { ActivityId } from "@/activities/activity.ts";
+import {
+  type ActivityId,
+  DAILIES_ACTIVITY_ID,
+} from "@/activities/activity.ts";
 
-// Starting points only: saved quests retain no connection to this catalog.
-// A journal holds no next step: the plan keeps the steps the user agrees to
-// (docs/quest-plan.md), and the opening adventure starts on them.
+// The four ways to start a quest. Each is an ordinary quest with a
+// suggested name, starting Journal and activity, all editable before it
+// starts; saved quests keep no connection to their starting point, except
+// that Dailies is the user's one ongoing quest for starting the day.
+// A Journal holds no next step: the plan keeps the steps the user agrees to
+// (docs/quest-plan.md).
+type PremadeQuestId = "dailies" | "learn" | "make" | "do";
+
 interface PremadeQuest {
-  readonly id: string;
+  readonly id: PremadeQuestId;
   readonly name: string;
   readonly description: string;
   readonly activityId: ActivityId;
   readonly journal: string;
 }
 
+// What a start point fills in for the user, overriding the premade quest's
+// own suggestions, such as an activity chosen on its page or a summary of
+// a Chat.
+interface QuestStartPreset {
+  readonly name?: string | undefined;
+  readonly journal?: string | undefined;
+  readonly activityId?: string | undefined;
+  readonly constructId?: string | undefined;
+}
+
 const PREMADE_QUESTS: readonly PremadeQuest[] = [
   {
-    id: "start-without-inspiration",
-    name: "Start without inspiration",
+    id: "dailies",
+    name: "Dailies",
     description:
-      "Discover something you want to make, at a size that feels possible.",
+      "Start each day here: notice what matters and choose one manageable next step. One ongoing quest you come back to.",
+    activityId: DAILIES_ACTIVITY_ID,
+    journal: `## Goal
+Start each day with a clear head and one manageable next step.
+
+## What matters to me
+- (Add routines, priorities or things to keep in mind.)`,
+  },
+  {
+    id: "learn",
+    name: "Learn a thing",
+    description:
+      "Find your starting point and learn by doing, one small practice step at a time.",
+    activityId: "learn-a-thing",
+    journal: `## Goal
+Learn something I choose. What it is, how deep to go and how to practise are still open.
+
+## Possible milestones (planned)
+- Say what I want to learn and where I'm starting from.
+- Try a first small practice step.
+- Use it on something of my own.`,
+  },
+  {
+    id: "make",
+    name: "Make a thing",
+    description:
+      "Discover what you want to make and get to a small first version.",
     activityId: "find-something-to-make",
     journal: `## Goal
-Discover and make something that feels like my own. The medium, tools and subject are still open.
+Make something that feels like my own. The medium, tools and subject are still open.
 
 ## Possible milestones (planned)
 - Find an idea I want to try.
@@ -27,48 +71,20 @@ Discover and make something that feels like my own. The medium, tools and subjec
 - Refine it and decide when it feels finished.`,
   },
   {
-    id: "design-an-original-character",
-    name: "Design an original character",
+    id: "do",
+    name: "Do a thing",
     description:
-      "Explore who they are and bring them to life in your chosen medium.",
-    activityId: "brainstorming",
-    journal: `## Goal
-Develop a character I want to bring to life. The medium, tools and level of detail are open.
-
-## Possible milestones (planned)
-- Explore a personality, appearance or small detail.
-- Make a first version in a medium I choose.
-- Refine the character and decide what feels complete.`,
-  },
-  {
-    id: "make-a-tiny-game",
-    name: "Make a tiny game",
-    description:
-      "Find one playful idea and turn it into something you can play.",
+      "Any other outcome you want: break it into steps and take the first one.",
     activityId: "project-breakdown",
     journal: `## Goal
-Make a small playable game. The format, tools and kind of play are open.
+Get something done that matters to me. What it is and what done looks like are still open.
 
 ## Possible milestones (planned)
-- Choose one playful idea and a manageable scope.
-- Make a first playable version.
-- Try it, refine it and decide when it is finished.`,
-  },
-  {
-    id: "write-a-short-story",
-    name: "Write a short story",
-    description:
-      "Find a story you want to tell and take it through a finished draft.",
-    activityId: "brainstorming",
-    journal: `## Goal
-Write a short story I want to tell. The genre, tools, length and starting idea are open.
-
-## Possible milestones (planned)
-- Find a character, place or event to explore.
-- Make a first draft at a manageable length.
-- Revise it and decide when it feels finished.`,
+- Say what done looks like.
+- Break it into small steps.
+- Take the first step.`,
   },
 ];
 
-export type { PremadeQuest };
+export type { PremadeQuest, PremadeQuestId, QuestStartPreset };
 export { PREMADE_QUESTS };

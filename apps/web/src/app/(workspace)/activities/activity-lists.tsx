@@ -13,7 +13,6 @@ import {
 } from "@/chats/new-chat-choices.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
-import { ActivityQuestEntry } from "@/components/quest-library.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
@@ -73,7 +72,6 @@ function ActivityCard({
         </p>
       )}
       <div className="card-actions">{actions}</div>
-      <ActivityQuestEntry activityId={activity.id} choices={choices} />
     </li>
   );
 }

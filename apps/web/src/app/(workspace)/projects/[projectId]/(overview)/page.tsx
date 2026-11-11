@@ -1,18 +1,13 @@
+import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
-import { activityChoices } from "@/activities/activity-choices.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { listChats } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
-import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
-import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
-import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
@@ -27,13 +22,17 @@ import { listSentProjectInvitations } from "@/projects/project-invitations.ts";
 import { getProject, type Project } from "@/projects/store.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
-import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectMembers } from "./project-members.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
+import { QuestConversation } from "./quest-conversation.tsx";
 import { QuestPlan } from "./quest-plan.tsx";
+
+// An on-screen keyboard shrinks the page rather than covering its bottom, so
+// the conversation's pinned header and composer both stay above it.
+export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // The project's check-in frequency for its setting, off when unsaved, or
 // null, which hides the setting, while check-ins are off for the site or
@@ -52,18 +51,19 @@ async function checkInSetting(
   return (await readCheckInFrequency(user, project.id)) ?? null;
 }
 
-// A project's page: its name, a link to its memory, the New chat button,
-// whose dialog starts chats in the project, its plan, its progress timeline, its chats, its newest notes,
-// its members, and, for its owner, the invite form with its pending
-// invitations and its check-in setting, once check-ins are on for the site.
+// A quest's page. Its first section is the quest's one conversation, with
+// its composer; the others are its plan, its progress timeline, its newest
+// Quick Notes and its members, with, for its owner, the invite form with its
+// pending invitations and its check-in setting, once check-ins are on for
+// the site. Journal and Versions are pages of their own (memory/).
 export default async function ProjectPage({
   params,
   searchParams,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
   const { projectId } = await params;
   const { section } = await searchParams;
-  let current: "adventures" | "plan" | "progress" | "notes" | "members" =
-    "adventures";
+  let current: "conversation" | "plan" | "progress" | "notes" | "members" =
+    "conversation";
   if (
     section === "plan" ||
     section === "progress" ||
@@ -77,41 +77,31 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [
-    milestones,
-    chats,
-    activities,
-    userConstructs,
-    notes,
-    members,
-    invitations,
-    frequency,
-    plan,
-  ] = await Promise.all([
-    listMilestones(user.id, project.id),
-    listChats(user.id, project.id),
-    activityChoices(user.id),
-    ownConstructChoices(),
-    readRecentNotes(user.id, project.id),
-    listProjectMembers(user.id, project.id),
-    listSentProjectInvitations(user.id, project.id),
-    checkInSetting(user.id, project),
-    readPlanState(user.id, project.id),
-  ]);
+  if (current === "conversation") {
+    return (
+      <QuestWorkspace
+        project={project}
+        current={current}
+        conversation={<QuestConversation project={project} viewer={user.id} />}
+      >
+        {project.status !== "active" && (
+          <Notice>{QUEST_STATUS_COPY.effects}</Notice>
+        )}
+      </QuestWorkspace>
+    );
+  }
+  const [milestones, notes, members, invitations, frequency, plan] =
+    await Promise.all([
+      listMilestones(user.id, project.id),
+      readRecentNotes(user.id, project.id),
+      listProjectMembers(user.id, project.id),
+      listSentProjectInvitations(user.id, project.id),
+      checkInSetting(user.id, project),
+      readPlanState(user.id, project.id),
+    ]);
 
   return (
-    <QuestWorkspace
-      project={project}
-      current={current}
-      newAdventure={
-        <NewChatDialog
-          activities={activities}
-          projectId={project.id}
-          selectedActivityId={DEFAULT_ACTIVITY_ID}
-          userConstructs={userConstructs}
-        />
-      }
-    >
+    <QuestWorkspace project={project} current={current}>
       {project.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
@@ -136,12 +126,6 @@ export default async function ProjectPage({
         <section className="page-slot">
           <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
           <ProgressTimeline milestones={milestones} />
-        </section>
-      )}
-      {current === "adventures" && (
-        <section className="page-slot">
-          <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
-          <ChatList chats={chats} />
         </section>
       )}
       {current === "notes" && (

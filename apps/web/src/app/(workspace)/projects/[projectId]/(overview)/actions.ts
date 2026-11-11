@@ -10,6 +10,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { CHECK_IN_FREQUENCY } from "@/check-ins/check-in-frequency.ts";
 import { saveCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
+import { startQuestConversation } from "@/conversations/quest-conversation.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
 import { MILESTONE_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
 import {
@@ -28,6 +29,7 @@ import {
   inviteToProject,
   revokeProjectInvitation,
 } from "@/projects/project-invitations.ts";
+import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
@@ -149,8 +151,18 @@ function inviteAnswer(
 
 const REVOKE_FORM = z.object({ invitationId: z.string() });
 
+// What came of starting a quest's conversation: nothing yet, or why it
+// didn't start. Starting it refreshes the page, which then shows it.
+type StartConversationState =
+  | { readonly kind: "idle" }
+  | {
+      readonly kind: "claudeUnavailable" | "outOfGold";
+      readonly message: string;
+    };
+
 export type {
   CheckInSettingState,
+  StartConversationState,
   DeleteNoteState,
   EditMilestoneResult,
   EditMilestoneState,
@@ -319,4 +331,38 @@ export async function leaveProjectAction(formData: FormData): Promise<never> {
   }
   await leaveProject(user.id, form.data.projectId);
   return redirect("/projects");
+}
+
+// Starts the quest's one conversation, with its opening, charged to the
+// acting user, for a quest that has none yet, as after the move from
+// adventures. Starting one that has started, as from a second tab, writes
+// no second opening. A quest that isn't open to the user is not found.
+export async function startConversationAction(
+  _state: StartConversationState,
+  formData: FormData,
+): Promise<StartConversationState> {
+  const user = await requireUser();
+  const form = PROJECT_FORM.safeParse(Object.fromEntries(formData));
+  if (!form.success) {
+    notFound();
+  }
+  const result = await startQuestConversation(user.id, form.data.projectId);
+  switch (result.kind) {
+    case "notFound":
+      notFound();
+      break;
+    case "outOfGold":
+      return { kind: "outOfGold", message: userMessage("out-of-gold") };
+    case "claudeUnavailable":
+      return {
+        kind: "claudeUnavailable",
+        message: OPENING_COPY.claudeUnavailable,
+      };
+    case "started":
+      break;
+    default:
+      return result satisfies never;
+  }
+  refresh();
+  return { kind: "idle" };
 }
