@@ -1,6 +1,6 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, chat, milestone, user construct
-// and listing ids are Postgres UUIDs. The parsers, and the
+// expected. User, project, chat, milestone and user construct ids are
+// Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
@@ -53,11 +53,6 @@ const OWN_PROMPT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"OwnPromptId">();
-const LISTING_ID = z
-  .string()
-  .regex(CANONICAL_UUID)
-  .toLowerCase()
-  .brand<"ListingId">();
 const MESSAGE_ID = z
   .string()
   .min(1)
@@ -79,9 +74,6 @@ type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
 
 // A milestone's id, as `parseMilestoneId` returns it.
 type MilestoneId = z.infer<typeof MILESTONE_ID>;
-
-// A Marketplace listing's id, as `parseListingId` returns it.
-type ListingId = z.infer<typeof LISTING_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -115,12 +107,6 @@ function parseMilestoneId(value: string): MilestoneId | undefined {
   return MILESTONE_ID.safeParse(value).data;
 }
 
-// The value as a lowercase ListingId, or undefined unless it is a
-// canonical UUID.
-function parseListingId(value: string): ListingId | undefined {
-  return LISTING_ID.safeParse(value).data;
-}
-
 // The value as a MessageId, or undefined if it is empty or longer than
 // MESSAGE_ID_MAX_LENGTH.
 function parseMessageId(value: string): MessageId | undefined {
@@ -130,7 +116,6 @@ function parseMessageId(value: string): MessageId | undefined {
 export type {
   ChatId,
   ImageId,
-  ListingId,
   MessageId,
   MilestoneId,
   OwnPromptId,
@@ -140,7 +125,6 @@ export type {
 export {
   CHAT_ID,
   IMAGE_ID,
-  LISTING_ID,
   MESSAGE_ID,
   MESSAGE_ID_MAX_LENGTH,
   MILESTONE_ID,
@@ -148,7 +132,6 @@ export {
   PROJECT_ID,
   parseChatId,
   parseImageId,
-  parseListingId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,

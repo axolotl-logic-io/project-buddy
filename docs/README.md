@@ -23,10 +23,9 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in the Journal, and the quest page's recent Quick Notes.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
-- [Marketplace](marketplace.md): listing, updating and unlisting own constructs, activities and spells, what other users see, buying listings, and bought copies.
 
 - [Images](images.md): image generation, gallery, battery accounting and deletion.
-- [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
+- [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
 
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 

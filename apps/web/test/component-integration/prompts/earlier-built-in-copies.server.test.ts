@@ -24,7 +24,6 @@ import { getConstruct } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { UserId } from "@/ids.ts";
-import { publishListing } from "@/marketplace/listing-store.ts";
 import { NAMED_SHEET_BUILT_INS } from "@/prompts/named-sheet-built-ins.ts";
 import { getSpell } from "@/spells/index.ts";
 import { cloneSpell, getOwnSpell } from "@/spells/spell-store.ts";
@@ -34,8 +33,6 @@ import {
   EARLIER_VELLUM_PROMPT,
 } from "../../support/earlier-built-in-fixtures.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-
-const TERMS = { description: "", price: 0 };
 
 async function storedParts(id: string): Promise<unknown> {
   const [row] = await getDb()
@@ -101,7 +98,7 @@ test("an unchanged clone is stored in the earlier build's text, so that build kn
   expect(interview.definition).toEqual(getActivity("interview").definition);
 });
 
-test("an unchanged clone can't be listed and keeps its prepared openings", async () => {
+test("an unchanged clone keeps its prepared openings", async () => {
   const { id: owner } = await testUser();
 
   const vellum = await cloneConstruct(owner, "vellum");
@@ -110,20 +107,6 @@ test("an unchanged clone can't be listed and keeps its prepared openings", async
     throw new Error("The built-in ones could not be cloned");
   }
 
-  expect(
-    await publishListing(
-      owner,
-      { kind: "construct", promptId: vellum.id },
-      TERMS,
-    ),
-  ).toEqual({ kind: "built-in" });
-  expect(
-    await publishListing(
-      owner,
-      { kind: "activity", promptId: interview.id },
-      TERMS,
-    ),
-  ).toEqual({ kind: "built-in" });
   expect(preparedOpening(vellum.definition, interview.definition)).toBe(
     preparedOpening(
       getConstruct("vellum").definition,
@@ -132,7 +115,7 @@ test("an unchanged clone can't be listed and keeps its prepared openings", async
   );
 });
 
-test("a copy the earlier build wrote reads as today's built-in one, can't be listed and keeps its prepared openings", async () => {
+test("a copy the earlier build wrote reads as today's built-in one and keeps its prepared openings", async () => {
   const { id: owner } = await testUser();
   const vellumId = await earlierRow(owner, "buddy", "vellum", {
     voice: EARLIER_VELLUM_PROMPT,
@@ -163,21 +146,11 @@ test("a copy the earlier build wrote reads as today's built-in one, can't be lis
     getSpell("blender-manual-lookup").definition,
   );
   expect(
-    await publishListing(
-      owner,
-      { kind: "construct", promptId: vellumId },
-      TERMS,
-    ),
-  ).toEqual({ kind: "built-in" });
-  expect(
-    await publishListing(owner, { kind: "spell", promptId: blenderId }, TERMS),
-  ).toEqual({ kind: "built-in" });
-  expect(
     preparedOpening(vellum.definition, interview.definition),
   ).toBeDefined();
 });
 
-test("an edited copy is stored as written, in either wording, and can be listed", async () => {
+test("an edited copy is stored as written, in either wording", async () => {
   const { id: owner } = await testUser();
   const clone = await cloneConstruct(owner, "vellum");
   const activity = await cloneActivity(owner, "interview");
@@ -203,15 +176,6 @@ test("an edited copy is stored as written, in either wording, and can be listed"
   expect((await getOwnConstruct(owner, clone.id))?.definition).toEqual({
     prompt: editedEarlier,
   });
-  expect(
-    (
-      await publishListing(
-        owner,
-        { kind: "construct", promptId: clone.id },
-        TERMS,
-      )
-    ).kind,
-  ).toBe("published");
 
   const openingRequest = "Ask me about birdhouses.";
   await updateActivity(owner, activity.id, {
@@ -252,7 +216,7 @@ test("an edited copy put back to a built-in one's text is stored in the earlier 
   );
 });
 
-test("an unchanged named-heading copy reads as today's built-in one, can't be listed and keeps its prepared openings", async () => {
+test("an unchanged named-heading copy reads as today's built-in one and keeps its prepared openings", async () => {
   const namedConstruct = Object.entries(NAMED_SHEET_BUILT_INS.constructs).find(
     ([id]) => id === "vellum",
   )?.[1];
@@ -298,16 +262,6 @@ test("an unchanged named-heading copy reads as today's built-in one, can't be li
   expect(blender?.definition).toEqual(
     getSpell("blender-manual-lookup").definition,
   );
-  expect(
-    await publishListing(
-      owner,
-      { kind: "construct", promptId: vellumId },
-      TERMS,
-    ),
-  ).toEqual({ kind: "built-in" });
-  expect(
-    await publishListing(owner, { kind: "spell", promptId: blenderId }, TERMS),
-  ).toEqual({ kind: "built-in" });
   expect(
     preparedOpening(vellum.definition, interview.definition),
   ).toBeDefined();
