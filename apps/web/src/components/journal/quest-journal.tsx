@@ -17,10 +17,18 @@ async function QuestJournal({
   return (
     <>
       {goal !== undefined && (
-        <SectionEditor projectId={projectId} initial={goal} />
+        <SectionEditor
+          key={`goal-${projectId}`}
+          projectId={projectId}
+          initial={goal}
+        />
       )}
       {preferences !== undefined && (
-        <SectionEditor projectId={projectId} initial={preferences} />
+        <SectionEditor
+          key={`preferences-${projectId}`}
+          projectId={projectId}
+          initial={preferences}
+        />
       )}
     </>
   );

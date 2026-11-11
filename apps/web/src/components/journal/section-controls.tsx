@@ -1,7 +1,15 @@
 "use client";
 
-import { type JSX, useCallback, useState, useTransition } from "react";
+import {
+  type JSX,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { Button } from "@/components/ui/button.tsx";
+import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import { contentText } from "@/journal/content-text.ts";
@@ -19,39 +27,49 @@ function UndoSection({
   projectId,
   kind,
   version,
+  undone,
 }: {
   readonly projectId: ProjectId;
   readonly kind: SectionKind;
   readonly version: number;
+  readonly undone?: boolean;
 }): JSX.Element {
   const [pending, start] = useTransition();
   const [status, setStatus] = useState("");
   const undo = useCallback((): void => {
     start(async (): Promise<void> => {
-      const result = await changeSectionAction({
-        projectId,
-        kind,
-        undo: version,
-      });
-      if (result.status === "changed") {
-        setStatus(COPY.undone);
-      } else if (result.reason === "outdated") {
-        setStatus(COPY.conflict);
-      } else {
+      try {
+        const result = await changeSectionAction({
+          projectId,
+          kind,
+          undo: version,
+        });
+        if (result.status === "changed") {
+          setStatus(COPY.undone);
+        } else if (result.reason === "outdated") {
+          setStatus(COPY.conflict);
+        } else {
+          setStatus(COPY.failed);
+        }
+      } catch {
         setStatus(COPY.failed);
       }
     });
   }, [projectId, kind, version]);
+  let feedback = status;
+  if (undone === true) {
+    feedback = COPY.undone;
+  }
   return (
     <div>
       <Button
         variant="quiet"
         onClick={undo}
-        disabled={pending || status === COPY.undone}
+        disabled={pending || status === COPY.undone || undone === true}
       >
         {COPY.undo}
       </Button>
-      <FormStatus>{status}</FormStatus>
+      <FormStatus>{feedback}</FormStatus>
     </div>
   );
 }
@@ -64,11 +82,19 @@ function SectionEditor({
   readonly initial: SectionState;
 }): JSX.Element {
   const [state, setState] = useState(initial);
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const focusAddRef = useRef<boolean>(false);
   const [status, setStatus] = useState("");
   const [pending, start] = useTransition();
   if (initial.version > state.version) {
     setState(initial);
   }
+  useEffect((): void => {
+    if (focusAddRef.current && !pending) {
+      addInputRef.current?.focus();
+      focusAddRef.current = false;
+    }
+  }, [pending]);
   const { content } = state;
   const submit = useCallback(
     (data: FormData): void => {
@@ -105,22 +131,29 @@ function SectionEditor({
         }
       }
       start(async (): Promise<void> => {
-        const result = await changeSectionAction({
-          projectId,
-          kind: content.kind,
-          basedOn: state.version,
-          edit,
-        });
-        if (result.state !== undefined) {
-          setState(result.state);
-        }
-        if (result.status === "changed") {
-          setStatus(COPY.changed);
-        } else if (result.reason === "outdated") {
-          setStatus(COPY.conflict);
-        } else if (result.reason === "unchanged") {
-          setStatus(COPY.unchanged);
-        } else {
+        try {
+          const result = await changeSectionAction({
+            projectId,
+            kind: content.kind,
+            basedOn: state.version,
+            edit,
+          });
+          if (result.state !== undefined) {
+            setState(result.state);
+          }
+          if (result.status === "changed") {
+            setStatus(COPY.changed);
+            if (op === "remove") {
+              focusAddRef.current = true;
+            }
+          } else if (result.reason === "outdated") {
+            setStatus(COPY.conflict);
+          } else if (result.reason === "unchanged") {
+            setStatus(COPY.unchanged);
+          } else {
+            setStatus(COPY.failed);
+          }
+        } catch {
           setStatus(COPY.failed);
         }
       });
@@ -137,15 +170,13 @@ function SectionEditor({
             <summary>{COPY.editGoal}</summary>
             <p className="text-muted">{COPY.goalIntro}</p>
             <form action={submit} className="flex flex-col gap-2">
-              <label>
-                {COPY.goalText}
-                <textarea
-                  name="text"
-                  defaultValue={content.text}
-                  maxLength={GOAL_MAX_LENGTH}
-                  disabled={pending}
-                />
-              </label>
+              <TextAreaField
+                label={COPY.goalText}
+                name="text"
+                defaultValue={content.text}
+                maxLength={GOAL_MAX_LENGTH}
+                disabled={pending}
+              />
               <Button type="submit" disabled={pending}>
                 {COPY.save}
               </Button>
@@ -165,16 +196,14 @@ function SectionEditor({
                 <li key={item.number} className="flex flex-col gap-2">
                   <form action={submit} className="flex flex-wrap gap-2">
                     <input type="hidden" name="number" value={item.number} />
-                    <label>
-                      {COPY.preferenceNumber(item.number)}
-                      <input
-                        name="text"
-                        defaultValue={item.text}
-                        maxLength={PREFERENCE_MAX_LENGTH}
-                        required={true}
-                        disabled={pending}
-                      />
-                    </label>
+                    <TextField
+                      label={COPY.preferenceNumber(item.number)}
+                      name="text"
+                      defaultValue={item.text}
+                      maxLength={PREFERENCE_MAX_LENGTH}
+                      required={true}
+                      disabled={pending}
+                    />
                     <Button
                       type="submit"
                       name="op"
@@ -242,15 +271,14 @@ function SectionEditor({
               ))}
             </ol>
             <form action={submit} className="flex flex-wrap gap-2">
-              <label>
-                {COPY.text}
-                <input
-                  name="text"
-                  required={true}
-                  maxLength={PREFERENCE_MAX_LENGTH}
-                  disabled={pending}
-                />
-              </label>
+              <TextField
+                label={COPY.text}
+                ref={addInputRef}
+                name="text"
+                required={true}
+                maxLength={PREFERENCE_MAX_LENGTH}
+                disabled={pending}
+              />
               <Button type="submit" name="op" value="add" disabled={pending}>
                 {COPY.add}
               </Button>
@@ -269,16 +297,16 @@ function SectionEditor({
               <p className="whitespace-pre-wrap">
                 {contentText(version.content)}
               </p>
-              {version.undoesVersion === null &&
-                !state.history.some(
-                  (entry) => entry.undoesVersion === version.version,
-                ) && (
-                  <UndoSection
-                    projectId={projectId}
-                    kind={content.kind}
-                    version={version.version}
-                  />
-                )}
+              {version.undoesVersion === null && (
+                <UndoSection
+                  projectId={projectId}
+                  kind={content.kind}
+                  version={version.version}
+                  undone={state.history.some(
+                    (entry) => entry.undoesVersion === version.version,
+                  )}
+                />
+              )}
             </li>
           ))}
         </ol>

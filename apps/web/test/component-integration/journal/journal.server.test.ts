@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { listMessages } from "@/chats/store.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import { changeSectionAction } from "@/journal/journal-actions.ts";
 import { readSection, writeSection } from "@/journal/journal-store.ts";
 import { runChatCommandAction } from "@/plan/plan-actions.ts";
@@ -28,6 +29,7 @@ describe("typed Journal sections", () => {
   test("use_case_edit_quest_goal", async () => {
     const { user, chat } = await signedInChat();
     const projectId = chat.project.id;
+    const balance = await readGoldBalance(user.id);
     const first = await changeSectionAction({
       projectId,
       kind: "goal",
@@ -35,6 +37,7 @@ describe("typed Journal sections", () => {
       edit: { kind: "goal", text: "Learn shading" },
     });
     expect(first.status).toBe("changed");
+    expect(await readGoldBalance(user.id)).toBe(balance);
     expect(
       await changeSectionAction({
         projectId,
@@ -59,6 +62,7 @@ describe("typed Journal sections", () => {
   });
   test("use_case_edit_quest_preferences", async () => {
     const { user, chat } = await signedInChat();
+    const balance = await readGoldBalance(user.id);
     expect(
       (
         await runChatCommandAction({
@@ -99,6 +103,7 @@ describe("typed Journal sections", () => {
       (await runChatCommandAction({ chatId: chat.id, text: "/preferences" }))
         .kind,
     ).toBe("shown");
+    expect(await readGoldBalance(user.id)).toBe(balance);
     const section = await readSection(user.id, chat.project.id, "preferences");
     expect(section?.content).toEqual({
       kind: "preferences",
