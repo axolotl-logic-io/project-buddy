@@ -14,7 +14,6 @@ export const PROJECTS_COPY = {
   defaultName: "New quest",
   cancel: "Cancel",
   newestFirst: "Your quests, newest first",
-  allProjectsLink: "All quests",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,

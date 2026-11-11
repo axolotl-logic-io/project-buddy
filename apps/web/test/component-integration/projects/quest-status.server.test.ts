@@ -91,10 +91,7 @@ describe("use_case_change_quest_status", () => {
         }),
       );
       expect(result.kind).toBe("saved");
-      expect(await seenBy(team.owner, team)).toEqual({
-        ...before,
-        today: false,
-      });
+      expect(await seenBy(team.owner, team)).toEqual(before);
       expect(await getProject(team.owner.id, team.project.id)).toMatchObject({
         status: target,
       });
