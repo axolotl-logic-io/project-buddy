@@ -1,10 +1,9 @@
 // What Home reads to offer Continue, against the test database: the
 // Active quest whose conversation was most recently active, with its next
-// step and whether it is unread for the viewer. "use_case_today_on_landing".
+// step. "use_case_today_on_landing".
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { markChatUnreadFor } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -96,23 +95,9 @@ describe("use_case_today_on_landing", () => {
       latestQuest: {
         project: { id: turtle.id, name: "Sea turtle model" },
         nextStep: "retopo the flipper",
-        unread: false,
       },
       firstVisit: false,
     });
-  });
-
-  test("marks the quest unread for the viewer alone", async () => {
-    const team = await teamProject();
-    await markChatUnreadFor(team.chat.id, [team.member.id]);
-
-    const [owner, member] = await Promise.all([
-      readHomeSummary(team.owner.id),
-      readHomeSummary(team.member.id),
-    ]);
-
-    expect(owner.latestQuest?.unread).toBe(false);
-    expect(member.latestQuest?.unread).toBe(true);
   });
 
   test("Chat alone is no quest to continue, and no first visit", async () => {

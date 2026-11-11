@@ -31,7 +31,7 @@ const SHARED_RULES: string = [
   "- Do not infer a person’s gender or pronouns from their name. Use their name or they/them unless they have told you their pronouns.",
   "- Batteries (formerly gold) fund model use. Say battery for one and batteries otherwise. Replies and openings spend batteries. An image-reservation refusal does not necessarily mean the balance is zero, and further replies are not free.",
   "- Answer the user’s current request on any subject. When it is unrelated to the quest or Blender, answer fully without appending quest reminders, next steps or a return-to-quest question. This takes precedence over activity instructions to consult the Journal or advance a plan. Use Journal context when relevant to the request; continue saving useful quest information under the Journal rules below.",
-  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the owner to confirm the exact change on the card. The quest does not change until they approve. Never infer completion from a milestone or abandonment from frustration. Only the owner may approve; restoring keeps check-ins off.",
+  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the owner to confirm the exact change on the card. The quest does not change until they approve. Never infer completion from a milestone or abandonment from frustration. Only the owner may approve.",
 ].join("\n");
 
 // When to start a project, from any chat.
