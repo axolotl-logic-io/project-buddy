@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  type ComponentProps,
   type JSX,
   type SubmitEvent,
   startTransition,
@@ -124,9 +125,44 @@ function QuestStartForm({
   );
 }
 
-// One starting point as a card: what it is and the button that shows its
-// details. The user's Dailies quest, once it exists, opens directly.
-function QuestStartCard({
+// The icon each starting point's tile shows beside its name.
+const START_ICONS: Readonly<
+  Record<PremadeQuestId, ComponentProps<typeof Icon>["name"]>
+> = {
+  dailies: "sun",
+  learn: "book",
+  make: "pencil",
+  do: "flag",
+};
+
+// What a tile shows: its icon, the starting point's name, which names the
+// tile, and its one-line tagline, which describes it.
+function QuestStartTileFace({
+  quest,
+  nameId,
+  taglineId,
+}: {
+  readonly quest: PremadeQuest;
+  readonly nameId: string;
+  readonly taglineId: string;
+}): JSX.Element {
+  return (
+    <>
+      <Icon className="text-primary" name={START_ICONS[quest.id]} />
+      <span className="card-title" id={nameId}>
+        {quest.name}
+      </span>
+      <span className="text-muted text-sm" id={taglineId}>
+        {quest.tagline}
+      </span>
+    </>
+  );
+}
+
+// One starting point as a tile, which is all one target: it shows the
+// starting point's details. The user's Dailies quest, once it exists, opens
+// directly.
+function QuestStartTile({
   quest,
   dailiesId,
   onChoose,
@@ -136,42 +172,53 @@ function QuestStartCard({
   readonly onChoose: (id: PremadeQuestId) => void;
 }): JSX.Element {
   const { id } = quest;
+  const nameId = useId();
+  const taglineId = useId();
   const choose = useCallback((): void => {
     onChoose(id);
   }, [onChoose, id]);
-  return (
-    <li className="card flex min-w-0 flex-col items-start gap-3">
-      <h3 className="card-title">{quest.name}</h3>
-      <p className="text-muted">{quest.description}</p>
-      {quest.id === "dailies" && dailiesId !== undefined && (
-        <Button asChild={true} variant="secondary">
-          <Link href={`/projects/${dailiesId}`}>
-            {QUEST_START_COPY.openDailies}
-          </Link>
-        </Button>
-      )}
-      {(quest.id !== "dailies" || dailiesId === undefined) && (
-        <Button
-          aria-label={QUEST_START_COPY.chooseLabel(quest.name)}
-          onClick={choose}
-          variant="secondary"
+  const face = (
+    <QuestStartTileFace quest={quest} nameId={nameId} taglineId={taglineId} />
+  );
+  if (id === "dailies" && dailiesId !== undefined) {
+    return (
+      <li>
+        <Link
+          aria-describedby={taglineId}
+          aria-labelledby={nameId}
+          className="quest-start-tile"
+          href={`/projects/${dailiesId}`}
         >
-          {QUEST_START_COPY.choose}
-        </Button>
-      )}
+          {face}
+        </Link>
+      </li>
+    );
+  }
+  return (
+    <li>
+      <button
+        aria-describedby={taglineId}
+        aria-labelledby={nameId}
+        className="quest-start-tile"
+        onClick={choose}
+        type="button"
+      >
+        {face}
+      </button>
     </li>
   );
 }
 
-// The four ways to start a quest: Dailies, Learn a thing, Make a thing and
-// Do a thing. Choosing one shows its details in their place, already filled
-// in, to edit or start as they are; Back shows the four again. It opens no
+// The four ways to start a quest, as tiles: Dailies, Learn a thing, Make a
+// thing and Do a thing. Choosing one shows its details in their place,
+// already filled in, to edit or start as they are; Back shows the four
+// again. It opens no
 // dialog of its own, so a page can hold it in one. preset fills in what the
 // page starting it already knows, such as a construct or a Chat's summary,
 // and initialChoice shows that one's details at once. A preset Journal is a
 // goal of its own, so Dailies, the user's one ongoing quest, isn't offered
 // with one. dailiesId is the user's Dailies quest, if they have one, which
-// its card opens instead. Looking and going back create nothing and spend
+// its tile opens instead. Looking and going back create nothing and spend
 // nothing.
 function QuestStartChoices({
   choices,
@@ -228,7 +275,7 @@ function QuestStartChoices({
     );
   }
   return (
-    <section className="flex flex-col gap-4" aria-labelledby={headingId}>
+    <section className="quest-start" aria-labelledby={headingId}>
       <h2
         className="section-heading"
         id={headingId}
@@ -237,9 +284,9 @@ function QuestStartChoices({
       >
         {QUEST_START_COPY.heading}
       </h2>
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="quest-start-tiles">
         {offered.map((offering) => (
-          <QuestStartCard
+          <QuestStartTile
             key={offering.id}
             quest={offering}
             dailiesId={dailiesId}
