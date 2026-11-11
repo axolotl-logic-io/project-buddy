@@ -4,7 +4,7 @@ Retirement puts aside the user's own constructs, activities, and spells without 
 
 ## Retire
 
-Each own card on Constructs, Activities, and Spellbook has Retire beside Tweak and Clone. An own definition's editing page also has Retire. Built-in definitions cannot be retired.
+Each private definition in Workshop has Retire beside Edit and Make a copy. An own definition's editing page also has Retire. Built-in definitions cannot be retired.
 
 Retire removes the definition from active collections, new-adventure choices, model activity choices, and future spell casts. Stale edit, clone, and start requests cannot use it. Existing adventure snapshots and past casts retain their instructions. A completion message links the user to Retirement through the collection's Retirement link.
 

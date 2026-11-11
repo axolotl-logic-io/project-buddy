@@ -11,26 +11,19 @@ interface FieldCopy {
 }
 
 export const SPELLBOOK_COPY = {
-  title: pageTitle("Spellbook"),
-  headerLink: "Spellbook",
-  heading: "Spellbook",
-  intro:
-    "A spell is a set of instructions your construct casts when it fits what you need. Every conversation lists your spells by name and when to use them; a spell's instructions reach your construct only in the conversations that cast it.",
-  loading: "Loading spells…",
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
   noOwn:
-    "No spells of your own yet. Customize a built-in one, or choose Craft spell to make one without copying another.",
-  newSpell: "Craft spell",
+    "No spells of your own yet. Make a copy of a built-in one, or choose Create spell to make one without copying another.",
+  newSpell: "Create spell",
   // The name of a crafted spell, until the user renames it.
   newSpellName: "New spell",
-  customize: "Customize",
-  customizeLabel: (name: string): string =>
-    `Customize ${name}: make your own copy`,
+  customize: "Make a copy",
+  customizeLabel: (name: string): string => `Make a copy of ${name}`,
   tweak: "Edit",
   tweakLabel: (name: string): string => `Edit your ${name}`,
-  clone: "Clone",
-  cloneLabel: (name: string): string => `Clone ${name}`,
+  clone: "Make a copy",
+  cloneLabel: (name: string): string => `Make a copy of ${name}`,
 } as const;
 
 // The text of a spell's page: its prompt as named parts, editable for a
@@ -40,7 +33,7 @@ export const SPELL_COPY = {
   spellbookLink: "Spellbook",
   loading: "Loading spell…",
   builtInIntro:
-    "A built-in spell can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
+    "A built-in spell can't be changed. Choose Make a copy to edit your own version.",
   ownIntro:
     "Your spell’s instructions and when-to-use description. A conversation that cast it keeps what it said then, so a change applies to the casts after it.",
 } as const;

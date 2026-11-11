@@ -4,7 +4,7 @@ The signed-in pages below group related content under a compact heading and an u
 
 | Page | Navigation | Actions and state |
 | --- | --- | --- |
-| Constructs, Activities, Spellbook | Built-in, Yours, Retired | Craft is in the heading. Existing start, customize, edit, clone, retire, restore and delete actions remain available in their sections. Retired entries are filtered to the current kind. Workshop keeps its original shared list view. |
+| Workshop | Constructs, Activities, Spells | Each kind lists built-ins and private definitions with inspection, Create, Make a copy, Edit and Retire. Retirement remains the destination for restore and permanent deletion. Old collection URLs redirect to Workshop. |
 | Library | Book links, then a chapter index beside the reading | The index opens Getting Started. Existing book routes, chapter anchors, action links and related books remain available. Chapters stack below the index on phones. |
 | Settings | Profile, Appearance, New quest construct, Batteries, Security on one page | Forms and feedback stay visible. Appearance changes this browser's mode. Batteries keeps balance, purchase options and payment status. Security keeps both sign-out actions; loading and error states also offer sign-out. Old Account URLs preserve queries and reach the corresponding content. |
 | Quest and Journal | Conversation, Quest Journal, Plan, Progress, Versions | The quest opens on its conversation, below the workspace at full width. Each other section appears inside the quest workspace. The title editor and visible status actions remain in the heading. |

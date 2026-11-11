@@ -9,11 +9,10 @@ const WORKSHOP_COPY = {
   edit: "At the workbench",
 } as const;
 
-// The Workshop's own page: one tab for each kind, where the user crafts one,
-// customizes a built-in one, or tweaks or clones their own.
+// Workshop has one collection tab per kind and the same editing actions.
 const WORKSHOP_PAGE_COPY = {
   intro:
-    "Craft a construct, activity or spell, customize a built-in one, or tweak or clone one of your own.",
+    "Create a construct, activity or spell, make a copy, or edit one of your own.",
   loading: "Loading the Workshop…",
   kindsLabel: "What to shape",
   kinds: {

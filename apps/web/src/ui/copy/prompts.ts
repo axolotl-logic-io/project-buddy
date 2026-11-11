@@ -32,7 +32,7 @@ export const PROMPT_COPY = {
   resetDone: "The prompt is back to its default. Save to keep it.",
   undoReset: "Undo reset",
   restored: "Your unsaved changes from before are back. Save to keep them.",
-  discard: "Discard changes",
+  discard: "Cancel",
   save: "Save",
   saved: "Saved.",
   // The button that resets an own construct's, activity's or spell's prompt

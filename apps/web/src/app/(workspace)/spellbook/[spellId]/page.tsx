@@ -148,7 +148,7 @@ export default async function SpellPage({
   if (isSpellId(spellId)) {
     const spell = getSpell(spellId);
     return (
-      <Workshop>
+      <Workshop kind="spell">
         <BuiltInSpell spell={spell} />
       </Workshop>
     );
@@ -164,7 +164,7 @@ export default async function SpellPage({
     notFound();
   }
   return (
-    <Workshop>
+    <Workshop kind="spell">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
       <OwnSpellForm viewer={user.id} spell={spell} />
     </Workshop>
