@@ -15,7 +15,6 @@ const HOME_COPY = {
   nextStep: "Next step:",
   continue: "Continue",
   continueLabel: (name: string): string => `Continue ${name}`,
-  account: "Account",
   openPlaces: "Every place is open to you.",
   quests: "Dailies, things to learn, make or do, and shared quests.",
   chats: "Talk something through without a goal.",

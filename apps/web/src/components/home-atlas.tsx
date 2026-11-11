@@ -135,7 +135,6 @@ function HomeAtlas({
       <ContinueQuest quest={latestQuest} />
       <footer className="atlas-footer">
         <div className="atlas-personal-links">
-          <Link href="/account">{HOME_COPY.account}</Link>
           <Link href="/settings">{HOME_COPY.settings}</Link>
         </div>
         <p>{HOME_COPY.openPlaces}</p>
