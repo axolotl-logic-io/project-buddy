@@ -30,6 +30,8 @@ const PLAN_ACTIONS: PlanActions = {
 // conversation alone, which shows the quest's plan beside it. While the
 // mock model runs, the composer lists its commands too. starter is a
 // prepared message offered above the composer, such as Start the day.
+// header replaces the default construct header; null omits it when the
+// construct is already available in the surrounding navigation.
 function ChatScreen({
   conversation,
   messages,
@@ -38,6 +40,7 @@ function ChatScreen({
   plan,
   actions,
   starter,
+  header,
 }: {
   readonly conversation: Chat;
   readonly messages: ChatMessage[];
@@ -45,13 +48,15 @@ function ChatScreen({
   readonly viewer: UserId;
   readonly plan?: PlanState | undefined;
   readonly actions?: ReactNode;
+  readonly header?: ReactNode;
   readonly starter?:
     | { readonly label: string; readonly text: string }
     | undefined;
 }): JSX.Element {
   const { construct } = conversation;
-  return (
-    <>
+  let heading = header;
+  if (heading === undefined) {
+    heading = (
       <header className="chat-header">
         <div className="conversation-header">
           <AdventureCharacterHeader
@@ -61,6 +66,11 @@ function ChatScreen({
           {actions}
         </div>
       </header>
+    );
+  }
+  return (
+    <>
+      {heading}
       <ChatView
         viewer={viewer}
         chatId={conversation.id}

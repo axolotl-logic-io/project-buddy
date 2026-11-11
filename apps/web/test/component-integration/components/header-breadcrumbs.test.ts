@@ -72,7 +72,11 @@ describe("header navigation hierarchy", () => {
       await headerBreadcrumbs(MEMBER, ["projects", "quest", "memory"]),
     ).toEqual([
       { label: "Quests", href: "/projects" },
-      { label: "Our quest", href: "/projects/quest" },
+      {
+        label: "Our quest",
+        href: "/projects/quest",
+        quest: { id: "quest", name: "Our quest" },
+      },
       { label: "Journal" },
     ]);
     expect(stores.getProject).toHaveBeenCalledWith(USER, "quest");

@@ -1,5 +1,6 @@
 "use client";
 
+import { Dialog } from "radix-ui";
 import {
   type ChangeEvent,
   type JSX,
@@ -24,6 +25,10 @@ import type { Project } from "@/projects/store.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: RenameProjectState = { kind: "idle" };
+
+function preventDismiss(event: Event): void {
+  event.preventDefault();
+}
 
 function TitleEditor({
   projectId,
@@ -108,10 +113,8 @@ function TitleEditor({
   );
 }
 
-// The quest title's Rename action, in the first row under the trail band,
-// whose heading is the title. Rename opens the title's editor in its place;
-// saving refreshes the page, and so the heading, and returns focus to
-// Rename.
+// A pencil beside the quest's name in the trail band. Editing happens in a
+// dialog so the navigation stays compact; saving returns focus to the pencil.
 function QuestTitle({
   project,
 }: {
@@ -142,22 +145,39 @@ function QuestTitle({
   }
   return (
     <div className="quest-title">
-      {editing === true && (
-        <TitleEditor projectId={project.id} name={title} onClose={close} />
-      )}
-      {editing === false && (
-        <Button
-          ref={renameRef}
-          variant="quiet"
-          className="quest-title-edit"
-          aria-expanded={false}
-          onClick={open}
-        >
-          <Icon name="pencil" />
-          {PROJECT_COPY.rename}
-        </Button>
-      )}
-      <FormStatus>{saved !== undefined && PROJECT_COPY.titleSaved}</FormStatus>
+      <Dialog.Root open={editing} onOpenChange={setEditing}>
+        <Dialog.Trigger asChild={true}>
+          <Button
+            ref={renameRef}
+            variant="quiet"
+            className="quest-title-edit"
+            aria-label={PROJECT_COPY.rename}
+            title={PROJECT_COPY.rename}
+            onClick={open}
+          >
+            <Icon name="pencil" />
+          </Button>
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay className="dialog-overlay" />
+          <Dialog.Content
+            className="dialog-panel"
+            aria-describedby={undefined}
+            onEscapeKeyDown={preventDismiss}
+            onPointerDownOutside={preventDismiss}
+          >
+            <Dialog.Title className="section-heading">
+              {PROJECT_COPY.titleLabel}
+            </Dialog.Title>
+            <TitleEditor projectId={project.id} name={title} onClose={close} />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <div className="sr-only">
+        <FormStatus>
+          {saved !== undefined && PROJECT_COPY.titleSaved}
+        </FormStatus>
+      </div>
     </div>
   );
 }

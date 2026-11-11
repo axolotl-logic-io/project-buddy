@@ -85,29 +85,20 @@
   }
 
   .quest-workspace {
-    @apply min-w-0 rounded-box border border-line bg-surface;
+    @apply flex min-w-0 flex-col gap-4;
   }
 
-  /* A quest's actions, the first row under the trail band: Rename, or the
-     title's editor across the row, then the status and its controls. */
-  .quest-workspace-heading {
-    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:px-6;
+  /* The section rail scrolls inside the space left by the actions button. */
+  .quest-workspace-header {
+    @apply flex min-w-0 items-center gap-2 border-line border-b;
   }
 
-  .quest-title:has(form) {
-    flex: 1 1 100%;
-  }
-
-  .quest-workspace-state {
-    @apply flex flex-wrap items-center gap-x-3;
-  }
-
-  .quest-workspace-status {
-    @apply text-muted text-sm;
+  .quest-workspace-header.chat-header {
+    @apply py-0;
   }
 
   .quest-workspace-rail {
-    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 sm:px-6;
+    @apply min-w-0 flex-1;
   }
 
   .quest-workspace-tab {
@@ -120,14 +111,18 @@
     @apply border-primary text-foreground;
   }
 
-  .quest-status-actions {
-    @apply flex flex-wrap items-center gap-2 py-2;
+  .quest-actions-trigger {
+    min-inline-size: var(--target-size);
+    min-block-size: var(--target-size);
+    @apply flex shrink-0 cursor-pointer items-center justify-center rounded-control text-primary hover:bg-surface;
   }
 
-  /* The status action a quest's state leads to next: Complete while it is
-     Active, Restore quest once it is Completed or Abandoned. */
-  .quest-status-next {
-    @apply border border-line px-3;
+  .quest-actions-panel {
+    @apply z-30 min-w-max rounded-box border border-line bg-surface p-3 shadow-raised;
+  }
+
+  .quest-status-actions {
+    @apply flex flex-col items-stretch gap-1;
   }
 
   /* A status change's result and its Undo, side by side, under the
@@ -150,6 +145,14 @@
   .quest-title-edit {
     min-inline-size: var(--target-size);
     @apply shrink-0 justify-center;
+  }
+
+  .trail-band .quest-title {
+    @apply shrink-0 self-center;
+  }
+
+  .trail-band .quest-title-edit {
+    margin-block: calc((1lh - var(--target-size)) / 2);
   }
 
   /* Smaller than the title on a phone, so a long name shows more than a
@@ -366,12 +369,6 @@
      its words alone, in a box a target's height. */
   .button-quiet {
     @apply inline-flex min-h-(--target-size) items-center gap-1.5 rounded-control font-medium text-primary text-sm underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-60;
-  }
-
-  /* A quest's Rename, boxed like the status action it shares the row
-     with. */
-  .quest-title > .button-quiet {
-    @apply border border-line px-3;
   }
 
   /* A labelled control: its label, the control, a hint and an error, in a
@@ -623,7 +620,7 @@
      phone; docs/chats.md). */
   .chat-header {
     inset-block-start: var(--site-header-height);
-    @apply sticky z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-0.5;
+    @apply sticky z-10 bg-background bg-(image:--page-decoration) bg-fixed py-0.5;
   }
 
   .memory-text p {
@@ -648,8 +645,7 @@
   /* A conversation's pinned header (src/components/chat-screen.tsx): the
      construct's portrait button and any page action, such as Start a
      quest from this, which wraps under it on a phone. */
-  /* A quest's conversation under its frame, its pinned header clear of
-     the frame's border. */
+  /* A quest's conversation below its section links and actions. */
   .quest-conversation {
     @apply flex min-w-0 flex-col gap-4;
   }
@@ -1068,6 +1064,10 @@
 
   .workspace-content {
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
+  }
+
+  .quest-workspace > .workspace-content {
+    @apply rounded-box border border-line bg-surface;
   }
 
   .workspace-content[hidden] {
