@@ -297,24 +297,6 @@ function workshopPage(
   );
 }
 
-function tabVariants(subject: string, labels: readonly string[]): PhonePage[] {
-  return labels.map((label) => ({
-    name: `${subject} · ${label}`,
-    render: (): Promise<JSX.Element> => {
-      const fixture = PHONE_PAGES.find(
-        (candidate) => candidate.name === subject,
-      );
-      if (fixture === undefined) {
-        throw new Error(`Unknown phone page: ${subject}`);
-      }
-      return fixture.render();
-    },
-    open: async (): Promise<void> => {
-      await page.getByRole("tab", { name: label, exact: true }).click();
-    },
-  }));
-}
-
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "Library",
