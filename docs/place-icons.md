@@ -9,7 +9,6 @@ The shared `Icon` component uses named imports from `lucide-react` 1.70.0 for th
 | Constructs | Bot | `bot` |
 | Activities | ListChecks | `checklist` |
 | Workshop | Pencil | `pencil` |
-| Marketplace | Store | `store` |
 
 `src/home/places.ts` selects the place symbols using internal icon names, which are not persisted or exposed through an API. Pencil also marks editing controls and edit summaries throughout the interface; those uses share the same library artwork. Construct artwork and generated images have separate rendering primitives.
 

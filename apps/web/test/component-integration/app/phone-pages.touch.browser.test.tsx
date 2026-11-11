@@ -24,12 +24,6 @@ import type {
 } from "@/constructs/construct-store.ts";
 import type { privateChat } from "@/conversations/private-chat.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
-import type {
-  getListing,
-  listListings,
-  listOwnListings,
-  readSaleState,
-} from "@/marketplace/listing-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readRecentNotes } from "@/notes/note-store.ts";
@@ -39,7 +33,6 @@ import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readHomeSummary } from "@/today/today-store.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -129,19 +122,6 @@ vi.mock("@/activities/activity-store.ts", () => ({
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-  getListing: vi.fn<typeof getListing>(),
-  listListings: vi.fn<typeof listListings>(),
-  listOwnListings: vi.fn<typeof listOwnListings>(),
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  buyListingAction: vi.fn(),
-  sellListingAction: vi.fn(),
-  unlistListingAction: vi.fn(),
-  updateListingAction: vi.fn(),
 }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
@@ -250,14 +230,12 @@ interface PhoneMeasures {
 }
 
 // The rows of tabs a page may have, besides its tab lists: a quest's
-// sections, an adventure's, the Workshop's kinds, the Marketplace's, the
-// Library's books and the Retirement filter. The Quests list's status tabs
+// sections, an adventure's, the Workshop's kinds, the Library's books and the Retirement filter. The Quests list's status tabs
 // are a grid of two columns on a phone by design, so they aren't one.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [
   PROJECT_COPY.navigation,
   WORKSPACES_COPY.conversation,
   WORKSHOP_PAGE_COPY.kindsLabel,
-  MARKETPLACE_COPY.filterLabel,
   WORKSPACES_COPY.books,
 ];
 
