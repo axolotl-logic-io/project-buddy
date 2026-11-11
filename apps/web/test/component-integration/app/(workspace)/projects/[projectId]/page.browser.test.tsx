@@ -12,6 +12,7 @@ import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getProject } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
@@ -93,6 +94,7 @@ vi.mock(
 // The widest the page's column grows: from the xl breakpoint, the quest's
 // conversation and its plan sit side by side.
 const CONVERSATION_WIDTH = 1152;
+const MAX_COMPACT_HEADER_HEIGHT = 72;
 
 const PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
@@ -172,15 +174,17 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       await screen.rerender(
         inWorkspace(<ProjectLayout params={PARAMS}>{content}</ProjectLayout>),
       );
-      // The quest's name is the trail band's heading; its frame starts with
-      // Rename.
-      const rename = page.getByRole("button", { name: PROJECT_COPY.rename });
-      await expect.element(rename).toBeVisible();
-      const title = rename.element().getBoundingClientRect();
+      // Infrequent quest actions stay in a disclosure beside the sections.
+      const menu = page.getByRole("button", { name: "Quest actions" });
+      await expect.element(menu).toBeVisible();
+      const title = menu.element().getBoundingClientRect();
       const workspace = page
         .getByRole("navigation", { name: PROJECT_COPY.navigation })
         .element()
         .closest("header")?.parentElement;
+      expect(
+        workspace?.querySelector("header")?.getBoundingClientRect().height,
+      ).toBeLessThanOrEqual(MAX_COMPACT_HEADER_HEIGHT);
       expect(workspace?.getBoundingClientRect()).toMatchObject({
         x: loadingWorkspace?.x,
         width: loadingWorkspace?.width,
@@ -235,7 +239,8 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
   );
 });
 
-test("the workspace exposes navigation and direct status actions", async () => {
+test("the workspace keeps navigation and direct status actions compact", async () => {
+  await setViewport(LAPTOP_VIEWPORT);
   await renderProject();
   expect(
     page.getByRole("heading", { level: 1 }).query(),
@@ -252,23 +257,50 @@ test("the workspace exposes navigation and direct status actions", async () => {
   await expect
     .element(navigation.getByRole("link", { name: MEMORY_COPY.link }))
     .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}/memory`);
+  const portrait = navigation.getByRole("button", {
+    name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CONVERSATION.construct.name),
+  });
+  await expect.element(portrait).toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Complete", exact: true }))
+    .element(
+      navigation.getByText(FOX_CONVERSATION.construct.name, { exact: true }),
+    )
+    .not.toBeInTheDocument();
+  const conversationTab = navigation.getByRole("link", {
+    name: WORKSPACES_COPY.conversation,
+  });
+  expect(portrait.element().getBoundingClientRect().right).toBeLessThanOrEqual(
+    conversationTab.element().getBoundingClientRect().left,
+  );
+  await portrait.click();
+  await expect.element(page.getByRole("dialog")).toBeVisible();
+  await expect
+    .element(
+      page.getByRole("heading", { name: FOX_CONVERSATION.construct.name }),
+    )
+    .toBeVisible();
+  await page
+    .getByRole("button", { name: CONSTRUCT_DISCOVERY_COPY.closeProfile })
+    .click();
+  await expect.element(portrait).toHaveFocus();
+  const menu = page.getByRole("button", { name: "Quest actions" });
+  await expect.element(menu).toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: "Finish Quest", exact: true }))
+    .not.toBeInTheDocument();
+  await expect
+    .element(page.getByText("Active", { exact: true }))
+    .not.toBeInTheDocument();
+  const header = navigation
+    .element()
+    .closest("header")
+    ?.getBoundingClientRect();
+  expect(header?.height).toBeLessThanOrEqual(MAX_COMPACT_HEADER_HEIGHT);
+  await menu.click();
+  await expect
+    .element(page.getByRole("button", { name: "Finish Quest", exact: true }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Abandon", exact: true }))
+    .element(page.getByRole("button", { name: "Abandon Quest", exact: true }))
     .toBeVisible();
-  await expect
-    .element(page.getByRole("button", { name: PROJECT_COPY.rename }))
-    .toBeVisible();
-  const sections = navigation.element().getBoundingClientRect();
-  for (const action of [PROJECT_COPY.rename, "Complete", "Abandon"]) {
-    expect(
-      page
-        .getByRole("button", { name: action, exact: true })
-        .element()
-        .getBoundingClientRect().bottom,
-      `${action} is in the frame's first row, above its sections`,
-    ).toBeLessThanOrEqual(sections.top);
-  }
 });

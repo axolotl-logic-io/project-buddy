@@ -1,6 +1,6 @@
 # Quest status
 
-A quest starts Active. Its owner can mark it Completed or Abandoned with the visible Complete and Abandon buttons in the quest workspace rail. Both choices keep the conversation, Journal and progress available. No one else can change its status.
+A quest starts Active. Its owner can mark it Completed or Abandoned with Finish Quest and Abandon Quest in the Quest actions menu beside the section tabs. Both choices keep the conversation, Journal and progress available. No one else can change its status.
 
 Quests has an underlined tab rail for Active, Completed and Abandoned quests, below the four starting points, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the quest page offers the same action. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
@@ -20,8 +20,8 @@ Reply instructions include the requesting owner’s latest proposal decision in 
 
 ## Quest workspace
 
-The quest overview and Quest Journal share a compact frame under the site header's trail band, whose heading is the quest's title on the overview and Journal on the Journal. The frame's first row holds Rename, the status and the status actions. The rail below it holds Conversation, Quest Journal, Plan, Progress and Versions navigation. The current section appears below the rail; Conversation, the default, follows the frame at the page's full width, with its pinned header and composer. The current page has an underlined link. Controls wrap on phones.
+The quest overview and Quest Journal share a compact header under the site header's trail band, whose heading is the quest's title on the overview and Journal on the Journal. Conversation, Quest Journal, Plan, Progress and Versions navigation shares one row with a three-dot Quest actions button. The current page has an underlined link. On phones, the section links scroll within their row. The current status and its actions appear only when Quest actions is open. Conversation, the default, follows the header at the page's full width, with its composer. Its construct portrait sits immediately before Conversation in the pinned section row, without a name or a separate row. Other sections appear in a panel below the header.
 
-The owner can choose Rename to edit the title in place of the button. Save title or Enter saves a trimmed name of up to 80 characters, and the band's heading and parent link show it. Cancel title edit or Escape discards the draft, and focus returns to Rename. Invalid names and storage failures keep the draft open for correction.
+The owner can choose the pencil beside the quest name in the trail band to open the title editor in a dialog. Save title or Enter saves a trimmed name of up to 80 characters, and the band's heading and parent link show it. Cancel title edit or Escape discards the draft, and focus returns to Rename. Invalid names and storage failures keep the draft open for correction.
 
 The overview keeps the conversation, plan, progress timeline. The Journal keeps its editor and version history. Navigation and title edits start nothing and make no model call.

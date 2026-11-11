@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
+import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
@@ -23,15 +24,17 @@ const START_THE_DAY: { readonly label: string; readonly text: string } = {
 async function questConversation(
   project: Project,
   viewer: UserId,
-): Promise<JSX.Element> {
+): Promise<{ readonly content: JSX.Element; readonly portrait?: JSX.Element }> {
   const conversation = await readQuestConversation(viewer, project.id);
   if (conversation === undefined) {
-    return (
-      <div className="flex flex-col items-start gap-3">
-        <Notice>{QUEST_CONVERSATION_COPY.notStarted}</Notice>
-        <StartConversationForm projectId={project.id} />
-      </div>
-    );
+    return {
+      content: (
+        <div className="flex flex-col items-start gap-3">
+          <Notice>{QUEST_CONVERSATION_COPY.notStarted}</Notice>
+          <StartConversationForm projectId={project.id} />
+        </div>
+      ),
+    };
   }
   const [messages, stoppedReplyId, plan] = await Promise.all([
     listMessages(viewer, conversation.id),
@@ -42,16 +45,26 @@ async function questConversation(
   if (project.dailies && project.status === "active") {
     starter = START_THE_DAY;
   }
-  return (
-    <ChatScreen
-      conversation={conversation}
-      messages={messages}
-      stoppedReplyId={stoppedReplyId}
-      viewer={viewer}
-      plan={plan}
-      starter={starter}
-    />
-  );
+  return {
+    portrait: (
+      <AdventureCharacterHeader
+        construct={conversation.construct}
+        destination={{ kind: "adventure", id: conversation.id }}
+        compact={true}
+      />
+    ),
+    content: (
+      <ChatScreen
+        header={null}
+        conversation={conversation}
+        messages={messages}
+        stoppedReplyId={stoppedReplyId}
+        viewer={viewer}
+        plan={plan}
+        starter={starter}
+      />
+    ),
+  };
 }
 
 export { questConversation };

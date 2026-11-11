@@ -5,7 +5,7 @@ import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
-import { getProject } from "@/projects/store.ts";
+import { getProject, type Project } from "@/projects/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import { getSpell, isSpellId } from "@/spells/index.ts";
@@ -19,6 +19,10 @@ import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+
+interface HeaderBreadcrumb extends Breadcrumb {
+  readonly quest?: Pick<Project, "id" | "name">;
+}
 
 const DETAIL_DEPTH = 2;
 const CHILD_DEPTH = 3;
@@ -60,7 +64,7 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
 async function headerBreadcrumbs(
   user: Pick<User, "id" | "role">,
   path: readonly string[],
-): Promise<readonly Breadcrumb[]> {
+): Promise<readonly HeaderBreadcrumb[]> {
   const [section = "", id, child] = path;
   const root = ROOTS.get(section);
   if (id === undefined) {
@@ -89,11 +93,18 @@ async function headerBreadcrumbs(
     if (child === "memory") {
       return [
         QUESTS,
-        { label: project.name, href: `/projects/${project.id}` },
+        {
+          label: project.name,
+          href: `/projects/${project.id}`,
+          quest: { id: project.id, name: project.name },
+        },
         { label: MEMORY_COPY.heading },
       ];
     }
-    return [QUESTS, { label: project.name }];
+    return [
+      QUESTS,
+      { label: project.name, quest: { id: project.id, name: project.name } },
+    ];
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
