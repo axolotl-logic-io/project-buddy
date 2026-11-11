@@ -27,13 +27,11 @@ const FOX_PROJECT: Project = {
   unread: false,
 };
 
-// A chat in the fox project, not named yet.
+// A chat in the fox project.
 const FOX_CHAT: ProjectChat = {
   id: chatIdFixture("9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b"),
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
   construct: snapshotOf(getConstruct("lumen")),
-  name: undefined,
-  renamedByHand: false,
   unread: false,
   createdAt: new Date("2026-10-11T12:00:00Z"),
 };
@@ -59,13 +57,11 @@ const FOX_MILESTONES: readonly Milestone[] = [
   FOX_BODY_MILESTONE,
 ];
 
-// A user's standalone chat, in no project, not named yet.
+// A user's standalone chat, in no project.
 const STANDALONE_CHAT: Chat = {
   id: chatIdFixture("3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f"),
   project: undefined,
   construct: snapshotOf(getConstruct("lumen")),
-  name: undefined,
-  renamedByHand: false,
   unread: false,
   createdAt: new Date("2026-10-12T12:00:00Z"),
 };

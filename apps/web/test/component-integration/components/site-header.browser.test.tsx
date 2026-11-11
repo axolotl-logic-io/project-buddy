@@ -215,7 +215,7 @@ describe("use_case_use_on_phone", () => {
 });
 
 test.each(SCREENS)(
-  "Quests and Adventures are reached through the menu on $name",
+  "Quests and Chat are reached through the menu on $name",
   async (screen) => {
     await setViewport(screen.viewport);
     await renderSignedIn();
