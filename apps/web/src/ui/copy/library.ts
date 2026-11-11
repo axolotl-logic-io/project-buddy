@@ -64,7 +64,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "The header shows where you are. Its links lead back through the pages that contain this one, up to Home.",
             "Chat is always one conversation, so open Chat to carry on where you left off. A quest’s conversation opens with the quest.",
-            "To find a quest, open Quests, or follow Continue on Home. Its tabs show Active, Completed and Abandoned quests, and a quest with messages you haven’t read, such as a check-in, is marked New messages. A quest opens on its conversation, with its Journal, plan, progress, Quick Notes, Journal versions, and members and check-ins one tap away. If you own the quest, rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
+            "To find a quest, open Quests, or follow Continue on Home. Its tabs show Active, Completed and Abandoned quests, and a quest with messages you haven’t read, such as a check-in, is marked New messages. A quest opens on its conversation, with its Journal, plan, progress, Quick Notes and Journal versions one tap away. Rename it with the pencil, or choose Complete, Abandon or Restore quest to change its status.",
             "The Journal holds what a quest needs to remember: its goals, preferences, limits and agreed plans. The construct is asked to save useful information there, and you can read and edit it yourself. If a reply misunderstands your goal, check the Journal first.",
             "To note something without a conversation, save a Quick Note. Quick Notes become part of the Journal, so the quest’s replies can use them. Replies read the Journal and the newest part of the conversation, so keep lasting information in the Journal.",
             "For example, save “The shelf gets sun only in the morning” as a Quick Note. Later in the quest’s conversation, ask which plants would suit it. Chat has no Journal.",
@@ -162,7 +162,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "Before it casts a spell, the construct sees each spell’s name and When to use line, not its instructions. It uses them to decide whether a spell fits your request. It can miss a spell that fits, or cast one that doesn’t.",
             "When the construct casts a spell, it receives the spell’s instructions, the Spell Sheet in its Instructions field. The conversation shows the cast by the spell’s name and keeps the instructions private. A spell adds instructions only: it grants no tools or permissions.",
-            "A cast keeps the instructions as they were then. Editing or deleting the spell later doesn’t change past casts, which keep guiding later replies in that conversation. In a team quest, those can be replies to other members, though your spell itself stays private.",
+            "A cast keeps the instructions as they were then. Editing or deleting the spell later doesn’t change past casts, which keep guiding later replies in that conversation.",
           ],
         },
         {
@@ -287,10 +287,9 @@ const LIBRARY_COPY: {
           links: [],
           paragraphs: [
             "Tools are actions the model can ask the site to take. In an ordinary reply it can generate images, search and cite the Blender manual, change activity, cast spells and propose a new quest. A quest reply can also edit the Journal, change the plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings and check-ins have no tools, and a Workshop test can only cast spells.",
-            "Each tool checks your access when it runs. Your own constructs, activities and spells stay private to you. A quest’s owner and current members share the quest’s data, and removal ends a member’s access. Only the owner approves status changes and manages check-ins, and buying someone’s spell gives no access to their data.",
+            "Each tool checks your access when it runs. Your own constructs, activities and spells stay private to you, and only you can open your quests and their data. Buying someone’s spell gives no access to their data.",
             "A manual search returns up to five sections, each with its link and an excerpt of at most 1,500 characters. Citations keep only links that a search in the same conversation returned, and the site shows them apart from the reply’s text. These results are what the model reads; it has no access to the whole web.",
             "The model decides which tools to ask for; the site checks and runs them. A cast returns the spell’s instructions, an activity change returns the new activity’s instructions, and edits return whether they worked. A reply that says the Journal changed isn’t the same as a tool result that says so.",
-            "In a team quest, the construct and activity can guide replies to every member. Past spell casts stay with the conversation for later replies, though members never see their instructions. Don’t put secrets in definitions you use in a team quest.",
           ],
         },
         {

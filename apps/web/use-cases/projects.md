@@ -9,10 +9,9 @@ The user looks over their quests and the ways to start one.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - They go to Quests.
-- **Outcome:** Start a quest offers four starting points, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Below them, Active, Completed and Abandoned tabs list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. Team quests they are a member of are listed too, marked "Shared with you"; their own quests that have members are marked "Shared". A quest whose conversation has messages they haven't read, such as a check-in, is marked "New messages", for them alone. With no quests, the page says there are none yet and points to the starting points above. Merely opening the page creates nothing. Invitations to other people's quests that they haven't answered are listed above, under Quest invitations, each with Join and Decline (`use_case_join_project`).
+- **Outcome:** Start a quest offers four starting points, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Below them, Active, Completed and Abandoned tabs list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. A quest whose conversation has messages they haven't read, such as a check-in, is marked "New messages", for them alone. With no quests, the page says there are none yet and points to the starting points above. Merely opening the page creates nothing.
 - **Next:**
   - `use_case_open_project`: work on one of them.
-  - `use_case_join_project`: join a quest they were invited to.
   - `use_case_new_project`: start another.
   - [`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable): the list will not load.
 
@@ -75,19 +74,17 @@ The user opens one of their quests, from Quests, Home or a notification.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions, and Members and check-ins. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The owner sees the status actions. Controls wrap on phones, without sideways scrolling.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, status and sections: Conversation, Quest Journal, Plan, Progress, Quick Notes and Versions. There is no list of conversations to choose from and nothing to start. Beside the conversation, or above it on a narrow screen, the quest's plan shows its next step. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Each section is a link; the selected one is underlined, and moving between sections keeps the composer's unsent draft. The status actions are there too. Controls wrap on phones, without sideways scrolling.
 - **Variations:**
   - A quest without a conversation yet, as after the move from adventures: `use_case_start_quest_conversation`.
   - The Dailies quest: `use_case_dailies`.
-  - A quest that isn't open to them is not found ([`use_case_private_data`](accounts.md#use_case_private_data)).
+  - Another user's quest is not found, even for someone who was once its member ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
   - `use_case_set_check_ins`: have the construct check in on the quest.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note they no longer need.
-  - `use_case_remove_member`: someone should no longer work on their quest.
   - `use_case_view_progress_timeline`: see how far they have come.
-  - `use_case_invite_to_project`: work on the quest with someone else.
 
 ## use_case_start_quest_conversation
 
@@ -111,7 +108,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
   - They choose Start the day, beside the composer.
 - **Outcome:** Dailies is a quest like any other, with its name, Journal, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Start the day sends "Let's start the day." as their own message, in the same conversation, and the construct helps them notice what matters and choose one manageable next step. It is an ordinary message, charged as any other, and leaves the composer's draft. Nothing is cleared or reset: the conversation, Journal, Plan and status carry on from day to day. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
-  - A member of a team quest named Dailies sees no Start the day: only a quest started as Dailies offers it.
+  - A quest the user named Dailies by hand has no Start the day: only a quest started as Dailies offers it.
 
 ## use_case_set_check_ins
 
@@ -166,94 +163,6 @@ The user changes or deletes a milestone on the progress timeline.
 - **Next:**
   - `use_case_view_progress_timeline`: look over the result.
 
-## use_case_team_project_access
-
-The user works in a team quest: someone else's quest that she is a member of.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the quest's owner has made her a member, as accepting a quest invitation does.
-- **Steps:**
-  - She finds the quest in her quests list, and, while Active, in Home's Continue and the Quick Note choices. Completing or abandoning removes it from those choices; restoring it makes it available again.
-  - She opens the quest and its Journal. She writes in its conversation, edits the Journal, adds and deletes a Quick Note, and edits and deletes a milestone.
-  - She looks at the quest's Members section.
-- **Outcome:** the quest, its conversation with its messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her Chat, her own constructs and activities, and her image gallery stay hers alone, except that when the construct moves the quest's conversation into her own activity, it runs on that activity's instructions for everyone in the quest. The conversation shows the change of activity by its name, and never holds its instructions. A check-in marks the conversation unread for each of them separately. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
-- **Next:**
-  - `use_case_leave_project`: she is done with the quest.
-
-## use_case_remove_member
-
-The owner takes a member out of her team quest.
-
-- **Prerequisites:** `use_case_open_project`, for a quest with a member (`use_case_team_project_access`).
-- **Steps:**
-  - In the quest's Members section, she chooses Remove beside the member. A dialog asks her to confirm; she can keep them instead.
-  - She confirms.
-- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the quest, its conversation, Journal, Quick Notes and milestones look to the removed member exactly like a quest that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the quest's conversation. An image they generated in it leaves their gallery. Members can't remove anyone.
-- **Next:**
-  - `use_case_open_project`: carry on with the quest.
-
-## use_case_leave_project
-
-A member leaves a team quest.
-
-- **Prerequisites:** `use_case_team_project_access`.
-- **Steps:**
-  - In the quest's Members section, she chooses Leave quest. A dialog asks her to confirm; she can stay instead.
-  - She confirms.
-- **Outcome:** she is back on her quests list, without the quest. From then on the quest looks to her exactly like one that doesn't exist, as for a removed member (`use_case_remove_member`). What she wrote stays in its conversation. The owner can't leave their own quest, and has no Leave quest button.
-- **Next:**
-  - `use_case_view_projects`: carry on with her own quests.
-
-## use_case_invite_to_project
-
-The owner of a quest invites someone to work on it with them, by their email address.
-
-- **Prerequisites:** `use_case_open_project`, for a quest of her own.
-- **Steps:**
-  - On the quest's page, under Invite someone, she enters the person's email address and sends the invitation.
-- **Outcome:** the form says "If ADDRESS has a Project Buddy account, we've sent them a quest invitation." Once it's sent, the quest's page lists it under Pending invitations, with the address and the day she sent it. The person gets one email that names her and the quest, with a link that signs them in and opens the invitation (`use_case_join_project`). The invitation also waits on their Quests page. Nobody joins until they accept.
-- **Variations:**
-  - The address has no account: the form gives the same answer, as soon and counting the same against her limits, and Pending invitations lists it the same way, so nothing shows whether the address has an account, as sign-in doesn't. The invitation is saved by the address alone. No email is sent and no account is made; only an admin can bring someone new to the site ([`use_case_admin_invites`](accounts.md#use_case_admin_invites)). No one can see or answer the invitation until an account has that address; then it waits on that account's Quests page (`use_case_join_project`).
-  - Her own address, or the address of someone already a member: the form says so, and sends nothing.
-  - An address that isn't an email address: the form asks for one, and sends nothing.
-  - She invites the same person again: the newer invitation replaces the pending one, whose link no longer opens it.
-  - Send limits: she can send 20 quest invitations an hour, and an address gets at most one a minute, counting addresses with no account the same. Past the limit, the form says so and sends nothing. If the email fails, the invitation still waits on the invitee's Quests page, and she can try again at once.
-  - A member of the quest, or anyone else, sees no invite form or pending invitations, and can't invite anyone to it.
-- **Next:**
-  - `use_case_revoke_project_invitation`: she changes her mind.
-
-## use_case_join_project
-
-The person invited to a quest joins it.
-
-- **Prerequisites:** `use_case_invite_to_project`.
-- **Steps:**
-  - They open the email's link, and continue on the page it opens, as in [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). Or, signed in, they open the Quests page, where Quest invitations lists it. An invitation to an address that had no account when it was sent has no email; it shows on the Quests page once an admin's invitation has made an account with that address.
-  - The invitation asks "Join PROJECT?", says who invited them, and offers Join and Decline. They choose Join.
-- **Outcome:** they are a member of the quest, on its page, and the quest is in their quests list. The invitation is gone from their list and from the owner's pending invitations. Opening the email's link again leads to a page that isn't found. The link signs them in for 30 minutes, like any sign-in link; after that they sign in as usual and find the invitation on the Quests page.
-- **Variations:**
-  - Only the invited person can see or answer the invitation: the account it was sent to, or, for one sent to an address with no account, the account that has that address when they open or answer it. For anyone else, including the quest's owner, its page and its Join and Decline are not found, exactly as for an invitation that doesn't exist.
-  - A revoked, replaced or already answered invitation is not found.
-- **Next:**
-  - `use_case_team_project_access`: work in the quest with its owner.
-
-## use_case_decline_project_invitation
-
-The person invited to a quest says no.
-
-- **Prerequisites:** `use_case_invite_to_project`.
-- **Steps:**
-  - On the invitation's page or the Quests page, they choose Decline.
-- **Outcome:** the Quests page shows, without the invitation, and focuses a confirmation that the quest invitation was declined. Reloading does not repeat that confirmation. They aren't a member, and the owner's pending invitations no longer list it. The invitation can't be accepted afterwards; the owner can send a new one.
-
-## use_case_revoke_project_invitation
-
-The owner of a quest takes back an invitation before it is answered.
-
-- **Prerequisites:** `use_case_invite_to_project`.
-- **Steps:**
-  - On the quest's page, under Pending invitations, she chooses Revoke beside the invitation, then confirms. She can keep the invitation instead.
-- **Outcome:** the invitation is gone from her pending invitations and from the invitee's Quests page, and its email's link leads to a page that isn't found. The invitee can't join with it. Only the quest's owner can revoke its invitations.
-
 ## use_case_set_interview_construct
 
 The user chooses which construct new quests start with.
@@ -278,4 +187,4 @@ The owner changes the quest title inline on its overview or Journal page.
 
 - **Prerequisites:** signed in as the quest owner.
 - **Steps:** choose Edit quest title, enter the name, then choose Save title or press Enter.
-- **Outcome:** the trimmed title is saved and appears on the quest and its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to the pencil. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Members and other users cannot rename the quest.
+- **Outcome:** the trimmed title is saved and appears on the quest and its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to the pencil. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Other users, including former members, cannot rename the quest.

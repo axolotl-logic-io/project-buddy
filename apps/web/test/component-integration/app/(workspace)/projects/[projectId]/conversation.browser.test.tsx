@@ -102,18 +102,10 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   startConversationAction: vi.fn(),
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
 }));
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: vi.fn(),
@@ -122,9 +114,6 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn(),
 }));
 vi.mock("@/notes/note-store.ts", () => ({ readRecentNotes: vi.fn() }));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: vi.fn(),
-}));
 
 vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
 vi.mock("@/constructs/construct-store.ts", () => ({
@@ -132,10 +121,6 @@ vi.mock("@/constructs/construct-store.ts", () => ({
 }));
 vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
 vi.mock("@/marketplace/listing-store.ts", () => ({ getListing: vi.fn() }));
-vi.mock("@/projects/project-invitations.ts", () => ({
-  readProjectInvitation: vi.fn(),
-  listSentProjectInvitations: vi.fn(),
-}));
 vi.mock("@/projects/store.ts", () => ({ getProject: store.getProject }));
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),

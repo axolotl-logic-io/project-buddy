@@ -49,9 +49,9 @@ interface Memory {
 }
 
 // The person who saved a version, as the history names them to the user
-// viewing it: that user, or someone else in the project by their name, or
-// by their email address when they have no name, as the project's members
-// see each other (docs/team-projects.md).
+// viewing it: that user, or, for a version saved while quests could be
+// shared, someone else by their name, or by their email address when they
+// have no name.
 type MemorySaver =
   | { readonly kind: "viewer" }
   | { readonly kind: "person"; readonly name: string };

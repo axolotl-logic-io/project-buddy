@@ -1,8 +1,7 @@
 // Reads what Home offers to continue (today.ts). A quest is as active as
 // its conversation: its newest message, or when it started. Reading makes
 // no model call: the next step is whatever the quest's plan or Journal
-// records (nextStepOfQuest). It reads only the quests open to the user:
-// their own, and the team quests they are a member of.
+// records (nextStepOfQuest). It reads only the user's own quests.
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { unreadFor } from "@/chats/unread-marks.ts";

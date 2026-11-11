@@ -1,8 +1,8 @@
 // A check-in: the construct's short message about where the user left off,
 // appended to the quest's conversation on the schedule the owner picks
 // (src/check-ins/check-ins.ts). It keeps the conversation's construct and
-// current activity, and marks the conversation unread for the owner and
-// every member until each opens it. A quest with no conversation yet gets
+// current activity, and marks the conversation unread for the owner until
+// they open it. A quest with no conversation yet gets
 // one, opened by the check-in.
 import {
   type ChatProject,
@@ -19,7 +19,6 @@ import {
 } from "@/conversations/conversation-store.ts";
 import { defaultStart, openingFor } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
-import { listProjectMembers } from "@/projects/members-store.ts";
 import { checkGold } from "@/quota/quota.ts";
 import { readPromptProject } from "@/replies/system-prompt.ts";
 
@@ -69,11 +68,7 @@ async function appendCheckIn(
   if (!(await appendConstructMessage(owner, conversation.id, message))) {
     return { kind: "awaitingReply" };
   }
-  const people = await listProjectMembers(owner, project.id);
-  await markChatUnreadFor(conversation.id, [
-    owner,
-    ...people.map(({ id }) => id),
-  ]);
+  await markChatUnreadFor(conversation.id, [owner]);
   if (!isProjectChat(conversation)) {
     throw new Error("A check-in's conversation has no quest");
   }
