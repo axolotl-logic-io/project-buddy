@@ -24,7 +24,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; setup links do not expire. They stop working when accepted or replaced. Sign-in links for existing accounts expire after 30 minutes. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's quests, adventures, Journal and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
-- **Batteries:** each user has one balance of batteries, which model calls spend, including image generation and check-ins. Every account starts with 100 batteries, once; batteries never reset.
+- **Batteries:** each user has one balance of batteries, which model calls spend, including image generation. Every account starts with 100 batteries, once; batteries never reset.
 
 ## Conventions
 

@@ -1,5 +1,6 @@
 // A quest's page in Chromium and WebKit: its frame, sections, status
-// actions, and its loading and error states. The conversation it opens on is conversation.browser.test.tsx's.
+// actions, and its loading and error
+// states. The conversation it opens on is conversation.browser.test.tsx's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -7,11 +8,7 @@ import ProjectError from "@/app/(workspace)/projects/[projectId]/(overview)/erro
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectLoading from "@/app/(workspace)/projects/[projectId]/(overview)/loading.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
-import type {
-  listMessages,
-  markChatRead,
-  readStoppedReply,
-} from "@/chats/store.ts";
+import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getProject } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -45,7 +42,6 @@ vi.mock(
 );
 const stores = vi.hoisted(() => ({
   listMessages: vi.fn<typeof listMessages>(),
-  markChatRead: vi.fn<typeof markChatRead>(),
   readStoppedReply: vi.fn<typeof readStoppedReply>(),
   readQuestConversation: vi.fn<typeof readQuestConversation>(),
   getProject: vi.fn<typeof getProject>(),
@@ -56,7 +52,6 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn(),
   listMessages: stores.listMessages,
-  markChatRead: stores.markChatRead,
   readStoppedReply: stores.readStoppedReply,
 }));
 vi.mock("@/conversations/start-quest.ts", () => ({
@@ -81,7 +76,6 @@ vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),

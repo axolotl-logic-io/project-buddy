@@ -162,7 +162,7 @@ async function findOrCreateConversation(
 // message saved so far, and says whether it did. Nothing is saved in a
 // conversation that isn't open to the owner, or whose newest message awaits
 // a reply (noReplyAwaited), which only its reply may follow. A new
-// conversation's opening and a check-in are saved this way.
+// conversation's opening is saved this way.
 async function appendConstructMessage(
   owner: UserId,
   chatId: ChatId,

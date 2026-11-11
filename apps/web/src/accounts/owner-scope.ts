@@ -11,8 +11,7 @@
 // names alone. A historical project_members or project_invitations row
 // grants nothing: no predicate reads either table. An own prompt, a
 // construct or an activity, a gold balance and its ledger, an image
-// generation's claim and a push subscription belong to their user alone,
-// and an unread mark on a chat to the user it marks the chat for. A
+// generation's claim and a push subscription belong to their user alone. A
 // transfer of gold changes the payee's balance too, only by adding to it
 // (goldBalancesOfTransfer).
 //
@@ -37,7 +36,6 @@ import {
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
-import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import {
   constructAssetGrants,
   constructGenerations,
@@ -95,12 +93,6 @@ function messageOpenTo(user: UserId): SQL {
 // An `images` row of a chat open to user.
 function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
-}
-
-// A `chat_unreads` row of owner's: owner's own mark on a chat, which no one
-// else's opening clears.
-function chatUnreadOwnedBy(owner: UserId): SQL {
-  return eq(chatUnreads.userId, owner);
 }
 
 // An `activity_sessions` row of a chat open to user.
@@ -290,7 +282,6 @@ export {
   activitySessionOpenTo,
   batteryPurchasesOwnedBy,
   chatOpenTo,
-  chatUnreadOwnedBy,
   constructGenerationOwnedBy,
   constructGenerationVisualOpenTo,
   generationOpenTo,

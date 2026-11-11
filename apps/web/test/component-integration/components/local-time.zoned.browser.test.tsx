@@ -184,7 +184,6 @@ describe("use_case_view_projects", () => {
             status: "active",
             statusRevision: 0,
             dailies: false,
-            unread: false,
           },
         ]}
       />,

@@ -8,9 +8,7 @@ import type { Project } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 // The projects as compact rows, each named by the project alone; the
-// whole row is the link's target, the quest's conversation. One whose
-// conversation has messages the user hasn't read, such as a check-in, is
-// marked as unread.
+// whole row is the link's target, the quest's conversation.
 export function ProjectList({
   projects,
   emptyMessage = PROJECTS_COPY.none,
@@ -35,11 +33,6 @@ export function ProjectList({
             >
               {project.name}
             </Link>
-            {project.unread === true && (
-              <span className="self-start rounded-control border border-primary px-2 text-sm">
-                {PROJECTS_COPY.unread}
-              </span>
-            )}
 
             <span className="text-muted text-sm">
               <CopyWithTime

@@ -9,7 +9,7 @@ The user looks over their quests and the ways to start one.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - They go to Quests.
-- **Outcome:** Start a quest offers four starting points, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Below them, Active, Completed and Abandoned tabs list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. A quest whose conversation has messages they haven't read, such as a check-in, is marked "New messages", for them alone. With no quests, the page says there are none yet and points to the starting points above. Merely opening the page creates nothing.
+- **Outcome:** Start a quest offers four starting points, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Below them, Active, Completed and Abandoned tabs list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. With no quests, the page says there are none yet and points to the starting points above. Merely opening the page creates nothing.
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_new_project`: start another.
@@ -82,7 +82,6 @@ The user opens one of their quests, from Quests, Home or a notification.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
-  - `use_case_set_check_ins`: have the construct check in on the quest.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note they no longer need.
   - `use_case_view_progress_timeline`: see how far they have come.
 
@@ -109,20 +108,6 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Outcome:** Dailies is a quest like any other, with its name, Journal, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Start the day sends "Let's start the day." as their own message, in the same conversation, and the construct helps them notice what matters and choose one manageable next step. It is an ordinary message, charged as any other, and leaves the composer's draft. Nothing is cleared or reset: the conversation, Journal, Plan and status carry on from day to day. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
   - A quest the user named Dailies by hand has no Start the day: only a quest started as Dailies offers it.
-
-## use_case_set_check_ins
-
-The user asks the quest's construct to check in on the quest on a schedule.
-
-- **Prerequisites:** `use_case_open_project`.
-- **Steps:**
-  - On the quest's Members and check-ins section, under Check-ins, she sees that check-ins are Off.
-  - She chooses how often the construct checks in: Daily, A few times a week or Weekly, and saves.
-- **Outcome:** the page says the setting is saved, and shows her choice when she opens the quest again. The setting is for this quest alone: her other quests stay as they were, and no one else's quest can be changed this way. Choosing Off again stops the check-ins.
-- **Variations:**
-  - The site's scheduler secret isn't set: the quest's page has no Check-ins section, and the site refuses to save the setting.
-- **Next:**
-  - [`use_case_check_in`](chats.md#use_case_check_in): the construct checks in.
 
 ## use_case_construct_records_milestone
 

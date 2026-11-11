@@ -10,7 +10,6 @@ export const PROJECTS_COPY = {
   loading: "Loading quests…",
   none: "No quests yet. Choose a way to start one above.",
   listHeading: "All quests",
-  unread: "New messages",
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Quest name",
   defaultName: "New quest",
