@@ -14,7 +14,6 @@ import {
   withAuthor,
 } from "@/chats/message-author.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { userIdFixture } from "../../../../../support/id-fixtures.ts";
@@ -108,10 +107,7 @@ function messageTexts(): string[] {
 }
 
 beforeEach(() => {
-  for (const [name, value] of Object.entries({
-    ...DEFAULT_THEME_ATTRIBUTES,
-    ...DEFAULT_FLAG_ATTRIBUTES,
-  })) {
+  for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }
   signInAs(SIGNED_IN_USER);
