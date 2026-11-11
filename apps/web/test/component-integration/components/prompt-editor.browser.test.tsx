@@ -53,13 +53,6 @@ import {
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
-vi.mock("@/workshop/options.ts", () => ({
-  workshopOptions: async () => ({
-    constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Chat" }],
-  }),
-}));
-
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
