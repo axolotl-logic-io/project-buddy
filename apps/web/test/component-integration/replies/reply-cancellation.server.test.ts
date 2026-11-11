@@ -16,7 +16,6 @@ import { replyToChat } from "@/replies/reply.ts";
 import { stopReply } from "@/replies/reply-runs.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
 
@@ -105,7 +104,6 @@ describe("use_case_stop_reply", () => {
   test("the owner requests provider cancellation; repeated Stop preserves the partial reply and clears retry state", async () => {
     const [user, formerMember] = await Promise.all([testUser(), testUser()]);
     const project = await testData(user).project();
-    await formerMembership(user, formerMember, project.id);
     const chat = await testData(user).chat(project);
     const provider = heldProvider();
     const messageId = MESSAGE_ID.parse("cancel-owner-reply");
