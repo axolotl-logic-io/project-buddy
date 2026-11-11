@@ -20,6 +20,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Adventures](chats.md): Quests landing navigation, quest conversations, Chat, activities and reply behavior.
 - [Spells](spellbook.md): spell instructions, Workshop’s Spells tab, editing and saved casts.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
+- [Goal and Preferences](typed-journal.md): typed Journal sections, editing, commands, version history and undo.
+
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
 

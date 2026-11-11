@@ -1,4 +1,5 @@
 import { createServer, type Server } from "node:http";
+import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { afterAll, afterEach, beforeAll, expect, test, vi } from "vitest";
 import { POST } from "@/app/api/stripe/route.ts";
@@ -8,7 +9,11 @@ import {
   readBatteryPurchases,
   startBatteryPurchase,
 } from "@/batteries/purchases.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
+import { getDb } from "@/db/client.ts";
+import { batteryCashEvents } from "@/db/tables/battery-cash-events.ts";
+import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
+import { users } from "@/db/tables/users.ts";
+import { chargeGold, readGoldBalance } from "@/gold/gold-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
@@ -30,6 +35,8 @@ vi.mock("stripe", async (original) => {
 
 const TEST_SECRET = "whsec_fixture";
 const AMOUNT = 123;
+const PARTIAL_REFUND = 40;
+const CASH_OBSERVATIONS = 4;
 const GRANT = 250_000;
 const INITIAL = 1_000_000;
 let server: Server;
@@ -45,6 +52,11 @@ let omitUrl = false;
 let unrelated = false;
 let retrievalFails = false;
 let ambiguousCreation = false;
+let cashAmount: number = PARTIAL_REFUND;
+let cashCurrency = "usd";
+let cashPayment = "pi_fixture";
+let cashStatus = "succeeded";
+let cashRetrievalFails = false;
 
 function session(): PaymentSession & {
   object: "checkout.session";
@@ -70,7 +82,32 @@ beforeAll(async () => {
   server = createServer((request, response) => {
     requests += 1;
     response.setHeader("content-type", "application/json");
-    if (request.method === "POST") {
+    if (
+      request.url?.includes("/refunds/") ||
+      request.url?.includes("/disputes/")
+    ) {
+      if (cashRetrievalFails) {
+        response.statusCode = HTTP_STATUS.notFound;
+        response.end(
+          JSON.stringify({
+            error: {
+              type: "invalid_request_error",
+              message: "Unavailable fixture",
+            },
+          }),
+        );
+        return;
+      }
+      response.end(
+        JSON.stringify({
+          id: request.url.split("/").at(-1),
+          amount: cashAmount,
+          currency: cashCurrency,
+          payment_intent: cashPayment,
+          status: cashStatus,
+        }),
+      );
+    } else if (request.method === "POST") {
       if (refuseCreation) {
         response.statusCode = HTTP_STATUS.badRequest;
         response.end(
@@ -108,6 +145,8 @@ beforeAll(async () => {
         }
         response.end(JSON.stringify({ ...session(), ...sessionOverrides() }));
       });
+    } else if (request.url?.startsWith("/v1/checkout/sessions?")) {
+      response.end(JSON.stringify({ data: [session()], has_more: false }));
     } else if (request.url?.includes("/line_items")) {
       response.end(
         JSON.stringify({
@@ -195,15 +234,25 @@ function configure(): void {
   unrelated = false;
   retrievalFails = false;
   ambiguousCreation = false;
+  cashAmount = PARTIAL_REFUND;
+  cashCurrency = "usd";
+  cashPayment = "pi_fixture";
+  cashStatus = "succeeded";
+  cashRetrievalFails = false;
 }
 
-function deliver(eventId: string): Promise<Response> {
+function deliver(
+  eventId: string,
+  type: string = eventType(),
+  objectId = "cs_test_fixture",
+  livemode = false,
+): Promise<Response> {
   const payload = JSON.stringify({
     id: eventId,
     object: "event",
-    type: eventType(),
-    livemode: false,
-    data: { object: { id: "cs_test_fixture" } },
+    type,
+    livemode,
+    data: { object: { id: objectId } },
   });
   const signature = new Stripe(
     "sk_test_fixture",
@@ -383,4 +432,144 @@ test("ambiguous creation stays pending and a paid event recovers", async () => {
   checkoutStatus = "complete";
   expect((await deliver("evt_ambiguous")).status).toBe(HTTP_STATUS.ok);
   expect(await readGoldBalance(buyer.id)).toBe(INITIAL + GRANT);
+});
+
+test("refund and dispute observations survive deletion without changing spent batteries", async () => {
+  configure();
+  const buyer = await testUser();
+  await startBatteryPurchase(buyer.id, "test");
+  paymentStatus = "paid";
+  checkoutStatus = "complete";
+  await deliver("evt_paid");
+  await chargeGold(buyer.id, INITIAL + GRANT);
+  function refund(): Promise<Response> {
+    return deliver("evt_refund", "refund.created", "re_partial");
+  }
+  const duplicates = await Promise.all([refund(), refund(), refund()]);
+  expect(duplicates.map((response) => response.status)).toEqual([
+    HTTP_STATUS.ok,
+    HTTP_STATUS.ok,
+    HTTP_STATUS.ok,
+  ]);
+  cashStatus = "needs_response";
+  expect(
+    (await deliver("evt_dispute", "charge.dispute.created", "dp_fixture"))
+      .status,
+  ).toBe(HTTP_STATUS.ok);
+  cashStatus = "won";
+  expect(
+    (await deliver("evt_won", "charge.dispute.closed", "dp_fixture")).status,
+  ).toBe(HTTP_STATUS.ok);
+  cashAmount = AMOUNT;
+  cashStatus = "succeeded";
+  expect(
+    (await deliver("evt_full", "refund.updated", "re_partial")).status,
+  ).toBe(HTTP_STATUS.ok);
+  expect(await readGoldBalance(buyer.id)).toBe(0);
+  const [row] = await readBatteryPurchases(buyer.id);
+  if (row === undefined) {
+    throw new Error("Missing audit purchase");
+  }
+  await getDb().delete(users).where(eq(users.id, buyer.id));
+  expect(await readBatteryPurchases(buyer.id)).toEqual([row]);
+  const observations = await getDb()
+    .select()
+    .from(batteryCashEvents)
+    .where(eq(batteryCashEvents.purchaseId, row.id));
+  expect(observations).toHaveLength(CASH_OBSERVATIONS);
+  expect(observations).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        objectId: "re_partial",
+        amount: PARTIAL_REFUND,
+        kind: "refund",
+      }),
+      expect.objectContaining({
+        objectId: "re_partial",
+        amount: AMOUNT,
+        status: "succeeded",
+      }),
+      expect.objectContaining({
+        objectId: "dp_fixture",
+        status: "won",
+        kind: "dispute",
+      }),
+    ]),
+  );
+});
+
+test("cash event retrieval and mismatches retry without storing invalid observations", async () => {
+  configure();
+  const buyer = await testUser();
+  await startBatteryPurchase(buyer.id, "test");
+  paymentStatus = "paid";
+  checkoutStatus = "complete";
+  await deliver("evt_paid");
+  cashRetrievalFails = true;
+  expect(
+    (await deliver("evt_retry_cash", "refund.created", "re_fixture")).status,
+  ).toBe(HTTP_STATUS.internalServerError);
+  cashRetrievalFails = false;
+  cashCurrency = "eur";
+  expect(
+    (await deliver("evt_retry_cash", "refund.created", "re_fixture")).status,
+  ).toBe(HTTP_STATUS.internalServerError);
+  cashCurrency = "usd";
+  expect(
+    (await deliver("evt_retry_cash", "refund.created", "re_fixture")).status,
+  ).toBe(HTTP_STATUS.ok);
+  const [row] = await readBatteryPurchases(buyer.id);
+  if (row === undefined) {
+    throw new Error("Missing purchase");
+  }
+  expect(
+    await getDb()
+      .select()
+      .from(batteryCashEvents)
+      .where(eq(batteryCashEvents.purchaseId, row.id)),
+  ).toHaveLength(1);
+});
+
+test("deleted buyers retain pending audits and cannot be falsely fulfilled", async () => {
+  configure();
+  const buyer = await testUser();
+  await startBatteryPurchase(buyer.id, "test");
+  await getDb().delete(users).where(eq(users.id, buyer.id));
+  paymentStatus = "paid";
+  checkoutStatus = "complete";
+  expect((await deliver("evt_deleted")).status).toBe(
+    HTTP_STATUS.internalServerError,
+  );
+  expect(await readBatteryPurchases(buyer.id)).toEqual([
+    expect.objectContaining({ status: "pending", fulfilledAt: null }),
+  ]);
+  expect(
+    await getDb()
+      .select()
+      .from(batteryPurchases)
+      .where(eq(batteryPurchases.id, purchase)),
+  ).toHaveLength(1);
+});
+
+test("live cash events are refused before provider retrieval", async () => {
+  configure();
+  expect(
+    (await deliver("evt_live", "refund.created", "re_live", true)).status,
+  ).toBe(HTTP_STATUS.badRequest);
+  expect(requests).toBe(0);
+});
+
+test("cash events before fulfillment retry and replay after the grant", async () => {
+  configure();
+  const buyer = await testUser();
+  await startBatteryPurchase(buyer.id, "test");
+  expect(
+    (await deliver("evt_early", "refund.created", "re_early")).status,
+  ).toBe(HTTP_STATUS.internalServerError);
+  paymentStatus = "paid";
+  checkoutStatus = "complete";
+  await deliver("evt_paid");
+  expect(
+    (await deliver("evt_early", "refund.created", "re_early")).status,
+  ).toBe(HTTP_STATUS.ok);
 });
