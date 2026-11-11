@@ -4,7 +4,6 @@ import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import type { PlanActions } from "@/components/plan/use-plan.ts";
-import { extraTag } from "@/flags/flags.ts";
 import type { UserId } from "@/ids.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import {
@@ -56,7 +55,7 @@ function ChatScreen({
   const { construct } = conversation;
   return (
     <>
-      <header className="chat-header" {...extraTag("pinned-chat-header")}>
+      <header className="chat-header">
         <div className="conversation-header">
           <AdventureCharacterHeader
             construct={construct}
