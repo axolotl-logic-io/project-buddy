@@ -51,7 +51,7 @@ function planPartForModel(part: {
   if (plan.kind === "card") {
     return {
       type: "text",
-      text: `${PLAN_NOTE_MARK} The user showed the plan in the adventure, without you. Nothing changed.`,
+      text: `${PLAN_NOTE_MARK} The user showed the plan in the conversation, without you. Nothing changed.`,
     };
   }
   const { lines, undoesVersion } = plan.data;

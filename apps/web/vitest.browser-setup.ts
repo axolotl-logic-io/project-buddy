@@ -26,6 +26,14 @@ vi.mock("@/app/(workspace)/projects/status-actions.ts", () => ({
   readQuestStatusApprovalAction: vi.fn(() => Promise.resolve(undefined)),
 }));
 
+// The quest start (src/components/quest-start.tsx) reaches this action from
+// Quests, Workshop and Chat's quest offer, which every chat part can render.
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn(() => {
+    throw new Error("Mock the quest start action in this test");
+  }),
+}));
+
 vi.mock("@/projects/rename-project-action.ts", () => ({
   renameProjectAction: vi.fn(() => {
     throw new Error("Mock the quest rename action in this test");

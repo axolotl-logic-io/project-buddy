@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { JSX } from "react";
 import { LocalTime } from "@/components/local-time.tsx";
 import type { Milestone } from "@/milestones/milestone.ts";
@@ -6,8 +5,7 @@ import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { MilestoneControls } from "./milestone-controls.tsx";
 
 // A project's progress timeline: its milestones, newest first, each with
-// the day it was recorded, a link to its chat and a way to edit or delete
-// it. With none, it says how milestones arrive, without urging her on.
+// the day it was recorded and a way to edit or delete it. With none, it says how milestones arrive, without urging her on.
 export function ProgressTimeline({
   milestones,
 }: {
@@ -23,18 +21,7 @@ export function ProgressTimeline({
           <p className="text-muted text-sm">
             <LocalTime dateTime={milestone.recordedAt} detail="day" />
           </p>
-          <MilestoneControls
-            milestoneId={milestone.id}
-            text={milestone.text}
-            chatLink={
-              <Link
-                className="inline-flex min-h-(--target-size) items-center text-link"
-                href={`/chats/${milestone.chatId}`}
-              >
-                {PROGRESS_TIMELINE_COPY.openChat}
-              </Link>
-            }
-          />
+          <MilestoneControls milestoneId={milestone.id} text={milestone.text} />
         </li>
       ))}
     </ol>

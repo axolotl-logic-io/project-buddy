@@ -22,7 +22,7 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 // reloads once to pick that build up, and shows the unknown message if it
 // already did within the last minute (newer-build-reload.ts).
 // A page that failed while rendering arrives without <head>'s pre-paint
-// scripts, so SavedChoices applies the saved theme and hidden extras.
+// scripts, so SavedChoices applies the saved theme.
 function PageError({
   error,
   retry,

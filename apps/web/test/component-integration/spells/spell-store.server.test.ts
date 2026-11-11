@@ -46,7 +46,7 @@ describe("the spell store", () => {
   test("her copy of a built-in spell is hers to list, edit, clone and delete", async () => {
     const { owner, copy } = await herCopy();
     expect(copy).toMatchObject({
-      name: `${ASK_ONE_QUESTION.name} (clone)`,
+      name: `${ASK_ONE_QUESTION.name} (copy)`,
       definition: ASK_ONE_QUESTION.definition,
       clonedFrom: "ask-one-question",
     });
@@ -58,7 +58,7 @@ describe("the spell store", () => {
     });
     expect(edited).toMatchObject({ name: "Mine", definition: parts });
     const clone = await cloneSpell(owner, copy.id);
-    expect(clone).toMatchObject({ name: "Mine (clone)", definition: parts });
+    expect(clone).toMatchObject({ name: "Mine (copy)", definition: parts });
     expect((await listOwnSpells(owner)).map(({ id }) => id)).toEqual([
       copy.id,
       clone?.id,
@@ -149,8 +149,8 @@ describe("the spell store", () => {
 
     const clone = await cloneSpell(owner, copy.id);
 
-    // The source's name, cut where " (clone)" still fits.
-    const kept = longest.slice(0, SPELL_NAME_MAX - " (clone)".length);
-    expect(clone?.name).toBe(`${kept} (clone)`);
+    // The source's name, cut where " (copy)" still fits.
+    const kept = longest.slice(0, SPELL_NAME_MAX - " (copy)".length);
+    expect(clone?.name).toBe(`${kept} (copy)`);
   });
 });

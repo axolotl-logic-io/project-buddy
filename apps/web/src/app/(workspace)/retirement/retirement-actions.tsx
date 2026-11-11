@@ -23,10 +23,7 @@ function RetirementActions({
   const confirm = useCallback((): void => {
     formRef.current?.requestSubmit();
   }, []);
-  let description = `${RETIREMENT_COPY.deleteDescription(definition.kind)} ${RETIREMENT_COPY.marketplace}`;
-  if (definition.boughtFrom !== null) {
-    description += ` ${RETIREMENT_COPY.bought}`;
-  }
+  const description = RETIREMENT_COPY.deleteDescription(definition.kind);
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       <form action={restoreDefinitionAction}>

@@ -45,7 +45,7 @@ test.each(["/buddies", "/guild"])(
   },
 );
 
-test("Constructs pages are not redirected", async () => {
+test("Next routes collection and editor links to their page adapters", async () => {
   expect(await follow("/constructs")).toEqual({
     status: HTTP_STATUS.ok,
     location: null,

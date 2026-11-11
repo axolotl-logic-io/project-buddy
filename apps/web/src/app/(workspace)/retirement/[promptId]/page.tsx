@@ -31,9 +31,6 @@ async function RetiredDefinitionPage({
         </p>
       </header>
       <RetirementActions definition={definition} />
-      {definition.boughtFrom !== null && (
-        <p className="text-muted">{RETIREMENT_COPY.bought}</p>
-      )}
       {definition.kind === "construct" && (
         <Notice>{RETIREMENT_COPY.fallback}</Notice>
       )}
@@ -48,7 +45,6 @@ async function RetiredDefinitionPage({
           text={field.text}
         />
       ))}
-      <p className="text-muted">{RETIREMENT_COPY.marketplace}</p>
     </>
   );
 }

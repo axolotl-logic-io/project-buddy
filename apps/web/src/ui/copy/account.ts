@@ -1,12 +1,6 @@
-import { pageTitle } from "@/ui/copy/site.ts";
-
-// The account page, and the site header's link to it.
+// Profile, Batteries and security forms in Settings.
 export const ACCOUNT_COPY = {
-  title: pageTitle("Account"),
-  headerLink: "Account",
-  homeLink: "Home",
-  heading: "Account",
-  loading: "Loading your batteries…",
+  loading: "Loading Settings…",
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
@@ -19,8 +13,7 @@ export const ACCOUNT_COPY = {
   nameBraces: "A name can't hold { or }.",
   goldHeading: "Batteries",
   goldHint:
-    "What your constructs spend on your replies, adventure names, images and check-ins. It doesn't reset.",
-  signOutHeading: "Signing out",
+    "What your constructs spend on your replies and images. It doesn't reset.",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",

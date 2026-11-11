@@ -7,14 +7,17 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
-import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import type { Project } from "@/projects/store.ts";
+import { STANDALONE_CHAT_PATH } from "@/routes.ts";
 import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
-import { expectNotFound } from "../test-database/navigation-test-kit.ts";
+import {
+  expectNotFound,
+  expectRedirect,
+} from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
@@ -54,11 +57,6 @@ async function projectsHtml(): Promise<string> {
   );
 }
 
-// The signed-in user's New Chat page, with its project picker, as HTML.
-async function newChatHtml(): Promise<string> {
-  return renderToStaticMarkup(await NewChatPage(pageArgs({})));
-}
-
 // The page is not found for the unknown id, and then for the id.
 async function expectNotFoundAsUnknown(
   page: IdPage,
@@ -80,13 +78,13 @@ function projectsIn(html: string, projects: readonly Project[]): string[] {
 }
 
 describe("use_case_private_data", () => {
-  // Her project chat's page, and her standalone chat's; they still open for
-  // her.
+  // Her project chat's old address and her standalone chat's still open for
+  // her, at the quest and at her Chat.
   test("another user's project, memory and chat pages can't be found", async () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.project();
     const herChat = await herData.chat(hers);
-    const herStandalone = await createStandaloneChat(her.id);
+    const herStandalone = await privateChat(her.id);
     await signIn(other);
 
     await expectNotFoundAsUnknown(projectPage, hers.id, projectIdFixture());
@@ -97,8 +95,11 @@ describe("use_case_private_data", () => {
     await signIn(her);
     await expect(projectPage(hers.id)).resolves.toBeDefined();
     await expect(memoryPage(hers.id)).resolves.toBeDefined();
-    await expect(chatPage(herChat.id)).resolves.toBeDefined();
-    await expect(chatPage(herStandalone.id)).resolves.toBeDefined();
+    await expectRedirect(() => chatPage(herChat.id), `/projects/${hers.id}`);
+    await expectRedirect(
+      () => chatPage(herStandalone.id),
+      STANDALONE_CHAT_PATH,
+    );
   });
 
   test("each sees only their own projects", async () => {
@@ -109,15 +110,5 @@ describe("use_case_private_data", () => {
     expect(projectsIn(await projectsHtml(), projects)).toEqual([hers]);
     await signIn(other);
     expect(projectsIn(await projectsHtml(), projects)).toEqual([theirs]);
-  });
-
-  test("each can start a new chat only in their own projects", async () => {
-    const { herData, other, otherData } = await twoUsers();
-    const projects = [await herData.project(), await otherData.project()];
-    const [hers, theirs] = projects.map(({ name }) => name);
-
-    expect(projectsIn(await newChatHtml(), projects)).toEqual([hers]);
-    await signIn(other);
-    expect(projectsIn(await newChatHtml(), projects)).toEqual([theirs]);
   });
 });

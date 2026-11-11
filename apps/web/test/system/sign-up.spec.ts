@@ -15,7 +15,7 @@ import { continueSignIn, formStatus } from "./sign-in-pages.ts";
 
 async function openInvitations(page: Page, account: User): Promise<void> {
   await logIn(page, await promoteToAdmin(account));
-  await page.goto("/account");
+  await page.goto("/settings");
   await page.getByRole("link", { name: INVITATIONS_COPY.heading }).click();
   await expect(page).toHaveURL("/invitations");
 }
@@ -48,7 +48,7 @@ test("use_case_sign_up", async ({ account, browser, newAddress, page }) => {
     ).toBeUndefined();
     await other.getByRole("button", { name: SETUP_COPY.confirm }).click();
     await expect(other).toHaveURL(HOME_PATH);
-    await other.goto("/account");
+    await other.goto("/settings");
     await expect(
       other.getByRole("link", { name: INVITATIONS_COPY.heading }),
     ).toHaveCount(0);

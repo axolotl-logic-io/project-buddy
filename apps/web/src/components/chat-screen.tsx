@@ -1,119 +1,86 @@
-import Link from "next/link";
-import type { JSX } from "react";
-import { RenameChatForm } from "@/app/(workspace)/chats/[chatId]/rename-chat-form.tsx";
+import type { JSX, ReactNode } from "react";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
-import type { CommandListing } from "@/components/chat/chat-commands.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import type { PlanActions } from "@/components/plan/use-plan.ts";
-import { extraTag } from "@/flags/flags.ts";
 import type { UserId } from "@/ids.ts";
 import type { PlanState } from "@/plan/plan.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
-import { PLAN_COPY } from "@/ui/copy/plan.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
+import {
+  changePlanAction,
+  runChatCommandAction,
+  undoPlanChangeAction,
+} from "@/plan/plan-actions.ts";
+import { mockCommandListings } from "@/replies/mock-command-listings.ts";
 
-// A chat with its editable title, conversation and composer, as viewer sees
-// it: their own messages are theirs, and every other user message shows its
-// author's name. stoppedReplyId is the last message's id when its reply
-// stopped (readStoppedReply). A chat in a project shows plan, its project's
-// plan, beside the conversation, and planActions change it and run the
-// composer's commands; mockCommands are the mock model's commands
-// for the composer's list, if it runs.
+// The plan's Server Actions, which also run the composer's commands, in a
+// quest's conversation and in Chat alike.
+const PLAN_ACTIONS: PlanActions = {
+  change: changePlanAction,
+  undo: undoPlanChangeAction,
+  command: runChatCommandAction,
+};
+
+// A continuing conversation, a quest's or the private Chat, as viewer sees
+// it: a pinned header with its construct, who was chosen when it started,
+// and actions, such as Chat's Turn Chat into a quest; then its messages
+// and the composer. Their own messages are the viewer's; every other user
+// message shows its author's name. stoppedReplyId is the last message's id
+// when its reply stopped (readStoppedReply). plan is given in a quest's
+// conversation alone, which shows the quest's plan beside it. While the
+// mock model runs, the composer lists its commands too. starter is a
+// prepared message offered above the composer, such as Start the day.
 function ChatScreen({
-  chat,
+  conversation,
   messages,
   stoppedReplyId,
   viewer,
   plan,
-  planActions,
-  mockCommands,
+  title,
+  actions,
+  starter,
 }: {
-  readonly chat: Chat;
+  readonly conversation: Chat;
   readonly messages: ChatMessage[];
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
   readonly plan?: PlanState | undefined;
-  readonly planActions?: PlanActions | undefined;
-  readonly mockCommands?: readonly CommandListing[] | undefined;
+  // The page's heading, for a page without one of its own, such as Chat.
+  readonly title?: string | undefined;
+  readonly actions?: ReactNode;
+  readonly starter?:
+    | { readonly label: string; readonly text: string }
+    | undefined;
 }): JSX.Element {
-  const constructName = chat.construct.name;
+  const { construct } = conversation;
   return (
     <>
-      <header className="chat-header" {...extraTag("pinned-chat-header")}>
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="chat-header">
+        <div className="conversation-header">
           <AdventureCharacterHeader
-            construct={chat.construct}
-            destination={{ kind: "adventure", id: chat.id }}
-            compact={true}
+            construct={construct}
+            destination={{ kind: "adventure", id: conversation.id }}
           />
-          <div className="min-w-0 flex-1">
-            <RenameChatForm
-              chatId={chat.id}
-              name={chat.name}
-              constructName={constructName}
-            />
-          </div>
+          {title !== undefined && (
+            <h1 className="chat-heading flex-1">{title}</h1>
+          )}
+          {actions}
         </div>
       </header>
-      <nav
-        className="adventure-workspace-nav"
-        aria-label={WORKSPACES_COPY.conversation}
-      >
-        <div className="workspace-tablist">
-          <Link
-            className="workspace-tab"
-            aria-current="page"
-            href={`/chats/${chat.id}`}
-          >
-            {WORKSPACES_COPY.conversation}
-          </Link>
-          {chat.project !== undefined && (
-            <>
-              <Link
-                className="workspace-tab"
-                href={`/projects/${chat.project.id}/memory`}
-              >
-                {MEMORY_COPY.link}
-              </Link>
-              <Link
-                className="workspace-tab"
-                href={`/projects/${chat.project.id}?section=plan`}
-              >
-                {PLAN_COPY.heading}
-              </Link>
-              <Link
-                className="workspace-tab"
-                href={`/projects/${chat.project.id}?section=notes`}
-              >
-                {PROJECT_NOTES_COPY.heading}
-              </Link>
-              <Link
-                className="workspace-tab"
-                href={`/projects/${chat.project.id}?section=progress`}
-              >
-                {PROGRESS_TIMELINE_COPY.heading}
-              </Link>
-            </>
-          )}
-        </div>
-      </nav>
       <ChatView
         viewer={viewer}
-        chatId={chat.id}
-        key={chat.id}
+        chatId={conversation.id}
+        key={conversation.id}
         initialMessages={messages}
         stoppedReplyId={stoppedReplyId}
-        constructName={constructName}
-        construct={chat.construct}
+        constructName={construct.name}
+        construct={construct}
         authorNames={otherAuthorNames(messages, viewer)}
-        projectId={chat.project?.id}
+        projectId={conversation.project?.id}
         initialPlan={plan}
-        planActions={planActions}
-        mockCommands={mockCommands}
+        planActions={PLAN_ACTIONS}
+        mockCommands={mockCommandListings()}
+        starter={starter}
       />
     </>
   );
