@@ -1,4 +1,4 @@
-// Her activities, from the activities pages' forms, in the test database
+// Her activities, from the Workshop's and the activity pages' forms, in the test database
 // with the mock construct: customizing a built-in activity makes a copy of her
 // own, and Craft activity makes one, which she edits, clones,
 // resets and starts chats in; a chat keeps the activity as it was when it
@@ -27,13 +27,16 @@ import {
   resetActivityPromptAction,
   saveActivityAction,
 } from "@/app/(workspace)/activities/actions.ts";
+import OldActivitiesPage from "@/app/(workspace)/activities/page.tsx";
 import { getChat } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { startProject } from "@/conversations/start-quest.ts";
 import type { ChatId } from "@/ids.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
+import { listProjects } from "@/projects/store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
+import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
@@ -132,6 +135,17 @@ async function startIn(user: User, activityId: string): Promise<ChatId> {
   return started.chat.id;
 }
 
+// Making a copy opens that new private definition in the editor.
+async function copyOwn(user: User, sourceId: string): Promise<void> {
+  const copying = cloneActivityAction(formOf({ sourceId }));
+  await Promise.allSettled([copying]);
+  const copy = (await listOwnActivities(user.id)).at(-1);
+  if (copy === undefined) {
+    throw new Error("No copy was created");
+  }
+  await expectRedirect(() => copying, `/activities/${copy.id}`);
+}
+
 describe("use_case_customize_activity", () => {
   test("her copy of a built-in activity is hers to edit, and a chat in it follows her text", async () => {
     const user = await signedInUser();
@@ -139,7 +153,7 @@ describe("use_case_customize_activity", () => {
 
     const copy = await customizeBrainstorming(user);
     expect(copy).toMatchObject({
-      name: `${BRAINSTORMING.name} (clone)`,
+      name: `${BRAINSTORMING.name} (copy)`,
       definition: BRAINSTORMING.definition,
       clonedFrom: "brainstorming",
     });
@@ -200,13 +214,10 @@ describe("use_case_customize_activity", () => {
       }),
     ).catch(() => undefined);
 
-    await expectRedirect(
-      () => cloneActivityAction(formOf({ sourceId: copy.id })),
-      "/activities",
-    );
+    await copyOwn(user, copy.id);
     const clone = (await listOwnActivities(user.id)).at(-1);
     expect(clone).toMatchObject({
-      name: `${copy.name} (clone)`,
+      name: `${copy.name} (copy)`,
       definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
 
@@ -229,6 +240,18 @@ describe("use_case_customize_activity", () => {
       editBuiltInActivityAction(formOf({ activityId: copy.id })),
     );
     expect((await stored(owner, copy.id)).name).toBe(copy.name);
+  });
+
+  test("the old Activities address opens the Workshop's Activities tab and makes nothing", async () => {
+    const user = await signedInUser();
+
+    await expectRedirect(() => OldActivitiesPage(), "/workshop", {
+      kind: "activity",
+    });
+
+    expect(await listOwnActivities(user.id)).toEqual([]);
+    expect(await listProjects(user.id)).toEqual([]);
+    expect(await goldSpent(user)).toBe(0);
   });
 });
 
@@ -292,12 +315,9 @@ describe("use_case_new_activity", () => {
       definition: parts,
     });
 
-    await expectRedirect(
-      () => cloneActivityAction(formOf({ sourceId: activity.id })),
-      "/activities",
-    );
+    await copyOwn(user, activity.id);
     expect((await listOwnActivities(user.id)).at(-1)).toMatchObject({
-      name: "Picnic (clone)",
+      name: "Picnic (copy)",
       definition: parts,
     });
 

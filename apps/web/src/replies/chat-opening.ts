@@ -30,9 +30,9 @@ const OPENING_TIMEOUT_MS = 30_000;
 // grant of its acting user, who a written opening is charged to, and the rest of
 // its prompt's context (system-prompt.ts): the account's activities and
 // spells, the chat's project and the acting user's name, read only when the construct
-// writes the opening. A kickoff, such as a check-in's
-// (src/check-ins/check-in-kickoff.ts), asks for the opening instead of the
-// activity's opening kickoff, so the construct always writes it.
+// writes the opening. A kickoff, such as a motivated quest start's, asks for
+// the opening instead of the activity's opening kickoff, so the construct
+// always writes it.
 interface ChatOpeningRequest {
   readonly construct: ConstructSnapshot;
   readonly activity: ActivitySnapshot;

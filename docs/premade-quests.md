@@ -1,20 +1,26 @@
 # Premade quests
 
-Quests combines saved quests and editable starting points in one workspace. Start Quest stays in the header. The underlined Active, Completed, Abandoned and Premade quests tabs select the content below; Active is the default. Saved quests appear as compact rows, newest first, with team marks and Restore quest where available. Invitations remain above the tabs.
+Every quest starts from one of four premade starting points: **Dailies**, **Learn a thing**, **Make a thing** and **Do a thing**. They are offered under Start a quest at the top of Quests (`apps/web/src/components/quest-start.tsx`) and in Chat's Turn Chat into a quest, the only two ways to create a quest, which use the same component. There is no blank start and no other catalog. The definitions are in `apps/web/src/projects/premade-quests.ts`.
 
-The selected tab is kept in the URL with `status`, including `status=premade`. Find a starting point selects the Premade quests tab and moves keyboard focus to it. On phones the tab rail wraps into two columns.
+| Starting point | Activity | What it guides |
+| --- | --- | --- |
+| Dailies | Dailies (`dailies`) | Starting the day: what matters today and one manageable thing to do. One ongoing quest per user. |
+| Learn a thing | Learn a thing (`learn-a-thing`) | What the user wants to learn and where they start from, then small practice steps. |
+| Make a thing | Find something to make | Finding something to make and a small first version. |
+| Do a thing | Break Down a Project | Any other outcome: what done looks like, then small steps. |
 
-The Premade quests tab offers four editable starting points:
+The guidance lives in each activity's instructions and opening, so it carries into every reply of the quest's one conversation. Dailies and Learn a thing are built-in activities of their own; Make and Do reuse the existing ones.
 
-- **Start without inspiration** starts with **Find something to make**.
-- **Design an original character** starts with **Brainstorm**.
-- **Make a tiny game** starts with **Break Down a Project**.
-- **Write a short story** starts with **Brainstorm**.
+## Starting
 
-Choose **Explore quest** to preview its starting Journal and first activity. Change the name, Journal, optional motivation, activity or construct before choosing **Start quest**. The construct starts with the account's New quest construct preference, falling back to Vellum if it is unavailable. Activities and constructs include the user's available own definitions.
+Choosing a starting point shows its details in place of the four, already filled in: a name, a starting Journal and the construct, which defaults to the user's New quest construct, or Vellum. Back shows the four again. A page that knows more fills it in (a preset): Chat's Turn Chat into a quest puts the Chat's summary in the Journal and opens Do a thing at once. Dailies isn't offered with a summary, since it is the user's one ongoing quest.
 
-Browsing and closing a preview save nothing and make no model call. Starting creates an ordinary quest and its first adventure together, after obtaining the opening. Invalid details, insufficient batteries or a failed opening save neither. The preview keeps the user's edits for correction or retry and disables submission while starting.
+Start quest calls `startQuestAction` (`apps/web/src/app/(workspace)/projects/actions.ts`), the one quest start. It checks the name and construct for the acting user, takes the activity from the starting point (the form sends none, and an older form's `activityId` is ignored) and starts an ordinary quest with its conversation and opening (`startProject`), then opens the quest. Invalid details, no batteries or Claude being unavailable save nothing, and the details keep every edit. Looking, choosing and going back make nothing and spend nothing.
 
-The starting Journal and motivation become the user's first Journal version. Possible milestones are plans in that text, never completed progress on the timeline. The medium, tools, experience and scope remain open. Later Journal edits, adventures, ownership, members, next steps and quest status use the ordinary controls. Saved quests have no live connection to the starting point.
+The starting Journal becomes the user's first Journal version. Its possible milestones are plans, not progress, and it holds no next step: the plan keeps the steps the user agrees to. Learn, Make and Do can be started again for other goals; each is a separate quest with no link to its starting point.
 
-Find something to make also offers this quest's preview from its activity presentation. Its ordinary adventure start remains available without a quest, with an existing quest or with a new one.
+## Dailies
+
+Dailies is identified by `projects.dailies`, not by its name, which the user can change. Starting Dailies when the user already has one opens it, changing and spending nothing (`startDailies`), and concurrent starts reach the same quest. Once it exists, its card reads Open Dailies.
+
+In the Dailies quest, Start the day sits above the composer. It sends "Let's start the day." as the user's own message through the ordinary composer path, so it is charged, authored and kept like any other message, and leaves the draft in the composer. There is no schedule, no daily state and no reset: the conversation, Journal, Plan and status carry on. Opening the quest sends nothing.

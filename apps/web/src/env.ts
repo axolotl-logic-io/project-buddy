@@ -187,67 +187,6 @@ function readProductionOrigin(): string | undefined {
   return `https://${host}`;
 }
 
-// The VAPID key pair and contact that sign the site's push notifications,
-// or undefined when none is set, which leaves notifications off. The keys
-// are the URL-safe base64 pair `npx web-push generate-vapid-keys` prints;
-// the subject is a `mailto:` or `https:` URL where push services can reach
-// whoever runs the site. Setting some of the three but not all is an error.
-function readVapidKeysIfSet():
-  | {
-      readonly publicKey: string;
-      readonly privateKey: string;
-      readonly subject: string;
-    }
-  | undefined {
-  const publicKey = readIfSet("VAPID_PUBLIC_KEY");
-  const privateKey = readIfSet("VAPID_PRIVATE_KEY");
-  const subject = readIfSet("VAPID_SUBJECT");
-  if (
-    publicKey === undefined &&
-    privateKey === undefined &&
-    subject === undefined
-  ) {
-    return undefined;
-  }
-  if (
-    publicKey === undefined ||
-    privateKey === undefined ||
-    subject === undefined
-  ) {
-    throw new Error(
-      "Set all of VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT, or none of them.",
-    );
-  }
-  return { publicKey, privateKey, subject };
-}
-
-// Which push endpoints the site accepts: only the known push services
-// (src/push/push-subscriptions.ts), unless PUSH_ENDPOINTS is "loopback",
-// which also accepts http endpoints on localhost or 127.0.0.1 for the server
-// tests' fake push service. It is a test setting: any Vercel deployment
-// (VERCEL_ENV set, previews included) refuses "loopback".
-function readPushEndpoints(): "public" | "loopback" {
-  const parsed = z
-    .enum(["public", "loopback"])
-    .safeParse(readIfSet("PUSH_ENDPOINTS") ?? "public");
-  if (!parsed.success) {
-    throw new Error('PUSH_ENDPOINTS must be unset, "public" or "loopback".');
-  }
-  if (parsed.data === "loopback" && readIfSet("VERCEL_ENV") !== undefined) {
-    throw new Error(
-      'PUSH_ENDPOINTS is "loopback" on a Vercel deployment, where pushes go only to the known push services.',
-    );
-  }
-  return parsed.data;
-}
-
-// The secret the scheduler sends to start check-ins, as Vercel Cron sends
-// CRON_SECRET in its Authorization header; undefined when unset, so no
-// request may start them.
-function readCronSecretIfSet(): string | undefined {
-  return readIfSet("CRON_SECRET");
-}
-
 // Whether a CI runner set CI to a non-empty value.
 function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
@@ -305,7 +244,6 @@ export {
   readAnthropicApiKeyIfSet,
   readBatteryPayments,
   readConstructModel,
-  readCronSecretIfSet,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,
@@ -314,11 +252,9 @@ export {
   readEndToEndPort,
   readOpenAiImageKey,
   readProductionOrigin,
-  readPushEndpoints,
   readResendApiKey,
   readServerSpans,
   readSessionSecret,
   readTestDatabaseUrl,
-  readVapidKeysIfSet,
   readVercelBypassSecretIfSet,
 };

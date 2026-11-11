@@ -1,5 +1,5 @@
 // Continuing conversations, stored in Postgres as `chats` rows marked
-// continuing: one per quest, open to its owner and members, and one private
+// continuing: one per quest, open to its owner alone, and one private
 // Chat per user, open to that user alone (src/accounts/owner-scope.ts). The
 // database's partial unique indexes keep them one per place, so finding or
 // making one is atomic: concurrent requests reach the same conversation, and
@@ -162,7 +162,7 @@ async function findOrCreateConversation(
 // message saved so far, and says whether it did. Nothing is saved in a
 // conversation that isn't open to the owner, or whose newest message awaits
 // a reply (noReplyAwaited), which only its reply may follow. A new
-// conversation's opening and a check-in are saved this way.
+// conversation's opening is saved this way.
 async function appendConstructMessage(
   owner: UserId,
   chatId: ChatId,

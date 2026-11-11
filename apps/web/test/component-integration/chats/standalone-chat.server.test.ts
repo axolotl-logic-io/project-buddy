@@ -1,16 +1,14 @@
-// Standalone conversations in use-cases/chats.md, in the test database
-// with the mock construct: no project, just a place to talk ideas through.
-// Its links, heading and view are the page and component tests'
-// (test/app/page.test.tsx, site-header.test.tsx, chat/page.test.tsx and
-// chat-view-*.test.tsx).
+// Chat in use-cases/chats.md, in the test database with the mock construct:
+// no quest, just a place to talk ideas through. Opening Chat and its old
+// addresses are app/(workspace)/chat/page.server.test.ts's.
 import type { UIMessage } from "ai";
 import { expect, test } from "vitest";
 import {
   CITE_BLENDER_MANUAL_OUTPUT,
   CITE_BLENDER_MANUAL_TOOL,
 } from "@/blender-manual/cite-tool-contract.ts";
-import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { listChats, listMessages } from "@/chats/store.ts";
+import { listMessages } from "@/chats/store.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
@@ -22,10 +20,8 @@ import {
 import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
-  exchange,
   postMessage,
   question,
-  savedConversation,
   sendToEnd,
 } from "../test-database/chat-test-kit.ts";
 
@@ -38,7 +34,6 @@ const QUIBBLEWAND = manualSection(
   "Quibblewand Edges",
   "Press Ctrl-Shift-Q to quibblewand the selected edges.",
 );
-const FIRST_MESSAGE = "How do I bevel an edge?";
 const OUT_OF_GOLD = "And then what?";
 // Her idea and its reply, then her search and its answer.
 const MESSAGES_BEFORE_OUT_OF_GOLD = 2;
@@ -56,24 +51,6 @@ function citedUrls(message: UIMessage | undefined): string[] {
   });
 }
 
-test("use_case_standalone_chat", async () => {
-  const user = await testUser();
-  const data = testData(user);
-  const project = await data.project();
-  const projectChat = await data.chat(project);
-
-  const standalone = await createStandaloneChat(user.id);
-  expect((await createStandaloneChat(user.id)).id).not.toBe(standalone.id);
-  await sendToEnd(user, standalone, FIRST_MESSAGE);
-
-  expect(await savedConversation(user, standalone)).toEqual(
-    exchange(FIRST_MESSAGE),
-  );
-  expect((await listChats(user.id, project.id)).map(({ id }) => id)).toEqual([
-    projectChat.id,
-  ]);
-});
-
 test("use_case_talk_idea_through", async () => {
   const user = await testUser();
   const data = testData(user);
@@ -85,7 +62,7 @@ test("use_case_talk_idea_through", async () => {
   });
   const memory = await readMemory(user.id, project.id);
   await data.manualSections([QUIBBLEWAND]);
-  const standalone = await createStandaloneChat(user.id);
+  const standalone = await privateChat(user.id);
 
   await sendToEnd(user, standalone, `/mock-search ${TOPIC}`);
   const answer = (await listMessages(user.id, standalone.id)).at(-1);

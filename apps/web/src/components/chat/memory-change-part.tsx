@@ -2,7 +2,6 @@ import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { extraTag } from "@/flags/flags.ts";
 import { UPDATE_MEMORY_OUTPUT } from "@/replies/tools/update-memory-contract.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 
@@ -26,7 +25,6 @@ export function MemoryChangePart({
         <aside
           aria-label={MEMORY_COPY.changeLabel}
           className="card flex flex-col gap-2 text-sm"
-          {...extraTag("memory-change-cards")}
         >
           <p className="icon-line font-medium">
             <Icon name="pencil" />
@@ -60,10 +58,7 @@ export function MemoryChangePart({
       );
     case "not-applied":
       return (
-        <p
-          className="icon-line text-muted text-sm"
-          {...extraTag("memory-change-cards")}
-        >
+        <p className="icon-line text-muted text-sm">
           <Icon name="pencil" />
           {MEMORY_COPY.notChanged}
         </p>

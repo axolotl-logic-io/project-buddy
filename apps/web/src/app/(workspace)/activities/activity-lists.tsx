@@ -1,33 +1,20 @@
-// The activities list, shared by the Activities page and the Workshop: the
-// built-in activities, each of which she can start or customize, and her
-// own, oldest first, each of which she can start, tweak or clone, with a
-// button that crafts a new one.
+// The Workshop's activities list: the built-in activities, each of which the
+// user can customize, and their own, oldest first, each of which they can
+// tweak, clone or retire, with a button that crafts a new one. Activities
+// are instructions the construct follows, so none is a place to start a
+// quest from.
 import Link from "next/link";
 import type { JSX } from "react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  type NewChatChoices,
-  newChatChoices,
-} from "@/chats/new-chat-choices.ts";
-import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
-import { PageWorkspace } from "@/components/page-workspace.tsx";
-import { ActivityQuestEntry } from "@/components/quest-library.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
-import { interviewConstruct } from "@/constructs/interview-construct.ts";
-import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
-import { RetirementList } from "../retirement/retirement-list.tsx";
 import {
   cloneActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
 } from "./actions.ts";
-
 import { RetireActivityForm } from "./retire-activity-form.tsx";
 
 const BUILT_IN_HEADING_ID = "built-in-activities-heading";
@@ -41,51 +28,39 @@ interface ListedActivity {
   readonly description?: string;
 }
 
-// An activity as a card: its name, which opens New chat, what it is, if
-// it says, then its actions.
+// An activity as a card: its name, which opens its page, what it is, if it
+// says, then its actions.
 function ActivityCard({
   activity,
   actions,
-  choices,
 }: {
   readonly activity: ListedActivity;
   readonly actions: JSX.Element;
-  readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   return (
     <li className="card flex min-w-0 flex-col gap-2">
-      <NewChatDialog
-        {...choices}
-        fixedActivity={true}
-        selectedActivityId={activity.id}
-        trigger={
-          <button
-            className="card-title wrap-anywhere self-start text-left text-link"
-            type="button"
-          >
-            {activity.name}
-          </button>
-        }
-      />
+      <Link
+        className="card-title wrap-anywhere self-start text-link"
+        href={`/activities/${activity.id}`}
+      >
+        {activity.name}
+      </Link>
       {activity.description !== undefined && (
         <p className="wrap-anywhere text-muted text-sm">
           {activity.description}
         </p>
       )}
       <div className="card-actions">{actions}</div>
-      <ActivityQuestEntry activityId={activity.id} choices={choices} />
     </li>
   );
 }
 
-// The built-in activities as cards, each with its New chat dialog and a button
-// that customizes it: makes a clone of her own and opens it to edit.
+// The built-in activities as cards, each with a button that customizes it:
+// makes a clone of the user's own and opens it to edit.
 function BuiltInActivityCards({
   activities,
-  choices,
 }: {
   readonly activities: readonly ListedActivity[];
-  readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   return (
     <ul className="definition-grid">
@@ -104,7 +79,6 @@ function BuiltInActivityCards({
             </form>
           }
           activity={activity}
-          choices={choices}
           key={activity.id}
         />
       ))}
@@ -112,15 +86,13 @@ function BuiltInActivityCards({
   );
 }
 
-// Her own activities as cards, each with its New chat dialog, a link that tweaks
-// it in place and a button that clones it; or, if she has none, a line that
+// The user's own activities as cards, each with a link that tweaks it in
+// place and a button that clones it; or, if they have none, a line that
 // says so.
 function OwnActivityCards({
   activities,
-  choices,
 }: {
   readonly activities: readonly ListedActivity[];
-  readonly choices: NewChatChoices & QuestCreationChoices;
 }): JSX.Element {
   if (activities.length === 0) {
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
@@ -156,7 +128,6 @@ function OwnActivityCards({
             </>
           }
           activity={activity}
-          choices={choices}
           key={activity.id}
         />
       ))}
@@ -164,68 +135,9 @@ function OwnActivityCards({
   );
 }
 
-async function ActivityLists({
-  workspace = false,
-}: {
-  readonly workspace?: boolean;
-} = {}): Promise<JSX.Element> {
+async function ActivityLists(): Promise<JSX.Element> {
   const user = await requireUser();
-  const [own, chatChoices, preferred] = await Promise.all([
-    listOwnActivities(user.id),
-    newChatChoices(user.id),
-    interviewConstruct(user.id),
-  ]);
-  const choices = { ...chatChoices, preferredConstructId: preferred.id };
-  if (workspace === true) {
-    const retired = await listRetiredDefinitions(user.id);
-    return (
-      <PageWorkspace
-        title={ACTIVITIES_COPY.heading}
-        intro={ACTIVITIES_COPY.intro}
-        action={
-          <form action={newActivityAction}>
-            <Button type="submit">{ACTIVITIES_COPY.newActivity}</Button>
-          </form>
-        }
-      >
-        <WorkspaceTabs
-          label={ACTIVITIES_COPY.heading}
-          sections={[
-            {
-              id: "built-in",
-              label: WORKSPACES_COPY.builtIn,
-              content: (
-                <div className="workspace-rows">
-                  <BuiltInActivityCards
-                    activities={listActivities()}
-                    choices={choices}
-                  />
-                </div>
-              ),
-            },
-            {
-              id: "yours",
-              label: WORKSPACES_COPY.yours,
-              content: (
-                <div className="workspace-rows">
-                  <OwnActivityCards activities={own} choices={choices} />
-                </div>
-              ),
-            },
-            {
-              id: "retired",
-              label: WORKSPACES_COPY.retired,
-              content: (
-                <div className="flex flex-col gap-4">
-                  <RetirementList definitions={retired} kind="activity" />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </PageWorkspace>
-    );
-  }
+  const own = await listOwnActivities(user.id);
   return (
     <>
       <section
@@ -235,7 +147,7 @@ async function ActivityLists({
         <h2 className="section-heading" id={BUILT_IN_HEADING_ID}>
           {ACTIVITIES_COPY.builtInHeading}
         </h2>
-        <BuiltInActivityCards activities={listActivities()} choices={choices} />
+        <BuiltInActivityCards activities={listActivities()} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -248,7 +160,7 @@ async function ActivityLists({
             </Button>
           </form>
         </div>
-        <OwnActivityCards activities={own} choices={choices} />
+        <OwnActivityCards activities={own} />
       </section>
     </>
   );

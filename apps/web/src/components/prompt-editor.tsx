@@ -6,7 +6,6 @@ import {
   type MouseEvent,
   type SubmitEvent,
   useCallback,
-  useContext,
   useEffect,
   useId,
   useRef,
@@ -14,10 +13,6 @@ import {
 } from "react";
 import { z } from "zod";
 import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
-import {
-  type PromptDraft,
-  PromptDraftContext,
-} from "@/components/prompt-draft-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
@@ -47,6 +42,12 @@ interface PromptEditorText {
   readonly maxLength?: number;
   readonly literal?: boolean;
   readonly requiredMessage?: string | undefined;
+}
+
+// The name and texts the editor shows, saved or not.
+interface PromptDraft {
+  readonly name: string;
+  readonly texts: Readonly<Record<string, string>>;
 }
 
 // What the editor last did that the user should know.
@@ -117,7 +118,11 @@ function PromptEditor({
   onSubmitCapture,
   saving = false,
   disabled = false,
+  onDraftChange,
 }: {
+  // Told the draft whenever it changes, by typing or by recovery, reset,
+  // undo or discard.
+  readonly onDraftChange?: (draft: PromptDraft) => void;
   readonly onSubmitCapture?: (event: SubmitEvent<HTMLFormElement>) => void;
   readonly saveLabel?: string;
   readonly saveHint?: string | undefined;
@@ -141,8 +146,6 @@ function PromptEditor({
   const [selectedField, setSelectedField] = useState(texts[0]?.name ?? "");
   const [focusField, setFocusField] = useState<string | undefined>(undefined);
   const formRef = useRef<HTMLFormElement>(null);
-  const reportDraft = useContext(PromptDraftContext);
-  const focused = reportDraft !== undefined;
   const selectField = useCallback(
     (event: MouseEvent<HTMLButtonElement>): void => {
       setSelectedField(event.currentTarget.value);
@@ -168,8 +171,8 @@ function PromptEditor({
   }));
   const [draft, setDraft] = useState(saved);
   useEffect(() => {
-    reportDraft?.(draft);
-  }, [reportDraft, draft]);
+    onDraftChange?.(draft);
+  }, [onDraftChange, draft]);
   const [notice, setNotice] = useState<Notice>("none");
   const [beforeReset, setBeforeReset] = useState<string | undefined>();
   const [nameRefused, setNameRefused] = useState<boolean>(false);
@@ -318,7 +321,6 @@ function PromptEditor({
       id={formId}
       aria-busy={saving}
       className="prompt-editor"
-      data-focus={focused}
       ref={formRef}
       noValidate={true}
       onSubmit={submit}
@@ -339,30 +341,26 @@ function PromptEditor({
         />
       </div>
       <h2 className="section-heading prompt-editor-heading">{heading}</h2>
-      {focused && (
-        <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
-          {texts.map(({ name: field, label }) => {
-            const { [field]: error } = textErrors;
-            return (
-              <Button
-                key={field}
-                variant="quiet"
-                aria-pressed={selectedField === field}
-                aria-controls={`${sectionsId}-${field}`}
-                value={field}
-                onClick={selectField}
-              >
-                {label}
-                {error !== undefined && (
-                  <span className="text-danger">
-                    {PROMPT_COPY.sectionError}
-                  </span>
-                )}
-              </Button>
-            );
-          })}
-        </nav>
-      )}
+      <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
+        {texts.map(({ name: field, label }) => {
+          const { [field]: error } = textErrors;
+          return (
+            <Button
+              key={field}
+              variant="quiet"
+              aria-pressed={selectedField === field}
+              aria-controls={`${sectionsId}-${field}`}
+              value={field}
+              onClick={selectField}
+            >
+              {label}
+              {error !== undefined && (
+                <span className="text-danger">{PROMPT_COPY.sectionError}</span>
+              )}
+            </Button>
+          );
+        })}
+      </nav>
       {texts.map(({ name: field, label, help, maxLength, literal }) => {
         const { [field]: text = "" } = draft.texts;
         const { [field]: error } = textErrors;
@@ -375,7 +373,7 @@ function PromptEditor({
             className="prompt-editor-field"
             key={field}
             id={`${sectionsId}-${field}`}
-            hidden={focused && selectedField !== field}
+            hidden={selectedField !== field}
           >
             <TextAreaField
               className="min-h-40 font-mono text-sm"

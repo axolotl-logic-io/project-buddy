@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
+import { workshopPath } from "@/routes.ts";
 import {
   spellResetPrompt,
   starterSpellDefinition,
@@ -55,10 +56,14 @@ function spellPage(spellId: string): never {
 async function cloneSpellAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = CLONE_SPELL_FORM.safeParse(Object.fromEntries(formData));
-  if (form.success) {
-    await cloneSpell(user.id, form.data.sourceId);
+  if (!form.success) {
+    notFound();
   }
-  return redirect(SPELLBOOK_PATH);
+  const copy = await cloneSpell(user.id, form.data.sourceId);
+  if (copy === undefined) {
+    notFound();
+  }
+  return spellPage(copy.id);
 }
 
 async function newSpellAction(): Promise<never> {
@@ -97,7 +102,7 @@ async function resetSpellPromptAction(formData: FormData): Promise<void> {
   }
   const { spellId } = form.data;
   const spell = await getOwnSpell(user.id, spellId);
-  if (spell === undefined || spell.boughtFrom !== undefined) {
+  if (spell === undefined) {
     notFound();
   }
   const reset = await updateSpell(user.id, spell.id, {
@@ -132,7 +137,7 @@ async function retireSpellAction(formData: FormData): Promise<never> {
     await retireDefinition(user.id, "spell", form.data.spellId);
     revalidatePath("/", "layout");
   }
-  return redirect(`${SPELLBOOK_PATH}?retired=1`);
+  return redirect(`${workshopPath("spell")}&retired=1`);
 }
 
 export {

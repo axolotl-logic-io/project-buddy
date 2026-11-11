@@ -11,7 +11,7 @@ import { INTERVIEW_CONSTRUCT_COPY } from "@/ui/copy/settings.ts";
 import {
   type InterviewConstructState,
   setInterviewConstructAction,
-} from "./actions.ts";
+} from "./interview-construct-action.ts";
 
 const IDLE: InterviewConstructState = { kind: "idle" };
 

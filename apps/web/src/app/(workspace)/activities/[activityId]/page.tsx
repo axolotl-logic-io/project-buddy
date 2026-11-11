@@ -12,19 +12,13 @@ import {
   getActivity,
   isActivityId,
 } from "@/activities/index.ts";
-import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
-import { newChatChoices } from "@/chats/new-chat-choices.ts";
-import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { ActivityQuestEntry } from "@/components/quest-library.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
-import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { measureServerOperation } from "@/performance/server-spans.ts";
-import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   ACTIVITIES_COPY,
@@ -33,7 +27,6 @@ import {
 } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
-import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInActivityAction, saveActivityAction } from "../actions.ts";
 import { RetireActivityForm } from "../retire-activity-form.tsx";
 
@@ -95,11 +88,9 @@ function BuiltInActivity({
 
 function OwnActivityForm({
   activity,
-  sale,
   viewer,
 }: {
   readonly activity: OwnActivity;
-  readonly sale: SaleState;
   readonly viewer: string;
 }): JSX.Element {
   return (
@@ -107,11 +98,7 @@ function OwnActivityForm({
       <ActivityHeading intro={ACTIVITY_COPY.ownIntro} name={activity.name} />
       <PromptEditor
         action={saveActivityAction}
-        defaultPrompt={
-          (activity.boughtFrom === undefined &&
-            activityResetPrompt(activity.clonedFrom).prompt) ||
-          undefined
-        }
+        defaultPrompt={activityResetPrompt(activity.clonedFrom).prompt}
         heading={PROMPT_COPY.activityFieldsHeading}
         idName="activityId"
         key={activity.updatedAt.toISOString()}
@@ -133,15 +120,7 @@ function OwnActivityForm({
           },
         ]}
       />
-      {activity.boughtFrom !== undefined && (
-        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
-      )}
-      <RetireActivityForm
-        sale={sale.kind}
-        name={activity.name}
-        activityId={activity.id}
-      />
-      <SellSection kind="activity" promptId={activity.id} sale={sale} />
+      <RetireActivityForm name={activity.name} activityId={activity.id} />
     </>
   );
 }
@@ -175,40 +154,16 @@ export default async function ActivityPage({
   const { saved } = await searchParams;
   const user = await requireUser();
   if (isActivityId(activityId)) {
-    const options = await workshopOptions(user.id);
     const activity = getActivity(activityId);
-    const [chatChoices, questChoices] = await Promise.all([
-      newChatChoices(user.id),
-      questCreationChoices(user.id),
-    ]);
     return (
-      <Workshop
-        options={options}
-        initial={{
-          kind: "activity",
-          id: activity.id,
-          name: activity.name,
-          prompt: activity.definition.prompt,
-          whenToUse: "",
-          openingRequest: activity.definition.openingRequest,
-        }}
-      >
+      <Workshop kind="activity">
         <BuiltInActivity activity={activity} />
-        <NewChatDialog
-          {...chatChoices}
-          fixedActivity={true}
-          selectedActivityId={activity.id}
-        />
-        <ActivityQuestEntry activityId={activity.id} choices={questChoices} />
       </Workshop>
     );
   }
-  const [activity, options] = await Promise.all([
-    measureServerOperation("activity-data", () =>
-      readOwnDefinition(user.id, activityId),
-    ),
-    workshopOptions(user.id),
-  ]);
+  const activity = await measureServerOperation("activity-data", () =>
+    readOwnDefinition(user.id, activityId),
+  );
   if (activity === undefined) {
     const retired = await getRetiredDefinition(user.id, activityId);
     if (retired?.kind === "activity") {
@@ -216,24 +171,10 @@ export default async function ActivityPage({
     }
     notFound();
   }
-  const sale = await readSaleState(user.id, {
-    kind: "activity",
-    promptId: activity.id,
-  });
   return (
-    <Workshop
-      options={options}
-      initial={{
-        kind: "activity",
-        id: activity.id,
-        name: activity.name,
-        prompt: activity.definition.prompt,
-        whenToUse: "",
-        openingRequest: activity.definition.openingRequest,
-      }}
-    >
+    <Workshop kind="activity">
       <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
-      <OwnActivityForm viewer={user.id} activity={activity} sale={sale} />
+      <OwnActivityForm viewer={user.id} activity={activity} />
     </Workshop>
   );
 }

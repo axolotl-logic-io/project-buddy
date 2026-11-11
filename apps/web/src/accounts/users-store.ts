@@ -15,8 +15,6 @@ interface User {
   readonly role: "user" | "admin";
   // Only sessions signed at this epoch are signed in.
   readonly sessionEpoch: number;
-  // The ids of the extras the user has switched off.
-  readonly hiddenExtras: readonly string[];
   // What she asked the construct to call her (src/accounts/user-name.ts), or
   // undefined if she has given no name.
   readonly name: string | undefined;
@@ -46,7 +44,6 @@ function toUser(row: UserRow | undefined): User | undefined {
     email: row.email,
     role: userRole(row.role),
     sessionEpoch: row.sessionEpoch,
-    hiddenExtras: row.hiddenExtras,
     name: row.name ?? undefined,
   };
 }
@@ -103,22 +100,6 @@ async function endEverySession(id: UserId): Promise<void> {
   );
 }
 
-// Saves switched as the ids of the extras owner has switched away from their
-// default (src/flags/flags.ts), in place of those saved before. The column
-// keeps its older name, hidden_extras, to avoid a migration. An owner who
-// no longer exists saves nothing.
-async function saveHiddenExtras(
-  owner: UserId,
-  switched: readonly string[],
-): Promise<void> {
-  await withAppErrors("saveHiddenExtras", () =>
-    getDb()
-      .update(users)
-      .set({ hiddenExtras: [...switched] })
-      .where(eq(users.id, owner)),
-  );
-}
-
 // Saves name as the owner's name, or clears it when name is undefined. The
 // name must already be checked (checkUserName); the column's check refuses
 // any other. An owner who no longer exists saves nothing.
@@ -150,6 +131,5 @@ export {
   normalizeEmail,
   readSessionUser,
   readUserName,
-  saveHiddenExtras,
   saveUserName,
 };

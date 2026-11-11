@@ -2,97 +2,88 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  type ChosenConstruct,
-  chosenConstruct,
-} from "@/constructs/chosen-construct.ts";
-import { interviewConstruct } from "@/constructs/interview-construct.ts";
+import { chosenConstruct } from "@/constructs/chosen-construct.ts";
+import { startDailies } from "@/conversations/dailies.ts";
 import { startProject } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
+import { PREMADE_QUESTS } from "@/projects/premade-quests.ts";
 import {
   checkProjectName,
   PROJECT_NAME_MAX_LENGTH,
 } from "@/projects/project-name.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { PROJECTS_COPY, QUEST_START_COPY } from "@/ui/copy/projects.ts";
 
-// The form's fields as sent; the name is checked by the shared rule.
-const CREATE_PROJECT_FORM = z.object({
-  name: z.string().default(PROJECTS_COPY.defaultName),
-  motivation: z.string().trim().default(""),
-  constructId: z.string().optional(),
+const START_DETAILS = z.object({
+  premadeId: z.enum(["dailies", "learn", "make", "do"]),
+  name: z.string(),
+  journal: z.string().trim(),
+  constructId: z.string(),
 });
 
-// What the name field says about a name the shared rule refused.
-function nameMessage(problem: "missing" | "tooLong"): string {
-  if (problem === "tooLong") {
-    return PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH);
-  }
-  return PROJECTS_COPY.needsName;
-}
-
-// Failed openings and invalid names preserve the quest details for correction.
-export type CreateProjectState =
+// What came of starting: nothing yet, or why nothing started. A start
+// that succeeds opens the quest instead.
+type StartQuestState =
   | { readonly kind: "idle" }
-  | { readonly kind: "invalid"; readonly message: string }
   | {
-      readonly kind: "invalidName" | "claudeUnavailable" | "outOfGold";
+      readonly kind: "invalid" | "claudeUnavailable" | "outOfGold";
       readonly message: string;
-      readonly name: string;
-      readonly motivation: string;
     };
 
-// Starts with the selected construct, or the account preference for legacy callers.
-// The two-field dialog omits a name and receives a valid default.
-// Opening failures save nothing; a storage failure reaches the error boundary.
-export async function createProjectAction(
-  _state: CreateProjectState,
-  formData: FormData,
-): Promise<CreateProjectState> {
+// The one way to start a quest, from any of its four starting points: an
+// ordinary quest, with its conversation and opening, then opens it.
+// Dailies resumes the user's one Dailies quest if they have it, changing
+// nothing and spending nothing. The construct is checked for the acting
+// user, never trusted from the form; the activity is the starting point's
+// own, which the construct can change later. A failure saves nothing.
+export async function startQuestAction(
+  _previous: StartQuestState,
+  data: FormData,
+): Promise<StartQuestState> {
   const user = await requireUser();
-  const form = CREATE_PROJECT_FORM.safeParse(Object.fromEntries(formData));
-  if (!form.success) {
-    return { kind: "invalid", message: PROJECTS_COPY.invalidDetails };
+  const parsed = START_DETAILS.safeParse(Object.fromEntries(data));
+  if (!parsed.success) {
+    return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
-
-  const name = checkProjectName(form.data.name);
-  if (name.kind !== "named") {
-    return {
-      kind: "invalidName",
-      message: nameMessage(name.kind),
-      name: form.data.name,
-      motivation: form.data.motivation,
-    };
+  const { premadeId, name, journal, constructId } = parsed.data;
+  const checked = checkProjectName(name);
+  if (checked.kind !== "named") {
+    let message: string = PROJECTS_COPY.needsName;
+    if (checked.kind === "tooLong") {
+      message = PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH);
+    }
+    return { kind: "invalid", message };
   }
-
-  let chosen: ChosenConstruct | undefined;
-  if (form.data.constructId === undefined) {
-    chosen = await interviewConstruct(user.id);
+  const premade = PREMADE_QUESTS.find(({ id }) => id === premadeId);
+  const construct = await chosenConstruct(user.id, constructId);
+  if (premade === undefined || construct === undefined) {
+    return { kind: "invalid", message: QUEST_START_COPY.invalid };
+  }
+  const activity = builtInActivity(premade.activityId);
+  const details = {
+    name: checked.name,
+    journal,
+    construct: construct.construct,
+    activity,
+  };
+  let result: Awaited<ReturnType<typeof startDailies>>;
+  if (premadeId === "dailies") {
+    result = await startDailies(user.id, details);
   } else {
-    chosen = await chosenConstruct(user.id, form.data.constructId);
+    result = await startProject(user.id, checked.name, construct.construct, {
+      journal,
+      activity,
+    });
   }
-  if (chosen === undefined) {
-    return { kind: "invalid", message: PROJECTS_COPY.unavailableConstruct };
+  if (result.kind === "claudeUnavailable") {
+    return { kind: result.kind, message: OPENING_COPY.claudeUnavailable };
   }
-  const started = await startProject(user.id, name.name, chosen.construct, {
-    motivation: form.data.motivation,
-  });
-  if (started.kind === "claudeUnavailable") {
-    return {
-      kind: "claudeUnavailable",
-      message: OPENING_COPY.claudeUnavailable,
-      name: name.name,
-      motivation: form.data.motivation,
-    };
+  if (result.kind === "outOfGold") {
+    return { kind: result.kind, message: userMessage("out-of-gold") };
   }
-  if (started.kind === "outOfGold") {
-    return {
-      kind: "outOfGold",
-      message: userMessage("out-of-gold"),
-      name: form.data.name,
-      motivation: form.data.motivation,
-    };
-  }
-  return redirect(`/chats/${started.chat.id}`);
+  redirect(`/projects/${result.chat.project.id}`);
 }
+
+export type { StartQuestState };
