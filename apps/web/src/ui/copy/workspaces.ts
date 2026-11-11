@@ -16,8 +16,7 @@ const WORKSPACES_COPY = {
   versions: "Versions",
   journal: "Quest Journal",
   members: "Members and check-ins",
-  accountIntro: "Your name, batteries and sign-in controls.",
-  settingsIntro: "Your preferences, appearance and notifications.",
+  settingsIntro: "Your profile, appearance, batteries and security.",
   openWorkshop: "Open Workshop",
   books: "Library books",
 } as const;
