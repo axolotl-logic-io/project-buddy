@@ -85,7 +85,7 @@ const LIBRARY_COPY: {
           ],
           paragraphs: [
             "Workshop shows built-in constructs, activities and spells alongside your private copies, one kind at a time. Choose Create to make your own, or Make a copy on a built-in one to start from a copy. Retirement keeps retired definitions available to restore or delete.",
-            "Workshop is where you edit. Edit one section of the instructions at a time, then choose Save. Unsaved edits stay in this browser until you choose Save or Cancel. Saving makes no model call and spends no batteries. To see how a change works, save it and use it in a quest or in Chat.",
+            "Workshop is where you edit. Edit one section of the instructions at a time, then choose Save. Unsaved edits stay in this browser until you choose Save or Cancel. Saving prompt text makes no model call and spends no batteries. To see how a change works, save it and use it in a quest or in Chat.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a reply sends to the model.",
             "Batteries pay for model use: replies, generated openings and images. Each uses the balance of the person who asked. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
             "Under each reply, the conversation shows what it cost you, to one decimal place. That cost includes any retries and images the reply needed. Your balance shows whole batteries.",

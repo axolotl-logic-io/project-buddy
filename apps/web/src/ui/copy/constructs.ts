@@ -11,13 +11,7 @@ interface FieldCopy {
 }
 
 export const CONSTRUCTS_COPY = {
-  title: pageTitle("Constructs"),
-  headerLink: "Constructs",
-  homeLink: "Home",
   heading: "Constructs",
-  intro:
-    "Constructs are AI characters, each with a name, a voice and habits. Choose one when you start a quest, or make a copy to edit your own version.",
-  loading: "Loading constructs…",
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
