@@ -17,13 +17,8 @@ export default function ProjectLoading(): JSX.Element {
         <div className="workspace-rail">
           <LoadingShapes shapes={["line"]} />
         </div>
-        <div className="workspace-content">
-          <section className="page-slot">
-            <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
-            <LoadingShapes shapes={["cards"]} />
-          </section>
-        </div>
       </div>
+      <LoadingShapes shapes={["messages"]} />
     </div>
   );
 }

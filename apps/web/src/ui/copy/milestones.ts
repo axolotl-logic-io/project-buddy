@@ -11,7 +11,6 @@ export const MILESTONE_COPY = {
 export const PROGRESS_TIMELINE_COPY = {
   heading: "Progress",
   none: "Nothing here yet. When you finish something in an adventure in this quest, your construct adds it here.",
-  openChat: "Open its adventure",
   edit: "Edit",
   editLabel: (text: string): string => `Edit the milestone "${text}"`,
   textLabel: "Milestone",

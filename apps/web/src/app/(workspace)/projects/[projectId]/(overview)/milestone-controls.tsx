@@ -3,7 +3,6 @@
 import {
   type ChangeEvent,
   type JSX,
-  type ReactNode,
   useActionState,
   useCallback,
   useEffect,
@@ -129,17 +128,15 @@ function DeleteMilestoneForm({
   );
 }
 
-// A milestone's text, with its chat link and the buttons that edit or
+// A milestone's text, with the buttons that edit or
 // delete it, or, while she edits it, the form that changes its text. When
 // the form closes, keyboard focus goes back to the Edit button.
 export function MilestoneControls({
   milestoneId,
   text,
-  chatLink,
 }: {
   readonly milestoneId: MilestoneId;
   readonly text: string;
-  readonly chatLink: ReactNode;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const editRef = useRef<HTMLButtonElement>(null);
@@ -166,7 +163,6 @@ export function MilestoneControls({
     <>
       <p className="wrap-anywhere font-medium">{text}</p>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        {chatLink}
         <Button
           aria-label={PROGRESS_TIMELINE_COPY.editLabel(text)}
           onClick={open}
