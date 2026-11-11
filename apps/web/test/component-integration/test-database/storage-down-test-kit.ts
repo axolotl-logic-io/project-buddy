@@ -37,7 +37,6 @@ function unstoredUser(): User {
     email: `storage-down-${crypto.randomUUID()}@example.test`,
     role: "user",
     sessionEpoch: 0,
-    hiddenExtras: [],
     name: undefined,
   };
 }

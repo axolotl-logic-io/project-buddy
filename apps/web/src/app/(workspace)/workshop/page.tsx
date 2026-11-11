@@ -1,8 +1,10 @@
-import type { Metadata, Route } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
+import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import { workshopPath } from "@/routes.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { ActivityLists } from "../activities/activity-lists.tsx";
 import { ConstructLists } from "../constructs/construct-lists.tsx";
@@ -10,15 +12,8 @@ import { SpellLists } from "../spellbook/spell-lists.tsx";
 
 const QUERY = z.object({
   kind: z.enum(PROMPT_KINDS).catch("construct"),
+  retired: z.literal("1").optional().catch(undefined),
 });
-
-// The Workshop's address, showing the kind's tab.
-function workshopPath(kind: PromptKind): Route {
-  if (kind === "construct") {
-    return "/workshop";
-  }
-  return `/workshop?kind=${kind}`;
-}
 
 // A link to each kind's tab, the shown one marked, styled as the site's
 // other tabs.
@@ -64,15 +59,15 @@ function kindLists(kind: PromptKind): Promise<JSX.Element> {
 
 export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
-// Where the user makes, customizes, tweaks and clones constructs, activities
-// and spells, one kind at a time. Each opens in its own Workshop to edit
-// and test.
+// The single collection for creating, copying and editing private definitions.
+// Built-in instructions open read-only; Make a copy opens the shared editor.
 export default async function WorkshopPage({
   searchParams,
 }: PageProps<"/workshop">): Promise<JSX.Element> {
-  const { kind } = QUERY.parse(await searchParams);
+  const { kind, retired } = QUERY.parse(await searchParams);
   return (
     <>
+      <RetirementFeedback completed={retired === "1"} />
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{WORKSHOP_COPY.heading}</h1>
         <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>

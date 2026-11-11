@@ -8,6 +8,7 @@ import { ChatHistory } from "@/components/chat/chat-history.tsx";
 import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
+import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
@@ -22,7 +23,8 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // message box, since the button goes once the reply starts. It scrolls to follow a
 // streaming reply unless the user has scrolled up. A user message that
 // authorNames holds shows its author's name; every other one is the
-// viewer's own.
+// viewer's own. starter is a prepared message to offer above the composer,
+// such as Start the day.
 export function ChatThread({
   construct,
   goldBalance,
@@ -35,6 +37,7 @@ export function ChatThread({
   onRetry,
   stop,
   stopStatus = "",
+  starter,
 }: {
   goldBalance?: number | undefined;
   replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
@@ -47,6 +50,9 @@ export function ChatThread({
   onRetry?: (() => void) | undefined;
   stop?: ReplyStop | undefined;
   stopStatus?: string;
+  starter?:
+    | { readonly label: string; readonly onStart: () => void }
+    | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -92,6 +98,15 @@ export function ChatThread({
             {goldBalance !== undefined && CHAT_COPY.balance(goldBalance)}
           </p>
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
+          {starter !== undefined && (
+            <Button
+              className="self-start"
+              onClick={starter.onStart}
+              variant="secondary"
+            >
+              {starter.label}
+            </Button>
+          )}
           <ChatComposer inputRef={inputRef} stop={stop} />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>

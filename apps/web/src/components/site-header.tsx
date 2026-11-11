@@ -8,19 +8,14 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { wholeGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 // Parents remain full-size keyboard targets. The final item names the current
@@ -100,15 +95,7 @@ function AccountLinks(): JSX.Element {
         <li>
           <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/constructs">{CONSTRUCTS_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>
-        </li>
-        <li>
-          <MenuLink href="/spellbook">{SPELLBOOK_COPY.headerLink}</MenuLink>
-        </li>
+
         <li>
           <MenuLink href="/library">{LIBRARY_COPY.heading}</MenuLink>
         </li>
@@ -121,9 +108,6 @@ function AccountLinks(): JSX.Element {
         <li>
           <MenuLink href="/gallery">{GENERATION_COPY.heading}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/marketplace">{MARKETPLACE_COPY.headerLink}</MenuLink>
-        </li>
       </ul>
       <hr className="menu-rule" />
       <p className="menu-label" id={YOU_LABEL_ID}>
@@ -133,22 +117,16 @@ function AccountLinks(): JSX.Element {
         <li>
           <MenuLink href="/settings">{SETTINGS_COPY.headerLink}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/account">{ACCOUNT_COPY.headerLink}</MenuLink>
-        </li>
       </ul>
     </nav>
   );
 }
 
 // Reads the session for the header slot and supplies the signed-in menu
-// and its shortcuts, or the public menu for a visitor. place names the map's
-// place the page belongs to, if any, beside the site's name.
+// or the public menu for a visitor.
 async function SignedInLinks({
-  place,
   breadcrumbs,
 }: {
-  readonly place?: string | undefined;
   readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
   const user = await currentUser();
@@ -158,9 +136,8 @@ async function SignedInLinks({
   const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
-      {place !== undefined && <p className="hud-place">{place}</p>}
       <HeaderBalance microUsd={balance} />
-      <SiteMenu links={<AccountLinks />} shortcuts={true} />
+      <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <Breadcrumbs items={breadcrumbs} />}
     </>
   );
@@ -170,7 +147,7 @@ async function SignedInLinks({
 const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim, whose
-// title, behind a compass, leads back to Home. The controls scroll away;
+// title, behind a compass, leads back to Quests. The controls scroll away;
 // pages with breadcrumbs keep only that navigation row pinned.
 function SiteHeader({
   links = VISITOR_MENU,

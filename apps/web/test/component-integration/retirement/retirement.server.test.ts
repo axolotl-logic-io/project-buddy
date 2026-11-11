@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
 import {
   cloneActivity,
@@ -26,15 +25,12 @@ import {
 } from "@/constructs/interview-construct.ts";
 import { startProject } from "@/conversations/start-quest.ts";
 import { getDb } from "@/db/client.ts";
-import { marketplaceCutover } from "@/db/tables/orbs.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
-import { buyListing } from "@/marketplace/buy-listing.ts";
-import { publishListing } from "@/marketplace/listing-store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import type { OwnPrompt } from "@/prompts/own-prompt-store.ts";
-import type { PromptKind } from "@/prompts/prompt.ts";
+import { type PromptKind, storedPromptKind } from "@/prompts/prompt.ts";
 import {
   deleteRetiredDefinition,
   getRetiredDefinition,
@@ -50,6 +46,7 @@ import {
   updateSpell,
 } from "@/spells/spell-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   expectNotFound,
@@ -166,7 +163,7 @@ describe("use_case_retire_definitions", () => {
     }
     await expectRedirect(
       () => retireConstructAction(form({ constructId: copy.id })),
-      "/constructs?retired=1",
+      "/workshop?retired=1",
     );
     expect(await chosenConstruct(owner.id, copy.id)).toBeUndefined();
     expect((await interviewConstruct(owner.id)).id).toBe("vellum");
@@ -177,10 +174,10 @@ describe("use_case_retire_definitions", () => {
     await restoreDefinition(owner.id, copy.id);
     expect((await interviewConstruct(owner.id)).id).toBe(copy.id);
   });
-  test("team quest membership gives no access to originals or Retirement changes", async () => {
+  test("a former quest membership gives no access to originals or Retirement changes", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
-    const project = await testData(owner).project("Shared quest");
-    await addProjectMember(member.id, project.id);
+    const project = await testData(owner).project("Formerly shared quest");
+    await formerMembership(owner, member, project.id);
     await Promise.all(
       KINDS.map(async (kind) => {
         const copy = await kind.clone(owner.id, kind.source);
@@ -223,47 +220,37 @@ describe("use_case_restore_retired_definition", () => {
       expect(await restoreDefinition(owner.id, copy.id)).toBe(false);
     },
   );
-  test("a retired bought copy stays held and restores without another gold charge", async () => {
-    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const own = await cloneConstruct(seller.id, "lumen");
-    if (own === undefined) {
-      throw new Error("No copy");
-    }
-    await updateConstruct(seller.id, own.id, {
-      definition: { prompt: "An original construct for the retirement test." },
-    });
-    const listing = await publishListing(
-      seller.id,
-      { kind: "construct", promptId: own.id },
-      { description: "Test construct", price: 1 },
-    );
-    if (listing.kind !== "published") {
-      throw new Error("No listing");
-    }
-    await getDb()
-      .update(marketplaceCutover)
-      .set({ enabled: true })
-      .where(eq(marketplaceCutover.id, 1));
-    const bought = await buyListing(buyer.id, {
-      currency: "orbs",
-      listingId: listing.id,
-      price: 1,
-    });
-    if (bought.kind !== "bought") {
+  test("a copy bought before the Marketplace closed stays its buyer's private construct", async () => {
+    const [buyer, stranger] = await Promise.all([testUser(), testUser()]);
+    const [row] = await getDb()
+      .insert(ownPrompts)
+      .values({
+        userId: buyer.id,
+        kind: storedPromptKind("construct"),
+        name: "Bought guide",
+        parts: { prompt: "Another user's construct, bought earlier." },
+        boughtFrom: crypto.randomUUID(),
+      })
+      .returning({ id: ownPrompts.id });
+    if (row === undefined) {
       throw new Error("No bought copy");
     }
-    const before = await getOwnConstruct(buyer.id, bought.copy.id);
     const gold = await readGoldBalance(buyer.id);
-    await retireDefinition(buyer.id, "construct", bought.copy.id);
-    expect(
-      await buyListing(buyer.id, {
-        currency: "orbs",
-        listingId: listing.id,
-        price: 1,
-      }),
-    ).toEqual({ kind: "held", copy: bought.copy });
-    await restoreDefinition(buyer.id, bought.copy.id);
-    expect(await getOwnConstruct(buyer.id, bought.copy.id)).toEqual(before);
+    const before = await getOwnConstruct(buyer.id, row.id);
+    expect(before?.name).toBe("Bought guide");
+    expect(await getOwnConstruct(stranger.id, row.id)).toBeUndefined();
+
+    await retireDefinition(buyer.id, "construct", row.id);
+    expect(await getOwnConstruct(buyer.id, row.id)).toBeUndefined();
+    await restoreDefinition(buyer.id, row.id);
+    expect(await getOwnConstruct(buyer.id, row.id)).toEqual(before);
+
+    const edited = await updateConstruct(buyer.id, row.id, {
+      definition: { prompt: "Now made my own." },
+    });
+    expect(edited?.definition.prompt).toBe("Now made my own.");
+    const clone = await cloneConstruct(buyer.id, row.id);
+    expect(clone?.definition.prompt).toBe("Now made my own.");
     expect(await readGoldBalance(buyer.id)).toEqual(gold);
   });
 });

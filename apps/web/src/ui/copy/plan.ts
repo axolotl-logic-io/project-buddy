@@ -1,6 +1,6 @@
 // The text of a quest's plan: the Plan section on the quest's page and the
-// Journal page, the Plan panel in an adventure, the plan changes and plan
-// cards in an adventure, and the composer's commands. The plan has no
+// Journal page, the Plan panel beside a quest's conversation, the plan
+// changes and plan cards in it, and the composer's commands. The plan has no
 // deadlines and never nags: no counts of open steps or days.
 import {
   MOST_OPEN_STEPS,
@@ -58,10 +58,10 @@ const PLAN_COMMAND_DESCRIPTIONS: Readonly<Record<PlanCommandName, string>> = {
 export const PLAN_COPY = {
   heading: "Plan",
   intro:
-    "The remaining work for this quest, in order. Your construct keeps it with you in adventures, and you can change it here at any time.",
+    "The remaining work for this quest, in order. Your construct keeps it with you in the conversation, and you can change it here at any time.",
   nextStep: "Next step",
   allDone: "Every step is done. Add the next one when you're ready.",
-  none: "No steps yet. Add one, or plan the next stretch with your construct in an adventure.",
+  none: "No steps yet. Add one, or plan the next stretch with your construct in the conversation.",
   stepsLabel: "Open steps",
   stepNumber: (number: number): string => `#${number}`,
   checkOff: (text: string): string => `Check off ${quoted(text)}`,
@@ -131,8 +131,7 @@ export const CHAT_COMMANDS_COPY = {
   hint: "Commands run at once and spend no batteries. Steps are named by their numbers, such as #3.",
   description: (name: PlanCommandName): string =>
     PLAN_COMMAND_DESCRIPTIONS[name],
-  noPlan:
-    "Plan commands work in a quest's adventures. This adventure has no quest.",
+  noPlan: "Plan commands work in a quest's conversation. Chat has no quest.",
   problem: (found: CommandProblem): string => {
     switch (found.kind) {
       case "unknown":

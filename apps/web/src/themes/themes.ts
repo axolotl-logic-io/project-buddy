@@ -113,13 +113,10 @@
 //   --menu-label-tracking  their letter-spacing
 //   --menu-separator       a background for the rule between its groups
 //   --menu-separator-size  that rule's height
-//   --home-decoration the illustrated Home map, tinted by the active palette
 //   --header-ink      the shared HUD's permanent dark ground
 //   --header-paper    light text and medallion on the HUD
 //   --header-line     HUD separators and button shadow
 //   --header-gold     HUD accent, controls and focus rings
-// Home's paper, ink, muted text, line and focus roles read the active
-// surface, foreground, muted, line and focus colour tokens respectively.
 // A shadow or decoration that should differ by mode uses colour tokens, as
 // in color-mix(in oklab, var(--shadow) 30%, transparent).
 //

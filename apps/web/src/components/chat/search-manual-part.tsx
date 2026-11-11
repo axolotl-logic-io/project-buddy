@@ -5,7 +5,6 @@ import { SEARCH_BLENDER_MANUAL_INPUT } from "@/blender-manual/search-tool-contra
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { extraTag } from "@/flags/flags.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // One search of the manual: what the construct looked for, while and after it
@@ -22,7 +21,7 @@ export function SearchManualPart({
   const { query } = input.data;
   if (part.result === undefined) {
     return (
-      <p className="icon-line text-muted text-sm" {...extraTag("tool-lines")}>
+      <p className="icon-line text-muted text-sm">
         <Icon name="search" />
         {CITATIONS_COPY.searching(query)}
         <WorkingDots />
@@ -30,7 +29,7 @@ export function SearchManualPart({
     );
   }
   return (
-    <p className="icon-line text-muted text-sm" {...extraTag("tool-lines")}>
+    <p className="icon-line text-muted text-sm">
       <Icon name="search" />
       {CITATIONS_COPY.searched(query)}
     </p>

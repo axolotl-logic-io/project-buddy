@@ -38,6 +38,18 @@ const PREPARED_OPENINGS: Readonly<
     lumen:
       "Big goals are easier to see one bright spot at a time. Which goal shall we break into steps?",
   },
+  dailies: {
+    vellum:
+      "A fresh page for the day, and the ink is ready. What matters most to you today?",
+    lumen:
+      "*fzzt* A new day! I'm glowing already. What's on your mind, or what matters most today?",
+  },
+  "learn-a-thing": {
+    vellum:
+      "Every chart begins from where we stand. What would you like to learn, and how much of it do you know already?",
+    lumen:
+      "Ooh, learning! My runes love a new trick. What would you like to learn, and where are you starting from?",
+  },
 };
 
 function preparedOpening(

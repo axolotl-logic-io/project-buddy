@@ -1,11 +1,4 @@
-import {
-  Bot,
-  ListChecks,
-  MessagesSquare,
-  Pencil,
-  Shield,
-  Store,
-} from "lucide-react";
+import { ListChecks, Pencil } from "lucide-react";
 import type { JSX } from "react";
 
 // What each icon draws on a 16 by 16 grid: an outline, in strokes, and
@@ -53,10 +46,6 @@ const ICON_PATHS = {
   image: { stroke: "M2 2h12v12H2zM2 11l4-4 3 3 2-2 3 3M10 5h.01" },
   // Three lines, for the site's menu.
   menu: { stroke: "M2.5 4h11M2.5 8h11M2.5 12h11" },
-  // A page with lines and a folded corner, for a quick note.
-  note: {
-    stroke: "M3.5 1.75h6l3 3v9.5h-9zM9.5 1.75v3h3M5.75 8h4.5M5.75 10.75h4.5",
-  },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
   // A magnifying glass, for a search of the manual.
@@ -80,22 +69,17 @@ const ICON_PATHS = {
     stroke:
       "M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4",
   },
-  // A compass rose, for the way back to the map.
+  // A compass rose, for the way back to Quests.
   compass: {
     stroke:
       "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10.75 5.25 9 9l-3.75 1.75L7 7z",
   },
 } as const;
 
-// Place symbols share these six named imports. Pencil also marks editing
-// controls and edit summaries throughout the interface.
+// Shared symbols for Plan and editing controls.
 const PLACE_ICONS = {
-  shield: Shield,
-  messages: MessagesSquare,
-  bot: Bot,
   checklist: ListChecks,
   pencil: Pencil,
-  store: Store,
 } as const;
 
 type PlaceIconName = keyof typeof PLACE_ICONS;

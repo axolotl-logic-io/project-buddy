@@ -58,10 +58,10 @@ A reply reads the newest `CONVERSATION_WINDOW` (60) messages (`src/replies/conve
 | Use cases | `use_case_chat_named_automatically` and `use_case_switch_construct`. |
 | Tests | Multi-adventure tests: `all-chats*`, `store-starts`, `new-project-from-new-chat` and `chat-names`. |
 
-Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`, the Adventures list and filters, the New adventure screens and dialogs, the rename route and its use cases. Once those land, the last consumers of `renameChat`, `chat-name.ts`, `all-chats.ts`, `standalone-chat.ts` and `listChats` are gone, and the consolidated branch deletes them.
+Removed by #893 and #894 with their routes: `startChat`, `createChatWithOpening`, the Adventures list and filters, the New adventure screens and dialogs, the rename route and its use cases. With those gone, the consolidation deleted `renameChat`, `chat-name.ts`, `all-chats.ts`, `standalone-chat.ts`, `listChats` and the chat name fields on `Chat`. The `chats.name` and `chats.renamed_by_hand` columns stay; see below.
 
 ## Retained compatibility
 
 - **`chats`/`chat` names in code and storage.** They are the conversation's storage, and renaming them would be a broad mechanical rename the ticket advises against.
-- **`chats.name` and `chats.renamed_by_hand`.** The live build reads them during the release. A release after #898 drops them.
+- **`chats.name` and `chats.renamed_by_hand`.** These columns stay for now: this release still selects them through `getTableColumns(chats)` and bare `returning()`. #898 only deletes adventures and doesn't drop them. Dropping them needs a later release, after a build that neither reads nor writes them is live.
 - **`getChat` reading any open chat, continuing or not.** Old links resolve safely through `resolveConversation`. Nothing lists leftovers.

@@ -1,9 +1,8 @@
 // Each project's plan, stored in Postgres as numbered versions: every change
 // saves the whole plan after it, what it did and how to undo it, so the
 // newest version is the plan and the versions are its history. A plan is
-// open to everyone in its project, its owner and its members: every function
-// takes the acting user first, so a project not open to them has no plan,
-// and nothing is written to it. A change lands on the newest version, so two
+// its project owner's alone: every function takes the acting user first, so
+// another user's project has no plan, and nothing is written to it. A change lands on the newest version, so two
 // changes made at once are both kept, one after the other.
 import {
   and,
@@ -17,7 +16,7 @@ import {
 } from "drizzle-orm";
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { planVersionOpenTo, projectOpenTo } from "@/accounts/owner-scope.ts";
+import { planVersionOpenTo, projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { chatAwaitsReply, noReplyAwaited } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
@@ -132,7 +131,7 @@ async function projectIsOpen(
     getDb()
       .select({ id: projects.id })
       .from(projects)
-      .where(and(eq(projects.id, projectId), projectOpenTo(owner))),
+      .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
   );
   return rows.length > 0;
 }
@@ -226,7 +225,7 @@ async function saveVersion(
   if (author === "person") {
     userId = owner;
   }
-  const where: SQL[] = [eq(projects.id, projectId), projectOpenTo(owner)];
+  const where: SQL[] = [eq(projects.id, projectId), projectOwnedBy(owner)];
   if (chatId !== undefined) {
     where.push(chatInProject(projectId, chatId));
     if (author === "person") {
@@ -344,7 +343,7 @@ async function chatIsInProject(
         and(
           eq(chats.id, chatId),
           eq(chats.projectId, projectId),
-          projectOpenTo(owner),
+          projectOwnedBy(owner),
         ),
       ),
   );
