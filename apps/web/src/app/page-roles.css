@@ -12,32 +12,48 @@
    disabled looks), and every role ships in the stylesheet whether or not a
    page uses it. globals.css imports this file into the components layer. */
 @layer roles {
-  .quests-index {
-    @apply min-w-0 rounded-box border border-line bg-surface;
+  /* The quest Quests offers to pick up again: its label, name and next
+     step, with Continue beside them, or below them on a narrow screen. */
+  .current-quest {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-3 rounded-box border border-line bg-surface px-4 py-3 shadow-control;
   }
 
-  .quests-index-heading {
-    @apply flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6;
+  .current-quest-body {
+    flex: 1 1 10rem;
+    @apply flex min-w-0 flex-col gap-0.5;
   }
 
-  .quests-index-tablist {
-    @apply grid grid-cols-2 border-line border-y px-4 sm:flex sm:flex-wrap sm:gap-x-4 sm:px-6;
+  .current-quest-label {
+    @apply font-body font-semibold text-muted text-xs uppercase tracking-wide;
   }
 
+  /* The ways to start a quest, as a strip of tiles: two by two in a narrow
+     space, such as a phone or a dialog, and side by side where they fit. */
+  .quest-start {
+    @apply @container flex flex-col gap-3;
+  }
+
+  .quest-start-tiles {
+    @apply grid grid-cols-2 gap-2 @lg:grid-cols-4;
+  }
+
+  /* One starting point: the whole tile is its target. */
+  .quest-start-tile {
+    min-block-size: var(--target-size);
+    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-box border border-line bg-surface px-3 py-2.5 text-left shadow-control transition-shadow hover:shadow-raised motion-safe:active:translate-y-px;
+  }
+
+  /* A tab's count, raised beside its name. */
   .quests-index-count {
-    @apply text-muted text-xs;
+    @apply -ms-1 -translate-y-1.5 text-muted text-xs;
   }
 
   .quests-index-content {
-    @apply min-w-0 p-4 sm:px-6;
+    @apply min-w-0;
   }
 
   .quests-index-content > .text-muted {
     @apply py-6;
-  }
-
-  .quests-index-footer {
-    @apply flex flex-wrap items-center justify-between gap-x-4 border-line border-t px-4 py-2 text-muted text-sm sm:px-6;
   }
 
   .quests-index-list {
@@ -45,7 +61,7 @@
   }
 
   .quests-index-row {
-    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-4 last:border-b-0;
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-3 last:border-b-0;
   }
 
   .quests-index-restore {
@@ -104,10 +120,6 @@
     @apply border-primary text-foreground;
   }
 
-  .quests-index-tablist .quest-workspace-tab {
-    @apply justify-center sm:justify-start;
-  }
-
   .quest-status-actions {
     @apply flex flex-wrap items-center gap-2 py-2;
   }
@@ -119,7 +131,7 @@
   }
 
   /* A status change's result and its Undo, side by side, under the
-     workspace or inside the Quests list's frame. */
+     workspace or the Quests list. */
   .quest-status-feedback {
     @apply grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4;
   }
@@ -129,10 +141,6 @@
      mounted for announcements. */
   .quest-status-feedback:has(> .notice:empty) {
     @apply absolute;
-  }
-
-  .quests-index .quest-status-feedback:has(> .notice:not(:empty)) {
-    @apply px-4 pb-4 sm:px-6;
   }
 
   .quest-status-abandoned {

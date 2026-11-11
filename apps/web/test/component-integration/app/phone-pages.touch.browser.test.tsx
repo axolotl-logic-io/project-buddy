@@ -27,6 +27,7 @@ import type { privateChat } from "@/conversations/private-chat.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
+import type { readCurrentQuest } from "@/projects/current-quest-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
@@ -77,6 +78,9 @@ vi.mock("@/images/generation-store.ts", () => ({
 vi.mock("@/projects/store.ts", () => ({
   getProject: vi.fn<typeof getProject>(),
   listProjects: vi.fn<typeof listProjects>(),
+}));
+vi.mock("@/projects/current-quest-store.ts", () => ({
+  readCurrentQuest: vi.fn<typeof readCurrentQuest>(),
 }));
 vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
