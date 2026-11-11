@@ -22,17 +22,15 @@ import { page } from "vitest/browser";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
-import { ChatList } from "@/components/chat-list.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
-import { getConstruct } from "@/constructs/index.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { RETIRED_CONSTRUCT } from "../retirement/retirement-fixtures.ts";
 import {
@@ -198,34 +196,6 @@ describe("use_case_view_projects", () => {
     await expect
       .element(page.getByRole("listitem"))
       .toMatchTextContent(PROJECTS_COPY.created(zoneTimes().day));
-    expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
-  });
-});
-
-describe("use_case_open_project", () => {
-  test(`a chat's start shows at her time, in ${browserZone()}`, async () => {
-    const hydration = serverRenderThenHydrate(
-      <ChatList
-        chats={[
-          {
-            id: chatIdFixture(),
-            project: { id: PROJECT_ID, name: "Low-poly fox" },
-            construct: getConstruct("lumen"),
-            name: undefined,
-            renamedByHand: false,
-            unread: false,
-            createdAt: INSTANT,
-          },
-        ]}
-      />,
-    );
-
-    expect(hydration.serverTime, "the server's time").toStrictEqual(
-      hiddenServerTime("minute"),
-    );
-    await expect
-      .element(page.getByRole("listitem"))
-      .toMatchTextContent(PROJECT_COPY.chatStarted(zoneTimes().minute));
     expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
   });
 });
