@@ -1,7 +1,7 @@
 // use-cases/accounts.md: signing out of one browser or of every one, from
 // Settings. Another browser is a new browser context, which shares
 // nothing with the test's. The page's usage and name are server and
-// component tests in src/app/(workspace)/account/.
+// component tests in test/component-integration/app/(workspace)/settings/.
 import {
   type Browser,
   expect,
@@ -47,7 +47,14 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
       .getByRole("button", { exact: true, name: ACCOUNT_COPY.signOut })
       .click();
 
-    await expect(page).toHaveURL("/login");
+    // A native form redirect inherits the current section anchor.
+    const signInUrl = new URL("/login", page.url());
+    await expect(page).toHaveURL(
+      (url: URL): boolean =>
+        url.origin === signInUrl.origin &&
+        url.pathname === signInUrl.pathname &&
+        url.search === signInUrl.search,
+    );
   });
 
   await test.step("every page in this browser shows the sign-in page", async () => {
