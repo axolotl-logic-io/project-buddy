@@ -77,7 +77,7 @@ Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/p
 
 ## Conversation header
 
-A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action, such as Chat's Turn Chat into a quest. It sits under the site header's trail band, whose heading names the quest or Chat. A quest's Rename and status actions and its sections sit in the quest's frame above the conversation and scroll away; the trail band stays. The header wraps on phones, and its scroll clearance follows its compact size.
+A quest's pinned section row holds the construct's portrait immediately before Conversation, without its name. The portrait opens the construct's profile. Section links and Quest actions share that row, with no separate construct header. Chat keeps its own pinned header (`src/components/chat-screen.tsx`) with the construct and Turn Chat into a quest. Both sit under the site header's trail band, whose heading names the quest or Chat. The trail band and its rename pencil stay pinned too. On phones, the quest's section links scroll within their row; scroll clearance follows the pinned header's compact size.
 
 ## Message authors
 
@@ -275,6 +275,6 @@ Every signed-in page with a place in the site has a band: Quests, a quest and it
 
 When names are long, the parent links shorten first, each with an ellipsis. They keep full 44-pixel touch targets and their whole names as accessible names. The heading keeps its words and wraps to at most two lines. On a phone, a trail with more than one parent leaves out its Quests link, because the medallion leads there.
 
-Page actions that sat beside a page's heading stay in the page's content, in the first row under the band: a quest's Rename and status actions, and Chat's Turn Chat into a quest in the conversation's pinned header. A page's loading state draws no heading, since the band already shows it, so moving between pages keeps the header's footprint and the content's starting point.
+Page actions that sat beside a page's heading stay in the page's content, in the first row under the band: a quest's Quest actions menu, and Chat's Turn Chat into a quest in the conversation's pinned header. The quest's rename pencil sits beside its name in the trail band. A page's loading state draws no heading, since the band already shows it, so moving between pages keeps the header's footprint and the content's starting point.
 
 In a long conversation, the trail band and the conversation's pinned header together stay within 112 CSS pixels on phones and 140 on wide screens, even with a two-line heading. Message jumps land below both.

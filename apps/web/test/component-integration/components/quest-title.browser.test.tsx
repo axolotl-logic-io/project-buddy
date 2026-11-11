@@ -2,9 +2,15 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { QuestTitle } from "@/components/quest-title.tsx";
+import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { renameProjectAction } from "@/projects/rename-project-action.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("../auth/current-user-test-kit.ts"),
+);
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -99,4 +105,33 @@ describe("use_case_rename_quest", () => {
     save.resolve({ kind: "saved", name: FOX_PROJECT.name });
     await expect.element(rename()).toHaveFocus();
   });
+});
+
+test("the title band offers an accessible pencil and keeps the name visible while editing", async () => {
+  await render(
+    <SiteHeader
+      links={
+        <TrailBand
+          items={[
+            {
+              label: FOX_PROJECT.name,
+              action: <QuestTitle project={FOX_PROJECT} />,
+            },
+          ]}
+        />
+      }
+    />,
+  );
+  const heading = page.getByRole("heading", {
+    level: 1,
+    name: FOX_PROJECT.name,
+  });
+  await expect.element(heading).toBeVisible();
+  await expect.element(rename()).toBeVisible();
+  expect(rename().element().textContent).toBe("");
+  await rename().click();
+  await expect.element(page.getByRole("dialog")).toBeVisible();
+  await expect.element(field()).toHaveFocus();
+  await userEvent.keyboard("{Escape}");
+  await expect.element(rename()).toHaveFocus();
 });

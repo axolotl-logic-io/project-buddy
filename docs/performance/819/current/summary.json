@@ -1,0 +1,380 @@
+{
+  "tabs": {
+    "desktop-before": {
+      "completedFiveSecondWorkshopPrefetches": {
+        "median": 481.0,
+        "min": 384,
+        "max": 552,
+        "n": 10
+      },
+      "completedFiveSecondBytes": {
+        "median": 1522885.0,
+        "min": 1280072,
+        "max": 1661080,
+        "n": 10
+      },
+      "tabConfirmationMs": {
+        "median": 45.09999990463257,
+        "min": 41.10000038146973,
+        "max": 48.80000019073486,
+        "n": 10
+      },
+      "windowEndMs": {
+        "median": 5154.000000476837,
+        "min": 5136.700000762939,
+        "max": 5571.199999809265,
+        "n": 10
+      }
+    },
+    "desktop-after": {
+      "completedFiveSecondWorkshopPrefetches": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0,
+        "n": 10
+      },
+      "completedFiveSecondBytes": {
+        "median": 409417.5,
+        "min": 396207,
+        "max": 451943,
+        "n": 10
+      },
+      "tabConfirmationMs": {
+        "median": 42.75,
+        "min": 38.69999980926514,
+        "max": 79,
+        "n": 10
+      },
+      "windowEndMs": {
+        "median": 5165.5,
+        "min": 5152.199999809265,
+        "max": 5571.300000190735,
+        "n": 10
+      }
+    },
+    "phone-before": {
+      "completedFiveSecondWorkshopPrefetches": {
+        "median": 482.0,
+        "min": 346,
+        "max": 549,
+        "n": 10
+      },
+      "completedFiveSecondBytes": {
+        "median": 1500592.0,
+        "min": 1196561,
+        "max": 1689156,
+        "n": 10
+      },
+      "tabConfirmationMs": {
+        "median": 43.09999990463257,
+        "min": 40.39999961853027,
+        "max": 48.60000038146973,
+        "n": 10
+      },
+      "windowEndMs": {
+        "median": 5157.599999904633,
+        "min": 5148.10000038147,
+        "max": 5214,
+        "n": 10
+      }
+    },
+    "phone-after": {
+      "completedFiveSecondWorkshopPrefetches": {
+        "median": 0.0,
+        "min": 0,
+        "max": 0,
+        "n": 10
+      },
+      "completedFiveSecondBytes": {
+        "median": 409722.0,
+        "min": 393669,
+        "max": 441387,
+        "n": 10
+      },
+      "tabConfirmationMs": {
+        "median": 42.40000009536743,
+        "min": 37.69999980926514,
+        "max": 83,
+        "n": 10
+      },
+      "windowEndMs": {
+        "median": 5169.449999809265,
+        "min": 5149.800000190735,
+        "max": 5176.799999237061,
+        "n": 10
+      }
+    }
+  },
+  "input": {
+    "quest-0-direct": {
+      "presenceMs": {
+        "median": 720.0999994277954,
+        "min": 719,
+        "max": 761.1999998092651,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 5094.5,
+        "min": 4987.89999961853,
+        "max": 5135,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 630.0,
+        "min": 612.0,
+        "max": 633.0,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 416,
+        "min": 384,
+        "max": 464,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 753038,
+        "min": 747436,
+        "max": 753038,
+        "n": 3
+      }
+    },
+    "quest-0-transition": {
+      "presenceMs": {
+        "median": 2837.5,
+        "min": 2834.800000190735,
+        "max": 2865.9000005722046,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 3183.6000003814697,
+        "min": 3173.3999996185303,
+        "max": 3244.4000005722046,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 290.0,
+        "min": 285.0,
+        "max": 306.0,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 200,
+        "min": 184,
+        "max": 200,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 467054,
+        "min": 467049,
+        "max": 467056,
+        "n": 3
+      }
+    },
+    "quest-20-direct": {
+      "presenceMs": {
+        "median": 792.0999994277954,
+        "min": 790.3000001907349,
+        "max": 804.1000003814697,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 5726.199999809265,
+        "min": 5687.200000762939,
+        "max": 5759.199999809265,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 623.3999996185303,
+        "min": 615.5,
+        "max": 638.5,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 496,
+        "min": 472,
+        "max": 504,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 811794,
+        "min": 811794,
+        "max": 811794,
+        "n": 3
+      }
+    },
+    "quest-20-transition": {
+      "presenceMs": {
+        "median": 3139.0999994277954,
+        "min": 3137.3999996185303,
+        "max": 3149.300000190735,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 3539.9000005722046,
+        "min": 3524.8999996185303,
+        "max": 3574.8999996185303,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 479.0,
+        "min": 463.0,
+        "max": 480.0,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 160,
+        "min": 144,
+        "max": 168,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 560894,
+        "min": 560893,
+        "max": 563661,
+        "n": 3
+      }
+    },
+    "quest-200-direct": {
+      "presenceMs": {
+        "median": 742.6000003814697,
+        "min": 738.1999998092651,
+        "max": 746.1000003814697,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 5753.300000190735,
+        "min": 5719.200000762939,
+        "max": 5828.800000190735,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 984.0999994277954,
+        "min": 956.6000003814697,
+        "max": 986.5,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 704,
+        "min": 696,
+        "max": 712,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 752577,
+        "min": 752577,
+        "max": 752577,
+        "n": 3
+      }
+    },
+    "quest-200-transition": {
+      "presenceMs": {
+        "median": 3562.6000003814697,
+        "min": 3562.0,
+        "max": 3760.7000007629395,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 4243.199999809265,
+        "min": 4235.199999809265,
+        "max": 4926.700000762939,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 671.0,
+        "min": 615.0,
+        "max": 829.0,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 168,
+        "min": 168,
+        "max": 296,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 437836,
+        "min": 435698,
+        "max": 437839,
+        "n": 3
+      }
+    },
+    "editor-direct": {
+      "presenceMs": {
+        "median": 722.5,
+        "min": 721.6999998092651,
+        "max": 729.8999996185303,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 2820.5999994277954,
+        "min": 2802.1000003814697,
+        "max": 3030.8999996185303,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 288.0,
+        "min": 283.0,
+        "max": 324.0,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 104,
+        "min": 104,
+        "max": 160,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 625439,
+        "min": 625439,
+        "max": 625440,
+        "n": 3
+      }
+    },
+    "editor-transition": {
+      "presenceMs": {
+        "median": 544.1999998092651,
+        "min": 528.7999992370605,
+        "max": 558,
+        "n": 3
+      },
+      "confirmationMs": {
+        "median": 791.5,
+        "min": 766.3999996185303,
+        "max": 820.5999994277954,
+        "n": 3
+      },
+      "fiveSecondLongTaskOverlapMs": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "n": 3
+      },
+      "worstKeyMs": {
+        "median": 176,
+        "min": 176,
+        "max": 176,
+        "n": 3
+      },
+      "fiveSecondResourceTransferBytes": {
+        "median": 302262,
+        "min": 301559,
+        "max": 302283,
+        "n": 3
+      }
+    }
+  },
+  "stream": {
+    "durationMs": {
+      "median": 8696.699999809265,
+      "min": 8661.10000038147,
+      "max": 8697.699999809265,
+      "n": 3
+    },
+    "longTaskSumMs": {
+      "median": 796,
+      "min": 777,
+      "max": 822,
+      "n": 3
+    }
+  }
+}

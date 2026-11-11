@@ -106,6 +106,7 @@
     {
       "includes": [
         "src/batteries/purchases.ts",
+        "src/batteries/cash-events.ts",
         "test/component-integration/batteries/purchases.server.test.ts",
         "test/component-integration/batteries/checkout.server.test.ts"
       ],
@@ -335,7 +336,10 @@
 
     // The reindex command's entry point prints its progress to the terminal.
     {
-      "includes": ["scripts/reindex-manual.ts"],
+      "includes": [
+        "scripts/reindex-manual.ts",
+        "scripts/migrate-next-steps.ts"
+      ],
       "linter": {
         "rules": {
           "suspicious": {
@@ -343,6 +347,11 @@
           }
         }
       }
+    },
+
+    {
+      "includes": ["scripts/migrate-next-steps.ts"],
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
     },
 
     // The test database commands' entry points print their progress to the

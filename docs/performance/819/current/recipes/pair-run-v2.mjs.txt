@@ -1,0 +1,8 @@
+import {spawn} from 'node:child_process';import {once} from 'node:events';import {cp,mkdir,copyFile,symlink,readFile,writeFile,rm} from 'node:fs/promises';import {resolve} from 'node:path';
+process.loadEnvFile('.env.test');async function command(cmd,args){const p=spawn(cmd,args,{stdio:'inherit'});const [code]=await once(p,'exit');if(code!==0)throw Error('Command failed');}
+const servers=[];try{
+await command('npm',['run','test-db:reset']);await copyFile('/tmp/pb-current-diag/seed-current.mts','seed-current.local.mts');await command('node',['--import','tsx','seed-current.local.mts']);await rm('seed-current.local.mts');
+for(const [i,variant] of ['before','after'].entries()){
+const dir='/tmp/pb-current-diag/'+variant+'-app';await copyFile('next.config.ts',dir+'/next.config.ts');const p=spawn('node',[resolve('../../node_modules/next/dist/bin/next'),'start','--hostname','127.0.0.1','--port',String(Number(process.env.E2E_PORT)+i)],{cwd:dir,stdio:['ignore','pipe','inherit']});servers.push(p);await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('server deadline')),30000);p.stdout.on('data',c=>{if(c.toString().includes('Ready in')){clearTimeout(t);resolve();}});p.once('exit',()=>reject(Error('server exited')));});}
+await command('node',['/tmp/pb-current-diag/pair-capture.mjs']);
+}catch(e){await writeFile('/tmp/pb-current-diag/pair-failure.json',JSON.stringify({complete:false,error:e.message}));process.exitCode=1;}finally{for(const p of servers){if(p.exitCode===null){const done=once(p,'exit');p.kill('SIGTERM');await done;}}await rm('/tmp/pb-current-diag/private.json',{force:true});await rm('seed-current.local.mts',{force:true});await command('npm',['run','test-db:reset']);}

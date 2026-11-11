@@ -1,0 +1,26 @@
+[
+  {
+    "case": "raw address",
+    "rejected": true
+  },
+  {
+    "case": "headers",
+    "rejected": true
+  },
+  {
+    "case": "private query",
+    "rejected": true
+  },
+  {
+    "case": "prompt",
+    "rejected": true
+  },
+  {
+    "case": "selector",
+    "rejected": true
+  },
+  {
+    "case": "nonfinite",
+    "rejected": true
+  }
+]

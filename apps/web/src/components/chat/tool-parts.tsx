@@ -8,6 +8,7 @@ import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contrac
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import { CreateProjectPart } from "@/components/chat/create-project-part.tsx";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
+import { JournalChangePart } from "@/components/chat/journal-change-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
@@ -18,12 +19,17 @@ import { SelectActivityPart } from "@/components/chat/select-activity-part.tsx";
 import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
+import {
+  CHANGE_PREFERENCES_TOOL,
+  SET_GOAL_TOOL,
+} from "@/replies/tools/journal-contract.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { JOURNAL_SECTIONS_COPY } from "@/ui/copy/journal.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
@@ -67,6 +73,19 @@ type PlacedPart =
 // the constant in the tool's contract file, such as
 // `[SEARCH_BLENDER_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
+  ...[SET_GOAL_TOOL, CHANGE_PREFERENCES_TOOL].map(
+    (name): [string, ToolPart] => [
+      name,
+      {
+        render: (part: ToolCallPart): JSX.Element | null => (
+          <JournalChangePart part={part} />
+        ),
+        failure: JOURNAL_SECTIONS_COPY.failed,
+        placement: "inline",
+        textBefore: "prose",
+      },
+    ],
+  ),
   [
     QUEST_STATUS_TOOL,
     {

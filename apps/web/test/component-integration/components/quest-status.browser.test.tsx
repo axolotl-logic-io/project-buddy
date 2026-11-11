@@ -61,16 +61,31 @@ describe("quest status actions", () => {
       },
     };
     await render(<QuestStatusControls project={FOX_PROJECT} />);
+    const menu = page.getByRole("button", { name: QUEST_STATUS_COPY.menu });
+    await expect
+      .element(page.getByRole("button", { name: "Finish Quest" }))
+      .not.toBeInTheDocument();
+    menu.element().focus();
+    await userEvent.keyboard("{Enter}");
+    await expect
+      .element(page.getByRole("button", { name: "Finish Quest" }))
+      .toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(menu).toHaveFocus();
+    await expect
+      .element(page.getByRole("button", { name: "Finish Quest" }))
+      .not.toBeInTheDocument();
+    await userEvent.keyboard("{Enter}");
     page
-      .getByRole("button", { name: "Complete", exact: true })
+      .getByRole("button", { name: "Finish Quest", exact: true })
       .element()
       .focus();
     await userEvent.keyboard("{Enter}");
     await expect
-      .element(page.getByRole("button", { name: "Complete", exact: true }))
+      .element(page.getByRole("button", { name: "Finish Quest", exact: true }))
       .toBeDisabled();
     await expect
-      .element(page.getByRole("button", { name: "Abandon", exact: true }))
+      .element(page.getByRole("button", { name: "Abandon Quest", exact: true }))
       .toBeDisabled();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     saved.resolve(result);
@@ -78,6 +93,9 @@ describe("quest status actions", () => {
       .element(page.getByRole("button", { name: "Undo" }))
       .toBeVisible();
     await expect.element(page.getByRole("status")).toHaveFocus();
+    await expect
+      .element(page.getByRole("button", { name: "Abandon Quest" }))
+      .not.toBeInTheDocument();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     const [, sent] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
     expect(sent?.get("toStatus")).toBe("completed");
@@ -211,6 +229,7 @@ describe("quest status tabs", () => {
       .element(page.getByRole("link", { name: FOX_PROJECT.name }))
       .not.toBeInTheDocument();
     await expect.element(page.getByRole("status")).toHaveFocus();
+
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     await expect
       .element(page.getByRole("button", { name: "Undo" }))
@@ -237,6 +256,18 @@ describe("quest status on phones", () => {
             projects={[{ ...FOX_PROJECT, status: "completed" }]}
           />,
         );
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+        expect(smallTargets(await measureTargets())).toEqual([]);
+        await view.rerender(<QuestStatusControls project={FOX_PROJECT} />);
+        await page
+          .getByRole("button", { name: QUEST_STATUS_COPY.menu })
+          .click();
+        await expect
+          .element(page.getByRole("button", { name: "Finish Quest" }))
+          .toBeVisible();
+        await expect
+          .element(page.getByRole("button", { name: "Abandon Quest" }))
+          .toBeVisible();
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
       });
