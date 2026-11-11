@@ -2,7 +2,9 @@
 // ("use_case_browse_premade_quests"): each starting point says what it is
 // for; choosing one shows its details, filled in, in its place, and going
 // back starts nothing. The user's Dailies opens instead of starting again,
-// and a preset Journal, as from Chat, isn't offered to Dailies. What the
+// and a preset Journal, as from Chat, isn't offered to Dailies. Each
+// starting point sends its own start, so Learn, Make and Do make quests of
+// their own and Dailies goes to its one quest. What the
 // action makes is projects/actions.server.test.ts's.
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -67,6 +69,34 @@ describe("use_case_browse_premade_quests", () => {
     await expect.element(choose("Make a thing")).toBeVisible();
     expect(actions.startQuestAction).not.toHaveBeenCalled();
   });
+
+  test.each([
+    ["Dailies", "dailies", "dailies"],
+    ["Learn a thing", "learn", "learn-a-thing"],
+    ["Make a thing", "make", "find-something-to-make"],
+    ["Do a thing", "do", "project-breakdown"],
+  ] as const)(
+    "starting %s sends its own starting point and activity, once",
+    async (name, premadeId, activityId) => {
+      actions.startQuestAction.mockResolvedValue({ kind: "idle" });
+      await render(<QuestStartChoices choices={CHOICES} />);
+      await choose(name).click();
+      await page
+        .getByRole("region", { name })
+        .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
+        .fill(`My ${name}`);
+
+      await page.getByRole("button", { name: QUEST_START_COPY.start }).click();
+
+      await expect
+        .poll(() => actions.startQuestAction.mock.calls.length)
+        .toBe(1);
+      const sent = actions.startQuestAction.mock.calls[0]?.[1];
+      expect(sent?.get("premadeId")).toBe(premadeId);
+      expect(sent?.get("activityId")).toBe(activityId);
+      expect(sent?.get("name")).toBe(`My ${name}`);
+    },
+  );
 
   test("the user's Dailies opens instead of starting again", async () => {
     await render(
