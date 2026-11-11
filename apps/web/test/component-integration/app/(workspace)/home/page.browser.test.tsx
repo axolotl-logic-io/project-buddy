@@ -64,7 +64,6 @@ const TEXT_CONTRAST = 4.5;
 const LATEST: TodayProject = {
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
   nextStep: "Shape the ears",
-  unread: false,
 };
 const DESTINATIONS = [
   { name: "Quests", href: "/projects" },
@@ -634,9 +633,6 @@ describe("use_case_today_on_landing", () => {
       .element(page.getByText(LATEST.project.name, { exact: true }))
       .toBeVisible();
     await expect
-      .element(page.getByText(HOME_COPY.unread))
-      .not.toBeInTheDocument();
-    await expect
       .element(page.getByText(`${HOME_COPY.nextStep} ${LATEST.nextStep}`))
       .toBeVisible();
     await expect
@@ -647,13 +643,6 @@ describe("use_case_today_on_landing", () => {
         }),
       )
       .toHaveAttribute("href", `/projects/${LATEST.project.id}`);
-  });
-
-  test("marks a quest with unread messages", async () => {
-    await render(
-      inWorkspace(<HomeAtlas latestQuest={{ ...LATEST, unread: true }} />),
-    );
-    await expect.element(page.getByText(HOME_COPY.unread)).toBeVisible();
   });
 
   test("shows no invented next step when memory records none", async () => {

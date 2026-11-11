@@ -24,7 +24,6 @@ const FOX_PROJECT: Project = {
   role: "owner",
   shared: false,
   dailies: false,
-  unread: false,
 };
 
 // A chat in the fox project, not named yet.
@@ -34,7 +33,6 @@ const FOX_CHAT: ProjectChat = {
   construct: snapshotOf(getConstruct("lumen")),
   name: undefined,
   renamedByHand: false,
-  unread: false,
   createdAt: new Date("2026-10-11T12:00:00Z"),
 };
 
@@ -66,7 +64,6 @@ const STANDALONE_CHAT: Chat = {
   construct: snapshotOf(getConstruct("lumen")),
   name: undefined,
   renamedByHand: false,
-  unread: false,
   createdAt: new Date("2026-10-12T12:00:00Z"),
 };
 
