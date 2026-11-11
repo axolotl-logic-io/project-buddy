@@ -3,7 +3,7 @@ import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 const VISUAL_COPY = {
   restore: "Restore previous artwork",
   restoreHint:
-    "Restore the previous saved artwork and its Visual description without spending batteries. Save or discard text edits first. Existing conversations and Marketplace copies keep their artwork.",
+    "Restore the previous saved artwork and its Visual description without spending batteries. Save or discard text edits first. Existing conversations keep their artwork.",
   restored:
     "Previous artwork and Visual description restored. No batteries spent.",
   heading: "Visuals",
