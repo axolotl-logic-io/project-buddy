@@ -20,9 +20,7 @@ import { FOX_CHAT } from "../../app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER } from "../../auth/current-user-test-kit.ts";
 import { refresh } from "../router-test-kit.ts";
 
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
+vi.mock("@/plan/plan-actions.ts", () => import("../../plan/plan-actions-test-kit.ts"));
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
@@ -121,7 +119,7 @@ describe("use_case_reply_fails", () => {
   test("a saved external reply keeps the waiting viewer's draft and focus", async () => {
     const view = await render(
       <ChatScreen
-        chat={FOX_CHAT}
+        conversation={FOX_CHAT}
         messages={[STOPPED]}
         stoppedReplyId={undefined}
         viewer={SIGNED_IN_USER.id}
@@ -133,7 +131,7 @@ describe("use_case_reply_fails", () => {
     await composer.fill("My next question, still unsent");
     await view.rerender(
       <ChatScreen
-        chat={FOX_CHAT}
+        conversation={FOX_CHAT}
         viewer={SIGNED_IN_USER.id}
         stoppedReplyId={undefined}
         messages={[
