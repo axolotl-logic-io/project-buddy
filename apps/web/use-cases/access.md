@@ -41,7 +41,7 @@ The user comes back to the site later on the same browser.
   - It goes straight to the page she asked for, without asking her to sign in.
 - **Outcome:** the page she opened shows its content, and she did not have to sign in again.
 - **Next:**
-  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an adventure.
+  - [`use_case_open_project`](projects.md#use_case_open_project): continue a quest's conversation.
   - [`use_case_view_projects`](projects.md#use_case_view_projects): look over her quests.
   - `use_case_session_expired`: she has been away for more than a month.
   - `use_case_session_expired_in_chat`: her sign-in lapses while an adventure is open.
@@ -62,7 +62,7 @@ The user returns after her sign-in has lapsed.
 
 The user's sign-in lapses while an adventure is open, and she sends a message.
 
-- **Prerequisites:** [`use_case_reopen_chat`](chats.md#use_case_reopen_chat), with the adventure left open until her sign-in lapses.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), with the quest's conversation left open until her sign-in lapses.
 - **Steps:**
   - She sends a message.
   - Instead of a reply, the adventure says she has been signed out and needs to sign in again, with a link to the sign-in page.
