@@ -22,7 +22,6 @@ const actions = vi.hoisted(() => ({
 vi.mock("@/app/(workspace)/projects/actions.ts", () => actions);
 
 const CHOICES: QuestCreationChoices = {
-  activities: [],
   userConstructs: [],
   preferredConstructId: "vellum",
 };
@@ -71,13 +70,13 @@ describe("use_case_browse_premade_quests", () => {
   });
 
   test.each([
-    ["Dailies", "dailies", "dailies"],
-    ["Learn a thing", "learn", "learn-a-thing"],
-    ["Make a thing", "make", "find-something-to-make"],
-    ["Do a thing", "do", "project-breakdown"],
+    ["Dailies", "dailies"],
+    ["Learn a thing", "learn"],
+    ["Make a thing", "make"],
+    ["Do a thing", "do"],
   ] as const)(
-    "starting %s sends its own starting point and activity, once",
-    async (name, premadeId, activityId) => {
+    "starting %s sends its own starting point and no activity, once",
+    async (name, premadeId) => {
       actions.startQuestAction.mockResolvedValue({ kind: "idle" });
       await render(<QuestStartChoices choices={CHOICES} />);
       await choose(name).click();
@@ -93,7 +92,7 @@ describe("use_case_browse_premade_quests", () => {
         .toBe(1);
       const sent = actions.startQuestAction.mock.calls[0]?.[1];
       expect(sent?.get("premadeId")).toBe(premadeId);
-      expect(sent?.get("activityId")).toBe(activityId);
+      expect(sent?.has("activityId")).toBe(false);
       expect(sent?.get("name")).toBe(`My ${name}`);
     },
   );

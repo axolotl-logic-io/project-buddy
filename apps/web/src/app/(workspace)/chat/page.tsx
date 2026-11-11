@@ -3,7 +3,10 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import { QuestFromChat } from "@/components/quest-from-chat.tsx";
+import {
+  ChatQuestChoices,
+  QuestFromChat,
+} from "@/components/quest-from-chat.tsx";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
 import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
@@ -18,8 +21,8 @@ export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 // Chat: the user's one private conversation for talking without a goal,
 // the same each time she opens it, with no list, name or chooser. Opening
 // it makes the conversation if she has none, without an opening, so it
-// spends nothing. Start a quest from this begins a quest from a summary she
-// edits and confirms. Chat has no quest, so its replies never write a
+// spends nothing. Turn Chat into a quest begins a quest from a summary she
+// edits and confirms, from its button or from the construct's offer. Chat has no quest, so its replies never write a
 // Journal, Plan or milestone.
 export default async function StandaloneChatPage(): Promise<JSX.Element> {
   const user = await requireUser();
@@ -30,15 +33,15 @@ export default async function StandaloneChatPage(): Promise<JSX.Element> {
     questCreationChoices(user.id),
   ]);
   return (
-    <ChatScreen
-      conversation={conversation}
-      messages={messages}
-      stoppedReplyId={stoppedReplyId}
-      viewer={user.id}
-      title={STANDALONE_CHAT_COPY.heading}
-      actions={
-        <QuestFromChat choices={choices} summary={chatSummaryDraft(messages)} />
-      }
-    />
+    <ChatQuestChoices choices={choices}>
+      <ChatScreen
+        conversation={conversation}
+        messages={messages}
+        stoppedReplyId={stoppedReplyId}
+        viewer={user.id}
+        title={STANDALONE_CHAT_COPY.heading}
+        actions={<QuestFromChat journal={chatSummaryDraft(messages)} />}
+      />
+    </ChatQuestChoices>
   );
 }
