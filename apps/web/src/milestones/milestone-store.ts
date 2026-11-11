@@ -38,9 +38,11 @@ const MILESTONE_COLUMNS: Pick<
   recordedAt: milestones.recordedAt,
 };
 
+// A milestone's conversation is null once it is gone, as after the removal
+// of adventures; the milestone stays, with no conversation.
 const MILESTONE_ROW = z.object({
   id: MILESTONE_ID,
-  chatId: CHAT_ID,
+  chatId: CHAT_ID.nullable().transform((id) => id ?? undefined),
   text: z.string(),
   recordedAt: z.date(),
 });

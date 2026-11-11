@@ -1,5 +1,11 @@
 # Conversations
 
+## Conversations
+
+A quest has one continuing conversation, and each user has one private Chat (`src/conversations/`). Both are `chats` rows marked `continuing`. Partial unique indexes allow one per quest and one per user, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one. Starting it (`startQuestConversation`) is free when it exists, and charges the acting user for an opening only when the construct writes one.
+
+A conversation keeps the construct it started with. Its activity changes only when the construct enters another with its activity tool, which records the change at its place in the history. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Journal, plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
+
 ## Start a quest
 
 On Quests, Start Quest opens a dialog with two fields: Construct and Why.
@@ -136,35 +142,25 @@ Conversation behavior stays in Vitest. Playwright covers authentication flows on
 
 ## Check-ins
 
-A quest's construct can start an adventure on its own: a check-in. The quest's page has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
+A quest's construct can write in the quest's conversation on its own: a check-in. The quest has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
 
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
 
-1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no adventure started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries. The new adventure is in Chat, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
-3. Emails the owner the construct's message, with a link to the adventure and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the adventure stays.
+1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no conversation started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
+2. Appends the check-in (`appendCheckIn` in `src/conversations/check-in.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries, or when the conversation's newest message still awaits a reply. The check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct, in the conversation's construct and current activity, for two or three sentences from the quest's Journal about where the user left off and one small next step. The message is added to the end of the quest's one conversation, which keeps its activity; a quest with no conversation yet gets one, opened by the check-in. The conversation is then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`).
+3. Emails the owner the construct's message, with a link to the quest and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). The email's idempotency key is the message's id, so each check-in sends one email. A failed email is logged; the message stays.
 
-When the owner is out of batteries, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
+When the owner is out of batteries, or the conversation awaits a reply, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
 The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
 
-### Unread adventures
+### Unread quests
 
-Unread marks are per user. A row in `chat_unreads` marks one adventure unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks an adventure. After saving the adventure, `startCheckIn` calls `markChatUnreadFor` with the users to mark: the quest's owner and every member. A user who can't read the adventure gets no mark, and a user named twice or already marked keeps one mark.
+Unread marks are per user. A row in `chat_unreads` marks one conversation unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a conversation, for the quest's owner and every member. A user who can't read the conversation gets no mark, and a user named twice or already marked keeps one mark.
 
-Adventure lists show the viewer's own marks: the Adventures page, a quest's page and Today. Each list shows an "Unread" mark beside the adventure's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the adventure's page clears the viewer's mark and no one else's (`markChatRead`).
+`Project.unread` (`src/projects/store.ts`) says whether the quest's conversation is unread for the user reading it, so quest lists show the viewer's own mark. Opening the conversation clears the viewer's mark and no one else's (`markChatRead`).
 
-The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread adventure to a mark for its owner. The release that added 0028 (#638) kept writing the column, for a rollback; the release of #665 stopped, and migration 0034 drops it (#637). The [site operations](Site-Operations.md#check-ins) say why a rollback past that release is unsafe.
-
-The use cases are in [the adventure use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one adventure stay apart.
-
-## Conversation header
-
-The conversation header uses compact spacing and a smaller title, with quest
-navigation (or Adventures for standalone adventures) above the title and construct identity.
-Long names truncate visually on phones while retaining their full accessible
-names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
-header's scroll clearance follows its compact size.
+The use cases are in [the conversation use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one conversation stay apart.
 
 ## Message authors
 

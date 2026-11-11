@@ -7,7 +7,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
-import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
@@ -52,11 +51,6 @@ async function projectsHtml(): Promise<string> {
       searchParams: Promise.resolve({}),
     }),
   );
-}
-
-// The signed-in user's New Chat page, with its project picker, as HTML.
-async function newChatHtml(): Promise<string> {
-  return renderToStaticMarkup(await NewChatPage(pageArgs({})));
 }
 
 // The page is not found for the unknown id, and then for the id.
@@ -109,15 +103,5 @@ describe("use_case_private_data", () => {
     expect(projectsIn(await projectsHtml(), projects)).toEqual([hers]);
     await signIn(other);
     expect(projectsIn(await projectsHtml(), projects)).toEqual([theirs]);
-  });
-
-  test("each can start a new chat only in their own projects", async () => {
-    const { herData, other, otherData } = await twoUsers();
-    const projects = [await herData.project(), await otherData.project()];
-    const [hers, theirs] = projects.map(({ name }) => name);
-
-    expect(projectsIn(await newChatHtml(), projects)).toEqual([hers]);
-    await signIn(other);
-    expect(projectsIn(await newChatHtml(), projects)).toEqual([theirs]);
   });
 });

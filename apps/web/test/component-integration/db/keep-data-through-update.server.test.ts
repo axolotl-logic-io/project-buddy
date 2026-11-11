@@ -21,9 +21,6 @@ type Pool = ReturnType<typeof openPool>;
 // The last migration before buddies and chats.buddy_* took their names
 // (0010_buddies, #117).
 const LAST_INDEX_BEFORE_RENAME = 9;
-// The last migration that keeps adventures: 0052 removes them (#892), so the
-// rows this test checks are read before it.
-const LAST_INDEX_BEFORE_ADVENTURES_REMOVED = 51;
 // A scratch database of this test's own, beside the run's, so the shared
 // test database is never migrated back.
 const SCRATCH_SUFFIX = "_migration_0010";
@@ -146,17 +143,14 @@ async function readNames(pool: Pool): Promise<Names> {
 
 test("use_case_keep_data_through_update", async () => {
   const database = scratchDatabase(SCRATCH_SUFFIX);
-  const [oldMigrations, beforeRemoval] = await Promise.all([
-    copyMigrationsUpTo(LAST_INDEX_BEFORE_RENAME),
-    copyMigrationsUpTo(LAST_INDEX_BEFORE_ADVENTURES_REMOVED),
-  ]);
+  const oldMigrations = await copyMigrationsUpTo(LAST_INDEX_BEFORE_RENAME);
   await dropTestDatabase(database);
   try {
     await resetTestDatabase(database, oldMigrations);
     const pool = openPool(database.url);
     try {
       await seedBeforeRename(pool);
-      await migrateTestDatabase(database, beforeRemoval);
+      await migrateTestDatabase(database);
       expect(await readAfterRename(pool)).toEqual({
         buddies: [BUDDY],
         chats: [CHAT],
@@ -178,9 +172,6 @@ test("use_case_keep_data_through_update", async () => {
     }
   } finally {
     await dropTestDatabase(database);
-    await Promise.all([
-      removeOldMigrations(oldMigrations),
-      removeOldMigrations(beforeRemoval),
-    ]);
+    await removeOldMigrations(oldMigrations);
   }
 });
