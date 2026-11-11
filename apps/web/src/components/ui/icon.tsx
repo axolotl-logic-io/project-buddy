@@ -46,10 +46,6 @@ const ICON_PATHS = {
   image: { stroke: "M2 2h12v12H2zM2 11l4-4 3 3 2-2 3 3M10 5h.01" },
   // Three lines, for the site's menu.
   menu: { stroke: "M2.5 4h11M2.5 8h11M2.5 12h11" },
-  // A page with lines and a folded corner, for a quick note.
-  note: {
-    stroke: "M3.5 1.75h6l3 3v9.5h-9zM9.5 1.75v3h3M5.75 8h4.5M5.75 10.75h4.5",
-  },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
   // A magnifying glass, for a search of the manual.

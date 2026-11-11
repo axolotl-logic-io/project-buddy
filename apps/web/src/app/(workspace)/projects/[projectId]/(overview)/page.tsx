@@ -5,7 +5,6 @@ import { requireUser } from "@/auth/current-user.ts";
 import { QuestWorkspace } from "@/components/quest-workspace.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { readRecentNotes } from "@/notes/note-store.ts";
 import {
   changePlanAction,
   runChatCommandAction,
@@ -17,7 +16,6 @@ import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
-import { ProjectNotes } from "./project-notes.tsx";
 import { questConversation } from "./quest-conversation.tsx";
 import { QuestPlan } from "./quest-plan.tsx";
 
@@ -26,16 +24,15 @@ import { QuestPlan } from "./quest-plan.tsx";
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
-// its composer; the others are its plan, its progress timeline and its
-// newest Quick Notes. Journal and Versions are pages of their own (memory/).
+// its composer; the others are its plan and progress timeline. Journal and Versions are pages of their own (memory/).
 export default async function ProjectPage({
   params,
   searchParams,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
   const { projectId } = await params;
   const { section } = await searchParams;
-  let current: "conversation" | "plan" | "progress" | "notes" = "conversation";
-  if (section === "plan" || section === "progress" || section === "notes") {
+  let current: "conversation" | "plan" | "progress" = "conversation";
+  if (section === "plan" || section === "progress") {
     current = section;
   }
   const user = await requireUser();
@@ -56,9 +53,8 @@ export default async function ProjectPage({
       </QuestWorkspace>
     );
   }
-  const [milestones, notes, plan] = await Promise.all([
+  const [milestones, plan] = await Promise.all([
     listMilestones(user.id, project.id),
-    readRecentNotes(user.id, project.id),
     readPlanState(user.id, project.id),
   ]);
 
@@ -89,13 +85,6 @@ export default async function ProjectPage({
           <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
           <ProgressTimeline milestones={milestones} />
         </section>
-      )}
-      {current === "notes" && (
-        <ProjectNotes
-          notes={notes}
-          projectId={project.id}
-          status={project.status}
-        />
       )}
     </QuestWorkspace>
   );

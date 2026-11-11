@@ -71,11 +71,11 @@ blur. The artwork wash, paper, ink, labels, icons and controls follow the
 active Light, Dark or System palette. System updates while Home is open;
 explicit Light or Dark overrides it.
 
-Home uses the shared site header above its content, with the site's name,
-Quick Note and Menu. A current-page Home breadcrumb uses the same location
+Home uses the shared site header above its content, with the site's name and
+Menu. A current-page Home breadcrumb uses the same location
 row as other signed-in pages, keeping the content origin stable during
 navigation. Quests and Adventures remain in the menu and Home's
-destinations, without shortcuts beside Quick Note on any page.
+destinations, without header shortcuts.
 Leaving a cached Home page restores the usual page background and content
 column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
 
@@ -83,7 +83,7 @@ The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
 The quest sits below all six destinations. With no quest, the same position
 offers Start a quest, leading to a new quest in Break Down a Project.
-The existing site header keeps Quick Note and Menu available; Settings and
+The existing site header keeps Menu available; Settings and
 Account also appear below the map. Home reads no new data source, creates
 nothing and makes no model call.
 
@@ -333,6 +333,6 @@ The composer shows the acting user's battery balance. A reply's cost shows one d
 
 ## Header navigation
 
-The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand, Menu and Quick Note row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
+The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand and Menu row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
 
 Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.
