@@ -3,7 +3,7 @@ import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { PUSH_SUBSCRIPTION_PATH, SIGN_IN_PATH } from "@/routes.ts";
+import { SIGN_IN_PATH } from "@/routes.ts";
 import {
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
@@ -15,8 +15,7 @@ import {
 
 // The pages anyone may open: signing in, signing up, and the link a
 // sign-in email holds, plus Credits. Their Server Actions post to the same
-// paths. The service worker's push subscription route checks the old
-// subscription's keys instead of a session.
+// paths.
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   SIGN_IN_PATH,
   "/credits",
@@ -25,7 +24,6 @@ const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   "/login/link",
   // Stripe authenticates the raw body signature in the route, without cookies.
   "/api/stripe",
-  PUSH_SUBSCRIPTION_PATH,
 ]);
 
 // The `Link` header value that preloads each font of the theme a theme
@@ -91,7 +89,7 @@ export async function proxy(request: NextRequest): Promise<Response> {
 }
 
 // Files the proxy never sees, which anyone may fetch: Next's assets, the
-// favicon, and what installing the app and its notifications need, which
+// favicon, and the installed app assets and retirement worker, which
 // browsers fetch without the session cookie: the manifest, the service
 // worker and the icons. Paper textures are public too, including on sign-in.
 export const config = {

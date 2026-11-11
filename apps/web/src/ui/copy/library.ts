@@ -88,7 +88,7 @@ const LIBRARY_COPY: {
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a reply sends to the model.",
             "Batteries pay for model use: replies, generated openings and images. Each uses the balance of the person who asked. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
             "Under each reply, the conversation shows what it cost you, to one decimal place. That cost includes any retries and images the reply needed. Your balance shows whole batteries.",
-            "Account shows your name under Profile, your balance and whether you can buy more batteries under Batteries, and the sign-out controls under Security. Settings holds General, Appearance and Notifications.",
+            "Account shows your name under Profile, your balance and whether you can buy more batteries under Batteries, and the sign-out controls under Security. Settings holds General and Appearance.",
             "In the Marketplace, people share copies of their own constructs, activities and spells, and buy them with orbs. Orbs are separate from batteries: you can’t turn one into the other, and selling never earns batteries. The Marketplace says whether buying is open.",
           ],
         },
