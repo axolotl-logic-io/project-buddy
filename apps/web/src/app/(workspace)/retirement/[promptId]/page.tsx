@@ -21,19 +21,13 @@ async function RetiredDefinitionPage({
   }
   return (
     <>
-      <header className="flex flex-col gap-2">
-        <h1 className="page-heading">{definition.name}</h1>
-        <p className="text-muted">
-          {RETIREMENT_COPY.kind[definition.kind]}
-          {RETIREMENT_COPY.separator}
-          {RETIREMENT_COPY.dateLabel}{" "}
-          <LocalTime dateTime={definition.retiredAt} detail="day" />
-        </p>
-      </header>
+      <p className="text-muted">
+        {RETIREMENT_COPY.kind[definition.kind]}
+        {RETIREMENT_COPY.separator}
+        {RETIREMENT_COPY.dateLabel}{" "}
+        <LocalTime dateTime={definition.retiredAt} detail="day" />
+      </p>
       <RetirementActions definition={definition} />
-      {definition.boughtFrom !== null && (
-        <p className="text-muted">{RETIREMENT_COPY.bought}</p>
-      )}
       {definition.kind === "construct" && (
         <Notice>{RETIREMENT_COPY.fallback}</Notice>
       )}
@@ -48,7 +42,6 @@ async function RetiredDefinitionPage({
           text={field.text}
         />
       ))}
-      <p className="text-muted">{RETIREMENT_COPY.marketplace}</p>
     </>
   );
 }

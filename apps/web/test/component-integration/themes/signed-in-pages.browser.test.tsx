@@ -1,8 +1,10 @@
 // "use_case_choose_theme", signed in, in Chromium and WebKit: each theme on
-// the pages it styles beyond its colours. A long project name keeps the
-// "Project memory" link beside it, the memory's checkboxes take the theme's
-// colours, and a reply's heading stays smaller than the page's. Each page
-// is rendered from fixed data, in its layouts, with the site's stylesheet
+// the pages it styles beyond its colours. A long quest name, the trail
+// band's heading, keeps the quest's sections below it, the memory's
+// checkboxes take the theme's colours, and a reply's heading stays smaller
+// than the page's. Each page is rendered from fixed data, in its layouts
+// and under the site header the @header slot gives it, with the site's
+// stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
 // test/app/layout-first-paint.test.tsx covers the theme's first paint,
 // test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
@@ -10,28 +12,26 @@
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
-import type {
-  getChat,
-  listChats,
-  listMessages,
-  markChatRead,
-} from "@/chats/store.ts";
-import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
+import type { getChat, listMessages } from "@/chats/store.ts";
+import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
-import { THEMES, type ThemeId } from "@/themes/themes.ts";
+import { THEMES } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
-import { FOX_CHAT, FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
+import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
+import {
+  FOX_CONVERSATION,
+  FOX_PROJECT,
+} from "../app/(workspace)/page-fixtures.ts";
+import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -53,6 +53,18 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
+// The header slot reads the balance and resolves the trail's names.
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn().mockResolvedValue(0),
+}));
+vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
+vi.mock("@/constructs/construct-store.ts", () => ({
+  getOwnConstruct: vi.fn(),
+}));
+vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+}));
 
 const stores = vi.hoisted(() => ({
   projects: {
@@ -61,10 +73,12 @@ const stores = vi.hoisted(() => ({
   },
   chats: {
     getChat: vi.fn<typeof getChat>(),
-    listChats: vi.fn<typeof listChats>(),
     listMessages: vi.fn<typeof listMessages>(),
-    markChatRead: vi.fn<typeof markChatRead>(),
     readStoppedReply: vi.fn().mockResolvedValue(undefined),
+  },
+  conversations: {
+    readQuestConversation: vi.fn<typeof readQuestConversation>(),
+    startQuestConversation: vi.fn(),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {
@@ -73,52 +87,20 @@ const stores = vi.hoisted(() => ({
 }));
 vi.mock("@/projects/store.ts", () => stores.projects);
 vi.mock("@/chats/store.ts", () => stores.chats);
+vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock("@/check-ins/check-in-store.ts", () => ({
-  readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
-}));
-vi.mock(
-  "@/projects/project-invitations.ts",
-  () => import("../projects/project-invitations-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
-  joinProjectAction: vi.fn(),
-  declineProjectInvitationAction: vi.fn(),
-}));
-vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: async (): Promise<ProjectMember[]> => {
-    const { FOX_OWNER, FOX_MEMBER } = await import(
-      "../app/(workspace)/page-fixtures.ts"
-    );
-    return [FOX_OWNER, FOX_MEMBER];
-  },
-}));
-vi.mock("@/notes/note-store.ts", () => ({
-  readRecentNotes: () => Promise.resolve([]),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  inviteToProjectAction: vi.fn(),
-  revokeProjectInvitationAction: vi.fn(),
-  saveCheckInSettingAction: vi.fn(),
-  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
+  startConversationAction: vi.fn(),
 }));
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn(),
-}));
 vi.mock("@/constructs/own-construct-choices.ts", () => ({
   ownConstructChoices: () => Promise.resolve([]),
 }));
@@ -131,17 +113,10 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   restoreMemoryAction: vi.fn(),
 }));
 
-// The longest project name, in characters, that each theme keeps on one row
-// with the "Project memory" link at 1280 px, in both browsers. A new theme
-// needs its entry here (tsc fails until it's there).
-const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
-  // Gravy Falls holds 38 characters beside the link; longer names wrap it
-  // below (`theme-heading-sizes`).
-  parchment: 38,
-};
-
-// The words a long project name is cut from.
-const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
+// A long project name, which the trail band's heading wraps.
+const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";
+const QUEST_PATH = ["projects", FOX_PROJECT.id] as const;
+const JOURNAL_PATH = [...QUEST_PATH, "memory"] as const;
 
 // A milestone list in the memory: one milestone done, one to do.
 const MILESTONES =
@@ -173,7 +148,10 @@ async function renderProject(name: string): Promise<void> {
     searchParams: Promise.resolve({}),
   });
   await render(
-    inWorkspace(<ProjectLayout params={params}>{content}</ProjectLayout>),
+    <>
+      {await siteHeaderAt(QUEST_PATH)}
+      {inWorkspace(<ProjectLayout params={params}>{content}</ProjectLayout>)}
+    </>,
   );
 }
 
@@ -193,37 +171,44 @@ async function renderMilestones(): Promise<void> {
     params: Promise.resolve({ projectId: FOX_PROJECT.id }),
     searchParams: Promise.resolve({}),
   });
-  await render(inWorkspace(content));
+  await render(
+    <>
+      {await siteHeaderAt(JOURNAL_PATH)}
+      {inWorkspace(content)}
+    </>,
+  );
 }
 
-// Renders a chat whose reply is the mock construct's Markdown.
+// Renders a quest whose conversation's reply is the mock construct's
+// Markdown.
 async function renderMarkdownChat(): Promise<void> {
-  stores.chats.getChat.mockResolvedValue(FOX_CHAT);
+  stores.projects.getProject.mockResolvedValue(FOX_PROJECT);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());
-  const content = await ChatPage({
-    params: Promise.resolve({ chatId: FOX_CHAT.id }),
+  const content = await ProjectPage({
+    params: Promise.resolve({ projectId: FOX_PROJECT.id }),
     searchParams: Promise.resolve({}),
   });
-  await render(inWorkspace(content));
+  await render(
+    <>
+      {await siteHeaderAt(QUEST_PATH)}
+      {inWorkspace(content)}
+    </>,
+  );
 }
 
-// Opens the page of a project whose name is as long as theme keeps beside
-// the "Project memory" link, and returns the name's length and whether the
-// two share a row.
-async function longNameRow(
-  theme: ThemeId,
-): Promise<{ length: number; journalBelowTitle: boolean }> {
-  const projectName = LONG_NAME_SOURCE.slice(0, LONG_NAME_LENGTHS[theme]);
-  await renderProject(projectName);
+// Opens the page of a project with a long name and returns whether its
+// Journal link is below the name, the page's heading.
+async function journalBelowLongName(): Promise<boolean> {
+  await renderProject(LONG_NAME);
   await loadFonts();
-  const heading = page.getByRole("heading", { level: 1, name: projectName });
+  // The quest opens on its latest message; the frame is at the page's top.
+  window.scrollTo(0, 0);
+  const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
   const link = page.getByRole("link", { name: MEMORY_COPY.link });
-  return {
-    length: projectName.length,
-    journalBelowTitle:
-      link.element().getBoundingClientRect().top >=
-      heading.element().getBoundingClientRect().bottom,
-  };
+  return (
+    link.element().getBoundingClientRect().top >=
+    heading.element().getBoundingClientRect().bottom
+  );
 }
 
 // A milestone checkbox as the memory shows it.
@@ -269,13 +254,13 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
-    document.documentElement.setAttribute(name, value);
-  }
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
   signInAs(SIGNED_IN_USER);
-  stores.chats.listChats.mockResolvedValue([FOX_CHAT]);
+  stores.conversations.readQuestConversation.mockResolvedValue(
+    FOX_CONVERSATION,
+  );
+  stores.chats.listMessages.mockResolvedValue([]);
   await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
   await vi.waitFor(() => {
     if (window.innerWidth !== LAPTOP_VIEWPORT.width) {
@@ -293,10 +278,7 @@ describe("use_case_choose_theme", () => {
       });
 
       test("a long quest title keeps Journal navigation below it at 1280 px", async () => {
-        expect(await longNameRow(id)).toEqual({
-          length: LONG_NAME_LENGTHS[id],
-          journalBelowTitle: true,
-        });
+        expect(await journalBelowLongName()).toBe(true);
       });
 
       test("the memory's milestones show read-only checkboxes in the theme's colours", async () => {
@@ -325,16 +307,19 @@ describe("use_case_choose_theme", () => {
   }
 });
 
-test("the Journal selects its workspace link and keeps the quest title", async () => {
+test("the Journal selects its workspace link and leads back to its quest", async () => {
   await renderMilestones();
   await expect
-    .element(page.getByRole("heading", { name: FOX_PROJECT.name, level: 1 }))
-    .toBeVisible();
+    .element(page.getByRole("heading", { level: 1 }))
+    .toHaveTextContent(MEMORY_COPY.heading);
+  await expect
+    .element(page.getByRole("link", { name: FOX_PROJECT.name }))
+    .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
   const nav = page.getByRole("navigation", { name: PROJECT_COPY.navigation });
   await expect
     .element(nav.getByRole("link", { name: MEMORY_COPY.link }))
     .toHaveAttribute("aria-current", "page");
   await expect
-    .element(nav.getByRole("link", { name: PROJECT_COPY.chatsHeading }))
+    .element(nav.getByRole("link", { name: WORKSPACES_COPY.conversation }))
     .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
 });

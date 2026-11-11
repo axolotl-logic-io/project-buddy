@@ -32,11 +32,6 @@ export function ChatError({
             {IMAGE_COPY.retry}
           </Button>
         )}
-      {errorCase === "request-too-large" && (
-        <Link className="text-link" href="/chat">
-          {IMAGE_COPY.newAdventure}
-        </Link>
-      )}
       {errorCase === "out-of-gold" && <EarnGoldLink />}
       {errorCase === "signed-out" && (
         <>

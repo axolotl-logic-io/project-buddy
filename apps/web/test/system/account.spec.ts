@@ -1,7 +1,7 @@
 // use-cases/accounts.md: signing out of one browser or of every one, from
-// the account page. Another browser is a new browser context, which shares
+// Settings. Another browser is a new browser context, which shares
 // nothing with the test's. The page's usage and name are server and
-// component tests in src/app/(workspace)/account/.
+// component tests in test/component-integration/app/(workspace)/settings/.
 import {
   type Browser,
   expect,
@@ -31,10 +31,15 @@ async function anotherBrowser(
   return other;
 }
 
+// Opens Settings, where both sign-out actions are visible.
+async function openSecurity(page: Page): Promise<void> {
+  await page.goto("/settings#security");
+}
+
 test("use_case_sign_out", async ({ account, browser, page }) => {
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
-  await page.goto("/account");
+  await openSecurity(page);
   const other = await anotherBrowser(browser, account, "/projects");
 
   await test.step("Sign out shows the sign-in page", async () => {
@@ -42,13 +47,20 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
       .getByRole("button", { exact: true, name: ACCOUNT_COPY.signOut })
       .click();
 
-    await expect(page).toHaveURL("/login");
+    // A native form redirect inherits the current section anchor.
+    const signInUrl = new URL("/login", page.url());
+    await expect(page).toHaveURL(
+      (url: URL): boolean =>
+        url.origin === signInUrl.origin &&
+        url.pathname === signInUrl.pathname &&
+        url.search === signInUrl.search,
+    );
   });
 
   await test.step("every page in this browser shows the sign-in page", async () => {
     await page.goto("/projects");
     await expect(page).toHaveURL("/login");
-    await page.goto("/account");
+    await page.goto("/settings");
     await expect(page).toHaveURL("/login");
   });
 
@@ -64,8 +76,8 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
     await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
 
     await expect(page).toHaveURL(HOME_PATH);
-    await page.goto("/account");
-    await expect(page).toHaveURL("/account");
+    await page.goto("/settings");
+    await expect(page).toHaveURL("/settings");
   });
 });
 
@@ -76,7 +88,7 @@ function signOutEverywhereDialog(page: Page): Locator {
   });
 }
 
-// On the account page, presses Sign out everywhere, and checks the dialog
+// In Settings, presses Sign out everywhere, and checks the dialog
 // says what it does before she answers it with answer.
 async function answerSignOutEverywhere(
   page: Page,
@@ -101,7 +113,7 @@ test("use_case_sign_out_everywhere", async ({
   const chat = await testData.chat(await testData.project());
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
-  await page.goto("/account");
+  await openSecurity(page);
   const other = await anotherBrowser(browser, account, `/chats/${chat.id}`);
 
   await test.step("cancelling changes nothing", async () => {
@@ -109,7 +121,8 @@ test("use_case_sign_out_everywhere", async ({
 
     await expect(signOutEverywhereDialog(page)).toBeHidden();
     await page.reload();
-    await expect(page).toHaveURL("/account");
+    await expect(page).toHaveURL("/settings#security");
+    await openSecurity(page);
   });
 
   await test.step("once she confirms, this browser shows the sign-in page", async () => {
@@ -143,7 +156,56 @@ test("use_case_sign_out_everywhere", async ({
   await test.step("a new link signs her in as usual", async () => {
     await signInByLink(page, account.email);
 
-    await page.goto("/account");
-    await expect(page).toHaveURL("/account");
+    await page.goto("/settings");
+    await expect(page).toHaveURL("/settings");
+  });
+});
+
+test.describe("use_case_sign_out", () => {
+  test("sign out submits without JavaScript", async ({ account, browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const page = await context.newPage();
+      await logIn(page, account);
+      await page.goto("/settings");
+      await page
+        .getByRole("button", { name: ACCOUNT_COPY.signOut, exact: true })
+        .click();
+      await expect(page).toHaveURL("/login");
+      await page.goto("/settings");
+      await expect(page).toHaveURL("/login");
+    } finally {
+      await context.close();
+    }
+  });
+});
+
+test.describe("use_case_sign_out_everywhere", () => {
+  test("sign out everywhere submits without JavaScript and ends other sessions", async ({
+    account,
+    browser,
+  }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const otherContext = await browser.newContext();
+    try {
+      const page = await context.newPage();
+      const other = await otherContext.newPage();
+      await logIn(page, account);
+      await logIn(other, account);
+      await page.goto("/settings");
+      await page
+        .locator("noscript")
+        .getByRole("button", {
+          name: ACCOUNT_COPY.signOutEverywhere,
+          exact: true,
+        })
+        .click();
+      await expect(page).toHaveURL("/login");
+      await other.goto("/settings");
+      await expect(other).toHaveURL("/login");
+    } finally {
+      await context.close();
+      await otherContext.close();
+    }
   });
 });

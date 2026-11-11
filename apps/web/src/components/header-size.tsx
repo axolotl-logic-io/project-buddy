@@ -2,8 +2,9 @@
 
 import { useLayoutEffect } from "react";
 
-// Adventure controls and message jumps reserve only the breadcrumb row left
-// visible after the brand and controls scroll away. CSS supplies the SSR size.
+// The header's bar and its gold rim scroll away; the trail band under them
+// stays pinned. Its height is what the conversation's pinned header and
+// message jumps leave room for. CSS supplies both sizes for the first paint.
 function HeaderSize(): null {
   useLayoutEffect(() => {
     const header = document.querySelector<HTMLElement>(".site-header");
@@ -12,12 +13,14 @@ function HeaderSize(): null {
     }
     const element = header;
     function update(): void {
-      const trail = element.querySelector(".header-breadcrumbs");
+      const band = element.querySelector<HTMLElement>(".trail-band");
       let controlsHeight = 0;
       let pinnedHeight = 0;
-      if (trail !== null) {
+      if (band !== null) {
         const bounds = element.getBoundingClientRect();
-        controlsHeight = trail.getBoundingClientRect().top - bounds.top;
+        // clientTop is the rim, the band's top border.
+        controlsHeight =
+          band.getBoundingClientRect().top - bounds.top + band.clientTop;
         pinnedHeight = bounds.height - controlsHeight;
       }
       element.style.setProperty(

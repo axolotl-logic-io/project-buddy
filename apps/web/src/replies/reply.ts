@@ -210,9 +210,8 @@ async function writeReply(
 // reply.
 // The response tees off a copy that after() reads to the end, so a
 // disconnect stops only the browser's copy and the reply is still saved.
-// The response ends once the reply is saved: naming the chat runs later, in
-// its own after() task. Every model call of the reply, the answer-now call
-// and the naming included, is made from grant, the one gold check the
+// The response ends once the reply is saved. Every model call of the
+// reply, the answer-now call included, is made from grant, the one gold check the
 // message passed.
 async function streamAndSaveReply(
   { actingUser, chat, grant }: AccessibleChat & { readonly grant: QuotaGrant },
@@ -306,10 +305,8 @@ async function streamAndSaveReply(
               {
                 actingUser,
                 chat,
-                grant: accountedGrant,
                 accountingFinished,
                 answeredId: answered.id,
-                history,
                 cancelled: true,
               },
               {
@@ -325,10 +322,8 @@ async function streamAndSaveReply(
               {
                 actingUser,
                 chat,
-                grant: accountedGrant,
                 accountingFinished,
                 answeredId: answered.id,
-                history,
               },
               ended,
             );

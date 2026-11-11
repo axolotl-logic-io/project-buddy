@@ -205,16 +205,6 @@
     }
   }
 
-  /* The user has hidden the page decorations (src/flags/flags.ts), and the
-     menu's with them. Set on <body>, not <html>, where the theme's own value
-     would win (the themes' layer comes after this one), so the body and
-     every part that paints the decoration again inside it, such as a pinned
-     header, draw none. */
-  html[data-hide~="page-decorations"] body {
-    --page-decoration: none;
-    --menu-decoration: none;
-  }
-
   h1,
   h2,
   h3,
@@ -227,29 +217,10 @@
   /* The focus ring, declared once: read below, and by a box that shows its
      control's focus instead (src/app/page-roles.css's .field-box). */
   :root {
-    /* Home's illustrated paper follows the active semantic palette. Panels
-       retain enough opaque paper to keep contrast independent of the art. */
-    --atlas-paper: var(--surface);
-    --atlas-ink: var(--foreground);
-    --atlas-muted: var(--muted);
-    --atlas-line: var(--line);
-    --atlas-focus: var(--focus);
-    /* Home's and the header's place names are in the theme's heading face,
-       so a page never mixes two serifs. */
-    --atlas-font: var(--heading-font);
-    --atlas-art: var(--home-decoration);
-    /* The shared HUD is always ink and gold, independent of Home's paper. */
     --hud-ink: var(--header-ink);
     --hud-paper: var(--header-paper);
     --hud-line: var(--header-line);
     --hud-gold: var(--header-gold);
-    --atlas-frost-opacity: 94%;
-    --atlas-frost: color-mix(
-      in srgb,
-      var(--atlas-paper) var(--atlas-frost-opacity),
-      transparent
-    );
-    --atlas-blur: blur(1rem);
     --focus-outline: 2px solid var(--focus);
     --focus-offset: 2px;
   }

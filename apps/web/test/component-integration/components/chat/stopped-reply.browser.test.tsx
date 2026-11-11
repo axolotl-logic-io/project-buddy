@@ -20,9 +20,10 @@ import { FOX_CHAT } from "../../app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER } from "../../auth/current-user-test-kit.ts";
 import { refresh } from "../router-test-kit.ts";
 
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
+vi.mock(
+  "@/plan/plan-actions.ts",
+  () => import("../../plan/plan-actions-test-kit.ts"),
+);
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
@@ -121,7 +122,7 @@ describe("use_case_reply_fails", () => {
   test("a saved external reply keeps the waiting viewer's draft and focus", async () => {
     const view = await render(
       <ChatScreen
-        chat={FOX_CHAT}
+        conversation={FOX_CHAT}
         messages={[STOPPED]}
         stoppedReplyId={undefined}
         viewer={SIGNED_IN_USER.id}
@@ -133,7 +134,7 @@ describe("use_case_reply_fails", () => {
     await composer.fill("My next question, still unsent");
     await view.rerender(
       <ChatScreen
-        chat={FOX_CHAT}
+        conversation={FOX_CHAT}
         viewer={SIGNED_IN_USER.id}
         stoppedReplyId={undefined}
         messages={[
@@ -240,6 +241,7 @@ describe("use_case_stop_reply", () => {
       const acknowledged =
         Promise.withResolvers<Awaited<ReturnType<typeof stopReplyAction>>>();
       vi.mocked(stopReplyAction).mockReturnValueOnce(acknowledged.promise);
+      refresh.mockClear();
       await page.getByRole("button", { name: CHAT_COPY.stop }).click();
       await expect.element(page.getByText(CHAT_COPY.stopping)).toBeVisible();
       await expect
@@ -250,6 +252,9 @@ describe("use_case_stop_reply", () => {
         messageId: STOPPED.id,
       });
       acknowledged.resolve("active");
+      // The page showing the conversation, a quest's or Chat, is refreshed
+      // once the stop is acknowledged.
+      await expect.poll(() => refresh.mock.calls.length).toBeGreaterThan(0);
       output?.enqueue({ type: "abort" });
       output?.close();
       output = undefined;

@@ -14,7 +14,6 @@ import { saveUserName } from "@/accounts/users-store.ts";
 import { listMessages, listMessagesForModel } from "@/chats/store.ts";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import type { ChatId, UserId } from "@/ids.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import {
   CAST_SPELL_OUTPUT,
@@ -206,37 +205,35 @@ describe("use_case_construct_casts_spell", () => {
     expect((await getOwnSpell(user.id, spell.id))?.definition).toEqual(parts);
   });
 
-  test("a team chat lists the replying user's spells, and no one reads their instructions in the chat's messages", async () => {
-    const [owner, member] = await Promise.all([testUser(), testUser()]);
+  test("a chat lists only its owner's spells, and no one reads their instructions in the chat's messages", async () => {
+    const [owner, other] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
     const project = await data.project();
     const chat = await data.chat(project);
-    await addProjectMember(member.id, project.id);
-    const spell = await ownSpell(member.id);
+    const [spell, othersSpell] = await Promise.all([
+      ownSpell(owner.id),
+      ownSpell(other.id),
+    ]);
 
-    await signIn(member);
-    const memberPrompt = await constructPrompt(chat.id);
+    await signIn(owner);
+    const prompt = await constructPrompt(chat.id);
     const reply = await constructCasts(chat.id, spell.id);
-    expect(memberPrompt).toContain(spell.id);
+    expect(prompt).toContain(spell.id);
+    expect(prompt).not.toContain(othersSpell.id);
     expect(castOutput(reply)).toMatchObject({
       instructions: OWN_SPELL.definition.prompt,
     });
 
-    await signIn(owner);
-    expect(await constructPrompt(chat.id)).not.toContain(spell.id);
-    const read = await Promise.all(
-      [owner, member].map((user) => listMessages(user.id, chat.id)),
+    const cast = (await listMessages(owner.id, chat.id)).find(
+      ({ id }) => id === reply.id,
     );
-    for (const messages of read) {
-      const cast = messages.find(({ id }) => id === reply.id);
-      if (cast === undefined) {
-        throw new Error("The chat's messages leave out the cast");
-      }
-      expect(castOutput(cast)).toEqual({
-        status: "cast",
-        spellId: spell.id,
-        name: OWN_SPELL.name,
-      });
+    if (cast === undefined) {
+      throw new Error("The chat's messages leave out the cast");
     }
+    expect(castOutput(cast)).toEqual({
+      status: "cast",
+      spellId: spell.id,
+      name: OWN_SPELL.name,
+    });
   });
 });

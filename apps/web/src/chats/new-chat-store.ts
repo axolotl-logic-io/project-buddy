@@ -1,11 +1,11 @@
-// New chats, saved in Postgres: in a project open to the acting user, their
-// own or a team project they are a member of, or standalone, in none. A chat that starts with the construct's opening is saved with it, and
+// New chats, saved in Postgres: in a project of the acting user's, or
+// standalone, in none. A chat that starts with the construct's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOpenTo } from "@/accounts/owner-scope.ts";
+import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
@@ -13,9 +13,7 @@ import {
   type ChatProject,
   type ChatRow,
   isProjectChat,
-  messageColumns,
   type NewMessage,
-  openChat,
   type ProjectChat,
   toChats,
 } from "@/chats/chat-rows.ts";
@@ -43,11 +41,13 @@ import type { ProjectName } from "@/projects/project-name.ts";
 type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 
 // The chat a new chat is: its project, or none for a standalone chat, and
-// its construct. A new chat is unread for no one until markChatUnreadFor
-// (store.ts) marks it, as a check-in does.
+// its construct.
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly construct: NewChatConstruct;
+  // Whether it is its place's one continuing conversation
+  // (src/conversations/); a legacy adventure otherwise.
+  readonly continuing?: boolean;
 }
 
 // A new project chat, with no messages and no activity session, as the
@@ -64,8 +64,8 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it into project, or into none, returned, unread
-// for no one. The not-found failure when nothing was inserted, because the
+// The chat that inserting it into project, or into none, returned. The
+// not-found failure when nothing was inserted, because the
 // owner has no such project.
 function insertedChat(
   rows: readonly ChatRow[],
@@ -75,7 +75,6 @@ function insertedChat(
     rows.map((row) => ({
       ...row,
       projectName: project?.name ?? null,
-      unread: false,
     })),
   );
   if (chat === undefined) {
@@ -117,13 +116,14 @@ function chatColumns(
     renamedByHand: sql`false`.as("renamed_by_hand"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
+    continuing: sql`${chat.continuing === true}::boolean`.as("continuing"),
   };
 }
 
 // The select that yields the new chat's row, with this id: in its project
 // when that is the owner's, and nothing otherwise; or, with no project, the
 // owner's standalone chat.
-function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
+export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
   const { project } = chat;
   if (project === undefined) {
     return new QueryBuilder()
@@ -145,23 +145,40 @@ function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
       }),
     )
     .from(projects)
-    .where(and(eq(projects.id, project.id), projectOpenTo(owner)))
+    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)))
     .getSQL();
 }
 
-// A new chat, with no messages, in the owner's project. Rejects with the
-// not-found case if the project is another user's. The site starts every
-// chat with the construct's opening; the end-to-end tests make empty ones.
+// A new chat in the owner's project, with no messages and no activity
+// session: the project's conversation when it has none yet, and otherwise
+// an adventure, as the multi-adventure pages still in this release make
+// them. Rejects with the not-found case if the project is another user's.
+// The site starts every conversation with the construct's opening
+// (src/conversations/); tests make empty ones.
 export function createChat(
   owner: UserId,
   chat: NewProjectChat,
 ): Promise<ProjectChat> {
   return withAppErrors("createChat", () =>
     inTransaction(async (tx) => {
-      const created = await tx
+      const conversation = await tx
         .insert(chats)
-        .select(newChatRow(owner, chat, randomId(parseChatId)))
+        .select(
+          newChatRow(
+            owner,
+            { ...chat, continuing: true },
+            randomId(parseChatId),
+          ),
+        )
+        .onConflictDoNothing()
         .returning();
+      let created = conversation;
+      if (conversation.length === 0) {
+        created = await tx
+          .insert(chats)
+          .select(newChatRow(owner, chat, randomId(parseChatId)))
+          .returning();
+      }
       const result = insertedProjectChat(created, chat.project);
       await grantVisualAssets(
         owner,
@@ -174,48 +191,11 @@ export function createChat(
   );
 }
 
-// A new chat of the owner's, in its project or standalone, saved together
-// with opening, its first message, and its first activity session, in
-// activity, in one transaction. Rejects with the
-// not-found case, saving nothing, if the project is another user's.
-export function createChatWithOpening(
-  owner: UserId,
-  chat: NewChat & { readonly activity: ChatActivity },
-  opening: NewMessage,
-): Promise<Chat> {
-  return withAppErrors("createChatWithOpening", () =>
-    inTransaction(async (db) => {
-      const id = randomId(parseChatId);
-      const created = await db
-        .insert(chats)
-        .select(newChatRow(owner, chat, id))
-        .returning();
-      await db
-        .insert(messages)
-        .select(
-          new QueryBuilder()
-            .select(messageColumns(id, opening))
-            .from(chats)
-            .where(openChat(owner, id)),
-        );
-      await db
-        .insert(activitySessions)
-        .select(newSession(owner, id, chat.activity, undefined));
-      const result = insertedChat(created, chat.project);
-      await grantVisualAssets(
-        owner,
-        db,
-        { kind: "adventure", id },
-        { parts: chat.construct.definition },
-      );
-      return result;
-    }),
-  );
-}
-
-// A new project of the owner's named projectName, with its first chat in
-// construct and activity, which opening starts: the project, the chat, the
-// message and the activity session are saved together, in one transaction.
+// A new quest of the owner's named projectName, with its conversation in
+// construct and activity, which opening starts: the quest, the
+// conversation, the message and the activity session are saved together,
+// in one transaction. A Dailies quest (dailies) is saved only when the owner
+// has none; undefined when they have one already, and nothing is saved.
 export function createProjectWithChat(
   owner: UserId,
   projectName: ProjectName,
@@ -224,10 +204,11 @@ export function createProjectWithChat(
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
     readonly journal?: string;
+    readonly dailies?: boolean;
   },
   transaction?: Transaction,
-): Promise<ProjectChat> {
-  async function save(db: Transaction): Promise<ProjectChat> {
+): Promise<ProjectChat | undefined> {
+  async function save(db: Transaction): Promise<ProjectChat | undefined> {
     const projectId = randomId(parseProjectId);
     const id = randomId(parseChatId);
     const initialMemory = [chat.journal].flatMap((text) => {
@@ -244,14 +225,24 @@ export function createProjectWithChat(
         },
       ];
     });
-    await db
+    const dailies = chat.dailies === true;
+    const inserted = await db
       .insert(projects)
-      .values({ id: projectId, userId: owner, name: projectName });
+      .values({ id: projectId, userId: owner, name: projectName, dailies })
+      .onConflictDoNothing({
+        target: projects.userId,
+        where: sql`dailies`,
+      })
+      .returning({ id: projects.id });
+    if (inserted.length === 0) {
+      return undefined;
+    }
     const created = await db
       .insert(chats)
       .values({
         id,
         projectId,
+        continuing: true,
         constructId: chat.construct.id,
         constructName: chat.construct.name,
         constructParts: storedConstructPrompt(chat.construct.definition),
@@ -286,3 +277,4 @@ export function createProjectWithChat(
 }
 
 export type { NewChat, NewChatConstruct };
+export { randomId };

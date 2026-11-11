@@ -1,22 +1,21 @@
-// The Workshop's own page in the browser: a tab for each kind, Constructs
-// first, each offering Craft, Customize for the built-in ones, and Tweak and
-// Clone for the user's own.
+// Workshop offers the same Create, Make a copy and Edit actions for each kind.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
+import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import { listConstructs } from "@/constructs/construct-store.ts";
 import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
-import { listProjects } from "@/projects/store.ts";
 import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { listSpells } from "@/spells/index.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
-import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
+import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
+import { userConstructIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -46,13 +45,6 @@ vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
 }));
-vi.mock("@/projects/store.ts", () => ({
-  getProject: vi.fn(),
-  listProjects: vi.fn<typeof listProjects>(),
-}));
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-}));
 // The page offers these actions; their own pages' tests submit them.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
@@ -73,16 +65,15 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   newSpellAction: vi.fn(),
 }));
 
-vi.mock("@/constructs/interview-construct.ts", () => ({
-  interviewConstruct: async () => ({ id: "vellum" }),
-}));
+const QUEST_START = /Start a quest/u;
+const COPY_ACTION = /^Make a copy of /u;
+const OLD_ACTION = /^(?:Craft|Customize|Clone|Tweak|Start a quest)/u;
 
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
   vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-  vi.mocked(listProjects).mockResolvedValue([]);
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -112,13 +103,25 @@ function tab(
 }
 
 describe("use_case_workshop_page", () => {
+  test("use_case_view_constructs", async () => {
+    await showWorkshop();
+    await expect
+      .element(page.getByRole("link", { name: VELLUM_CLONE.name, exact: true }))
+      .toBeVisible();
+    vi.mocked(listConstructs).mockResolvedValue([]);
+    await cleanup();
+    await showWorkshop();
+    await expect.element(page.getByText(CONSTRUCTS_COPY.noOwn)).toBeVisible();
+  });
   test("shows Constructs first, with a tab for each kind", async () => {
     await showWorkshop();
     await expect
-      .element(
-        page.getByRole("heading", { level: 1, name: WORKSHOP_COPY.heading }),
-      )
+      .element(page.getByText(WORKSHOP_PAGE_COPY.intro))
       .toBeVisible();
+    expect(
+      page.getByRole("heading", { level: 1 }).query(),
+      "the trail band, not the page, names it",
+    ).toBeNull();
     await expect
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");
@@ -129,14 +132,17 @@ describe("use_case_workshop_page", () => {
       [...listBuiltInConstructs(), VELLUM_CLONE].map(async (construct) => {
         await expect
           .element(
-            page.getByRole("button", {
-              name: `Adventure with ${construct.name}`,
+            page.getByRole("link", {
+              name: construct.name,
               exact: true,
             }),
           )
-          .toHaveTextContent(`Adventure with ${construct.name}`);
+          .toHaveAttribute("href", `/constructs/${construct.id}`);
       }),
     );
+    await expect
+      .element(page.getByRole("button", { name: QUEST_START }))
+      .not.toBeInTheDocument();
     await expect
       .element(
         page.getByRole("button", {
@@ -145,7 +151,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft construct" }))
+      .element(page.getByRole("button", { name: "Create construct" }))
       .toBeEnabled();
     await expect
       .element(
@@ -162,7 +168,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft activity" }))
+      .element(page.getByRole("button", { name: "Create activity" }))
       .not.toBeInTheDocument();
   });
 
@@ -176,7 +182,7 @@ describe("use_case_workshop_page", () => {
     await expect.element(tab(kind)).toHaveAttribute("aria-current", "page");
   });
 
-  test("the Activities tab offers Craft, Customize, Tweak and Clone for activities", async () => {
+  test("the Activities tab offers Create, Make a copy and Edit for activities", async () => {
     await showWorkshop("activity");
     await expect
       .element(tab("activity"))
@@ -190,7 +196,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft activity" }))
+      .element(page.getByRole("button", { name: "Create activity" }))
       .toBeEnabled();
     await expect
       .element(
@@ -207,11 +213,11 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft construct" }))
+      .element(page.getByRole("button", { name: "Create construct" }))
       .not.toBeInTheDocument();
   });
 
-  test("the Spells tab offers Craft, Customize, Tweak and Clone for spells", async () => {
+  test("the Spells tab offers Create, Make a copy and Edit for spells", async () => {
     await showWorkshop("spell");
     await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
     const builtIn = listSpells()[0]?.name ?? "";
@@ -223,7 +229,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Craft spell" }))
+      .element(page.getByRole("button", { name: "Create spell" }))
       .toBeEnabled();
     await expect
       .element(
@@ -247,7 +253,7 @@ describe("use_case_workshop_page", () => {
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");
     await expect
-      .element(page.getByRole("button", { name: "Craft construct" }))
+      .element(page.getByRole("button", { name: "Create construct" }))
       .toBeEnabled();
   });
 
@@ -266,6 +272,54 @@ describe("use_case_workshop_page", () => {
   });
 });
 
-vi.mock("@/constructs/interview-construct.ts", () => ({
-  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
-}));
+test("Create construct supports keyboard submission in Workshop", async () => {
+  const submitted = Promise.withResolvers<void>();
+  vi.mocked(newConstructAction).mockImplementation(() => {
+    submitted.resolve();
+    return new Promise<never>(() => undefined);
+  });
+  await showWorkshop();
+  const create = page.getByRole("button", {
+    name: "Create construct",
+    exact: true,
+  });
+  create.element().focus();
+  await expect.element(create).toHaveFocus();
+  await userEvent.keyboard("{Enter}");
+  await submitted.promise;
+  expect(newConstructAction).toHaveBeenCalledOnce();
+});
+
+test.each(PROMPT_KINDS)(
+  "the %s collection uses the shared copy action without a quest start",
+  async (kind) => {
+    await showWorkshop(kind);
+    const copies = page.getByRole("button", { name: COPY_ACTION }).elements();
+    expect(copies.length).toBeGreaterThan(1);
+    expect(copies.map((button) => button.textContent)).toEqual(
+      copies.map(() => "Make a copy"),
+    );
+    await expect
+      .element(page.getByRole("button", { name: OLD_ACTION }))
+      .not.toBeInTheDocument();
+  },
+);
+
+test("Workshop keeps private constructs in the store’s oldest-first order", async () => {
+  vi.mocked(listConstructs).mockResolvedValue([
+    { ...VELLUM_CLONE, name: "Zebra guide" },
+    {
+      ...VELLUM_CLONE,
+      id: userConstructIdFixture("3d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+      name: "Alpine guide",
+    },
+  ]);
+  await showWorkshop();
+  const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
+  expect(
+    own
+      .getByRole("link")
+      .elements()
+      .map((link) => link.textContent),
+  ).toEqual(["Zebra guide", "Edit", "Alpine guide", "Edit"]);
+});

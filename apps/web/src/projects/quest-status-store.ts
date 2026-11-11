@@ -39,16 +39,11 @@ async function saveStatus(
   user: UserId,
   change: StatusChange,
 ): Promise<void> {
-  let checkInFrequency: string | undefined;
-  if (change.toStatus !== "active") {
-    checkInFrequency = "off";
-  }
   await tx
     .update(projects)
     .set({
       status: change.toStatus,
       statusRevision: sql`${projects.statusRevision} + 1`,
-      checkInFrequency,
     })
     .where(and(eq(projects.id, change.projectId), projectOwnedBy(user)));
 }
@@ -77,7 +72,7 @@ function changeQuestStatus(
 }
 
 // The tool creates only a proposal for its own quest adventure. It cannot
-// approve one or change status. Acting members cannot propose owner actions.
+// approve one or change status.
 function requestQuestStatus(
   user: UserId,
   chatId: ChatId,
@@ -154,7 +149,7 @@ async function readStatusApproval(
 }
 
 // The requesting owner's latest card in this adventure, with its live decision.
-// Members and foreign users cannot read proposal context through this path.
+// Other users cannot read proposal context through this path.
 async function readLatestStatusApproval(
   user: UserId,
   chatId: ChatId,

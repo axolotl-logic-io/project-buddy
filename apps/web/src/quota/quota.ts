@@ -2,8 +2,8 @@
 // a QuotaGrant, and checkGold is the only way to get one, so holding a grant
 // means owner's gold was checked and not spent. Every new model call a user
 // asks for starts with the check: a message
-// (src/replies/conversation-to-answer.ts), a new chat and a new project
-// (src/chats/start-chat.ts), a check-in, and any caller added later, since
+// (src/replies/conversation-to-answer.ts), a new quest's opening
+// (src/conversations/start-quest.ts), and any caller added later, since
 // without a grant it cannot make a model. Once the balance is under 1
 // whole gold, so the account page shows 0, those are refused. A call
 // already under way finishes, with the answer-now call and the chat's

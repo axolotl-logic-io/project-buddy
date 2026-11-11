@@ -203,41 +203,6 @@ export function logEmailFailure(
   );
 }
 
-// Logs a notification that didn't reach a push service, as `[push-error]
-// <problem> in <operation>` followed by details as JSON: the push service's
-// host, and its status when it refused the notification or the error when it
-// couldn't be reached. Never the endpoint, which addresses one browser.
-export function logPushFailure(
-  problem: "refused" | "unreachable",
-  operation: string,
-  details: {
-    readonly host: string;
-    readonly status?: number;
-    readonly error?: unknown;
-  },
-): void {
-  const { error, ...rest } = details;
-  const described: ErrorDetails = { ...rest };
-  if (error !== undefined) {
-    Object.assign(described, { error: describeError(error, 0) });
-  }
-  console.error(
-    `[push-error] ${problem} in ${operation}`,
-    JSON.stringify(described),
-  );
-}
-
-// Logs that a run of the scheduler's check-ins reached its limit of
-// check-ins and left due projects for the next run, as
-// `[check-in-backlog]` followed by the limit, so a growing backlog shows
-// before check-ins arrive late.
-export function logCheckInBacklog(limit: number): void {
-  console.warn(
-    "[check-in-backlog]",
-    `A run reached its limit of ${limit} check-ins; more projects are due.`,
-  );
-}
-
 // One model call's cost, as its diagnostics line reads it.
 export interface ModelCallSpend {
   // A streamed call (a step of a reply or an opening) or a generated one

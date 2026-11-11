@@ -6,7 +6,7 @@ export default function RetirementLoading(): JSX.Element {
   return (
     <LoadingSkeleton
       label={RETIREMENT_COPY.loading}
-      shapes={["heading", "cards"]}
+      shapes={["line", "cards"]}
     />
   );
 }
