@@ -1,16 +1,20 @@
 import Link from "next/link";
 import type { JSX } from "react";
-import { QuestTransferForm } from "@/components/chat/quest-transfer-form.tsx";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
+import { QuestFromChat } from "@/components/quest-from-chat.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { CREATE_PROJECT_OUTPUT } from "@/replies/tools/create-project-contract.ts";
+import {
+  CREATE_PROJECT_OUTPUT,
+  offeredJournal,
+} from "@/replies/tools/create-project-contract.ts";
 import { CREATE_PROJECT_COPY } from "@/ui/copy/chat.ts";
 
-// The project the construct created from a chat, with a link to its
-// interview chat, or why it created none: Claude is unavailable, or the
-// user is out of gold. Nothing shows until the call has answered.
+// The quest the construct offers in Chat, with Turn Chat into a quest filled
+// in from it, so the user creates it only by confirming the same form as the
+// Chat's own button. A result saved before offers shows the quest it created,
+// or why it created none. Nothing shows until the call has answered.
 export function CreateProjectPart({
   part,
 }: {
@@ -23,7 +27,15 @@ export function CreateProjectPart({
   const result = output.data;
   switch (result.status) {
     case "proposed":
-      return <QuestTransferForm proposal={result} />;
+      return (
+        <div className="card flex flex-col items-start gap-2 text-sm">
+          <p className="icon-line font-medium">
+            <Icon name="plus" />
+            {CREATE_PROJECT_COPY.offered(result.name)}
+          </p>
+          <QuestFromChat journal={offeredJournal(result)} name={result.name} />
+        </div>
+      );
     case "created":
       return (
         <div className="card flex flex-col gap-2 text-sm">
@@ -33,9 +45,9 @@ export function CreateProjectPart({
           </p>
           <Link
             className="self-start text-link"
-            href={`/chats/${result.interviewChatId}`}
+            href={`/projects/${result.projectId}`}
           >
-            {CREATE_PROJECT_COPY.openInterview}
+            {CREATE_PROJECT_COPY.openQuest}
           </Link>
         </div>
       );

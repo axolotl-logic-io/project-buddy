@@ -1,4 +1,10 @@
-# Adventures
+# Conversations
+
+## Conversations
+
+A quest has one continuing conversation, and each user has one private Chat (`src/conversations/`). Both are `chats` rows marked `continuing`. Partial unique indexes allow one per quest and one per user, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one. Starting it (`startQuestConversation`) is free when it exists, and charges the acting user for an opening only when the construct writes one.
+
+A conversation keeps the construct it started with. Its activity changes only when the construct enters another with its activity tool, which records the change at its place in the history. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Journal, plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
 
 ## Start a quest
 
@@ -14,298 +20,59 @@ when available. Failed openings save nothing and keep the construct choice and
 Why for retry. Cancel, Close and Escape create nothing. The premade quest
 previews remain separate and keep their editable name, Journal and activity.
 
-## Standalone adventure
+## Chat
 
-The current `/chat` page is the signed-in user's **Adventures** hub, not a single
-standalone conversation and not a standalone-only list (#472, #482). This page
-describes the hub, filtering and conversation workflows.
+`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: old addresses of it reveal nothing to anyone else.
 
-The atlas at `/home` is the landing page after sign-in. `/` redirects there,
-and so do the header's site name and the pages' "Home" links. The new-adventure form
-remains at `/chats/new`, including activity and quest start links. The signed-in site menu links to Adventures and Quests. Every conversation, including the
-original standalone adventure, opens at its existing `/chats/[chatId]` address. Quest
-conversations link back to their quest; standalone conversations link back to
-Adventures. The conversation routes use `ChatScreen` and retain their existing
-history, construct and keyboard/composer behavior. `/chat` is a Server Component,
-not a conversation screen, for finding an adventure again: the list of adventures and its
-quest filter lead the page (#588).
+Chat has no Journal, plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
 
-Starting a standalone adventure requires no quest. The Adventures page's "New adventure"
-button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
-new-adventure form. The dialog is named "New adventure", takes and keeps focus, and
-closes with Escape or its close button, returning focus to the button; Escape
-in the construct picker's open list closes only the list. That form, like
-the new adventure page at `/chats/new`, offers an accessible Active quest or "No quest", an
-activity and a construct, built in or the user's own, with Chat and Vellum
-chosen initially. Starting saves the adventure with the construct's opening; it makes no
-quest, unless "New quest" is chosen.
+### Turn Chat into a quest
 
-Quest dropdowns, including the Adventures filter and activity start forms, offer only accessible Active quests, including team quests. Completing or abandoning a selected quest clears the filter to All quests and the New adventure choice to No quest on refresh. Restoring it makes it available again. All quests still lists adventures in Completed and Abandoned quests; direct authorized quest and adventure pages remain available.
+Chat's header offers **Turn Chat into a quest**, one of the two ways to create a quest; the other is Start a quest on Quests. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
 
-The Constructs page and the Workshop's Constructs tab label each saved-adventure
-action “Adventure with [construct name]”, using the full name in both the visible
-label and accessible name. It opens the New adventure dialog with that construct
-fixed. Closing creates nothing. Construct detail pages offer editing and temporary
-Workshop tests rather than a saved-adventure start action.
+In Chat only, the construct can offer a quest with `create_project`. The tool creates nothing and spends nothing: its result holds a name, summary and motivation, and the conversation shows them with a Turn Chat into a quest button that opens the same dialog filled in (`QuestFromChat`, through `ChatQuestChoices`). The user confirms there, through `startQuestAction`, like any quest start. A quest's conversation has no `create_project` tool. An offer saved before this change, or shown outside Chat, shows its name with nothing to open, and a saved "created" result still links to its quest. The `quest_transfers` table is no longer read or written; it stays until the held schema cleanup drops it.
 
-A quest's page has its own "New adventure" button (#670, replacing the form
-#536 embedded there), so the quest's adventures lead the page. The form is
-closed when the page opens or reloads. The button opens the same kind of
-dialog, with the form's activity and construct but no quest field: given a
-`projectId`, `NewChatForm` sends that quest in a hidden field and starts
-every adventure in it, in whichever activity is chosen.
+### Old addresses
 
-The form can also start a new quest. Activity, construct and quest choices are independent: every activity, including one of the user's own, supports no quest, an existing quest or a new quest. Start adventure with a new quest opens a second dialog for its name and optional motivation. Cancel keeps the choices. The action creates the quest and first adventure together through `startProject`, in the selected activity and construct. Invalid names or failed openings save nothing.
+`/chats/[chatId]` is a redirect kept for links, bookmarks and emails. `resolveConversation` sends the viewer to the quest that owns the conversation when they can open it, to `/chat` for their own Chat, and otherwise to not found. A foreign, removed or malformed id is not found, so the address reveals nothing. `/chats/new` redirects to `/chat` and makes nothing.
 
-Built-in constructs and activities have prepared openings when no motivation is supplied. Edited definitions need a generated opening. With motivation, the construct acknowledges it and follows the chosen activity; the motivation becomes the first Journal version.
+## Quests landing page
 
-Merely viewing the Adventures page, or opening and closing its dialog, creates
-nothing. Standalone adventures started before they
-got openings remain accessible alongside later ones, with their history and
-construct unchanged.
+Quests (`/projects`) opens after sign-in when no explicit return destination
+was supplied. The site name and root address lead there too; old `/home`
+bookmarks redirect to Quests. Signed-out visitors still need to sign in.
+Opening these pages makes no model call and spends no batteries.
 
-A standalone conversation has no Journal and no [progress timeline](progress-timeline.md), so it
-can't record milestones. Its construct can search and cite the Blender manual, change
-the adventure's activity, and offer a quest when the user asks. The user edits and confirms a summary before the quest is created; this seeds its Journal and opening and does not
-move the standalone conversation into the quest. The new quest's
-first adventure opens in Break Down a Project through the link the adventure shows.
+Quests lists existing work and offers Dailies, Learn a thing, Make a thing
+and Do a thing. Open a quest to continue its conversation. The Home atlas,
+duplicate destination panels and recent-quest summary are removed.
 
-## Home atlas
+## Activities and constructs
 
-Home shows the approved heading "Your projects await" and the guidance
-"Don't know where to start? Try an Activity", linking to Activities. The
-heading deliberately uses the user's chosen wording; the domain term for
-ongoing work elsewhere is quest.
+Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
 
-The yellowed parchment landscape is the original generated artwork, encoded
-as WebP at `public/atlas/parchment.webp`. Its geography was carried forward
-from the northern relief study and restyled as sepia ink engraving on aged
-paper. It is a decorative CSS background, with no map labels baked into the
-image. There is no compass bar or region caption.
+Activities are internal instructions, not a destination or a start choice. Each starting point begins in its own activity, which `startQuestAction` takes from `PREMADE_QUESTS` on the server; the form sends none, and an `activityId` from an older form is ignored. Chat begins in Chat. The user customizes activities in the Workshop's Activities tab, and `/activities` redirects there, making nothing ([#905](design/simplification-905.md)).
 
-Home has one responsive control panel, with no Map/List switch. The map
-fills the background behind the heading, places, current quest and footer.
-Quests, Adventures, Constructs, Activities, Workshop and Marketplace appear
-in that reading and keyboard order, in two columns on phones and three on
-wide screens. The map has no geographic markers, trails or separate phone
-overview. It needs no panning, zooming, hovering or animation.
+A quest is created only through Start a quest or Turn Chat into a quest, which share one form. Constructs and activities have no start actions: the construct is picked inside the form, and its activity comes from the starting point. Closing the form creates nothing.
 
-`src/home/places.ts` names the six destinations once. Each is a normal link
-to an existing page. Descriptions show on wide screens and remain accessible
-to assistive technology on phones. Spellbook and Image gallery remain
-available from the menu; spells are also available in Workshop. The
-Spellbook pages belong to Workshop in the header.
-
-A uniform 75% palette wash preserves visible parchment artwork while making
-focus rings outside the panels readable over dark and bright terrain.
-Strongly tinted parchment panels blur the terrain behind the title,
-destination buttons, current quest and footer. Ink and muted text have known
-contrast even over the darkest marks in the artwork. Browsers without
-backdrop blur use opaque paper. Forced-colors mode removes the artwork and
-blur. The artwork wash, paper, ink, labels, icons and controls follow the
-active Light, Dark or System palette. System updates while Home is open;
-explicit Light or Dark overrides it.
-
-Home uses the shared site header above its content, with the site's name,
-Quick Note and Menu. A current-page Home breadcrumb uses the same location
-row as other signed-in pages, keeping the content origin stable during
-navigation. Quests and Adventures remain in the menu and Home's
-destinations, without shortcuts beside Quick Note on any page.
-Leaving a cached Home page restores the usual page background and content
-column without a refresh; the shared header keeps its independent ink and gold palette in both modes.
-
-The atlas continues only the most recently active quest returned by
-`readToday`, with its real next step and a direct link to its latest adventure.
-The quest sits below all six destinations. With no quest, the same position
-offers Start a quest, leading to a new quest in Break Down a Project.
-The existing site header keeps Quick Note and Menu available; Settings and
-Account also appear below the map. Home reads no new data source, creates
-nothing and makes no model call.
-
-## Today
-
-The new adventure page opens with a **Today** section above the new-adventure form
-(#610), so the form page shows what is waiting for the user. The page's
-heading is "Today", and the form follows under its own heading, "Start a
-adventure". A user with no adventures sees only the form, under the heading "Start a
-adventure", with no empty Today section.
-
-Today lists two things, both by most recent activity. An adventure is active when
-it starts or gains a message, and a quest is as active as its most active
-adventure:
-
-- **Your quests:** up to three quests. Each shows its name, linking to
-  the quest, its next step if it has one, and a Continue link
-  to its most recently active adventure. Each Continue link's accessible name
-  includes the quest's name, such as "Continue Sea turtle model".
-- **Recent adventures:** up to three other adventures, quest or standalone, each
-  linking to its conversation with its quest's badge. An adventure that a
-  Continue link already opens isn't listed again.
-
-The next step is the first open step of the quest's
-[plan](quest-plan.md), read by `nextStepOfQuest` in
-`src/memory/next-step.ts`. A quest whose plan has no steps yet, such as one
-from before plans, falls back to its Journal's first line that starts
-"Next step:" (`nextStepOf`); list markers, headings and bold around the label
-are allowed. A plan whose steps are all done, or a Journal without such a
-line, shows the quest without a next step.
-
-The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries, which
-include the team quests the user is a member of, and makes
-no model call. Unread check-ins (#609) can join Today as another part above
-the quests: add a list to the `Today` type in `src/today/today.ts` and a
-part to `TodaySection` in `src/components/today-section.tsx`.
-
-## Activities
-
-Find something to make (`find-something-to-make`) helps the user discover a small achievable creative project without needing an idea or inspiration source first. The construct explores interests, energy, available materials and constraints one manageable question at a time. It helps with uncertainty, perfectionism, missing skills and limited materials, and continues supporting the user after they choose an idea.
-
-Use it without a quest, in an existing quest or with a new quest through the normal adventure form. Vellum and Lumen have prepared openings; edited definitions and new quests with motivation use generated openings. In a quest, the construct uses its existing Journal and the usual tool rules. A standalone adventure has no Journal or quest progress. Suggested milestones remain plans until meaningful work is reported completed.
-
-Every adventure is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
-
-Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Break Down a Project. The quest creation form defaults to Break Down a Project. An adventure records each
-activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
-`select_activity` tool. Its in-adventure result shows the activity it entered,
-including while the reply streams and after reopening the adventure. Saved activity
-sessions persist and apply to subsequent replies. Active standalone and quest
-adventures have no Activity dropdown, label, or selection progress and error UI
-(#580 supersedes the selector requirements in #561 and #562). Activity selection
-on the new-adventure forms and activity management remain available. See the
-[activities use cases](../apps/web/use-cases/activities.md).
-
-## All adventures and quest filtering
-
-The hub lists every adventure open to the viewer: their standalone adventures and the
-adventures of each quest they own or are a [member](../GLOSSARY.md#member) of,
-newest first by creation time (descending id breaks ties). Each links to its
-existing conversation. There is no adventure-name search or separate No quest
-filter.
-
-Above the list, **Quest** offers **All** and only accessible Active quests by
-name: their own and the team quests they've joined. The page loads the
-viewer's complete adventure list, even when opened with a
-quest filter. Selecting a quest immediately filters those loaded adventures in
-the browser, without submitting a form, navigating or requesting another list.
-Selecting All restores the loaded list in its original order. Each change
-replaces the current address with `/chat?project=<id>` (or removes `project` for
-All), so a valid choice stays selected on reload or when reopening a
-saved URL. A quest of the viewer's with no adventures stays selected and shows the usual
-empty-adventure message.
-
-The page resolves the raw URL value against the viewer's quest choices.
-Missing, empty, malformed, unknown, foreign or array-valued values (including
-repeated parameters with either equal or different values) all mean All.
-Foreign and nonexistent quest ids give the same choices and results, without
-a not-found response or disclosure of another user's quest. Sharing a filter
-URL does not grant access: another viewer sees their own All list unless the
-selected quest is theirs or they are a member of it. Selecting All restores
-the full list.
-
-## Quest badges and phones
-
-Only the all-adventures page opts into quest-name badges. A quest adventure displays
-its quest's name outside the conversation link; a standalone adventure has no
-badge. The accessible link name remains the adventure name and construct, or just the
-construct when unnamed. The adventure-names extra still controls adventure-name visibility.
-Quest pages keep their existing quest-only list without badges.
-
-The selector uses the semantic theme tokens and
-`--target-size` controls. Long unbroken quest names truncate in badges rather
-than expanding the page. Browser tests exercise the assembled page at 320 and
-390 pixels in every theme and both modes, alongside the selector's dedicated
-selected-state and target-size tests.
+Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
 
 ## Behavioral evidence
 
-The [adventure use cases](../apps/web/use-cases/chats.md) define
-`use_case_list_all_chats`, `use_case_filter_chats_by_project`,
-`use_case_chat_project_badge` and `use_case_today_on_landing`, with exactly
-slug-titled Vitest groups.
+The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_standalone_chat`, `use_case_talk_idea_through` and `use_case_project_from_standalone_chat`, with exactly slug-titled Vitest groups.
 
-- `apps/web/test/app/(workspace)/chat/page.server.test.ts` composes the actual
-  page and stores with isolated signed-in users: mixed ordering across multiple
-  quests, ordered quest filtering, empty quests, invalid URL fallbacks,
-  foreign choices and shared URLs.
-- `apps/web/test/component-integration/components/new-chat-dialog.browser.test.tsx`
-  checks the "New adventure" dialog: its name, the form's default choices, focus
-  kept inside, closing by Escape or the close button with focus returned, and
-  that opening and closing it sends nothing. The phone checks
-  (`phone-pages.touch.browser.test.tsx`) measure the open dialog too.
-- `apps/web/test/components/chat-project-filter-behavior.browser.test.tsx`
-  checks immediate local filtering, switching back to All, empty states and
-  address updates without fetching another list.
-- `page.touch.browser.test.tsx` checks the complete phone layout, including
-  long quest badges. `test/components/chat-list.browser.test.tsx` checks
-  badge visibility, accessible link names, colors and containment under
-  `use_case_chat_project_badge`. The former jsdom `page.test.tsx` checks of
-  controls, native GET serialization and query arguments were removed in #508.
-- `apps/web/test/app/(workspace)/projects/[projectId]/page.server.test.ts`
-  checks the quest page's form, with the quest chosen and no foreign
-  choices, and `page.browser.test.tsx` beside it checks that the form sends
-  the quest, shows progress, and stays on the page when the adventure can't
-  start.
-- `apps/web/test/component-integration/today/today.server.test.ts` checks
-  what Today reads under `use_case_today_on_landing`: ordering by activity,
-  next steps from the Journal, Continue adventures, no repeated adventures, the limit,
-  another user's data and a new user's empty Today.
-- `apps/web/test/component-integration/app/(workspace)/chats/new/page.browser.test.tsx`
-  checks the landing page's Today section: the next step, the Continue and
-  adventure links, the keyboard order, and the form alone for a new user. The
-  phone checks measure Today with long names.
-- `apps/web/test/component/memory/next-step.test.ts` checks reading the next
-  step from the Journal.
-- `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
-  predicates, ordering and row conversion, including real-database isolation.
-- Existing standalone-conversation tests continue to cover starting and
-  reopening adventures, history and construct preservation. The former jsdom checks of
-  the quest page's badge-free output were removed in #508.
+- `apps/web/test/component-integration/app/(workspace)/chat/page.server.test.ts` opens Chat repeatedly as two users with the real stores: one conversation each, nothing spent on the way in, no other user sees it, and old addresses redirect or are not found as above.
+- `apps/web/test/component/start-work/chat-summary-draft.test.ts` checks the draft Journal.
 
-Adventure behavior stays in Vitest. Playwright covers authentication flows only.
-Server and authentication runs require the non-production test database and
-mock model, guarded by `checkTestEnvironment`; never substitute a production
-database or a real model.
+Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
-## Check-ins
+## Removed check-ins
 
-A quest's construct can start an adventure on its own: a check-in. The quest's page has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
+Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Start the day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
 
-Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
+## Conversation header
 
-1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no adventure started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's batteries, and skips the quest without error when they are out of batteries. The new adventure is in Chat, with the construct of the quest's newest adventure. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the construct for two or three sentences, from the quest's Journal, about where the user left off and one small next step, so the construct always writes it. The adventure is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
-3. Emails the owner the construct's message, with a link to the adventure and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the adventure stays.
-
-When the owner is out of batteries, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
-
-The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
-
-### Unread adventures
-
-Unread marks are per user. A row in `chat_unreads` marks one adventure unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks an adventure. After saving the adventure, `startCheckIn` calls `markChatUnreadFor` with the users to mark: the quest's owner and every member. A user who can't read the adventure gets no mark, and a user named twice or already marked keeps one mark.
-
-Adventure lists show the viewer's own marks: the Adventures page, a quest's page and Today. Each list shows an "Unread" mark beside the adventure's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the adventure's page clears the viewer's mark and no one else's (`markChatRead`).
-
-The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread adventure to a mark for its owner. The release that added 0028 (#638) kept writing the column, for a rollback; the release of #665 stopped, and migration 0034 drops it (#637). The [site operations](Site-Operations.md#check-ins) say why a rollback past that release is unsafe.
-
-The use cases are in [the adventure use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock model and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one adventure stay apart.
-
-## Adventure names
-
-The pencil replaces the adventure title with a focused inline name field and
-Save name and Cancel icon buttons on the same row. The construct stays below
-the editor. Saving or cancelling restores the title and pencil. Names have at most 60 characters. Empty or whitespace-only
-names show a validation message and keep the entered text. Cancel discards the
-draft. Saving updates the title and adventure lists, persists across reloads, and
-prevents automatic naming from changing the name again. The pencil and editor
-work with a keyboard and on narrow phone screens.
-
-The conversation header uses compact spacing and a smaller title, with quest
-navigation (or Adventures for standalone adventures) above the title and construct identity.
-Long names truncate visually on phones while retaining their full accessible
-names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
-header's scroll clearance follows its compact size.
+A conversation's pinned header (`src/components/chat-screen.tsx`) holds its construct's portrait, which opens the construct's profile, and any page action: Chat adds its heading and Turn Chat into a quest. A quest's title, status and sections sit in the quest's frame above it and scroll away; the shared site header's breadcrumbs stay. The header wraps on phones, and its scroll clearance follows its compact size.
 
 ## Message authors
 
@@ -323,7 +90,7 @@ someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
 The author in a message's metadata holds the email address only for an
 author with no name, so a named author's address never reaches anyone's
-browser, as with the members list ([team quests](team-projects.md)).
+browser.
 The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. An adventure that only the viewer writes in looks as
 it did before authors were recorded.
@@ -348,7 +115,7 @@ one author sends the model exactly what it sent before, and the saved
 messages never hold the headers. The mock model reads a command past the
 header, and `/mock-recall` also searches it.
 
-The quest owner and current members can write in a team quest adventure. Replies, generated images and automatic adventure names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
+Only the quest's owner can write in its adventure. Messages other people wrote while quests could be shared keep their authors. Replies, generated images and automatic adventure names charge the acting user; and generated openings charge the starter.
 Server tests write other authors' messages through the `author` field of
 the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
 `use_case_chat_with_several_people` covers this behavior.
@@ -454,7 +221,7 @@ Start Quest offers a construct picker and optional Why: why the user wants to co
 
 Existing adventure snapshots stay unchanged. If the preferred construct is deleted or unavailable, the picker defaults to Vellum.
 
-New adventure and activity start pages keep their visible construct picker when **New quest** is selected. Their name dialog also collects motivation. The quest uses the selected construct, independently of the Settings preference that defaults the dedicated Start Quest picker. Quests created by a construct from an existing adventure keep that adventure's construct.
+The quest start's construct picker defaults to the New quest construct, and the user can change it before starting.
 
 When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
@@ -484,7 +251,7 @@ status and the message's busy state remain available independently of motion.
 `construct-presence.browser.test.tsx` covers this behavior with fake streams
 under `use_case_construct_presence`.
 
-Home explains Project Buddy and offers Start a quest when the account has no adventures or Active quests. Returning users keep the Continue guidance. The site menu orders Quests and Adventures before definitions and Workshop, then gallery and management destinations.
+Quests offers the four premade starting points before the first quest and lists existing quests on later visits. The site menu keeps Quests and Chat available.
 
 ## Reply control and batteries
 
@@ -494,6 +261,6 @@ The composer shows the acting user's battery balance. A reply's cost shows one d
 
 ## Header navigation
 
-The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand, Menu and Quick Note row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it when their extra is on. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
+The shared site header holds the breadcrumb trail. Quest adventures link through All quests and the quest; standalone adventures link through Adventures. The current adventure’s name is marked as the current page. The adventure heading and rename action remain with the conversation. Parent links keep full touch targets, and long names shorten visually without changing their accessible labels. The brand and Menu row scrolls away. The breadcrumb row remains visible, with adventure controls directly below it. The combined visible pinned stack stays within 112 CSS pixels on phones and 140 on wide screens. Both headers stay above message jump targets.
 
-Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, Marketplace listings, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Home has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.
+Other parent trails also live in the shared header: quest and Journal pages, constructs, activities, spells, retired definitions, and account and list pages. Page actions, including Retirement links, stay in page content. The header route resolves names through acting-user access checks on each navigation. Quests has one current-page label, without a parent link. Its location row keeps the same footprint as other signed-in pages and follows the same pinned-row behavior. Unknown or inaccessible pages have no breadcrumb trail.

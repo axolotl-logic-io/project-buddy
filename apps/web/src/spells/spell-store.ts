@@ -1,11 +1,9 @@
-import type { Transaction } from "@/db/client.ts";
-import type { OwnPromptId, UserId } from "@/ids.ts";
+import type { UserId } from "@/ids.ts";
 import {
   currentSpellText,
   earlierSpellText,
 } from "@/prompts/earlier-built-in-texts.ts";
 import {
-  type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
   type DefinitionEdit,
@@ -14,7 +12,6 @@ import {
   getOwnPrompt,
   listOwnPrompts,
   type OwnPrompt,
-  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { NamedDefinition } from "@/prompts/prompt.ts";
@@ -89,14 +86,6 @@ export function updateSpell(
 
 export function deleteSpell(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(SPELL_STORE, owner, id);
-}
-
-export function saveBoughtSpell(
-  transaction: Transaction,
-  owner: UserId,
-  bought: BoughtPrompt,
-): Promise<OwnPromptId | undefined> {
-  return saveBoughtPrompt(SPELL_STORE, transaction, owner, bought);
 }
 
 export type { OwnSpell, SpellEdit };

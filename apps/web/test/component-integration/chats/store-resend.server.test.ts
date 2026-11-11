@@ -42,10 +42,13 @@ describe("use_case_leave_during_reply", () => {
   test("saving one message twice at once inserts it exactly once", async () => {
     const user = await testUser();
     const data = testData(user);
-    const project = await data.project();
+    const [project, otherProject] = await Promise.all([
+      data.project(),
+      data.project(),
+    ]);
     const [chat, otherChat] = await Promise.all([
       data.chat(project),
-      data.chat(project),
+      data.chat(otherProject),
     ]);
     const message = question(QUESTION);
 

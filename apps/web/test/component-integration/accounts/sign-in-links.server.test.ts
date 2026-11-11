@@ -30,7 +30,7 @@ test("a sign-in link signs its user in for 30 minutes, and then not", async () =
   const expiry =
     sentAt.getTime() + SIGN_IN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE;
 
-  expect((await readSignInLinkUser(token, new Date(expiry - 1)))?.user.id).toBe(
+  expect((await readSignInLinkUser(token, new Date(expiry - 1)))?.id).toBe(
     user.id,
   );
   expect(await readSignInLinkUser(token, new Date(expiry))).toBeUndefined();

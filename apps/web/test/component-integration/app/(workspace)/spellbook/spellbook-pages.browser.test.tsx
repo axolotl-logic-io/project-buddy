@@ -1,17 +1,16 @@
-// The Spellbook's pages in the browser: the list offers Craft spell among her
+// The Spellbook's pages in the browser: the list offers Create spell among her
 // own spells, after the built-in ones in keyboard order; Delete asks before
 // it deletes; and her spell's page names each field's limit, keeps typing
 // within it, and names what its reset restores.
 import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import {
   newSpellAction,
   retireSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
-import { readSaleState } from "@/marketplace/listing-store.ts";
+import { SpellLists } from "@/app/(workspace)/spellbook/spell-lists.tsx";
 import { getSpell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
@@ -30,13 +29,6 @@ vi.mock(
   () => import("../../../components/router-test-kit.ts"),
 );
 
-vi.mock("@/workshop/options.ts", () => ({
-  workshopOptions: async () => ({
-    constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Chat" }],
-  }),
-}));
-
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../auth/current-user-test-kit.ts"),
@@ -44,15 +36,6 @@ vi.mock(
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
-// Her spell's page offers it for sale; selling is the Marketplace's, which
-// marketplace-pages.browser.test.tsx covers.
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  sellListingAction: vi.fn(),
 }));
 // The pages expose these actions; only Craft spell and Delete are submitted.
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
@@ -66,7 +49,10 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
 
 // Her spells, under their heading.
 function ownRegion(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("tabpanel", { name: "Yours", exact: true });
+  return page.getByRole("region", {
+    name: SPELLBOOK_COPY.ownHeading,
+    exact: true,
+  });
 }
 
 // Resolves once the action is submitted. It redirects; here it only says
@@ -82,58 +68,36 @@ function submissionOf(
   return submitted.promise;
 }
 
-test("her spells offer Craft spell, with or without spells of her own", async () => {
+test("her spells offer Create spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-  const screen = await render(
-    inWorkspace(
-      await SpellbookPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
+  const screen = await render(inWorkspace(await SpellLists()));
 
   await expect
-    .element(page.getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Create spell" }))
     .toBeEnabled();
 
-  await page.getByRole("tab", { name: "Yours", exact: true }).click();
   vi.mocked(listOwnSpells).mockResolvedValue([]);
-  await screen.rerender(
-    inWorkspace(
-      await SpellbookPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
+  await screen.rerender(inWorkspace(await SpellLists()));
   await expect
     .element(ownRegion().getByText(SPELLBOOK_COPY.noOwn))
     .toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Create spell" }))
     .toBeEnabled();
 });
 
-test("the header Craft spell action supports keyboard submission", async () => {
+test("the header Create spell action supports keyboard submission", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
-  await render(
-    inWorkspace(
-      await SpellbookPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
+  await render(inWorkspace(await SpellLists()));
   page
-    .getByRole("button", { name: "Craft spell", exact: true })
+    .getByRole("button", { name: "Create spell", exact: true })
     .element()
     .focus();
   await expect
-    .element(page.getByRole("button", { name: "Craft spell" }))
+    .element(page.getByRole("button", { name: "Create spell" }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
@@ -145,15 +109,7 @@ test("Retire submits the spell from its existing card", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const submitted = submissionOf(retireSpellAction);
-  await render(
-    inWorkspace(
-      await SpellbookPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
-  await page.getByRole("tab", { name: "Yours", exact: true }).click();
+  await render(inWorkspace(await SpellLists()));
   await page
     .getByRole("button", {
       name: RETIREMENT_COPY.retireLabel(ASK_ONE_QUESTION_CLONE.name),
@@ -169,7 +125,6 @@ test("Retire submits the spell from its existing card", async () => {
 test("her spell's page names each limit, and its fields keep within them", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await SpellPage({
@@ -217,7 +172,6 @@ test.each([
 ])("her spell $made names what its reset restores", async ({ spell }) => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(getOwnSpell).mockResolvedValue(spell);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await SpellPage({

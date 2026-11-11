@@ -30,7 +30,6 @@ import {
   VISUAL_GENERATION_REQUEST,
   type VisualGenerationRequest,
 } from "@/constructs/visual-generation-contract.ts";
-import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACTIVITY_DEFINITION_COPY } from "@/ui/copy/activities.ts";
@@ -53,13 +52,6 @@ import {
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
-vi.mock("@/workshop/options.ts", () => ({
-  workshopOptions: async () => ({
-    constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Chat" }],
-  }),
-}));
-
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -72,13 +64,6 @@ vi.mock("@/activities/activity-store.ts", () => ({
 }));
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
-}));
-// Each page offers its prompt for sale; selling is the Marketplace's.
-vi.mock("@/marketplace/listing-store.ts", () => ({
-  readSaleState: vi.fn<typeof readSaleState>(),
-}));
-vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
-  sellListingAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
@@ -136,7 +121,6 @@ async function openConstruct(
 ): Promise<{ leave: () => Promise<void> }> {
   signInAs(SIGNED_IN_USER);
   vi.mocked(getOwnConstruct).mockResolvedValue(construct);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   const screen = await render(
     inWorkspace(
       await ConstructPage({
@@ -302,7 +286,6 @@ test("Reset on her activity's page changes the prompt only, keeping her opening 
     definition: { prompt: "My prompt.", openingRequest: "My opening." },
   };
   vi.mocked(getOwnActivity).mockResolvedValue(activity);
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await ActivityPage({
@@ -332,7 +315,6 @@ test("Reset on her spell's page changes the prompt only, keeping its when-to-use
     ...ASK_ONE_QUESTION_CLONE,
     definition: { whenToUse: "When she plans a render.", prompt: "Mine." },
   });
-  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
   await render(
     inWorkspace(
       await SpellPage({
@@ -514,7 +496,6 @@ test.each(["activity", "spell"] as const)(
   "a saved %s shows visible announced confirmation and saved fields",
   async (kind) => {
     signInAs(SIGNED_IN_USER);
-    vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
     vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
     vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
     let view: JSX.Element;
@@ -715,13 +696,13 @@ test("text-only Save during pending work preserves its original UUID and payload
   });
 });
 
-vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
-  startPremadeQuestAction: vi.fn(),
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  startQuestAction: vi.fn(),
 }));
 vi.mock("@/projects/quest-creation-choices.ts", () => ({
-  questCreationChoices: vi.fn(),
-}));
-vi.mock("@/chats/new-chat-choices.ts", () => ({ newChatChoices: vi.fn() }));
-vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn(),
+  questCreationChoices: vi.fn().mockResolvedValue({
+    activities: [],
+    userConstructs: [],
+    preferredConstructId: "vellum",
+  }),
 }));

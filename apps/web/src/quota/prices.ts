@@ -32,8 +32,8 @@ const PRICES: Readonly<Record<ClaudeModelId, TokenPrices>> = {
     cacheRead: 100_000,
     output: 10_000_000,
   },
-  // Haiku 5.5 with a prompt of at most 100k tokens, which a chat-naming call
-  // never exceeds (src/replies/chat-naming.ts bounds what it reads): $0.10
+  // Haiku 5.5 with a prompt of at most 100k tokens, which an avatar framing
+  // call never exceeds (docs/images.md): $0.10
   // input, $0.125 5-minute write, $0.20 1-hour write, $0.01 read and $0.50
   // output per million tokens.
   "claude-haiku-5-5": {

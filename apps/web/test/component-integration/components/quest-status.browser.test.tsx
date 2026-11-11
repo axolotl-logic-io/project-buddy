@@ -100,14 +100,6 @@ describe("quest status actions", () => {
     expect(undone?.get("toStatus")).toBe("active");
     expect(undone?.get("revision")).toBe("1");
   });
-  test("members have no status action", async () => {
-    await render(
-      <QuestStatusControls project={{ ...FOX_PROJECT, role: "member" }} />,
-    );
-    await expect
-      .element(page.getByRole("button", { name: "Complete", exact: true }))
-      .not.toBeInTheDocument();
-  });
 });
 
 describe("quest approval card", () => {

@@ -6,7 +6,10 @@
 // request still replies to it is not answered again: each reply is made
 // under a claim on its message (claimReply in src/chats/store.ts), which
 // the request that answers releases if its reply fails. Nothing is answered
-// once the acting user is out of gold (src/quota/quota.ts).
+// once the acting user is out of gold (src/quota/quota.ts). A conversation
+// continues for as long as its quest does, so a reply reads only its newest
+// CONVERSATION_WINDOW messages: the quest's Journal, Plan and Progress, in
+// every reply's instructions, carry what matters from before them.
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
   type ChatMessage,
@@ -27,6 +30,11 @@ import {
   type ChatRequest,
   outOfGoldResponse,
 } from "@/replies/chat-protocol.ts";
+
+// How many of a conversation's newest messages a reply reads, the message
+// it answers included: about a long working session's worth, which keeps a
+// reply's prompt well inside the model's context and its cost bounded.
+const CONVERSATION_WINDOW = 60;
 
 // What a chat request answers: a reply to the conversation that ends with
 // its message, each user message with its author, with the grant its
@@ -82,7 +90,7 @@ async function conversationToAnswer(
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
   const [saved, gold, author] = await Promise.all([
-    listMessagesForModel(actingUser, chat.id),
+    listMessagesForModel(actingUser, chat.id, CONVERSATION_WINDOW),
     checkGold(actingUser),
     readMessageAuthor(actingUser),
   ]);
@@ -104,7 +112,9 @@ async function conversationToAnswer(
     case "inserted":
       return {
         kind: "reply",
-        conversation: [...saved, authored(message, author)],
+        conversation: [...saved, authored(message, author)].slice(
+          -CONVERSATION_WINDOW,
+        ),
         grant: gold.grant,
       };
     case "already-saved":
@@ -129,4 +139,4 @@ function authored(
 }
 
 export type { ConversationToAnswer };
-export { conversationToAnswer };
+export { CONVERSATION_WINDOW, conversationToAnswer };

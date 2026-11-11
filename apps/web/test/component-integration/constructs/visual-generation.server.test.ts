@@ -13,6 +13,7 @@ import {
 } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { restoreConstructVisual } from "@/constructs/restore-visual.ts";
+import { CONSTRUCT_VISUAL } from "@/constructs/visual.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
 import {
@@ -26,24 +27,14 @@ import {
   constructAssets,
   constructGenerations,
 } from "@/db/tables/construct-visuals.ts";
-import { marketplaceCutover } from "@/db/tables/orbs.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
 import { IMAGE_RESERVATION_MICRO_USD } from "@/images/image-provider.ts";
-import { buyListing } from "@/marketplace/buy-listing.ts";
-import {
-  publishListing,
-  unlistListing,
-  updateListing,
-} from "@/marketplace/listing-store.ts";
-import {
-  addProjectMember,
-  removeProjectMember,
-} from "@/projects/members-store.ts";
 import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
 import { matchingBuiltInConstruct } from "@/prompts/matching-built-in.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import {
   goldSpent,
   spendGold,
@@ -93,6 +84,48 @@ async function setup(): Promise<{
       description: DESCRIPTION,
     },
   };
+}
+// A copy of seller's construct that buyer bought before the Marketplace
+// closed, as buying left it: buyer's own construct with the seller's saved
+// parts, marked bought, and granted the artwork those parts name.
+async function legacyBoughtCopy(
+  seller: Awaited<ReturnType<typeof testUser>>,
+  sourceId: string,
+  buyer: Awaited<ReturnType<typeof testUser>>,
+): Promise<{ readonly id: string }> {
+  const [source] = await getDb()
+    .select({ name: ownPrompts.name, parts: ownPrompts.parts })
+    .from(ownPrompts)
+    .where(and(eq(ownPrompts.userId, seller.id), eq(ownPrompts.id, sourceId)));
+  if (source === undefined) {
+    throw new Error("No source construct");
+  }
+  const [copy] = await getDb()
+    .insert(ownPrompts)
+    .values({
+      userId: buyer.id,
+      kind: "buddy",
+      name: source.name,
+      parts: source.parts,
+      boughtFrom: crypto.randomUUID(),
+    })
+    .returning({ id: ownPrompts.id });
+  if (copy === undefined) {
+    throw new Error("No bought copy");
+  }
+  const visual = CONSTRUCT_VISUAL.parse(
+    z.object({ visual: z.unknown() }).parse(source.parts).visual,
+  );
+  const granted = [visual.canonical, visual.working].flatMap((asset) => {
+    if (asset?.kind === "generated") {
+      return [{ assetId: asset.assetId, constructId: copy.id }];
+    }
+    return [];
+  });
+  if (granted.length > 0) {
+    await getDb().insert(constructAssetGrants).values(granted);
+  }
+  return copy;
 }
 function assetId(result: VisualGenerationResult): string {
   const asset = result.visual?.canonical;
@@ -365,7 +398,7 @@ describe("use_case_generate_construct_visual", () => {
     event.resolve(await image());
     expect((await first).status).toBe("generated");
   });
-  test("clones, team snapshots and bought copies retain grants after source deletion", async () => {
+  test("clones, quest snapshots and bought copies retain grants after source deletion", async () => {
     const { user, construct, provider, request } = await setup();
     const [member, outsider, buyer] = await Promise.all([
       testUser(),
@@ -380,7 +413,7 @@ describe("use_case_generate_construct_visual", () => {
       throw new Error("No construct");
     }
     const project = await testData(user).project();
-    await addProjectMember(member.id, project.id);
+    await formerMembership(user, member, project.id);
     const chat = await createChat(user.id, {
       project,
       construct: {
@@ -389,33 +422,7 @@ describe("use_case_generate_construct_visual", () => {
         definition: saved.definition,
       },
     });
-    const listing = await publishListing(
-      user.id,
-      { kind: "construct", promptId: construct.id },
-      { description: "Owl art", price: 0 },
-    );
-    if (listing.kind !== "published") {
-      throw new Error("Not published");
-    }
-    expect(
-      await getVisualAsset(buyer.id, { kind: "listing", id: listing.id }, id),
-    ).toBeDefined();
-    await getDb()
-      .update(marketplaceCutover)
-      .set({ enabled: true })
-      .where(eq(marketplaceCutover.id, 1));
-    const bought = await buyListing(buyer.id, {
-      currency: "orbs",
-      listingId: listing.id,
-      price: 0,
-    });
-    if (bought.kind !== "bought") {
-      throw new Error("Not bought");
-    }
-    await unlistListing(user.id, listing.id);
-    expect(
-      await getVisualAsset(buyer.id, { kind: "listing", id: listing.id }, id),
-    ).toBeUndefined();
+    const bought = await legacyBoughtCopy(user, construct.id, buyer);
     await retireDefinition(user.id, "construct", construct.id);
     expect(
       await getVisualAsset(
@@ -436,25 +443,20 @@ describe("use_case_generate_construct_visual", () => {
       await getVisualAsset(user.id, { kind: "construct", id: clone.id }, id),
     ).toBeDefined();
     expect(
-      await getVisualAsset(
-        buyer.id,
-        { kind: "construct", id: bought.copy.id },
-        id,
-      ),
+      await getVisualAsset(buyer.id, { kind: "construct", id: bought.id }, id),
     ).toBeDefined();
     expect(
-      await getVisualAsset(member.id, { kind: "adventure", id: chat.id }, id),
+      await getVisualAsset(user.id, { kind: "adventure", id: chat.id }, id),
     ).toBeDefined();
     expect(
       await getVisualAsset(outsider.id, { kind: "adventure", id: chat.id }, id),
     ).toBeUndefined();
-    await removeProjectMember(user.id, project.id, member.id);
     expect(
       await getVisualAsset(member.id, { kind: "adventure", id: chat.id }, id),
     ).toBeUndefined();
   });
-  test("forged references roll back writes; listing updates preserve immutable snapshots", async () => {
-    const { user, construct, provider, request } = await setup();
+  test("forged references roll back writes", async () => {
+    const { user, provider, request } = await setup();
     const outsider = await testUser();
     const generated = await generateConstructVisual(user.id, request, provider);
     await expect(
@@ -463,51 +465,6 @@ describe("use_case_generate_construct_visual", () => {
         definition: { prompt: "x", visual: generated.visual },
       }),
     ).rejects.toMatchObject({ errorCase: "not-found" });
-    const listing = await publishListing(
-      user.id,
-      { kind: "construct", promptId: construct.id },
-      { description: "Owl", price: 0 },
-    );
-    if (listing.kind !== "published") {
-      throw new Error("Not published");
-    }
-    const replacement = await generateConstructVisual(
-      user.id,
-      { ...request, requestId: crypto.randomUUID() },
-      provider,
-    );
-    expect(
-      await getVisualAsset(
-        outsider.id,
-        { kind: "listing", id: listing.id },
-        assetId(generated),
-      ),
-    ).toBeDefined();
-    expect(
-      await getVisualAsset(
-        outsider.id,
-        { kind: "listing", id: listing.id },
-        assetId(replacement),
-      ),
-    ).toBeUndefined();
-    await updateListing(user.id, listing.id, {
-      description: "Updated",
-      price: 0,
-    });
-    expect(
-      await getVisualAsset(
-        outsider.id,
-        { kind: "listing", id: listing.id },
-        assetId(replacement),
-      ),
-    ).toBeDefined();
-    expect(
-      await getVisualAsset(
-        outsider.id,
-        { kind: "listing", id: listing.id },
-        assetId(generated),
-      ),
-    ).toBeUndefined();
   });
   test("partial metadata saves preserve live-build matching while generation sends only the exact description", async () => {
     const user = await testUser();
@@ -714,30 +671,11 @@ test("legacy hashes use owned generation descriptions; copied legacy art with no
   expect(await getOwnConstruct(user.id, construct.id)).toEqual(before);
   expect(await goldSpent(user)).toBe(COST);
   const buyer = await testUser();
-  const listing = await publishListing(
-    user.id,
-    { kind: "construct", promptId: construct.id },
-    { description: "Legacy owl", price: 0 },
-  );
-  if (listing.kind !== "published") {
-    throw new Error("No listing");
-  }
-  await getDb()
-    .update(marketplaceCutover)
-    .set({ enabled: true })
-    .where(eq(marketplaceCutover.id, 1));
-  const bought = await buyListing(buyer.id, {
-    currency: "orbs",
-    listingId: listing.id,
-    price: 0,
-  });
-  if (bought.kind !== "bought") {
-    throw new Error("No bought copy");
-  }
-  await editConstructMetadata(buyer.id, bought.copy.id, {
+  const bought = await legacyBoughtCopy(user, construct.id, buyer);
+  await editConstructMetadata(buyer.id, bought.id, {
     prompt: "Buyer's new voice",
   });
-  expect(await readVisualGeneration(buyer.id, bought.copy.id)).toMatchObject({
+  expect(await readVisualGeneration(buyer.id, bought.id)).toMatchObject({
     outdated: false,
     freshnessUnknown: true,
   });
@@ -840,56 +778,30 @@ test("a recovery entry whose bytes were released by an older build is unavailabl
   ).toEqual(second.visual);
 });
 
-test("recovery on a bought copy restores its original image identity without changing seller or listing snapshots", async () => {
+test("recovery on a bought copy restores its original image identity without changing the seller's", async () => {
   const { user, construct, provider, request } = await setup();
   const first = await generateConstructVisual(user.id, request, provider);
-  const listing = await publishListing(
-    user.id,
-    { kind: "construct", promptId: construct.id },
-    { description: "Owl art", price: 0 },
-  );
-  if (listing.kind !== "published") {
-    throw new Error("No listing");
-  }
   const buyer = await testUser();
-  await getDb()
-    .update(marketplaceCutover)
-    .set({ enabled: true })
-    .where(eq(marketplaceCutover.id, 1));
-  const bought = await buyListing(buyer.id, {
-    currency: "orbs",
-    listingId: listing.id,
-    price: 0,
-  });
-  if (bought.kind !== "bought") {
-    throw new Error("No bought copy");
-  }
-  await editConstructMetadata(buyer.id, bought.copy.id, {
+  const bought = await legacyBoughtCopy(user, construct.id, buyer);
+  await editConstructMetadata(buyer.id, bought.id, {
     visualDescription: "A silver owl.",
   });
   await generateConstructVisual(
     buyer.id,
     {
-      constructId: bought.copy.id,
+      constructId: bought.id,
       requestId: crypto.randomUUID(),
       description: "A silver owl.",
     },
     provider,
   );
-  expect(await restoreConstructVisual(buyer.id, bought.copy.id)).toBe(true);
+  expect(await restoreConstructVisual(buyer.id, bought.id)).toBe(true);
   expect(
-    (await getOwnConstruct(buyer.id, bought.copy.id))?.definition.visual,
+    (await getOwnConstruct(buyer.id, bought.id))?.definition.visual,
   ).toEqual(first.visual);
   expect(
     (await getOwnConstruct(user.id, construct.id))?.definition.visual,
   ).toEqual(first.visual);
-  expect(
-    await getVisualAsset(
-      buyer.id,
-      { kind: "listing", id: listing.id },
-      assetId(first),
-    ),
-  ).toBeDefined();
 });
 
 test("draft artwork preserves saved text and replays the paid request once", async () => {
