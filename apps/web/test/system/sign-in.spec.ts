@@ -56,7 +56,9 @@ test("use_case_sign_in_by_link", async ({
     await expect(phone).toHaveURL(HOME_PATH);
     await expectSignedInFor30Days(device);
     await phone.goto("/projects");
-    await expect(phone.getByText(project.name)).toBeVisible();
+    // By role: while the page refreshes after loading, Next keeps a hidden
+    // copy of the list, which a text match finds too.
+    await expect(phone.getByRole("link", { name: project.name })).toBeVisible();
   });
   await device.close();
 
