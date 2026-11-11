@@ -53,6 +53,7 @@ import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
+import { readCurrentQuest } from "@/projects/current-quest-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import {
   getRetiredDefinition,
@@ -62,11 +63,7 @@ import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import {
-  PROJECT_COPY,
-  PROJECTS_COPY,
-  QUEST_START_COPY,
-} from "@/ui/copy/projects.ts";
+import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import {
@@ -208,10 +205,15 @@ async function chatPage(): Promise<JSX.Element> {
   );
 }
 
-// The Projects page, with one project.
+// The Projects page, with one project, which it offers to continue under a
+// long name.
 const projectsPage = workspacePage(
   () => {
     vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(readCurrentQuest).mockResolvedValue({
+      project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+      nextStep: "Sketch the fox's ears from three angles",
+    });
     vi.mocked(listConstructs).mockResolvedValue([]);
   },
   async () =>
@@ -397,9 +399,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: projectsPage,
     open: async (): Promise<void> => {
       await page
-        .getByRole("button", {
-          name: QUEST_START_COPY.chooseLabel("Make a thing"),
-        })
+        .getByRole("button", { name: "Make a thing", exact: true })
         .click();
       await vi.waitFor(() =>
         page

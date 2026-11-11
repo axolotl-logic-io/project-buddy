@@ -43,9 +43,14 @@ was supplied. The site name and root address lead there too; old `/home`
 bookmarks redirect to Quests. Signed-out visitors still need to sign in.
 Opening these pages makes no model call and spends no batteries.
 
-Quests lists existing work and offers Dailies, Learn a thing, Make a thing
-and Do a thing. Open a quest to continue its conversation. The Home atlas,
-duplicate destination panels and recent-quest summary are removed.
+Quests is laid out flush on the page, as Workshop is: its heading and
+introduction, then Continue, for the user's current quest, then Start a
+quest's four tiles, Dailies, Learn a thing, Make a thing and Do a thing, then
+the user's quests under Active, Completed and Abandoned tabs. Continue names
+the user's own Active quest whose conversation was most recently active, with
+its next step, and opens its conversation; with no Active quest it is absent
+(`src/projects/current-quest-store.ts`). Reading it makes no model call. The
+Home atlas and its destination panels are removed.
 
 ## Activities and constructs
 

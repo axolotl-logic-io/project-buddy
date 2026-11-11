@@ -1,7 +1,8 @@
 // The four ways to start a quest, in Chromium and WebKit
-// ("use_case_browse_premade_quests"): each starting point says what it is
-// for; choosing one shows its details, filled in, in its place, and going
-// back starts nothing. The user's Dailies opens instead of starting again,
+// ("use_case_browse_premade_quests"): each starting point is one tile, named
+// by the starting point and described by its tagline; choosing one shows its
+// details, filled in, with what it is for, in its place, and going back
+// starts nothing. The user's Dailies opens instead of starting again,
 // and a preset Journal, as from Chat, isn't offered to Dailies. Each
 // starting point sends its own start, so Learn, Make and Do make quests of
 // their own and Dailies goes to its one quest. What the
@@ -29,7 +30,7 @@ const CHOICES: QuestCreationChoices = {
 const DAILIES_ID = projectIdFixture("1f2e3d4c-5b6a-4987-8a6b-5c4d3e2f1a0b");
 
 function choose(name: string): ReturnType<typeof page.getByRole> {
-  return page.getByRole("button", { name: QUEST_START_COPY.chooseLabel(name) });
+  return page.getByRole("button", { name, exact: true });
 }
 
 afterEach(() => {
@@ -42,7 +43,9 @@ describe("use_case_browse_premade_quests", () => {
 
     await Promise.all(
       PREMADE_QUESTS.map((quest) =>
-        expect.element(page.getByText(quest.description)).toBeVisible(),
+        expect
+          .element(choose(quest.name))
+          .toHaveAccessibleDescription(quest.tagline),
       ),
     );
     await choose("Learn a thing").click();
@@ -51,6 +54,9 @@ describe("use_case_browse_premade_quests", () => {
     await expect
       .element(details.getByRole("heading", { name: "Learn a thing" }))
       .toHaveFocus();
+    await expect
+      .element(details.getByText(PREMADE_QUESTS[1]?.description ?? ""))
+      .toBeVisible();
     await expect
       .element(details.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
       .toHaveValue("Learn a thing");
@@ -103,7 +109,7 @@ describe("use_case_browse_premade_quests", () => {
     );
 
     await expect
-      .element(page.getByRole("link", { name: QUEST_START_COPY.openDailies }))
+      .element(page.getByRole("link", { name: "Dailies", exact: true }))
       .toHaveAttribute("href", `/projects/${DAILIES_ID}`);
     await expect.element(choose("Dailies")).not.toBeInTheDocument();
   });
