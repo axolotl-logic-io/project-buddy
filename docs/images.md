@@ -14,7 +14,7 @@ No storage credential is needed. Generation reuses the upload feature's `images/
 
 ## Batteries and billing
 
-Images and adventures spend the same [batteries](../GLOSSARY.md#batteries) balance, which never resets. Generation charges the acting user, including a member replying in a team quest. Generation atomically reserves 25 batteries ($0.25) before a provider call, while locking the user's balance row, and refuses the request when the balance doesn't cover the reservation. Concurrent image requests cannot each spend the same remaining batteries. A durable claim for the answered user message prevents repeated tool calls or reply retries from generating or charging twice, even if the model assigns a new tool-call identifier.
+Images and adventures spend the same [batteries](../GLOSSARY.md#batteries) balance, which never resets. Generation charges the acting user. Generation atomically reserves 25 batteries ($0.25) before a provider call, while locking the user's balance row, and refuses the request when the balance doesn't cover the reservation. Concurrent image requests cannot each spend the same remaining batteries. A durable claim for the answered user message prevents repeated tool calls or reply retries from generating or charging twice, even if the model assigns a new tool-call identifier.
 
 Successful calls replace the reservation with reported spending, rounded up to micro-USD: text input tokens × 2.5, image input tokens × 4 and image output tokens × 15. These rates are $2.50, $4 and $15 per million tokens, respectively. Reference-conditioned requests require the provider’s separate text and image input counts; missing or inconsistent input details retain the reservation instead of pricing image input as text. Text-only prompts, one low-quality square output and no automatic retries bound each request. Review rates and the reservation before changing the model, dimensions, quality or prompt limit.
 
@@ -22,7 +22,7 @@ A timeout, missing usage, provider failure or persistence failure retains the re
 
 ## Ownership and deletion
 
-Gallery queries and image delivery use the acting user from the session and enforce adventure access. The quest owner and current team members can read images in their quest adventures; other users cannot. Image responses are private and non-cacheable; knowing another user's identifier grants no access. Generation metadata records the source adventure and prompt. The gallery shows up to 40 entries per page, newest first.
+Gallery queries and image delivery use the acting user from the session and enforce adventure access. The quest's owner can read images in their quest adventures; other users cannot, including former members. Image responses are private and non-cacheable; knowing another user's identifier grants no access. Generation metadata records the source adventure and prompt. The gallery shows up to 40 entries per page, newest first.
 
 Images belong to their source adventure. Database cascades delete image bytes and generation metadata with the adventure, its quest or the account. There is no independent image-delete control. Deleting an image's source never refunds spending. Copies already downloaded remain with the user.
 

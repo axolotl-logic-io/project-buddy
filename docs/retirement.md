@@ -18,7 +18,7 @@ View opens `/retirement/ID`, with the saved instructions as read-only text. Rest
 
 Delete forever asks for confirmation naming the definition. Keep retired cancels. Confirming permanently removes the original, while existing adventure snapshots and past casts remain. A deletion request refuses an active definition, including one restored after the confirmation opened. Unknown and repeated requests change nothing. Originals permanently deleted before this feature cannot be recovered.
 
-Only the definition's owner can read or change it. Team quest membership gives no access to another user's originals or Retirement, even when an adventure shares their snapshots.
+Only the definition's owner can read or change it. A former quest membership gives no access to another user's originals or Retirement.
 
 ## Marketplace
 
