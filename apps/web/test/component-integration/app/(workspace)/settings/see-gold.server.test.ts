@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 // "Batteries" label, and her balance falls as the construct replies. The
 // extra that hides it is checked in hide-extras.browser.test.tsx.
 import { afterEach, expect, test, vi } from "vitest";
-import AccountPage from "@/app/(workspace)/account/page.tsx";
+import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import {
@@ -17,9 +17,6 @@ import { signIn } from "../../../test-database/session-test-kit.ts";
 
 // The balance Account shows: the number under its "Batteries" label.
 const BALANCE = /Batteries<\/h2><p[^>]*>(?<amount>[^<]*)<\/p>/u;
-
-const SELECTED_TAB =
-  /<button\b(?=[^>]*role="tab")(?=[^>]*aria-selected="true")[^>]*>(?<label>[^<]+)<\/button>/u;
 
 // 13 gold, in micro-USD, of the starting 100, leaving exactly 87.
 const THIRTEEN_GOLD = 130_000;
@@ -38,7 +35,7 @@ function balanceIn(markup: string): string | undefined {
 
 // The number Account's Batteries tab shows.
 async function balanceShown(): Promise<string | undefined> {
-  return balanceIn(renderToStaticMarkup(await AccountPage()));
+  return balanceIn(renderToStaticMarkup(await SettingsPage()));
 }
 
 test("use_case_see_gold", async () => {
@@ -85,23 +82,25 @@ test.each(["disabled", "production", "malformed"])(
     if (configuration === "production") {
       vi.stubEnv("VERCEL_ENV", "production");
     }
-    const markup = renderToStaticMarkup(await AccountPage());
+    const markup = renderToStaticMarkup(await SettingsPage());
     expect(balanceIn(markup)).toBe("100");
     expect(markup).not.toContain('id="buy-batteries"');
   },
 );
 
 test.each([{ battery: "success" }, { section: "batteries" }])(
-  "purchase navigation opens Batteries instead of hiding it in Profile (%o)",
+  "purchase navigation keeps Batteries and security visible (%o)",
   async (query) => {
     const user = await testUser();
     await signIn(user);
     const html = renderToStaticMarkup(
-      await AccountPage({
+      await SettingsPage({
         searchParams: Promise.resolve(query),
       }),
     );
-    const { label } = SELECTED_TAB.exec(html)?.groups ?? {};
-    expect(label).toBe("Batteries");
+    expect(balanceIn(html)).toBe("100");
+    expect(html).toContain('id="batteries"');
+    expect(html).toContain('id="security"');
+    expect(html).not.toContain('role="tab"');
   },
 );

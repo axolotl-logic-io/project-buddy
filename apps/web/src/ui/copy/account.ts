@@ -1,11 +1,5 @@
-import { pageTitle } from "@/ui/copy/site.ts";
-
-// The account page, and the site header's link to it.
+// Profile, Batteries and security forms in Settings.
 export const ACCOUNT_COPY = {
-  title: pageTitle("Account"),
-  headerLink: "Account",
-  homeLink: "Home",
-  heading: "Account",
   loading: "Loading your batteries…",
   nameHeading: "Your name",
   nameLabel: "Name",

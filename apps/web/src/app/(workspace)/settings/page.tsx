@@ -13,11 +13,19 @@ import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
-import { BatteryPurchases } from "../account/battery-purchases.tsx";
-import { GoldBalance } from "../account/gold-balance.tsx";
-import { NameForm } from "../account/name-form.tsx";
-import { SignOutButtons } from "../account/sign-out-buttons.tsx";
+import { BatteryPurchases } from "./battery-purchases.tsx";
+import { GoldBalance } from "./gold-balance.tsx";
 import { InterviewConstructForm } from "./interview-construct-form.tsx";
+import { NameForm } from "./name-form.tsx";
+import { SignOutButtons } from "./sign-out-buttons.tsx";
+
+const PROFILE_ID = "profile";
+const APPEARANCE_ID = "appearance";
+const APPEARANCE_HEADING_ID = "appearance-heading";
+const GENERAL_ID = "general";
+const BATTERIES_ID = "batteries";
+const SECURITY_ID = "security";
+const SECURITY_HEADING_ID = "security-heading";
 
 export const metadata: Metadata = { title: SETTINGS_COPY.title };
 
@@ -38,7 +46,7 @@ export default async function SettingsPage({
   const catalog = availableBatteryCatalog();
   return (
     <div className="workspace-content flex flex-col gap-4">
-      <div id="profile" className="flex flex-col gap-3">
+      <div id={PROFILE_ID} className="flex flex-col gap-3">
         <NameForm name={user.name} />
         {user.role === "admin" && (
           <Button asChild={true} className="self-start" variant="secondary">
@@ -47,23 +55,23 @@ export default async function SettingsPage({
         )}
       </div>
       <section
-        id="appearance"
-        aria-labelledby="appearance-heading"
+        id={APPEARANCE_ID}
+        aria-labelledby={APPEARANCE_HEADING_ID}
         className="panel"
       >
-        <h2 id="appearance-heading" className="section-heading">
+        <h2 id={APPEARANCE_HEADING_ID} className="section-heading">
           {WORKSPACES_COPY.appearance}
         </h2>
         <AppearanceChoices settings={true} />
       </section>
-      <div id="general">
+      <div id={GENERAL_ID}>
         <InterviewConstructForm
           constructId={chosen.id}
           userConstructs={constructs}
         />
       </div>
       <section
-        id="batteries"
+        id={BATTERIES_ID}
         aria-label={ACCOUNT_COPY.goldHeading}
         className="flex flex-col gap-3"
       >
@@ -79,11 +87,11 @@ export default async function SettingsPage({
         )}
       </section>
       <section
-        id="security"
-        aria-labelledby="security-heading"
+        id={SECURITY_ID}
+        aria-labelledby={SECURITY_HEADING_ID}
         className="panel flex flex-col gap-4"
       >
-        <h2 id="security-heading" className="section-heading">
+        <h2 id={SECURITY_HEADING_ID} className="section-heading">
           {WORKSPACES_COPY.security}
         </h2>
         <SignOutButtons />

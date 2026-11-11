@@ -1,14 +1,14 @@
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { BatteryPurchases } from "@/app/(workspace)/account/battery-purchases.tsx";
+import { BatteryPurchases } from "@/app/(workspace)/settings/battery-purchases.tsx";
 import {
   BatteryPurchasesAvailable,
   EarnGoldLink,
 } from "@/components/earn-gold-link.tsx";
 import { BATTERY_PURCHASES_COPY } from "@/ui/copy/battery-purchases.ts";
 
-vi.mock("@/app/(workspace)/account/battery-actions.ts", () => ({
+vi.mock("@/app/(workspace)/settings/battery-actions.ts", () => ({
   buyBatteries: vi.fn(),
   refreshBatteryPayments: vi.fn(),
 }));
