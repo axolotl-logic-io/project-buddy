@@ -18,4 +18,10 @@ function EditorFrame({ children }: FrameProps): JSX.Element {
   return <div className="page-column page-frame-editor">{children}</div>;
 }
 
-export { EditorFrame, HomeFrame, PageFrame };
+// A quest's pages, whose conversation and plan sit side by side on a wide
+// screen, in every state, so nothing shifts as they load or fail.
+function QuestFrame({ children }: FrameProps): JSX.Element {
+  return <div className="page-column page-frame-quest">{children}</div>;
+}
+
+export { EditorFrame, HomeFrame, PageFrame, QuestFrame };
