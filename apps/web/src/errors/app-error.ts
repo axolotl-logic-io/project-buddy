@@ -40,7 +40,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "invalid-image":
     "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
   "invalid-request":
-    "The construct could not answer this request. Try again, or start a new adventure if it keeps failing.",
+    "The construct could not answer this request. Try again, or try again later if it keeps failing.",
   "model-server-error":
     "Claude's service had an internal error. Try again in a few minutes.",
   "model-unreachable": "The site couldn't reach Claude. Try again in a moment.",
@@ -50,14 +50,14 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "Your changes could not be saved. Please try again later.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That quest or adventure can't be found. The link may be wrong, or it may have been deleted.",
+    "That quest or conversation can't be found. The link may be wrong, or it may have been deleted.",
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
   // The user's gold (src/gold/) is spent: the chat, the new-chat and
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
-    "You're out of batteries. The construct can't reply, generate images or start new adventures and quests without them.",
+    "You're out of batteries. The construct can't reply, generate images or start new quests without them.",
   unknown: "Something went wrong. Please try again later.",
 };
 
