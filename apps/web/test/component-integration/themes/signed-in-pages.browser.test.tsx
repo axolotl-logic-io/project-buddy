@@ -16,7 +16,6 @@ import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
-import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
@@ -268,9 +267,6 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
-    document.documentElement.setAttribute(name, value);
-  }
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
   signInAs(SIGNED_IN_USER);
