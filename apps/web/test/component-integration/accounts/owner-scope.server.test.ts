@@ -12,8 +12,8 @@ import {
   goldLedgerOwnedBy,
   memoryVersionOpenTo,
   messageOpenTo,
-  opensProject,
   ownPromptOwnedBy,
+  ownsProject,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
@@ -176,12 +176,12 @@ async function ownMemoryGoldAndConstructs(
   ];
 }
 
-// Whether opensProject holds for her and the project, on her user row.
+// Whether ownsProject holds for her and the project, on her user row.
 async function holds(her: User, projectId: ProjectId): Promise<boolean> {
   const rows = await getDb()
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.id, her.id), opensProject(her.id, projectId)));
+    .where(and(eq(users.id, her.id), ownsProject(her.id, projectId)));
   return rows.length > 0;
 }
 

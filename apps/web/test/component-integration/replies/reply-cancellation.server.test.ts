@@ -8,7 +8,6 @@ import { describe, expect, test, vi } from "vitest";
 import { listMessages, readStoppedReply, saveReply } from "@/chats/store.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { spendMeter } from "@/quota/spend-meter.ts";
 import { mockConstructModel } from "@/replies/mock-model.ts";
 import { REPLY_MODEL_ID, replyModel } from "@/replies/model.ts";
@@ -17,6 +16,7 @@ import { replyToChat } from "@/replies/reply.ts";
 import { stopReply } from "@/replies/reply-runs.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
 
@@ -102,15 +102,13 @@ function heldProvider(): {
 }
 
 describe("use_case_stop_reply", () => {
-  test("a member requests provider cancellation; repeated Stop preserves the partial reply and clears retry state", async () => {
-    const user = await testUser();
-    const member = await testUser();
-    const outsider = await testUser();
+  test("the owner requests provider cancellation; repeated Stop preserves the partial reply and clears retry state", async () => {
+    const [user, formerMember] = await Promise.all([testUser(), testUser()]);
     const project = await testData(user).project();
-    await addProjectMember(member.id, project.id);
+    await formerMembership(user, formerMember, project.id);
     const chat = await testData(user).chat(project);
     const provider = heldProvider();
-    const messageId = MESSAGE_ID.parse("cancel-member-reply");
+    const messageId = MESSAGE_ID.parse("cancel-owner-reply");
     try {
       const response = await replyToChat(user.id, {
         chatId: chat.id,
@@ -122,15 +120,17 @@ describe("use_case_stop_reply", () => {
       });
       const body = response.text();
       await provider.started;
-      expect(await stopReply(outsider.id, chat.id, messageId)).toBe(
+      expect(await stopReply(formerMember.id, chat.id, messageId)).toBe(
         "not-found",
       );
-      expect(await stopReply(member.id, chat.id, messageId)).toBe("active");
+      expect(await stopReply(user.id, chat.id, messageId)).toBe("active");
       await provider.aborted;
       await body;
       await afterTasksDone();
       expect(await stopReply(user.id, chat.id, messageId)).toBe("cancelled");
-      expect(await stopReply(member.id, chat.id, messageId)).toBe("cancelled");
+      expect(await stopReply(formerMember.id, chat.id, messageId)).toBe(
+        "not-found",
+      );
       const saved = await listMessages(user.id, chat.id);
       expect(JSON.stringify(saved)).toContain(CHAT_COPY.cancelledReply);
       expect(await readStoppedReply(user.id, chat.id)).toBeUndefined();

@@ -36,7 +36,7 @@ The conversation shows each call as a **Plan change** with Undo (`src/components
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
 - The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
-- The **Plan panel** beside a quest's conversation: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the conversation's last message awaits a reply: while one runs, here or for another member, and after one failed or stopped, so that Retry or "send again" still answers that message.
+- The **Plan panel** beside a quest's conversation: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |
@@ -54,7 +54,7 @@ People change the plan through the Server Actions in `src/plan/plan-actions.ts`.
 
 A change made in a conversation, by the panel, a card or a command, is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, a conversation's naming or a reply's cost. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. A change made on the quest's page adds no message.
 
-In a [team quest](team-projects.md), every member can change the plan and undo anyone's change. Each change records its author.
+Only the quest's owner can change its plan. Each change records its author.
 
 ## Storage
 
@@ -64,4 +64,6 @@ The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per c
 
 ## Later
 
-Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854), Preferences (#855) and Quick Notes (#856) sections, are separate issues.
+Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854) and Preferences (#855) sections, are separate issues.
+
+Quick Notes removal supersedes the separate-storage proposal (#856). Historical Note paragraphs remain ordinary Journal content, with no rewrite or migration.

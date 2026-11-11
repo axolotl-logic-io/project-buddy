@@ -28,7 +28,6 @@ import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import type { OwnPrompt } from "@/prompts/own-prompt-store.ts";
 import { type PromptKind, storedPromptKind } from "@/prompts/prompt.ts";
@@ -47,6 +46,7 @@ import {
   updateSpell,
 } from "@/spells/spell-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   expectNotFound,
@@ -174,10 +174,10 @@ describe("use_case_retire_definitions", () => {
     await restoreDefinition(owner.id, copy.id);
     expect((await interviewConstruct(owner.id)).id).toBe(copy.id);
   });
-  test("team quest membership gives no access to originals or Retirement changes", async () => {
+  test("a former quest membership gives no access to originals or Retirement changes", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
-    const project = await testData(owner).project("Shared quest");
-    await addProjectMember(member.id, project.id);
+    const project = await testData(owner).project("Formerly shared quest");
+    await formerMembership(owner, member, project.id);
     await Promise.all(
       KINDS.map(async (kind) => {
         const copy = await kind.clone(owner.id, kind.source);

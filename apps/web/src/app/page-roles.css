@@ -20,14 +20,6 @@
     @apply flex flex-wrap items-center justify-between gap-4 p-4 sm:p-6;
   }
 
-  .quests-index-invitations {
-    @apply flex flex-col gap-4 px-4 sm:px-6;
-  }
-
-  .quests-index-invitations:has(section) {
-    @apply pb-4;
-  }
-
   .quests-index-tablist {
     @apply grid grid-cols-2 border-line border-y px-4 sm:flex sm:flex-wrap sm:gap-x-4 sm:px-6;
   }
@@ -477,7 +469,7 @@
 
   /* A list whose items are rows divided by rules rather than cards, as the
      Quests index lists its quests: a quest's adventures, milestones, Quick
-     Notes and Journal versions, and every other list of adventures. Inside
+     Journal versions, and every other list of adventures. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
   .divided-rows {
@@ -639,8 +631,7 @@
      theme dresses it through the menu tokens (src/themes/themes.ts). */
   /* The header is a game's HUD in every theme, with an independent ink and gold palette:
      the site's name behind a compass medallion, the place the page belongs
-     to, and the buttons as ink tiles with a gold rim,
-     Quick Note in gold. The menu's panel inside it keeps the theme's own
+     to, and the buttons as ink tiles with a gold rim. The menu's panel inside it keeps the theme's own
      look, so only the header's own children are dressed. */
   .site-header {
     @apply relative z-20 flex flex-wrap items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
@@ -744,10 +735,6 @@
     color: var(--hud-gold);
   }
 
-  .header-quick-note {
-    @apply shrink-0 whitespace-nowrap;
-  }
-
   @media (width < 32rem) {
     .hud-medallion {
       display: none;
@@ -755,16 +742,6 @@
 
     .site-header:has(.header-balance) .hud-title {
       @apply min-h-(--target-size);
-    }
-
-    .header-quick-note {
-      min-inline-size: var(--target-size);
-      padding-inline: 0;
-    }
-
-    /* Its words, not its icon (the Icon's own span). */
-    .header-quick-note > span:not(.icon) {
-      @apply sr-only;
     }
   }
 

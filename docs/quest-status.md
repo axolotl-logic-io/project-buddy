@@ -1,10 +1,10 @@
 # Quest status
 
-A quest starts Active. Its owner can mark it Completed or Abandoned with the visible Complete and Abandon buttons in the quest workspace rail. Both choices keep the conversation, Journal, Quick Notes, progress and memberships available. Members can read and continue the quest but cannot change its status.
+A quest starts Active. Its owner can mark it Completed or Abandoned with the visible Complete and Abandon buttons in the quest workspace rail. Both choices keep the conversation, Journal and progress available. No one else can change its status.
 
 Quests has an underlined tab rail for Active, Completed and Abandoned quests, below the four starting points, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the quest page offers the same action. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
-Home features only Active quests. Quest choices, such as Quick Note's and an activity's start, offer only accessible Active quests, including team quests. Completing or abandoning removes a quest from subsequent choices; restoring it makes it available again. An unavailable selection falls back to the newest Active quest in Quick Note. A quest's conversation remains available to continue, including in Completed and Abandoned quests. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
+Home features only Active quests. Quest choices, such as an activity's start, offer only the user's own Active quests. Completing or abandoning removes a quest from subsequent choices; restoring it makes it available again. A quest's conversation remains available to continue, including in Completed and Abandoned quests. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
 
 ## Construct approval
 
@@ -20,8 +20,8 @@ Reply instructions include the requesting owner’s latest proposal decision in 
 
 ## Quest workspace
 
-The quest overview and Quest Journal share a compact header. The title and its pencil appear above the status. The lower rail holds Conversation, Quest Journal, Plan, Progress, Quick Notes, Versions and Members navigation, followed by the owner's status actions. The current section appears below the rail; Conversation, the default, follows the frame at the page's full width, with its pinned header and composer. The current page has an underlined link. Controls wrap on phones.
+The quest overview and Quest Journal share a compact header. The title and its pencil appear above the status. The lower rail holds Conversation, Quest Journal, Plan, Progress and Versions navigation, followed by the status actions. The current section appears below the rail; Conversation, the default, follows the frame at the page's full width, with its pinned header and composer. The current page has an underlined link. Controls wrap on phones.
 
-The owner can choose the pencil to edit the title inline. Save title or Enter saves a trimmed name of up to 80 characters. Cancel title edit or Escape discards the draft, and focus returns to the pencil. Invalid names and storage failures keep the draft open for correction. Members can read the title but cannot edit it.
+The owner can choose the pencil to edit the title inline. Save title or Enter saves a trimmed name of up to 80 characters. Cancel title edit or Escape discards the draft, and focus returns to the pencil. Invalid names and storage failures keep the draft open for correction.
 
-The overview keeps the conversation, plan, progress timeline, Quick Notes, members and invitations. The Journal keeps its editor and version history. Navigation and title edits start nothing and make no model call.
+The overview keeps the conversation, plan, progress timeline. The Journal keeps its editor and version history. Navigation and title edits start nothing and make no model call.

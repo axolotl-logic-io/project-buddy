@@ -40,7 +40,7 @@ A construct, activity or spell that ships with the site.
 
 ### Own construct, activity or spell
 
-A user's private, editable construct, activity or spell, made by copying another or crafting one. Its prompt can become part of a team quest's conversation without giving others access to the original.
+A user's private, editable construct, activity or spell, made by copying another or crafting one. Using it in a conversation gives no one else access to the original.
 
 ### Retire, Retirement, restore, delete forever
 
@@ -99,7 +99,7 @@ The page listing the built-in [constructs](#construct) and the user's own. It st
 
 An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice) and [habits](#habits). Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in a conversation.
 
-A construct is not a prompt; it has one. People working together on a [team quest](#team-quest) are its [members](#member).
+A construct is not a prompt; it has one.
 
 - **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "Craft construct".
 - **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
@@ -242,7 +242,7 @@ A [spell](#spell)'s prompt: what the construct does once it casts the spell. Cas
 
 ### Cast
 
-To make a spell's instructions available to the construct. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that conversation, including replies to other team quest members. They are not exposed as readable prompts to people viewing the conversation.
+To make a spell's instructions available to the construct. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that conversation. They are not exposed as readable prompts to people viewing the conversation.
 
 - **UI:** "Cast SPELL NAME".
 - **Avoid:** "invoke", "run", "load" in copy.
@@ -251,7 +251,7 @@ To make a spell's instructions available to the construct. A cast preserves the 
 
 ### Conversation
 
-The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner and members, and each user has one private [Chat](#chat-destination). Starting a conversation again reaches the same one; reading a quest never starts one. Changing activity keeps the conversation.
+The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner alone, and each user has one private [Chat](#chat-destination). Starting a conversation again reaches the same one; reading a quest never starts one. Changing activity keeps the conversation.
 
 - **UI:** the quest's or Chat's own page; no list of conversations and no conversation names.
 - **Avoid:** "adventure", "thread", "session", and any second conversation in a quest.
@@ -318,7 +318,7 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its Journal, plan, progress timeline and Quick Notes. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
+Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its Journal, plan and progress timeline. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
@@ -339,25 +339,15 @@ The other way to create a quest: from [Chat](#chat-destination), the same form a
 
 The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy. Quests is the signed-in landing page; labels use Quest and Quests.
 
-### Team quest
+### Personal quest
 
-A quest that its [owner](#owner) shares with [members](#member). Everyone in it shares its conversation, Journal, Quick Notes and progress timeline. A quest with no members is not a team quest, though nothing else sets it apart.
+Every quest is its [owner](#owner)'s alone: no one else can open, read or change its conversation, Journal, plan and progress timeline. Quests were once shareable with members through quest invitations; those were removed (#907). A former member's past messages and Journal versions keep their author, but their old membership or invitation grants nothing.
 
-In a team quest, the chosen construct's and activity's instructions are shared with the quest's members, own ones too, through the conversation's [snapshots](#snapshot). The original construct or activity stays private to its user.
-
-- **UI:** "Shared" on the owner's quests list, "Shared with you" on a member's.
-- **Avoid:** "shared quest" in code, "group quest", "workspace".
-
-### Member
-
-A user in someone else's [team quest](#team-quest), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay.
-
-- **UI:** "Member", "Members", "Leave quest", "Remove".
-- **Avoid:** "collaborator", "teammate", "guest".
+- **Avoid:** "team quest", "shared quest", "member", "quest invitation" for anything current.
 
 ### Journal
 
-One editable Markdown document per quest, read by every reply in its conversation. It holds the quest's goals, milestones, progress, preferences and Quick Notes. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
+One editable Markdown document per quest, read by every reply in its conversation. It holds the quest's goals, milestones, progress and preferences. The user and the construct can both change it. The quest's [plan](#plan) is kept beside it, as its first typed section; the Journal page shows it above the Markdown.
 
 - **UI:** "Journal", "Quest Journal".
 - **Earlier name:** "Memory" or "Quest memory".
@@ -379,13 +369,6 @@ A note in a quest's conversation that the construct updated the quest's Journal.
 
 - **UI:** "Journal change".
 - **Avoid:** "Journal change card", "Journal change notice".
-
-### Quick Note
-
-A short, dated line the user saves to a quest outside its conversation, without a model call. It becomes part of the Journal, so the construct can read it in later replies. Saving or deleting one makes a new Journal version by the user. **Quick Notes** names the feature and a quest's collection of them.
-
-- **UI:** "Quick Note" for a single item and "Quick Notes" for the feature and collection.
-- **Avoid:** "note" alone or "quick capture" for this feature in UI copy and docs; "memo", "jot", "inbox".
 
 ### Goal
 
@@ -526,7 +509,7 @@ A user's account role: user or admin. The admin role grants only the right to se
 
 ### Acting user
 
-The user performing an action now. Their access determines what the action may read or change. In a team quest, the acting user can be the owner or a member; acting does not confer ownership.
+The user performing an action now. Their access determines what the action may read or change. Acting does not confer ownership.
 
 The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [batteries](#batteries).
 
@@ -534,9 +517,9 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 ### Owner
 
-The user something belongs to. A quest's owner is the user who made it. Members share access to its conversation, Journal, Quick Notes and progress timeline, but only the owner removes members. The owner cannot leave their quest.
+The user something belongs to. A quest's owner is the user who made it, and the only user who can reach it ([personal quest](#personal-quest)).
 
-Ownership and access are distinct: own constructs, activities, spells and batteries belong to individual users, and team quest data is accessible to members. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs, activities, spells, quests and batteries belong to individual users. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
@@ -546,13 +529,6 @@ Ownership and access are distinct: own constructs, activities, spells and batter
 An **invitation** lets someone create an account. An admin sends it to an email address. Its **setup link** confirms the invitation and creates the account; it can be used once.
 
 - **UI:** "Invitation", "Set up my account".
-
-### Quest invitation
-
-A quest's owner asks someone to join as a member. The invitee joins or declines; until then it is pending, and the owner can revoke it. A quest invitation cannot create an account or reveal whether an email address has an account.
-
-- **UI:** "Invite someone", "Pending invitations", "Revoke", "Quest invitations", "Join", "Decline".
-- **Avoid:** "invitation" alone for this concept; "share" or "add" for inviting.
 
 ### Sign-in link
 
@@ -573,13 +549,13 @@ These terms describe planned API access, tracked in [API access requirements](ht
 
 Software that calls the Project Buddy API on a user's behalf, such as a command utility or an application that runs an external agent. A client is distinct from a connection: the same client can have connections for different users or installations.
 
-A client uses the same quests, conversations and other domain concepts as the site. It is not a construct, a quest member or a user account.
+A client uses the same quests, conversations and other domain concepts as the site. It is not a construct or a user account.
 
 - **Avoid:** "tool" for an API client; a tool is a function the model can call during a reply.
 
 ### External agent
 
-Software outside Project Buddy that can use a client to act on a user's behalf. It can submit messages to a construct or use deterministic API operations directly. It has no separate user identity or quest membership in this model.
+Software outside Project Buddy that can use a client to act on a user's behalf. It can submit messages to a construct or use deterministic API operations directly. It has no separate user identity in this model.
 
 - **Avoid:** "construct" for an external agent.
 
@@ -593,7 +569,7 @@ A connection is distinct from a site session and from the credentials used to ac
 
 ### Connection permission
 
-An operation or set of operations a user allows through a connection. Effective access is limited by both these permissions and the acting user's current access. Losing quest membership ends the connection's access to that quest too.
+An operation or set of operations a user allows through a connection. Effective access is limited by both these permissions and the acting user's current access.
 
 Permissions distinguish reading data, changing it directly and requesting construct replies. Allowing a reply also needs to account for the tools the harness can execute during it; permissions apply to those actions too.
 
@@ -608,11 +584,11 @@ The `login` command starts browser-based authorization for a command utility to 
 
 ### Generated image
 
-An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [batteries](#batteries). It belongs to its source conversation. An image in a team quest's conversation is accessible to the quest's owner and members.
+An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [batteries](#batteries). It belongs to its source conversation. An image in a quest's conversation is accessible to the quest's owner alone.
 
 ### Image gallery
 
-The generated images made at a user's request. Each user's gallery lists their own generations, including those made in team quests. Deleting a source conversation, or its quest, also deletes its generated images.
+The generated images made at a user's request. Each user's gallery lists their own generations. Deleting a source conversation, or its quest, also deletes its generated images.
 
 ## Usage
 
@@ -650,7 +626,7 @@ Use conversation, Chat and Journal in new product copy and prompts. The existing
 route paths, database names, API fields, tool names and prompt boundary tags
 remain compatibility names in this release. The Chat activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
-Quick Note paragraphs and historical migration fixtures are never rewritten.
+historical Note paragraphs and migration fixtures are never rewritten.
 The global prompt explains earlier names so constructs understand them.
 
 ### Premade quest
@@ -662,7 +638,7 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation, Journal or plan, whatever the user has renamed it: it is found by its mark, not its name. Members of a shared Dailies see it as an ordinary quest. Start the day is a message the user sends in it. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation, Journal or plan, whatever the user has renamed it: it is found by its mark, not its name. Start the day is a message the user sends in it. Dailies keeps no streaks, deadlines or daily resets.
 
 - **UI:** “Dailies”, “Start the day”.
 - **Avoid:** "daily quest" for a new quest per day, "streak".

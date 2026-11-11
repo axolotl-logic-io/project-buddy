@@ -6,7 +6,6 @@ import {
   claimGeneration,
   completeGeneration,
 } from "@/images/generation-store.ts";
-import { addProjectMember } from "@/projects/members-store.ts";
 import {
   completeReplyAccounting,
   readReplyCosts,
@@ -15,6 +14,7 @@ import {
 import { beginReplyRun, finishReplyRun } from "@/replies/reply-runs.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { formerMembership } from "../../support/test-database/former-member-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
@@ -23,24 +23,22 @@ import { signIn } from "../test-database/session-test-kit.ts";
 const COST = 123;
 
 describe("use_case_see_gold", () => {
-  test("reply costs include naming, retain fractions, and are private to the acting member", async () => {
-    const owner = await testUser();
-    const member = await testUser();
-    const outsider = await testUser();
+  test("reply costs include naming, retain fractions, and are private to the acting user", async () => {
+    const [owner, formerMember] = await Promise.all([testUser(), testUser()]);
     const project = await testData(owner).project();
-    await addProjectMember(member.id, project.id);
+    await formerMembership(owner, formerMember, project.id);
     const chat = await testData(owner).chat(project);
-    await signIn(member);
+    await signIn(owner);
     await sendChatMessage(chat.id, "Help with this quest.");
-    const [cost] = await readReplyCosts(member.id, chat.id);
+    const [cost] = await readReplyCosts(owner.id, chat.id);
     expect(cost?.state).toBe("actual");
-    expect(cost?.gold).toBe(goldOfMicroUsd(await goldSpent(member)));
+    expect(cost?.gold).toBe(goldOfMicroUsd(await goldSpent(owner)));
     expect(cost?.gold).toBeGreaterThan(0);
     if (cost === undefined) {
       throw new Error("Missing cost");
     }
     const request = {
-      owner: member.id,
+      owner: owner.id,
       chatId: chat.id,
       requestId: `${chat.id}:${cost.messageId}`,
       prompt: "A fox.",
@@ -49,26 +47,23 @@ describe("use_case_see_gold", () => {
     if (claim.status !== "claimed") {
       throw new Error("No image claim");
     }
-    expect((await readReplyCosts(member.id, chat.id))[0]?.state).toBe(
-      "pending",
-    );
-    await completeGeneration(member.id, claim.id, {
+    expect((await readReplyCosts(owner.id, chat.id))[0]?.state).toBe("pending");
+    await completeGeneration(owner.id, claim.id, {
       bytes: Buffer.from(pngBytes()),
       mediaType: "image/png",
       costMicroUsd: COST,
     });
-    expect((await readReplyCosts(member.id, chat.id))[0]).toMatchObject({
+    expect((await readReplyCosts(owner.id, chat.id))[0]).toMatchObject({
       state: "actual",
-      gold: goldOfMicroUsd(await goldSpent(member)),
+      gold: goldOfMicroUsd(await goldSpent(owner)),
     });
-    const billed = await goldSpent(member);
+    const billed = await goldSpent(owner);
     expect((await claimGeneration(request)).status).toBe("generated");
-    expect(await goldSpent(member)).toBe(billed);
+    expect(await goldSpent(owner)).toBe(billed);
 
-    expect(await goldSpent(owner)).toBe(0);
-    expect(await readReplyCosts(owner.id, chat.id)).toEqual([]);
-    expect(await readReplyCosts(outsider.id, chat.id)).toEqual([]);
-    expect((await listMessages(member.id, chat.id)).at(-1)?.role).toBe(
+    expect(await goldSpent(formerMember)).toBe(0);
+    expect(await readReplyCosts(formerMember.id, chat.id)).toEqual([]);
+    expect((await listMessages(owner.id, chat.id)).at(-1)?.role).toBe(
       "assistant",
     );
   });

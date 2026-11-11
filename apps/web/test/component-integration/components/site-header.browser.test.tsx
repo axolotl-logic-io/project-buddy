@@ -30,7 +30,6 @@ import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -114,13 +113,6 @@ function linkNames(label: string): readonly string[] {
     .map((link) => link.textContent);
 }
 
-// The header's link to quick capture.
-function noteLink(): Locator {
-  return page
-    .getByRole("banner")
-    .getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink });
-}
-
 // Stops a clicked link from leaving the test's page.
 function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
@@ -132,7 +124,7 @@ function renderSignedIn(): ReturnType<typeof render> {
       links={
         <>
           <HeaderBalance microUsd={870_000} />
-          <SiteMenu links={<AccountLinks />} shortcuts={true} />
+          <SiteMenu links={<AccountLinks />} />
         </>
       }
     />,
@@ -157,6 +149,11 @@ describe("use_case_use_on_phone", () => {
           await setViewport(screen.viewport);
           await renderSignedIn();
           await expect.element(menuButton()).toBeVisible();
+          await expect
+            .element(
+              page.getByRole("link", { name: "Quick Note", exact: true }),
+            )
+            .not.toBeInTheDocument();
           await loadFonts();
 
           const title = page
@@ -188,23 +185,7 @@ describe("use_case_use_on_phone", () => {
           ).toBe(1);
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          const noteBox = noteLink().element().getBoundingClientRect();
-          expect(
-            noteBox.bottom > buttonBox.top && buttonBox.bottom > noteBox.top,
-            "quick capture's link shares the menu button's row",
-          ).toBe(true);
-          expect(noteBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          expect(noteBox.height, "Quick Note stays a single-row control").toBe(
-            buttonBox.height,
-          );
-          expect(noteBox.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          const noteIcon = noteLink().element().querySelector(".icon");
-          expect(
-            noteIcon?.getBoundingClientRect().width,
-            "Quick Note shows its icon at every width",
-          ).toBeGreaterThan(1);
-          expect(titleBox.right).toBeLessThanOrEqual(noteBox.left);
-          expect(noteBox.right).toBeLessThanOrEqual(buttonBox.left);
+          expect(titleBox.right).toBeLessThanOrEqual(buttonBox.left);
           expect(
             document.documentElement.scrollWidth,
             "no sideways scroll",
@@ -234,25 +215,6 @@ describe("use_case_use_on_phone", () => {
   }
 });
 
-describe("use_case_quick_note", () => {
-  for (const screen of SCREENS) {
-    test(`quick capture is one tap from the signed-in header on ${screen.name}`, async () => {
-      await setViewport(screen.viewport);
-      await renderSignedIn();
-
-      await expect.element(noteLink()).toBeVisible();
-      expect(noteLink().element()).toHaveAttribute("href", "/capture");
-    });
-  }
-
-  test("a visitor's header has no quick capture", async () => {
-    await render(<SiteHeader />);
-
-    await expect.element(menuButton()).toBeVisible();
-    expect(noteLink().query()).toBeNull();
-  });
-});
-
 test.each(SCREENS)(
   "Quests and Chat are reached through the menu on $name",
   async (screen) => {
@@ -265,7 +227,6 @@ test.each(SCREENS)(
     expect(
       header.getByRole("link", { name: CHAT_COPY.headerLink }).query(),
     ).toBeNull();
-    await expect.element(noteLink()).toBeVisible();
     await openMenu();
     await expect
       .element(
@@ -460,7 +421,7 @@ describe("breadcrumbs in the shared header", () => {
         <SiteHeader
           links={
             <>
-              <SiteMenu links={<AccountLinks />} shortcuts={true} />
+              <SiteMenu links={<AccountLinks />} />
               <HeaderBalance microUsd={870_000} />
               <Breadcrumbs
                 items={[
@@ -505,9 +466,6 @@ describe("breadcrumbs in the shared header", () => {
       );
       await expect
         .element(page.getByRole("button", { name: "Menu", exact: true }))
-        .toBeVisible();
-      await expect
-        .element(page.getByRole("link", { name: "Quick Note", exact: true }))
         .toBeVisible();
       await screen.rerender(
         <SiteHeader
@@ -564,7 +522,7 @@ describe("header battery balance", () => {
             links={
               <>
                 <HeaderBalance microUsd={870_000} />
-                <SiteMenu links={<AccountLinks />} shortcuts={true} />
+                <SiteMenu links={<AccountLinks />} />
               </>
             }
           />
