@@ -1,5 +1,5 @@
 // Rows of the chats and messages tables, as the chat stores read and write
-// them. Reads check what the columns cannot: a chat's construct and name. A chat
+// them. Reads check what the columns cannot: a chat's construct. A chat
 // is in a project, a project chat, or in none, a standalone chat; both are
 // one type, Chat, whose project is undefined in a standalone chat.
 import type { UIMessage } from "ai";
@@ -14,7 +14,6 @@ import {
   sql,
 } from "drizzle-orm";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   type ConstructId,
@@ -49,10 +48,6 @@ interface Chat {
   // The construct as it was when the chat started.
   readonly construct: ConstructSnapshot;
   readonly createdAt: Date;
-  // Undefined until Claude Haiku or she first names the chat.
-  readonly name: ChatName | undefined;
-  // Whether she has renamed the chat, after which Haiku never renames it.
-  readonly renamedByHand: boolean;
 }
 
 // A chat known to be in a project, such as one of a project's chats.
@@ -132,8 +127,7 @@ function toProject({
 
 // Rows, with their projects' columns, as chats. A row that is not a chat
 // (toProject), or whose id is not a UUID, though the uuid column never
-// holds one, is skipped. A stored name that is not a chat name, which only
-// a hand-edited row could hold, reads as no name.
+// holds one, is skipped.
 function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
   return rows.flatMap((row) => {
     const id = parseChatId(row.id);
@@ -147,8 +141,6 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
         activityName: row.activityName ?? undefined,
         project: place.project,
         construct: toConstruct(row),
-        name: parseChatName(row.name ?? ""),
-        renamedByHand: row.renamedByHand,
         createdAt: row.createdAt,
       },
     ];
