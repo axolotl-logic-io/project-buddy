@@ -8,9 +8,9 @@
 // changes only as the construct enters another (select_activity). Every
 // function takes the acting user first, and a place or conversation not open
 // to them is not found, exactly as an unknown one.
-import { and, eq, isNull, not, type SQL, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { currentActivity, newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
@@ -168,48 +168,80 @@ async function appendConstructMessage(
   chatId: ChatId,
   message: NewMessage,
 ): Promise<boolean> {
-  const saved = await withAppErrors("appendConstructMessage", () =>
-    getDb()
-      .insert(messages)
-      .select(
-        new QueryBuilder()
-          .select(messageColumns(chatId, message))
-          .from(chats)
-          .where(and(openChat(owner, chatId), noReplyAwaited(chatId))),
-      )
-      .onConflictDoNothing()
-      .returning({ id: messages.id }),
+  return (
+    (await appendAfterReplies(owner, chatId, messageColumns(chatId, message)))
+      .length > 0
   );
-  return saved.length > 0;
 }
 
-// Whether the owner's conversation has no messages yet; false for one not
-// open to them.
-async function isEmptyConversation(
+// Inserts the message whose columns are given at the end of the owner's
+// conversation unless its newest message awaits a reply, and returns the
+// inserted row's id, if any. The conversation's row is locked first, so of
+// concurrent appends to one conversation each sees those before it: two
+// messages that each wait for a reply never both go in.
+function appendAfterReplies(
   owner: UserId,
   chatId: ChatId,
-): Promise<boolean> {
-  const rows = await withAppErrors("isEmptyConversation", () =>
-    getDb()
-      .select({ id: chats.id })
-      .from(chats)
-      .where(
-        and(
-          openChat(owner, chatId),
-          not(
-            sql`exists (select 1 from ${messages} where ${messages.chatId} = ${chats.id})`,
-          ),
-        ),
-      ),
+  columns: ReturnType<typeof messageColumns>,
+): Promise<{ id: string }[]> {
+  return withAppErrors("appendAfterReplies", () =>
+    inTransaction(async (db) => {
+      await db
+        .select({ id: chats.id })
+        .from(chats)
+        .where(openChat(owner, chatId))
+        .for("update");
+      return await db
+        .insert(messages)
+        .select(
+          new QueryBuilder()
+            .select(columns)
+            .from(chats)
+            .where(and(openChat(owner, chatId), noReplyAwaited(chatId))),
+        )
+        .onConflictDoNothing()
+        .returning({ id: messages.id });
+    }),
   );
-  return rows.length > 0;
+}
+
+// Adds message, written by the owner, to the end of the owner's
+// conversation, with no reply claimed, so the browser asks for its reply as
+// for any message it sends; and returns the id of the message that awaits
+// the reply. When the conversation's newest message already awaits a reply
+// (noReplyAwaited), such as the same request sent twice, nothing is added
+// and that message's id is returned. Nothing is added to a conversation not
+// open to the owner.
+async function appendUserMessage(
+  owner: UserId,
+  chatId: ChatId,
+  message: NewMessage,
+): Promise<string> {
+  const saved = await appendAfterReplies(
+    owner,
+    chatId,
+    messageColumns(chatId, message, { author: owner }),
+  );
+  const [inserted] = saved;
+  if (inserted !== undefined) {
+    return inserted.id;
+  }
+  const [newest] = await withAppErrors("appendUserMessage", () =>
+    getDb()
+      .select({ id: messages.id })
+      .from(messages)
+      .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(1),
+  );
+  return newest?.id ?? message.id;
 }
 
 export type { Conversation, ConversationStart, FoundConversation };
 export {
   appendConstructMessage,
+  appendUserMessage,
   findConversation,
   findOrCreateConversation,
-  isEmptyConversation,
   readConversation,
 };

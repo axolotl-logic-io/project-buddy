@@ -1,16 +1,20 @@
 // Dailies: the user's one ongoing quest for starting their day, continued
-// every day in its one conversation, never reset. It is an ordinary quest,
-// marked as the user's Dailies (projects.dailies) so it is found by that mark
-// whatever the user renames it to; the database keeps one per user, so of
-// concurrent starts exactly one makes it. Starting the day is a message the
-// user sends in its conversation, like any other, which the Dailies
-// activity's instructions guide.
-
+// every day in its one conversation, never reset. It is an ordinary quest
+// marked as the user's Dailies (projects.dailies), so it is found by that
+// mark whatever the user renames it to; the database keeps one per user, so of
+// concurrent starts exactly one makes it. Starting the day adds the user's
+// prepared message to its conversation, which the Dailies activity's
+// instructions guide; the reply to it is made like any other.
 import { and, eq } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import { isProjectChat, type ProjectChat } from "@/chats/chat-rows.ts";
 import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
+import type { saveMessage } from "@/chats/store.ts";
+import {
+  appendUserMessage,
+  findConversation,
+} from "@/conversations/conversation-store.ts";
 import {
   startNewQuest,
   startQuestConversation,
@@ -40,6 +44,18 @@ interface DailiesStart {
   readonly construct: NewChatConstruct;
   readonly activity: ChatActivity;
 }
+
+// The day started: the user message, in the Dailies conversation, that the
+// browser asks /api/chat to answer, as it sends any message. A message
+// already awaiting its reply, such as the day just started from another tab,
+// is that message rather than a second one.
+type StartTheDayResult =
+  | {
+      readonly kind: "started";
+      readonly chat: ProjectChat;
+      readonly messageId: string;
+    }
+  | { readonly kind: "notFound" };
 
 // The id of the user's own Dailies; undefined if they have none.
 async function dailiesId(user: UserId): Promise<ProjectId | undefined> {
@@ -98,5 +114,28 @@ async function startDailies(
   return await resume(user, made);
 }
 
-export type { DailiesStart, StartDailiesResult };
-export { startDailies };
+// Starts the user's day in their own Dailies quest: adds message, the
+// user's prepared words, to the end of its conversation, which keeps all its
+// messages, Journal and plan, and spends nothing until the reply. Not found
+// for a quest that isn't the user's own Dailies, or one with no
+// conversation yet (startDailies starts one). Of concurrent starts, or one
+// while a message still awaits its reply, the message already waiting is
+// the day's start, and no second message is added.
+async function startTheDay(
+  user: UserId,
+  projectId: ProjectId,
+  message: Parameters<typeof saveMessage>[2],
+): Promise<StartTheDayResult> {
+  if ((await dailiesId(user)) !== projectId) {
+    return { kind: "notFound" };
+  }
+  const conversation = await findConversation(user, projectId);
+  if (conversation === undefined || !isProjectChat(conversation)) {
+    return { kind: "notFound" };
+  }
+  const messageId = await appendUserMessage(user, conversation.id, message);
+  return { kind: "started", chat: conversation, messageId };
+}
+
+export type { DailiesStart, StartDailiesResult, StartTheDayResult };
+export { startDailies, startTheDay };

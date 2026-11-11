@@ -713,7 +713,7 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation, Journal or plan, whatever the user has renamed it: it is found by its mark, not its name. Members of a shared Dailies see it as an ordinary quest. Start the day is a message the user sends in it. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation, Journal or plan, whatever the user has renamed it: it is found by its mark, not its name. Members of a shared Dailies see it as an ordinary quest. Start the day adds the user's message to its conversation, and the construct replies; it clears nothing. Dailies keeps no streaks, deadlines or daily resets.
 
 - **UI:** “Dailies”, “Start the day”.
 - **Avoid:** "daily quest" for a new quest per day, "streak".

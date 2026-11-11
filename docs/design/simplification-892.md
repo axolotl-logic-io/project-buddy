@@ -37,12 +37,13 @@ Every function takes the acting user first. A quest or conversation that isn't o
 | `readQuestConversation(viewer, projectId)` | Returns the quest's `Conversation` (the chat with its current `activity`), or `undefined`. It is a pure read that never starts one. |
 | `startQuestConversation(actingUser, projectId)` | Atomic get-or-create in the default construct and activity. Only the request that creates it writes the opening, charged to that user. Returns `started`, `outOfGold`, `claudeUnavailable` or `notFound`. |
 | `startProject(owner, name, construct, { motivation?, journal?, activity? })` | Creates a new quest with its conversation and opening in one transaction. |
-| `startDailies(user, { name, journal, construct, activity })` | Resumes the user's Dailies unchanged and for free (`resumed`), or starts it (`started`). Concurrent starts make one. |
+| `startPremadeQuest(user, { premade, name, journal, motivation?, construct, activity })` (`premade-quest.ts`) | The one quest start for every premade, used by #893 and #894. `premade` is `dailies`, `learn`, `make` or `do` (`src/projects/premade.ts`). Learn, Make and Do start a new quest for each goal. Dailies resumes the user's one Dailies unchanged and for free, or starts it; concurrent starts make one (`startDailies`). Returns `started \| resumed {chat} \| outOfGold \| claudeUnavailable`. |
+| `startTheDay(user, projectId, message)` (`dailies.ts`) | An ordinary append: it adds the user's prepared message to the end of their own Dailies conversation and clears nothing. Appends to one conversation are serialized, so concurrent clicks add one message. The browser then asks `/api/chat` for the reply, charged like any reply. Returns `started {chat, messageId} \| notFound`. |
 | `privateChat(user)` | Returns the user's Chat. Get-or-create, empty, with no model call. |
 | `resolveConversation(viewer, id)` | Returns `{ kind: "quest", projectId }`, `{ kind: "chat" }` or `undefined`. Old adventure links use it. |
 | `appendCheckIn(owner, project)` | Appends a check-in to the quest's conversation and marks it unread for the owner and members (`src/conversations/check-in.ts`). |
 
-`Project` (`src/projects/store.ts`) gains `dailies`, which is true only for the viewer's own Dailies, and `unread`, which is the viewer's own mark. Start the day is a prepared user message sent through `/api/chat`, which the Dailies activity guides. It needs no server state. `/api/chat` stays addressed by the conversation's chat id.
+`Project` (`src/projects/store.ts`) gains `dailies`, which is true only for the viewer's own Dailies, and `unread`, which is the viewer's own mark. Start the day keeps no state: it is the user's message, which the Dailies activity guides. `/api/chat` stays addressed by the conversation's chat id.
 
 ## Reply context
 
