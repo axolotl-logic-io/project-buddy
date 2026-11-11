@@ -118,7 +118,6 @@ The user checks how many Batteries they have left.
   - They open Account and select Batteries to see the same balance and its explanation. Profile holds the name form; Security holds Sign out and Sign out everywhere. Checkout return links select Batteries. Loading and failed balance states still offer sign-out.
   - They send an adventure message and wait for its reply and accounting to finish.
 - **Outcome:** the header shows the viewing user's own Batteries, including in a team quest. Account and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including construct image generation. Checking a recovered image generation updates any reserved or settled balance. Account shows the number large, under a small "Batteries" label. The header shows a battery and the number on one line, which screen readers read as "Batteries: 100". An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
-- **Extras:** hiding the Account balance extra does not hide the compact header balance. Account still offers Sign out and Sign out everywhere.
 - **Adventure replies:** the acting user's balance appears near the composer. Actual fractional battery costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs, including in team quests. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
 - **Next:**
   - `use_case_out_of_gold`: they spend their last Batteries.
@@ -154,21 +153,6 @@ The user has spent all her batteries.
 - **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, her account page shows 0 under "Batteries", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation and check-ins are refused too. With a valid isolated test catalog, model-use shortage messages link to Account. Otherwise they explain that purchases are unavailable and Marketplace sales cannot fund model use. The orb migration pauses all Marketplace buys until separate operator activation. Afterwards sales earn only orbs, which cannot fund model use. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her batteries.
-
-## use_case_settings_follow_user
-
-The user's choice of which extras to hide follows her to every browser she signs in to.
-
-- **Prerequisites:** [`use_case_hide_extras`](appearance.md#use_case_hide_extras), signed in.
-- **Steps:**
-  - In Settings, she switches off working notes.
-  - She signs in on another browser or device, and opens an adventure that holds a working note.
-- **Outcome:** in the other browser, working notes are off from the adventure's first appearance, and Settings shows the switch off. Her choice is saved to her account, not only to the browser, and another user's Settings are unchanged by it. The theme and mode stay a choice of each browser ([`use_case_choose_theme`](appearance.md#use_case_choose_theme)).
-- **Variations:** already-signed-in browsers refresh account extras on navigation and return to the visible tab. The refreshed extras apply to the interface and Settings switches together. Local switches made during a slow refresh are kept. Appearance remains browser-local; no polling is required.
-- **Next:**
-  - [`use_case_hide_extras`](appearance.md#use_case_hide_extras): switch them back on.
-
-Already-signed-in browsers refresh account extras on navigation and return to the visible tab. Refreshed extras apply to the interface and Settings switches together. A local switch made during a slow refresh is kept. Appearance remains browser-local; no polling is required.
 
 ## use_case_sign_out
 

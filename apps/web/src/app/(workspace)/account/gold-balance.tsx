@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { Icon } from "@/components/ui/icon.tsx";
-import { extraTag } from "@/flags/flags.ts";
 import { wholeGold } from "@/gold/gold.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
@@ -8,7 +7,6 @@ const GOLD_HEADING_ID = "gold-heading";
 
 // The user's batteries, in whole batteries as every page shows them: the
 // number large, under a small "Batteries" label with the header's battery.
-// An extra: the usage-meter switch in Settings hides it.
 export function GoldBalance({
   microUsd,
 }: {
@@ -19,7 +17,6 @@ export function GoldBalance({
     <section
       aria-labelledby={GOLD_HEADING_ID}
       className="panel workspace-part flex flex-col gap-3"
-      {...extraTag("usage-meter")}
     >
       <div className="flex flex-col gap-1">
         <h2 className="balance-label icon-line" id={GOLD_HEADING_ID}>
