@@ -6,15 +6,10 @@ import {
   type SubmitEvent,
   useActionState,
   useCallback,
-  useContext,
   useState,
 } from "react";
 import { ConstructVisualGeneration } from "@/components/constructs/construct-visual-generation.tsx";
 import { keepLocalDraft } from "@/components/local-draft.ts";
-import {
-  type PromptDraft,
-  PromptDraftContext,
-} from "@/components/prompt-draft-context.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { normalizeVisualDescription } from "@/constructs/visual.ts";
@@ -100,15 +95,16 @@ function ConstructEditor({
     },
     [construct, quote?.artworkDescription],
   );
-  const report = useContext(PromptDraftContext);
   // Start disabled until the editor has checked this browser's recovered draft.
   const [changed, setChanged] = useState(true);
   const [draftDescription, setDraftDescription] = useState(
     construct.definition.visual?.description ?? "",
   );
   const reportDraft = useCallback(
-    (draft: PromptDraft): void => {
-      report?.(draft);
+    (draft: {
+      readonly name: string;
+      readonly texts: Readonly<Record<string, string>>;
+    }): void => {
       const { prompt, visualDescription = "" } = draft.texts;
       setDraftDescription(visualDescription);
       setChanged(
@@ -118,7 +114,7 @@ function ConstructEditor({
             (construct.definition.visual?.description ?? ""),
       );
     },
-    [report, construct],
+    [construct],
   );
   let saveLabel: string = PROMPT_COPY.save;
   let saveHint: string = VISUAL_COPY.saveWithoutGeneration;
@@ -141,17 +137,16 @@ function ConstructEditor({
   }
   return (
     <>
-      <PromptDraftContext value={reportDraft}>
-        <PromptEditor
-          {...editor}
-          action={save}
-          onSubmitCapture={captureSubmission}
-          saveLabel={saveLabel}
-          saveHint={saveHint}
-          saving={saving}
-          disabled={generationBlocked && descriptionChanged}
-        />
-      </PromptDraftContext>
+      <PromptEditor
+        {...editor}
+        action={save}
+        onDraftChange={reportDraft}
+        onSubmitCapture={captureSubmission}
+        saveLabel={saveLabel}
+        saveHint={saveHint}
+        saving={saving}
+        disabled={generationBlocked && descriptionChanged}
+      />
       <ConstructVisualGeneration
         construct={construct}
         viewer={viewer}
