@@ -13,6 +13,7 @@ import {
   type Plan,
   type PlanOperation,
 } from "@/plan/plan.ts";
+import { isLocalCommandName } from "@/replies/local-command-contract.ts";
 
 // A command: "/", its name, then its argument, if any, after white space.
 const COMMAND_LINE = /^\/(?<name>[^\s/]+)(?:\s+(?<argument>[\s\S]*))?$/u;
@@ -89,12 +90,13 @@ interface CommandPlace {
 
 // Whether the site runs text as a command rather than sending it to the
 // construct. In a quest's adventure that is any message that starts with
-// "/" and a name, except, while the mock model runs, its own `/mock-…`
+// "/" and a name, except local construct commands and, while the mock
+// model runs, its own `/mock-…`
 // commands. In a standalone adventure it is only a plan command's name,
 // which says it needs a quest; any other goes to the construct as written.
 function isChatCommand(text: string, place: CommandPlace): boolean {
   const name = commandNameOf(text);
-  if (name === undefined) {
+  if (name === undefined || isLocalCommandName(name)) {
     return false;
   }
   if (!place.inQuest) {

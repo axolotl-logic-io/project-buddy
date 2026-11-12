@@ -1,7 +1,5 @@
-import { createOpenAI } from "@ai-sdk/openai";
 import { generateImage, type ImageModel } from "ai";
 import { z } from "zod";
-import { readConstructModel, readOpenAiImageKey } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 
 // One low-quality 1024px square, optionally conditioned on reference bytes.
@@ -36,19 +34,9 @@ interface ImageProvider {
   ) => Promise<GeneratedImage>;
 }
 
-// Undefined when credentials are absent. No call, and no reservation, is
-// made in that case. The chat model has its own independent provider.
-function imageProvider(): ImageProvider | undefined {
-  if (readConstructModel() === "mock") {
-    return undefined;
-  }
-  const apiKey = readOpenAiImageKey();
-  if (apiKey === undefined) {
-    return undefined;
-  }
-  const openai = createOpenAI({ apiKey });
-  return meteredImageProvider(openai.image("gpt-image-2"));
-}
+// Remote image generation is disabled by policy. Existing images remain usable.
+const imageProvider: () => ImageProvider | undefined = (): undefined =>
+  undefined;
 
 function meteredImageProvider(model: ImageModel): ImageProvider {
   return {
