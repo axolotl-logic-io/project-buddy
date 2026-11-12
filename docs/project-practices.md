@@ -63,7 +63,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 
 ## Product
 
-- **The AI provider stays swappable** through the Vercel AI SDK.
+- **No requests to AI model companies.** Constructs run local deterministic rules. The Vercel AI SDK remains a stream and tool protocol adapter.
 
 ## Site design
 

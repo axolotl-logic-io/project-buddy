@@ -22,6 +22,16 @@ function workshopLink(
   return { href: `/workshop?kind=${kind}`, label };
 }
 
+const LOCAL_COMMANDS_CHAPTER: LibraryChapter = {
+  id: "local-commands",
+  title: "Local construct commands",
+  links: [],
+  paragraphs: [
+    "Constructs currently use local commands inspired by multi-user dungeons. Type help to see commands, look to read starting context, search <query> to search the Blender manual, or cast <spell id> to record a spell cast. Commands can also begin with /. The app sends nothing to AI model companies.",
+    "The following chapters describe the retained definitions and harness. Automatic planning, activity changes, instruction interpretation, image understanding and image generation are unavailable in this first command engine. Spell casts are saved, but do not execute their instructions. Existing definitions, conversations, images, Plan controls and progress controls remain available. Local replies spend no batteries; the balance gate still applies.",
+  ],
+};
+
 const LIBRARY_COPY: {
   readonly title: string;
   readonly heading: string;
@@ -41,8 +51,9 @@ const LIBRARY_COPY: {
       id: "getting-started",
       title: "Getting Started",
       intro:
-        "Project Buddy helps you think, learn and make things with AI characters called constructs. Start with one small thing you want to do.",
+        "Project Buddy keeps your quests and conversations with constructs. Constructs currently respond to local commands: help, look, search <query> and cast <spell id>. The app makes no requests to AI model companies.",
       chapters: [
+        LOCAL_COMMANDS_CHAPTER,
         {
           id: "first-adventure",
           title: "Start talking or start a quest",
@@ -103,6 +114,7 @@ const LIBRARY_COPY: {
       intro:
         "A construct is the character you work with: its voice, habits and way of explaining. Choose one when you start a quest; an activity guides what you do.",
       chapters: [
+        LOCAL_COMMANDS_CHAPTER,
         {
           id: "plan",
           title: "Plan",
@@ -163,6 +175,7 @@ const LIBRARY_COPY: {
       intro:
         "A spell is a focused set of instructions the construct loads when it fits your request. Workshop’s Spells tab holds built-in spells and your own spells.",
       chapters: [
+        LOCAL_COMMANDS_CHAPTER,
         {
           id: "selection",
           title: "Selection and casts",
@@ -211,6 +224,7 @@ const LIBRARY_COPY: {
       intro:
         "An activity is a set of instructions that shapes what happens in a conversation: planning, exploring or working through a task. It isn’t a place to go or something to pick before you start. It combines with the construct’s voice and any spells the construct casts.",
       chapters: [
+        LOCAL_COMMANDS_CHAPTER,
         {
           id: "sessions",
           title: "Activity sessions",
@@ -257,8 +271,9 @@ const LIBRARY_COPY: {
       id: "model-context",
       title: "Model context",
       intro:
-        "Each kind of model call receives different information. This book lists what each one receives, what depends on the situation, and what is saved or read afresh. Its examples are made up.",
+        "The app runs a local command engine. This book describes the retained context and tool protocol. Sheets and snapshots remain saved, but their prose does not control command behavior. Image generation and vision calls are disabled.",
       chapters: [
+        LOCAL_COMMANDS_CHAPTER,
         {
           id: "inventory",
           title: "Model calls and their inputs",

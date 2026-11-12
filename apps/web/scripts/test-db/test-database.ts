@@ -176,7 +176,7 @@ function checkTestEnvironment(
   const database = checkTestDatabase(databaseUrl);
   if (readConstructModel() !== "mock") {
     throw new Error(
-      'CONSTRUCT_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
+      'CONSTRUCT_MODEL is not "mock", so the tests would run without their test scripts. The test commands load it from .env.test: copy it from .env.test.example.',
     );
   }
   checkEmailOutbox();
