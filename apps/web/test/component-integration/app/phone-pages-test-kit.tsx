@@ -20,7 +20,6 @@ import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
-import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
@@ -48,8 +47,6 @@ import type { Conversation } from "@/conversations/conversation-store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
-import { GENERATION_ID } from "@/images/generation-contract.ts";
-import { listGeneratedImages } from "@/images/generation-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
@@ -73,7 +70,6 @@ import {
   RETIRED_DEFINITIONS,
 } from "../retirement/retirement-fixtures.ts";
 import {
-  FOX_CHAT,
   FOX_CONVERSATION,
   FOX_MILESTONES,
   FOX_QUEST,
@@ -347,25 +343,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
 
-  {
-    name: "the image gallery",
-    path: ["gallery"],
-    render: workspacePage(
-      () => {
-        vi.mocked(listGeneratedImages).mockResolvedValue([
-          {
-            id: GENERATION_ID.parse("f98716fc-7406-450a-b83b-f96abb73a654"),
-            chatId: FOX_CHAT.id,
-            prompt: LONG_QUEST_NAME,
-            imageUrl: "/api/images/private",
-            status: "generated",
-            createdAt: new Date(0),
-          },
-        ]);
-      },
-      () => GalleryPage({ searchParams: Promise.resolve({}) }),
-    ),
-  },
   { name: "the Credits page", render: signedOut(CreditsPage) },
   { name: "the sign-in page", render: signedOut(LoginPage) },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
