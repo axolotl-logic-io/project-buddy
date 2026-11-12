@@ -2,7 +2,7 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-An activity is a set of instructions that sets the scene of a conversation. It isn't a place in the site or a choice the user makes before starting: each starting point of a quest begins in its own activity ([`use_case_new_project`](projects.md#use_case_new_project)), Chat begins in Chat, and after that only the construct changes it. The user customizes activities in the Workshop's Activities tab; the old Activities address opens that tab and makes nothing. The built-in activities include:
+An activity is a set of instructions that sets the scene of a conversation. It isn't a place in the site or a choice the user makes before starting: each starting point of a quest begins in its own activity ([`use_case_new_quest`](quests.md#use_case_new_quest)), Chat begins in Chat, and after that only the construct changes it. The user customizes activities in the Workshop's Activities tab; the old Activities address opens that tab and makes nothing. The built-in activities include:
 
 - **Chat:** no set scene. The construct follows her lead.
 - **Brainstorm:** the construct helps her explore an idea, question her assumptions and make decisions.

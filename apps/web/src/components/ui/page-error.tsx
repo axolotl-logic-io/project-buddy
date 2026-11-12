@@ -74,7 +74,7 @@ function PageError({
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={retry}>{PROBLEMS_COPY.retry}</Button>
         <Button asChild={true} variant="secondary">
-          <Link href="/projects">{PROBLEMS_COPY.projectsLink}</Link>
+          <Link href="/quests">{PROBLEMS_COPY.questsLink}</Link>
         </Button>
       </div>
     </div>

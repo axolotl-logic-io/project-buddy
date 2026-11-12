@@ -9,10 +9,7 @@ import {
 } from "@/constructs/index.ts";
 import type { ConstructVisual } from "@/constructs/visual.ts";
 import type { UserId } from "@/ids.ts";
-import {
-  currentConstructText,
-  earlierConstructText,
-} from "@/prompts/earlier-built-in-texts.ts";
+import { currentConstructText } from "@/prompts/earlier-built-in-texts.ts";
 import {
   cloneOwnPrompt,
   createOwnPrompt,
@@ -38,7 +35,7 @@ type ConstructEdit = DefinitionEdit<ConstructDefinition>;
 const CONSTRUCT_STORE: DefinitionStore<ConstructDefinition> = {
   kind: "construct",
   encodeDefinition: (text: ConstructDefinition): unknown =>
-    storedConstructPrompt(earlierConstructText(text)),
+    storedConstructPrompt(text),
   parseDefinition: (stored: unknown): ConstructDefinition | undefined => {
     const text = parseConstructDefinition(stored);
     if (text === undefined) {

@@ -2,6 +2,7 @@
 // browser's cookie, so every later page preloads that theme's fonts, and
 // the sign-in page keeps it once she is signed out. The first paint from
 // the cookie is test/app/layout-first-paint.test.tsx's to check.
+
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { describe, expect, test } from "vitest";
@@ -37,7 +38,7 @@ describe("use_case_choose_theme", () => {
       mode: "dark",
     });
 
-    expect(fontPreloads(await visit("/projects"))).toEqual(
+    expect(fontPreloads(await visit("/quests"))).toEqual(
       themeFontUrls(DEFAULT_THEME_CHOICE.theme),
     );
 
@@ -50,7 +51,7 @@ describe("use_case_choose_theme", () => {
       mode: "dark",
     });
 
-    expect((await visit("/projects")).headers.get("location")).toBe(
+    expect((await visit("/quests")).headers.get("location")).toBe(
       `${SITE}/login`,
     );
     expect(fontPreloads(await visit("/login"))).toEqual(

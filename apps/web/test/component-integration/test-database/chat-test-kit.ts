@@ -5,7 +5,8 @@
 // mocks with after-test-kit.ts's. sendChatMessage, and what builds on it,
 // awaits afterTasksDone() before it answers; a test that reads what a
 // postMessage reply saved awaits it first.
-import { getToolName, isToolUIPart, type UIMessage } from "ai";
+
+import type { UIMessage } from "ai";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
@@ -14,17 +15,12 @@ import {
   CITE_BLENDER_MANUAL_OUTPUT,
   CITE_BLENDER_MANUAL_TOOL,
 } from "@/blender-manual/cite-tool-contract.ts";
-import type { ProjectChat } from "@/chats/chat-rows.ts";
+import type { QuestChat } from "@/chats/chat-rows.ts";
 import { listMessages, listMessagesForModel } from "@/chats/store.ts";
 import type { ConstructId } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
-import {
-  UPDATE_MEMORY_OUTPUT,
-  UPDATE_MEMORY_TOOL,
-  type UpdateMemoryOutput,
-} from "@/replies/tools/update-memory-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { mockReplyText } from "../replies/mock-markdown-test-kit.ts";
@@ -60,14 +56,14 @@ interface SavedLine {
   readonly text: string;
 }
 
-// A new user, and a new chat of theirs in a new project, in the voice of
+// A new user, and a new chat of theirs in a new quest, in the voice of
 // constructId or the default construct.
 async function userWithChat(
   constructId?: ConstructId,
-): Promise<{ user: User; chat: ProjectChat }> {
+): Promise<{ user: User; chat: QuestChat }> {
   const user = await testUser();
   const data = testData(user);
-  const chat = await data.chat(await data.project(), constructId);
+  const chat = await data.chat(await data.quest(), constructId);
   return { user, chat };
 }
 
@@ -158,27 +154,9 @@ async function constructPrompt(chatId: ChatId): Promise<string> {
   return messageText(await constructReply(chatId, "/mock-system-prompt"));
 }
 
-// Has the mock construct in the chat change the project's memory, replacing
+// Has the mock construct in the chat change the quest's memory, replacing
 // oldText with newText (an empty oldText adds newText at the end), and
 // returns what the update_memory tool answered.
-async function constructEdits(
-  chatId: ChatId,
-  oldText: string,
-  newText: string,
-): Promise<UpdateMemoryOutput> {
-  const edit = JSON.stringify({ oldText, newText });
-  const reply = await constructReply(
-    chatId,
-    `/mock-tool ${UPDATE_MEMORY_TOOL} ${edit}`,
-  );
-  const call = reply.parts.find(
-    (part) => isToolUIPart(part) && getToolName(part) === UPDATE_MEMORY_TOOL,
-  );
-  if (call === undefined || !("output" in call)) {
-    throw new Error("The construct didn't change the memory");
-  }
-  return UPDATE_MEMORY_OUTPUT.parse(call.output);
-}
 
 // Sends message to the chat as user, signed in, as the chat view does. It
 // resolves once the server has claimed the message and the reply has
@@ -187,7 +165,7 @@ async function constructEdits(
 // through the test's one cookie jar.
 async function postMessage(
   user: User,
-  chat: Pick<ProjectChat, "id">,
+  chat: Pick<QuestChat, "id">,
   message: ChatRequest["message"],
   signal: AbortSignal | null = null,
 ): Promise<Response> {
@@ -200,7 +178,7 @@ async function postMessage(
 // took the message.
 async function sendToEnd(
   user: User,
-  chat: Pick<ProjectChat, "id">,
+  chat: Pick<QuestChat, "id">,
   text: string,
 ): Promise<void> {
   const response = await postMessage(user, chat, question(text));
@@ -222,7 +200,7 @@ function formOf(fields: Readonly<Record<string, string>>): FormData {
 // The messages saved in user's chat, oldest first, as lines.
 async function savedConversation(
   user: User,
-  chat: Pick<ProjectChat, "id">,
+  chat: Pick<QuestChat, "id">,
 ): Promise<SavedLine[]> {
   return (await listMessages(user.id, chat.id)).map((message) => ({
     role: message.role,
@@ -252,7 +230,7 @@ function citedSections(message: UIMessage): Citation[] {
 
 async function signedInChat(
   constructId?: ConstructId,
-): Promise<{ user: User; chat: ProjectChat }> {
+): Promise<{ user: User; chat: QuestChat }> {
   const scene = await userWithChat(constructId);
   await signIn(scene.user);
   return scene;
@@ -261,7 +239,6 @@ async function signedInChat(
 export type { Citation, SavedLine, SentMessage };
 export {
   citedSections,
-  constructEdits,
   constructPrompt,
   constructReply,
   exchange,

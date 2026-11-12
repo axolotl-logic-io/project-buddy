@@ -13,7 +13,7 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
@@ -99,7 +99,7 @@ function AccountLinks(): JSX.Element {
       </p>
       <ul aria-labelledby={PLACES_LABEL_ID} className="flex flex-col">
         <li>
-          <MenuLink href="/projects">{PROJECTS_COPY.headerLink}</MenuLink>
+          <MenuLink href="/quests">{QUESTS_COPY.headerLink}</MenuLink>
         </li>
         <li>
           <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>

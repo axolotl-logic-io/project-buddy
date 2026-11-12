@@ -19,5 +19,5 @@ export default async function OldChatPage({
   if (place.kind === "chat") {
     redirect(STANDALONE_CHAT_PATH);
   }
-  redirect(`/projects/${place.projectId}`);
+  redirect(`/quests/${place.questId}`);
 }

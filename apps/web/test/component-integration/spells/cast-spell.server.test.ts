@@ -6,6 +6,7 @@
 // leave them out. Whether a real
 // construct casts the right spell at the right time is the real-Claude smoke
 // test's to check (use-cases/README.md).
+
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -208,8 +209,8 @@ describe("use_case_construct_casts_spell", () => {
   test("a chat lists only its owner's spells, and no one reads their instructions in the chat's messages", async () => {
     const [owner, other] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
-    const project = await data.project();
-    const chat = await data.chat(project);
+    const quest = await data.quest();
+    const chat = await data.chat(quest);
     const [spell, othersSpell] = await Promise.all([
       ownSpell(owner.id),
       ownSpell(other.id),

@@ -3,6 +3,7 @@
 // entered; a reply that isn't saved releases its message's
 // claim (claimReply in src/chats/store.ts), so the browser can send the
 // message again at once.
+
 import type { UIMessage, UIMessageStreamOnEndCallback } from "ai";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";

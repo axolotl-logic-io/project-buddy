@@ -74,11 +74,11 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Quests and conversations
 
-Quests at `/projects` is the signed-in landing page. Start Quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each personal quest has one continuing conversation, a Journal, a Plan and a Progress timeline. Dailies continues the same quest each day. Private Chat at `/chat` works without a quest; Turn Chat into a quest lets the user confirm an edited summary for a new quest without sharing or moving their private Chat history. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
+Quests at `/quests` is the signed-in landing page. Start Quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each personal quest has one continuing conversation, a Plan and a Progress timeline. Dailies continues the same quest each day. Private Chat at `/chat` works without a quest; Turn Chat into a quest lets the user confirm an edited summary for a new quest without sharing or moving their private Chat history. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
 
 A construct is chosen when a conversation starts. Activities guide its replies and can change through the construct's activity tool (`src/activities/`). Workshop at `/workshop` is the single collection for built-in and private constructs, activities and spells. Settings at `/settings` holds profile, appearance, batteries and security. Old conversation, collection, Home and Account addresses have access-checked redirects where their replacement exists.
 
-Conversation storage keeps the compatibility names `projects`, `chats` and `messages` in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` chooses the provider model, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Journal, Plan and recent milestones. Set `CONSTRUCT_MODEL=mock` for deterministic local tests; see `.env.example`.
+Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` chooses the provider model, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Plan and recent milestones. Set `CONSTRUCT_MODEL=mock` for deterministic local tests; see `.env.example`.
 
 ### Errors
 
@@ -144,7 +144,7 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Journal link.
+The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Plan link.
 
 ## Image generation
 

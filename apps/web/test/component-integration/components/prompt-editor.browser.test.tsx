@@ -5,6 +5,7 @@
 // are still there when she comes back to the page, until she saves or
 // discards them. The pages' Server Actions are mocked; the server tests
 // cover what Save stores.
+
 import type { JSX } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
@@ -696,10 +697,10 @@ test("text-only Save during pending work preserves its original UUID and payload
   });
 });
 
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
 }));
-vi.mock("@/projects/quest-creation-choices.ts", () => ({
+vi.mock("@/quests/quest-creation-choices.ts", () => ({
   questCreationChoices: vi.fn().mockResolvedValue({
     activities: [],
     userConstructs: [],

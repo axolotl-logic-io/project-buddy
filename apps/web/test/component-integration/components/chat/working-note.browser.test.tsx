@@ -8,6 +8,7 @@
 // A note before a spell cast, which loads instructions as a lookup does,
 // shows the same way.
 // The site's stylesheet comes from vitest.browser-setup.ts.
+
 import {
   createUIMessageStreamResponse,
   simulateReadableStream,

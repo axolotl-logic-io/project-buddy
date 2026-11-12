@@ -6,7 +6,7 @@ const INSTRUCTIONS = [
 ].join("\n");
 
 const OPENING_KICKOFF =
-  "I have just started this adventure. Open it with a brief synopsis of what the quest's Journal already holds, if this adventure has a quest and its Journal holds anything, then ask me one question: what to work on, such as the next milestone.";
+  "I have just started this adventure. Open it with a brief synopsis of what the conversation already holds, if this adventure has a quest and its conversation holds anything, then ask me one question: what to work on, such as the next milestone.";
 
 export const openChat: Activity = {
   id: "open-chat",

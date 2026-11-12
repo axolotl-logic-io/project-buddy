@@ -3,6 +3,7 @@
 // sends one, so a signed-out answer must leave the page where it is: the
 // adventure's own signed-out message (use_case_session_expired_in_chat) is
 // what tells her, not a sudden move to the sign-in page.
+
 import { describe, expect, test } from "vitest";
 import { replyGoldAction } from "@/replies/reply-gold-action.ts";
 import { signedInChat } from "../test-database/chat-test-kit.ts";

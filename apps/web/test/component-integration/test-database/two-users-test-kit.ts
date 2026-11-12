@@ -2,6 +2,7 @@
 // the test database, each with their own data, and the account changes
 // those tests make. The setup file (vitest.server-setup.ts) deletes
 // both users, and what they own, after the test.
+
 import { eq } from "drizzle-orm";
 import { onTestFinished } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -33,7 +34,7 @@ async function twoUsers(): Promise<TwoUsers> {
   return { her, herData: testData(her), other, otherData: testData(other) };
 }
 
-// Deletes the user's account and everything of theirs: projects, chats,
+// Deletes the user's account and everything of theirs: quests, chats,
 // memory and constructs go with the row. The stores have no delete, so this
 // names the table, as the user kit does.
 async function deleteAccount(user: User): Promise<void> {

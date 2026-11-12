@@ -135,10 +135,10 @@ async function seedFixture(): Promise<Fixture> {
         empty: z.string().min(1),
         populated: z.string().min(1),
         details: z.string().min(1),
-        project: z.uuid(),
+        quest: z.uuid(),
         chat: z.uuid(),
         construct: z.uuid(),
-        emptyProject: z.uuid(),
+        emptyQuest: z.uuid(),
         emptyChat: z.uuid(),
         counts: z.strictObject({
           accounts: z.number().int().positive(),

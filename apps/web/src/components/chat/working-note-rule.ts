@@ -1,6 +1,7 @@
 // Which of the construct's text is a working note rather than its answer, read
 // from where the text sits among the message's parts. The rule is
 // presentational: it reads the parts as they are saved and streamed.
+
 import type { MessageRuntimeState } from "@assistant-ui/react";
 import {
   makesNoteOfTextBefore,

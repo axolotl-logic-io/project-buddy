@@ -1,5 +1,5 @@
 /* The chat's styles that Tailwind utilities can't express: the Markdown of
-   the construct's replies and the project memory, whose elements Streamdown
+   the construct's replies and rendered Markdown, whose elements Streamdown
    renders, the composer's dock, and the pulse of the working dots. Every value comes from the
    token contract (src/themes/themes.ts); the chat's components otherwise
    use the building blocks in src/components/ui/, the shared roles
@@ -133,7 +133,7 @@
     list-style-position: outside;
   }
 
-  /* A task list's item (GitHub's task-list-item), such as a memory's
+  /* A task list's item (GitHub's task-list-item), such as a reply's
      milestone, shows its checkbox in place of the bullet: the checkbox and
      its gap hang where the marker would, so the item's text lines up with
      the other items' and wraps under itself. */

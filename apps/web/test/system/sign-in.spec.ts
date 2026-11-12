@@ -1,12 +1,13 @@
 // use-cases/accounts.md: signing in by an emailed link, on this device or
 // another, and what happens to a link that is late or used again. Another
 // device is a new browser context, which shares nothing with the test's.
+
 import { expect } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { emailSender } from "@/email/email-message.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { emailsTo } from "../support/email/outbox-files.ts";
 import { test } from "./fixtures.ts";
 import { signInLinkIn, waitForEmailsTo } from "./outbox.ts";
@@ -26,7 +27,7 @@ test("use_case_sign_in_by_link", async ({
   page,
   testData,
 }) => {
-  const project = await testData.project();
+  const quest = await testData.quest();
 
   await test.step("she asks for a link, and an email holds it", async () => {
     await askForSignInLink(page, account.email);
@@ -55,10 +56,10 @@ test("use_case_sign_in_by_link", async ({
 
     await expect(phone).toHaveURL(HOME_PATH);
     await expectSignedInFor30Days(device);
-    await phone.goto("/projects");
+    await phone.goto("/quests");
     // By role: while the page refreshes after loading, Next keeps a hidden
     // copy of the list, which a text match finds too.
-    await expect(phone.getByRole("link", { name: project.name })).toBeVisible();
+    await expect(phone.getByRole("link", { name: quest.name })).toBeVisible();
   });
   await device.close();
 
@@ -92,21 +93,21 @@ test("use_case_sign_in_link_reused", async ({
   });
 
   await test.step("the first browser stays signed in", async () => {
-    await page.goto("/projects");
+    await page.goto("/quests");
 
-    await expect(page).toHaveURL("/projects");
+    await expect(page).toHaveURL("/quests");
   });
 
   await test.step("it signs her in again in the same browser after signing out", async () => {
     await context.clearCookies({ name: SESSION_COOKIE_NAME });
-    await page.goto("/projects");
+    await page.goto("/quests");
     await expect(page).toHaveURL("/login");
 
     await continueSignIn(page, link);
 
-    await page.goto("/projects");
+    await page.goto("/quests");
     await expect(
-      page.getByRole("heading", { level: 1, name: PROJECTS_COPY.heading }),
+      page.getByRole("heading", { level: 1, name: QUESTS_COPY.heading }),
     ).toBeVisible();
   });
 });
@@ -125,7 +126,7 @@ test("use_case_sign_in_link_expired", async ({ account, page }) => {
   });
 
   await test.step("she is still signed out", async () => {
-    await page.goto("/projects");
+    await page.goto("/quests");
 
     await expect(page).toHaveURL("/login");
   });
@@ -146,7 +147,7 @@ test("use_case_sign_in_link_expired", async ({ account, page }) => {
 
     await signInByLink(page, account.email);
 
-    await page.goto("/projects");
-    await expect(page).toHaveURL("/projects");
+    await page.goto("/quests");
+    await expect(page).toHaveURL("/quests");
   });
 });

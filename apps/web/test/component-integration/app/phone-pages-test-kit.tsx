@@ -24,11 +24,10 @@ import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
-import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
-import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
-import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
-import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
-import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
+import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
+import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
+import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
@@ -51,10 +50,9 @@ import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
-import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { readCurrentQuest } from "@/projects/current-quest-store.ts";
-import { getProject, listProjects } from "@/projects/store.ts";
+import { readCurrentQuest } from "@/quests/current-quest-store.ts";
+import { getQuest, listQuests } from "@/quests/store.ts";
 import {
   getRetiredDefinition,
   listRetiredDefinitions,
@@ -62,8 +60,7 @@ import {
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import {
@@ -79,7 +76,7 @@ import {
   FOX_CHAT,
   FOX_CONVERSATION,
   FOX_MILESTONES,
-  FOX_PROJECT,
+  FOX_QUEST,
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
@@ -87,7 +84,6 @@ import {
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
   LINK_USER,
-  MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
   VELLUM_CLONE,
@@ -118,14 +114,13 @@ interface PhonePage {
 }
 
 // A sign-in link's token, in the shape links have.
-const LONG_PROJECT_NAME_REPEATS = 40;
-const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
+const LONG_QUEST_NAME_REPEATS = 40;
+const LONG_QUEST_NAME = "Unbroken".repeat(LONG_QUEST_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
-const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
-const QUESTS_PATH = ["projects"] as const;
-const QUEST_PATH = ["projects", FOX_PROJECT.id] as const;
-const JOURNAL_PATH = ["projects", FOX_PROJECT.id, "memory"] as const;
+const QUEST_PARAMS = Promise.resolve({ questId: FOX_QUEST.id });
+const QUESTS_PATH = ["quests"] as const;
+const QUEST_PATH = ["quests", FOX_QUEST.id] as const;
 
 // A page signed out, as a visitor sees it.
 function signedOut(content: () => JSX.Element): () => Promise<JSX.Element> {
@@ -211,21 +206,21 @@ async function chatPage(): Promise<JSX.Element> {
   );
 }
 
-// The Projects page, with one project, which it offers to continue under a
+// The Quests page, with one quest, which it offers to continue under a
 // long name.
 const projectsPage = workspacePage(
   () => {
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     vi.mocked(readCurrentQuest).mockResolvedValue({
-      project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+      quest: { id: FOX_QUEST.id, name: LONG_QUEST_NAME },
       nextStep: "Sketch the fox's ears from three angles",
     });
     vi.mocked(listConstructs).mockResolvedValue([]);
   },
   async () =>
-    ProjectListLayout({
+    QuestListLayout({
       params: NO_PARAMS,
-      children: await ProjectsPage({
+      children: await QuestsPage({
         params: Promise.resolve({}),
         searchParams: Promise.resolve({}),
       }),
@@ -239,52 +234,32 @@ function projectPageFor(
 ): () => Promise<JSX.Element> {
   return workspacePage(
     () => {
-      vi.mocked(getProject).mockResolvedValue({
-        ...FOX_PROJECT,
-        name: LONG_PROJECT_NAME,
+      vi.mocked(getQuest).mockResolvedValue({
+        ...FOX_QUEST,
+        name: LONG_QUEST_NAME,
         dailies,
       });
       vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue([]);
       vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
-      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+      vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
       vi.mocked(listOwnActivities).mockResolvedValue([]);
       vi.mocked(listConstructs).mockResolvedValue([]);
     },
     async () => (
-      <ProjectLayout params={PROJECT_PARAMS}>
+      <QuestLayout params={QUEST_PARAMS}>
         {
-          await ProjectPage({
-            params: PROJECT_PARAMS,
+          await QuestPage({
+            params: QUEST_PARAMS,
             searchParams: Promise.resolve({ section }),
           })
         }
-      </ProjectLayout>
+      </QuestLayout>
     ),
   );
 }
 
 const projectPage = projectPageFor();
-
-// A project's memory page, with a history of versions.
-function memoryPageFor(section = "journal"): () => Promise<JSX.Element> {
-  return workspacePage(
-    () => {
-      vi.mocked(getProject).mockResolvedValue({
-        ...FOX_PROJECT,
-        name: LONG_PROJECT_NAME,
-      });
-      vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
-    },
-    () =>
-      MemoryPage({
-        params: PROJECT_PARAMS,
-        searchParams: Promise.resolve({ section }),
-      }),
-  );
-}
-
-const memoryPage = memoryPageFor();
 
 // The Workshop's page on the kind's tab, with one of her own of each kind.
 function workshopPage(
@@ -295,7 +270,7 @@ function workshopPage(
       vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
       vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
       vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+      vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     },
     () =>
       WorkshopPage({
@@ -381,7 +356,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
           {
             id: GENERATION_ID.parse("f98716fc-7406-450a-b83b-f96abb73a654"),
             chatId: FOX_CHAT.id,
-            prompt: LONG_PROJECT_NAME,
+            prompt: LONG_QUEST_NAME,
             imageUrl: "/api/images/private",
             status: "generated",
             createdAt: new Date(0),
@@ -418,7 +393,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: "Make a thing" })
-          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+          .getByRole("textbox", { name: QUESTS_COPY.motivationLabel })
           .element(),
       );
     },
@@ -441,25 +416,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     path: QUEST_PATH,
     render: projectPage,
     open: async (): Promise<void> => {
-      await page.getByRole("button", { name: PROJECT_COPY.rename }).click();
+      await page.getByRole("button", { name: QUEST_COPY.rename }).click();
       await vi.waitFor(() =>
-        page.getByRole("textbox", { name: PROJECT_COPY.titleLabel }).element(),
-      );
-    },
-  },
-  {
-    name: "a project's memory",
-    path: JOURNAL_PATH,
-    render: memoryPage,
-  },
-  {
-    name: "a project's memory, open in the editor",
-    path: JOURNAL_PATH,
-    render: memoryPage,
-    open: async (): Promise<void> => {
-      await page.getByRole("button", { name: MEMORY_COPY.edit }).click();
-      await vi.waitFor(() =>
-        page.getByRole("textbox", { name: MEMORY_COPY.textLabel }).element(),
+        page.getByRole("textbox", { name: QUEST_COPY.titleLabel }).element(),
       );
     },
   },
@@ -581,11 +540,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "a quest's Progress",
     path: QUEST_PATH,
     render: projectPageFor("progress"),
-  },
-  {
-    name: "a quest's Journal versions",
-    path: JOURNAL_PATH,
-    render: memoryPageFor("versions"),
   },
 ];
 

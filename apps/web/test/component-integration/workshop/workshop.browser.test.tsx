@@ -146,7 +146,7 @@ test("the Workshop offers no test conversation", async () => {
 });
 
 test("a recovered editor draft is shown and saved", async () => {
-  keepLocalDraft("prompt:workshop-test:buddy:vellum", {
+  keepLocalDraft("prompt:workshop-test:construct:vellum", {
     basedOn: "2026-11-04T00:00:00.000Z",
     name: "Recovered construct",
     texts: { prompt: "Recovered instructions." },

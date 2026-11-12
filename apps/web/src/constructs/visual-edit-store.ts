@@ -14,8 +14,6 @@ import { inTransaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { parseOwnPromptId, type UserId } from "@/ids.ts";
 
-import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
-
 const DESCRIPTION_MAX = 4000;
 const METADATA_EDIT = z.object({
   name: z.string().trim().min(1).optional(),
@@ -53,7 +51,7 @@ async function editConstructMetadata(
         and(
           ownPromptOwnedBy(owner),
           eq(ownPrompts.id, parsedId),
-          eq(ownPrompts.kind, "buddy"),
+          eq(ownPrompts.kind, "construct"),
           isNull(ownPrompts.retiredAt),
         ),
       )
@@ -87,13 +85,11 @@ async function editConstructMetadata(
       .update(ownPrompts)
       .set({
         name: edit.name,
-        parts: storedConstructPrompt(
-          earlierConstructText({
-            ...definition,
-            prompt: edit.prompt ?? definition.prompt,
-            visual,
-          }),
-        ),
+        parts: storedConstructPrompt({
+          ...definition,
+          prompt: edit.prompt ?? definition.prompt,
+          visual,
+        }),
         updatedAt: sql`now()`,
       })
       .where(and(ownPromptOwnedBy(owner), eq(ownPrompts.id, parsedId)));

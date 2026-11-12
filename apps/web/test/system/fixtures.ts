@@ -9,7 +9,7 @@
 // The accounts and their data come from the server tests' kit in
 // src/test-database/, so both kinds of test make them one way.
 //
-// - Each test has its own account, so it sees only the projects it makes,
+// - Each test has its own account, so it sees only the quests it makes,
 //   whatever runs beside it. `otherAccount` is a second one. Both are
 //   deleted, with everything in them and their rate-limit rows, when the
 //   test ends (testUser and deleteTestUsers in user-test-kit.ts). A worker
@@ -22,10 +22,11 @@
 // - `newAddress` is an email address no account has, for a test that signs
 //   up through the site. The account the site makes for it is deleted when
 //   the test ends.
-// - `testData` makes the account's projects and chats through the app's
+// - `testData` makes the account's quests and chats through the app's
 //   stores, and adds manual sections through the manual index, in the test
 //   database (testData in data-test-kit.ts). The sections are removed when
 //   the test ends.
+
 import {
   type BrowserContext,
   test as base,
@@ -47,7 +48,7 @@ import {
   testUser,
 } from "../support/test-database/user-test-kit.ts";
 
-// Projects and chats of one account that a test needs before it starts, and
+// Quests and chats of one account that a test needs before it starts, and
 // the account they are made for.
 interface TestData extends AccountData {
   readonly account: User;
@@ -56,7 +57,7 @@ interface TestData extends AccountData {
 interface Fixtures {
   // The test's account, which logIn signs in as.
   readonly account: User;
-  // The account's projects and chats.
+  // The account's quests and chats.
   readonly testData: TestData;
   // A second account, for tests of more than one account.
   readonly otherAccount: User;
@@ -88,7 +89,7 @@ function uniqueClientAddress(testInfo: TestInfo): string {
 }
 
 // A new account, under an address no other test uses, deleted with its
-// projects, chats, memory and rate-limit rows when the test ends, together
+// quests, chats, memory and rate-limit rows when the test ends, together
 // with any other account the test made. It needs no other fixture, but
 // Playwright reads a fixture's first argument as a destructured object.
 async function useAccount(

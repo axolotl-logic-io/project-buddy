@@ -1,8 +1,9 @@
 // What the change_plan tool takes and returns, shared by the tool and the
 // part that shows each change in the chat. It imports nothing from the
 // server, because the part in the browser imports it too.
+
 import { z } from "zod";
-import { PROJECT_ID } from "@/ids.ts";
+import { QUEST_ID } from "@/ids.ts";
 import {
   PLAN,
   PLAN_CHANGE_LINE,
@@ -36,7 +37,7 @@ const CHANGE_PLAN_INPUT = z.object({
 const CHANGE_PLAN_OUTPUT = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("changed"),
-    projectId: PROJECT_ID,
+    questId: QUEST_ID,
     version: z.number().int().positive(),
     lines: z.array(PLAN_CHANGE_LINE),
     plan: PLAN,

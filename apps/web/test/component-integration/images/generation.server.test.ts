@@ -4,7 +4,7 @@ import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { generateForChat } from "@/images/generate.ts";
 import {

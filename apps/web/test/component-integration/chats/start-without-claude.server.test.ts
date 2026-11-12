@@ -4,11 +4,12 @@
 // with an edited construct. The mock construct fails an opening whose prompt
 // holds `/mock-error <type>` (mock-opening.ts), which a quest's name puts
 // there. What the start form keeps is its own test's.
+
 import { describe, expect, test } from "vitest";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
-import { startProject } from "@/conversations/start-quest.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { listProjects } from "@/projects/store.ts";
+import { startQuest } from "@/conversations/start-quest.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { listQuests } from "@/quests/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
@@ -21,14 +22,14 @@ describe("use_case_start_without_claude", () => {
       throw new Error("Her construct is not hers");
     }
 
-    const result = await startProject(
+    const result = await startQuest(
       user.id,
-      PROJECT_NAME.parse("Fox /mock-error overloaded_error"),
+      QUEST_NAME.parse("Fox /mock-error overloaded_error"),
       chosen.construct,
       { motivation: "Make a gift for a friend" },
     );
 
     expect(result).toEqual({ kind: "claudeUnavailable" });
-    expect(await listProjects(user.id)).toEqual([]);
+    expect(await listQuests(user.id)).toEqual([]);
   });
 });

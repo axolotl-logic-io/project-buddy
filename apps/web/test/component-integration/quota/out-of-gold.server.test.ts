@@ -3,16 +3,17 @@
 // prices like Claude's, takes her under 1 whole gold, which the account
 // page shows as 0. The chat's text going back into the box is the chat view's to show
 // (chat-images.browser.test.tsx).
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { startProject } from "@/conversations/start-quest.ts";
+import { startQuest } from "@/conversations/start-quest.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { listProjects, type Project } from "@/projects/store.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { listQuests, type Quest } from "@/quests/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   spendAllGold,
@@ -39,10 +40,10 @@ const ENDS_WITH_CODE_BLOCK =
 const ALL_BUT_ONE_GOLD = 990_000;
 const OUT_OF_GOLD: string = userMessage("out-of-gold");
 
-// A chat of user's in a new project, with them signed in.
+// A chat of user's in a new quest, with them signed in.
 interface GoldScene {
   readonly user: User;
-  readonly project: Project;
+  readonly quest: Quest;
   readonly chat: Chat;
 }
 
@@ -52,11 +53,11 @@ async function sceneAfter(
 ): Promise<GoldScene> {
   const user = await testUser();
   const data = testData(user);
-  const project = await data.project();
-  const chat = await data.chat(project, "lumen");
+  const quest = await data.quest();
+  const chat = await data.chat(quest, "lumen");
   await spending(user);
   await signIn(user);
-  return { user, project, chat };
+  return { user, quest, chat };
 }
 
 // Spends all but 1 of user's gold.
@@ -102,24 +103,24 @@ async function sendCrossingMessage({
 // batteries, and their quests after.
 interface StartAttempts {
   readonly newQuest: string;
-  readonly projectIds: readonly string[];
+  readonly questIds: readonly string[];
 }
 
 async function tryToStart({ user }: GoldScene): Promise<StartAttempts> {
-  const started = await startProject(
+  const started = await startQuest(
     user.id,
-    PROJECT_NAME.parse("Fox"),
+    QUEST_NAME.parse("Fox"),
     getConstruct("lumen"),
   );
   return {
     newQuest: started.kind,
-    projectIds: (await listProjects(user.id)).map(({ id }) => id),
+    questIds: (await listQuests(user.id)).map(({ id }) => id),
   };
 }
 
 test("use_case_out_of_gold", async () => {
   const scene = await sceneAfter(spendAllButOne);
-  const { user, chat, project } = scene;
+  const { user, chat, quest } = scene;
 
   const crossing = await sendCrossingMessage(scene);
   expect(crossing.status).toBe(HTTP_STATUS.ok);
@@ -135,7 +136,7 @@ test("use_case_out_of_gold", async () => {
 
   const attempts = await tryToStart(scene);
   expect(attempts.newQuest).toBe("outOfGold");
-  expect(attempts.projectIds).toStrictEqual([project.id]);
+  expect(attempts.questIds).toStrictEqual([quest.id]);
 });
 
 describe("use_case_out_of_gold", () => {

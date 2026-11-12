@@ -1,6 +1,7 @@
 // What the mock construct model says: a script of steps for each reply, and the
 // default script, which writes a new chat's opening, answers the `/mock-…`
 // commands in MOCK_COMMANDS and quotes any other message.
+
 import { z } from "zod";
 import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";

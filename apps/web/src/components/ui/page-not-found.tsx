@@ -15,7 +15,7 @@ function PageNotFound({ message }: { readonly message: string }): JSX.Element {
       <h1 className="page-heading">{PROBLEMS_COPY.notFoundHeading}</h1>
       <p>{message}</p>
       <Button asChild={true} variant="secondary">
-        <Link href="/projects">{PROBLEMS_COPY.projectsLink}</Link>
+        <Link href="/quests">{PROBLEMS_COPY.questsLink}</Link>
       </Button>
     </div>
   );

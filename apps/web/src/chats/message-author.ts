@@ -4,6 +4,7 @@
 // author in its metadata, and the chat screen and the construct's prompt name
 // the author from there. A construct's message has no author. The browser
 // imports this module, so it imports nothing server-only.
+
 import type { UIMessage } from "ai";
 import type { UserId } from "@/ids.ts";
 

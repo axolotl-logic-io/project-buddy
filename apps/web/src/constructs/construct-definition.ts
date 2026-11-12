@@ -1,4 +1,5 @@
-// Validated legacy conversion preserves the old voice/habits rendering. Writes remain readable by the live build.
+// Validated conversion preserves the rendering of historical voice and habits.
+
 import { z } from "zod";
 import type { ConstructDefinition } from "@/constructs/construct.ts";
 

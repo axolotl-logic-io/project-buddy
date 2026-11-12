@@ -2,6 +2,7 @@
 // messages and the composer. Every spec that sends a message or reads the
 // conversation uses these helpers, and takes construct names from constructName,
 // never as literals.
+
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ConstructId, getConstruct } from "@/constructs/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";

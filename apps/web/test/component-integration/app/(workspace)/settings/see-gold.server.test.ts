@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { afterEach, expect, test, vi } from "vitest";
 // "use_case_see_gold" in use-cases/accounts.md: Settings states her
 // batteries, in whole batteries rounded down, as a number under its
 // "Batteries" label, and her balance falls as the construct replies.
-import { afterEach, expect, test, vi } from "vitest";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
@@ -40,7 +40,7 @@ async function balanceShown(): Promise<string | undefined> {
 test("use_case_see_gold", async () => {
   const user = await testUser();
   const data = testData(user);
-  const chat = await data.chat(await data.project());
+  const chat = await data.chat(await data.quest());
 
   await signIn(user);
   expect(await balanceShown()).toBe("100");

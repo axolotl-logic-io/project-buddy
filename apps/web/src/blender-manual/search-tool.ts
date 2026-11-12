@@ -1,6 +1,7 @@
 // The search_blender_manual tool: keyword search over the Blender Reference Manual.
 // Its output is saved with the reply and sent to the model again on every
 // later turn, so it holds a few sections, each cut to an excerpt.
+
 import { tool } from "ai";
 import { searchManual } from "@/blender-manual/search-manual.ts";
 import {

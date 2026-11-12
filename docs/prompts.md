@@ -42,24 +42,15 @@ Activities uses each activity’s name directly as its start action. The built-i
 
 The rename changes display names only. Built-in instruction text (including older headings), opening requests and ids stay unchanged so exact built-in matching and prepared openings remain compatible. In particular, Chat retains `open-chat`. Saved names, prompts, adventure snapshots and historical content are not rewritten.
 
-## Storage compatibility
+## Storage and historical definitions
 
-The product calls ongoing work quests, conversations adventures and persistent quest context the Journal. Existing `chat` and `memory` paths, identifiers, tool names and prompt boundary tags remain compatible. Historical Note paragraphs remain ordinary Journal text and are never rewritten by feature removal. The global prompt explains earlier names without rewriting user instructions or saved snapshots. Existing route paths, tool names, storage fields and built-in activity ids retain their `project` names for compatibility. Saved user prompts, adventure snapshots and past messages keep their original text.
+The shared `own_prompts` table stores constructs, activities and spells by their domain kinds. Conversation snapshots use `construct_id`, `construct_name` and `construct_parts`. The [nomenclature cutover](quest-nomenclature.md#release-cutover) transfers existing rows and requires the matching database and build.
 
-The shared store handles ownership, cloning and source tracking. Copies bought in the removed Marketplace are ordinary own definitions; their inert `bought_from` column is no longer read. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.
+Validated read boundaries convert historical construct voice and habits into one prompt, preserving rendered text. Activity and spell boundaries separate instructions from opening requests and selection metadata. The JSON codecs continue to handle those shapes; new copies store current prompt wording rather than an older built-in definition.
 
-The existing `buddies` table and JSON columns remain in place. Validated read boundaries convert legacy construct voice and habits into one prompt, preserving the previous rendered text. Activity and spell boundaries separate their instruction text from opening requests and selection metadata. Writes retain the legacy JSON shape so the currently live build can read newly saved definitions, snapshots and listings during a rollout or rollback. This change needs no schema migration.
+Exact matches to historical built-in definitions read as current definitions, preserving prepared openings. Historical records in `src/prompts/earlier-built-ins.ts` and `src/prompts/named-sheet-built-ins.ts` support that recognition. Edited prompts and snapshots retain their text.
 
-Constructs were first called buddies. The rename to constructs changed no schema, and the earlier build, which a release keeps live while it migrates and a rollback returns to, reads everything the current build writes:
-
-- Stored rows and browsers' saved drafts keep the kind `buddy` (`STORED_PROMPT_KIND` in `src/prompts/prompt.ts`), and Journal a construct writes keeps the author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's parser also takes `construct`; the stored Journal author is a legacy-only boundary, `user` or `buddy`, and refuses `construct`, as the `memory_versions` check does.
-- `/buddies`, `/buddies/<id>`, `/guild` and `/guild/<id>` redirect, temporarily, to `/constructs` and `/constructs/<id>` (`next.config.ts`).
-- An own copy of a built-in construct, activity or spell is stored, while its whole text is unchanged, in that built-in's text from before the rename, and read back in today's text (`src/prompts/earlier-built-in-texts.ts`). The earlier texts are recorded in `src/prompts/earlier-built-ins.ts` and never edited. The earlier build knows a copy only by exact equality with its own text, so either build keeps the copy's prepared openings, whichever build saved it. Edited text is stored exactly as written, and matching stays exact (`src/prompts/matching-built-in.ts`). Adventure snapshots and activity sessions are not translated.
-- Generic sheet headings follow the same exact-match rule. `src/prompts/named-sheet-built-ins.ts` records the canonical definitions immediately before the heading change. Existing unchanged copies read as current sheets, including Find something to make, while writes keep the oldest recorded compatible text. Edited copies, including those with changed opening requests or when-to-use metadata, keep their text exactly. The historical records are never rewritten. No database migration or bulk prompt rewrite is needed.
-- `BUDDY_MODEL` is read when `CONSTRUCT_MODEL` is unset (`readConstructModel` in `src/env.ts`).
-- The global prompt tells the model that older instructions may call a construct a buddy. Saved prompts and snapshots are never rewritten.
-
-What the earlier build cannot do after a rollback: open `/constructs` links.
+`CONSTRUCT_MODEL` selects the model. The earlier model setting and collection redirects have been removed. Browser prompt drafts transfer their earlier construct-kind key when recovered.
 
 Placeholders remain literal in saved definitions and snapshots. Substitution happens when text enters model context. Adventure viewers cannot read private spell instructions through saved tool results, and ownership of the original definition does not change team adventure access.
 
@@ -69,12 +60,6 @@ Reply and tool application state identifies the acting user. Replies, generated 
 
 The shared editor refuses a blank or whitespace-only name beside the field and keeps all edits. Unsaved edits are kept in this browser for the signed-in viewer and prompt until Save or Cancel. A draft based on an older save is discarded. Browser storage can be blocked or cleared; these drafts do not follow you to other devices. Anyone with access to this browser’s storage can read them, so use Cancel on a shared device.
 
-## Quest activities and Journal updates
+## Quest activities and Plan updates
 
-New quests can start with any activity and construct chosen in an adventure form. The quest creation form defaults to Break Down a Project and its saved New quest construct preference. Quest interview is no longer listed; existing interview snapshots remain readable and older links or activity requests lead to Break Down a Project.
-
-Every quest adventure receives Journal update instructions and the update tool, including when the Journal is empty. Constructs save useful user information and agreed plans without requiring an interview. Empty `oldText` initializes or appends Markdown; replacements preserve unrelated content. Standalone adventures have no Journal. Mock tests verify tool availability, persistence and shared context; whether the model chooses to save information unprompted needs a real-model check.
-
-## Definition page identity
-
-Construct, activity and spell detail pages use the actual definition name as their H1 and document title. Access checks precede private names in metadata. Workshop remains secondary navigation and context. Definition names open inspection or editing; collections have no quest-start action. Make a copy creates a private definition, while Edit changes an existing private definition in place.
+Every quest reply receives the current Plan and recent conversation. The `change_plan` tool keeps agreed tasks; direct controls and Plan commands make changes without a model call. Goal, Preferences, Journal notes and their update tools are removed. A new quest starts with an empty Plan. Optional starting context is saved as a user message before the construct’s opening.

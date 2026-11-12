@@ -2,11 +2,12 @@
 // with the construct preset, against the test database with the mock
 // construct. An own construct stands for every construct: the cards only
 // preset the start.
+
 import { describe, expect, test } from "vitest";
-import { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
+import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
-import { listProjects, type Project } from "@/projects/store.ts";
+import { listQuests, type Quest } from "@/quests/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { formOf } from "../test-database/chat-test-kit.ts";
@@ -20,19 +21,19 @@ const QUEST_NAME = "A small experiment";
 async function startedQuest(
   owner: UserId,
   details: Readonly<Record<string, string>>,
-): Promise<Project> {
+): Promise<Quest> {
   const starting = startQuestAction(
     { kind: "idle" },
-    formOf({ name: QUEST_NAME, journal: "", ...details }),
+    formOf({ name: QUEST_NAME, context: "", ...details }),
   );
   await Promise.allSettled([starting]);
-  const quest = (await listProjects(owner)).find(
+  const quest = (await listQuests(owner)).find(
     ({ name }) => name === QUEST_NAME,
   );
   if (quest === undefined) {
     throw new Error("No quest started");
   }
-  await expectRedirect(() => starting, `/projects/${quest.id}`);
+  await expectRedirect(() => starting, `/quests/${quest.id}`);
   return quest;
 }
 
