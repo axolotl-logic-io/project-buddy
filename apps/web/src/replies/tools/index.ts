@@ -48,8 +48,6 @@ import { searchBlenderManualTool } from "@/blender-manual/search-tool.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { MessageId, QuestId, UserId } from "@/ids.ts";
-import { generateImageTool } from "@/images/generate-tool.ts";
-import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { changePlanTool } from "@/replies/tools/change-plan.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
@@ -65,7 +63,6 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 // The tools in every chat. A type alias, not an interface, as the AI SDK's
 // tool set must be a plain record.
 type ChatTools = Readonly<{
-  [GENERATE_IMAGE_TOOL]: typeof generateImageTool;
   [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
   [SELECT_ACTIVITY_TOOL]: typeof selectActivityTool;
@@ -102,7 +99,6 @@ function withSettings<ChatTool extends Tool>(
 // the one conversation that can be turned into a quest.
 function activeChatTools(questId: QuestId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
-    GENERATE_IMAGE_TOOL,
     SEARCH_BLENDER_MANUAL_TOOL,
     CITE_BLENDER_MANUAL_TOOL,
     SELECT_ACTIVITY_TOOL,
@@ -134,10 +130,6 @@ function breakpointOn(
 function chatTools(questId: QuestId | undefined): ChatTools {
   const active = activeChatTools(questId);
   return {
-    [GENERATE_IMAGE_TOOL]: withSettings(
-      generateImageTool,
-      breakpointOn(GENERATE_IMAGE_TOOL, active),
-    ),
     [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(
       searchBlenderManualTool,
       breakpointOn(SEARCH_BLENDER_MANUAL_TOOL, active),
@@ -227,7 +219,6 @@ function streamChatToolCalls(
     tools: chatTools(questId),
     activeTools: activeChatTools(questId),
     toolsContext: {
-      [GENERATE_IMAGE_TOOL]: context,
       [SELECT_ACTIVITY_TOOL]: context,
       [CAST_SPELL_TOOL]: context,
       [CHANGE_PLAN_TOOL]: context,

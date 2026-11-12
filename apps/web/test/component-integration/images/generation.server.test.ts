@@ -1,16 +1,12 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { generateForChat } from "@/images/generate.ts";
-import {
-  GALLERY_PAGE_SIZE,
-  GENERATE_IMAGE_OUTPUT,
-} from "@/images/generation-contract.ts";
+import { GALLERY_PAGE_SIZE } from "@/images/generation-contract.ts";
 import { deliverGeneratedImage } from "@/images/generation-http.ts";
 import {
   claimGeneration,
@@ -32,7 +28,6 @@ import {
   spendGold,
 } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
 
 vi.mock("@/images/image-provider.ts", async (original) => ({
@@ -68,55 +63,6 @@ beforeEach(() => {
 });
 
 describe("generated images", () => {
-  test("use_case_generate_image", async () => {
-    const { user, chat } = await setup();
-    await signIn(user);
-    const response = await sendChatMessage(
-      chat.id,
-      `/mock-tool generate_image ${JSON.stringify({ prompt: PROMPT })}`,
-    );
-    expect(response.status).toBe(HTTP_STATUS.ok);
-    const saved = await listMessages(user.id, chat.id);
-    const results = saved.flatMap((message) =>
-      message.parts.flatMap((part) => {
-        if (part.type === "tool-generate_image" && "output" in part) {
-          return [GENERATE_IMAGE_OUTPUT.parse(part.output)];
-        }
-        return [];
-      }),
-    );
-    expect(results).toHaveLength(1);
-    expect(results[0]?.status).toBe("generated");
-    const [image] = await listGeneratedImages(user.id);
-    expect(image?.prompt).toBe(PROMPT);
-    expect(image?.chatId).toBe(chat.id);
-    if (image === undefined) {
-      throw new Error("Missing generated image");
-    }
-    const stranger = await testUser();
-    await signIn(stranger);
-    expect((await deliverGeneratedImage(image.id, true)).status).toBe(
-      HTTP_STATUS.notFound,
-    );
-    expect(await listGeneratedImages(stranger.id)).toEqual([]);
-    const storedId = imageId(image.imageUrl ?? "");
-    if (storedId === undefined) {
-      throw new Error("Missing image reference");
-    }
-    expect(await getImage(stranger.id, storedId)).toBeUndefined();
-    await signIn(user);
-    const delivered = await deliverGeneratedImage(image.id, true);
-    expect(delivered.status).toBe(HTTP_STATUS.ok);
-    expect(delivered.headers.get("content-disposition")).toContain(
-      "attachment;",
-    );
-    expect(delivered.headers.get("cache-control")).toBe("private, no-store");
-    expect(Buffer.from(await delivered.arrayBuffer())).toEqual(PNG);
-    expect((await getGeneratedImage(user.id, image.id))?.status).toBe(
-      "generated",
-    );
-  });
-
   test("reserves gold atomically and prevents replay from spending twice", async () => {
     const { user, chat } = await setup();
     // Leaves gold for exactly one reservation.

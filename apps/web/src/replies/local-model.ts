@@ -10,7 +10,7 @@ import {
 import { isNeutralKickoff } from "@/replies/chat-kickoff.ts";
 import type { ScriptConversation, ScriptStep } from "@/replies/reply-script.ts";
 import { scriptedModel } from "@/replies/scripted-model.ts";
-import { startingContextInPrompt } from "@/replies/starting-context.ts";
+import { visualDescriptionInPrompt } from "@/replies/visual-description.ts";
 import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
@@ -99,10 +99,10 @@ function localReply(
     case "help":
       return [textStep(LOCAL_CONSTRUCT_COPY.help)];
     case "look": {
-      const context = startingContextInPrompt(
+      const description = visualDescriptionInPrompt(
         conversation.systemTexts.join("\n\n"),
       );
-      return [textStep(LOCAL_CONSTRUCT_COPY.look(context))];
+      return [textStep(LOCAL_CONSTRUCT_COPY.look(description))];
     }
     case "search":
       if (argument !== "") {
