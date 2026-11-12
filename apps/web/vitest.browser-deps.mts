@@ -8,8 +8,6 @@ import type { Plugin, ViteUserConfig } from "vitest/config";
 // and an import missing from here fails, naming itself. This holds only the
 // app's own imports: Vitest and @vitejs/plugin-react add theirs.
 const PREBUNDLED_DEPS: string[] = [
-  "@ai-sdk/anthropic",
-  "@ai-sdk/openai",
   "@ai-sdk/provider",
   "@ai-sdk/react",
   "@assistant-ui/react",

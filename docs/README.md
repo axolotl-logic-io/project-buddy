@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Local constructs](local-constructs.md): MUD-inspired commands, the no-model-request policy and retained harness.
+
 - [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
 
 - [Library](library.md): in-site learning books, model-input source map and content maintenance.

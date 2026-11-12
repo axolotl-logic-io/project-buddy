@@ -4,9 +4,11 @@ This glossary records the domain language of Project Buddy: the words that users
 
 ## Core model
 
+Constructs currently run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Prompts and snapshots remain saved for compatibility; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
+
 Three concepts shape every [conversation](#conversation):
 
-- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
+- A **[construct](#construct)** is who the user works with: a character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
 
@@ -100,7 +102,7 @@ The single collection destination for inspecting built-in constructs, activities
 
 ### Construct
 
-An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice) and [habits](#habits). Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in a conversation.
+A character with a name and a [prompt](#prompt) that sets its [voice](#voice) and [habits](#habits). Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in a conversation.
 
 A construct is not a prompt; it has one.
 
@@ -109,7 +111,7 @@ A construct is not a prompt; it has one.
 
 ### Construct code names
 
-Use **construct** in code, stored kinds and configuration. Own constructs, activities and spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`; the user’s saved preference is `interview_construct_id`. `CONSTRUCT_MODEL` selects the model.
+Use **construct** in code, stored kinds and configuration. Own constructs, activities and spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`; the user’s saved preference is `interview_construct_id`. `CONSTRUCT_MODEL` selects local commands or the non-production test script.
 
 The nomenclature migrations transfer existing rows and references. Browser drafts use the construct key. New copies store current built-in wording. Historical built-in text records still let readers recognize unchanged older copies; user-written prompts and conversation snapshots retain their text.
 

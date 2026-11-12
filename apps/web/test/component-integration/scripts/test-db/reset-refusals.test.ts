@@ -202,9 +202,9 @@ describe("the test database reset refuses", () => {
     expect(reset({ databaseUrl: truncated })).toEqual(refusal(TOO_LONG));
   });
 
-  test("the construct on Claude, or unset, which means Claude", () => {
+  test("the local construct engine, explicitly or by default", () => {
     expect(reset({ replyModel: undefined })).toEqual(refusal(NOT_MOCK));
-    expect(reset({ replyModel: "claude" })).toEqual(refusal(NOT_MOCK));
+    expect(reset({ replyModel: "local" })).toEqual(refusal(NOT_MOCK));
   });
 
   test("a production deployment", () => {
