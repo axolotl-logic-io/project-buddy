@@ -11,13 +11,13 @@ afterEach(() => {
 
 describe("Quests landing navigation", () => {
   test("root and old Home addresses lead directly to Quests", async () => {
-    await expect(expectRedirect(Root, "/projects")).resolves.toBeUndefined();
+    await expect(expectRedirect(Root, "/quests")).resolves.toBeUndefined();
     await expect(
-      expectRedirect(LegacyHome, "/projects"),
+      expectRedirect(LegacyHome, "/quests"),
     ).resolves.toBeUndefined();
   });
 
-  test.each(["/", "/home", "/projects"])(
+  test.each(["/", "/home", "/quests"])(
     "%s still requires sign-in before reading quests",
     async (path) => {
       vi.stubEnv("SESSION_SECRET", "landing-test-session-secret");

@@ -3,6 +3,7 @@
 // select_activity. The mock construct only quotes its
 // prompt, so whether a real construct plays each activity well is the real-Claude
 // smoke test's to check (use-cases/README.md).
+
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { eq } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
@@ -20,7 +21,7 @@ import {
 import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
-import { messages as messageRows } from "@/db/tables/projects-and-chats.ts";
+import { messages as messageRows } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {

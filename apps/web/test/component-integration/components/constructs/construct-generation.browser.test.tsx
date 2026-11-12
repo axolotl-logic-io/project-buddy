@@ -711,7 +711,7 @@ test("recovered construct edits generate directly and survive a failure without 
     )
     .toHaveValue("Unsaved silver guide");
   expect(
-    localStorage.getItem(`draft:prompt:draft-editor:buddy:${construct.id}`),
+    localStorage.getItem(`draft:prompt:draft-editor:construct:${construct.id}`),
   ).toContain("Unsaved silver guide");
 });
 

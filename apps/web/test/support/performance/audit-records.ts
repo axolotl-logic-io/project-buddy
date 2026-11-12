@@ -70,8 +70,8 @@ function flowWitness(url: string): FlowWitness {
 
 const ROUTES: Record<ReadinessRow["name"], ReadinessRow["path"]> = {
   home: "/home",
-  quests: "/projects",
-  quest: "/projects/:id",
+  quests: "/quests",
+  quest: "/quests/:id",
   adventures: "/chat",
   "long-adventure": "/chats/:id",
   activities: "/activities",

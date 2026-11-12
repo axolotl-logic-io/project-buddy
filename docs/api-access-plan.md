@@ -10,7 +10,7 @@ The site and a future API must use the same quests, adventures, Journal and othe
 
 Issue #684 says a quest starts with an interview. Current [conversation behavior](chats.md#activities-and-constructs) retires Quest interview from new choices and maps older interview requests to Project Breakdown. Activities and Constructs start a quest through the shared quest start, with their choice preset. Quest creation defaults to Project Breakdown.
 
-Motivation seeds the Journal; generated openings acknowledge it. See `src/chats/start-chat.ts` and the [quest use cases](../apps/web/use-cases/projects.md).
+Motivation seeds the Journal; generated openings acknowledge it. See `src/chats/start-chat.ts` and the [quest use cases](../apps/web/use-cases/quests.md).
 
 **Unresolved requirements reconciliation:** agree whether #684 should describe the current start behavior or require a different interview rule. Do not reinstate the retired activity, bypass the shared start behavior, or claim either interpretation approved through this document. New-quest exposure remains conditional on this decision.
 
@@ -63,7 +63,7 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 
 ## Proposed reply tool restrictions
 
-`src/replies/tools/index.ts` currently selects tools by quest presence, not API connection permission. `create_project` is available only in Chat, where it offers Turn Chat into a quest and creates nothing; only `update_memory`, `record_milestone` and `request_quest_status` require a quest.
+`src/replies/tools/index.ts` currently selects tools by quest presence, not API connection permission. `create_quest` is available only in Chat, where it offers Turn Chat into a quest and creates nothing; only `update_memory`, `record_milestone` and `request_quest_status` require a quest.
 
 API support needs a shared authorization boundary that supplies the intersection of operation permissions, connection restrictions and current acting-user access. Filter the tools advertised to the model and enforce permission again where each effect executes. A prompt or a spell cannot widen that authority. Recheck current access on later requests and tool writes; removed members must not keep access through a running client's cached authorization.
 
@@ -75,7 +75,7 @@ API support needs a shared authorization boundary that supplies the intersection
 | `update_memory` | Require `journal:write` and quest access; absent for standalone adventures. |
 | `record_milestone` | Require `milestones:write` and quest access; absent for standalone adventures. |
 | `request_quest_status` | Require `quests:write` and quest access; preserve user approval and revision rules. |
-| `create_project` | Disable initially while new-quest proposal and confirmation from any adventure are deferred. |
+| `create_quest` | Disable initially while new-quest proposal and confirmation from any adventure are deferred. |
 | `generate_image` | Disable initially while image generation permission and accounting contract are deferred. |
 
 The advertised tool set may change model behavior. Before approval, decide whether clients without these additional permissions should receive a reduced reply capability or a refusal before starting particular activities. No reply permission may silently include direct-write authority.
@@ -87,11 +87,10 @@ Paths below are relative to `apps/web/`. They identify reuse/extraction candidat
 | Behavior | Existing domain boundary and work to assess before implementation |
 | --- | --- |
 | Acting-user access | `src/accounts/owner-scope.ts`; retain owned/open predicates, including team access. Add connection permission checks without replacing those predicates. Foreign or inaccessible records remain indistinguishable from missing. |
-| Quest starts | `src/projects/store.ts`, `src/conversations/start-quest.ts`, `src/chats/new-chat-store.ts`; share name/selection validation and atomic creation. |
+| Quest starts | `src/quests/store.ts`, `src/conversations/start-quest.ts`, `src/chats/new-chat-store.ts`; share name/selection validation and atomic creation. |
 | Messages, replies and stop | `src/chats/store.ts`, `src/replies/reply.ts`, `src/replies/stop-reply-action.ts`, `src/replies/tools/index.ts`; extract session/transport orchestration where necessary. Reuse run persistence and authorization rather than starting an independent harness. |
 | Openings | `src/replies/chat-opening.ts`; prepared openings avoid calls, generated openings do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
-| Journal | `src/memory/memory-store.ts`; preserve version-based edits and restores under concurrency. |
-| Status and milestones | `src/projects/quest-status-store.ts`, `src/milestones/milestone-store.ts`; preserve revision, confirmation, scope and validation rules. |
+| Status and milestones | `src/quests/quest-status-store.ts`, `src/milestones/milestone-store.ts`; preserve revision, confirmation, scope and validation rules. |
 | Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/activities/`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
 
 Every submitted API user message retains the connection user's authorship. Derive the connection from authenticated credentials, never a caller-supplied connection id. Site/historical messages need no fabricated connection. Preserve provenance after revocation without retaining usable credentials.

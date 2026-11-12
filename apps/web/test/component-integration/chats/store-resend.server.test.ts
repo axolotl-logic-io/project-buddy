@@ -5,6 +5,7 @@
 // one that didn't save it (conversation-to-answer.test.ts proves that
 // refusal), and of two claims at once on its reply, at most one succeeds.
 // What /api/chat answers is route-resend.server.test.ts's.
+
 import { eq, sql } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -16,7 +17,7 @@ import {
   saveMessage,
 } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
-import { messages } from "@/db/tables/projects-and-chats.ts";
+import { messages } from "@/db/tables/quests-and-chats.ts";
 import type { MessageId } from "@/ids.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -42,13 +43,10 @@ describe("use_case_leave_during_reply", () => {
   test("saving one message twice at once inserts it exactly once", async () => {
     const user = await testUser();
     const data = testData(user);
-    const [project, otherProject] = await Promise.all([
-      data.project(),
-      data.project(),
-    ]);
+    const [quest, otherQuest] = await Promise.all([data.quest(), data.quest()]);
     const [chat, otherChat] = await Promise.all([
-      data.chat(project),
-      data.chat(otherProject),
+      data.chat(quest),
+      data.chat(otherQuest),
     ]);
     const message = question(QUESTION);
 

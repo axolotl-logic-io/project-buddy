@@ -19,7 +19,7 @@ export default async function HeaderLinks({
       if (item.quest === undefined) {
         return item;
       }
-      return { ...item, action: <QuestTitle project={item.quest} /> };
+      return { ...item, action: <QuestTitle quest={item.quest} /> };
     });
   }
   return SignedInLinks({ breadcrumbs });

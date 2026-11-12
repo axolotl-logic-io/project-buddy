@@ -27,7 +27,7 @@ const TIME_FORMATS: Readonly<
 };
 
 // Stands for the time in a copy text, such as
-// PROJECTS_COPY.created(TIME_SLOT), to mark where CopyWithTime puts the time.
+// QUESTS_COPY.created(TIME_SLOT), to mark where CopyWithTime puts the time.
 // A private-use character, which no copy text holds.
 const TIME_SLOT = "\u{E001}";
 

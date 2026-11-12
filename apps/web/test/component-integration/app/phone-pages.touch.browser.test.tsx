@@ -1,5 +1,5 @@
 // "use_case_use_on_phone": every page on a phone, by the rules of WCAG 2.2,
-// in Chromium and WebKit with touch (the browser-touch project in
+// in Chromium and WebKit with touch (the browser-touch quest in
 // vitest.config.mts). At 320 and 390 CSS px wide nothing scrolls sideways
 // (1.4.10, Reflow), and every visible control is at least 24×24 CSS px
 // (2.5.8, Target Size (Minimum)). A row of tabs stays one row, and scrolls
@@ -8,6 +8,7 @@
 // The pages are rendered from fixed data, in their layouts and the site's
 // frame (phone-pages-test-kit.tsx), with the site's stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
+
 import type { JSX } from "react";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -25,15 +26,14 @@ import type {
 } from "@/constructs/construct-store.ts";
 import type { privateChat } from "@/conversations/private-chat.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
-import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { readCurrentQuest } from "@/projects/current-quest-store.ts";
-import type { getProject, listProjects } from "@/projects/store.ts";
+import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
+import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { QUEST_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -75,11 +75,11 @@ vi.mock("@/images/generation-store.ts", () => ({
 }));
 
 // The stores the pages read, whose answers each PHONE_PAGES entry sets.
-vi.mock("@/projects/store.ts", () => ({
-  getProject: vi.fn<typeof getProject>(),
-  listProjects: vi.fn<typeof listProjects>(),
+vi.mock("@/quests/store.ts", () => ({
+  getQuest: vi.fn<typeof getQuest>(),
+  listQuests: vi.fn<typeof listQuests>(),
 }));
-vi.mock("@/projects/current-quest-store.ts", () => ({
+vi.mock("@/quests/current-quest-store.ts", () => ({
   readCurrentQuest: vi.fn<typeof readCurrentQuest>(),
 }));
 vi.mock("@/chats/store.ts", () => ({
@@ -93,9 +93,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 }));
 vi.mock("@/conversations/private-chat.ts", () => ({
   privateChat: vi.fn<typeof privateChat>(),
-}));
-vi.mock("@/memory/memory-store.ts", () => ({
-  readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
 }));
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
@@ -141,17 +138,13 @@ vi.mock("@/app/signup/actions.ts", () => ({ signUpAction: vi.fn() }));
 vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
-  saveMemoryAction: vi.fn(),
-  restoreMemoryAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
@@ -193,7 +186,7 @@ vi.mock(
   "@/activities/activity-choices.ts",
   () => import("../activities/activity-choices-test-kit.ts"),
 );
-// A touch screen's pointer, which the browser-touch project's pages have.
+// A touch screen's pointer, which the browser-touch quest's pages have.
 const COARSE_POINTER = "(pointer: coarse)";
 
 // What a page measures on a phone.
@@ -213,7 +206,7 @@ interface PhoneMeasures {
 // sections, an adventure's, the Workshop's kinds, the Library's books and the Retirement filter. The Quests list's status tabs
 // are a grid of two columns on a phone by design, so they aren't one.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [
-  PROJECT_COPY.navigation,
+  QUEST_COPY.navigation,
   WORKSPACES_COPY.conversation,
   WORKSHOP_PAGE_COPY.kindsLabel,
   WORKSPACES_COPY.books,

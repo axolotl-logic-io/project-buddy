@@ -15,8 +15,8 @@ const REPLY_MICRO_USD = 12;
 test("a reply is charged to the user who sent the message, and no one else", async () => {
   const [sender, other] = await Promise.all([testUser(), testUser()]);
   const data = testData(sender);
-  const project = await data.project();
-  const chat = await data.chat(project);
+  const quest = await data.quest();
+  const chat = await data.chat(quest);
   await signIn(sender);
   const [senderBefore, otherBefore] = await Promise.all([
     goldSpent(sender),

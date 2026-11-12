@@ -3,6 +3,7 @@
 // rows of the user or client it is given, so tests beside it see no change.
 // The rate limits' windows end through endRateLimitWindowsFor in
 // src/accounts/rate-limits.ts, which these use too.
+
 import { eq, type SQL, sql } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
 import { signInLinks } from "@/db/tables/users.ts";

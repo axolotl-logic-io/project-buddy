@@ -7,6 +7,7 @@
 // next page's first paint. The site's stylesheet comes from
 // vitest.browser-setup.ts; next/font can't run here, so the fonts come from
 // theme-fonts-test-kit.ts.
+
 import {
   afterEach,
   beforeAll,

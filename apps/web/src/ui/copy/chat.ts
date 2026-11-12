@@ -57,8 +57,7 @@ export const TOOL_FAILURES_COPY = {
   questStatus: "Your construct couldn’t request the quest status change.",
   citeManual: "Your construct couldn't show its links to the manual.",
   searchManual: "Your construct couldn't search the manual.",
-  updateMemory: "Your construct couldn't update the quest's Journal.",
-  createProject: "Your construct couldn't create the quest.",
+  createQuest: "Your construct couldn't create the quest.",
   selectActivity: "Your construct couldn't change the conversation's activity.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
@@ -77,7 +76,7 @@ export const CAST_SPELL_COPY = {
 
 // The quest the construct offers in Chat, or, in a result saved before
 // offers, the quest it created or why it created none.
-export const CREATE_PROJECT_COPY = {
+export const CREATE_QUEST_COPY = {
   offered: (name: string): string => `Suggested quest: ${name}`,
   created: (name: string): string => `Created the quest “${name}”`,
   openQuest: "Open the quest",
@@ -85,7 +84,7 @@ export const CREATE_PROJECT_COPY = {
     "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
 } as const;
 
-// What the new-project and new-chat forms say when Claude can't write the new
+// What the new-quest and new-chat forms say when Claude can't write the new
 // chat's opening, so nothing was started.
 export const OPENING_COPY = {
   claudeUnavailable:

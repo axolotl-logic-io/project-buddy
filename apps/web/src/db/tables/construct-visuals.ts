@@ -11,7 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { listings } from "./listings.ts";
 import { ownPrompts } from "./own-prompts.ts";
-import { chats } from "./projects-and-chats.ts";
+import { chats } from "./quests-and-chats.ts";
 import { users } from "./users.ts";
 
 const constructAssets = pgTable("construct_assets", {

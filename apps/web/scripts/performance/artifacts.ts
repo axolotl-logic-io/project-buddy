@@ -8,14 +8,16 @@ const NUMBER = z.number().finite();
 const TAG = z.string().regex(/^[A-Z][A-Z0-9]*$/u);
 const ROUTES = [
   "/home",
-  "/projects",
-  "/projects/:id",
+  "/quests",
+  "/quests/:id",
   "/chat",
   "/chats/:id",
   "/activities",
   "/workshop",
   "/constructs/:id",
 ] as const;
+// Archived measurements retain their captured URLs.
+const EARLIER_ROUTES = ["/projects", "/projects/:id"] as const;
 const JOURNEYS = [
   "home",
   "quests",
@@ -81,6 +83,7 @@ const RESOURCE = z.strictObject({
     "/artwork/:asset",
     "/other",
     ...ROUTES,
+    ...EARLIER_ROUTES,
   ]),
   start: NONNEGATIVE,
   duration: NONNEGATIVE,
@@ -128,7 +131,7 @@ const READINESS = z.strictObject({
   name: z.enum(JOURNEYS),
   mode: z.enum(MODES),
   sample: z.number().int().positive(),
-  path: z.enum(ROUTES),
+  path: z.enum([...ROUTES, ...EARLIER_ROUTES]),
   control: z.strictObject({
     firstAttempt: NONNEGATIVE,
     confirmed: NONNEGATIVE,
@@ -296,7 +299,8 @@ function validateReadinessRows(
     if (
       !journeys(row.state).includes(row.name) ||
       row.sample > samples ||
-      row.path !== ROUTES[JOURNEYS.indexOf(row.name)]
+      row.path.replace("/projects", "/quests") !==
+        ROUTES[JOURNEYS.indexOf(row.name)]
     ) {
       throw new Error("Invalid authenticated destination");
     }
@@ -411,7 +415,7 @@ const FIELD_METRIC = z.strictObject({
   rating: z.enum(["good", "needs-improvement", "poor"]),
   release: z.string().regex(/^[0-9a-f]{40}$/u),
   device: z.enum(PROFILES),
-  route: z.enum(ROUTES),
+  route: z.enum([...ROUTES, ...EARLIER_ROUTES]),
 });
 function validateFieldMetric(input: unknown): z.infer<typeof FIELD_METRIC> {
   return FIELD_METRIC.parse(input);

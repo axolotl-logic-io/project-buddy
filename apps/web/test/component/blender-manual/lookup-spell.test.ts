@@ -1,6 +1,7 @@
 // The Blender manual lookup as a built-in spell: the lookup tools, which
 // every chat has, send the construct to the spell before its first lookup, so
 // a chat pays for the lookup instructions only once it needs them.
+
 import { describe, expect, test } from "vitest";
 import { CITE_BLENDER_MANUAL_DESCRIPTION } from "@/blender-manual/cite-tool-contract.ts";
 import {

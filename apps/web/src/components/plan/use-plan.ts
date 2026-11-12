@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import type { ChatMessage } from "@/chats/message-author.ts";
-import type { ChatId, ProjectId } from "@/ids.ts";
+import type { ChatId, QuestId } from "@/ids.ts";
 import type { PlanOperation, PlanState } from "@/plan/plan.ts";
 import type {
   changePlanAction,
@@ -44,7 +44,7 @@ interface PlanFeedback {
 // One quest's plan as the page shows it, and the changes the user can make
 // to it from here, without the construct.
 interface PlanController {
-  readonly projectId: ProjectId;
+  readonly questId: QuestId;
   // The adventure the controls are in, if any: their changes are saved to
   // it as plan messages.
   readonly chatId?: ChatId | undefined;
@@ -69,7 +69,7 @@ interface PlanController {
 // the page read it, what the controls answer with in an adventure, and why
 // they are off, if they are.
 interface PlanControllerOptions {
-  readonly projectId: ProjectId | undefined;
+  readonly questId: QuestId | undefined;
   readonly actions: PlanActions | undefined;
   readonly chatId?: ChatId | undefined;
   readonly initialState: PlanState | undefined;
@@ -127,7 +127,7 @@ function feedbackOf(
 // The controller of one quest's plan, or undefined without a quest, such as
 // in a standalone adventure.
 function usePlanController({
-  projectId,
+  questId,
   actions,
   chatId,
   initialState,
@@ -185,9 +185,9 @@ function usePlanController({
         if (actions === undefined) {
           return { kind: "not-found" };
         }
-        return await actions.change({ projectId, chatId, operations });
+        return await actions.change({ questId, chatId, operations });
       }),
-    [run, actions, projectId, chatId],
+    [run, actions, questId, chatId],
   );
   const undo = useCallback(
     (version: number): Promise<void> =>
@@ -195,20 +195,20 @@ function usePlanController({
         if (actions === undefined) {
           return { kind: "not-found" };
         }
-        return await actions.undo({ projectId, chatId, version });
+        return await actions.undo({ questId, chatId, version });
       }),
-    [run, actions, projectId, chatId],
+    [run, actions, questId, chatId],
   );
   let shown = state;
   if (observed !== undefined && observed.version > state.version) {
     shown = { ...observed, undone: state.undone };
   }
   return useMemo(() => {
-    if (projectId === undefined || actions === undefined) {
+    if (questId === undefined || actions === undefined) {
       return;
     }
     return {
-      projectId,
+      questId,
       chatId,
       state: shown,
       disabledNote,
@@ -220,7 +220,7 @@ function usePlanController({
       receive,
     };
   }, [
-    projectId,
+    questId,
     actions,
     chatId,
     shown,

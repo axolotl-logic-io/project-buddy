@@ -30,7 +30,6 @@ import {
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
 import { IMAGE_RESERVATION_MICRO_USD } from "@/images/image-provider.ts";
-import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
 import { matchingBuiltInConstruct } from "@/prompts/matching-built-in.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -103,7 +102,7 @@ async function legacyBoughtCopy(
     .insert(ownPrompts)
     .values({
       userId: buyer.id,
-      kind: "buddy",
+      kind: "construct",
       name: source.name,
       parts: source.parts,
       boughtFrom: crypto.randomUUID(),
@@ -411,9 +410,9 @@ describe("use_case_generate_construct_visual", () => {
     if (saved === undefined || clone === undefined) {
       throw new Error("No construct");
     }
-    const project = await testData(user).project();
+    const quest = await testData(user).quest();
     const chat = await createChat(user.id, {
-      project,
+      quest,
       construct: {
         id: DEFAULT_CONSTRUCT_ID,
         name: saved.name,
@@ -486,7 +485,7 @@ describe("use_case_generate_construct_visual", () => {
       .from(ownPrompts)
       .where(eq(ownPrompts.id, copy.id));
     expect(row?.parts).toMatchObject({
-      voice: earlierConstructText(builtIn.definition).prompt,
+      voice: builtIn.definition.prompt,
     });
     const referenceProvider = { generate: vi.fn(image) };
     const generated = await generateConstructVisual(
@@ -690,9 +689,9 @@ test("legacy hashes use owned generation descriptions; copied legacy art with no
 test("replaced artwork can be restored once with its matching description and no charge", async () => {
   const { user, construct, provider, request } = await setup();
   const first = await generateConstructVisual(user.id, request, provider);
-  const project = await testData(user).project();
+  const quest = await testData(user).quest();
   const snapshot = await createChat(user.id, {
-    project,
+    quest,
     construct: {
       id: DEFAULT_CONSTRUCT_ID,
       name: construct.name,

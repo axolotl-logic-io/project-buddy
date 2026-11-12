@@ -1,8 +1,5 @@
 import type { UserId } from "@/ids.ts";
-import {
-  currentSpellText,
-  earlierSpellText,
-} from "@/prompts/earlier-built-in-texts.ts";
+import { currentSpellText } from "@/prompts/earlier-built-in-texts.ts";
 import {
   cloneOwnPrompt,
   createOwnPrompt,
@@ -29,8 +26,7 @@ type SpellEdit = DefinitionEdit<SpellDefinition>;
 
 const SPELL_STORE: DefinitionStore<SpellDefinition> = {
   kind: "spell",
-  encodeDefinition: (text: SpellDefinition): unknown =>
-    storedSpellPrompt(earlierSpellText(text)),
+  encodeDefinition: (text: SpellDefinition): unknown => storedSpellPrompt(text),
   parseDefinition: (stored: unknown): SpellDefinition | undefined => {
     const text = parseSpellDefinition(stored);
     if (text === undefined) {

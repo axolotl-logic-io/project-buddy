@@ -3,6 +3,7 @@
 // A link signs in any number of times, on any device, until it expires
 // SIGN_IN_LINK_LIFETIME_MINUTES after it was made, or until its user signs
 // out everywhere (endEverySession deletes their links).
+
 import { and, eq, gt, lte } from "drizzle-orm";
 import { after } from "next/server";
 import {

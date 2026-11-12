@@ -49,8 +49,8 @@ function lighthouseReports(): { navigations: unknown[]; flows: unknown[] } {
     }
     flows.push(
       verifiedTimespan(
-        lighthouseResult("timespan", `${BASE}/projects`),
-        flowWitness(`${BASE}/projects`),
+        lighthouseResult("timespan", `${BASE}/quests`),
+        flowWitness(`${BASE}/quests`),
         { sample, content: "fixture-link" },
       ),
     );

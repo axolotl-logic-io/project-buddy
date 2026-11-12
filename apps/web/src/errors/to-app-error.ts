@@ -2,6 +2,7 @@
 // or the database throws becomes an AppError with its case, logged once.
 // Which case an error is, and what of it is logged, is left to the provider
 // modules (anthropic-errors.ts, neon-errors.ts).
+
 import { unstable_rethrow } from "next/navigation";
 import { anthropicErrorCase } from "@/errors/anthropic-errors.ts";
 import { AppError, type AppErrorCase } from "@/errors/app-error.ts";

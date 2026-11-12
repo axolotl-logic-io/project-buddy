@@ -1,6 +1,7 @@
 // The Workshop's Activities list: each activity's name opens its page, with
 // no start action, and Create activity sits among the user's own, with or
 // without any, and creates a new activity from the keyboard.
+
 import type { JSX } from "react";
 import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";

@@ -13,7 +13,7 @@ import {
 } from "../../../support/performance/audit-records.ts";
 
 const HOME = `${BASE}/home`;
-const QUESTS = `${BASE}/projects`;
+const QUESTS = `${BASE}/quests`;
 const CHAT = `${BASE}/chats/0a6c3b1e-3a3a-4b4b-8c8c-1d1d1d1d1d1d`;
 const SAMPLES = 3;
 

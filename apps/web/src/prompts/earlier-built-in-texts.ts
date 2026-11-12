@@ -1,7 +1,5 @@
-// An unchanged own copy of a built-in is stored in its oldest recorded
-// compatible text and read back in today's text (docs/prompts.md#storage-compatibility).
-// Prefer the record from before the rename from buddies, so that build keeps
-// prepared openings and Marketplace restrictions during a rollout or rollback.
+// Read historical built-in definitions as their current text. New writes
+// store current definitions. Edited user text is preserved.
 // Find something to make has no pre-rename record: its oldest compatible text
 // is in the named-heading record. Only whole definitions equal to a recorded
 // built-in are translated; edited text is stored and read exactly as written.
@@ -48,14 +46,6 @@ function sameSpell(a: SpellDefinition, b: SpellDefinition): boolean {
   return a.prompt === b.prompt && a.whenToUse === b.whenToUse;
 }
 
-function toEarlier<Definition>(
-  text: Definition,
-  known: readonly TextPair<Definition>[],
-  same: (a: Definition, b: Definition) => boolean,
-): Definition {
-  return known.find((pair) => same(pair.current, text))?.earlier ?? text;
-}
-
 function fromEarlier<Definition>(
   text: Definition,
   known: readonly TextPair<Definition>[],
@@ -64,7 +54,7 @@ function fromEarlier<Definition>(
   return known.find((pair) => same(pair.earlier, text))?.current ?? text;
 }
 
-// Keep the oldest compatible text first for writes. Reads accept every
+// Reads accept every
 // recorded version, including unchanged copies saved with named headings.
 function constructPairs(): TextPair<ConstructDefinition>[] {
   return [
@@ -87,15 +77,6 @@ function spellPairs(): TextPair<SpellDefinition>[] {
   ];
 }
 
-export function earlierConstructText(
-  text: ConstructDefinition,
-): ConstructDefinition {
-  return {
-    ...text,
-    prompt: toEarlier(text, constructPairs(), sameConstruct).prompt,
-  };
-}
-
 export function currentConstructText(
   text: ConstructDefinition,
 ): ConstructDefinition {
@@ -105,20 +86,10 @@ export function currentConstructText(
   };
 }
 
-export function earlierActivityText(
-  text: ActivityDefinition,
-): ActivityDefinition {
-  return toEarlier(text, activityPairs(), sameActivity);
-}
-
 export function currentActivityText(
   text: ActivityDefinition,
 ): ActivityDefinition {
   return fromEarlier(text, activityPairs(), sameActivity);
-}
-
-export function earlierSpellText(text: SpellDefinition): SpellDefinition {
-  return toEarlier(text, spellPairs(), sameSpell);
 }
 
 export function currentSpellText(text: SpellDefinition): SpellDefinition {
