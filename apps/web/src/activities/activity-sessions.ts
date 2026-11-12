@@ -13,7 +13,7 @@ import {
 } from "@/activities/chosen-activity.ts";
 import { isActivityId } from "@/activities/index.ts";
 import { type Chat, openChat } from "@/chats/chat-rows.ts";
-import { getDb } from "@/db/client.ts";
+import { type Database, getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -46,9 +46,10 @@ function toChatActivity(row: SessionRow): ChatActivity | undefined {
 async function currentActivity(
   owner: UserId,
   chat: Pick<Chat, "id">,
+  database: Database = getDb(),
 ): Promise<ChatActivity> {
   const [row] = await withAppErrors("currentActivity", () =>
-    getDb()
+    database
       .select()
       .from(activitySessions)
       .where(

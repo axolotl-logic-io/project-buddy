@@ -535,6 +535,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
+  {
+    name: "a quest's Ideas",
+    path: QUEST_PATH,
+    render: projectPageFor("ideas"),
+  },
   { name: "a quest's Plan", path: QUEST_PATH, render: projectPageFor("plan") },
   {
     name: "a quest's Progress",

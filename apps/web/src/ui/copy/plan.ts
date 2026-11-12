@@ -46,7 +46,7 @@ function planLineText(line: PlanChangeLine): string {
 
 // What each built-in command does, as the composer's list shows it.
 const PLAN_COMMAND_DESCRIPTIONS: Readonly<Record<PlanCommandName, string>> = {
-  plan: "Show the plan as a card",
+  plan: "Start Plan; save subsequent messages as steps",
   add: "Add a step at the end",
   done: "Check off a step, or the next step",
   reopen: "Reopen a done step",
@@ -111,6 +111,7 @@ export const PLAN_CHANGE_COPY = {
   noModel: "No batteries spent",
   notChanged: "The plan didn't change.",
   cardLabel: "Plan card",
+  sideMenu: "The Plan controls are in the quest side menu.",
   staleCard: "Plan card. The plan is shown again further down.",
 } as const;
 

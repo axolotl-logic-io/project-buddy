@@ -1,9 +1,7 @@
 "use client";
 
-import { useAuiState } from "@assistant-ui/react";
 import { type JSX, useCallback } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
-import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import { usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -124,22 +122,6 @@ function PlanChangeToolPart({
   );
 }
 
-// The plan as a card in the conversation, which the /plan command showed.
-// Only the newest card holds the live plan with its controls; an older one
-// says so, so the conversation holds one copy of the controls.
-function PlanCard(): JSX.Element {
-  const plan = usePlan();
-  const messageId = useAuiState(({ message }) => message.id);
-  if (plan === undefined || plan.newestCardId !== messageId) {
-    return <p className="text-muted text-sm">{PLAN_CHANGE_COPY.staleCard}</p>;
-  }
-  return (
-    <section aria-label={PLAN_CHANGE_COPY.cardLabel} className="plan-card">
-      <PlanSteps look="card" />
-    </section>
-  );
-}
-
 // A plan message's part (src/plan/plan-message.ts): a person's plan change,
 // with the command they typed for it, or a plan card, inside the frame of
 // their message. Any other data part shows nothing.
@@ -158,7 +140,7 @@ function PlanDataPart({
     return (
       <div className="plan-message">
         <p className="plan-command">{part.data.command}</p>
-        <PlanCard />
+        <p className="text-muted text-sm">{PLAN_CHANGE_COPY.sideMenu}</p>
       </div>
     );
   }

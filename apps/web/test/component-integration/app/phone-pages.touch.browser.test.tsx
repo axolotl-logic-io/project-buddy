@@ -61,6 +61,10 @@ import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 import { siteHeaderAt } from "./site-header-test-kit.tsx";
 
+vi.mock("@/ideas/idea-store.ts", () => ({
+  listIdeas: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock(
   "@/plan/plan-actions.ts",
   () => import("../plan/plan-actions-test-kit.ts"),

@@ -17,7 +17,6 @@ import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { QUEST_COPY } from "@/ui/copy/quests.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -32,6 +31,10 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
 
+vi.mock("@/ideas/idea-store.ts", () => ({
+  listIdeas: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: (): never => {
     throw new Error("Quest creation is not available in a quest conversation");
@@ -131,8 +134,8 @@ test.each(["completed", "abandoned"] as const)(
     stores.getQuest.mockResolvedValue({ ...FOX_QUEST, status });
     await renderQuest();
     await expect
-      .element(page.getByRole("link", { name: "Plan" }))
-      .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=plan`);
+      .element(page.getByRole("button", { name: "Plan", exact: true }))
+      .toHaveAttribute("aria-expanded", "true");
     await expect.element(composer()).toBeVisible();
   },
 );
@@ -179,10 +182,7 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       const menu = page.getByRole("button", { name: "Quest actions" });
       await expect.element(menu).toBeVisible();
       const title = menu.element().getBoundingClientRect();
-      const workspace = page
-        .getByRole("navigation", { name: QUEST_COPY.navigation })
-        .element()
-        .closest("header")?.parentElement;
+      const workspace = menu.element().closest("header")?.parentElement;
       expect(
         workspace?.querySelector("header")?.getBoundingClientRect().height,
       ).toBeLessThanOrEqual(MAX_COMPACT_HEADER_HEIGHT);
@@ -247,32 +247,13 @@ test("the workspace keeps navigation and direct status actions compact", async (
     page.getByRole("heading", { level: 1 }).query(),
     "the quest's name is the trail band's heading, not the frame's",
   ).toBeNull();
-  const navigation = page.getByRole("navigation", {
-    name: QUEST_COPY.navigation,
-  });
   await expect
-    .element(
-      navigation.getByRole("link", { name: WORKSPACES_COPY.conversation }),
-    )
-    .toHaveAttribute("aria-current", "page");
-  await expect
-    .element(navigation.getByRole("link", { name: "Plan" }))
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=plan`);
-  const portrait = navigation.getByRole("button", {
+    .element(page.getByRole("navigation", { name: QUEST_COPY.navigation }))
+    .not.toBeInTheDocument();
+  const portrait = page.getByRole("button", {
     name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CONVERSATION.construct.name),
   });
   await expect.element(portrait).toBeVisible();
-  await expect
-    .element(
-      navigation.getByText(FOX_CONVERSATION.construct.name, { exact: true }),
-    )
-    .not.toBeInTheDocument();
-  const conversationTab = navigation.getByRole("link", {
-    name: WORKSPACES_COPY.conversation,
-  });
-  expect(portrait.element().getBoundingClientRect().right).toBeLessThanOrEqual(
-    conversationTab.element().getBoundingClientRect().left,
-  );
   await portrait.click();
   await expect.element(page.getByRole("dialog")).toBeVisible();
   await expect
@@ -292,10 +273,7 @@ test("the workspace keeps navigation and direct status actions compact", async (
   await expect
     .element(page.getByText("Active", { exact: true }))
     .not.toBeInTheDocument();
-  const header = navigation
-    .element()
-    .closest("header")
-    ?.getBoundingClientRect();
+  const header = menu.element().closest("header")?.getBoundingClientRect();
   expect(header?.height).toBeLessThanOrEqual(MAX_COMPACT_HEADER_HEIGHT);
   await menu.click();
   await expect
@@ -317,10 +295,20 @@ test("the Plan section shows the todo list without Goal, Preferences or Journal"
       page.getByRole("heading", { name, exact: true }).elements(),
     ).toHaveLength(0);
   }
-  const navigation = page.getByRole("navigation", {
-    name: QUEST_COPY.navigation,
-  });
   expect(
-    navigation.getByRole("link", { name: REMOVED_CONTEXT_LINK }).elements(),
+    page.getByRole("link", { name: REMOVED_CONTEXT_LINK }).elements(),
   ).toHaveLength(0);
+});
+
+test("Ideas opens as a separate quest section beside Plan", async () => {
+  await renderQuest("ideas");
+  await expect
+    .element(page.getByRole("button", { name: "Ideas", exact: true }))
+    .toHaveAttribute("aria-expanded", "true");
+  await expect
+    .element(page.getByRole("heading", { name: "Ideas", exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: "Add idea" }))
+    .toBeVisible();
 });
