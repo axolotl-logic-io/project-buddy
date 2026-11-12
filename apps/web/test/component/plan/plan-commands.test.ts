@@ -104,3 +104,15 @@ describe("chat commands", () => {
     });
   });
 });
+
+test.each(["/help", "/LOOK", "/search bevel", "/cast example"])(
+  "construct command reaches the conversation: %s",
+  (text) => {
+    expect(isChatCommand(text, { inQuest: true, mockCommands: false })).toBe(
+      false,
+    );
+    expect(isChatCommand(text, { inQuest: false, mockCommands: false })).toBe(
+      false,
+    );
+  },
+);

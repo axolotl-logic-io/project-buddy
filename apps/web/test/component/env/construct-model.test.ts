@@ -1,46 +1,33 @@
-// CONSTRUCT_MODEL picks the model constructs run. BUDDY_MODEL, its earlier
-// name, still works where CONSTRUCT_MODEL is unset, so environments set up
-// before the rename keep the mock.
-
 import { afterEach, expect, test, vi } from "vitest";
 import { readConstructModel } from "@/env.ts";
 
 afterEach(() => {
   vi.unstubAllEnvs();
 });
-
-function stubModels(construct: string, legacy: string): void {
-  vi.stubEnv("CONSTRUCT_MODEL", construct);
-  vi.stubEnv("BUDDY_MODEL", legacy);
-  vi.stubEnv("VERCEL_ENV", "");
-}
-
-test("constructs run Claude when neither name is set", () => {
-  stubModels("", "");
-  expect(readConstructModel()).toBe("claude");
+test("local rules are the default in development and production", () => {
+  vi.stubEnv("CONSTRUCT_MODEL", "");
+  vi.stubEnv("BUDDY_MODEL", "claude");
+  expect(readConstructModel()).toBe("local");
+  vi.stubEnv("VERCEL_ENV", "production");
+  expect(readConstructModel()).toBe("local");
 });
-
-test("the removed model setting does not select the mock", () => {
-  stubModels("", "mock");
-  expect(readConstructModel()).toBe("claude");
+test("local rules can be selected explicitly", () => {
+  vi.stubEnv("CONSTRUCT_MODEL", "local");
+  expect(readConstructModel()).toBe("local");
 });
-
-test("CONSTRUCT_MODEL takes precedence over the legacy name", () => {
-  stubModels("claude", "mock");
-  expect(readConstructModel()).toBe("claude");
-  stubModels("mock", "claude");
+test("remote and unknown model settings fail closed", () => {
+  for (const setting of ["claude", "gpt"]) {
+    vi.stubEnv("CONSTRUCT_MODEL", setting);
+    expect(readConstructModel).toThrow("Remote models are disabled");
+  }
+});
+test("test scripts remain available outside production", () => {
+  vi.stubEnv("CONSTRUCT_MODEL", "mock");
+  vi.stubEnv("VERCEL_ENV", "development");
   expect(readConstructModel()).toBe("mock");
 });
-
-test("an unknown model, under either name, is refused", () => {
-  stubModels("gpt", "");
-  expect(readConstructModel).toThrow(
-    'CONSTRUCT_MODEL must be unset, "claude" or "mock".',
-  );
-});
-
-test("production refuses the mock", () => {
-  stubModels("mock", "");
+test("production refuses test scripts", () => {
+  vi.stubEnv("CONSTRUCT_MODEL", "mock");
   vi.stubEnv("VERCEL_ENV", "production");
   expect(readConstructModel).toThrow("in production");
 });
