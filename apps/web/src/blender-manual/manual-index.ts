@@ -3,9 +3,8 @@
 // sections beside it. Node runs the reindex directly, so imports here are
 // relative.
 import { inArray } from "drizzle-orm";
-import type { NeonDatabase } from "drizzle-orm/neon-serverless";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
-import { getDb } from "../db/client.ts";
+import { type Database, getDb } from "../db/client.ts";
 import { manualSections } from "../db/tables/manual-sections.ts";
 import type { ManualSection } from "./manual-sections.ts";
 
@@ -38,7 +37,7 @@ async function insertSections<QueryResult extends PgQueryResultHKT>(
 // Replaces the whole index in one transaction, so searches never see it
 // half built.
 export async function replaceManualSections(
-  database: NeonDatabase,
+  database: Database,
   sections: readonly ManualSection[],
 ): Promise<void> {
   await database.transaction(async (transaction) => {

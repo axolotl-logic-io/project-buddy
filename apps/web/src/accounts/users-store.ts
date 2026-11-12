@@ -4,7 +4,7 @@
 // session token names (src/auth/session-token.ts).
 
 import { and, eq, sql } from "drizzle-orm";
-import { getDb } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { signInLinks, users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId, type UserId } from "@/ids.ts";
@@ -89,15 +89,14 @@ async function readSessionUser(
 // earlier session no longer matches, and deletes the sign-in links sent to
 // them, together.
 async function endEverySession(id: UserId): Promise<void> {
-  const db = getDb();
   await withAppErrors("endEverySession", () =>
-    db.batch([
-      db
+    inTransaction(async (tx) => {
+      await tx
         .update(users)
         .set({ sessionEpoch: sql`${users.sessionEpoch} + 1` })
-        .where(eq(users.id, id)),
-      db.delete(signInLinks).where(eq(signInLinks.userId, id)),
-    ]),
+        .where(eq(users.id, id));
+      await tx.delete(signInLinks).where(eq(signInLinks.userId, id));
+    }),
   );
 }
 

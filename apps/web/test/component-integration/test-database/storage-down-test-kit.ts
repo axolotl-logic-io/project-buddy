@@ -10,8 +10,7 @@ import type { User } from "@/accounts/users-store.ts";
 import { readDatabaseUrl } from "@/env.ts";
 import { userIdFixture } from "../../support/id-fixtures.ts";
 
-// fetch() refuses port 1 outright (the Fetch standard lists it as a bad
-// port), and nothing on this machine can ever answer there.
+// An unavailable local database port, shared by the storage outage tests.
 const DEAD_DATABASE_PORT = 1;
 
 // Points DATABASE_URL at the dead port, for every database client made

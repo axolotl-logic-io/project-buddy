@@ -13,7 +13,7 @@ import { inArray, lte, type SQL, sql } from "drizzle-orm";
 import type { PgInsertValue } from "drizzle-orm/pg-core";
 import { normalizeEmail } from "@/accounts/users-store.ts";
 import { hmacSha256 } from "@/auth/hmac.ts";
-import { type Database, getDb } from "@/db/client.ts";
+import { type Database, getDb, inTransaction } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { readSessionSecret } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -167,34 +167,32 @@ async function countSignInLinkRequest(
     now,
     increment: withinOthers,
   });
-  const db = getDb();
-  const [[forPair], [forClient], [forAddress]] = await withAppErrors(
-    "countSignInLinkRequest",
-    () =>
-      db.batch([
-        db
-          .insert(rateLimits)
-          .values(byPair.values)
-          .onConflictDoUpdate({ target: rateLimits.key, set: byPair.set })
-          .returning({ count: rateLimits.count }),
-        db
-          .insert(rateLimits)
-          .values(byClient.values)
-          .onConflictDoUpdate({ target: rateLimits.key, set: byClient.set })
-          .returning({ count: rateLimits.count }),
-        // Last of the counts, as it reads the two before it.
-        db
-          .insert(rateLimits)
-          .values(byAddress.values)
-          .onConflictDoUpdate({ target: rateLimits.key, set: byAddress.set })
-          .returning({ count: rateLimits.count }),
-        db.delete(rateLimits).where(expiredRows(db, now)),
-      ]),
+  const counts = await withAppErrors("countSignInLinkRequest", () =>
+    inTransaction(async (tx) => {
+      const [forPair] = await tx
+        .insert(rateLimits)
+        .values(byPair.values)
+        .onConflictDoUpdate({ target: rateLimits.key, set: byPair.set })
+        .returning({ count: rateLimits.count });
+      const [forClient] = await tx
+        .insert(rateLimits)
+        .values(byClient.values)
+        .onConflictDoUpdate({ target: rateLimits.key, set: byClient.set })
+        .returning({ count: rateLimits.count });
+      // Last of the counts, as it reads the two before it.
+      const [forAddress] = await tx
+        .insert(rateLimits)
+        .values(byAddress.values)
+        .onConflictDoUpdate({ target: rateLimits.key, set: byAddress.set })
+        .returning({ count: rateLimits.count });
+      await tx.delete(rateLimits).where(expiredRows(tx, now));
+      return { forPair, forClient, forAddress };
+    }),
   );
   return (
-    (forPair?.count ?? 0) <= ADDRESS_AND_CLIENT_LIMIT.requests &&
-    (forClient?.count ?? 0) <= CLIENT_LIMIT.requests &&
-    (forAddress?.count ?? 0) <= ADDRESS_LIMIT.requests
+    (counts.forPair?.count ?? 0) <= ADDRESS_AND_CLIENT_LIMIT.requests &&
+    (counts.forClient?.count ?? 0) <= CLIENT_LIMIT.requests &&
+    (counts.forAddress?.count ?? 0) <= ADDRESS_LIMIT.requests
   );
 }
 

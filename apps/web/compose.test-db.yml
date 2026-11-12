@@ -1,11 +1,5 @@
-# The end-to-end test database: Postgres behind Neon's local proxy, so the app
-# reaches it with the same Neon HTTP and WebSocket drivers it uses in
-# production. `npm run test-db:up` starts it and `npm run test-db:down` stops
-# it. Data lives in memory and is gone when the containers stop. Several
-# worktrees can share it: the orchestrator provisions a database and proxy per
-# lane (scripts/test-env/setup.sh); manual runs configure distinct databases and
-# ports by hand. Test commands do not allocate or drop invocation-owned resources.
-# Images are pinned by digest; the proxy publishes only a `main` tag.
+# Shared local PostgreSQL test server. Each worktree/lane has its own database.
+# Test data is held in memory and disappears when the server stops.
 name: project-buddy-test-db
 services:
   postgres:
@@ -16,99 +10,12 @@ services:
       POSTGRES_DB: main
     tmpfs:
       - /var/lib/postgresql/data
-    # Each worktree's suite reaches the server through a Neon proxy that pools
-    # connections, and the issue pipeline runs a suite per lane. With the
-    # default 100, four or five suites at once failed with "sorry, too many
-    # clients already".
+    ports:
+      - "127.0.0.1:5433:5432"
+    # Concurrent lane suites share this server. Each application pool is bounded.
     command: ["postgres", "-c", "max_connections=300"]
-    # The proxy signs in to Postgres for every query the app sends over HTTP.
-    # A SCRAM password hashed with one iteration rather than 4,096 makes each
-    # sign-in cheap: a query took about 75 ms on this machine, and takes
-    # about 8 ms. The password and the server serve only this machine's tests.
-    configs:
-      - source: cheap-password
-        target: /docker-entrypoint-initdb.d/cheap-password.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready --username=postgres --dbname=main"]
       interval: 1s
       timeout: 3s
       retries: 30
-  # Serves Neon's HTTP (/sql) and WebSocket (/v2) protocols on port 4444, only
-  # to this machine. It keeps its endpoint table in the "main" database.
-  neon-proxy:
-    image: ghcr.io/timowilhelm/local-neon-http-proxy@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
-    entrypoint: ["/bin/bash", "/start-neon-proxy.sh"]
-    configs:
-      - source: neon-proxy-startup
-        target: /start-neon-proxy.sh
-    environment:
-      PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
-    ports:
-      - "127.0.0.1:4444:4444"
-    # The proxy opens a new connection, to pgbouncer, for each of a request's
-    # two control-plane lookups. A full server run leaves each closed one's
-    # port in TIME_WAIT for 60 s, and with worktrees sharing this proxy the
-    # ports ran out ("Cannot assign requested address"). Reusing TIME_WAIT
-    # ports for new outgoing connections is safe for these short local ones.
-    # Lane proxies (scripts/test-env/setup.sh) set the same.
-    sysctls:
-      net.ipv4.tcp_tw_reuse: 1
-    depends_on:
-      postgres:
-        condition: service_healthy
-        # The proxy creates its endpoint table in "main" when it starts, and
-        # recreating the server (any change to its settings) loses it.
-        restart: true
-      pgbouncer:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4445"]
-      interval: 1s
-      timeout: 3s
-      retries: 30
-  # Pools the Postgres connections of every proxy, this one and the lanes'.
-  # The proxy's local control plane opens a new connection for each of a
-  # request's two lookups and drops it, so a full server run started about
-  # 10k Postgres backends; here they reuse a few long-lived ones. Session
-  # mode keeps each proxy connection's session, prepared statements included,
-  # as if it were Postgres's own, and resets it between clients.
-  pgbouncer:
-    image: edoburu/pgbouncer@sha256:8638aa563607256d3c7440437534195f1066a92b68015d89ae9d6b935b444a6d
-    entrypoint: ["/bin/sh", "/start-pgbouncer.sh"]
-    configs:
-      - source: pgbouncer-startup
-        target: /start-pgbouncer.sh
-    # Every database: the proxy's local control plane also takes the address
-    # of the databases it serves from its lookup connection. All of them
-    # share one pool total under max_connections, so a busy run waits for a
-    # connection rather than Postgres refusing one.
-    environment:
-      PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
-      DB_HOST: postgres
-      AUTH_TYPE: scram-sha-256
-      POOL_MODE: session
-      LISTEN_PORT: "6432"
-      MAX_CLIENT_CONN: "2000"
-      DEFAULT_POOL_SIZE: "280"
-      MAX_USER_CONNECTIONS: "280"
-    depends_on:
-      postgres:
-        condition: service_healthy
-        # Its userlist holds the server's password secret (start-pgbouncer.sh).
-        restart: true
-    healthcheck:
-      test: ["CMD", "pg_isready", "--host=127.0.0.1", "--port=6432"]
-      interval: 1s
-      timeout: 3s
-      retries: 30
-configs:
-  neon-proxy-startup:
-    file: ./scripts/test-env/start-neon-proxy.sh
-  pgbouncer-startup:
-    file: ./scripts/test-env/start-pgbouncer.sh
-  # Run once, when the server is first set up, after the password is set:
-  # hashes it again with one SCRAM iteration (Postgres 16 and later).
-  cheap-password:
-    content: |
-      SET scram_iterations = 1;
-      ALTER ROLE postgres PASSWORD 'postgres';

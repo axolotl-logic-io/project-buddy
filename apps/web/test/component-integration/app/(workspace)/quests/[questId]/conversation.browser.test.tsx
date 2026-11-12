@@ -31,10 +31,7 @@ import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
-import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -52,6 +49,10 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT, FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
 
+vi.mock("@/ideas/idea-store.ts", () => ({
+  listIdeas: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: (): never => {
     throw new Error("Quest creation is not available in a quest conversation");
@@ -96,7 +97,7 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   deleteMilestoneAction: vi.fn(),
 }));
 vi.mock("@/milestones/milestone-store.ts", () => ({
-  listMilestones: vi.fn(),
+  listMilestones: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
@@ -483,17 +484,17 @@ describe("use_case_open_quest", () => {
     await expect
       .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
       .toBeVisible();
-    const sections = page.getByRole("navigation", {
-      name: QUEST_COPY.navigation,
-    });
     await expect
-      .element(
-        sections.getByRole("link", { name: WORKSPACES_COPY.conversation }),
-      )
-      .toHaveAttribute("aria-current", "page");
+      .element(page.getByRole("complementary", { name: "Quest side menu" }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("navigation", { name: QUEST_COPY.navigation }))
+      .not.toBeInTheDocument();
     await Promise.all(
-      [PLAN_COPY.heading, PROGRESS_TIMELINE_COPY.heading].map((name) =>
-        expect.element(sections.getByRole("link", { name })).toBeVisible(),
+      ["Plan", "Ideas", "Progress"].map((name) =>
+        expect
+          .element(page.getByRole("button", { name, exact: true }))
+          .toBeVisible(),
       ),
     );
     await expect
@@ -566,4 +567,34 @@ describe("use_case_dailies", () => {
       )
       .not.toBeInTheDocument();
   });
+});
+
+test("Stop Activity sits beside Start the day and sends stop without replacing the draft", async () => {
+  store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+  store.readQuestConversation.mockResolvedValue({
+    ...FOX_CONVERSATION,
+    activity: { ...FOX_CONVERSATION.activity, name: "Brainstorm" },
+  });
+  store.listMessages.mockResolvedValue([]);
+  const held = holdBeforeChunk(
+    [{ type: "start", messageId: "stop-activity-reply" }, { type: "finish" }],
+    1,
+  );
+  const sent = answerChat(held.response);
+  await render(await chatPage());
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  await box.fill("Keep this draft");
+  await expect
+    .element(
+      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay }),
+    )
+    .toBeVisible();
+  await page
+    .getByRole("button", { name: "Stop Brainstorm", exact: true })
+    .click();
+  await expect.element(page.getByText("/stop", { exact: true })).toBeVisible();
+  await expect.element(box).toHaveValue("Keep this draft");
+  await expect.poll(() => sent.mock.calls.length).toBe(1);
+  expect(String(sent.mock.calls[0]?.[1]?.body)).toContain("/stop");
+  held.release();
 });

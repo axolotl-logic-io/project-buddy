@@ -268,7 +268,6 @@ The user follows the latest messages without repeatedly scrolling down.
   - The user returns to the bottom or sends another message. Automatic scrolling resumes. Focusing the composer or opening, closing or resizing the phone keyboard preserves the earlier reading position and does not resume it.
 - **Outcome:** the adventure follows the latest content only while the user wants to follow it. On phones, the composer stays above the keyboard and following adapts to the available space. Scroll movements are instant, including when reduced motion is requested.
 
-For image requests, see [`use_case_generate_image`](images.md#use_case_generate_image) and [`use_case_image_gallery`](images.md#use_case_image_gallery).
 
 ## use_case_chat_images
 

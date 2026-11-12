@@ -56,7 +56,7 @@ function readRequired(name: string): string {
   return value;
 }
 
-// The Neon Postgres connection string.
+// The local PostgreSQL or hosted Neon connection string.
 function readDatabaseUrl(): string {
   return readRequired("DATABASE_URL");
 }

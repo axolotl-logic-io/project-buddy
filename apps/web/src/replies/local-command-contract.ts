@@ -1,5 +1,8 @@
 // Names reserved for construct messages rather than immediate Plan commands.
 const LOCAL_COMMAND_NAMES: readonly string[] = [
+  "brainstorm",
+  "plan",
+  "stop",
   "help",
   "look",
   "search",

@@ -36,6 +36,13 @@ import {
 import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
+// Progress shares the page with the conversation, whose refresh hook needs
+// an App Router. Keep the real navigation errors used by the access checks.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  ...(await import("../components/router-test-kit.ts")),
+}));
+
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
   refresh: (): void => {

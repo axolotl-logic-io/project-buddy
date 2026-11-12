@@ -6,7 +6,6 @@
 // the shared test database's are other tests' to use as it runs.
 
 import { asc } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-serverless";
 import { expect, test, vi } from "vitest";
 import {
   MANUAL_BRANCH,
@@ -14,7 +13,7 @@ import {
 } from "@/blender-manual/manual-source.ts";
 import { reindexManual } from "@/blender-manual/reindex-manual.ts";
 import { searchManual } from "@/blender-manual/search-manual.ts";
-import { openPool } from "@/db/client.ts";
+import { openPool, pooledDatabase } from "@/db/client.ts";
 import { manualSections } from "@/db/tables/manual-sections.ts";
 import {
   dropTestDatabase,
@@ -95,7 +94,7 @@ async function reindexRelease(
 
 // Every section of the manual index pool reaches, in the order indexed.
 function indexedSections(pool: Pool): Promise<IndexedSection[]> {
-  return drizzle({ client: pool })
+  return pooledDatabase(pool)
     .select({
       title: manualSections.title,
       url: manualSections.url,
