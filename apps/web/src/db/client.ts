@@ -1,119 +1,124 @@
-// Connections to the app's Postgres database. Node scripts import this file
-// too, so its imports are relative rather than path-aliased.
-import {
-  Client,
-  type ClientConfig,
-  type FetchEndpointOptions,
-  type NeonConfig,
-  neon,
-  neonConfig,
-  Pool,
-} from "@neondatabase/serverless";
-import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import {
-  drizzle as drizzleOverPool,
-  type NeonDatabase,
-} from "drizzle-orm/neon-serverless";
+// Database connections for the app and Node scripts. Local URLs use native
+// PostgreSQL; hosted Neon keeps its HTTP queries and WebSocket transactions.
+import { Pool as NeonPool, neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle as drizzleOverNeonPool } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzleOverPool } from "drizzle-orm/node-postgres";
+import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
+import { Pool, type PoolClient } from "pg";
 import { readDatabaseUrl } from "../env.ts";
+import { logAppError } from "../errors/error-log.ts";
 import { countServerQuery } from "../performance/query-counter.ts";
 
-// Hosts of a database on this machine: the end-to-end test database, which
-// runs in Docker behind Neon's local proxy (compose.test-db.yml). The proxy
-// speaks Neon's HTTP and WebSocket protocols, unencrypted, at the connection
-// string's own host and port.
-const LOCAL_HOSTS: ReadonlySet<string> = new Set(["localhost", "127.0.0.1"]);
+const LOCAL_HOSTS: ReadonlySet<string> = new Set([
+  "localhost",
+  "127.0.0.1",
+  "[::1]",
+]);
 
-// Neon's driver settings are global, so these keep the driver's own endpoints
-// for every host that is not on this machine.
-function routeLocalHostsToProxy(): void {
-  const neonFetchEndpoint: NeonConfig["fetchEndpoint"] =
-    neonConfig.fetchEndpoint;
-  const neonWsProxy: NeonConfig["wsProxy"] = neonConfig.wsProxy;
-  neonConfig.fetchEndpoint = (
-    host: string,
-    port: number | string,
-    options?: FetchEndpointOptions,
-  ): string => {
-    if (isOnThisMachine(host)) {
-      return `http://${host}:${port}/sql`;
-    }
-    if (typeof neonFetchEndpoint === "string") {
-      return neonFetchEndpoint;
-    }
-    return neonFetchEndpoint(host, port, options);
-  };
-  neonConfig.wsProxy = (host: string, port: number | string): string => {
-    if (isOnThisMachine(host)) {
-      return `${host}:${port}/v2`;
-    }
-    if (typeof neonWsProxy === "string") {
-      return neonWsProxy;
-    }
-    return neonWsProxy(host, port);
-  };
+interface QueryRows<Row> {
+  rows: Row[];
+  rowCount: number | null;
 }
 
-routeLocalHostsToProxy();
+type DatabasePool = Pick<Pool, "query" | "end"> & {
+  connect: () => Promise<Pick<PoolClient, "query" | "release">>;
+  options: Pick<
+    Pool["options"],
+    "connectionTimeoutMillis" | "query_timeout" | "statement_timeout"
+  >;
+};
 
-// A connection to the local proxy, which speaks WebSocket unencrypted. The
-// setting is the client's own, so pools to Neon keep the encrypted default.
-class LocalProxyClient extends Client {
-  constructor(config?: string | ClientConfig) {
-    super(config);
-    this.neonConfig.useSecureWebSocket = false;
-  }
+// The result fields callers share across drivers; driver metadata stays here.
+interface QueryResult extends PgQueryResultHKT {
+  type: QueryRows<this["row"]>;
 }
+type Database = PgDatabase<QueryResult>;
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
-let database: NeonHttpDatabase | undefined;
+let database: Database | undefined;
+let localPool: Pool | undefined;
 
-export type Database = NeonHttpDatabase;
-
-// An open transaction, which inTransaction hands its work.
-export type Transaction = Parameters<
-  Parameters<NeonDatabase["transaction"]>[0]
->[0];
-
-// Whether a database at host is on this machine, and so is the local test
-// database rather than a Neon one.
-export function isOnThisMachine(host: string): boolean {
+// Local addresses use the PostgreSQL wire protocol, without a proxy.
+function isOnThisMachine(host: string): boolean {
   return LOCAL_HOSTS.has(host);
 }
 
-// Created on first use rather than at import, so `next build` succeeds
-// without DATABASE_URL as long as no page queries the database.
-export function getDb(): Database {
-  database ??= drizzle({
-    client: neon(readDatabaseUrl()),
-    logger: { logQuery: countServerQuery },
-  });
+// Created on first use so builds need no database. The local pool is reused
+// across requests and lets Node exit when its connections are idle.
+function getDb(): Database {
+  if (database === undefined) {
+    const url = readDatabaseUrl();
+    const logger = { logQuery: countServerQuery };
+    if (isOnThisMachine(new URL(url).hostname)) {
+      localPool = new Pool({ connectionString: url, allowExitOnIdle: true });
+      localPool.on("error", logIdleConnectionError);
+      database = drizzleOverPool({
+        client: localPool,
+        logger,
+      });
+    } else {
+      database = drizzle({ client: neon(url), logger });
+    }
+  }
   return database;
 }
 
-// A WebSocket connection pool to the database at databaseUrl, for work that
-// needs transactions, which the HTTP driver lacks. Close it with `end()`.
-// Each pool's connections are encrypted unless its database is on this
-// machine, whatever other pools are open.
-export function openPool(databaseUrl: string): Pool {
-  const pool = new Pool({ connectionString: databaseUrl });
-  if (isOnThisMachine(new URL(databaseUrl).hostname)) {
-    // Neon's Pool makes its clients from this field, and ignores the
-    // `Client` option of node-postgres.
-    pool.Client = LocalProxyClient;
-  }
-  return pool;
+// An idle client's failure is emitted outside any query. pg removes that
+// client and replaces it on demand; report the failure without crashing Node.
+function logIdleConnectionError(error: Error): void {
+  logAppError("database-unreachable", "idle database connection", error);
 }
 
-// Runs work in one transaction on a connection of its own, which commits
-// when work resolves and rolls back when it rejects.
-export async function inTransaction<T>(
+// Releases the cached connections before shutting down or changing databases.
+async function closeDb(): Promise<void> {
+  const pool = localPool;
+  database = undefined;
+  localPool = undefined;
+  await pool?.end();
+}
+
+// A PostgreSQL-compatible pool. Hosted Neon uses its WebSocket driver;
+// local connections use TCP. Close a caller-owned pool with end(). Drizzle's
+// adapters handle each driver’s transaction checkout.
+function openPool(databaseUrl: string): DatabasePool {
+  if (isOnThisMachine(new URL(databaseUrl).hostname)) {
+    return new Pool({ connectionString: databaseUrl });
+  }
+  return new NeonPool({ connectionString: databaseUrl });
+}
+
+// Builds the matching adapter for a caller-owned pool.
+function pooledDatabase(pool: DatabasePool): Database {
+  if (pool instanceof Pool) {
+    return drizzleOverPool(pool, { logger: { logQuery: countServerQuery } });
+  }
+  if (pool instanceof NeonPool) {
+    return drizzleOverNeonPool(pool, {
+      logger: { logQuery: countServerQuery },
+    });
+  }
+  throw new Error("Unknown database pool driver.");
+}
+
+// Commits on success and rolls back on failure, on one checked-out connection.
+async function inTransaction<T>(
   work: (tx: Transaction) => Promise<T>,
 ): Promise<T> {
   const pool = openPool(readDatabaseUrl());
   try {
-    return await drizzleOverPool(pool, {
-      logger: { logQuery: countServerQuery },
-    }).transaction(work);
+    return await pooledDatabase(pool).transaction(work);
   } finally {
     await pool.end();
   }
 }
+
+export type { Database, Transaction };
+export {
+  closeDb,
+  getDb,
+  inTransaction,
+  isOnThisMachine,
+  openPool,
+  pooledDatabase,
+};

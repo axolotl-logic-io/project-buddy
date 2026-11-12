@@ -1,6 +1,6 @@
-// What the errors of a query to Neon Postgres look like: drizzle's
-// DrizzleQueryError around the Neon HTTP driver's NeonDbError, which carries
-// Postgres's error fields, or the fetch error that stopped the driver
+// What the errors of a query to PostgreSQL look like: drizzle's
+// DrizzleQueryError around a native PostgreSQL error or NeonDbError, which
+// carry PostgreSQL error fields, or the fetch error that stopped the driver
 // reaching Neon in `sourceError`. This module knows their cases, which of
 // their fields are safe to log, where the original error is kept, and which
 // foreign key a rejected query broke.
@@ -20,10 +20,10 @@ type ErrorDetails = Readonly<Record<string, unknown>>;
 // Postgres didn't send it.
 const POSTGRES_FIELD = z.string().optional().catch(undefined);
 
-// The fields of the driver's NeonDbError that this module reads, checked by
+// The fields of native PostgreSQL errors and NeonDbError, checked by
 // shape so that no driver class needs loading to recognize one.
 const NEON_DB_ERROR = z.object({
-  name: z.literal("NeonDbError"),
+  name: z.enum(["NeonDbError", "error"]),
   message: z.string(),
   code: POSTGRES_FIELD,
   severity: POSTGRES_FIELD,
@@ -38,6 +38,17 @@ type NeonDbErrorFields = z.infer<typeof NEON_DB_ERROR>;
 // SQLSTATE classes 08 connection exception, 28 invalid authorization,
 // 53 insufficient resources and 57P operator intervention (shutdown).
 const UNREACHABLE_SQLSTATE = /^(?:08|28|53|57P)/u;
+const CONNECTION_FAILURE = z.object({
+  code: z.enum([
+    "ECONNREFUSED",
+    "ECONNRESET",
+    "ETIMEDOUT",
+    "ENOTFOUND",
+    "EHOSTUNREACH",
+    "ENETUNREACH",
+    "EPIPE",
+  ]),
+});
 const CONNECTING_MESSAGE = /^Error connecting to database/u;
 const SERVER_ERROR_MESSAGE = /^Server error \(HTTP status/u;
 
@@ -66,6 +77,9 @@ function neonDbErrorCase(error: NeonDbErrorFields): DatabaseErrorCase {
 function databaseErrorCase(error: unknown): DatabaseErrorCase | undefined {
   if (error instanceof DrizzleQueryError) {
     return databaseErrorCase(error.cause) ?? "database-query-failed";
+  }
+  if (CONNECTION_FAILURE.safeParse(error).success) {
+    return "database-unreachable";
   }
   const neonDbError = readNeonDbError(error);
   if (neonDbError === undefined) {

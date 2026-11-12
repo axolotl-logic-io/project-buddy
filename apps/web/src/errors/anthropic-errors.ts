@@ -11,7 +11,7 @@ import {
 } from "ai";
 import { z } from "zod";
 import type { AppErrorCase } from "@/errors/app-error.ts";
-import { HTTP_STATUS } from "@/http-status.ts";
+import { HTTP_STATUS } from "../http-status.ts";
 
 type ModelErrorCase = Extract<
   AppErrorCase,
