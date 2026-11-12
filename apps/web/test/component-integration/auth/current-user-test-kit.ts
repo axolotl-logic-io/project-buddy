@@ -4,6 +4,7 @@
 // and resets with signInAs(SIGNED_IN_USER) before each test. Both functions
 // answer with the user it signed in; signOut() leaves currentUser answering
 // undefined and requireUser throwing, as the real one redirects.
+
 import { vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type * as currentUserModule from "@/auth/current-user.ts";

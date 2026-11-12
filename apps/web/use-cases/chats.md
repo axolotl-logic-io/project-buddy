@@ -10,13 +10,13 @@ The user talks with a construct in Chat, her one private conversation for talkin
 - **Steps:**
   - She opens Chat from any signed-in page's header.
   - She sends a message, leaves, and later opens Chat again.
-- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user can open it. It writes no quest's Journal, Plan or milestones.
+- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user can open it. It writes no quest's Plan or milestones.
 - **Variations:**
   - An old adventure address of hers that has no quest opens Chat; one of a quest she can open opens that quest; any other, including another user's, a removed one or a malformed one, shows the not-found page ([`use_case_open_missing_page`](#use_case_open_missing_page)).
   - The old new-adventure address opens Chat and makes nothing.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
-  - `use_case_project_from_standalone_chat`: make the idea a quest.
+  - `use_case_quest_from_standalone_chat`: make the idea a quest.
   - `use_case_send_message`: keep the conversation going.
 
 ## use_case_prepared_opening
@@ -40,30 +40,30 @@ The user talks an idea through in Chat before it becomes a quest, if it ever doe
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
   - She sends another message once she is out of batteries.
-- **Outcome:** the replies arrive as in a quest, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). The construct has no Journal, Plan or milestone tools in Chat, so talking there changes no quest. Out of batteries, her message is refused with the out-of-batteries message ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
+- **Outcome:** the replies arrive as in a quest, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). The construct has no Plan or milestone tools in Chat, so talking there changes no quest. Out of batteries, her message is refused with the out-of-batteries message ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
 - **Next:**
-  - `use_case_project_from_standalone_chat`: the idea becomes a quest.
+  - `use_case_quest_from_standalone_chat`: the idea becomes a quest.
 
-## use_case_project_from_standalone_chat
+## use_case_quest_from_standalone_chat
 
 The user turns what she talked through in Chat into a quest.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - In Chat, she chooses Turn Chat into a quest.
-  - A dialog opens the quest start on Do a thing, with a summary of her recent Chat messages as the new quest's Journal. She chooses a construct and optionally fills in Why.
+  - A dialog opens the quest start on Do a thing, with a summary of her recent Chat messages as the new quest’s starting context. She chooses a construct and optionally fills in Why.
   - She closes the dialog without starting. Another time, she starts the quest.
   - Instead of the button, she can ask the construct to make the idea a quest; it offers a name and summary, and its offer's Turn Chat into a quest opens the same dialog using that name and summary. She chooses a construct and optionally fills in Why before starting.
-- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest whose Journal holds the Chat summary and optional Why, and opens the quest's conversation. Chat keeps all its messages and stays private: none are copied into the quest, so people she later invites to the quest see only the confirmed Journal. A construct's offer alone creates nothing and spends nothing. In a quest's conversation the construct can't offer another quest. Planned steps never become completed milestones.
+- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest with an empty Plan. Its conversation begins with the confirmed summary and optional Why as a user message, followed by the construct’s opening. Chat keeps its original messages and stays private. A construct's offer alone creates nothing and spends nothing. In a quest's conversation the construct can't offer another quest. Planned steps never become completed milestones.
 - **Variations:** an invalid name fails before anything is created. An unavailable opening, insufficient batteries or a storage failure saves no quest and keeps her edits for a retry.
 - **Next:**
-  - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): save goals and plans.
+  - [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): save goals and plans.
 
 ## use_case_send_message
 
 The user writes to the construct and gets a reply.
 
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - She types a message and sends it.
   - Her message appears in the adventure at once, under her name.
@@ -72,7 +72,7 @@ The user writes to the construct and gets a reply.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the adventure, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
 - **Variations:**
-  - In a standalone adventure, which is in no quest, the reply arrives the same way. The construct helps her talk an idea through and decide whether it should become a quest, and nothing is saved to a quest's Journal.
+  - In a standalone adventure, which is in no quest, the reply arrives the same way. The construct helps her talk an idea through and decide whether it should become a quest, and no quest is changed.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
   - `use_case_ask_blender_question`: ask how to do something.
@@ -126,7 +126,7 @@ The user leaves the adventure while the construct is still replying.
 
 The user asks how to do something in Blender and gets an answer backed by the manual.
 
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
   - The construct casts Blender manual lookup, unless it has cast it in this adventure already. The adventure shows "Cast Blender manual lookup" where the cast happened.
@@ -140,7 +140,7 @@ The user asks how to do something in Blender and gets an answer backed by the ma
   - `use_case_send_message`: ask a follow-up.
   - `use_case_topic_not_in_manual`: ask about something the manual may not cover.
   - `use_case_ask_any_subject`: ask about something other than Blender.
-  - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): report that she finished a milestone.
+  - [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): report that she finished a milestone.
 
 ## use_case_see_working_note
 
@@ -173,7 +173,7 @@ The user opens the manual section the construct cited.
 
 The user asks about something the Blender manual does not cover.
 
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - She asks about something the manual has nothing on, such as a third-party add-on.
   - The construct looks the topic up in the manual and finds nothing about it.
@@ -187,11 +187,11 @@ The user asks about something the Blender manual does not cover.
 
 The user asks the construct about something that has nothing to do with Blender.
 
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_project`](projects.md#use_case_open_project).
+- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - She asks about something else, such as a recipe.
   - The construct answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
-- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to consult the Journal or advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. Relevant quest information still follows the Journal rules. Her next Blender question is answered as usual, with its manual links.
+- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. The conversation and Plan supply relevant quest context. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
 
@@ -199,11 +199,11 @@ The user asks the construct about something that has nothing to do with Blender.
 
 The user carries on an earlier conversation, and the construct remembers it.
 
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation has earlier messages.
+- **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), for a quest whose conversation has earlier messages.
 - **Steps:**
   - She sends a message that refers to something said earlier, such as "repeat that shortcut".
   - The construct answers with the earlier conversation in mind.
-- **Outcome:** the reply uses what was said earlier in the conversation. Asked to repeat a shortcut, it gives the same shortcut as before. A long conversation's reply reads its newest messages, and the quest's Journal, Plan and Progress, which carry what matters from earlier.
+- **Outcome:** the reply uses what was said earlier in the conversation. Asked to repeat a shortcut, it gives the same shortcut as before. A long conversation's reply reads its newest messages, and the quest's Plan and Progress, which carry what matters from earlier.
 - **Next:**
   - `use_case_send_message`: keep going.
 
@@ -223,7 +223,7 @@ The construct keeps its voice for the whole adventure, across visits.
 
 The user asks two constructs the same question and gets the same facts in different voices.
 
-- **Prerequisites:** [`use_case_new_project_with_construct`](projects.md#use_case_new_project_with_construct), twice, so two quests have different constructs.
+- **Prerequisites:** [`use_case_new_quest_with_construct`](quests.md#use_case_new_quest_with_construct), twice, so two quests have different constructs.
 - **Steps:**
   - She asks the same Blender question in both quests, such as how to bevel an edge.
   - Each construct answers in its own voice.
@@ -239,27 +239,27 @@ The user follows a link to a quest or adventure that does not exist.
 - **Steps:**
   - She opens an old, mistyped or garbled link to a quest or adventure, or an address the site does not have.
   - The site says the quest or adventure cannot be found, or, for any other address, that the page cannot be found.
-- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. A missing quest, Journal or adventure is named as a quest or adventure; any other page that isn't found, such as an unknown address or Invitations for an ordinary user, is named only as a page. Her quests and adventures are unchanged.
+- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. A missing quest or adventure is named as a quest or adventure; any other page that isn't found, such as an unknown address or Invitations for an ordinary user, is named only as a page. Her quests and adventures are unchanged.
 - **Next:**
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): find what she was looking for.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): find what she was looking for.
 
 ## use_case_breadcrumbs_in_long_chat
 
 The user is deep in a quest's long conversation and wants to go back to their quests, without scrolling up.
 
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), for a quest whose conversation is longer than the screen.
+- **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), for a quest whose conversation is longer than the screen.
 - **Steps:**
   - The user scrolls down to the newest message, on a laptop or a phone.
   - The user follows the Quests link in the site header's trail band.
 - **Outcome:** wherever the user has scrolled, the trail band, with the link back to their quests and the quest's name as the page's heading, the pinned section row with the construct's portrait beside Conversation, and the box they write in stay on screen, and nothing covers them. The band and the pinned header together stay within 112 CSS pixels on a phone and 140 on a wide screen, even when the quest's name takes two lines. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The site header contains one accessible breadcrumb trail, leading into the quest's name, the page's one heading. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below both headers.
 - **Next:**
-  - [`use_case_open_project`](projects.md#use_case_open_project): back on the quest.
+  - [`use_case_open_quest`](quests.md#use_case_open_quest): back on the quest.
 
 ## use_case_follow_latest_messages
 
 The user follows the latest messages without repeatedly scrolling down.
 
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project) or `use_case_send_message`.
+- **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest) or `use_case_send_message`.
 - **Steps:**
   - The user opens an existing adventure. It opens at the latest message.
   - The user sends a message. The latest message comes into view.

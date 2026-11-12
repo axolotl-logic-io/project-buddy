@@ -1,18 +1,18 @@
+import type { SystemModelMessage } from "ai";
 // The construct's system prompt, assembled from two lists of sections. Add a
 // section by adding one entry to a list:
 // - SHARED_SECTIONS don't depend on the chat: the global prompt
 //   (global-prompt.ts) and the lists of the account's activities and
 //   spells. They are cached across one user's chats, so they must not
 //   depend on the chat.
-// - CHAT_SECTIONS render text for one chat: its project, or the standalone
+// - CHAT_SECTIONS render text for one chat: its quest, or the standalone
 //   chat's text when it is in none, the rules for several people when more
-//   than one has written in it, its project's memory and newest
+//   than one has written in it, its quest's Plan and newest
 //   milestones, its current activity and its construct. A section that renders
 //   "" is left out.
 // Every {{name}} in the construct's and the activity's parts, and in the spells'
 // when-to-use lines, becomes the user's name here: the stored parts keep it
 // as written. cast_spell names the spell's instructions the same way.
-import type { SystemModelMessage } from "ai";
 import { withUserName } from "@/accounts/user-name.ts";
 import { readUserName } from "@/accounts/users-store.ts";
 import type { ActivitySnapshot } from "@/activities/activity.ts";
@@ -22,24 +22,18 @@ import { currentActivity } from "@/activities/activity-sessions.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
-import type { ChatId, ProjectId, UserId } from "@/ids.ts";
-import type { Content } from "@/journal/journal.ts";
-import { readCurrentSections } from "@/journal/journal-store.ts";
-import type { Memory } from "@/memory/memory.ts";
-import { readMemory } from "@/memory/memory-store.ts";
+import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { EMPTY_PLAN, type Plan } from "@/plan/plan.ts";
 import { readPlan } from "@/plan/plan-store.ts";
-import type { QuestStatus, StatusApproval } from "@/projects/quest-status.ts";
-import { readLatestStatusApproval } from "@/projects/quest-status-store.ts";
-import { getProject } from "@/projects/store.ts";
+import type { QuestStatus, StatusApproval } from "@/quests/quest-status.ts";
+import { readLatestStatusApproval } from "@/quests/quest-status-store.ts";
+import { getQuest } from "@/quests/store.ts";
 import {
   GLOBAL_PROMPT_SECTIONS,
   SEVERAL_AUTHORS_RULES,
 } from "@/replies/global-prompt.ts";
-import { journalPromptSection } from "@/replies/journal-prompt.ts";
-import { memoryPromptSection } from "@/replies/memory-prompt.ts";
 import {
   MILESTONES_IN_PROMPT,
   milestonesPromptSection,
@@ -47,6 +41,7 @@ import {
 import { planPromptSection } from "@/replies/plan-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
+import { startingContextSection } from "@/replies/starting-context.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
 import { spellChoices } from "@/spells/spell-choices.ts";
@@ -62,30 +57,28 @@ interface ReplyPromptRequest {
 
 // What a section may read: the activities and spells the account has, the
 // chat's construct and current activity, the acting user's name, or undefined if she has
-// none, for a chat in a project, the project, and whether several people have
+// none, for a chat in a quest, the quest, and whether several people have
 // written in the chat, which no new chat has. A standalone chat is in no
-// project, so it has none. A chat's prompt needs nothing else, so it can be
+// quest, so it has none. A chat's prompt needs nothing else, so it can be
 // rendered for a chat not yet saved.
 interface ReplyPromptContext {
   readonly activities: readonly ActivityChoice[];
   readonly spells: readonly SpellChoice[];
-  readonly project: PromptProject | undefined;
+  readonly quest: PromptQuest | undefined;
   readonly construct: ConstructSnapshot;
   readonly activity: ActivitySnapshot;
   readonly userName: string | undefined;
   readonly severalAuthors?: boolean | undefined;
 }
 
-// A chat's project as its prompt reads it: its name, its memory, its plan
+// A chat's quest as its prompt reads it: its name, its memory, its plan
 // and its newest milestones, newest first, as they were read once for the
 // whole prompt, so every section sees the same version.
-interface PromptProject {
+interface PromptQuest {
   readonly status?: QuestStatus | undefined;
   readonly latestApproval?: StatusApproval | undefined;
   readonly name: string;
-  readonly memory: Memory;
-  readonly goal?: Content | undefined;
-  readonly preferences?: Content | undefined;
+  readonly startingContext?: string | undefined;
   readonly plan: Plan;
   readonly milestones: readonly Milestone[];
 }
@@ -149,12 +142,12 @@ const SHARED_SECTIONS: readonly PromptSection[] = [
   spellsSection,
 ];
 
-// Where the chat is: its project, or no project in a standalone chat.
-function placeSection({ project }: ReplyPromptContext): string {
-  if (project === undefined) {
+// Where the chat is: its quest, or no quest in a standalone chat.
+function placeSection({ quest }: ReplyPromptContext): string {
+  if (quest === undefined) {
     return STANDALONE_CHAT_PROMPT;
   }
-  return `This conversation is about the user's quest "${project.name}".`;
+  return `This conversation is about the user's quest "${quest.name}".`;
 }
 
 // How to talk with several people, in a chat where more than one has
@@ -174,22 +167,21 @@ function activitySection({ activity }: ReplyPromptContext): string {
 
 const CHAT_SECTIONS: readonly PromptSection[] = [
   placeSection,
-  ({ project }: ReplyPromptContext): string => {
-    if (project?.status === undefined) {
+  ({ quest }: ReplyPromptContext): string => {
+    if (quest?.status === undefined) {
       return "";
     }
-    return `Current quest status: ${project.status}. This current status takes precedence over older proposal cards in the conversation.`;
+    return `Current quest status: ${quest.status}. This current status takes precedence over older proposal cards in the conversation.`;
   },
-  ({ project }: ReplyPromptContext): string => {
-    const approval = project?.latestApproval;
+  ({ quest }: ReplyPromptContext): string => {
+    const approval = quest?.latestApproval;
     if (approval === undefined) {
       return "";
     }
     return `Latest status proposal in this conversation: ${approval.fromStatus} to ${approval.toStatus}; decision: ${approval.decision}. This live decision supersedes the original tool result. Only pending cards have confirmation buttons. A declined, approved or outdated card cannot be confirmed again. If the user requests a change after that decision, create a fresh proposal; do not claim an old card is still waiting. This context never authorizes a status change.`;
   },
   severalAuthorsSection,
-  journalPromptSection,
-  memoryPromptSection,
+  startingContextSection,
   planPromptSection,
   milestonesPromptSection,
   activitySection,
@@ -247,36 +239,31 @@ function renderReplyInstructions(
   ];
 }
 
-// The acting user's project as a chat's prompt reads it, with its memory,
+// The acting user's quest as a chat's prompt reads it, with its memory,
 // plan and newest milestones as they are now.
-async function readPromptProject(
+async function readPromptQuest(
   actingUser: UserId,
-  project: { readonly id: ProjectId; readonly name: string },
-): Promise<PromptProject> {
-  const [quest, memory, plan, milestones, sections] = await Promise.all([
-    getProject(actingUser, project.id),
-    readMemory(actingUser, project.id),
-    readPlan(actingUser, project.id),
-    listMilestones(actingUser, project.id, MILESTONES_IN_PROMPT),
-    readCurrentSections(actingUser, project.id),
+  quest: { readonly id: QuestId; readonly name: string },
+): Promise<PromptQuest> {
+  const [storedQuest, plan, milestones] = await Promise.all([
+    getQuest(actingUser, quest.id),
+    readPlan(actingUser, quest.id),
+    listMilestones(actingUser, quest.id, MILESTONES_IN_PROMPT),
   ]);
   return {
-    name: project.name,
-    memory,
-    goal: sections.goal,
-    preferences: sections.preferences,
+    name: quest.name,
     plan: plan ?? EMPTY_PLAN,
     milestones,
-    status: quest?.status,
+    status: storedQuest?.status,
   };
 }
 
-// The chat's project as its prompt reads it; undefined in a standalone chat.
-async function promptProject(
+// The chat's quest as its prompt reads it; undefined in a standalone chat.
+async function promptQuest(
   actingUser: UserId,
-  chat: Pick<Chat, "project"> & { readonly id?: ChatId },
-): Promise<PromptProject | undefined> {
-  if (chat.project === undefined) {
+  chat: Pick<Chat, "quest"> & { readonly id?: ChatId },
+): Promise<PromptQuest | undefined> {
+  if (chat.quest === undefined) {
     return undefined;
   }
   let approval: Promise<StatusApproval | undefined> =
@@ -284,15 +271,15 @@ async function promptProject(
   if (chat.id !== undefined) {
     approval = readLatestStatusApproval(actingUser, chat.id);
   }
-  const [project, latestApproval] = await Promise.all([
-    readPromptProject(actingUser, chat.project),
+  const [quest, latestApproval] = await Promise.all([
+    readPromptQuest(actingUser, chat.quest),
     approval,
   ]);
-  return { ...project, latestApproval };
+  return { ...quest, latestApproval };
 }
 
 // The system messages for one chat turn, with the acting user's name, activities and
-// spells, the chat's current activity and, in a project chat, the project's
+// spells, the chat's current activity and, in a quest chat, the quest's
 // memory and newest milestones, read together, as they are when the turn
 // starts.
 async function buildReplyInstructions({
@@ -301,17 +288,17 @@ async function buildReplyInstructions({
   construct,
   severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
-  const [activities, spells, project, activity, userName] = await Promise.all([
+  const [activities, spells, quest, activity, userName] = await Promise.all([
     activityChoices(actingUser),
     spellChoices(actingUser),
-    promptProject(actingUser, chat),
+    promptQuest(actingUser, chat),
     currentActivity(actingUser, chat),
     readUserName(actingUser),
   ]);
   return renderReplyInstructions({
     activities,
     spells,
-    project,
+    quest,
     construct,
     activity,
     userName,
@@ -319,5 +306,5 @@ async function buildReplyInstructions({
   });
 }
 
-export type { PromptProject, ReplyPromptContext, ReplyPromptRequest };
-export { buildReplyInstructions, readPromptProject, renderReplyInstructions };
+export type { PromptQuest, ReplyPromptContext, ReplyPromptRequest };
+export { buildReplyInstructions, readPromptQuest, renderReplyInstructions };

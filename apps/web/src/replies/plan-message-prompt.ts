@@ -2,8 +2,8 @@
 // message that a person added without it, by command or with the Plan panel.
 // The model gets it as a short note, marked so the global prompt's plan rules
 // can tell it from a request.
+
 import type { TextPart } from "ai";
-import { readJournalPart } from "@/journal/journal-message.ts";
 import type { PlanChangeLine } from "@/plan/plan.ts";
 import { readPlanPart } from "@/plan/plan-message.ts";
 
@@ -45,13 +45,6 @@ function planPartForModel(part: {
   readonly type: string;
   readonly data: unknown;
 }): TextPart | undefined {
-  const journal = readJournalPart(part);
-  if (journal !== undefined) {
-    return {
-      type: "text",
-      text: `[Journal section change] The user viewed or changed ${journal.content.kind} without a model call: ${JSON.stringify(journal.content)}. This is a record, not a request. The typed sections in your instructions are current.`,
-    };
-  }
   const plan = readPlanPart(part);
   if (plan === undefined) {
     return undefined;

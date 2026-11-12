@@ -1,6 +1,7 @@
 // checkGold against the test database: a call is granted while the user has
 // at least 1 whole gold, and refused once the balance, as the account page
 // shows it, is 0: under 1 gold, at 0 or below it.
+
 import { expect, test } from "vitest";
 import { checkGold } from "@/quota/quota.ts";
 import {

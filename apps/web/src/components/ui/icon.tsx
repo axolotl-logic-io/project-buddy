@@ -40,7 +40,7 @@ const ICON_PATHS = {
   close: { stroke: "M4 4l8 8M12 4l-8 8" },
   // An arrow leaving a box, for a link that opens a new tab.
   external: { stroke: "M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v4h-9v-9h4" },
-  // A flag on its pole, for a milestone of a project's progress.
+  // A flag on its pole, for a milestone of a quest's progress.
   flag: { stroke: "M3.5 14V2.5M3.5 3h8.5l-2.25 3 2.25 3H3.5" },
   // A picture, for attaching an image.
   image: { stroke: "M2 2h12v12H2zM2 11l4-4 3 3 2-2 3 3M10 5h.01" },

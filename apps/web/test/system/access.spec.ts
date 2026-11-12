@@ -34,17 +34,17 @@ test("use_case_return_signed_in", async ({
   page,
   testData,
 }) => {
-  const chat = await testData.chat(await testData.project());
+  const chat = await testData.chat(await testData.quest());
   await signInByLink(page, account.email);
   await page.close();
 
   await test.step("a bookmarked quest opens without signing in again", async () => {
     const later = await context.newPage();
-    await later.goto(`/projects/${chat.project.id}`);
+    await later.goto(`/quests/${chat.quest.id}`);
 
-    await expect(later).toHaveURL(`/projects/${chat.project.id}`);
+    await expect(later).toHaveURL(`/quests/${chat.quest.id}`);
     await expect(
-      later.getByRole("heading", { level: 1, name: chat.project.name }),
+      later.getByRole("heading", { level: 1, name: chat.quest.name }),
     ).toBeVisible();
     await expect(
       later.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),

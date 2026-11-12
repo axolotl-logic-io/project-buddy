@@ -80,7 +80,7 @@ function ChatScreen({
         constructName={construct.name}
         construct={construct}
         authorNames={otherAuthorNames(messages, viewer)}
-        projectId={conversation.project?.id}
+        questId={conversation.quest?.id}
         initialPlan={plan}
         planActions={PLAN_ACTIONS}
         mockCommands={mockCommandListings()}

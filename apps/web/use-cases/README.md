@@ -23,7 +23,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
 - **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; setup links do not expire. They stop working when accepted or replaced. Sign-in links for existing accounts expire after 30 minutes. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
-- **Private data:** each user's quests, adventures, Journal and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
+- **Private data:** each user's quests, adventures, Plan and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
 - **Batteries:** each user has one balance of batteries, which model calls spend, including image generation. Every account starts with 100 batteries, once; batteries never reset.
 
 ## Conventions
@@ -46,8 +46,8 @@ The Outcome items the mock cannot establish need a manual check with real Claude
 - [`use_case_construct_changes_activity`](activities.md#use_case_construct_changes_activity): asked for a breakdown or a brainstorm, the construct calls `select_activity` and follows the new activity in the same reply; older requests for the retired interview enter Break Down a Project, with or without a quest.
 - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): asked how to do something in Blender, the construct casts Blender manual lookup, then searches the Blender manual and cites what it read; it gives no Blender steps without a search.
 - [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
-- [`use_case_construct_records_milestone`](projects.md#use_case_construct_records_milestone): told she finished something meaningful in a quest adventure, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
-- [`use_case_construct_changes_plan`](memory.md#use_case_construct_changes_plan): once she agrees on steps, or finishes one, the construct changes the plan with `change_plan`, adding only agreed steps, and never counts open steps or days.
+- [`use_case_construct_records_milestone`](quests.md#use_case_construct_records_milestone): told she finished something meaningful in a quest adventure, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
+- [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): once she agrees on steps, or finishes one, the construct changes the plan with `change_plan`, adding only agreed steps, and never counts open steps or days.
 - [`use_case_customize_construct`](constructs.md#use_case_customize_construct): a conversation with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any quest or Chat can start with her own construct; its text is saved under the default construct's id.
 
 ## Areas
@@ -56,11 +56,11 @@ Each area's cases are in their own file:
 
 - [Access](access.md)
 - [Accounts](accounts.md)
-- [Quests](projects.md)
+- [Quests](quests.md)
 - [Quest status](quest-status.md)
 - [Adventures](chats.md)
 - [Generated images](images.md)
-- [Journal](memory.md)
+- [Plan](plan.md)
 - [Constructs](constructs.md)
 - [Activities](activities.md)
 - [Library](library.md)

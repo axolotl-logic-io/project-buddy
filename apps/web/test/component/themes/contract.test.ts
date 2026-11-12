@@ -2,6 +2,7 @@
 // imported and sets every token contract.css reads, and each mode shows
 // every colour token's value for that mode. The contract and the themes are
 // read from the CSS itself.
+
 import { describe, expect, test } from "vitest";
 import { THEME_IDS } from "@/themes/themes.ts";
 import {
@@ -39,7 +40,7 @@ const PHONE_PAGE_HEADING_TOKEN = "page-heading-phone-size";
 const PAGE_OVER_SECTION_HEADING = 1.2;
 
 // The titles that aren't a page's headings: the site's name in the header,
-// smaller than a page's heading, and a card's title, such as a project's
+// smaller than a page's heading, and a card's title, such as a quest's
 // name in the list, smaller than a section's heading.
 const HEADER_TITLE_TOKEN = "header-title-size";
 const CARD_TITLE_TOKEN = "card-title-size";

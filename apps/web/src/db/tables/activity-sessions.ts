@@ -7,7 +7,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import { chats } from "./projects-and-chats.ts";
+import { chats } from "./quests-and-chats.ts";
 
 // Each row is one activity session: the stretch of a chat spent in one
 // activity, from the row's start until the chat's next session. The activity

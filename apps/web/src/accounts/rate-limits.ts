@@ -8,6 +8,7 @@
 // and an address only by the address's HMAC, keyed by
 // SESSION_SECRET, so the table holds no address. Counting also deletes rows whose windows have
 // passed, a few at a time, so the table doesn't grow forever.
+
 import { inArray, lte, type SQL, sql } from "drizzle-orm";
 import type { PgInsertValue } from "drizzle-orm/pg-core";
 import { normalizeEmail } from "@/accounts/users-store.ts";

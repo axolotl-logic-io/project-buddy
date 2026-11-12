@@ -1,25 +1,26 @@
 // Quest starting dialogs and the inline start used inside Chat.
+
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import type { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
+import type { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { QuestStartChoices } from "@/components/quest-start.tsx";
-import { PREMADE_QUESTS } from "@/projects/premade-quests.ts";
-import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
-import { PROJECTS_COPY, QUEST_START_COPY } from "@/ui/copy/projects.ts";
-import { projectIdFixture } from "../../support/id-fixtures.ts";
+import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
+import type { QuestCreationChoices } from "@/quests/quest-creation-choices.ts";
+import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { questIdFixture } from "../../support/id-fixtures.ts";
 
 const actions = vi.hoisted(() => ({
   startQuestAction: vi.fn<typeof startQuestAction>(),
 }));
-vi.mock("@/app/(workspace)/projects/actions.ts", () => actions);
+vi.mock("@/app/(workspace)/quests/actions.ts", () => actions);
 
 const CHOICES: QuestCreationChoices = {
   userConstructs: [],
   preferredConstructId: "vellum",
 };
 
-const DAILIES_ID = projectIdFixture("1f2e3d4c-5b6a-4987-8a6b-5c4d3e2f1a0b");
+const DAILIES_ID = questIdFixture("1f2e3d4c-5b6a-4987-8a6b-5c4d3e2f1a0b");
 
 function choose(name: string): ReturnType<typeof page.getByRole> {
   return page.getByRole("button", { name, exact: true });
@@ -48,14 +49,14 @@ describe("use_case_browse_premade_quests", () => {
       .toBeVisible();
     await expect
       .element(
-        details.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
+        details.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }),
       )
       .toBeVisible();
     await expect
       .element(details.getByRole("textbox"))
-      .toHaveAccessibleName(PROJECTS_COPY.motivationLabel);
+      .toHaveAccessibleName(QUESTS_COPY.motivationLabel);
     await expect
-      .element(details.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
+      .element(details.getByRole("textbox", { name: QUESTS_COPY.nameLabel }))
       .not.toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
@@ -78,7 +79,7 @@ describe("use_case_browse_premade_quests", () => {
       await render(<QuestStartChoices choices={CHOICES} />);
       await choose(name).click();
       await page
-        .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
+        .getByRole("textbox", { name: QUESTS_COPY.motivationLabel })
         .fill("This matters to me.");
       await page.getByRole("button", { name: QUEST_START_COPY.start }).click();
 
@@ -90,8 +91,8 @@ describe("use_case_browse_premade_quests", () => {
       expect(sent?.has("activityId")).toBe(false);
       expect(sent?.get("name")).toBe(name);
       expect(sent?.get("constructId")).toBe("vellum");
-      expect(sent?.get("journal")).toBe(
-        PREMADE_QUESTS.find((quest) => quest.id === premadeId)?.journal,
+      expect(sent?.get("context")).toBe(
+        PREMADE_QUESTS.find((quest) => quest.id === premadeId)?.context,
       );
       expect(sent?.get("motivation")).toBe("This matters to me.");
     },
@@ -106,7 +107,7 @@ describe("use_case_browse_premade_quests", () => {
     await choose("Learn a thing").click();
     const dialog = page.getByRole("dialog", { name: "Learn a thing" });
     const why = dialog.getByRole("textbox", {
-      name: PROJECTS_COPY.motivationLabel,
+      name: QUESTS_COPY.motivationLabel,
     });
     await why.fill("Read with my family.");
     await dialog.getByRole("button", { name: QUEST_START_COPY.start }).click();
@@ -118,9 +119,7 @@ describe("use_case_browse_premade_quests", () => {
     await expect.element(choose("Learn a thing")).toHaveFocus();
     await choose("Learn a thing").click();
     await expect
-      .element(
-        page.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
-      )
+      .element(page.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }))
       .toHaveValue("");
   });
 
@@ -131,7 +130,7 @@ describe("use_case_browse_premade_quests", () => {
 
     await expect
       .element(page.getByRole("link", { name: "Dailies", exact: true }))
-      .toHaveAttribute("href", `/projects/${DAILIES_ID}`);
+      .toHaveAttribute("href", `/quests/${DAILIES_ID}`);
     await expect.element(choose("Dailies")).not.toBeInTheDocument();
   });
 
@@ -142,14 +141,14 @@ describe("use_case_browse_premade_quests", () => {
         choices={CHOICES}
         initialChoice="do"
         presentation="inline"
-        preset={{ journal: summary }}
+        preset={{ context: summary }}
       />,
     );
 
     const details = page.getByRole("region", { name: "Do a thing" });
     await expect
       .element(
-        details.getByRole("textbox", { name: PROJECTS_COPY.motivationLabel }),
+        details.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }),
       )
       .toBeVisible();
     await page.getByRole("button", { name: QUEST_START_COPY.back }).click();

@@ -6,7 +6,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { chats } from "./projects-and-chats.ts";
+import { chats } from "./quests-and-chats.ts";
 import { users } from "./users.ts";
 
 // A durable claim exists before the provider call. It prevents reply retries from

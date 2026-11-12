@@ -1,4 +1,5 @@
 // Admin invitations replace the former shared-code sign-up workflow.
+
 import { expect, type Page } from "@playwright/test";
 import { findUserByEmail, type User } from "@/accounts/users-store.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
@@ -85,7 +86,7 @@ test("use_case_sign_up_existing_email", async ({
   page,
   testData,
 }) => {
-  const project = await testData.project();
+  const quest = await testData.quest();
   const before = await findUserByEmail(account.email);
   await openInvitations(page, otherAccount);
   // HTML email inputs strip outer whitespace themselves. Raw padded direct
@@ -93,9 +94,9 @@ test("use_case_sign_up_existing_email", async ({
   await sendInvite(page, account.email.toUpperCase());
   const [email] = await waitForEmailsTo(account.email, 1);
   await continueSignIn(page, signInLinkIn(email));
-  await page.goto("/projects");
+  await page.goto("/quests");
   // By role: while the page refreshes after loading, Next keeps a hidden
   // copy of the list, which a text match finds too.
-  await expect(page.getByRole("link", { name: project.name })).toBeVisible();
+  await expect(page.getByRole("link", { name: quest.name })).toBeVisible();
   expect(await findUserByEmail(account.email)).toEqual(before);
 });

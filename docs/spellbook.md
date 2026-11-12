@@ -66,7 +66,7 @@ The message store has two reads (`src/chats/store.ts`). A reply reads the advent
 
 ## Storage
 
-Own spells live in the `buddies` table, with `kind = 'spell'`, beside own constructs and activities. The shared store `src/prompts/own-prompt-store.ts` reads and writes them for their owner alone, and `src/spells/spell-store.ts` gives the spell kind its own functions. Another user's spell, or a construct or activity, is not found.
+Own spells live in the `own_prompts` table, with `kind = 'spell'`, beside own constructs and activities. The shared store `src/prompts/own-prompt-store.ts` reads and writes them for their owner alone, and `src/spells/spell-store.ts` gives the spell kind its own functions. Another user's spell, or a construct or activity, is not found.
 
 Migration 0031 widens the `buddies_kind_known` check to allow `'spell'`. It is an additive migration: the live build never writes `'spell'` and reads rows by kind, so it keeps working on the new schema.
 

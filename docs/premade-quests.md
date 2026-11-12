@@ -1,26 +1,18 @@
 # Premade quests
 
-Every quest starts from one of four premade starting points: **Dailies**, **Learn a thing**, **Make a thing** and **Do a thing**. They are offered under Start a quest on Quests, below Continue (`apps/web/src/components/quest-start.tsx`) and in Chat's Turn Chat into a quest, the only two ways to create a quest, which use the same component. There is no blank start and no other catalog. The definitions are in `apps/web/src/projects/premade-quests.ts`.
+Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name and activity. The user chooses a construct and can add Why before starting. No quest is created and no batteries are spent while browsing or cancelling.
 
-| Starting point | Activity | What it guides |
-| --- | --- | --- |
-| Dailies | Dailies (`dailies`) | Starting the day: what matters today and one manageable thing to do. One ongoing quest per user. |
-| Learn a thing | Learn a thing (`learn-a-thing`) | What the user wants to learn and where they start from, then small practice steps. |
-| Make a thing | Find something to make | Finding something to make and a small first version. |
-| Do a thing | Break Down a Project | Any other outcome: what done looks like, then small steps. |
+| Starting point | Activity |
+| --- | --- |
+| Dailies | Dailies |
+| Learn a thing | Learn a thing |
+| Make a thing | Find something to make |
+| Do a thing | Break Down a Project |
 
-The guidance lives in each activity's instructions and opening, so it carries into every reply of the quest's one conversation. Dailies and Learn a thing are built-in activities of their own; Make and Do reuse the existing ones.
+The tiles open the same start form on Quests and in Chat. The form sends starting context, not a Journal. A supplied Why or approved Chat summary becomes the first user message in the new conversation, followed by the construct’s opening. The opening acknowledges that context. The original Chat’s messages remain in Chat. No Goal, Preferences or Journal is created.
 
-## Starting
+Without supplied context, an unchanged built-in construct and activity use their prepared opening. Other starts generate their opening before saving the quest. A failed opening, invalid details or insufficient batteries create nothing.
 
-The starting points are tiles, two by two in a narrow space, such as a phone or Chat's dialog, and four across where they fit. Each shows an icon, its name and its one-line `tagline`; the whole tile is one target, named by the starting point and described by the tagline. Choosing one opens a modal dialog named for the starting point. It shows the description, a construct (the user's New quest construct, or Vellum), an optional Why field and Start quest. The name and starting Journal come from the starting point automatically; neither is a setup field. Cancel, Escape or clicking outside closes the dialog and returns focus to its tile; browsing creates nothing. Chat uses the same form inside its existing dialog, with the same Construct and Why fields and Back to the starting points available. A page that knows more fills it in (a preset): Chat's Turn Chat into a quest puts the Chat's summary in the Journal and opens Do a thing at once. Dailies isn't offered with a summary, since it is the user's one ongoing quest.
+Each new quest has an empty Plan. The user and construct add tasks when they agree on them. The first open step is the next step. Dailies resumes the user’s existing quest, conversation and Plan, regardless of its name, without generating another opening or resetting its work.
 
-Start quest calls `startQuestAction` (`apps/web/src/app/(workspace)/projects/actions.ts`), the one quest start. It checks the name and construct for the acting user, takes the activity from the starting point (the form sends none, and an older form's `activityId` is ignored) and starts an ordinary quest with its conversation and opening (`startProject`), then opens the quest. Invalid details, no batteries or Claude being unavailable save nothing, and the dialog keeps the construct and Why. Looking, choosing and going back make nothing and spend nothing.
-
-The starting Journal and optional Why become the user's first Journal version. Its possible milestones are plans, not progress, and it holds no next step: the plan keeps the steps the user agrees to. Learn, Make and Do can be started again for other goals; each is a separate quest with no link to its starting point.
-
-## Dailies
-
-Dailies is identified by `projects.dailies`, not by its name, which the user can change. Starting Dailies when the user already has one opens it, changing and spending nothing (`startDailies`), and concurrent starts reach the same quest. Once it exists, its tile is a link that opens it.
-
-In the Dailies quest, Start the day sits above the composer. It sends "Let's start the day." as the user's own message through the ordinary composer path, so it is charged, authored and kept like any other message, and leaves the draft in the composer. There is no schedule, no daily state and no reset: the conversation, Journal, Plan and status carry on. Opening the quest sends nothing.
+Definitions live in `apps/web/src/quests/premade-quests.ts`; the start action is `apps/web/src/app/(workspace)/quests/actions.ts`. See [Plan](quest-plan.md).

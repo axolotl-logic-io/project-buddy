@@ -1,6 +1,7 @@
 // The chat's built-in commands: which messages the composer runs as commands
 // rather than sending to the construct, and what each plan command asks of
 // the plan, naming steps by their numbers.
+
 import { describe, expect, test } from "vitest";
 import { PLAN_STEP_TEXT_MAX_LENGTH, type Plan } from "@/plan/plan.ts";
 import { isChatCommand, parsePlanCommand } from "@/plan/plan-commands.ts";

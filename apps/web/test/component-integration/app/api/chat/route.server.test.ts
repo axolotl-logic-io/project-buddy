@@ -1,6 +1,7 @@
 // Chatting through POST /api/chat, in the test database with the mock
 // construct: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
+
 import { describe, expect, test } from "vitest";
 import { getChat, listMessages } from "@/chats/store.ts";
 import {

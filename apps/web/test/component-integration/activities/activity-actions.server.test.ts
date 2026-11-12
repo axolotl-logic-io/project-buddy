@@ -4,6 +4,7 @@
 // resets and starts chats in; a chat keeps the activity as it was when it
 // entered it; and the built-in activities and other users' activities are
 // never changed.
+
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { saveUserName } from "@/accounts/users-store.ts";
@@ -31,10 +32,10 @@ import OldActivitiesPage from "@/app/(workspace)/activities/page.tsx";
 import { getChat } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
-import { startProject } from "@/conversations/start-quest.ts";
+import { startQuest } from "@/conversations/start-quest.ts";
 import type { ChatId } from "@/ids.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { listProjects } from "@/projects/store.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { listQuests } from "@/quests/store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -123,9 +124,9 @@ async function startIn(user: User, activityId: string): Promise<ChatId> {
   if (activity === undefined) {
     throw new Error(`No activity ${activityId}`);
   }
-  const started = await startProject(
+  const started = await startQuest(
     user.id,
-    PROJECT_NAME.parse("Activity quest"),
+    QUEST_NAME.parse("Activity quest"),
     getConstruct("vellum"),
     { activity },
   );
@@ -250,7 +251,7 @@ describe("use_case_customize_activity", () => {
     });
 
     expect(await listOwnActivities(user.id)).toEqual([]);
-    expect(await listProjects(user.id)).toEqual([]);
+    expect(await listQuests(user.id)).toEqual([]);
     expect(await goldSpent(user)).toBe(0);
   });
 });

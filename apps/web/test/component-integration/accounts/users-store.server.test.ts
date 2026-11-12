@@ -1,6 +1,7 @@
 // The user store against the test database: which rows its reads find, and
 // what ending every session leaves. users-store.test.ts reads rows as
 // users.
+
 import { expect, test, vi } from "vitest";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import {

@@ -6,7 +6,7 @@ import { POST } from "@/app/api/chat/route.ts";
 import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import {
   imageId,
@@ -59,7 +59,7 @@ function post(chatId: string, parts: unknown[]): Promise<Response> {
 describe("use_case_chat_images", () => {
   test("image-only messages persist, and follow-ups receive the original image bytes through the fake provider", async () => {
     const { her, herData } = await twoUsers();
-    const chat = await herData.chat(await herData.project());
+    const chat = await herData.chat(await herData.quest());
     const url = await saveImage(her.id, chat.id, pngBytes(), "image/png");
     if (url === undefined) {
       throw new Error("Image was not saved");

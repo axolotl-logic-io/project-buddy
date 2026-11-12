@@ -6,6 +6,7 @@
 // test lets it through, so the reply's text shows while its run is still
 // going: the moment the round 2 merge saw WebKit drop text typed into the
 // composer.
+
 import type { UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";

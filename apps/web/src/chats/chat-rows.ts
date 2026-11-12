@@ -1,7 +1,8 @@
 // Rows of the chats and messages tables, as the chat stores read and write
 // them. Reads check what the columns cannot: a chat's construct. A chat
-// is in a project, a project chat, or in none, a standalone chat; both are
-// one type, Chat, whose project is undefined in a standalone chat.
+// is in a quest, a quest chat, or in none, a standalone chat; both are
+// one type, Chat, whose quest is undefined in a standalone chat.
+
 import type { UIMessage } from "ai";
 import {
   and,
@@ -24,41 +25,41 @@ import {
   snapshotOf,
 } from "@/constructs/index.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
-import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import {
   type ChatId,
   type MessageId,
-  type ProjectId,
   parseChatId,
-  parseProjectId,
+  parseQuestId,
+  type QuestId,
   type UserId,
 } from "@/ids.ts";
 
-// The project a chat is in: its id and name.
-interface ChatProject {
-  readonly id: ProjectId;
+// The quest a chat is in: its id and name.
+interface ChatQuest {
+  readonly id: QuestId;
   readonly name: string;
 }
 
 interface Chat {
   readonly id: ChatId;
   readonly activityName?: string | undefined;
-  // The chat's project, or undefined in a standalone chat.
-  readonly project: ChatProject | undefined;
+  // The chat's quest, or undefined in a standalone chat.
+  readonly quest: ChatQuest | undefined;
   // The construct as it was when the chat started.
   readonly construct: ConstructSnapshot;
   readonly createdAt: Date;
 }
 
-// A chat known to be in a project, such as one of a project's chats.
-type ProjectChat = Chat & { readonly project: ChatProject };
+// A chat known to be in a quest, such as one of a quest's chats.
+type QuestChat = Chat & { readonly quest: ChatQuest };
 
 type ChatRow = typeof chats.$inferSelect;
 
-// A chats row with its project's name, which is null for a standalone chat,
+// A chats row with its quest's name, which is null for a standalone chat,
 // and its current activity's name (chatColumnsFor).
-type ChatRowWithProject = ChatRow & {
-  readonly projectName: string | null;
+type ChatRowWithQuest = ChatRow & {
+  readonly questName: string | null;
   readonly activityName?: string | null;
 };
 
@@ -101,37 +102,37 @@ function toConstructWithId(
   return { ...toConstruct(row), id: toConstructId(row.constructId) };
 }
 
-// A chat's project: { project: undefined } for a standalone chat, or
+// A chat's quest: { quest: undefined } for a standalone chat, or
 // undefined for a row that is neither, which the chats_one_owner check and
-// the foreign key forbid: a project id that is not a UUID or has no
-// project's name, or a row with neither a project nor a user.
-function toProject({
-  projectId,
-  projectName,
+// the foreign key forbid: a quest id that is not a UUID or has no
+// quest's name, or a row with neither a quest nor a user.
+function toQuest({
+  questId,
+  questName,
   userId,
-}: Pick<ChatRowWithProject, "projectId" | "projectName" | "userId">):
-  | { readonly project: ChatProject | undefined }
+}: Pick<ChatRowWithQuest, "questId" | "questName" | "userId">):
+  | { readonly quest: ChatQuest | undefined }
   | undefined {
-  if (projectId === null) {
+  if (questId === null) {
     if (userId === null) {
       return undefined;
     }
-    return { project: undefined };
+    return { quest: undefined };
   }
-  const id = parseProjectId(projectId);
-  if (id === undefined || projectName === null) {
+  const id = parseQuestId(questId);
+  if (id === undefined || questName === null) {
     return undefined;
   }
-  return { project: { id, name: projectName } };
+  return { quest: { id, name: questName } };
 }
 
-// Rows, with their projects' columns, as chats. A row that is not a chat
-// (toProject), or whose id is not a UUID, though the uuid column never
+// Rows, with their quests' columns, as chats. A row that is not a chat
+// (toQuest), or whose id is not a UUID, though the uuid column never
 // holds one, is skipped.
-function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
+function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
   return rows.flatMap((row) => {
     const id = parseChatId(row.id);
-    const place = toProject(row);
+    const place = toQuest(row);
     if (id === undefined || place === undefined) {
       return [];
     }
@@ -139,7 +140,7 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
       {
         id,
         activityName: row.activityName ?? undefined,
-        project: place.project,
+        quest: place.quest,
         construct: toConstruct(row),
         createdAt: row.createdAt,
       },
@@ -163,18 +164,18 @@ function chatColumnsFor(): ReturnType<typeof getTableColumns<typeof chats>> & {
 }
 
 // The columns a chat is read from (chatColumnsFor) and its
-// project's name, which a left join of projects on chats.project_id gives,
-// null in a standalone chat. The join only reads the project's columns;
+// quest's name, which a left join of quests on chats.quest_id gives,
+// null in a standalone chat. The join only reads the quest's columns;
 // chatOpenTo is what keeps a chat open to its reader.
-function chatWithProjectColumns(): {
-  readonly projectName: typeof projects.name;
+function chatWithQuestColumns(): {
+  readonly questName: typeof quests.name;
 } & ReturnType<typeof chatColumnsFor> {
-  return { ...chatColumnsFor(), projectName: projects.name };
+  return { ...chatColumnsFor(), questName: quests.name };
 }
 
-// Whether the chat is in a project.
-function isProjectChat(chat: Chat): chat is ProjectChat {
-  return chat.project !== undefined;
+// Whether the chat is in a quest.
+function isQuestChat(chat: Chat): chat is QuestChat {
+  return chat.quest !== undefined;
 }
 
 // A `chats` row: the owner's chat with this id.
@@ -247,15 +248,15 @@ function messageColumns(
 
 export type {
   Chat,
-  ChatProject,
+  ChatQuest,
   ChatRow,
-  ChatRowWithProject,
+  ChatRowWithQuest,
   NewMessage,
-  ProjectChat,
+  QuestChat,
 };
 export {
-  chatWithProjectColumns,
-  isProjectChat,
+  chatWithQuestColumns,
+  isQuestChat,
   messageColumns,
   openChat,
   openMessage,

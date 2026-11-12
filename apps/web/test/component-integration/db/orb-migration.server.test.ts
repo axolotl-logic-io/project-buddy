@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+
 import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
 import orbMigration from "../../../drizzle/0048_safe_anita_blake.sql?raw";
