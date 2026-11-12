@@ -1,6 +1,7 @@
 // The construct's entry point: reply to a chat's new message with a streamed
 // answer. It hides the model, the prompt, the tools, prompt caching and how
 // the conversation is saved.
+
 import type { LanguageModelV4 } from "@ai-sdk/provider";
 import {
   consumeStream,
@@ -251,7 +252,7 @@ async function streamAndSaveReply(
     const messages = await convertToModelMessages(
       await hydrateImages(actingUser, chat.id, named.messages),
       {
-        tools: chatTools(chat.project?.id),
+        tools: chatTools(chat.quest?.id),
         convertDataPart: planPartForModel,
       },
     );

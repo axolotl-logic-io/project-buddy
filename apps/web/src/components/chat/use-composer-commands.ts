@@ -3,6 +3,7 @@
 // arrow keys and chosen with Tab, Enter or a click; and the send that runs a
 // command at once instead of sending it to the construct, keeping the text
 // and saying why when the command can't run.
+
 import { useAui, useAuiState } from "@assistant-ui/react";
 import {
   type KeyboardEvent,

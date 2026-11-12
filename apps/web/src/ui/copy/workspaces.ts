@@ -6,8 +6,6 @@ const WORKSPACES_COPY = {
   appearance: "Appearance",
   conversation: "Conversation",
   standalone: "Standalone",
-  versions: "Versions",
-  journal: "Quest Journal",
   settingsIntro: "Your profile, appearance, batteries and security.",
   openWorkshop: "Open Workshop",
   books: "Library books",

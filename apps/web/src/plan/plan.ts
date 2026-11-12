@@ -49,7 +49,7 @@ type Plan = z.infer<typeof PLAN>;
 // The plan of a quest whose plan nobody has changed yet.
 const EMPTY_PLAN: Plan = { steps: [], nextNumber: 1 };
 
-// A project's plan as of its newest saved version, 0 before any change,
+// A quest's plan as of its newest saved version, 0 before any change,
 // with the versions whose changes were undone.
 interface PlanState {
   readonly version: number;

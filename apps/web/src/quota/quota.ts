@@ -9,6 +9,7 @@
 // already under way finishes, with the answer-now call and the chat's
 // naming it brings, which reuse its grant, so the reply that spends the
 // last gold is whole and the balance can fall below 0.
+
 import { hasGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";

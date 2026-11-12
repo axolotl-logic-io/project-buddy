@@ -4,6 +4,7 @@
 // client it makes first, so a test file calls stubStorageDown before any
 // query runs, and reads the working database afterwards through a fresh
 // module graph (restoreStorage).
+
 import { vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { readDatabaseUrl } from "@/env.ts";

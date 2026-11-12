@@ -15,7 +15,7 @@ The user picks a light or dark mode for the site's parchment theme, or follows t
   - They choose System.
 - **Outcome:** every page uses the same parchment theme, with serif headings, sepia ink, gold accents and a subtle repeating paper texture that stays seamless on long pages and behind pinned adventure controls. The menu offers Light, Dark and System modes without a theme picker. The chosen mode appears from the first paint, on a page that failed to load too, and belongs to this browser. System follows the computer's setting and changes with it. New visitors start in Light mode. A saved choice from a retired theme uses the parchment theme and keeps its mode. The theme's self-hosted typefaces start loading with the page. Cards and controls follow the active palette, including live System changes and returning from another page. Headings, focus rings and Journal checkboxes remain readable, and the site's name fits on one line on a wide screen.
 - **Next:**
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on in the chosen mode.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): carry on in the chosen mode.
 
 ## use_case_use_on_phone
 

@@ -9,27 +9,22 @@
 // test/app/layout-first-paint.test.tsx covers the theme's first paint,
 // test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
 // test/component-integration/components/focus.browser.test.tsx how each theme draws focus.
+
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
-import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
-import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
+import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
-import type { getProject, listProjects } from "@/projects/store.ts";
+import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEMES } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECT_COPY } from "@/ui/copy/projects.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import {
   FOX_CONVERSATION,
-  FOX_PROJECT,
+  FOX_QUEST,
 } from "../app/(workspace)/page-fixtures.ts";
 import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
@@ -37,11 +32,7 @@ import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import { markdownReplyText } from "../replies/mock-markdown-test-kit.ts";
 import { LAPTOP_VIEWPORT } from "../viewports-test-kit.ts";
-import {
-  type CheckboxLook,
-  checkboxLook,
-  fontSize,
-} from "./signed-in-pages-test-kit.ts";
+import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
 import { applyTheme } from "./theme-test-kit.ts";
 
@@ -67,9 +58,9 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
 }));
 
 const stores = vi.hoisted(() => ({
-  projects: {
-    getProject: vi.fn<typeof getProject>(),
-    listProjects: vi.fn<typeof listProjects>(),
+  quests: {
+    getQuest: vi.fn<typeof getQuest>(),
+    listQuests: vi.fn<typeof listQuests>(),
   },
   chats: {
     getChat: vi.fn<typeof getChat>(),
@@ -80,18 +71,16 @@ const stores = vi.hoisted(() => ({
     readQuestConversation: vi.fn<typeof readQuestConversation>(),
     startQuestConversation: vi.fn(),
   },
-  memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {
     listMilestones: vi.fn<typeof listMilestones>(() => Promise.resolve([])),
   },
 }));
-vi.mock("@/projects/store.ts", () => stores.projects);
+vi.mock("@/quests/store.ts", () => stores.quests);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
-vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
@@ -108,19 +97,10 @@ vi.mock(
   "@/activities/activity-choices.ts",
   () => import("../activities/activity-choices-test-kit.ts"),
 );
-vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
-  saveMemoryAction: vi.fn(),
-  restoreMemoryAction: vi.fn(),
-}));
 
-// A long project name, which the trail band's heading wraps.
+// A long quest name, which the trail band's heading wraps.
 const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";
-const QUEST_PATH = ["projects", FOX_PROJECT.id] as const;
-const JOURNAL_PATH = [...QUEST_PATH, "memory"] as const;
-
-// A milestone list in the memory: one milestone done, one to do.
-const MILESTONES =
-  "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
+const QUEST_PATH = ["quests", FOX_QUEST.id] as const;
 
 // Her question and the mock construct's Markdown reply.
 function markdownExchange(): ChatMessage[] {
@@ -138,43 +118,19 @@ function markdownExchange(): ChatMessage[] {
   ];
 }
 
-// Renders the page of a project named name, in its layout.
-async function renderProject(name: string): Promise<void> {
-  stores.projects.getProject.mockResolvedValue({ ...FOX_PROJECT, name });
-  stores.projects.listProjects.mockResolvedValue([{ ...FOX_PROJECT, name }]);
-  const params = Promise.resolve({ projectId: FOX_PROJECT.id });
-  const content = await ProjectPage({
+// Renders the page of a quest named name, in its layout.
+async function renderQuest(name: string): Promise<void> {
+  stores.quests.getQuest.mockResolvedValue({ ...FOX_QUEST, name });
+  stores.quests.listQuests.mockResolvedValue([{ ...FOX_QUEST, name }]);
+  const params = Promise.resolve({ questId: FOX_QUEST.id });
+  const content = await QuestPage({
     params,
     searchParams: Promise.resolve({}),
   });
   await render(
     <>
       {await siteHeaderAt(QUEST_PATH)}
-      {inWorkspace(<ProjectLayout params={params}>{content}</ProjectLayout>)}
-    </>,
-  );
-}
-
-// Renders the memory page of a project whose memory is MILESTONES.
-async function renderMilestones(): Promise<void> {
-  stores.projects.getProject.mockResolvedValue(FOX_PROJECT);
-  stores.memory.readMemoryHistory.mockResolvedValue([
-    {
-      version: MEMORY_VERSION_NUMBER.parse(1),
-      text: MILESTONES,
-      author: "user",
-      savedBy: undefined,
-      createdAt: new Date("2026-10-11T09:00:00Z"),
-    },
-  ]);
-  const content = await MemoryPage({
-    params: Promise.resolve({ projectId: FOX_PROJECT.id }),
-    searchParams: Promise.resolve({}),
-  });
-  await render(
-    <>
-      {await siteHeaderAt(JOURNAL_PATH)}
-      {inWorkspace(content)}
+      {inWorkspace(<QuestLayout params={params}>{content}</QuestLayout>)}
     </>,
   );
 }
@@ -182,10 +138,10 @@ async function renderMilestones(): Promise<void> {
 // Renders a quest whose conversation's reply is the mock construct's
 // Markdown.
 async function renderMarkdownChat(): Promise<void> {
-  stores.projects.getProject.mockResolvedValue(FOX_PROJECT);
+  stores.quests.getQuest.mockResolvedValue(FOX_QUEST);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());
-  const content = await ProjectPage({
-    params: Promise.resolve({ projectId: FOX_PROJECT.id }),
+  const content = await QuestPage({
+    params: Promise.resolve({ questId: FOX_QUEST.id }),
     searchParams: Promise.resolve({}),
   });
   await render(
@@ -196,41 +152,19 @@ async function renderMarkdownChat(): Promise<void> {
   );
 }
 
-// Opens the page of a project with a long name and returns whether its
+// Opens the page of a quest with a long name and returns whether its
 // Journal link is below the name, the page's heading.
 async function journalBelowLongName(): Promise<boolean> {
-  await renderProject(LONG_NAME);
+  await renderQuest(LONG_NAME);
   await loadFonts();
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("link", { name: MEMORY_COPY.link });
+  const link = page.getByRole("link", { name: "Plan" });
   return (
     link.element().getBoundingClientRect().top >=
     heading.element().getBoundingClientRect().bottom
   );
-}
-
-// A milestone checkbox as the memory shows it.
-interface MilestoneBox {
-  readonly checked: boolean;
-  readonly disabled: boolean;
-  readonly look: CheckboxLook;
-}
-
-// The checkboxes of the current memory, when it is MILESTONES.
-async function milestoneBoxes(): Promise<readonly MilestoneBox[]> {
-  await renderMilestones();
-  return page
-    .getByRole("region", { name: MEMORY_COPY.currentLabel })
-    .getByRole("checkbox")
-    .elements()
-    .filter((box) => box instanceof HTMLInputElement)
-    .map((box) => ({
-      checked: box.checked,
-      disabled: box.disabled,
-      look: checkboxLook(box),
-    }));
 }
 
 // The font sizes of the chat page's heading and of its reply's level-2
@@ -277,25 +211,8 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a long quest title keeps Journal navigation below it at 1280 px", async () => {
+      test("a long quest title keeps Plan navigation below it at 1280 px", async () => {
         expect(await journalBelowLongName()).toBe(true);
-      });
-
-      test("the memory's milestones show read-only checkboxes in the theme's colours", async () => {
-        const [done, toDo, ...others] = await milestoneBoxes();
-
-        expect(others).toEqual([]);
-        expect([done?.checked, done?.disabled]).toEqual([true, true]);
-        expect([toDo?.checked, toDo?.disabled]).toEqual([false, true]);
-        expect(done?.look.appearance).toBe("none");
-        expect([done?.look.background, done?.look.border]).toEqual([
-          done?.look.primary,
-          done?.look.primary,
-        ]);
-        expect([toDo?.look.background, toDo?.look.border]).toEqual([
-          toDo?.look.field,
-          toDo?.look.line,
-        ]);
       });
 
       test("a heading in a reply stays smaller than the page's heading", async () => {
@@ -305,21 +222,4 @@ describe("use_case_choose_theme", () => {
       });
     });
   }
-});
-
-test("the Journal selects its workspace link and leads back to its quest", async () => {
-  await renderMilestones();
-  await expect
-    .element(page.getByRole("heading", { level: 1 }))
-    .toHaveTextContent(MEMORY_COPY.heading);
-  await expect
-    .element(page.getByRole("link", { name: FOX_PROJECT.name }))
-    .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
-  const nav = page.getByRole("navigation", { name: PROJECT_COPY.navigation });
-  await expect
-    .element(nav.getByRole("link", { name: MEMORY_COPY.link }))
-    .toHaveAttribute("aria-current", "page");
-  await expect
-    .element(nav.getByRole("link", { name: WORKSPACES_COPY.conversation }))
-    .toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
 });

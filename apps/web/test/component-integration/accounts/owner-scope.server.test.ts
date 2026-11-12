@@ -1,20 +1,20 @@
 // The ownership predicates against the test database: two users side by
-// side, each with a project, a chat in it, a standalone chat, their messages,
+// side, each with a quest, a chat in it, a standalone chat, their messages,
 // a memory version, a gold balance and its ledger, and a construct. Each predicate, for her,
-// selects exactly her rows of the two users', through her project or, for a
+// selects exactly her rows of the two users', through her quest or, for a
 // standalone chat, through the chat's own user. owner-scope-coverage.test.ts
 // checks every store builds its queries from these predicates.
+
 import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import {
   chatOpenTo,
   goldBalanceOwnedBy,
   goldLedgerOwnedBy,
-  memoryVersionOpenTo,
   messageOpenTo,
   ownPromptOwnedBy,
-  ownsProject,
-  projectOwnedBy,
+  ownsQuest,
+  questOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
@@ -22,13 +22,10 @@ import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
-import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
-import type { ChatId, OwnPromptId, ProjectId } from "@/ids.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { saveMemory } from "@/memory/memory-store.ts";
+import type { ChatId, OwnPromptId, QuestId } from "@/ids.ts";
 import {
   type Exchange,
   testData,
@@ -42,34 +39,28 @@ const EXCHANGE: Exchange = {
 
 // One user's rows, one of each kind an ownership predicate reaches.
 interface OwnedRows {
-  readonly projectId: ProjectId;
+  readonly questId: QuestId;
   readonly projectChatId: ChatId;
   readonly standaloneChatId: ChatId;
   readonly constructId: OwnPromptId;
 }
 
-// Saves a row of each kind for user: a project with a chat and its memory,
+// Saves a row of each kind for user: a quest with a chat and its memory,
 // a standalone chat, an exchange in each chat and a construct. Gold comes with
 // the account.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
-  const project = await data.project();
-  const projectChat = await data.chat(project);
+  const quest = await data.quest();
+  const projectChat = await data.chat(quest);
   const standaloneChat = await privateChat(user.id);
   await data.exchanges(projectChat, [EXCHANGE]);
   await data.exchanges(standaloneChat, [EXCHANGE]);
-  await saveMemory(user.id, {
-    projectId: project.id,
-    text: "- [ ] Rig the fox",
-    basedOn: MEMORY_VERSION_NUMBER.parse(0),
-    author: "user",
-  });
   const construct = await cloneConstruct(user.id, DEFAULT_CONSTRUCT_ID);
   if (construct === undefined) {
     throw new Error("The default construct could not be cloned");
   }
   return {
-    projectId: project.id,
+    questId: quest.id,
     projectChatId: projectChat.id,
     standaloneChatId: standaloneChat.id,
     constructId: construct.id,
@@ -97,21 +88,21 @@ function sorted(ids: readonly string[]): string[] {
   return ids.toSorted((one, other) => one.localeCompare(other));
 }
 
-// Her ids among both users' projects, chats and the chats of messages.
-async function ownProjectsAndChats(
+// Her ids among both users' quests, chats and the chats of messages.
+async function ownQuestsAndChats(
   her: User,
-  bothProjects: readonly ProjectId[],
+  bothQuests: readonly QuestId[],
   bothChats: readonly ChatId[],
 ): Promise<{
-  readonly projectIds: readonly string[];
+  readonly questIds: readonly string[];
   readonly chatIds: readonly string[];
   readonly messageChatIds: readonly string[];
 }> {
   const db = getDb();
-  const ownProjects = await db
-    .select({ id: projects.id })
-    .from(projects)
-    .where(and(inArray(projects.id, bothProjects), projectOwnedBy(her.id)));
+  const ownQuests = await db
+    .select({ id: quests.id })
+    .from(quests)
+    .where(and(inArray(quests.id, bothQuests), questOwnedBy(her.id)));
   const ownChats = await db
     .select({ id: chats.id })
     .from(chats)
@@ -121,7 +112,7 @@ async function ownProjectsAndChats(
     .from(messages)
     .where(and(inArray(messages.chatId, bothChats), messageOpenTo(her.id)));
   return {
-    projectIds: ownProjects.map(({ id }) => id),
+    questIds: ownQuests.map(({ id }) => id),
     chatIds: sorted(ownChats.map(({ id }) => id)),
     messageChatIds: sorted(ownMessages.map(({ chatId }) => chatId)),
   };
@@ -129,7 +120,7 @@ async function ownProjectsAndChats(
 
 // Her rows among both users' memory versions, gold balances, gold ledgers
 // and constructs.
-async function ownMemoryGoldAndConstructs(
+async function ownGoldAndConstructs(
   her: User,
   other: User,
   hers: OwnedRows,
@@ -137,15 +128,6 @@ async function ownMemoryGoldAndConstructs(
 ): Promise<readonly unknown[]> {
   const db = getDb();
   return [
-    await db
-      .selectDistinct({ projectId: memoryVersions.projectId })
-      .from(memoryVersions)
-      .where(
-        and(
-          inArray(memoryVersions.projectId, [hers.projectId, theirs.projectId]),
-          memoryVersionOpenTo(her.id),
-        ),
-      ),
     await db
       .select({ userId: goldBalances.userId })
       .from(goldBalances)
@@ -176,12 +158,12 @@ async function ownMemoryGoldAndConstructs(
   ];
 }
 
-// Whether ownsProject holds for her and the project, on her user row.
-async function holds(her: User, projectId: ProjectId): Promise<boolean> {
+// Whether ownsProject holds for her and the quest, on her user row.
+async function holds(her: User, questId: QuestId): Promise<boolean> {
   const rows = await getDb()
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.id, her.id), ownsProject(her.id, projectId)));
+    .where(and(eq(users.id, her.id), ownsQuest(her.id, questId)));
   return rows.length > 0;
 }
 
@@ -191,23 +173,22 @@ describe("ownership predicates select only the owner's rows", () => {
     const herChats = [hers.projectChatId, hers.standaloneChatId];
 
     expect(
-      await ownProjectsAndChats(
+      await ownQuestsAndChats(
         her,
-        [hers.projectId, theirs.projectId],
+        [hers.questId, theirs.questId],
         [...herChats, theirs.projectChatId, theirs.standaloneChatId],
       ),
     ).toEqual({
-      projectIds: [hers.projectId],
+      questIds: [hers.questId],
       chatIds: sorted(herChats),
       messageChatIds: sorted(herChats),
     });
   });
 
-  test("memory versions, gold and constructs", async () => {
+  test("gold and constructs", async () => {
     const { her, other, hers, theirs } = await bothUsersRows();
 
-    expect(await ownMemoryGoldAndConstructs(her, other, hers, theirs)).toEqual([
-      [{ projectId: hers.projectId }],
+    expect(await ownGoldAndConstructs(her, other, hers, theirs)).toEqual([
       [{ userId: her.id }],
       [{ userId: her.id }],
       [{ id: hers.constructId }],
@@ -217,7 +198,7 @@ describe("ownership predicates select only the owner's rows", () => {
   test("owning a project holds for her project only", async () => {
     const { her, hers, theirs } = await bothUsersRows();
 
-    expect(await holds(her, hers.projectId)).toBe(true);
-    expect(await holds(her, theirs.projectId)).toBe(false);
+    expect(await holds(her, hers.questId)).toBe(true);
+    expect(await holds(her, theirs.questId)).toBe(false);
   });
 });

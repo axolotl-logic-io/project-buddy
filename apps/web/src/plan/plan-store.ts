@@ -1,9 +1,10 @@
-// Each project's plan, stored in Postgres as numbered versions: every change
+// Each quest's plan, stored in Postgres as numbered versions: every change
 // saves the whole plan after it, what it did and how to undo it, so the
 // newest version is the plan and the versions are its history. A plan is
-// its project owner's alone: every function takes the acting user first, so
-// another user's project has no plan, and nothing is written to it. A change lands on the newest version, so two
+// its quest owner's alone: every function takes the acting user first, so
+// another user's quest has no plan, and nothing is written to it. A change lands on the newest version, so two
 // changes made at once are both kept, one after the other.
+
 import {
   and,
   desc,
@@ -16,13 +17,13 @@ import {
 } from "drizzle-orm";
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { planVersionOpenTo, projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { planVersionOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
 import { chatAwaitsReply, noReplyAwaited } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
-import { chats, projects } from "@/db/tables/projects-and-chats.ts";
+import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { ChatId, ProjectId, UserId } from "@/ids.ts";
+import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   applyPlanOperations,
   applyPlanUndo,
@@ -40,10 +41,10 @@ import {
 // Who changes a plan: the construct, or the acting user.
 type PlanAuthor = "construct" | "person";
 
-// Where a change comes from: the project whose plan it changes, who makes it
-// and the chat in the project it is made in, if any.
+// Where a change comes from: the quest whose plan it changes, who makes it
+// and the chat in the quest it is made in, if any.
 interface PlanChangeSource {
-  readonly projectId: ProjectId;
+  readonly questId: QuestId;
   readonly author: PlanAuthor;
   readonly chatId?: ChatId | undefined;
 }
@@ -73,7 +74,7 @@ type PlanChangeFailure = PlanFailure | PlanUndoFailure | PlanChatFailure;
 
 // What a change or an undo did: the change it saved and the plan after it,
 // or why it saved nothing, with the plan as it is. Undefined, with nothing
-// saved, if the project isn't open to the acting user, or the chat isn't in
+// saved, if the quest isn't open to the acting user, or the chat isn't in
 // it.
 type PlanChangeOutcome =
   | {
@@ -123,27 +124,24 @@ function toVersion(row: unknown): VersionRow | undefined {
   return VERSION_ROW.safeParse(row).data;
 }
 
-async function projectIsOpen(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<boolean> {
+async function questIsOpen(owner: UserId, questId: QuestId): Promise<boolean> {
   const rows = await withAppErrors("readPlan", () =>
     getDb()
-      .select({ id: projects.id })
-      .from(projects)
-      .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questOwnedBy(owner))),
   );
   return rows.length > 0;
 }
 
-// The owner's project's plan as of its newest version, with the versions
-// whose changes were undone; undefined if the project isn't open to them.
+// The owner's quest's plan as of its newest version, with the versions
+// whose changes were undone; undefined if the quest isn't open to them.
 async function readPlanState(
   owner: UserId,
-  projectId: ProjectId,
+  questId: QuestId,
 ): Promise<PlanState | undefined> {
-  const inProject = and(
-    eq(planVersions.projectId, projectId),
+  const inQuest = and(
+    eq(planVersions.questId, questId),
     planVersionOpenTo(owner),
   );
   const [latest, undone, open] = await Promise.all([
@@ -151,7 +149,7 @@ async function readPlanState(
       getDb()
         .select(VERSION_COLUMNS)
         .from(planVersions)
-        .where(inProject)
+        .where(inQuest)
         .orderBy(desc(planVersions.version))
         .limit(1),
     ),
@@ -159,9 +157,9 @@ async function readPlanState(
       getDb()
         .select({ version: planVersions.undoesVersion })
         .from(planVersions)
-        .where(and(inProject, isNotNull(planVersions.undoesVersion))),
+        .where(and(inQuest, isNotNull(planVersions.undoesVersion))),
     ),
-    projectIsOpen(owner, projectId),
+    questIsOpen(owner, questId),
   ]);
   if (!open) {
     return undefined;
@@ -182,12 +180,12 @@ async function readPlanState(
   };
 }
 
-// The owner's project's plan; undefined if the project isn't open to them.
+// The owner's quest's plan; undefined if the quest isn't open to them.
 async function readPlan(
   owner: UserId,
-  projectId: ProjectId,
+  questId: QuestId,
 ): Promise<Plan | undefined> {
-  return (await readPlanState(owner, projectId))?.plan;
+  return (await readPlanState(owner, questId))?.plan;
 }
 
 // The version to save on top of basedOn, and what it did.
@@ -199,19 +197,19 @@ interface NextVersion {
   readonly undoesVersion?: number | undefined;
 }
 
-// True when the chat is in the project.
-function chatInProject(projectId: ProjectId, chatId: ChatId): SQL {
+// True when the chat is in the quest.
+function chatInQuest(questId: QuestId, chatId: ChatId): SQL {
   return exists(
     new QueryBuilder()
       .select({ id: chats.id })
       .from(chats)
-      .where(and(eq(chats.id, chatId), eq(chats.projectId, projectId))),
+      .where(and(eq(chats.id, chatId), eq(chats.questId, questId))),
   );
 }
 
 // Saves next as the version after its basedOn, and says whether it did. It
 // saves nothing if another change saved that version first, or the undo it
-// is undid that change already, or the project isn't open to the owner, or
+// is undid that change already, or the quest isn't open to the owner, or
 // the source's chat isn't in it, or, for a person's change, the chat's
 // newest message awaits a reply. The construct's own change is made while
 // its reply to that message runs.
@@ -220,14 +218,14 @@ async function saveVersion(
   source: PlanChangeSource,
   next: NextVersion,
 ): Promise<boolean> {
-  const { projectId, author, chatId } = source;
+  const { questId, author, chatId } = source;
   let userId: UserId | null = null;
   if (author === "person") {
     userId = owner;
   }
-  const where: SQL[] = [eq(projects.id, projectId), projectOwnedBy(owner)];
+  const where: SQL[] = [eq(quests.id, questId), questOwnedBy(owner)];
   if (chatId !== undefined) {
-    where.push(chatInProject(projectId, chatId));
+    where.push(chatInQuest(questId, chatId));
     if (author === "person") {
       where.push(noReplyAwaited(chatId));
     }
@@ -239,7 +237,7 @@ async function saveVersion(
         new QueryBuilder()
           .select({
             id: sql`gen_random_uuid()`.as("id"),
-            projectId: sql`${projectId}::uuid`.as("project_id"),
+            questId: sql`${questId}::uuid`.as("quest_id"),
             version: sql`${next.basedOn + 1}::integer`.as("version"),
             plan: sql`${JSON.stringify(next.plan)}::jsonb`.as("plan"),
             lines: sql`${JSON.stringify(next.lines)}::jsonb`.as("lines"),
@@ -252,7 +250,7 @@ async function saveVersion(
             chatId: sql`${chatId ?? null}::uuid`.as("chat_id"),
             createdAt: sql`now()`.as("created_at"),
           })
-          .from(projects)
+          .from(quests)
           .where(and(...where)),
       )
       .onConflictDoNothing()
@@ -278,7 +276,7 @@ async function saveChange(
   attempt: (state: PlanState) => Promise<Attempt>,
   tries = 0,
 ): Promise<PlanChangeOutcome> {
-  const state = await readPlanState(owner, source.projectId);
+  const state = await readPlanState(owner, source.questId);
   if (state === undefined) {
     return undefined;
   }
@@ -303,10 +301,10 @@ async function saveChange(
       state: { version, plan: next.plan, undone: undoneAfter(state, next) },
     };
   }
-  // A chat outside the project saves nothing, however often it is tried,
+  // A chat outside the quest saves nothing, however often it is tried,
   // and nor does a person's change in a chat awaiting a reply.
   if (tries === 0) {
-    if (!(await chatIsInProject(owner, source))) {
+    if (!(await chatIsInQuest(owner, source))) {
       return undefined;
     }
     if (
@@ -327,9 +325,9 @@ function undoneAfter(state: PlanState, next: NextVersion): readonly number[] {
   return [...state.undone, next.undoesVersion];
 }
 
-async function chatIsInProject(
+async function chatIsInQuest(
   owner: UserId,
-  { projectId, chatId }: PlanChangeSource,
+  { questId, chatId }: PlanChangeSource,
 ): Promise<boolean> {
   if (chatId === undefined) {
     return true;
@@ -338,19 +336,19 @@ async function chatIsInProject(
     getDb()
       .select({ id: chats.id })
       .from(chats)
-      .innerJoin(projects, eq(projects.id, chats.projectId))
+      .innerJoin(quests, eq(quests.id, chats.questId))
       .where(
         and(
           eq(chats.id, chatId),
-          eq(chats.projectId, projectId),
-          projectOwnedBy(owner),
+          eq(chats.questId, questId),
+          questOwnedBy(owner),
         ),
       ),
   );
   return rows.length > 0;
 }
 
-// Applies operations to the owner's project's plan, all or none, as one new
+// Applies operations to the owner's quest's plan, all or none, as one new
 // version by the source's author, from its chat (applyPlanOperations has
 // the rules).
 function changePlan(
@@ -372,7 +370,7 @@ function changePlan(
 
 async function readVersion(
   owner: UserId,
-  projectId: ProjectId,
+  questId: QuestId,
   version: number,
 ): Promise<VersionRow | undefined> {
   const [row] = await withAppErrors("undoPlanChange", () =>
@@ -381,7 +379,7 @@ async function readVersion(
       .from(planVersions)
       .where(
         and(
-          eq(planVersions.projectId, projectId),
+          eq(planVersions.questId, questId),
           eq(planVersions.version, version),
           planVersionOpenTo(owner),
         ),
@@ -390,7 +388,7 @@ async function readVersion(
   return toVersion(row);
 }
 
-// Undoes the change saved as version of the owner's project's plan, as a new
+// Undoes the change saved as version of the owner's quest's plan, as a new
 // version by the source's author that names it: the plan as it would be had
 // that change not been made, keeping the changes after it (applyPlanUndo).
 // An undo can't be undone, and a change can be undone once.
@@ -400,7 +398,7 @@ function undoPlanChange(
   version: number,
 ): Promise<PlanChangeOutcome> {
   return saveChange(owner, source, async (state): Promise<Attempt> => {
-    const undone = await readVersion(owner, source.projectId, version);
+    const undone = await readVersion(owner, source.questId, version);
     if (undone === undefined || undone.undoesVersion !== null) {
       return { kind: "failed", reason: "no-such-change" };
     }
@@ -421,13 +419,13 @@ function undoPlanChange(
   });
 }
 
-// The changes the owner made to their project's plan from the chat that
+// The changes the owner made to their quest's plan from the chat that
 // are still there to undo, newest first and at most most of them: not an
 // undo, and not undone. /undo tries them in turn, since an older one's undo
 // may apply where a newer one's has nothing left to undo.
 async function undoableChanges(
   owner: UserId,
-  { projectId, chatId }: { projectId: ProjectId; chatId: ChatId },
+  { questId, chatId }: { questId: QuestId; chatId: ChatId },
   most: number,
 ): Promise<number[]> {
   const undoing = alias(planVersions, "undoing");
@@ -437,7 +435,7 @@ async function undoableChanges(
       .from(planVersions)
       .where(
         and(
-          eq(planVersions.projectId, projectId),
+          eq(planVersions.questId, questId),
           eq(planVersions.chatId, chatId),
           eq(planVersions.userId, owner),
           eq(planVersions.author, "person"),
@@ -449,7 +447,7 @@ async function undoableChanges(
               .from(undoing)
               .where(
                 and(
-                  eq(undoing.projectId, planVersions.projectId),
+                  eq(undoing.questId, planVersions.questId),
                   eq(undoing.undoesVersion, planVersions.version),
                 ),
               ),

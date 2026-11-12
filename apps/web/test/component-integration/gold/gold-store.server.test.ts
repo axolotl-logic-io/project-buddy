@@ -1,4 +1,5 @@
 // The gold store against the test database: the starting grant and charges.
+
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { getDb } from "@/db/client.ts";

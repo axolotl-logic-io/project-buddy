@@ -5,7 +5,7 @@ import {
   answerQuestStatusAction,
   changeQuestStatusAction,
   readQuestStatusApprovalAction,
-} from "@/app/(workspace)/projects/status-actions.ts";
+} from "@/app/(workspace)/quests/status-actions.ts";
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
@@ -13,10 +13,10 @@ import {
   STATUS_APPROVAL_ID,
   type StatusActionState,
   type StatusApproval,
-} from "@/projects/quest-status.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+} from "@/quests/quest-status.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   measureTargets,
@@ -31,8 +31,8 @@ import {
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
-  projectId: FOX_PROJECT.id,
-  name: FOX_PROJECT.name,
+  questId: FOX_QUEST.id,
+  name: FOX_QUEST.name,
   fromStatus: "active",
   toStatus: "abandoned",
   revision: 0,
@@ -54,13 +54,13 @@ describe("quest status actions", () => {
       kind: "saved",
       message: "Quest completed.",
       change: {
-        projectId: FOX_PROJECT.id,
+        questId: FOX_QUEST.id,
         fromStatus: "active",
         toStatus: "completed",
         revision: 1,
       },
     };
-    await render(<QuestStatusControls project={FOX_PROJECT} />);
+    await render(<QuestStatusControls quest={FOX_QUEST} />);
     const menu = page.getByRole("button", { name: QUEST_STATUS_COPY.menu });
     await expect
       .element(page.getByRole("button", { name: "Finish Quest" }))
@@ -180,7 +180,7 @@ describe("quest approval card", () => {
 describe("quest status tabs", () => {
   test("filters quests by status and supports keyboard navigation", async () => {
     await render(
-      <QuestStatusTabs projects={[{ ...FOX_PROJECT, status: "completed" }]} />,
+      <QuestStatusTabs quests={[{ ...FOX_QUEST, status: "completed" }]} />,
     );
     await expect
       .element(page.getByText("No quests with this status."))
@@ -191,7 +191,7 @@ describe("quest status tabs", () => {
       .element(page.getByRole("tab", { name: "Completed", exact: true }))
       .toHaveAttribute("aria-selected", "true");
     await expect
-      .element(page.getByRole("link", { name: FOX_PROJECT.name }))
+      .element(page.getByRole("link", { name: FOX_QUEST.name }))
       .toBeVisible();
     await expect
       .element(page.getByRole("button", { name: "Restore quest" }))
@@ -202,7 +202,7 @@ describe("quest status tabs", () => {
       kind: "saved",
       message: "Quest restored.",
       change: {
-        projectId: FOX_PROJECT.id,
+        questId: FOX_QUEST.id,
         fromStatus: "completed",
         toStatus: "active",
         revision: 2,
@@ -211,7 +211,7 @@ describe("quest status tabs", () => {
     const view = await render(
       <QuestStatusTabs
         initialStatus="completed"
-        projects={[{ ...FOX_PROJECT, status: "completed", statusRevision: 1 }]}
+        quests={[{ ...FOX_QUEST, status: "completed", statusRevision: 1 }]}
       />,
     );
     page.getByRole("button", { name: "Restore quest" }).element().focus();
@@ -222,11 +222,11 @@ describe("quest status tabs", () => {
     await view.rerender(
       <QuestStatusTabs
         initialStatus="completed"
-        projects={[{ ...FOX_PROJECT, status: "active", statusRevision: 2 }]}
+        quests={[{ ...FOX_QUEST, status: "active", statusRevision: 2 }]}
       />,
     );
     await expect
-      .element(page.getByRole("link", { name: FOX_PROJECT.name }))
+      .element(page.getByRole("link", { name: FOX_QUEST.name }))
       .not.toBeInTheDocument();
     await expect.element(page.getByRole("status")).toHaveFocus();
 
@@ -253,12 +253,12 @@ describe("quest status on phones", () => {
         await view.rerender(
           <QuestStatusTabs
             initialStatus="completed"
-            projects={[{ ...FOX_PROJECT, status: "completed" }]}
+            quests={[{ ...FOX_QUEST, status: "completed" }]}
           />,
         );
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
-        await view.rerender(<QuestStatusControls project={FOX_PROJECT} />);
+        await view.rerender(<QuestStatusControls quest={FOX_QUEST} />);
         await page
           .getByRole("button", { name: QUEST_STATUS_COPY.menu })
           .click();
@@ -276,14 +276,14 @@ describe("quest status on phones", () => {
 });
 
 test("no quests gives first-quest guidance while an empty status tab keeps filter guidance", async () => {
-  const screen = await render(<QuestStatusTabs projects={[]} />);
-  await expect.element(page.getByText(PROJECTS_COPY.none)).toBeVisible();
+  const screen = await render(<QuestStatusTabs quests={[]} />);
+  await expect.element(page.getByText(QUESTS_COPY.none)).toBeVisible();
   await screen.unmount();
   await render(
-    <QuestStatusTabs projects={[FOX_PROJECT]} initialStatus="completed" />,
+    <QuestStatusTabs quests={[FOX_QUEST]} initialStatus="completed" />,
   );
   await expect.element(page.getByText(QUEST_STATUS_COPY.empty)).toBeVisible();
   await expect
-    .element(page.getByText(PROJECTS_COPY.none))
+    .element(page.getByText(QUESTS_COPY.none))
     .not.toBeInTheDocument();
 });

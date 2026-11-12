@@ -16,9 +16,9 @@ import {
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
 import { motivatedOpeningRequest } from "@/activities/index.ts";
-import type { ChatProject, ProjectChat } from "@/chats/chat-rows.ts";
+import type { ChatQuest, QuestChat } from "@/chats/chat-rows.ts";
 import {
-  createProjectWithChat,
+  createQuestWithChat,
   type NewChatConstruct,
 } from "@/chats/new-chat-store.ts";
 import {
@@ -33,17 +33,13 @@ import {
   findOrCreateConversation,
 } from "@/conversations/conversation-store.ts";
 import type { Transaction } from "@/db/client.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
-import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import type { QuestId, UserId } from "@/ids.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
-import type { ProjectName } from "@/projects/project-name.ts";
-import { getProject } from "@/projects/store.ts";
+import type { QuestName } from "@/quests/quest-name.ts";
+import { getQuest } from "@/quests/store.ts";
 import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
-import {
-  type PromptProject,
-  readPromptProject,
-} from "@/replies/system-prompt.ts";
+import { type PromptQuest, readPromptQuest } from "@/replies/system-prompt.ts";
 import { spellChoices } from "@/spells/spell-choices.ts";
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
@@ -53,8 +49,8 @@ const NOT_FOUND = { kind: "notFound" } as const;
 // A new quest, saved with its conversation and opening, or why nothing was
 // saved: Claude is unavailable to write the opening, or the owner is out of
 // batteries.
-type StartProjectResult =
-  | { readonly kind: "started"; readonly chat: ProjectChat }
+type StartQuestResult =
+  | { readonly kind: "started"; readonly chat: QuestChat }
   | typeof CLAUDE_UNAVAILABLE
   | typeof OUT_OF_GOLD;
 
@@ -81,13 +77,13 @@ function defaultStart(): {
 }
 
 // The opening of a conversation of the owner's in a quest, with the quest as
-// readProject reads it, or in none, in construct and activity, as kickoff asks
+// readQuest reads it, or in none, in construct and activity, as kickoff asks
 // for it if given, charged to grant if the construct writes it; undefined when
 // Claude can't write it.
 function openingFor(
   owner: UserId,
   grant: QuotaGrant,
-  readProject: () => Promise<PromptProject | undefined>,
+  readQuest: () => Promise<PromptQuest | undefined>,
   {
     construct,
     activity,
@@ -104,69 +100,71 @@ function openingFor(
     kickoff,
     grant,
     context: async () => {
-      const [activities, spells, userName, project] = await Promise.all([
+      const [activities, spells, userName, quest] = await Promise.all([
         activityChoices(owner),
         spellChoices(owner),
         readUserName(owner),
-        readProject(),
+        readQuest(),
       ]);
-      return { activities, spells, project, userName };
+      return { activities, spells, quest, userName };
     },
   });
 }
 
 // A new quest of the owner's named name, with its conversation in the
 // construct, kept as it is now, and the chosen activity, opened as the
-// activity asks, and seeded with the journal and the motivation in its
-// Journal. A Dailies quest (dailies) is saved only when the owner has none:
+// activity asks, and seeded with the context and the motivation in its
+// conversation. A Dailies quest (dailies) is saved only when the owner has none:
 // with one already, the result is undefined and nothing is saved
 // (src/conversations/dailies.ts). A storage failure throws.
 async function startNewQuest(
   owner: UserId,
-  name: ProjectName,
+  name: QuestName,
   construct: NewChatConstruct,
   {
     motivation = "",
-    journal = "",
+    context = "",
     activity = builtInActivity("project-breakdown"),
     dailies = false,
     transaction,
   }: {
     readonly transaction?: Transaction;
     readonly motivation?: string;
-    readonly journal?: string;
+    readonly context?: string;
     readonly activity?: ChatActivity;
     readonly dailies?: boolean;
   } = {},
-): Promise<StartProjectResult | undefined> {
+): Promise<StartQuestResult | undefined> {
   const gold = await checkGold(owner);
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
-  const initialJournal = [journal, motivation]
+  const initialContext = [context, motivation]
     .filter((text) => text !== "")
     .join("\n\n");
-  let memory = EMPTY_MEMORY;
   let kickoff: string | undefined;
-  if (motivation !== "") {
+  if (initialContext !== "") {
     kickoff = motivatedOpeningRequest(activity.definition.openingRequest);
-  }
-  if (initialJournal !== "") {
-    memory = { text: initialJournal, version: MEMORY_VERSION_NUMBER.parse(1) };
   }
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => Promise.resolve({ name, memory, plan: EMPTY_PLAN, milestones: [] }),
+    () =>
+      Promise.resolve({
+        name,
+        startingContext: initialContext,
+        plan: EMPTY_PLAN,
+        milestones: [],
+      }),
     { construct, activity, kickoff },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
-  const chat = await createProjectWithChat(
+  const chat = await createQuestWithChat(
     owner,
     name,
-    { construct, activity, opening, journal: initialJournal, dailies },
+    { construct, activity, opening, context: initialContext, dailies },
     transaction,
   );
   if (chat === undefined) {
@@ -177,12 +175,12 @@ async function startNewQuest(
 
 // A new quest of the owner's named name, with its conversation, as
 // startNewQuest starts it. A storage failure throws.
-async function startProject(
+async function startQuest(
   owner: UserId,
-  name: ProjectName,
+  name: QuestName,
   construct: NewChatConstruct,
   options: Omit<Parameters<typeof startNewQuest>[3], "dailies"> = {},
-): Promise<StartProjectResult> {
+): Promise<StartQuestResult> {
   const started = await startNewQuest(owner, name, construct, options);
   if (started === undefined) {
     throw new Error("A quest that isn't Dailies was refused as a duplicate");
@@ -195,9 +193,9 @@ async function startProject(
 // writes nothing and spends no batteries.
 function readQuestConversation(
   viewer: UserId,
-  projectId: ProjectId,
+  questId: QuestId,
 ): Promise<Conversation | undefined> {
-  return findConversation(viewer, projectId);
+  return findConversation(viewer, questId);
 }
 
 // The quest's conversation, started for the acting user if it has none, as
@@ -208,13 +206,13 @@ function readQuestConversation(
 // conversation, as does a start once the quest has one, for free.
 async function startQuestConversation(
   actingUser: UserId,
-  projectId: ProjectId,
+  questId: QuestId,
 ): Promise<StartConversationResult> {
-  const project = await getProject(actingUser, projectId);
-  if (project === undefined) {
+  const quest = await getQuest(actingUser, questId);
+  if (quest === undefined) {
     return NOT_FOUND;
   }
-  const existing = await findConversation(actingUser, project.id);
+  const existing = await findConversation(actingUser, quest.id);
   if (existing !== undefined) {
     return { kind: "started", conversation: existing };
   }
@@ -222,9 +220,9 @@ async function startQuestConversation(
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
-  const quest: ChatProject = { id: project.id, name: project.name };
+  const chatQuest: ChatQuest = { id: quest.id, name: quest.name };
   const start = defaultStart();
-  const found = await findOrCreateConversation(actingUser, quest, start);
+  const found = await findOrCreateConversation(actingUser, chatQuest, start);
   if (found === undefined) {
     return NOT_FOUND;
   }
@@ -234,7 +232,7 @@ async function startQuestConversation(
   const opening = await openingFor(
     actingUser,
     gold.grant,
-    () => readPromptProject(actingUser, quest),
+    () => readPromptQuest(actingUser, quest),
     start,
   );
   if (opening === undefined) {
@@ -244,11 +242,11 @@ async function startQuestConversation(
   return { kind: "started", conversation: found.conversation };
 }
 
-export type { StartConversationResult, StartProjectResult };
+export type { StartConversationResult, StartQuestResult };
 export {
   defaultStart,
   readQuestConversation,
   startNewQuest,
-  startProject,
+  startQuest,
   startQuestConversation,
 };

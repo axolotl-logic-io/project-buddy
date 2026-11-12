@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QUEST_STATUS, STATUS_APPROVAL } from "@/projects/quest-status.ts";
+import { QUEST_STATUS, STATUS_APPROVAL } from "@/quests/quest-status.ts";
 
 const QUEST_STATUS_TOOL = "request_quest_status";
 const QUEST_STATUS_INPUT = z.object({

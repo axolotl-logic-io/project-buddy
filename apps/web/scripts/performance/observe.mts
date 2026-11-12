@@ -211,7 +211,7 @@ function primaryPresent(name: string): boolean {
     return false;
   }
   if (name === "home") {
-    return document.querySelector('main a[href="/projects"]') !== null;
+    return document.querySelector('main a[href="/quests"]') !== null;
   }
   if (name === "editor") {
     return document.querySelector('textarea[name="prompt"]') !== null;
@@ -239,7 +239,7 @@ function statePresent(expected: StateContent): boolean {
     const [root, kind, id, ...rest] = href.split("/");
     return (
       root === "" &&
-      (kind === "projects" || kind === "chats") &&
+      (kind === "quests" || kind === "chats") &&
       id?.length === IdLength &&
       rest.length === 0
     );

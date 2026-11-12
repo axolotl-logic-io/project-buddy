@@ -1,8 +1,9 @@
-// A milestone: something the user got done in a project, a short line the
-// construct records from one of the project's chats, dated and linked to that
-// chat. A project's milestones, newest first, are its progress timeline. It
+// A milestone: something the user got done in a quest, a short line the
+// construct records from one of the quest's chats, dated and linked to that
+// chat. A quest's milestones, newest first, are its progress timeline. It
 // imports nothing from the server, because the browser checks a milestone's
 // text with the same rule.
+
 import { z } from "zod";
 import type { ChatId, MilestoneId } from "@/ids.ts";
 

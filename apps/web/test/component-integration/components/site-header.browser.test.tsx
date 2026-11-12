@@ -13,6 +13,7 @@
 // scrolls away.
 // test/component-integration/app/phone-pages.touch.browser.test.tsx checks every page's reflow
 // and targets.
+
 import type { JSX } from "react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
@@ -33,7 +34,7 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
@@ -85,7 +86,7 @@ const PHONE_LAYOUT_BELOW_PX = 512;
 
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
-  PROJECTS_COPY.headerLink,
+  QUESTS_COPY.headerLink,
   CHAT_COPY.headerLink,
   LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
@@ -233,7 +234,7 @@ test.each(SCREENS)(
     await renderSignedIn();
     const header = page.getByRole("banner");
     expect(
-      header.getByRole("link", { name: PROJECTS_COPY.headerLink }).query(),
+      header.getByRole("link", { name: QUESTS_COPY.headerLink }).query(),
     ).toBeNull();
     expect(
       header.getByRole("link", { name: CHAT_COPY.headerLink }).query(),
@@ -243,9 +244,9 @@ test.each(SCREENS)(
       .element(
         page
           .getByRole("dialog")
-          .getByRole("link", { name: PROJECTS_COPY.headerLink }),
+          .getByRole("link", { name: QUESTS_COPY.headerLink }),
       )
-      .toHaveAttribute("href", "/projects");
+      .toHaveAttribute("href", "/quests");
     await expect
       .element(
         page
@@ -311,7 +312,7 @@ describe("the site menu", () => {
       await openMenu();
       await page
         .getByRole("dialog")
-        .getByRole("link", { name: PROJECTS_COPY.headerLink })
+        .getByRole("link", { name: QUESTS_COPY.headerLink })
         .click();
 
       await expect.poll(() => page.getByRole("dialog").query()).toBeNull();
@@ -353,7 +354,7 @@ const LONG_NAME_REPEATS = 20;
 const LONG_NAME = "Long quest and adventure name ".repeat(LONG_NAME_REPEATS);
 // Enough lines of page to scroll the header away, on any screen.
 const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
-const QUESTS: Breadcrumb = { label: PROJECTS_COPY.heading, href: "/projects" };
+const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };
 
 // The signed-in header with the trail band of items, as the @header slot
 // renders it.
@@ -392,7 +393,7 @@ describe("the trail band", () => {
       vi.mocked(readGoldBalance).mockResolvedValue(LOCATION_BALANCE);
       await setViewport(viewport);
       async function location(quests: boolean): Promise<JSX.Element> {
-        let trail: readonly Breadcrumb[] = [{ label: PROJECTS_COPY.heading }];
+        let trail: readonly Breadcrumb[] = [{ label: QUESTS_COPY.heading }];
         if (!quests) {
           trail = [QUESTS, { label: SETTINGS_COPY.heading }];
         }
@@ -407,7 +408,7 @@ describe("the trail band", () => {
       await loadFonts();
       await expect
         .element(pageHeading())
-        .toHaveTextContent(PROJECTS_COPY.heading);
+        .toHaveTextContent(QUESTS_COPY.heading);
       expect(
         page.getByRole("banner").getByRole("heading", { level: 1 }).elements(),
         "Quests' one heading is the band's",
@@ -430,9 +431,9 @@ describe("the trail band", () => {
       expect(main.getBoundingClientRect().y).toBe(origin);
       await expect
         .element(
-          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+          trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
         )
-        .toHaveAttribute("href", "/projects");
+        .toHaveAttribute("href", "/quests");
       await openMenu();
       await closeMenu();
       await screen.rerender(await location(true));
@@ -452,14 +453,14 @@ describe("the trail band", () => {
     await render(
       bandedHeader([
         QUESTS,
-        { label: "Our quest", href: "/projects/quest" },
+        { label: "Our quest", href: "/quests/quest" },
         { label: "Journal" },
       ]),
     );
     await loadFonts();
     const links = trailNavigation().getByRole("link").all();
     expect(links.map((link) => link.element().textContent)).toEqual([
-      PROJECTS_COPY.heading,
+      QUESTS_COPY.heading,
       "Our quest",
     ]);
     await expect.element(pageHeading()).toHaveTextContent("Journal");
@@ -509,7 +510,7 @@ describe("the trail band", () => {
     await expect.element(pageHeading()).toBeInViewport({ ratio: 1 });
     await expect
       .element(
-        trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
       )
       .toBeInViewport({ ratio: 1 });
     await expect
@@ -526,7 +527,7 @@ describe("the trail band", () => {
       const screen = await render(
         bandedHeader([
           QUESTS,
-          { label: LONG_NAME, href: "/projects/quest" },
+          { label: LONG_NAME, href: "/quests/quest" },
           { label: "Journal" },
         ]),
       );
@@ -534,7 +535,7 @@ describe("the trail band", () => {
       await expect.element(trailNavigation()).toBeVisible();
       await expect
         .element(
-          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+          trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
         )
         .not.toBeInTheDocument();
       const parent = trailNavigation().getByRole("link", { name: LONG_NAME });
@@ -559,7 +560,7 @@ describe("the trail band", () => {
       await screen.rerender(bandedHeader([QUESTS, { label: LONG_NAME }]));
       await expect
         .element(
-          trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+          trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
         )
         .toBeVisible();
       const heading = pageHeading().element();
@@ -592,13 +593,13 @@ describe("the trail band", () => {
     await render(
       bandedHeader([
         QUESTS,
-        { label: "Our quest", href: "/projects/quest" },
+        { label: "Our quest", href: "/quests/quest" },
         { label: "Journal" },
       ]),
     );
     await expect
       .element(
-        trailNavigation().getByRole("link", { name: PROJECTS_COPY.heading }),
+        trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
       )
       .toBeVisible();
   });
@@ -636,7 +637,7 @@ describe("header battery balance", () => {
             }
           />
           <main>
-            <h1>{PROJECTS_COPY.heading}</h1>
+            <h1>{QUESTS_COPY.heading}</h1>
           </main>
         </>,
       );

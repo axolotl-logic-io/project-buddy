@@ -3,10 +3,11 @@
 // own copies of them with the same parts, opens with its prepared opening
 // (src/activities/prepared-openings.ts), which takes no model call. In any
 // other chat the construct writes its opening, as the opening kickoff of the
-// chat's first activity asks, such as a synopsis of what the project's
+// chat's first activity asks, such as a synopsis of what the quest's
 // memory holds and one question. That is a model call of its own, made
 // outside a reply, and before the chat is saved, so such a chat exists only
 // once Claude has opened it.
+
 import { generateId, streamText } from "ai";
 import { withUserName } from "@/accounts/user-name.ts";
 import type { ActivitySnapshot } from "@/activities/activity.ts";
@@ -29,7 +30,7 @@ const OPENING_TIMEOUT_MS = 30_000;
 // The chat to open, before it is saved: its construct and first activity, the
 // grant of its acting user, who a written opening is charged to, and the rest of
 // its prompt's context (system-prompt.ts): the account's activities and
-// spells, the chat's project and the acting user's name, read only when the construct
+// spells, the chat's quest and the acting user's name, read only when the construct
 // writes the opening. A kickoff, such as a motivated quest start's, asks for
 // the opening instead of the activity's opening kickoff, so the construct
 // always writes it.

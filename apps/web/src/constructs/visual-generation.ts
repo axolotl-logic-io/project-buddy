@@ -131,7 +131,7 @@ async function claim(
         and(
           ownPromptOwnedBy(owner),
           eq(ownPrompts.id, request.constructId),
-          eq(ownPrompts.kind, "buddy"),
+          eq(ownPrompts.kind, "construct"),
           isNull(ownPrompts.retiredAt),
         ),
       )
@@ -286,7 +286,7 @@ async function complete(
           ownPromptOwnedBy(owner),
           eq(ownPrompts.id, generation.sourceId),
           isNull(ownPrompts.retiredAt),
-          eq(ownPrompts.kind, "buddy"),
+          eq(ownPrompts.kind, "construct"),
         ),
       )
       .for("update");
@@ -422,7 +422,7 @@ async function readVisualGeneration(
       and(
         ownPromptOwnedBy(owner),
         eq(ownPrompts.id, constructId),
-        eq(ownPrompts.kind, "buddy"),
+        eq(ownPrompts.kind, "construct"),
         isNull(ownPrompts.retiredAt),
       ),
     );

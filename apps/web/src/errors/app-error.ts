@@ -55,7 +55,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
   // The user's gold (src/gold/) is spent: the chat, the new-chat and
-  // new-project forms and image generation all refuse with this.
+  // new-quest forms and image generation all refuse with this.
   "out-of-gold":
     "You're out of batteries. The construct can't reply, generate images or start new quests without them.",
   unknown: "Something went wrong. Please try again later.",

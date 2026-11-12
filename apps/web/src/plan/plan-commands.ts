@@ -4,8 +4,8 @@
 // their numbers, as the plan shows them (#3 or 3). It imports nothing from
 // the server, because the composer in the browser tells commands apart with
 // the same rules.
+
 import { z } from "zod";
-import { preferenceCommand } from "@/journal/preference-commands.ts";
 import {
   moveToPlace,
   nextPlanStep,
@@ -13,6 +13,7 @@ import {
   type Plan,
   type PlanOperation,
 } from "@/plan/plan.ts";
+import { isLocalCommandName } from "@/replies/local-command-contract.ts";
 
 // A command: "/", its name, then its argument, if any, after white space.
 const COMMAND_LINE = /^\/(?<name>[^\s/]+)(?:\s+(?<argument>[\s\S]*))?$/u;
@@ -89,19 +90,17 @@ interface CommandPlace {
 
 // Whether the site runs text as a command rather than sending it to the
 // construct. In a quest's adventure that is any message that starts with
-// "/" and a name, except, while the mock model runs, its own `/mock-…`
+// "/" and a name, except local construct commands and, while the mock
+// model runs, its own `/mock-…`
 // commands. In a standalone adventure it is only a plan command's name,
 // which says it needs a quest; any other goes to the construct as written.
 function isChatCommand(text: string, place: CommandPlace): boolean {
   const name = commandNameOf(text);
-  if (name === undefined) {
+  if (name === undefined || isLocalCommandName(name)) {
     return false;
   }
   if (!place.inQuest) {
-    return (
-      PLAN_COMMAND_NAME.safeParse(name).success ||
-      preferenceCommand(text) !== undefined
-    );
+    return PLAN_COMMAND_NAME.safeParse(name).success;
   }
   return !(place.mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
 }

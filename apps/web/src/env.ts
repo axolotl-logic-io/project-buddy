@@ -86,41 +86,25 @@ function readSessionSecret(): string {
   return readRequired("SESSION_SECRET");
 }
 
-// The Anthropic API key for Claude, or undefined when it is unset or blank.
-// The construct reports a missing key the way Anthropic reports a wrong one.
-function readAnthropicApiKeyIfSet(): string | undefined {
-  return readIfSet("ANTHROPIC_API_KEY");
-}
-
-// The separate image provider's credential; no image calls when unset.
-function readOpenAiImageKey(): string | undefined {
-  return readIfSet("OPENAI_API_KEY");
-}
-
 // Vercel's automation bypass secret, or undefined when unset. Only the smoke
 // test reads it, to reach a preview behind Deployment Protection.
 function readVercelBypassSecretIfSet(): string | undefined {
   return readIfSet("VERCEL_AUTOMATION_BYPASS_SECRET");
 }
 
-// Which model constructs run: Claude unless CONSTRUCT_MODEL is "mock", which
-// selects the deterministic mock that tests use instead of Anthropic.
-// BUDDY_MODEL, its earlier name, is read when CONSTRUCT_MODEL is unset, so
-// existing installations and test environments keep working.
-// Production deployments (VERCEL_ENV "production") refuse the mock.
-function readConstructModel(): "claude" | "mock" {
+// Local rules run by default, including in production. The test script is
+// opt-in outside production; no setting enables a remote model provider.
+function readConstructModel(): "local" | "mock" {
   const parsed = z
-    .enum(["claude", "mock"])
-    .safeParse(
-      readIfSet("CONSTRUCT_MODEL") ?? readIfSet("BUDDY_MODEL") ?? "claude",
-    );
+    .enum(["local", "mock"])
+    .safeParse(readIfSet("CONSTRUCT_MODEL") ?? "local");
   if (!parsed.success) {
-    throw new Error('CONSTRUCT_MODEL must be unset, "claude" or "mock".');
+    throw new Error(
+      'CONSTRUCT_MODEL must be unset, "local" or "mock". Remote models are disabled.',
+    );
   }
   if (parsed.data === "mock" && readIfSet("VERCEL_ENV") === "production") {
-    throw new Error(
-      'CONSTRUCT_MODEL is "mock" in production, where constructs must use Claude.',
-    );
+    throw new Error('CONSTRUCT_MODEL is "mock" in production. Use "local".');
   }
   return parsed.data;
 }
@@ -241,7 +225,6 @@ function readBatteryPayments():
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
-  readAnthropicApiKeyIfSet,
   readBatteryPayments,
   readConstructModel,
   readDatabaseUrl,
@@ -250,7 +233,6 @@ export {
   readEmailOutboxDir,
   readEmailTransport,
   readEndToEndPort,
-  readOpenAiImageKey,
   readProductionOrigin,
   readResendApiKey,
   readServerSpans,

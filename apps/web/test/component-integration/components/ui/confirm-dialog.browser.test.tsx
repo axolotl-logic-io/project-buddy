@@ -1,6 +1,7 @@
 // A confirm dialog's confirm button: the primary button for an action that
 // replaces something, and the danger colour for one that removes something,
 // in both modes. The screens' own tests check which one each dialog uses.
+
 import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";

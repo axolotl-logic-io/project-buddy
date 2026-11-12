@@ -3,6 +3,7 @@
 // its data. The server tests' setup file (vitest.server-setup.ts) and the
 // e2e fixtures (test/system/fixtures.ts) delete them, with everything they own and
 // their rate-limit rows, after each test.
+
 import { eq, inArray } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import {
@@ -56,7 +57,7 @@ async function promoteToAdmin(user: User): Promise<User> {
 
 // Deletes every user the test made, with everything they own and their
 // address's rate-limit rows. The stores have no delete, so this names the
-// table. One statement deletes them all: deleting a team project's owner
+// table. One statement deletes them all: deleting a team quest's owner
 // and its member apart, at once, would deadlock on the membership row that
 // both cascade to.
 async function deleteTestUsers(): Promise<void> {

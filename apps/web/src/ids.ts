@@ -1,8 +1,8 @@
-// Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, chat, milestone and user construct ids are
+// Domain ids, typed so a quest id cannot be passed where a chat id is
+// expected. User, quest, chat, milestone and user construct ids are
 // Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
-// ProjectId or ChatId is always a canonical lowercase UUID string. A message
+// QuestId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
 // MessageId is only known to be non-empty and at most MESSAGE_ID_MAX_LENGTH
 // characters long.
@@ -22,11 +22,11 @@ const USER_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"UserId">();
-const PROJECT_ID = z
+const QUEST_ID = z
   .string()
   .regex(CANONICAL_UUID)
   .toLowerCase()
-  .brand<"ProjectId">();
+  .brand<"QuestId">();
 const CHAT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -62,8 +62,8 @@ const MESSAGE_ID = z
 // A user's id, as `parseUserId` returns it.
 type UserId = z.infer<typeof USER_ID>;
 
-// A project's id, as `parseProjectId` returns it.
-type ProjectId = z.infer<typeof PROJECT_ID>;
+// A quest's id, as `parseQuestId` returns it.
+type QuestId = z.infer<typeof QUEST_ID>;
 
 // A chat's id, as `parseChatId` returns it.
 type ChatId = z.infer<typeof CHAT_ID>;
@@ -84,10 +84,10 @@ function parseUserId(value: string): UserId | undefined {
   return USER_ID.safeParse(value).data;
 }
 
-// The value as a lowercase ProjectId, or undefined unless it is a canonical
+// The value as a lowercase QuestId, or undefined unless it is a canonical
 // UUID.
-function parseProjectId(value: string): ProjectId | undefined {
-  return PROJECT_ID.safeParse(value).data;
+function parseQuestId(value: string): QuestId | undefined {
+  return QUEST_ID.safeParse(value).data;
 }
 
 // The value as a lowercase ChatId, or undefined unless it is a canonical UUID.
@@ -119,7 +119,7 @@ export type {
   MessageId,
   MilestoneId,
   OwnPromptId,
-  ProjectId,
+  QuestId,
   UserId,
 };
 export {
@@ -129,13 +129,13 @@ export {
   MESSAGE_ID_MAX_LENGTH,
   MILESTONE_ID,
   OWN_PROMPT_ID,
-  PROJECT_ID,
   parseChatId,
   parseImageId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,
-  parseProjectId,
+  parseQuestId,
   parseUserId,
+  QUEST_ID,
   USER_ID,
 };

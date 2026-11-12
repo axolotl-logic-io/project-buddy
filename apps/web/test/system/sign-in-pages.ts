@@ -2,6 +2,7 @@
 // a link, reading it from the outbox (outbox.ts), and continuing on the
 // page it opens. `logIn` in log-in.ts signs in without the pages, for tests
 // about something else.
+
 import { type BrowserContext, expect, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { HOME_PATH } from "@/routes.ts";

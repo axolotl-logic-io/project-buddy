@@ -1,4 +1,5 @@
 // The app's route paths that code refers to.
+
 import type { Route } from "next";
 import type { PromptKind } from "@/prompts/prompt.ts";
 
@@ -6,7 +7,7 @@ import type { PromptKind } from "@/prompts/prompt.ts";
 const SIGN_IN_PATH = "/login";
 
 // Quests is the signed-in landing destination.
-const HOME_PATH = "/projects";
+const HOME_PATH = "/quests";
 
 // Chat, the user's one private conversation for talking without a goal.
 const STANDALONE_CHAT_PATH = "/chat";

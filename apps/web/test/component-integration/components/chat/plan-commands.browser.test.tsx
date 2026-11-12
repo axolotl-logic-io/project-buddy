@@ -4,6 +4,7 @@
 // conversation; the Plan panel changes the plan from beside it; and the
 // construct's change shows with Undo. What the actions save is
 // plan.server.test.ts's.
+
 import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
@@ -29,7 +30,7 @@ import {
 } from "@/ui/copy/plan.ts";
 import {
   chatIdFixture,
-  projectIdFixture,
+  questIdFixture,
   userIdFixture,
 } from "../../../support/id-fixtures.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
@@ -54,7 +55,7 @@ const PLAN_ACTIONS: PlanActions = {
 const CHAT_ID = chatIdFixture();
 const PHONE_WIDTH = 390;
 const PHONE_HEIGHT = 844;
-const PROJECT_ID = projectIdFixture();
+const QUEST_ID = questIdFixture();
 const BLOCK_OUT = "Block out the body and wings";
 const SCULPT = "Sculpt the feather plates";
 
@@ -100,7 +101,7 @@ async function openChat(
       viewer={userIdFixture()}
       constructName={getConstruct("vellum").name}
       initialMessages={initialMessages}
-      projectId={PROJECT_ID}
+      questId={QUEST_ID}
       initialPlan={PLAN}
       planActions={PLAN_ACTIONS}
       mockCommands={mockCommands}
@@ -140,7 +141,7 @@ async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
         },
       ]}
       stoppedReplyId={stoppedReplyId}
-      projectId={PROJECT_ID}
+      questId={QUEST_ID}
       initialPlan={PLAN}
       planActions={PLAN_ACTIONS}
     />,
@@ -331,7 +332,7 @@ describe("use_case_plan_panel", () => {
     );
 
     expect(actions.changePlanAction).toHaveBeenCalledWith({
-      projectId: PROJECT_ID,
+      questId: QUEST_ID,
       chatId: CHAT_ID,
       operations: [{ op: "complete", step: 1 }],
     });
@@ -374,7 +375,7 @@ describe("use_case_plan_panel", () => {
             input: { operations: [{ op: "complete", step: 1 }] },
             output: {
               status: "changed",
-              projectId: PROJECT_ID,
+              questId: QUEST_ID,
               version: DONE_PLAN.version,
               lines: [{ kind: "complete", text: BLOCK_OUT }],
               plan: DONE_PLAN.plan,
@@ -395,7 +396,7 @@ describe("use_case_plan_panel", () => {
     );
 
     expect(actions.undoPlanChangeAction).toHaveBeenCalledWith({
-      projectId: PROJECT_ID,
+      questId: QUEST_ID,
       chatId: CHAT_ID,
       version: DONE_PLAN.version,
     });

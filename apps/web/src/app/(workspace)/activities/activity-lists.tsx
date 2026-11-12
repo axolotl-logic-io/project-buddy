@@ -3,6 +3,7 @@
 // tweak, clone or retire, with a button that crafts a new one. Activities
 // are instructions the construct follows, so none is a place to start a
 // quest from.
+
 import Link from "next/link";
 import type { JSX } from "react";
 import { listOwnActivities } from "@/activities/activity-store.ts";

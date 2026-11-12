@@ -87,7 +87,7 @@
 //                           heading and above body
 //                           text
 //   --card-title-size       a card's title, such as   text-card-title
-//                           a project's name, below
+//                           a quest's name, below
 //                           a section's heading, at
 //                           least body text
 // Shape and depth, one value for both modes:

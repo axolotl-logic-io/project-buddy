@@ -31,23 +31,23 @@ The site cannot load or save the user's quests and adventures.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens her quests, an adventure or the Journal, or tries to save something.
+  - She opens her quests, an adventure or Plan, or tries to save something.
   - The site shows a short, plain message saying it cannot reach its storage right now.
 - **Outcome:** the page shows that message in place of its content. Anything she tried to save is not there once the storage is back, not even in part. The site's log records the problem.
 - **Next:**
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): try again later.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): try again later.
 
 ## use_case_start_without_claude
 
 The user starts a quest or an adventure, with a construct or an activity of her own that she has edited, while Claude is unavailable, so the construct can't write the adventure's opening. An adventure with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
 
-- **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat).
+- **Prerequisites:** [`use_case_new_quest`](quests.md#use_case_new_quest) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat).
 - **Steps:**
   - She names a new quest with motivation or an edited New quest construct saved in Settings; or she picks a quest and an edited construct for a new adventure. She starts it.
   - The site shows that it is working while it asks the construct for the adventure's opening, which fails or takes longer than 30 seconds.
 - **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and construct. It shows one fixed message: Claude is unavailable right now, so adventures are turned off, and to try again later. Nothing is saved: no new quest and no new adventure appear in her lists. The site's log records the problem once. Replies inside an adventure that already exists fail as `use_case_reply_fails` says.
 - **Next:**
-  - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat): try again later.
+  - [`use_case_new_quest`](quests.md#use_case_new_quest) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat): try again later.
 
 ## use_case_send_while_construct_replies
 

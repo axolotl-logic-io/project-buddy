@@ -15,27 +15,27 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { ProjectId } from "@/ids.ts";
-import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
+import type { QuestId } from "@/ids.ts";
+import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import {
-  type RenameProjectState,
-  renameProjectAction,
-} from "@/projects/rename-project-action.ts";
-import type { Project } from "@/projects/store.ts";
-import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+  type RenameQuestState,
+  renameQuestAction,
+} from "@/quests/rename-quest-action.ts";
+import type { Quest } from "@/quests/store.ts";
+import { QUEST_COPY } from "@/ui/copy/quests.ts";
 
-const IDLE: RenameProjectState = { kind: "idle" };
+const IDLE: RenameQuestState = { kind: "idle" };
 
 function preventDismiss(event: Event): void {
   event.preventDefault();
 }
 
 function TitleEditor({
-  projectId,
+  questId,
   name,
   onClose,
 }: {
-  readonly projectId: ProjectId;
+  readonly questId: QuestId;
   readonly name: string;
   readonly onClose: (name?: string) => void;
 }): JSX.Element {
@@ -49,10 +49,10 @@ function TitleEditor({
   );
   const save = useCallback(
     async (
-      previous: RenameProjectState,
+      previous: RenameQuestState,
       form: FormData,
-    ): Promise<RenameProjectState> => {
-      const result = await renameProjectAction(previous, form);
+    ): Promise<RenameQuestState> => {
+      const result = await renameQuestAction(previous, form);
       if (result.kind === "saved") {
         onClose(result.name);
       }
@@ -81,14 +81,14 @@ function TitleEditor({
       className="flex min-w-0 flex-col gap-2"
       noValidate={true}
     >
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="questId" value={questId} />
       <input
         className="input-field quest-title-input"
         name="name"
         value={draft}
         onChange={updateDraft}
-        maxLength={PROJECT_NAME_MAX_LENGTH}
-        aria-label={PROJECT_COPY.titleLabel}
+        maxLength={QUEST_NAME_MAX_LENGTH}
+        aria-label={QUEST_COPY.titleLabel}
         aria-describedby={errorId}
         aria-invalid={state.kind === "invalid"}
         onKeyDown={cancelOnEscape}
@@ -97,7 +97,7 @@ function TitleEditor({
       />
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={pending} onKeyDown={cancelOnEscape}>
-          {PROJECT_COPY.saveTitle}
+          {QUEST_COPY.saveTitle}
         </Button>
         <Button
           variant="quiet"
@@ -105,7 +105,7 @@ function TitleEditor({
           onClick={cancel}
           onKeyDown={cancelOnEscape}
         >
-          {PROJECT_COPY.cancelTitle}
+          {QUEST_COPY.cancelTitle}
         </Button>
       </div>
       {state.kind === "invalid" && <Alert id={errorId}>{state.message}</Alert>}
@@ -116,9 +116,9 @@ function TitleEditor({
 // A pencil beside the quest's name in the trail band. Editing happens in a
 // dialog so the navigation stays compact; saving returns focus to the pencil.
 function QuestTitle({
-  project,
+  quest,
 }: {
-  readonly project: Pick<Project, "id" | "name">;
+  readonly quest: Pick<Quest, "id" | "name">;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState<string | undefined>(undefined);
@@ -139,7 +139,7 @@ function QuestTitle({
     restoreFocusRef.current = true;
     setEditing(false);
   }, []);
-  let title = project.name;
+  let title = quest.name;
   if (saved !== undefined) {
     title = saved;
   }
@@ -151,8 +151,8 @@ function QuestTitle({
             ref={renameRef}
             variant="quiet"
             className="quest-title-edit"
-            aria-label={PROJECT_COPY.rename}
-            title={PROJECT_COPY.rename}
+            aria-label={QUEST_COPY.rename}
+            title={QUEST_COPY.rename}
             onClick={open}
           >
             <Icon name="pencil" />
@@ -167,16 +167,14 @@ function QuestTitle({
             onPointerDownOutside={preventDismiss}
           >
             <Dialog.Title className="section-heading">
-              {PROJECT_COPY.titleLabel}
+              {QUEST_COPY.titleLabel}
             </Dialog.Title>
-            <TitleEditor projectId={project.id} name={title} onClose={close} />
+            <TitleEditor questId={quest.id} name={title} onClose={close} />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
       <div className="sr-only">
-        <FormStatus>
-          {saved !== undefined && PROJECT_COPY.titleSaved}
-        </FormStatus>
+        <FormStatus>{saved !== undefined && QUEST_COPY.titleSaved}</FormStatus>
       </div>
     </div>
   );

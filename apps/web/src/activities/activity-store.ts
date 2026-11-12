@@ -5,10 +5,7 @@ import {
 } from "@/activities/activity-definition.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { UserId } from "@/ids.ts";
-import {
-  currentActivityText,
-  earlierActivityText,
-} from "@/prompts/earlier-built-in-texts.ts";
+import { currentActivityText } from "@/prompts/earlier-built-in-texts.ts";
 import {
   cloneOwnPrompt,
   createOwnPrompt,
@@ -29,7 +26,7 @@ type ActivityEdit = DefinitionEdit<ActivityDefinition>;
 const ACTIVITY_STORE: DefinitionStore<ActivityDefinition> = {
   kind: "activity",
   encodeDefinition: (text: ActivityDefinition): unknown =>
-    storedActivityPrompt(earlierActivityText(text)),
+    storedActivityPrompt(text),
   parseDefinition: (stored: unknown): ActivityDefinition | undefined => {
     const text = parseActivityDefinition(stored);
     if (text === undefined) {

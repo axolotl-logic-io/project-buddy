@@ -1,6 +1,7 @@
 // The messages a person adds to an adventure without the construct: a plan
 // change or a plan card. No reply answers one, and the construct reads each
 // as a short note rather than a request.
+
 import { describe, expect, test } from "vitest";
 import {
   awaitsReply,

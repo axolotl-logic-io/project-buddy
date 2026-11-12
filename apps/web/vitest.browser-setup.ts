@@ -1,8 +1,8 @@
 // The browser tests (*.browser.test.tsx) render with the site's stylesheet,
 // Tailwind utilities included, as the root layout does.
-import "./src/app/globals.css";
 import type { TestError } from "vitest";
 import { beforeEach, vi } from "vitest";
+import "./src/app/globals.css";
 
 // Server-only audit context is not available in a browser. The database and
 // authentication boundaries remain mocked by each feature-entrypoint test.
@@ -16,7 +16,7 @@ vi.mock("@/performance/server-spans.ts", () => ({
 // Server Actions are RPC boundaries in the site. Keep their server imports
 // out of browser component tests; tests exercising these actions supply
 // their own result-specific mocks. Unexpected mutations fail loudly.
-vi.mock("@/app/(workspace)/projects/status-actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/status-actions.ts", () => ({
   changeQuestStatusAction: vi.fn(() => {
     throw new Error("Mock the quest status action in this test");
   }),
@@ -26,29 +26,16 @@ vi.mock("@/app/(workspace)/projects/status-actions.ts", () => ({
   readQuestStatusApprovalAction: vi.fn(() => Promise.resolve(undefined)),
 }));
 
-// Typed Journal controls are rendered by conversation tool parts and page
-// fixtures. Their RPC and storage boundaries never run in the browser.
-vi.mock("@/journal/journal-actions.ts", () => ({
-  changeSectionAction: vi.fn(() => {
-    throw new Error("Mock the Journal section action in this test");
-  }),
-}));
-vi.mock(
-  "@/journal/journal-store.ts",
-  () =>
-    import("./test/component-integration/journal/journal-store-test-kit.ts"),
-);
-
 // The quest start (src/components/quest-start.tsx) reaches this action from
 // Quests, Workshop and Chat's quest offer, which every chat part can render.
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(() => {
     throw new Error("Mock the quest start action in this test");
   }),
 }));
 
-vi.mock("@/projects/rename-project-action.ts", () => ({
-  renameProjectAction: vi.fn(() => {
+vi.mock("@/quests/rename-quest-action.ts", () => ({
+  renameQuestAction: vi.fn(() => {
     throw new Error("Mock the quest rename action in this test");
   }),
 }));
@@ -133,7 +120,7 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
     throw new Error("Mock the adventure creation action in this test");
   }),
 }));
-vi.mock("@/app/(workspace)/projects/premade-actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/premade-actions.ts", () => ({
   startPremadeQuestAction: vi.fn(() => {
     throw new Error("Mock the premade quest action in this test");
   }),

@@ -4,6 +4,7 @@
 // reindex runs as the reindex command runs it, against a scratch database of
 // this test's own, since a full reindex replaces every manual section, and
 // the shared test database's are other tests' to use as it runs.
+
 import { asc } from "drizzle-orm";
 import { expect, test, vi } from "vitest";
 import {

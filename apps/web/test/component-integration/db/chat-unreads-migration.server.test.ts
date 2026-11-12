@@ -2,6 +2,7 @@
 // unread by the single chats.unread mark is unread for its owner, and
 // chats.unread is left as it was for the build that is live meanwhile.
 // The database is migrated only through 0028, since 0034 drops the column.
+
 import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
 import {
@@ -33,7 +34,7 @@ test("the migration marks each unread chat unread for its owner and keeps chats.
       "insert into users (email, name) values ('owner@example.test', 'Owner') returning id",
     );
     const {
-      rows: [project],
+      rows: [quest],
     } = await pool.query<{ id: string }>(
       "insert into projects (user_id, name) values ($1, 'Sea turtle') returning id",
       [owner?.id],
@@ -47,7 +48,7 @@ test("the migration marks each unread chat unread for its owner and keeps chats.
         ($1, null, 'lumen', false),
         (null, $2, 'lumen', true)
       returning id, unread`,
-      [project?.id, owner?.id],
+      [quest?.id, owner?.id],
     );
 
     await migrateTestDatabase(database, throughChatUnreads);

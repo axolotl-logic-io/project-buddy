@@ -154,7 +154,7 @@ test("use_case_same_facts_any_construct", async () => {
   const { user, chat: vellumChat } = await signedInChat("vellum");
   const data = testData(user);
   await data.manualSections([GRONK]);
-  const otherConstructChat = await data.chat(await data.project(), "lumen");
+  const otherConstructChat = await data.chat(await data.quest(), "lumen");
 
   const [vellum, otherConstruct] = await Promise.all([
     replyTo(user, vellumChat, "/mock-search gronk"),

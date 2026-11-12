@@ -2,6 +2,7 @@
 // expired before the release unusable, and leaves an unexpired one usable.
 // The test migrates a scratch database of its own up to the migration before
 // #594, seeds both kinds, migrates it to the latest, and reads them back.
+
 import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
 import {

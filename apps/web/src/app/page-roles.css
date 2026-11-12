@@ -623,10 +623,6 @@
     @apply sticky z-10 bg-background bg-(image:--page-decoration) bg-fixed py-0.5;
   }
 
-  .memory-text p {
-    @apply whitespace-pre-line;
-  }
-
   @supports (mask-image: none) {
     .chat-header::after {
       content: "";
@@ -1299,12 +1295,6 @@
 
   .plan-done[open] > summary::before {
     content: "▾";
-  }
-
-  /* The plan as the Journal page shows it (plan-in-journal.tsx): its open
-     steps under the numbers the plan and the commands name them by. */
-  .plan-journal-steps > li {
-    @apply flex items-baseline gap-2;
   }
 
   /* A plan change in an adventure (src/components/chat/plan-change-part.tsx):

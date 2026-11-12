@@ -8,7 +8,7 @@ import {
   QuestFromChat,
 } from "@/components/quest-from-chat.tsx";
 import { privateChat } from "@/conversations/private-chat.ts";
-import { questCreationChoices } from "@/projects/quest-creation-choices.ts";
+import { questCreationChoices } from "@/quests/quest-creation-choices.ts";
 import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
 import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 
@@ -23,7 +23,7 @@ export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 // it makes the conversation if she has none, without an opening, so it
 // spends nothing. Turn Chat into a quest begins a quest from a summary she
 // edits and confirms, from its button or from the construct's offer. Chat has no quest, so its replies never write a
-// Journal, Plan or milestone.
+// Plan or milestone.
 export default async function StandaloneChatPage(): Promise<JSX.Element> {
   const user = await requireUser();
   const conversation = await privateChat(user.id);
@@ -39,7 +39,7 @@ export default async function StandaloneChatPage(): Promise<JSX.Element> {
         messages={messages}
         stoppedReplyId={stoppedReplyId}
         viewer={user.id}
-        actions={<QuestFromChat journal={chatSummaryDraft(messages)} />}
+        actions={<QuestFromChat context={chatSummaryDraft(messages)} />}
       />
     </ChatQuestChoices>
   );
