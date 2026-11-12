@@ -53,6 +53,8 @@ test("a failed account insert rolls back invitation consumption and permits exac
     expect(await readInvitation(token)).toBeUndefined();
     expect(await acceptInvitation(token)).toBeUndefined();
   } finally {
+    const { closeDb } = await import("@/db/client.ts");
+    await closeDb();
     vi.unstubAllEnvs();
     vi.resetModules();
     await pool.end();

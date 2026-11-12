@@ -1,5 +1,4 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { openPool } from "../db/client.ts";
+import { openPool, pooledDatabase } from "../db/client.ts";
 import { cloneManual } from "./manual-clone.ts";
 import { replaceManualSections } from "./manual-index.ts";
 import { readManualSections } from "./manual-sections.ts";
@@ -17,7 +16,7 @@ export async function reindexManual(
   const sections = await readManualSections(await cloneManual());
   const pool = openPool(databaseUrl);
   try {
-    await replaceManualSections(drizzle({ client: pool }), sections);
+    await replaceManualSections(pooledDatabase(pool), sections);
   } finally {
     await pool.end();
   }
