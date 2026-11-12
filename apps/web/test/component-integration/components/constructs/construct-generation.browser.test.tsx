@@ -653,7 +653,7 @@ describe("use_case_see_gold", () => {
 test("recovered construct edits generate directly and survive a failure without saving", async () => {
   const fetcher = service(quote(), outcome("failed"));
   const save = vi.fn<(form: FormData) => void>();
-  keepLocalDraft(`prompt:draft-editor:buddy:${construct.id}`, {
+  keepLocalDraft(`prompt:draft-editor:construct:${construct.id}`, {
     basedOn: "revision",
     name: "Unsaved name",
     texts: {
@@ -746,7 +746,7 @@ test("first recovered description generates without saving and matching artwork 
   const save = vi.fn<(form: FormData) => void>((form) => {
     saved.resolve(form);
   });
-  keepLocalDraft(`prompt:first-draft:buddy:${construct.id}`, {
+  keepLocalDraft(`prompt:first-draft:construct:${construct.id}`, {
     basedOn: "revision",
     name: "Recovered name",
     texts: { prompt: "Recovered voice", visualDescription: description },
