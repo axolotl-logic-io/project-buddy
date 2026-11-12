@@ -5,7 +5,7 @@ import { FormDialog } from "@/components/form-dialog.tsx";
 import { QuestStartChoices } from "@/components/quest-start.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
+import type { QuestCreationChoices } from "@/quests/quest-creation-choices.ts";
 import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 
 // What Turn Chat into a quest offers inside Chat; none outside it.
@@ -30,17 +30,16 @@ export function ChatQuestChoices({
 }
 
 // Turn Chat into a quest, one of the two ways to create a quest: a button and
-// the dialog it opens with the shared quest start on Do a thing, its Journal
-// the draft (journal) and, when the construct offered one, its name.
+// the dialog it opens with the shared quest start on Do a thing, the starting context and, when the construct offered one, its name.
 // The user chooses a construct and optionally fills in Why before starting.
 // Closing it makes and spends nothing.
 // The new quest gets the summary and optional Why; the Chat stays private and
 // unchanged. Outside Chat it shows nothing.
 export function QuestFromChat({
-  journal,
+  context,
   name,
 }: {
-  readonly journal: string;
+  readonly context: string;
   readonly name?: string;
 }): JSX.Element | null {
   const choices = use(ChatQuestChoicesContext);
@@ -67,7 +66,7 @@ export function QuestFromChat({
         choices={choices}
         initialChoice="do"
         presentation="inline"
-        preset={{ name, journal }}
+        preset={{ name, context }}
       />
     </FormDialog>
   );

@@ -8,12 +8,11 @@
 // The model sees only the generated picture, scaled down, and a fixed
 // question: no name, description or prompt. Its cost joins the image's in
 // the generation's battery reservation (visual-generation.ts).
-import { createAnthropic } from "@ai-sdk/anthropic";
+
 import { generateText, type LanguageModel, Output } from "ai";
 import sharp from "sharp";
 import { z } from "zod";
 import type { VisualFrame } from "@/constructs/visual.ts";
-import { readAnthropicApiKeyIfSet, readConstructModel } from "@/env.ts";
 import { callCost } from "@/quota/prices.ts";
 
 const FRAMING_MODEL_ID = "claude-haiku-5-5";
@@ -169,17 +168,9 @@ function modelAvatarFramer(model: LanguageModel): AvatarFramer {
   };
 }
 
-// Undefined under the mock model or without Claude's credential: generated
-// artwork then keeps the centre frame, and nothing is charged for framing.
+// Remote vision calls are disabled. Artwork retains its existing centre frame.
 function avatarFramer(): AvatarFramer | undefined {
-  if (readConstructModel() === "mock") {
-    return undefined;
-  }
-  const apiKey = readAnthropicApiKeyIfSet();
-  if (apiKey === undefined) {
-    return undefined;
-  }
-  return modelAvatarFramer(createAnthropic({ apiKey })(FRAMING_MODEL_ID));
+  return undefined;
 }
 
 export type { AvatarFramer, AvatarFraming };

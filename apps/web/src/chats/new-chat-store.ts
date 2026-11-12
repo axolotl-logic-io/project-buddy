@@ -1,20 +1,21 @@
-// New chats, saved in Postgres: in a project of the acting user's, or
+// New chats, saved in Postgres: in a quest of the acting user's, or
 // standalone, in none. A chat that starts with the construct's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
-// one transaction, so no chat is left without its opening and no project
+// one transaction, so no chat is left without its opening and no quest
 // without its first chat.
+
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
   type Chat,
-  type ChatProject,
+  type ChatQuest,
   type ChatRow,
-  isProjectChat,
+  isQuestChat,
   type NewMessage,
-  type ProjectChat,
+  type QuestChat,
   toChats,
 } from "@/chats/chat-rows.ts";
 import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
@@ -22,37 +23,31 @@ import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
-import { memoryVersions } from "@/db/tables/memory-versions.ts";
-import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import {
-  type ChatId,
-  parseChatId,
-  parseProjectId,
-  type UserId,
-} from "@/ids.ts";
-import type { ProjectName } from "@/projects/project-name.ts";
+import { type ChatId, parseChatId, parseQuestId, type UserId } from "@/ids.ts";
+import type { QuestName } from "@/quests/quest-name.ts";
 
 // The construct a new chat keeps: the snapshot of its name and parts, and the
 // id saved beside it, which is the built-in construct's or, for a construct of
 // the user's own, the default construct's, for the build that reads only ids.
 type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 
-// The chat a new chat is: its project, or none for a standalone chat, and
+// The chat a new chat is: its quest, or none for a standalone chat, and
 // its construct.
 interface NewChat {
-  readonly project: ChatProject | undefined;
+  readonly quest: ChatQuest | undefined;
   readonly construct: NewChatConstruct;
   // Whether it is its place's one continuing conversation
   // (src/conversations/); a legacy adventure otherwise.
   readonly continuing?: boolean;
 }
 
-// A new project chat, with no messages and no activity session, as the
+// A new quest chat, with no messages and no activity session, as the
 // end-to-end tests make one.
-type NewProjectChat = NewChat & { readonly project: ChatProject };
+type NewQuestChat = NewChat & { readonly quest: ChatQuest };
 
 // A new id, made here rather than by the database, so a batch can insert a
 // row and the rows that refer to it together.
@@ -64,53 +59,53 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it into project, or into none, returned. The
+// The chat that inserting it into quest, or into none, returned. The
 // not-found failure when nothing was inserted, because the
-// owner has no such project.
+// owner has no such quest.
 function insertedChat(
   rows: readonly ChatRow[],
-  project: ChatProject | undefined,
+  quest: ChatQuest | undefined,
 ): Chat {
   const [chat] = toChats(
     rows.map((row) => ({
       ...row,
-      projectName: project?.name ?? null,
+      questName: quest?.name ?? null,
     })),
   );
   if (chat === undefined) {
-    throw new AppError("not-found", new Error("No such project to chat in"));
+    throw new AppError("not-found", new Error("No such quest to chat in"));
   }
   return chat;
 }
 
-// The chat that inserting it into project returned, as a project chat.
-function insertedProjectChat(
+// The chat that inserting it into quest returned, as a quest chat.
+function insertedQuestChat(
   rows: readonly ChatRow[],
-  project: ChatProject,
-): ProjectChat {
-  const chat = insertedChat(rows, project);
-  if (!isProjectChat(chat)) {
-    throw new AppError("not-found", new Error("No such project to chat in"));
+  quest: ChatQuest,
+): QuestChat {
+  const chat = insertedChat(rows, quest);
+  if (!isQuestChat(chat)) {
+    throw new AppError("not-found", new Error("No such quest to chat in"));
   }
   return chat;
 }
 
 // The columns of the new chat's row, with this id, in the table's order, as
-// insert … select needs them: its project and user, as owner says, then
+// insert … select needs them: its quest and user, as owner says, then
 // what every chat has.
 function chatColumns(
   chat: NewChat,
   id: ChatId,
-  owner: { readonly projectId: SQL.Aliased; readonly userId: SQL.Aliased },
+  owner: { readonly questId: SQL.Aliased; readonly userId: SQL.Aliased },
 ): Record<keyof ChatRow, SQL.Aliased> {
   return {
     id: sql`${id}::uuid`.as("id"),
-    projectId: owner.projectId,
-    constructId: sql`${chat.construct.id}::text`.as("buddy_id"),
-    constructName: sql`${chat.construct.name}::text`.as("buddy_name"),
+    questId: owner.questId,
+    constructId: sql`${chat.construct.id}::text`.as("construct_id"),
+    constructName: sql`${chat.construct.name}::text`.as("construct_name"),
     constructParts:
       sql`${JSON.stringify(storedConstructPrompt(chat.construct.definition))}::jsonb`.as(
-        "buddy_parts",
+        "construct_parts",
       ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
@@ -120,16 +115,16 @@ function chatColumns(
   };
 }
 
-// The select that yields the new chat's row, with this id: in its project
-// when that is the owner's, and nothing otherwise; or, with no project, the
+// The select that yields the new chat's row, with this id: in its quest
+// when that is the owner's, and nothing otherwise; or, with no quest, the
 // owner's standalone chat.
 export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
-  const { project } = chat;
-  if (project === undefined) {
+  const { quest } = chat;
+  if (quest === undefined) {
     return new QueryBuilder()
       .select(
         chatColumns(chat, id, {
-          projectId: sql`null::uuid`.as("project_id"),
+          questId: sql`null::uuid`.as("quest_id"),
           userId: sql`${users.id}`.as("user_id"),
         }),
       )
@@ -140,25 +135,25 @@ export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
   return new QueryBuilder()
     .select(
       chatColumns(chat, id, {
-        projectId: sql`${projects.id}`.as("project_id"),
+        questId: sql`${quests.id}`.as("quest_id"),
         userId: sql`null::uuid`.as("user_id"),
       }),
     )
-    .from(projects)
-    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)))
+    .from(quests)
+    .where(and(eq(quests.id, quest.id), questOwnedBy(owner)))
     .getSQL();
 }
 
-// A new chat in the owner's project, with no messages and no activity
-// session: the project's conversation when it has none yet, and otherwise
+// A new chat in the owner's quest, with no messages and no activity
+// session: the quest's conversation when it has none yet, and otherwise
 // an adventure, as the multi-adventure pages still in this release make
-// them. Rejects with the not-found case if the project is another user's.
+// them. Rejects with the not-found case if the quest is another user's.
 // The site starts every conversation with the construct's opening
 // (src/conversations/); tests make empty ones.
 export function createChat(
   owner: UserId,
-  chat: NewProjectChat,
-): Promise<ProjectChat> {
+  chat: NewQuestChat,
+): Promise<QuestChat> {
   return withAppErrors("createChat", () =>
     inTransaction(async (tx) => {
       const conversation = await tx
@@ -179,7 +174,7 @@ export function createChat(
           .select(newChatRow(owner, chat, randomId(parseChatId)))
           .returning();
       }
-      const result = insertedProjectChat(created, chat.project);
+      const result = insertedQuestChat(created, chat.quest);
       await grantVisualAssets(
         owner,
         tx,
@@ -191,49 +186,35 @@ export function createChat(
   );
 }
 
-// A new quest of the owner's named projectName, with its conversation in
+// A new quest of the owner's named questName, with its conversation in
 // construct and activity, which opening starts: the quest, the
 // conversation, the message and the activity session are saved together,
 // in one transaction. A Dailies quest (dailies) is saved only when the owner
 // has none; undefined when they have one already, and nothing is saved.
-export function createProjectWithChat(
+export function createQuestWithChat(
   owner: UserId,
-  projectName: ProjectName,
+  questName: QuestName,
   chat: {
     readonly construct: NewChatConstruct;
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
-    readonly journal?: string;
+    readonly context?: string;
     readonly dailies?: boolean;
   },
   transaction?: Transaction,
-): Promise<ProjectChat | undefined> {
-  async function save(db: Transaction): Promise<ProjectChat | undefined> {
-    const projectId = randomId(parseProjectId);
+): Promise<QuestChat | undefined> {
+  async function save(db: Transaction): Promise<QuestChat | undefined> {
+    const questId = randomId(parseQuestId);
     const id = randomId(parseChatId);
-    const initialMemory = [chat.journal].flatMap((text) => {
-      if (text === undefined || text === "") {
-        return [];
-      }
-      return [
-        {
-          projectId,
-          version: 1,
-          text,
-          author: "user",
-          userId: owner,
-        },
-      ];
-    });
     const dailies = chat.dailies === true;
     const inserted = await db
-      .insert(projects)
-      .values({ id: projectId, userId: owner, name: projectName, dailies })
+      .insert(quests)
+      .values({ id: questId, userId: owner, name: questName, dailies })
       .onConflictDoNothing({
-        target: projects.userId,
+        target: quests.userId,
         where: sql`dailies`,
       })
-      .returning({ id: projects.id });
+      .returning({ id: quests.id });
     if (inserted.length === 0) {
       return undefined;
     }
@@ -241,13 +222,23 @@ export function createProjectWithChat(
       .insert(chats)
       .values({
         id,
-        projectId,
+        questId,
         continuing: true,
         constructId: chat.construct.id,
         constructName: chat.construct.name,
         constructParts: storedConstructPrompt(chat.construct.definition),
       })
       .returning();
+    if (chat.context !== undefined && chat.context !== "") {
+      await db.insert(messages).values({
+        id: crypto.randomUUID(),
+        chatId: id,
+        userId: owner,
+        role: "user",
+        parts: [{ type: "text", text: chat.context }],
+        createdAt: sql`now() - interval '1 microsecond'`,
+      });
+    }
     await db.insert(messages).values({
       id: chat.opening.id,
       chatId: id,
@@ -257,18 +248,15 @@ export function createProjectWithChat(
     await db
       .insert(activitySessions)
       .select(newSession(owner, id, chat.activity, undefined));
-    if (initialMemory.length > 0) {
-      await db.insert(memoryVersions).values(initialMemory);
-    }
     await grantVisualAssets(
       owner,
       db,
       { kind: "adventure", id },
       { parts: chat.construct.definition },
     );
-    return insertedProjectChat(created, { id: projectId, name: projectName });
+    return insertedQuestChat(created, { id: questId, name: questName });
   }
-  return withAppErrors("createProjectWithChat", () => {
+  return withAppErrors("createQuestWithChat", () => {
     if (transaction !== undefined) {
       return save(transaction);
     }

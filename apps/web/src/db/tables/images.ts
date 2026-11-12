@@ -1,8 +1,8 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { chats } from "./projects-and-chats.ts";
+import { chats } from "./quests-and-chats.ts";
 
 // Private image bytes live with their chat, including unsent drafts. Deleting
-// a chat or its project deletes its images in the same database cascade.
+// a chat or its quest deletes its images in the same database cascade.
 const images = pgTable(
   "images",
   {

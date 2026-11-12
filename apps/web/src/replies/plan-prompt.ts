@@ -1,4 +1,4 @@
-// The prompt section that gives every chat in a project the project's plan,
+// The prompt section that gives every chat in a quest the quest's plan,
 // as the prompt read it when the turn started, between tags: each step on a
 // line of its own, with the number change_plan names it by.
 import { nextPlanStep, type Plan, type PlanStep } from "@/plan/plan.ts";
@@ -27,20 +27,20 @@ function planLines(plan: Plan): string[] {
   return plan.steps.map(stepLine);
 }
 
-// The project's plan, between tags that keep it apart from the rest of the
-// prompt, or "" in a standalone chat, which has no project and so no plan.
-function planPromptSection({ project }: ReplyPromptContext): string {
-  if (project === undefined) {
+// The quest's plan, between tags that keep it apart from the rest of the
+// prompt, or "" in a standalone chat, which has no quest and so no plan.
+function planPromptSection({ quest }: ReplyPromptContext): string {
+  if (quest === undefined) {
     return "";
   }
-  if (project.plan.steps.length === 0) {
+  if (quest.plan.steps.length === 0) {
     return EMPTY_PLAN_PROMPT;
   }
-  const next = nextPlanStep(project.plan);
+  const next = nextPlanStep(quest.plan);
   const lines = [
     PLAN_PROMPT_INTRO,
     PLAN_START_TAG,
-    ...planLines(project.plan),
+    ...planLines(quest.plan),
     PLAN_END_TAG,
   ];
   if (next === undefined) {

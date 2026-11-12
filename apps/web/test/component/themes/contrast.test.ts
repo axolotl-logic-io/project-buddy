@@ -3,6 +3,7 @@
 // from the CSS itself: contract.css names the colour tokens, and each
 // theme's file gives every one a light and a dark value. contract.test.ts
 // checks that each mode shows the values for that mode.
+
 import { displayable, parse, wcagContrast } from "culori";
 import { describe, expect, test } from "vitest";
 import { THEME_IDS } from "@/themes/themes.ts";

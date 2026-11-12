@@ -7,11 +7,10 @@ import { wrapLanguageModel } from "ai";
 import { describe, expect, test, vi } from "vitest";
 import { listMessages, readStoppedReply, saveReply } from "@/chats/store.ts";
 import { MESSAGE_ID } from "@/ids.ts";
-import { editMemory, readMemory } from "@/memory/memory-store.ts";
+import { changePlan, readPlan } from "@/plan/plan-store.ts";
 import { spendMeter } from "@/quota/spend-meter.ts";
 import { mockConstructModel } from "@/replies/mock-model.ts";
 import { REPLY_MODEL_ID, replyModel } from "@/replies/model.ts";
-
 import { replyToChat } from "@/replies/reply.ts";
 import { stopReply } from "@/replies/reply-runs.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -21,7 +20,7 @@ import { afterTasksDone } from "../test-database/after-test-kit.ts";
 
 vi.mock("@/replies/model.ts", { spy: true });
 vi.mock("@/chats/store.ts", { spy: true });
-vi.mock("@/memory/memory-store.ts", { spy: true });
+vi.mock("@/plan/plan-store.ts", { spy: true });
 
 // A provider held by an event, rather than timing. Stop must reach the
 // provider's abort signal, while a dropped browser response must not.
@@ -103,8 +102,8 @@ function heldProvider(): {
 describe("use_case_stop_reply", () => {
   test("the owner requests provider cancellation; repeated Stop preserves the partial reply and clears retry state", async () => {
     const [user, formerMember] = await Promise.all([testUser(), testUser()]);
-    const project = await testData(user).project();
-    const chat = await testData(user).chat(project);
+    const quest = await testData(user).quest();
+    const chat = await testData(user).chat(quest);
     const provider = heldProvider();
     const messageId = MESSAGE_ID.parse("cancel-owner-reply");
     try {
@@ -142,8 +141,8 @@ describe("use_case_stop_reply", () => {
 
 test("ordinary browser disconnect preserves provider completion and its saved reply", async () => {
   const user = await testUser();
-  const project = await testData(user).project();
-  const chat = await testData(user).chat(project);
+  const quest = await testData(user).quest();
+  const chat = await testData(user).chat(quest);
   const provider = heldProvider();
   const messageId = MESSAGE_ID.parse("disconnect-keeps-reply");
   try {
@@ -172,8 +171,8 @@ test("ordinary browser disconnect preserves provider completion and its saved re
 
 test("failed partial persistence never reports a completed cancellation", async () => {
   const user = await testUser();
-  const project = await testData(user).project();
-  const chat = await testData(user).chat(project);
+  const quest = await testData(user).quest();
+  const chat = await testData(user).chat(quest);
   const provider = heldProvider();
   const messageId = MESSAGE_ID.parse("failed-cancel-persistence");
   vi.mocked(saveReply).mockRejectedValueOnce(new Error("Local save failure"));
@@ -206,15 +205,15 @@ test("failed partial persistence never reports a completed cancellation", async 
 
 test("Stop keeps an executing tool's effect and prevents another model step", async () => {
   const user = await testUser();
-  const project = await testData(user).project();
-  const chat = await testData(user).chat(project);
+  const quest = await testData(user).quest();
+  const chat = await testData(user).chat(quest);
   const applied = Promise.withResolvers<void>();
   const release = Promise.withResolvers<void>();
-  const actual = await vi.importActual<
-    typeof import("@/memory/memory-store.ts")
-  >("@/memory/memory-store.ts");
-  vi.mocked(editMemory).mockImplementation(async (...args) => {
-    const result = await actual.editMemory(...args);
+  const actual = await vi.importActual<typeof import("@/plan/plan-store.ts")>(
+    "@/plan/plan-store.ts",
+  );
+  vi.mocked(changePlan).mockImplementation(async (...args) => {
+    const result = await actual.changePlan(...args);
     applied.resolve();
     await release.promise;
     return result;
@@ -243,7 +242,7 @@ test("Stop keeps an executing tool's effect and prevents another model step", as
         parts: [
           {
             type: "text",
-            text: '/mock-tool update_memory {"oldText":"","newText":"Next step: shape the shell."}',
+            text: '/mock-tool change_plan {"operations":[{"op":"add","text":"Shape the shell"}]}',
           },
         ],
       },
@@ -254,9 +253,9 @@ test("Stop keeps an executing tool's effect and prevents another model step", as
     release.resolve();
     await body;
     await afterTasksDone();
-    expect((await readMemory(user.id, project.id)).text).toContain(
-      "Next step: shape the shell.",
-    );
+    expect((await readPlan(user.id, quest.id))?.steps).toEqual([
+      expect.objectContaining({ text: "Shape the shell" }),
+    ]);
     expect(calls).toHaveBeenCalledTimes(1);
     expect(await stopReply(user.id, chat.id, messageId)).toBe("cancelled");
   } finally {

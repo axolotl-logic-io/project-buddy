@@ -1,7 +1,8 @@
 // use_case_private_data for chats, with two users side by side: another
-// user's chat, in a project or standalone, is not found, exactly as an
+// user's chat, in a quest or standalone, is not found, exactly as an
 // unknown chat is, through the chat store and the chat API, and nothing of
 // either user's changes.
+
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -66,7 +67,7 @@ describe("use_case_private_data", () => {
 
   test("the chat API answers another user's chat as not found", async () => {
     const { her, herData, other } = await twoUsers();
-    const projectChat = await herData.chat(await herData.project());
+    const projectChat = await herData.chat(await herData.quest());
     const { id: standaloneId } = await privateChat(her.id);
     const herChats: OwnedChat[] = [
       [her, projectChat.id],

@@ -2,6 +2,7 @@
 // web-search keywords, best ranked first, up to the limit, and each is
 // labelled by its page's first heading. The made-up words are this file's
 // own, so other files' sections never match.
+
 import { expect, test } from "vitest";
 import { searchManual } from "@/blender-manual/search-manual.ts";
 import {

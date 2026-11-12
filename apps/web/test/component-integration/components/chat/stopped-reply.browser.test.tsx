@@ -4,6 +4,7 @@
 // and moves focus to the message box, as the button goes. While the reply
 // runs, Stop reply takes Send's place in the message box.
 // Which message stopped is reply-failures.server.test.ts's.
+
 import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";

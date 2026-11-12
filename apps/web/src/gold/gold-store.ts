@@ -4,6 +4,7 @@
 // (spend-meter.ts). An account that has no balance yet, such as one
 // made while the build before gold was live, is given its starting grant
 // the first time its balance is read or paid from.
+
 import { and, asc, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {

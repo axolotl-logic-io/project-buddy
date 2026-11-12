@@ -72,13 +72,17 @@ Releases share a concurrency group and never cancel a running release. GitHub ke
 
 A failed or cancelled release opens or updates an `ops` issue titled `Production release failed: <short sha>`, naming the step, commit, deployment and run. A preview failure opens or updates `Integration preview failed: <short sha>`. Fix failures through a PR, or rerun the failed workflow after an external cause is resolved. A failed build leaves production unchanged; a failed migration leaves the old build live but may have partially changed the schema. A promotion or smoke failure needs investigation because the schema has migrated and the new build may be live. A Vercel rollback restores code but never the schema.
 
+### Local construct engine
+
+The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look`, `search <query>` and `cast <spell id>`. The conversation UI, streamed replies, tool parts, storage and access checks use the existing harness. See [local construct behavior and limits](docs/local-constructs.md).
+
 ### Quests and conversations
 
-Quests at `/projects` is the signed-in landing page. Start Quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each personal quest has one continuing conversation, a Journal, a Plan and a Progress timeline. Dailies continues the same quest each day. Private Chat at `/chat` works without a quest; Turn Chat into a quest lets the user confirm an edited summary for a new quest without sharing or moving their private Chat history. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
+Quests at `/quests` is the signed-in landing page. Start Quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each personal quest has one continuing conversation, a Plan and a Progress timeline. Dailies continues the same quest each day. Private Chat at `/chat` works without a quest; Turn Chat into a quest lets the user confirm an edited summary for a new quest without sharing or moving their private Chat history. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
 
 A construct is chosen when a conversation starts. Activities guide its replies and can change through the construct's activity tool (`src/activities/`). Workshop at `/workshop` is the single collection for built-in and private constructs, activities and spells. Settings at `/settings` holds profile, appearance, batteries and security. Old conversation, collection, Home and Account addresses have access-checked redirects where their replacement exists.
 
-Conversation storage keeps the compatibility names `projects`, `chats` and `messages` in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` chooses the provider model, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Journal, Plan and recent milestones. Set `CONSTRUCT_MODEL=mock` for deterministic local tests; see `.env.example`.
+Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Plan and recent milestones. Set `CONSTRUCT_MODEL=mock` for deterministic local tests; see `.env.example`.
 
 ### Errors
 
@@ -146,11 +150,11 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Journal link.
+The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Plan link.
 
 ## Image generation
 
-Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with conversation uploads and spend batteries, as replies do. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
+Remote image generation and avatar vision calls are disabled. Existing images and uploads remain available. Local replies spend no batteries; the existing balance gate remains in place for this first implementation. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
 
 ## Installed app
 

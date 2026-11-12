@@ -9,6 +9,7 @@
 // numbered in the order they first wrote. The construct is never sent anyone's
 // email address. A chat with one author is sent exactly as it was before
 // authors were recorded.
+
 import type { UIMessage } from "ai";
 import {
   type ChatMessage,

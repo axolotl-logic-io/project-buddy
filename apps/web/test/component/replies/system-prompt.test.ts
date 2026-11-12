@@ -12,8 +12,6 @@ import {
   getConstruct,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type ReplyPromptContext,
@@ -23,7 +21,7 @@ import {
 const CONTEXT: ReplyPromptContext = {
   activities: [],
   spells: [],
-  project: undefined,
+  quest: undefined,
   construct: snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
   activity: builtInActivity(DEFAULT_ACTIVITY_ID),
   userName: "Sam",
@@ -84,17 +82,16 @@ describe("the spells in the prompt", () => {
 });
 
 // Checks the assembled instructions, not stochastic model compliance.
-test("unrelated requests take precedence in a quest Brainstorming adventure without removing Journal context", () => {
+test("unrelated requests take precedence in a quest Brainstorming adventure while keeping Plan context", () => {
   const prompt = contents({
     ...CONTEXT,
     activity: builtInActivity("brainstorming"),
-    project: {
+    quest: {
       name: "Birdhouse",
-      memory: {
-        text: "Next step: Assemble the roof.",
-        version: MEMORY_VERSION_NUMBER.parse(1),
+      plan: {
+        steps: [{ number: 1, text: "Assemble the roof.", done: false }],
+        nextNumber: 2,
       },
-      plan: EMPTY_PLAN,
       milestones: [],
     },
   }).join("\n");
@@ -102,8 +99,7 @@ test("unrelated requests take precedence in a quest Brainstorming adventure with
     "without appending quest reminders, next steps or a return-to-quest question",
   );
   expect(prompt).toContain("This takes precedence over activity instructions");
-  expect(prompt).toContain("continue saving useful quest information");
-  expect(prompt).toContain("Next step: Assemble the roof.");
+  expect(prompt).toContain("Assemble the roof.");
   expect(prompt).toContain("# Activity Sheet");
 });
 

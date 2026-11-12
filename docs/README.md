@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Local constructs](local-constructs.md): MUD-inspired commands, the no-model-request policy and retained harness.
+
 - [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
 
 - [Library](library.md): in-site learning books, model-input source map and content maintenance.
@@ -16,11 +18,12 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.
 
+- [Quest nomenclature](quest-nomenclature.md): code names, storage changes and release cutover notes.
+
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
 - [Adventures](chats.md): Quests landing navigation, quest conversations, Chat, activities and reply behavior.
 - [Spells](spellbook.md): spell instructions, Workshop’s Spells tab, editing and saved casts.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
-- [Goal and Preferences](typed-journal.md): typed Journal sections, editing, commands, version history and undo.
 
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
@@ -34,7 +37,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Plans
 
-- [Quest plan design](design/quest-plan.md): the three ways into the plan, the phases that move the Journal to typed sections, and the decisions taken.
+- [Quest plan design](design/quest-plan.md): the three ways into the plan, the earlier design phases and decisions.
 - [API access proposal](api-access-plan.md): operation inventory, candidate permissions, unresolved decisions and future test evidence for command utilities and external agents; no API implementation or approved release contract.
 
 ## Practices
@@ -48,7 +51,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Use case completeness assessment](use-case-assessment.md): the current inventory, reconciled gaps and validation limits.
 
-- [Quest practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
+- [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
 - [Docs style guide](docs-style-guide.md): how to write these docs.
 
 ## Operations

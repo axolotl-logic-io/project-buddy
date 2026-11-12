@@ -2,6 +2,7 @@
 // forms, which #549's build reads in both forms. The test migrates a scratch
 // database of its own up to #549's last migration, seeds it with the old
 // forms, migrates it to the latest, and reads the rows back.
+
 import { expect, test } from "vitest";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { openPool } from "@/db/client.ts";
@@ -29,7 +30,7 @@ const SCRATCH_SUFFIX = "_migration_0016";
 const AUTHOR_CHECK = /memory_versions_author_known/u;
 
 const USER_ID = "00000000-0000-4000-8000-000000000011";
-const PROJECT_ID = "00000000-0000-4000-8000-000000000012";
+const QUEST_ID = "00000000-0000-4000-8000-000000000012";
 const INTERVIEW_CHAT_ID = "00000000-0000-4000-8000-000000000013";
 const OTHER_CHAT_ID = "00000000-0000-4000-8000-000000000014";
 const BUDDY_ID = "00000000-0000-4000-8000-000000000015";
@@ -116,14 +117,14 @@ async function seedBefore(pool: Pool): Promise<void> {
   );
   await pool.query(
     "insert into projects (id, user_id, name) values ($1, $2, 'Ship')",
-    [PROJECT_ID, USER_ID],
+    [QUEST_ID, USER_ID],
   );
   await Promise.all(
     [INTERVIEW_CHAT_ID, OTHER_CHAT_ID].map((chatId) =>
       pool.query(
         `insert into chats (id, project_id, buddy_id, buddy_name, buddy_parts)
          values ($1, $2, 'lumen', 'Captain Bevel', $3::jsonb)`,
-        [chatId, PROJECT_ID, JSON.stringify(OLD_PARTS)],
+        [chatId, QUEST_ID, JSON.stringify(OLD_PARTS)],
       ),
     ),
   );
@@ -138,7 +139,7 @@ async function seedBefore(pool: Pool): Promise<void> {
   await pool.query(
     `insert into memory_versions (project_id, version, text, author)
      values ($1, 1, '- Goal: a ship', 'tutor')`,
-    [PROJECT_ID],
+    [QUEST_ID],
   );
   await pool.query(
     `insert into buddies (id, user_id, name, parts)
@@ -213,7 +214,7 @@ test("the release after #549 rewrites the values saved before it", async () => {
         pool.query(
           `insert into memory_versions (project_id, version, text, author)
            values ($1, 2, 'Again', 'tutor')`,
-          [PROJECT_ID],
+          [QUEST_ID],
         ),
       ).rejects.toThrow(AUTHOR_CHECK);
     } finally {

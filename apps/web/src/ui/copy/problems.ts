@@ -12,6 +12,6 @@ export const PROBLEMS_COPY = {
   // not-found case's own message (src/errors/app-error.ts).
   pageNotFound:
     "That page can't be found. The link may be wrong, or it may have been deleted.",
-  projectsLink: "Quests",
+  questsLink: "Quests",
   signInLink: "Sign in again",
 } as const;

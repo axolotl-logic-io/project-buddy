@@ -1,12 +1,12 @@
 # Quest plan
 
-Each quest has a plan: its ordered steps of remaining work, which the construct and the quest's people keep together. The plan is the Journal's first typed section. The construct changes it with a tool, and people change it directly, without a model call, from the quest's page, from the Plan panel beside a conversation, or with commands in the message box. The [glossary](../GLOSSARY.md#plan) defines the words this page uses, and the [design](design/quest-plan.md) records how the three ways in were chosen.
+Each quest has a plan: its ordered steps of remaining work, which the construct and the quest's people keep together. Plan is the quest’s todo list. The construct changes it with a tool, and people change it directly, without a model call, from the quest's page, from the Plan panel beside a conversation, or with commands in the message box. The [glossary](../GLOSSARY.md#plan) defines the words this page uses, and the [design](design/quest-plan.md) records how the three ways in were chosen.
 
 ## Steps
 
 A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the plan's first open step. The Plan panel shows the remaining work. The premade quests' Journals hold no next step. Older Journal text stays intact until the user or construct edits it; the retired Home summary no longer parses it.
+The next step is the plan's first open step. The Plan panel shows the remaining work. A new quest starts with an empty Plan.
 
 ## Operations
 
@@ -27,7 +27,7 @@ An undo (`applyPlanUndo`) keeps the changes made since. It skips an operation on
 
 ## The construct
 
-Every quest conversation's prompt lists the plan beside the Journal, between `<quest_plan>` tags, one step per line with its number and done steps marked (`src/replies/plan-prompt.ts`). The `change_plan` tool (`src/replies/tools/change-plan.ts`) takes a batch of operations and returns the plan after it, or the plan as it is and why nothing changed. The global prompt's plan rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, never to count open steps or days, and to name steps by their `#` numbers rather than restate the plan as a list with its own numbering. `update_memory`'s description now sends remaining work and the next step to the plan.
+Every quest conversation's prompt lists the current Plan, between `<quest_plan>` tags, one step per line with its number and done steps marked (`src/replies/plan-prompt.ts`). The `change_plan` tool (`src/replies/tools/change-plan.ts`) takes a batch of operations and returns the plan after it, or the plan as it is and why nothing changed. The global prompt's plan rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, never to count open steps or days, and to name steps by their `#` numbers rather than restate the plan as a list with its own numbering.
 
 The conversation shows each call as a **Plan change** with Undo (`src/components/chat/plan-change-part.tsx`), while the reply streams and after the user reopens the quest. The tool is active only in quest conversations.
 
@@ -35,7 +35,7 @@ The conversation shows each call as a **Plan change** with Undo (`src/components
 
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
-- The quest page's **Plan** section, `/projects/PROJECT_ID?section=plan`, where `PROJECT_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
+- The quest page's **Plan** section, `/quests/QUEST_ID?section=plan`, where `QUEST_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
 - The **Plan panel** beside a quest's conversation: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
@@ -62,34 +62,8 @@ The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per c
 
 `src/plan/plan-store.ts` is the only module that reads or writes the table. A version is open to everyone in its quest through `planVersionOpenTo` in `src/accounts/owner-scope.ts`. Migration 0050 adds the table; it is an additive migration, which the live build can run beside.
 
-## Later
+## Plan-only quest context
 
-Moving existing Journals' "Next step:" lines into plans (#853), and typed Goal (#854) and Preferences (#855) sections, are separate issues.
+Goal, Preferences, the free-form Journal and their version pages are removed. Plan is the only editable quest context. The model reads the current Plan and the conversation, and can change agreed tasks with `change_plan`. Quest starts keep their supplied context in the opening conversation rather than a Journal.
 
-Quick Notes removal supersedes the separate-storage proposal (#856). Historical Note paragraphs remain ordinary Journal content, with no rewrite or migration.
-
-## Move legacy Next step lines
-
-The explicit `journal:migrate-next-steps` command previews eligible quests by
-count, without printing Journal contents. It does not run during deployment.
-After the release that reads plans is live, an operator can run:
-
-```sh
-cd apps/web
-npm run journal:migrate-next-steps
-npm run journal:migrate-next-steps -- --apply --plan-release-live
-```
-
-Use the approved environment for the intended database. Production execution
-requires separate authorization. No production data was changed when this
-tooling was implemented (#853).
-
-The command moves the first nonempty legacy Next step line into an untouched
-plan, recording a construct plan change and a construct Journal version in one
-transaction. It preserves the remaining Markdown and all earlier versions.
-Plans with steps, previously emptied plans, and Journals without a valid line
-are unchanged. Lines longer than the plan's 200-character limit are left for
-manual review. A repeat run does not add another step. Concurrent changes that
-collide with a version abort the transaction; rerun after resolving the edit.
-The plan change can be undone and the previous Journal version restored with
-the existing controls.
+Migration 0059 drops `journal_versions` and `memory_versions` and removes obsolete Journal command records. It does not transfer their content into Plan. Deploy this destructive change with the coordinated cutover described in [nomenclature](quest-nomenclature.md#release-cutover).

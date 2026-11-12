@@ -2,6 +2,7 @@
 // signed up with, stored normalized (normalizeEmail), so each address has
 // one account however it is typed; and by the id and session epoch a
 // session token names (src/auth/session-token.ts).
+
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { signInLinks, users } from "@/db/tables/users.ts";

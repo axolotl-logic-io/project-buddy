@@ -1,4 +1,5 @@
 // Workshop offers the same Create, Make a copy and Edit actions for each kind.
+
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";

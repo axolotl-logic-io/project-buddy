@@ -4,6 +4,7 @@
 // the body of a failed response before the reply streams, and as the
 // stream's error text after. The browser imports this module, so it
 // imports nothing server-only.
+
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { z } from "zod";
 import {

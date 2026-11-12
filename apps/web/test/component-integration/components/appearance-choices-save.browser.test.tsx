@@ -4,6 +4,7 @@
 // saved cookie reaches the next page is
 // save-theme-choice-action.server.test.ts's and
 // test/app/layout-first-paint.test.tsx's to check.
+
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { SiteMenu } from "@/components/site-menu.tsx";

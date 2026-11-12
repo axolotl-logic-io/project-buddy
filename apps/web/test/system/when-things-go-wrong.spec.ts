@@ -4,6 +4,7 @@
 // Vitest's: test/component-integration/errors/missing-page.server.test.ts,
 // test/component-integration/app/api/chat/reply-failures.server.test.ts and the
 // storage-unavailable.server.test.ts files.
+
 import { type BrowserContext, expect, type Page } from "@playwright/test";
 import {
   createSessionToken,
@@ -44,7 +45,7 @@ test("use_case_session_expired", async ({ account, context, page }) => {
   await expireSession(context, page, account);
 
   await test.step("every page shows the sign-in page", async () => {
-    await page.goto("/projects");
+    await page.goto("/quests");
     await expect(page).toHaveURL("/login");
 
     await page.goto(`/chats/${crypto.randomUUID()}`);
@@ -55,7 +56,7 @@ test("use_case_session_expired", async ({ account, context, page }) => {
     await signInByLink(page, account.email);
 
     await expectSignedInFor30Days(context);
-    await page.goto("/projects");
-    await expect(page).toHaveURL("/projects");
+    await page.goto("/quests");
+    await expect(page).toHaveURL("/quests");
   });
 });

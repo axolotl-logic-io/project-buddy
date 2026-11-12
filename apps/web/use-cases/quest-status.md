@@ -5,7 +5,7 @@
 The owner marks a quest completed or abandoned through the Quest actions menu beside the section tabs.
 
 - **Steps:** Open Quest actions, then choose Finish Quest or Abandon Quest.
-- **Outcome:** The quest shows the new status. Its adventures, Journal and progress stay available. Undo restores the previous status while no newer status change has occurred. Other users cannot change the status.
+- **Outcome:** The quest shows the new status. Its adventures, Plan and progress stay available. Undo restores the previous status while no newer status change has occurred. Other users cannot change the status.
 
 ## use_case_construct_changes_quest_status
 

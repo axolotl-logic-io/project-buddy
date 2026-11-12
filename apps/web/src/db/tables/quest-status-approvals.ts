@@ -7,7 +7,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { chats, projects } from "./projects-and-chats.ts";
+import { chats, quests } from "./quests-and-chats.ts";
 import { users } from "./users.ts";
 
 // An immutable proposal. Only its requesting owner can answer it; its quest
@@ -16,9 +16,9 @@ const questStatusApprovals = pgTable(
   "quest_status_approvals",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    projectId: uuid("project_id")
+    questId: uuid("quest_id")
       .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
+      .references(() => quests.id, { onDelete: "cascade" }),
     chatId: uuid("chat_id")
       .notNull()
       .references(() => chats.id, { onDelete: "cascade" }),

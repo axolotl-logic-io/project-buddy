@@ -2,6 +2,7 @@
 // the own prompt store beside her constructs and activities, and every write
 // keeps to the spell limits. Another user's spell, or a prompt of another
 // kind, is found nowhere and changes nowhere.
+
 import { describe, expect, test } from "vitest";
 import { cloneActivity } from "@/activities/activity-store.ts";
 import {

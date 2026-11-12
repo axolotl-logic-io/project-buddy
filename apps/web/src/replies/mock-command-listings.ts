@@ -16,7 +16,7 @@ interface MockCommandListing {
   readonly description: string;
 }
 
-// The mock model's commands, or none while constructs run on Claude.
+// The mock model's commands, or none while constructs run local commands.
 function mockCommandListings(): readonly MockCommandListing[] {
   if (readConstructModel() !== "mock") {
     return [];

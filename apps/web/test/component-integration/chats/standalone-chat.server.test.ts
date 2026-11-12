@@ -1,6 +1,7 @@
 // Chat in use-cases/chats.md, in the test database with the mock construct:
 // no quest, just a place to talk ideas through. Opening Chat and its old
 // addresses are app/(workspace)/chat/page.server.test.ts's.
+
 import type { UIMessage } from "ai";
 import { expect, test } from "vitest";
 import {
@@ -11,8 +12,7 @@ import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { editMemory, readMemory } from "@/memory/memory-store.ts";
-import { listProjects } from "@/projects/store.ts";
+import { listQuests } from "@/quests/store.ts";
 import {
   manualSection,
   testData,
@@ -54,13 +54,7 @@ function citedUrls(message: UIMessage | undefined): string[] {
 test("use_case_talk_idea_through", async () => {
   const user = await testUser();
   const data = testData(user);
-  const project = await data.project();
-  await editMemory(user.id, {
-    projectId: project.id,
-    edit: { oldText: "", newText: "- [ ] Bevel the donut" },
-    author: "user",
-  });
-  const memory = await readMemory(user.id, project.id);
+  const quest = await data.quest();
   await data.manualSections([QUIBBLEWAND]);
   const standalone = await privateChat(user.id);
 
@@ -68,10 +62,7 @@ test("use_case_talk_idea_through", async () => {
   const answer = (await listMessages(user.id, standalone.id)).at(-1);
   expect(citedUrls(answer)).toEqual([QUIBBLEWAND.url]);
 
-  expect((await listProjects(user.id)).map(({ id }) => id)).toEqual([
-    project.id,
-  ]);
-  expect(await readMemory(user.id, project.id)).toEqual(memory);
+  expect((await listQuests(user.id)).map(({ id }) => id)).toEqual([quest.id]);
 
   await spendAllGold(user);
   const refused = await postMessage(user, standalone, question(OUT_OF_GOLD));

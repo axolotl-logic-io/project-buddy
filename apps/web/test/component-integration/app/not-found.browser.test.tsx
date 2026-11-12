@@ -5,12 +5,12 @@
 // and React renders <html> with the default theme attributes. The
 // not-found page applies the saved mode itself, so it looks like every
 // other page.
+
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import AdventureNotFound from "@/app/(workspace)/chats/[chatId]/not-found.tsx";
-import QuestNotFound from "@/app/(workspace)/projects/[projectId]/(overview)/not-found.tsx";
-import JournalNotFound from "@/app/(workspace)/projects/[projectId]/memory/not-found.tsx";
+import QuestNotFound from "@/app/(workspace)/quests/[questId]/(overview)/not-found.tsx";
 import NotFound from "@/app/not-found.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {
@@ -36,13 +36,12 @@ describe("use_case_open_missing_page", () => {
       .element(page.getByText(PROBLEMS_COPY.pageNotFound))
       .toBeVisible();
     await expect
-      .element(page.getByRole("link", { name: PROBLEMS_COPY.projectsLink }))
-      .toHaveAttribute("href", "/projects");
+      .element(page.getByRole("link", { name: PROBLEMS_COPY.questsLink }))
+      .toHaveAttribute("href", "/quests");
   });
 
   test.each([
     { missing: "quest", view: <QuestNotFound /> },
-    { missing: "Journal", view: <JournalNotFound /> },
     { missing: "adventure", view: <AdventureNotFound /> },
   ])(
     "a missing $missing says the quest or adventure can't be found",

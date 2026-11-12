@@ -1,11 +1,11 @@
-// Times show in the zone of her browser, not the server's: a project's
-// start ("use_case_view_projects"), a chat's start ("use_case_open_project")
-// and a memory version's time ("use_case_view_memory"), each at one instant
+// Times show in the zone of her browser, not the server's: a quest's
+// start ("use_case_view_quests"), a chat's start ("use_case_open_quest")
 // that falls on a different day in New York than in Tokyo. The server
 // renders them in UTC, unseen, and hydrating shows the browser's time with
-// no mismatch. The browser-<zone> projects in vitest.config.mts run this
+// no mismatch. The browser-<zone> quests in vitest.config.mts run this
 // file in each zone, in Chromium and WebKit, each with a locale of its own,
 // which the times ignore: they are always in English.
+
 import type { ReactNode } from "react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
@@ -19,18 +19,15 @@ import {
   vi,
 } from "vitest";
 import { page } from "vitest/browser";
-import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
 import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
-import { ProjectList } from "@/components/project-list.tsx";
+import { QuestList } from "@/components/quest-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { projectIdFixture } from "../../support/id-fixtures.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { questIdFixture } from "../../support/id-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { RETIRED_CONSTRUCT } from "../retirement/retirement-fixtures.ts";
 import {
@@ -39,16 +36,11 @@ import {
 } from "../themes/theme-fonts-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 
-// The restore form posts to a Server Action, which this test never runs.
-vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
-  restoreMemoryAction: vi.fn(),
-}));
-
 // 20:16 on October 12 in New York (EDT), October 13 in UTC, and 9:16 the
-// next morning in Tokyo: the release sweep's project, which showed
+// next morning in Tokyo: the release sweep's quest, which showed
 // "12:16 AM".
 const INSTANT = new Date("2026-10-13T00:16:00Z");
-const PROJECT_ID = projectIdFixture();
+const QUEST_ID = questIdFixture();
 
 // The instant's day and minute as she reads them in a zone.
 interface ZoneTimes {
@@ -67,7 +59,7 @@ const TIMES_BY_ZONE: Readonly<Record<string, ZoneTimes>> = {
   },
 };
 
-// The browser's zone, which the project running this file set.
+// The browser's zone, which the quest running this file set.
 function browserZone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
@@ -172,13 +164,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("use_case_view_projects", () => {
+describe("use_case_view_quests", () => {
   test(`a project's start shows on her day, in ${browserZone()}`, async () => {
     const hydration = serverRenderThenHydrate(
-      <ProjectList
-        projects={[
+      <QuestList
+        quests={[
           {
-            id: PROJECT_ID,
+            id: QUEST_ID,
             name: "Low-poly fox",
             createdAt: INSTANT,
             status: "active",
@@ -194,36 +186,7 @@ describe("use_case_view_projects", () => {
     );
     await expect
       .element(page.getByRole("listitem"))
-      .toMatchTextContent(PROJECTS_COPY.created(zoneTimes().day));
-    expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
-  });
-});
-
-describe("use_case_view_memory", () => {
-  test(`a version's time shows at her time, in ${browserZone()}`, async () => {
-    const hydration = serverRenderThenHydrate(
-      <MemoryHistory
-        history={[
-          {
-            version: MEMORY_VERSION_NUMBER.parse(1),
-            text: "## Goals",
-            author: "user",
-            savedBy: { kind: "viewer" },
-            createdAt: INSTANT,
-          },
-        ]}
-        projectId={PROJECT_ID}
-      />,
-    );
-
-    expect(hydration.serverTime, "the server's time").toStrictEqual(
-      hiddenServerTime("minute"),
-    );
-    await expect
-      .element(page.getByRole("listitem"))
-      .toMatchTextContent(
-        MEMORY_COPY.versionMade(MEMORY_COPY.byUser, zoneTimes().minute),
-      );
+      .toMatchTextContent(QUESTS_COPY.created(zoneTimes().day));
     expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
   });
 });

@@ -35,7 +35,7 @@ async function restoreConstructVisual(
         and(
           ownPromptOwnedBy(owner),
           eq(ownPrompts.id, id),
-          eq(ownPrompts.kind, "buddy"),
+          eq(ownPrompts.kind, "construct"),
           isNull(ownPrompts.retiredAt),
         ),
       )

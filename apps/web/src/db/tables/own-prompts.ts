@@ -9,10 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import {
-  STORED_PROMPT_KIND_LIST,
-  storedPromptKind,
-} from "../../prompts/prompt.ts";
+import { STORED_PROMPT_KIND_LIST } from "../../prompts/prompt.ts";
 import { users } from "./users.ts";
 
 // The kinds an own prompt may be, as stored, as SQL literals.
@@ -22,17 +19,14 @@ const KIND_LITERALS = sql.raw(
 
 // Own constructs, activities and spells share persistence and source tracking.
 // The legacy parts JSON is validated and converted by each definition's codec.
-// Keep this table and its columns compatible with the live build: the table
-// keeps its first name, "buddies", and a construct's stored kind is "buddy"
-// (src/prompts/prompt.ts).
 export const ownPrompts = pgTable(
-  "buddies",
+  "own_prompts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    kind: text("kind").notNull().default(storedPromptKind("construct")),
+    kind: text("kind").notNull().default("construct"),
     name: text("name").notNull(),
     parts: jsonb("parts").notNull(),
     previousVisual: jsonb("previous_visual"),
@@ -47,7 +41,7 @@ export const ownPrompts = pgTable(
       .defaultNow(),
   },
   (table) => [
-    index("buddies_user_id_idx").on(table.userId),
-    check("buddies_kind_known", sql`${table.kind} in (${KIND_LITERALS})`),
+    index("own_prompts_user_id_idx").on(table.userId),
+    check("own_prompts_kind_known", sql`${table.kind} in (${KIND_LITERALS})`),
   ],
 );

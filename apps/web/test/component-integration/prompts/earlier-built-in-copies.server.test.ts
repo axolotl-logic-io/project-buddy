@@ -1,10 +1,6 @@
-// Own copies of built-in prompts across a release that renamed buddies to
-// constructs, against the test database. The build before it stays live
-// while a release migrates and again after a rollback, and knows an own
-// copy is a built-in one's only when its stored text is exactly its own.
-// So this build writes unchanged copies in that text, and reads copies that
-// build wrote as copies of today's built-in ones. The earlier texts are
-// recorded fixtures from that build.
+// Own copies use current built-in wording, while recorded historical
+// definitions still read as current copies and retain prepared openings.
+
 import { eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import {
@@ -45,7 +41,7 @@ async function storedParts(id: string): Promise<unknown> {
 // An own prompt as the earlier build writes it: its stored kind and parts.
 async function earlierRow(
   owner: UserId,
-  kind: "buddy" | "activity" | "spell",
+  kind: "construct" | "activity" | "spell",
   clonedFrom: string,
   parts: unknown,
 ): Promise<string> {
@@ -59,7 +55,7 @@ async function earlierRow(
   return row.id;
 }
 
-test("an unchanged clone is stored in the earlier build's text, so that build knows it as a built-in one", async () => {
+test("an unchanged clone is stored in current text without reintroducing buddy wording", async () => {
   const { id: owner } = await testUser();
 
   const vellum = await cloneConstruct(owner, "vellum");
@@ -74,20 +70,20 @@ test("an unchanged clone is stored in the earlier build's text, so that build kn
   }
 
   expect(await storedParts(vellum.id)).toMatchObject({
-    voice: EARLIER_VELLUM_PROMPT,
+    voice: getConstruct("vellum").definition.prompt,
     habits: "",
   });
   expect(await storedParts(interview.id)).toEqual({
-    instructions: EARLIER_INTERVIEW.prompt,
-    openingKickoff: EARLIER_INTERVIEW.openingRequest,
+    instructions: getActivity("interview").definition.prompt,
+    openingKickoff: getActivity("interview").definition.openingRequest,
   });
   expect(await storedParts(blender.id)).toEqual({
-    whenToUse: EARLIER_BLENDER_MANUAL_LOOKUP.whenToUse,
-    instructions: EARLIER_BLENDER_MANUAL_LOOKUP.prompt,
+    whenToUse: getSpell("blender-manual-lookup").definition.whenToUse,
+    instructions: getSpell("blender-manual-lookup").definition.prompt,
   });
   // The earlier build compares the parsed prompt with its own exactly.
   expect(parseConstructDefinition(await storedParts(vellum.id))?.prompt).toBe(
-    EARLIER_VELLUM_PROMPT,
+    getConstruct("vellum").definition.prompt,
   );
   expect(vellum.definition.prompt).toBe(
     getConstruct("vellum").definition.prompt,
@@ -117,7 +113,7 @@ test("an unchanged clone keeps its prepared openings", async () => {
 
 test("a copy the earlier build wrote reads as today's built-in one and keeps its prepared openings", async () => {
   const { id: owner } = await testUser();
-  const vellumId = await earlierRow(owner, "buddy", "vellum", {
+  const vellumId = await earlierRow(owner, "construct", "vellum", {
     voice: EARLIER_VELLUM_PROMPT,
     habits: "",
   });
@@ -187,7 +183,7 @@ test("an edited copy is stored as written, in either wording", async () => {
   });
 });
 
-test("an edited copy put back to a built-in one's text is stored in the earlier build's text again", async () => {
+test("an edited copy put back to a built-in one's text is stored in current wording again", async () => {
   const { id: owner } = await testUser();
   const clone = await cloneConstruct(owner, "vellum");
   if (clone === undefined) {
@@ -208,7 +204,7 @@ test("an edited copy put back to a built-in one's text is stored in the earlier 
   });
 
   expect(await storedParts(clone.id)).toMatchObject({
-    voice: EARLIER_VELLUM_PROMPT,
+    voice: getConstruct("vellum").definition.prompt,
     habits: "",
   });
   expect(parseConstructDefinition(await storedParts(clone.id))?.visual).toEqual(
@@ -234,7 +230,7 @@ test("an unchanged named-heading copy reads as today's built-in one and keeps it
     throw new Error("The named built-in definitions were not recorded");
   }
   const { id: owner } = await testUser();
-  const vellumId = await earlierRow(owner, "buddy", "vellum", {
+  const vellumId = await earlierRow(owner, "construct", "vellum", {
     voice: namedConstruct.prompt,
     habits: "",
   });

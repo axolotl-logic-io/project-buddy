@@ -2,7 +2,8 @@
 // the sign-in form: with the database unreachable, asking for a sign-in
 // link answers with the database-unreachable case's message, which the form
 // shows (link-request-form.test.tsx). The pages' part is
-// test/component-integration/app/(workspace)/projects/storage-unavailable.server.test.ts's.
+// test/component-integration/app/(workspace)/quests/storage-unavailable.server.test.ts's.
+
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { requestSignInLinkAction } from "@/app/login/actions.ts";
 import { userMessage } from "@/errors/app-error.ts";

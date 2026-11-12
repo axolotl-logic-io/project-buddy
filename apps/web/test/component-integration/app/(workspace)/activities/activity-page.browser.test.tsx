@@ -1,6 +1,7 @@
 // Her activity's page in the browser: its reset button names the activity
 // whose prompt it restores, the built-in one hers was customized from or
 // else the open chat.
+
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -77,10 +78,10 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   listRetiredDefinitions: vi.fn(),
 }));
 
-vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
 }));
-vi.mock("@/projects/quest-creation-choices.ts", () => ({
+vi.mock("@/quests/quest-creation-choices.ts", () => ({
   questCreationChoices: vi.fn().mockResolvedValue({
     activities: [],
     userConstructs: [],

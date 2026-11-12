@@ -1,6 +1,7 @@
 // For the site menu's browser tests: the menu the way the user meets it
 // (open it, choose a theme or a mode, close it), and the choice the page
 // has applied.
+
 import { vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";

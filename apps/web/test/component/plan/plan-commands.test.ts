@@ -1,6 +1,7 @@
 // The chat's built-in commands: which messages the composer runs as commands
 // rather than sending to the construct, and what each plan command asks of
 // the plan, naming steps by their numbers.
+
 import { describe, expect, test } from "vitest";
 import { PLAN_STEP_TEXT_MAX_LENGTH, type Plan } from "@/plan/plan.ts";
 import { isChatCommand, parsePlanCommand } from "@/plan/plan-commands.ts";
@@ -103,3 +104,15 @@ describe("chat commands", () => {
     });
   });
 });
+
+test.each(["/help", "/LOOK", "/search bevel", "/cast example"])(
+  "construct command reaches the conversation: %s",
+  (text) => {
+    expect(isChatCommand(text, { inQuest: true, mockCommands: false })).toBe(
+      false,
+    );
+    expect(isChatCommand(text, { inQuest: false, mockCommands: false })).toBe(
+      false,
+    );
+  },
+);

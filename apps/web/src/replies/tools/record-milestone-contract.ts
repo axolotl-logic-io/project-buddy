@@ -1,8 +1,9 @@
 // What the record_milestone tool takes and returns, shared by the tool and
 // the part that shows the milestone in the chat. It imports nothing from the
 // server, because the part in the browser imports it too.
+
 import { z } from "zod";
-import { MILESTONE_ID, PROJECT_ID } from "@/ids.ts";
+import { MILESTONE_ID, QUEST_ID } from "@/ids.ts";
 import { MILESTONE_TEXT } from "@/milestones/milestone.ts";
 
 const RECORD_MILESTONE_TOOL = "record_milestone";
@@ -25,7 +26,7 @@ const RECORD_MILESTONE_INPUT = z.object({
 const RECORD_MILESTONE_OUTPUT = z.object({
   status: z.literal("recorded"),
   milestoneId: MILESTONE_ID,
-  projectId: PROJECT_ID,
+  questId: QUEST_ID,
   text: z.string(),
   recordedAt: z.iso.datetime(),
 });

@@ -1,4 +1,5 @@
 // Workshop’s spell collection: inspect built-ins and edit private definitions.
+
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";

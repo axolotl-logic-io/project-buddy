@@ -2,17 +2,17 @@
 
 import { Tabs } from "radix-ui";
 import { type JSX, useState } from "react";
-import { ProjectList } from "@/components/project-list.tsx";
+import { QuestList } from "@/components/quest-list.tsx";
 import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
 import { POINTER_FOCUS_HANDLERS } from "@/components/tab-pointer-focus.ts";
 import {
   QUEST_STATUS,
   QUEST_STATUSES,
   type QuestStatus,
-} from "@/projects/quest-status.ts";
-import type { Project } from "@/projects/store.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+} from "@/quests/quest-status.ts";
+import type { Quest } from "@/quests/store.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 function selectStatus(
   select: (status: QuestStatus) => void,
@@ -25,15 +25,15 @@ function selectStatus(
   globalThis.history.replaceState(null, "", url);
 }
 function QuestStatusTabs({
-  projects,
+  quests,
   initialStatus = "active",
 }: {
-  readonly projects: Project[];
+  readonly quests: Quest[];
   readonly initialStatus?: QuestStatus;
 }): JSX.Element {
   let emptyMessage: string = QUEST_STATUS_COPY.empty;
-  if (projects.length === 0) {
-    emptyMessage = PROJECTS_COPY.none;
+  if (quests.length === 0) {
+    emptyMessage = QUESTS_COPY.none;
   }
   const [status, setStatus] = useState(initialStatus);
   const onValueChange = selectStatus.bind(null, setStatus);
@@ -54,10 +54,7 @@ function QuestStatusTabs({
               >
                 {QUEST_STATUS_COPY.labels[choice]}
                 <span aria-hidden="true" className="quests-index-count">
-                  {
-                    projects.filter((project) => project.status === choice)
-                      .length
-                  }
+                  {quests.filter((quest) => quest.status === choice).length}
                 </span>
               </Tabs.Trigger>
             ))}
@@ -69,8 +66,8 @@ function QuestStatusTabs({
             value={choice}
             className="quests-index-content"
           >
-            <ProjectList
-              projects={projects.filter((project) => project.status === choice)}
+            <QuestList
+              quests={quests.filter((quest) => quest.status === choice)}
               emptyMessage={emptyMessage}
             />
           </Tabs.Content>

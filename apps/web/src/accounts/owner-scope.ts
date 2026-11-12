@@ -3,10 +3,10 @@
 // written, and a foreign id reads as not found, exactly as an unknown id
 // does.
 //
-// A project belongs to its owner, the user who made it, and to no one else.
-// Everything reached through a project is open to its owner alone: its
-// chats, their messages, images and activity sessions, its memory, its plan and its milestones. A standalone chat, which is in no
-// project, and what is reached through it are open to the user the chat
+// A quest belongs to its owner, the user who made it, and to no one else.
+// Everything reached through a quest is open to its owner alone: its
+// chats, their messages, images and activity sessions, its plan and its milestones. A standalone chat, which is in no
+// quest, and what is reached through it are open to the user the chat
 // names alone. A historical project_members or project_invitations row
 // grants nothing: no predicate reads either table. An own prompt, a
 // construct or an activity, a gold balance and its ledger, an image
@@ -15,6 +15,7 @@
 // (goldBalancesOfTransfer).
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
+
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
@@ -26,34 +27,33 @@ import {
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
-import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
-import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
 import { users } from "@/db/tables/users.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
+import type { QuestId, UserId } from "@/ids.ts";
 
-// A `projects` row of owner's: one owner made, which only they may read or
+// A `quests` row of owner's: one owner made, which only they may read or
 // change.
-function projectOwnedBy(owner: UserId): SQL {
-  return eq(projects.userId, owner);
+function questOwnedBy(owner: UserId): SQL {
+  return eq(quests.userId, owner);
 }
 
-// The ids of owner's projects, as a subquery, which drizzle parenthesizes.
-function ownedProjectIds(owner: UserId): SQL {
+// The ids of owner's quests, as a subquery, which drizzle parenthesizes.
+function ownedQuestIds(owner: UserId): SQL {
   return sql`${new QueryBuilder()
-    .select({ id: projects.id })
-    .from(projects)
-    .where(projectOwnedBy(owner))}`;
+    .select({ id: quests.id })
+    .from(quests)
+    .where(questOwnedBy(owner))}`;
 }
 
 // A `chats` row open to user: a standalone chat of theirs, or a chat in a
-// project of theirs.
+// quest of theirs.
 function chatOpenTo(user: UserId): SQL {
-  return sql`(${eq(chats.userId, user)} or ${inArray(chats.projectId, ownedProjectIds(user))})`;
+  return sql`(${eq(chats.userId, user)} or ${inArray(chats.questId, ownedQuestIds(user))})`;
 }
 
 // The ids of the chats open to user, as a subquery.
@@ -79,33 +79,28 @@ function activitySessionOpenTo(user: UserId): SQL {
   return inArray(activitySessions.chatId, openChatIds(user));
 }
 
-// A `memory_versions` row of a project of user's.
-function memoryVersionOpenTo(user: UserId): SQL {
-  return inArray(memoryVersions.projectId, ownedProjectIds(user));
-}
-
-// A `milestones` row of a project of user's.
+// A `milestones` row of a quest of user's.
 function milestoneOpenTo(user: UserId): SQL {
-  return inArray(milestones.projectId, ownedProjectIds(user));
+  return inArray(milestones.questId, ownedQuestIds(user));
 }
 
-// A `plan_versions` row of a project of user's.
+// A `plan_versions` row of a quest of user's.
 function planVersionOpenTo(user: UserId): SQL {
-  return inArray(planVersions.projectId, ownedProjectIds(user));
+  return inArray(planVersions.questId, ownedQuestIds(user));
 }
 
-// True when the project is owner's, whatever table the query reads: for an
-// insert … select, which writes a row only into a project of theirs.
-function ownsProject(owner: UserId, projectId: ProjectId): SQL {
+// True when the quest is owner's, whatever table the query reads: for an
+// insert … select, which writes a row only into a quest of theirs.
+function ownsQuest(owner: UserId, questId: QuestId): SQL {
   return exists(
     new QueryBuilder()
-      .select({ id: projects.id })
-      .from(projects)
-      .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questOwnedBy(owner))),
   );
 }
 
-// A `buddies` (own prompts) row of owner's: an own prompt of owner's, a construct or an
+// A `own_prompts` row of owner's: an own prompt of owner's, a construct or an
 // activity.
 function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
@@ -195,13 +190,12 @@ export {
   goldBalanceOwnedBy,
   goldLedgerOwnedBy,
   imageOpenTo,
-  memoryVersionOpenTo,
   messageOpenTo,
   milestoneOpenTo,
   ownPromptOwnedBy,
-  ownsProject,
+  ownsQuest,
   planVersionOpenTo,
-  projectOwnedBy,
+  questOwnedBy,
   replyRunOpenTo,
   replyRunOwnedBy,
   replyUsageOwnedBy,

@@ -10,12 +10,12 @@ export const STANDALONE_CHAT_COPY = {
 } as const;
 
 // Turn Chat into a quest: the shared quest start, on Do a thing, with a
-// summary of the Chat, or the construct's offer, as the starting Journal.
+// summary of the Chat, or the construct's offer, as the opening conversation.
 export const QUEST_FROM_CHAT_COPY = {
   open: "Turn Chat into a quest",
   openOffer: (name: string): string => `Turn Chat into a quest: ${name}`,
   heading: "Turn Chat into a quest",
   closeDialog: "Close",
   intro:
-    "The Chat summary becomes your starting Journal. Choose a construct and optionally say why this quest matters to you. This Chat stays private and keeps its messages.",
+    "The Chat summary becomes your opening conversation. Choose a construct and optionally say why this quest matters to you. This Chat stays private and keeps its messages.",
 } as const;

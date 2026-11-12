@@ -3,6 +3,7 @@
 // a user who kept a membership and an accepted quest invitation from when
 // quests could be shared sees nothing of it, exactly as of a quest that
 // doesn't exist, and takes no writes.
+
 import { describe, expect, test } from "vitest";
 import { listMessages } from "@/chats/store.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
@@ -25,7 +26,7 @@ describe("use_case_private_data", () => {
     const quest = await formerMemberQuest();
 
     expect(await seenBy(quest.owner, quest)).toMatchObject({
-      project: quest.project.name,
+      quest: quest.quest.name,
       listed: true,
       conversation: quest.chat.id,
       chat: quest.chat.id,

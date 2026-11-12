@@ -3,6 +3,7 @@
 // migrates a scratch database of its own up to the last migration before
 // the buddies rename, seeds it with the old names, migrates it to the
 // latest, and reads the rows back with the new names.
+
 import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
 import {
@@ -29,7 +30,7 @@ const LAST_INDEX_BEFORE_ADVENTURES_REMOVED = 51;
 const SCRATCH_SUFFIX = "_migration_0010";
 
 const USER_ID = "00000000-0000-4000-8000-000000000001";
-const PROJECT_ID = "00000000-0000-4000-8000-000000000002";
+const QUEST_ID = "00000000-0000-4000-8000-000000000002";
 interface Buddy {
   readonly id: string;
   readonly userId: string;
@@ -80,7 +81,7 @@ async function seedBeforeRename(pool: Pool): Promise<void> {
   );
   await pool.query(
     "insert into projects (id, user_id, name) values ($1, $2, 'Ship')",
-    [PROJECT_ID, USER_ID],
+    [QUEST_ID, USER_ID],
   );
   await pool.query(
     `insert into personas (id, user_id, name, parts, cloned_from)
@@ -98,7 +99,7 @@ async function seedBeforeRename(pool: Pool): Promise<void> {
      values ($1, $2, $3, $4, $5::jsonb)`,
     [
       CHAT.id,
-      PROJECT_ID,
+      QUEST_ID,
       CHAT.buddyId,
       CHAT.buddyName,
       JSON.stringify(CHAT.buddyParts),

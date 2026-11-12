@@ -1,8 +1,9 @@
-// "use_case_construct_records_milestone" in use-cases/projects.md, in Chromium
+// "use_case_construct_records_milestone" in use-cases/quests.md, in Chromium
 // and WebKit: a reopened chat whose saved reply recorded a milestone shows
 // it apart from the construct's words, with a link to the progress timeline,
 // and a call that failed shows the failure line. What the reply streams and
 // saves is milestones.server.test.ts's.
+
 import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -18,14 +19,14 @@ import { MILESTONE_COPY } from "@/ui/copy/milestones.ts";
 import {
   chatIdFixture,
   milestoneIdFixture,
-  projectIdFixture,
+  questIdFixture,
   userIdFixture,
 } from "../../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
-const PROJECT_ID = projectIdFixture();
+const QUEST_ID = questIdFixture();
 const MILESTONE_TEXT = "Blocked out the shell and body";
 const MILESTONE_INPUT: RecordMilestoneInput = { text: MILESTONE_TEXT };
 
@@ -69,7 +70,7 @@ describe("use_case_construct_records_milestone", () => {
       output: {
         status: "recorded",
         milestoneId: milestoneIdFixture(),
-        projectId: PROJECT_ID,
+        questId: QUEST_ID,
         text: MILESTONE_TEXT,
         recordedAt: "2026-10-30T12:00:00.000Z",
       },
@@ -84,7 +85,7 @@ describe("use_case_construct_records_milestone", () => {
       .element(
         milestone.getByRole("link", { name: MILESTONE_COPY.timelineLink }),
       )
-      .toHaveAttribute("href", `/projects/${PROJECT_ID}`);
+      .toHaveAttribute("href", `/quests/${QUEST_ID}`);
   });
 
   test("a call that failed shows that the milestone wasn't added", async () => {

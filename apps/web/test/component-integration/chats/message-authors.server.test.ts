@@ -7,10 +7,11 @@
 // written through the test kit.
 // How the names are put on the turns is checked in author-names.test.ts,
 // and the chat screen in message-authors.browser.test.tsx.
+
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
-import type { ProjectChat } from "@/chats/chat-rows.ts";
+import type { QuestChat } from "@/chats/chat-rows.ts";
 import {
   type MessageAuthor,
   otherAuthorNames,
@@ -18,7 +19,7 @@ import {
 import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
-import { messages } from "@/db/tables/projects-and-chats.ts";
+import { messages } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
@@ -69,17 +70,17 @@ async function forgetAuthors(chat: { readonly id: ChatId }): Promise<void> {
     .where(and(eq(messages.chatId, chat.id), eq(messages.role, "user")));
 }
 
-// The owner, named Sam, with a chat in a new project, and Alex, another
+// The owner, named Sam, with a chat in a new quest, and Alex, another
 // user with no name.
 async function samAndAlex(): Promise<{
   sam: User;
   alex: User;
-  chat: ProjectChat;
+  chat: QuestChat;
 }> {
   const [sam, alex] = await Promise.all([testUser(), testUser()]);
   await saveUserName(sam.id, "Sam");
   const data = testData(sam);
-  const chat = await data.chat(await data.project());
+  const chat = await data.chat(await data.quest());
   return { sam, alex, chat };
 }
 
@@ -109,7 +110,7 @@ describe("use_case_chat_with_several_people", () => {
     const [sam, solo] = await Promise.all([testUser(), testUser()]);
     await saveUserName(sam.id, "Sam");
     const data = testData(sam);
-    const projectChat = await data.chat(await data.project());
+    const projectChat = await data.chat(await data.quest());
     const standaloneChat = await privateChat(solo.id);
     const hello: Exchange = { message: "Hello", reply: REPLY };
     await Promise.all([
@@ -121,11 +122,11 @@ describe("use_case_chat_with_several_people", () => {
       forgetAuthors(standaloneChat),
     ]);
 
-    const [inProject, standalone] = await Promise.all([
+    const [inQuest, standalone] = await Promise.all([
       authorsIn(sam, projectChat),
       authorsIn(solo, standaloneChat),
     ]);
-    expect(inProject).toStrictEqual([{ id: sam.id, name: "Sam" }, undefined]);
+    expect(inQuest).toStrictEqual([{ id: sam.id, name: "Sam" }, undefined]);
     // The standalone chat's opening is the construct's.
     expect(standalone.filter((author) => author !== undefined)).toStrictEqual([
       { id: solo.id, name: undefined, email: solo.email },

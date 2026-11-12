@@ -2,6 +2,7 @@
 // user's construct is not found, exactly as an unknown id is, through the construct
 // store and on the construct page, and is never on the constructs page. Each signed
 // in as their own account sees their own.
+
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
