@@ -37,99 +37,15 @@ new_checkout() {
 setup_lane() { ISSUE_PIPELINE_LANE_SLOT="$1" bash "$checkout/scripts/test-env/setup.sh" > "$work/setup-output"; }
 prune() { ISSUE_PIPELINE_LANE_SLOTS="$1" bash "$checkout/scripts/test-env/prune.sh" > "$work/prune-output"; }
 
-# Check mode must reject an enabled limiter or an unrecognizable startup event.
-# Real provisioning runs this guard against the pinned binary; these fixtures
-# exercise its failure paths without Docker or database traffic.
-unset FAKE_PROXY_LIMIT PROXY_STOPPED
-mkdir "$work/proxy guard"
-cat > "$work/proxy guard/neon-proxy" <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-printf '%s\n' "$@" > "$PROXY_ARGUMENTS"
-trap 'echo stopped > "$PROXY_STOPPED"; exit 0' TERM
-case "${FAKE_PROXY_LIMIT:-0}" in
-  unsupported) echo 'error: unexpected argument --connect-compute-lock' >&2; exit 2 ;;
-  unknown) echo '{"message":"different startup protocol"}' ;;
-  unrelated)
-    echo '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: 100 }","other":"initial_limit: 0"}}'
-    ;;
-  *)
-    # Use the pinned binary's observed limiter field. An unrelated disabled lock
-    # must not satisfy the connection-lock check.
-    echo '{"message":"Using NodeLocks (wake_compute)","fields":{"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: 0 }"}}'
-    printf '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: %s }"}}\n' "${FAKE_PROXY_LIMIT:-0}"
-    ;;
-esac
-# Keep the probe alive until its caller stops it, without a timed wait. FD 3 is
-# a FIFO held open in both directions by the test, so read waits for a signal.
-if [[ -n "${PROXY_STOPPED:-}" ]]; then IFS= read -r -u 3; fi
-SH
-chmod +x "$work/proxy guard/neon-proxy"
-export PROXY_ARGUMENTS="$work/proxy-arguments"
-(cd "$work/proxy guard" && bash "$scripts/start-neon-proxy.sh" --check) > "$work/proxy-check"
-contains "$work/proxy-check" 'connection-attempt limiter is disabled'
-contains "$PROXY_ARGUMENTS" '--connect-compute-lock=permits=0'
-for limit in 100 01 0.5 unrelated unknown unsupported; do
-  fails bash -c 'cd "$1" && FAKE_PROXY_LIMIT="$2" bash "$3" --check' -- \
-    "$work/proxy guard" "$limit" "$scripts/start-neon-proxy.sh"
-  contains "$work/error" 'Neon proxy'
-done
-# A successful check and a rejected setting both reap the probe before returning.
-# Otherwise repeated provisioning would leak a binary or delay container removal.
-mkfifo "$work/probe-control"
-export PROXY_STOPPED="$work/proxy-stopped"
-for limit in 0 100; do
-  rm -f "$PROXY_STOPPED"
-  if [[ "$limit" == 0 ]]; then
-    (cd "$work/proxy guard" && bash "$scripts/start-neon-proxy.sh" --check) \
-      3<> "$work/probe-control" > "$work/proxy-check"
-  else
-    fails bash -c 'cd "$1" && FAKE_PROXY_LIMIT=100 bash "$2" --check' -- \
-      "$work/proxy guard" "$scripts/start-neon-proxy.sh" 3<> "$work/probe-control"
-  fi
-  contains "$PROXY_STOPPED" stopped
-done
-unset PROXY_ARGUMENTS PROXY_STOPPED
-
-# A failed endpoint-table initialization must stop startup before either listener
-# launches. No Postgres or Docker is needed to exercise this failure boundary.
-cat > "$work/proxy guard/psql" <<'SH'
-#!/usr/bin/env bash
-printf '%s\n' "$@" > "$PSQL_ARGUMENTS"
-echo 'injected endpoint initialization failure' >&2
-exit 23
-SH
-cat > "$work/proxy guard/caddy" <<'SH'
-#!/usr/bin/env bash
-echo started > "$FRONTEND_STARTED"
-SH
-chmod +x "$work/proxy guard/psql" "$work/proxy guard/caddy"
-export PSQL_ARGUMENTS="$work/psql-arguments" FRONTEND_STARTED="$work/frontend-started"
-export PROXY_ARGUMENTS="$work/runtime-proxy-arguments"
-fails bash -c 'cd "$1" && PATH="$1:$PATH" PG_CONNECTION_STRING=local-test-only bash "$2"' -- \
-  "$work/proxy guard" "$scripts/start-neon-proxy.sh"
-contains "$work/error" 'injected endpoint initialization failure'
-contains "$PSQL_ARGUMENTS" ON_ERROR_STOP=1
-[[ ! -e "$PROXY_ARGUMENTS" && ! -e "$FRONTEND_STARTED" ]] || die 'Started listeners after failed initialization'
-unset PROXY_ARGUMENTS PSQL_ARGUMENTS FRONTEND_STARTED
-
 printf '%s\n' main postgres template0 template1 > "$FAKE_DOCKER_STATE/databases"
 clear_log
 new_checkout 'checkout one'
 cp "$checkout/.env.test.example" "$work/example-before"
 
-# Manual Compose startup mounts the same script that lane commands inline.
-contains "$checkout/compose.test-db.yml" 'entrypoint: ["/bin/bash", "/start-neon-proxy.sh"]'
-contains "$checkout/compose.test-db.yml" 'source: neon-proxy-startup'
-contains "$checkout/compose.test-db.yml" 'target: /start-neon-proxy.sh'
-contains "$checkout/compose.test-db.yml" 'file: ./scripts/test-env/start-neon-proxy.sh'
-# An image update in only one path must fail before any Docker work.
-cp "$checkout/compose.test-db.yml" "$work/compose-before"
-sed 's|ghcr.io/timowilhelm/|other.registry/timowilhelm/|' "$work/compose-before" > "$checkout/compose.test-db.yml"
-fails env ISSUE_PIPELINE_LANE_SLOT=1 bash "$checkout/scripts/test-env/setup.sh"
-contains "$work/error" 'update both pins together'
-empty "$FAKE_DOCKER_STATE/calls"
-cp "$work/compose-before" "$checkout/compose.test-db.yml"
+# PostgreSQL is published on loopback; no proxy or pooler is provisioned.
+contains "$checkout/compose.test-db.yml" '127.0.0.1:5433:5432'
+not_contains "$checkout/compose.test-db.yml" 'neon-proxy'
+not_contains "$checkout/compose.test-db.yml" 'pgbouncer'
 
 # No-slot mode does nothing with an absent, existing or symlink destination.
 for mode in absent existing link; do
@@ -162,18 +78,14 @@ for value in 0 -1 400 1.5 lane '+1' ' 1' 99999999999999999999999999; do
   done
 done
 
-# Start missing proxies and create missing databases. All other template settings
+# Create missing databases on the shared PostgreSQL server. All other template settings
 # are byte-for-byte preserved; neither another lane nor the example is modified.
-for row in '1 24001 20010' '2 24002 20020' '399 24399 23990'; do
+for row in '1 5433 20010' '2 5433 20020' '399 5433 23990'; do
   read -r slot proxy_port site_port <<< "$row"
   setup_lane "$slot"
   contains "$checkout/.env.test" "DATABASE_URL=postgres://postgres:postgres@127.0.0.1:$proxy_port/pb_lane_$slot"
   contains "$checkout/.env.test" "E2E_PORT=$site_port"
   contains "$FAKE_DOCKER_STATE/databases" "pb_lane_$slot"
-  contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" "127.0.0.1\",\"HostPort\":\"$proxy_port"
-  contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" 'PG_CONNECTION_STRING=postgres://postgres:postgres@postgres:5432/main'
-  contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" '|project-buddy-test-db_default|'
-  contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" '|{"net.ipv4.tcp_tw_reuse":"1"}|'
   sed -e '/^DATABASE_URL=/d' -e '/^E2E_PORT=/d' "$checkout/.env.test.example" > "$work/settings-before"
   sed -e '/^DATABASE_URL=/d' -e '/^E2E_PORT=/d' "$checkout/.env.test" > "$work/settings-after"
   same "$work/settings-before" "$work/settings-after"
@@ -182,8 +94,9 @@ done
 contains "$FAKE_DOCKER_STATE/calls" 'compose --project-name project-buddy-test-db'
 not_contains "$FAKE_DOCKER_STATE/mutations" 'rm '
 not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
+not_contains "$FAKE_DOCKER_STATE/calls" 'run '
 
-# Correct running proxies and existing data are reused. The fake keeps a data
+# Existing lane data is reused. The fake keeps a data
 # marker for each database; any reset/drop would remove the database or log it.
 echo 'retained lane data' > "$FAKE_DOCKER_STATE/lane-data"
 clear_log
@@ -197,48 +110,6 @@ not_contains "$FAKE_DOCKER_STATE/mutations" 'rm '
 # Leading zeroes are decimal input, not octal or a second resource namespace.
 setup_lane 001
 same "$work/lane-one-env" "$checkout/.env.test"
-
-# Each mismatch requires replacement of this lane only, without a database reset.
-config="$FAKE_DOCKER_STATE/containers/pb-lane-1-neon-proxy/configuration"
-cp "$config" "$work/correct-proxy"
-for mismatch in stopped image network connection port external extra-binding extra-network sysctl no-sysctl entrypoint command limiter default-startup; do
-  case "$mismatch" in
-    stopped) sed 's/|true|/|false|/' "$work/correct-proxy" > "$config" ;;
-    image) sed 's/ghcr.io/other.registry/' "$work/correct-proxy" > "$config" ;;
-    network) sed 's/project-buddy-test-db_default/other-network/' "$work/correct-proxy" > "$config" ;;
-    connection) sed 's/@postgres:5432/@other:5432/' "$work/correct-proxy" > "$config" ;;
-    port) sed 's/24001/24099/' "$work/correct-proxy" > "$config" ;;
-    external) sed 's/127.0.0.1/0.0.0.0/' "$work/correct-proxy" > "$config" ;;
-    extra-binding) sed 's/"HostPort":"24001"}/"HostPort":"24001"},{"HostIp":"0.0.0.0","HostPort":"24002"}/' "$work/correct-proxy" > "$config" ;;
-    extra-network) sed 's/|1|/|2|/' "$work/correct-proxy" > "$config" ;;
-    sysctl) sed 's/tcp_tw_reuse":"1"/tcp_tw_reuse":"2"/' "$work/correct-proxy" > "$config" ;;
-    no-sysctl) sed 's/|{"net.ipv4.tcp_tw_reuse":"1"}|/|null|/' "$work/correct-proxy" > "$config" ;;
-    entrypoint) sed 's|/bin/bash|/other-entrypoint|' "$work/correct-proxy" > "$config" ;;
-    command) sed 's/"-c"/"-x"/' "$work/correct-proxy" > "$config" ;;
-    limiter) sed 's/permits=0/permits=100/' "$work/correct-proxy" > "$config" ;;
-    default-startup)
-      printf '%s|[["./start.sh"],null]\n' "$(cut -d '|' -f 1-7 "$work/correct-proxy")" > "$config" ;;
-  esac
-  clear_log
-  setup_lane 1
-  same "$work/correct-proxy" "$config"
-  contains "$FAKE_DOCKER_STATE/mutations" 'rm pb-lane-1-neon-proxy'
-  contains "$FAKE_DOCKER_STATE/mutations" 'run pb-lane-1-neon-proxy'
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'pb-lane-2'
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'create '
-done
-for failure in proxy-inspection; do
-  clear_log
-  fails env FAKE_INSPECTION="$failure" ISSUE_PIPELINE_LANE_SLOT=1 bash "$checkout/scripts/test-env/setup.sh"
-  contains "$work/error" 'inspection failed'
-  same "$work/correct-proxy" "$config"
-  same "$work/lane-one-env" "$checkout/.env.test"
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'rm '
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'run '
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
-  not_contains "$FAKE_DOCKER_STATE/mutations" 'create '
-done
 
 # Two checkouts receive distinct reusable configurations, not per-run allocations.
 new_checkout 'checkout two'
@@ -322,11 +193,9 @@ rm "$work/bin/node"
 # than by killing a timed process; other lanes and their data remain untouched.
 saved_checkout="$checkout"
 new_checkout 'failed setup'
-for failure in proxy-setting compose proxy-run existence-query existence-result create; do
+for failure in compose existence-query existence-result create; do
   case "$failure" in
-    proxy-setting) expected_error='proxy setting check failed' ;;
     compose) expected_error='compose startup failed' ;;
-    proxy-run) expected_error='proxy startup failed' ;;
     existence-query) expected_error='existence query failed' ;;
     existence-result) expected_error='Cannot recognize the shared server database existence result' ;;
     create) expected_error='database creation failed' ;;
@@ -340,7 +209,6 @@ for failure in proxy-setting compose proxy-run existence-query existence-result 
     clear_log
     fails env FAKE_SETUP_FAILURE="$failure" ISSUE_PIPELINE_LANE_SLOT=3 bash "$checkout/scripts/test-env/setup.sh"
     contains "$work/error" "$expected_error"
-    if [[ "$failure" == proxy-setting ]]; then empty "$FAKE_DOCKER_STATE/mutations"; fi
     case "$mode" in
       absent) [[ ! -e "$checkout/.env.test" ]] || die 'Failed setup published environment' ;;
       existing) same "$work/lane-two-env" "$checkout/.env.test" ;;
@@ -358,7 +226,7 @@ done
 checkout="$saved_checkout"
 
 # Prune preserves exact in-range resources and everything outside its namespace.
-for name in pb-lane-3-neon-proxy pb-issue-3-neon-proxy project-buddy-test-db-neon-proxy-1 other \
+for name in pb-lane-1-neon-proxy pb-lane-399-neon-proxy pb-lane-3-neon-proxy pb-issue-3-neon-proxy project-buddy-test-db-neon-proxy-1 other \
   pb-lane-03-neon-proxy pb-lane-400-neon-proxy pb-lane-3-neon-proxy-extra; do
   mkdir -p "$FAKE_DOCKER_STATE/containers/$name"
 done
@@ -459,7 +327,7 @@ not_contains "$COMMAND_LOG" reset
 sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
 sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs"'
 sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
-[[ "$(grep -Fc '"database":"postgres://postgres:postgres@127.0.0.1:24002/pb_lane_2","port":"20020"' "$COMMAND_LOG")" == 3 ]] || die 'Stages did not share supplied environment'
+[[ "$(grep -Fc '"database":"postgres://postgres:postgres@127.0.0.1:5433/pb_lane_2","port":"20020"' "$COMMAND_LOG")" == 3 ]] || die 'Stages did not share supplied environment'
 # Options and file filters must reach Playwright, not the intermediate npm run
 # or the database/server stages. In particular, npm consumes --workers without
 # its own `--` separator and leaves the value as an unintended test-file filter.
@@ -481,7 +349,7 @@ cp "$checkout/.env.test" "$work/manual-before"
 clear_log
 : > "$COMMAND_LOG"
 (cd "$checkout" && npm run test:playwright -- test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
-contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:4444/project_buddy_e2e","port":"3100"'
+contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:5433/project_buddy_e2e","port":"3100"'
 not_contains "$COMMAND_LOG" vitest
 same "$work/manual-before" "$checkout/.env.test"
 # Playwright launches its browsers on the host; it makes no Docker call.
@@ -493,7 +361,7 @@ init_env() { (cd "$checkout" && npm run --silent test-env:init) > "$work/init-ou
 new_checkout "init one"; init_env
 first="$checkout"
 contains "$work/init-output" 'Wrote apps/web/.env.test'
-grep -Eqx 'DATABASE_URL=postgres://postgres:postgres@localhost:4444/pb_wt_[0-9]+' "$first/.env.test" || die 'Unexpected init database'
+grep -Eqx 'DATABASE_URL=postgres://postgres:postgres@localhost:5433/pb_wt_[0-9]+' "$first/.env.test" || die 'Unexpected init database'
 grep -Eqx 'E2E_PORT=3[0-9]{4}' "$first/.env.test" || die 'Unexpected init port'
 diff <(grep -Ev '^(DATABASE_URL|E2E_PORT)=' "$first/.env.test.example") \
   <(grep -Ev '^(DATABASE_URL|E2E_PORT)=' "$first/.env.test") > /dev/null || die 'Init changed other settings'

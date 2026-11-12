@@ -5,13 +5,10 @@
 import type { ContentPart, StepResult, ToolSet } from "ai";
 import Stripe from "stripe";
 import type { EmailProblem } from "@/email/email-failure.ts";
-import { anthropicErrorDetails } from "@/errors/anthropic-errors.ts";
 import type { AppErrorCase } from "@/errors/app-error.ts";
-import {
-  databaseErrorDetails,
-  describeDatabaseQuery,
-} from "@/errors/neon-errors.ts";
 import type { ServerSpan } from "@/performance/server-span.ts";
+import { anthropicErrorDetails } from "./anthropic-errors.ts";
+import { databaseErrorDetails, describeDatabaseQuery } from "./neon-errors.ts";
 
 type ErrorDetails = Readonly<Record<string, unknown>>;
 

@@ -1,4 +1,3 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
 import { expect, test } from "vitest";
 import {
   chatOpenTo,
@@ -9,7 +8,7 @@ import {
   planVersionOpenTo,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
-import { openPool } from "@/db/client.ts";
+import { openPool, pooledDatabase } from "@/db/client.ts";
 import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
@@ -54,7 +53,7 @@ function visibleData(
   pool: ReturnType<typeof openPool>,
   owner: UserId,
 ): Promise<unknown[]> {
-  const db = drizzle(pool);
+  const db = pooledDatabase(pool);
   return Promise.all([
     db.select().from(projects).where(projectOwnedBy(owner)),
     db.select().from(chats).where(chatOpenTo(owner)),
@@ -228,7 +227,7 @@ test("retired storage removal preserves continuing data and denies a former memb
       ),
     ).rejects.toThrow("Marketplace purchases are paused");
     // ORM-generated INSERT and RETURNING still work after the trigger removal.
-    const added = await drizzle(pool)
+    const added = await pooledDatabase(pool)
       .insert(users)
       .values({ email: "new-after-cleanup@example.test" })
       .returning();
@@ -247,7 +246,9 @@ test("a fresh migration supports new accounts without retired currency triggers"
   const pool = openPool(database.url);
   try {
     await resetTestDatabase(database);
-    await drizzle(pool).insert(users).values({ email: "fresh@example.test" });
+    await pooledDatabase(pool)
+      .insert(users)
+      .values({ email: "fresh@example.test" });
     const { rows } = await pool.query(
       "select email from users where email = 'fresh@example.test'",
     );
