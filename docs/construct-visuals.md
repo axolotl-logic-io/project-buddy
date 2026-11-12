@@ -1,5 +1,8 @@
 # Construct visuals
 
+Image generation and its Workshop controls have been removed. `look` shows the Visual description in the conversation’s saved construct. The generation sections below document retained storage and historical behavior; they do not describe available controls.
+
+
 Issue [#735](https://github.com/axolotl-logic-io/project-buddy/issues/735) establishes the shared contract for generation, Workshop, adventures and construct selection. Screen integrations and generated-asset delivery are implemented through epic #734; [Images](images.md) describes generation and operations.
 
 ## Metadata and identity

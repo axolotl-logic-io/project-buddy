@@ -154,7 +154,7 @@ The site uses one parchment theme with Light, Dark and System modes. Theme contr
 
 ## Image generation
 
-Remote image generation and avatar vision calls are disabled. Existing images and uploads remain available. Local replies spend no batteries; the existing balance gate remains in place for this first implementation. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
+Image generation, its Workshop controls and the Image gallery have been removed. Type `look` to read the construct’s saved visual description. Existing images and uploads remain available. Local replies spend no batteries; the existing balance gate remains in place for this first implementation. See [image setup and accounting](docs/images.md) for owner isolation and deletion.
 
 ## Installed app
 

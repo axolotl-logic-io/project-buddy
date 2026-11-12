@@ -32,7 +32,6 @@ import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
-import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -91,7 +90,6 @@ const PLACES = [
   LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
-  GENERATION_COPY.heading,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink] as const;
 
@@ -259,7 +257,7 @@ test.each(SCREENS)(
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Workshop apart from Settings, above the appearance choices and Credits", async () => {
+  test("groups Chats, Projects, Workshop apart from Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 

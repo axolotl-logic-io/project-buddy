@@ -21,20 +21,14 @@ import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import { saveConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import { saveSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
-import { readLocalDraft } from "@/components/local-draft.ts";
 import {
   getOwnConstruct,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import {
-  VISUAL_GENERATION_REQUEST,
-  type VisualGenerationRequest,
-} from "@/constructs/visual-generation-contract.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACTIVITY_DEFINITION_COPY } from "@/ui/copy/activities.ts";
-import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 import { CONSTRUCT_DEFINITION_COPY } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { SPELL_DEFINITION_COPY } from "@/ui/copy/spells.ts";
@@ -384,7 +378,7 @@ test("Visual description survives recovery, prompt reset and discard, and Save s
   await button("Visual description").click();
   await field("Visual description").fill(edited);
   const submission = saved(saveConstructAction);
-  await button(VISUAL_COPY.saveAndGenerate).click();
+  await button(PROMPT_COPY.save).click();
   expect((await submission).get("visualDescription")).toBe(edited);
 });
 
@@ -422,75 +416,26 @@ test("new saved artwork does not discard a browser draft on reload", async () =>
     .toHaveValue("A new light in a blue cloak");
 });
 
-const TEST_RESERVATION = 12;
-
-test("Save and generate images saves the edited description and shows loading", async () => {
+test("saving an edited appearance offers Save without generation controls or requests", async () => {
   await setViewport(NARROWEST_VIEWPORT);
-  const edited = "A silver fox with a blue cloak, replacing the brass guide";
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>((input) => {
-      const url = String(input);
-      const quote = {
-        reservationGold: TEST_RESERVATION,
-        available: true,
-        outdated: false,
-      };
-      if (url.includes("requestId=")) {
-        return Promise.resolve(
-          Response.json({
-            ...quote,
-            result: {
-              status: "generated",
-              reservationGold: TEST_RESERVATION,
-              roles: {
-                avatar: "generated",
-                portrait: "generated",
-                opening: "generated",
-                working: "generated",
-              },
-              visual: { version: 1, description: edited },
-            },
-          }),
-        );
-      }
-      return Promise.resolve(Response.json(quote));
-    }),
+  const request = vi.fn<typeof fetch>(() =>
+    Promise.reject(new Error("Unexpected request")),
   );
-  await openConstruct({
-    ...VELLUM_CLONE,
-    definition: {
-      ...VELLUM_CLONE.definition,
-      visual: { version: 1, description: "A brass guide" },
-    },
-  });
+  vi.stubGlobal("fetch", request);
+  await openConstruct(VELLUM_CLONE);
   await button("Visual description").click();
-  await field("Visual description").fill(edited);
-  await expect.element(button("Generate Images")).toBeEnabled();
-  const saveButton = button(VISUAL_COPY.saveAndGenerate);
+  await field("Visual description").fill("A silver fox with a blue cloak");
+  await expect.element(button("Generate Images")).not.toBeInTheDocument();
   await expect
-    .element(saveButton)
-    .toHaveAccessibleDescription(
-      `${VISUAL_COPY.saveConsequence} ${VISUAL_COPY.reservation(TEST_RESERVATION)}`,
-    );
-  const hintId = saveButton.element().getAttribute("aria-describedby");
-  const hint = document.querySelector(`#${CSS.escape(hintId ?? "")}`);
-  expect(hint?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-    saveButton.element().getBoundingClientRect().top,
-  );
+    .element(button("Save and generate images"))
+    .not.toBeInTheDocument();
   const submission = saved(saveConstructAction);
-  await button(VISUAL_COPY.saveAndGenerate).click();
-  const form = await submission;
-  expect(form.get("visualDescription")).toBe(edited);
-  expect(form.get("visualRequestId")).toEqual(expect.any(String));
-  expect(Object.values(localStorage).join(" ")).toContain(
-    String(form.get("visualRequestId")),
-  );
-  await expect
-    .element(page.getByText("Generating images…", { exact: true }))
-    .toBeVisible();
-  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
-  await expect.element(button("Generate Images")).toBeDisabled();
+  await button(PROMPT_COPY.save).click();
+  const data = await submission;
+  expect(data.get("visualDescription")).toBe("A silver fox with a blue cloak");
+  expect(data.has("visualRequestId")).toBe(false);
+  expect(data.has("generateImages")).toBe(false);
+  expect(request).not.toHaveBeenCalled();
 });
 
 test.each(["activity", "spell"] as const)(
@@ -519,183 +464,6 @@ test.each(["activity", "spell"] as const)(
     await expect.element(button(PROMPT_COPY.discard)).not.toBeInTheDocument();
   },
 );
-
-test("Save is text-only for unchanged appearance or a description edited then restored; explicit Generate remains intentional", async () => {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() =>
-      Promise.resolve(
-        Response.json({
-          reservationGold: TEST_RESERVATION,
-          available: true,
-          outdated: false,
-        }),
-      ),
-    ),
-  );
-  const original = "A brass guide";
-  await openConstruct({
-    ...VELLUM_CLONE,
-    definition: {
-      ...VELLUM_CLONE.definition,
-      visual: { version: 1, description: original },
-    },
-  });
-  await expect
-    .element(button(PROMPT_COPY.save))
-    .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
-  await button("Visual description").click();
-  await field("Visual description").fill("A silver fox");
-  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeVisible();
-  await button("Visual description").click();
-  await field("Visual description").fill(`  ${original}  `);
-  await expect
-    .element(button(PROMPT_COPY.save))
-    .toHaveAccessibleDescription(VISUAL_COPY.saveWithoutGeneration);
-  await button(CONSTRUCT_PROMPT).click();
-  await field(CONSTRUCT_PROMPT).fill("Private new voice");
-  const submission = saved(saveConstructAction);
-  await button(PROMPT_COPY.save).click();
-  const data = await submission;
-  expect(data.has("visualDescription")).toBe(false);
-  expect(data.has("visualRequestId")).toBe(false);
-  expect(data.has("generateImages")).toBe(false);
-  await expect
-    .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
-    .not.toBeInTheDocument();
-  await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
-});
-
-test.each(["A brass guide", "A silver fox with a blue cloak"])(
-  "Generate Images requests paid draft artwork for %s without saving",
-  async (description) => {
-    const generation = Promise.withResolvers<Response>();
-    const generationRequests: VisualGenerationRequest[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>((_input, init) => {
-        if (init?.method === "POST") {
-          generationRequests.push(
-            VISUAL_GENERATION_REQUEST.parse(JSON.parse(String(init.body))),
-          );
-          return generation.promise;
-        }
-        return Promise.resolve(
-          Response.json({
-            reservationGold: TEST_RESERVATION,
-            available: true,
-            outdated: false,
-          }),
-        );
-      }),
-    );
-    await openConstruct({
-      ...VELLUM_CLONE,
-      definition: {
-        ...VELLUM_CLONE.definition,
-        visual: { version: 1, description: "A brass guide" },
-      },
-    });
-    await button("Visual description").click();
-    await field("Visual description").fill(description);
-    await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
-    await button(VISUAL_COPY.generate).click();
-    await expect
-      .element(page.getByText(VISUAL_COPY.generating, { exact: true }))
-      .toBeVisible();
-    expect(saveConstructAction).not.toHaveBeenCalled();
-    await expect.element(field("Visual description")).toHaveValue(description);
-    await expect
-      .element(field(CONSTRUCT_PROMPT))
-      .toHaveValue(VELLUM_CLONE.definition.prompt);
-    expect(generationRequests).toHaveLength(1);
-    expect(generationRequests[0]?.description).toBe(description);
-    expect(generationRequests[0]?.requestId).toEqual(expect.any(String));
-    expect(Object.values(localStorage).join(" ")).toContain(
-      generationRequests[0]?.requestId,
-    );
-    await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
-    generation.resolve(
-      Response.json({
-        status: "failed",
-        reservationGold: TEST_RESERVATION,
-        roles: {
-          avatar: "failed",
-          portrait: "failed",
-          opening: "failed",
-          working: "failed",
-        },
-      }),
-    );
-    await expect
-      .element(page.getByText(VISUAL_COPY.states.failed))
-      .toBeVisible();
-  },
-);
-
-const PENDING_VISUAL_REQUEST = "3bb055fe-90cc-49fd-b5c5-8f9a9382c507";
-
-test("text-only Save during pending work preserves its original UUID and payload while appearance-changing Save stays blocked", async () => {
-  const description = "A brass guide";
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() =>
-      Promise.resolve(
-        Response.json({
-          reservationGold: TEST_RESERVATION,
-          available: true,
-          outdated: false,
-          pendingRequestId: PENDING_VISUAL_REQUEST,
-          pendingDescription: description,
-          result: {
-            status: "pending",
-            reservationGold: TEST_RESERVATION,
-            roles: {
-              avatar: "pending",
-              portrait: "pending",
-              opening: "pending",
-              working: "pending",
-            },
-          },
-        }),
-      ),
-    ),
-  );
-  await openConstruct({
-    ...VELLUM_CLONE,
-    definition: {
-      ...VELLUM_CLONE.definition,
-      visual: { version: 1, description },
-    },
-  });
-  await expect
-    .element(page.getByText(VISUAL_COPY.states.pending, { exact: true }))
-    .toBeVisible();
-  await button("Visual description").click();
-  await field("Visual description").fill("Different appearance");
-  await expect.element(button(VISUAL_COPY.saveAndGenerate)).toBeDisabled();
-  await button("Visual description").click();
-  await field("Visual description").fill(description);
-  await button(CONSTRUCT_PROMPT).click();
-  await field(CONSTRUCT_PROMPT).fill("New instructions during generation");
-  await expect.element(button(PROMPT_COPY.save)).toBeEnabled();
-  const submission = saved(saveConstructAction);
-  await button(PROMPT_COPY.save).click();
-  const data = await submission;
-  expect(data.has("visualDescription")).toBe(false);
-  expect(data.has("visualRequestId")).toBe(false);
-  expect(data.has("generateImages")).toBe(false);
-  expect(
-    readLocalDraft(
-      `visual:${SIGNED_IN_USER.id}:${VELLUM_CLONE.id}`,
-      VISUAL_GENERATION_REQUEST,
-    ),
-  ).toEqual({
-    constructId: VELLUM_CLONE.id,
-    requestId: PENDING_VISUAL_REQUEST,
-    description,
-  });
-});
 
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
