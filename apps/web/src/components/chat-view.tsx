@@ -10,12 +10,14 @@ import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import type { ActivitySnapshot } from "@/activities/activity.ts";
 import {
   type ChatCommands,
   ChatCommandsContext,
@@ -53,6 +55,7 @@ import {
   CHANGE_PLAN_OUTPUT,
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
+import { ACTIVITY_COPY } from "@/ui/copy/activity.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   CHAT_COMMANDS_COPY,
@@ -144,6 +147,18 @@ const PLAN_COMMAND_LISTINGS: readonly CommandListing[] = PLAN_COMMAND_NAMES.map(
   }),
 );
 
+const ACTIVITY_COMMANDS: readonly CommandListing[] = [
+  {
+    command: "/brainstorm",
+    usage: "/brainstorm",
+    description: "Start Brainstorm; save subsequent messages to Ideas",
+  },
+  {
+    command: "/stop",
+    usage: "/stop",
+    description: "Stop the current Activity and return to Chat",
+  },
+];
 const NO_COMMANDS: readonly CommandListing[] = [];
 
 // The newest plan the construct's change_plan calls in the messages saved,
@@ -206,7 +221,13 @@ export function ChatView({
   planActions,
   mockCommands = NO_COMMANDS,
   starter,
+  activity,
+  sideContent,
+  initialSection,
 }: {
+  activity?: ActivitySnapshot | undefined;
+  sideContent?: ReactNode;
+  initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
   constructName: string;
@@ -438,7 +459,11 @@ export function ChatView({
     }
     let listings: readonly CommandListing[] = mockCommands;
     if (questId !== undefined) {
-      listings = [...PLAN_COMMAND_LISTINGS, ...mockCommands];
+      listings = [
+        ...PLAN_COMMAND_LISTINGS,
+        ...ACTIVITY_COMMANDS,
+        ...mockCommands,
+      ];
     }
     return {
       listings,
@@ -454,6 +479,9 @@ export function ChatView({
       sendMessage({ text: starterText }).catch(() => undefined);
     }
   }, [sendMessage, starterText]);
+  const stopActivity = useCallback((): void => {
+    sendMessage({ text: "/stop" }).catch(() => undefined);
+  }, [sendMessage]);
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
@@ -505,6 +533,17 @@ export function ChatView({
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
   }
+  let activityStop: { label: string; onStop: () => void } | undefined;
+  if (
+    activity !== undefined &&
+    activity.name !== "Chat" &&
+    replyStop === undefined
+  ) {
+    activityStop = {
+      label: ACTIVITY_COPY.stop(activity.name),
+      onStop: stopActivity,
+    };
+  }
   const conversation = (
     <>
       {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}
@@ -528,6 +567,7 @@ export function ChatView({
         stop={replyStop}
         stopStatus={stopStatus}
         starter={offeredStarter}
+        activityStop={activityStop}
       />
     </>
   );
@@ -537,10 +577,12 @@ export function ChatView({
         <ChatCommandsContext.Provider value={commands}>
           {plan === undefined && conversation}
           {plan !== undefined && (
-            <div className="adventure-layout">
-              <PlanPanel />
-              <div className="adventure-main">{conversation}</div>
-            </div>
+            <PlanPanel
+              initialSection={initialSection}
+              sideContent={sideContent}
+            >
+              {conversation}
+            </PlanPanel>
           )}
         </ChatCommandsContext.Provider>
       </PlanContext.Provider>

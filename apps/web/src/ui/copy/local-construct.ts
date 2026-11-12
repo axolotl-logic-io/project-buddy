@@ -1,6 +1,9 @@
 const HELP = [
   "Available commands:",
   "",
+  "- `brainstorm` — start saving subsequent messages to Ideas.",
+  "- `plan` — start saving subsequent messages as Plan steps.",
+  "- `stop` — stop the current Activity and return to Chat.",
   "- `help` — show these commands.",
   "- `look` — view this conversation's starting context.",
   "- `search <query>` — search the Blender manual.",
