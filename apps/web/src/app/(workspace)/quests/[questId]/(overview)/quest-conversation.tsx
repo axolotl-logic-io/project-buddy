@@ -2,12 +2,20 @@ import type { JSX } from "react";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
+import { QuestSidebarSection } from "@/components/plan/plan-panel.tsx";
+import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
+import { changeIdeaAction } from "@/ideas/idea-actions.ts";
+import { listIdeas } from "@/ideas/idea-store.ts";
 import type { UserId } from "@/ids.ts";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
 import type { Quest } from "@/quests/store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
+import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
+import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { ProgressTimeline } from "./progress-timeline.tsx";
 import { StartConversationForm } from "./start-conversation-form.tsx";
 
 // The prepared message that starts the day in the Dailies quest.
@@ -24,6 +32,7 @@ const START_THE_DAY: { readonly label: string; readonly text: string } = {
 async function questConversation(
   quest: Quest,
   viewer: UserId,
+  section = "plan",
 ): Promise<{ readonly content: JSX.Element; readonly portrait?: JSX.Element }> {
   const conversation = await readQuestConversation(viewer, quest.id);
   if (conversation === undefined) {
@@ -36,14 +45,22 @@ async function questConversation(
       ),
     };
   }
-  const [messages, stoppedReplyId, plan] = await Promise.all([
-    listMessages(viewer, conversation.id),
-    readStoppedReply(viewer, conversation.id),
-    readPlanState(viewer, quest.id),
-  ]);
+  const [messages, stoppedReplyId, plan, ideas, milestones] = await Promise.all(
+    [
+      listMessages(viewer, conversation.id),
+      readStoppedReply(viewer, conversation.id),
+      readPlanState(viewer, quest.id),
+      listIdeas(viewer, quest.id),
+      listMilestones(viewer, quest.id),
+    ],
+  );
   let starter: typeof START_THE_DAY | undefined;
   if (quest.dailies && quest.status === "active") {
     starter = START_THE_DAY;
+  }
+  let initialSection = section;
+  if (section === "conversation") {
+    initialSection = "plan";
   }
   return {
     portrait: (
@@ -56,6 +73,25 @@ async function questConversation(
     content: (
       <ChatScreen
         header={null}
+        initialSection={initialSection}
+        sideContent={
+          <>
+            <QuestSidebarSection value="ideas" name={IDEAS_COPY.heading}>
+              <QuestIdeas
+                embedded={true}
+                questId={quest.id}
+                ideas={ideas}
+                action={changeIdeaAction}
+              />
+            </QuestSidebarSection>
+            <QuestSidebarSection
+              value="progress"
+              name={PROGRESS_TIMELINE_COPY.heading}
+            >
+              <ProgressTimeline milestones={milestones} />
+            </QuestSidebarSection>
+          </>
+        }
         conversation={conversation}
         messages={messages}
         stoppedReplyId={stoppedReplyId}

@@ -9,12 +9,12 @@ Constructs currently run a local command engine inspired by multi-user dungeons 
 Three concepts shape every [conversation](#conversation):
 
 - A **[construct](#construct)** is who the user works with: a character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
-- A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
+- A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or casting a spell.
 - An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
 
 Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
 
-A conversation is a [quest](#quest)'s one conversation or the user's private [Chat](#chat-destination). Both have the same abilities, except that only a quest has a plan and a progress timeline.
+A conversation is a [quest](#quest)'s one conversation or the user's private [Chat](#chat-destination). Both have the same abilities, except that only a quest has a plan, ideas and a progress timeline.
 
 ## Product
 
@@ -371,6 +371,16 @@ The one small thing the user means to do next in a quest: the first open [step](
 - **UI:** "Next step".
 - **Avoid:** "todo", "task", "action item" as names for this concept.
 
+### Current Activity
+
+The conversation's saved state. `brainstorm` enters Brainstorm and saves subsequent messages as Ideas. `plan` enters Plan and saves subsequent messages as open steps. Commands accept an optional `/`. **Stop [Activity]**, or `stop`, returns to Chat. Switching Activities never moves earlier messages between buckets.
+
+### Ideas
+
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Plan. The owner can add, edit or remove an idea, or move it into Plan as an open step. Ideas have no done state and spend no batteries.
+
+- **UI:** "Ideas", "Add idea", "Move to Plan".
+
 ### Plan
 
 A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Plan section, in the Plan panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The plan has no deadlines and never counts open steps or days.
@@ -559,7 +569,7 @@ An image a construct creates at the [acting user](#acting-user)'s request, spend
 
 ### Image gallery
 
-The generated images made at a user's request. Each user's gallery lists their own generations. Deleting a source conversation, or its quest, also deletes its generated images.
+The generated images made at a user's request. The Image gallery has been removed; saved images remain in their source conversations. Deleting a source conversation, or its quest, also deletes its generated images.
 
 ## Usage
 

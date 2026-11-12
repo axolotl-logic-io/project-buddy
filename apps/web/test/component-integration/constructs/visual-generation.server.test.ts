@@ -132,7 +132,7 @@ function assetId(result: VisualGenerationResult): string {
   }
   return asset.assetId;
 }
-describe("use_case_generate_construct_visual", () => {
+describe("legacy construct artwork storage", () => {
   test("concurrent release of the last two destinations collects their shared bytes", async () => {
     const { user, construct, provider, request } = await setup();
     const generated = await generateConstructVisual(user.id, request, provider);

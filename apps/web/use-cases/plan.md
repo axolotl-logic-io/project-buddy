@@ -42,7 +42,7 @@ The user keeps the plan beside an adventure.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure in one of her quests.
 - **Steps:**
-  - On a wide screen, the Plan panel sits beside the conversation. On a narrower one, she opens it with the Plan button above the conversation, which names the next step.
+  - Plan, Ideas and Progress are accordion sections in the quest side menu. Minimize, Medium and Full screen change its size without discarding drafts.
   - She changes the plan there, as on the Plan section.
 - **Outcome:** each change shows in the adventure as a Plan change by her, which says it spent no batteries, with Undo; the construct reads it on its next reply. The panel follows the construct's changes as they arrive. While the construct replies, the panel's controls wait for the reply to end. While her last message has no reply because its reply failed or stopped, they wait too and say why, so that Retry or "send again" still answers that message; she can change the plan on the quest's page meanwhile.
 - **Next:**
@@ -56,7 +56,7 @@ The user keeps the plan with commands in the message box, without the construct.
 - **Steps:**
   - She types "/" in the message box. A list of the commands shows above it, each with how to write it and what it does; she moves through it with the arrow keys and picks one with Tab, Enter or a click.
   - She sends a command, such as `/done`, `/add Paint the eyes`, `/move 4 1` or `/plan`.
-- **Outcome:** the command runs at once, makes no model call and spends no batteries. The adventure shows what she typed and the Plan change it made, or, for `/plan`, the plan as a card with every control; only the newest card holds the controls. `/undo` undoes her last plan change in this adventure that has something left to undo, passing over one whose steps were all changed or removed since. The message box empties. The construct reads each change on its next reply, as a note rather than a request. A step is named by its number, as the plan shows it. With the mock model, the list also shows its `/mock-…` commands, which still go to the construct.
+- **Outcome:** the command runs at once, makes no model call and spends no batteries. The adventure shows what she typed and the Plan change it made, while `/plan` starts the Plan Activity for subsequent messages. `/undo` undoes her last plan change in this adventure that has something left to undo, passing over one whose steps were all changed or removed since. The message box empties. The construct reads each change on its next reply, as a note rather than a request. A step is named by its number, as the plan shows it. With the mock model, the list also shows its `/mock-…` commands, which still go to the construct.
 - **Variations:**
   - An unknown command, a missing step, text that's too long or a place out of range: nothing changes, the site says why under the message box, and her text stays there.
   - While her last message awaits a reply, because one is running or it failed or stopped: a plan command changes nothing and says why, so Retry and "send again" still answer that message.

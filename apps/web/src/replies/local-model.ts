@@ -10,7 +10,7 @@ import {
 import { isNeutralKickoff } from "@/replies/chat-kickoff.ts";
 import type { ScriptConversation, ScriptStep } from "@/replies/reply-script.ts";
 import { scriptedModel } from "@/replies/scripted-model.ts";
-import { startingContextInPrompt } from "@/replies/starting-context.ts";
+import { visualDescriptionInPrompt } from "@/replies/visual-description.ts";
 import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
@@ -99,10 +99,10 @@ function localReply(
     case "help":
       return [textStep(LOCAL_CONSTRUCT_COPY.help)];
     case "look": {
-      const context = startingContextInPrompt(
+      const description = visualDescriptionInPrompt(
         conversation.systemTexts.join("\n\n"),
       );
-      return [textStep(LOCAL_CONSTRUCT_COPY.look(context))];
+      return [textStep(LOCAL_CONSTRUCT_COPY.look(description))];
     }
     case "search":
       if (argument !== "") {
@@ -119,15 +119,23 @@ function localReply(
   }
 }
 
-function localConstructModel(): LanguageModelV4 {
-  return scriptedModel(localReply, {
-    provider: "local",
-    modelId: "construct-commands",
-    usage: {
-      inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
-      outputTokens: { total: 0, text: 0, reasoning: undefined },
+function localConstructModel(prepared?: string): LanguageModelV4 {
+  return scriptedModel(
+    (text, conversation) => {
+      if (prepared !== undefined) {
+        return [textStep(prepared)];
+      }
+      return localReply(text, conversation);
     },
-  });
+    {
+      provider: "local",
+      modelId: "construct-commands",
+      usage: {
+        inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: 0, text: 0, reasoning: undefined },
+      },
+    },
+  );
 }
 
 export { localConstructModel };

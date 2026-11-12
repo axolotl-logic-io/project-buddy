@@ -5,8 +5,9 @@
 // test waits for those tasks, signs out and deletes the test's users and
 // data (the kits in test/component-integration/test-database/ and
 // test/support/test-database/).
-import { afterEach, vi } from "vitest";
+import { afterAll, afterEach, vi } from "vitest";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
+import { closeDb } from "./src/db/client.ts";
 import { afterTasksDone } from "./test/component-integration/test-database/after-test-kit.ts";
 import { clearCookies } from "./test/component-integration/test-database/session-test-kit.ts";
 import { removeTestData } from "./test/support/test-database/data-test-kit.ts";
@@ -45,3 +46,5 @@ afterEach(async () => {
   await removeTestData();
   await deleteTestUsers();
 });
+
+afterAll(closeDb);

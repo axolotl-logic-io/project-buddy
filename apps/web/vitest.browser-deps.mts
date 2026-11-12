@@ -19,6 +19,8 @@ const PREBUNDLED_DEPS: string[] = [
   "drizzle-orm",
   "drizzle-orm/neon-http",
   "drizzle-orm/neon-serverless",
+  "drizzle-orm/node-postgres",
+  "pg",
   "drizzle-orm/pg-core",
   "lucide-react",
   "next/cache",

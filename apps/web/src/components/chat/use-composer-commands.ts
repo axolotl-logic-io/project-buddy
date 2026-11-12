@@ -26,6 +26,8 @@ const WHITE_SPACE = /\s/u;
 // than completes.
 const WHOLE_COMMANDS: ReadonlySet<string> = new Set([
   "/plan",
+  "/brainstorm",
+  "/stop",
   "/undo",
   "/done",
 ]);

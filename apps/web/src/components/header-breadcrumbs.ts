@@ -10,7 +10,6 @@ import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import { getSpell, isSpellId } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
-import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
@@ -49,7 +48,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["library", { label: LIBRARY_COPY.heading, href: "/library" }],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
-    ["gallery", { label: GENERATION_COPY.heading, href: "/gallery" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
     ["invitations", { label: INVITATIONS_COPY.heading, href: "/invitations" }],
   ]);
