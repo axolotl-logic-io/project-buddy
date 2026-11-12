@@ -12,7 +12,7 @@ The original captures measured `242e3a1` and `9a8ab46`. Their checked-in recipes
 
 For the simplified app, first read [the matrix migration limitation](#simplified-app-diagnostic-scope). The complete historical matrix is not yet compatible with its current routes and controls.
 
-From `apps/web`, provision this worktree's manual environment with `npm run test-env:init` and start its local database/proxy with `npm run test-db:up`. Use only the isolated synthetic/mock environment. Commit the source changes before capture so the recorded source and build are reviewable. Supply the pinned Chrome for Testing 156.0.8078.4 executable; a different browser version fails preflight.
+From `apps/web`, provision this worktree's manual environment with `npm run test-env:init` and start its local PostgreSQL database with `npm run test-db:up`. Use only the isolated synthetic/mock environment. Commit the source changes before capture so the recorded source and build are reviewable. Supply the pinned Chrome for Testing 156.0.8078.4 executable; a different browser version fails preflight.
 
 ```sh
 npm run audit:performance -- --output /absolute/new-audit-directory --browser /absolute/path/to/chrome --samples 3

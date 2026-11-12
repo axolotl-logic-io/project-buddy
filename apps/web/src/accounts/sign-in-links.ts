@@ -19,7 +19,7 @@ import {
 } from "@/accounts/users-store.ts";
 import { clientKeyFromHeaders } from "@/auth/client-key.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
-import { getDb } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { signInLinks, users } from "@/db/tables/users.ts";
 import { EmailFailure, type EmailProblem } from "@/email/email-failure.ts";
 import { sendEmail } from "@/email/send-email.ts";
@@ -49,16 +49,15 @@ async function createSignInLink(
   const expiresAt = new Date(
     now.getTime() + SIGN_IN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE,
   );
-  const db = getDb();
   await withAppErrors("createSignInLink", () =>
-    db.batch([
-      db
+    inTransaction(async (tx) => {
+      await tx
         .delete(signInLinks)
         .where(
           and(eq(signInLinks.userId, userId), lte(signInLinks.expiresAt, now)),
-        ),
-      db.insert(signInLinks).values({ tokenHash, userId, expiresAt }),
-    ]),
+        );
+      await tx.insert(signInLinks).values({ tokenHash, userId, expiresAt });
+    }),
   );
   return { token, tokenHash };
 }

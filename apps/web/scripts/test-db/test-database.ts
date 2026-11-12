@@ -1,7 +1,8 @@
 // Guarded operations on the local database supplied in .env.test. No command
 // allocates an environment or owns the lane resources.
+
+import { Pool } from "pg";
 import { z } from "zod";
-import type { openPool as createPool } from "../../src/db/client.ts";
 import {
   readConstructModel,
   readEmailOutboxDir,
@@ -20,16 +21,15 @@ interface TestDatabase {
 
 const NEON_HOST_SUFFIX = ".neon.tech";
 // The only hosts a test database may be on: this machine. This list is the
-// guard's own, so routing more hosts to the local proxy in src/db/client.ts
+// guard's own, so supporting more local hosts in src/db/client.ts
 // never widens what a reset may drop.
 const TEST_DATABASE_HOSTS: ReadonlySet<string> = new Set([
   "localhost",
   "127.0.0.1",
 ]);
 const POSTGRES_PROTOCOLS = new Set(["postgres:", "postgresql:"]);
-// Neon reparses the original string as HTTP. Raw backslashes can change its
-// authority, and raw whitespace triggers a separate encoding pass. Refuse both
-// so callers consuming DATABASE_URL directly agree with the checked URL.
+// Refuse raw backslashes and whitespace so URL parsing and driver parsing
+// agree on the host before a destructive test operation.
 const CONNECTION_URL_CHARACTERS = /^[^\s\\]+$/u;
 // No driver routing, filesystem TLS options or arbitrary server settings.
 const CONNECTION_OPTIONS = z.array(
@@ -51,7 +51,7 @@ const CONNECTION_OPTIONS = z.array(
 // The database a reset connects to while it drops and creates the test one.
 const MAINTENANCE_DATABASE = "postgres";
 const MIGRATIONS_FOLDER = "./drizzle";
-// Bound an unavailable proxy or stuck statement, including cancellation cleanup.
+// Bound an unavailable database or stuck statement, including cancellation cleanup.
 const DATABASE_OPERATION_TIMEOUT_MS = 30_000;
 
 function parseUrl(value: string): URL {
@@ -113,11 +113,8 @@ function checkEmailOutbox(): void {
   }
 }
 
-async function testPool(
-  databaseUrl: string,
-): Promise<ReturnType<typeof createPool>> {
-  const { openPool } = await import("../../src/db/client.ts");
-  const pool = openPool(databaseUrl);
+function testPool(databaseUrl: string): Pool {
+  const pool = new Pool({ connectionString: databaseUrl });
   pool.options.connectionTimeoutMillis = DATABASE_OPERATION_TIMEOUT_MS;
   pool.options.query_timeout = DATABASE_OPERATION_TIMEOUT_MS;
   pool.options.statement_timeout = DATABASE_OPERATION_TIMEOUT_MS;
@@ -128,11 +125,11 @@ async function testPool(
 // connects to while it drops or creates a test database.
 async function onMaintenanceDatabase<T>(
   database: TestDatabase,
-  work: (maintenance: ReturnType<typeof createPool>) => Promise<T>,
+  work: (maintenance: Pool) => Promise<T>,
 ): Promise<T> {
   const maintenanceUrl = new URL(checkTestDatabase(database.url).url);
   maintenanceUrl.pathname = `/${MAINTENANCE_DATABASE}`;
-  const maintenance = await testPool(maintenanceUrl.href);
+  const maintenance = testPool(maintenanceUrl.href);
   try {
     return await work(maintenance);
   } finally {
@@ -213,10 +210,10 @@ async function migrateTestDatabase(
 ): Promise<void> {
   const { url } = checkTestDatabase(database.url);
   const [{ drizzle }, { migrate }] = await Promise.all([
-    import("drizzle-orm/neon-serverless"),
-    import("drizzle-orm/neon-serverless/migrator"),
+    import("drizzle-orm/node-postgres"),
+    import("drizzle-orm/node-postgres/migrator"),
   ]);
-  const pool = await testPool(url);
+  const pool = testPool(url);
   try {
     await migrate(drizzle({ client: pool }), { migrationsFolder });
   } finally {

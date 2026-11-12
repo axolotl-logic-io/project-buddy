@@ -6,16 +6,8 @@ WEB_ROOT="$(cd -- "$TEST_ENV_DIR/../.." && pwd)"
 COMPOSE_FILE="$WEB_ROOT/compose.test-db.yml"
 SHARED_PROJECT=project-buddy-test-db
 SHARED_SERVER="${SHARED_PROJECT}-postgres-1"
-SHARED_NETWORK="${SHARED_PROJECT}_default"
-PROXY_IMAGE=ghcr.io/timowilhelm/local-neon-http-proxy@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
-PROXY_CONNECTION=postgres://postgres:postgres@postgres:5432/main
-# The lane proxies' share of the proxy's settings in compose.test-db.yml, and
-# how docker inspect reports it.
-PROXY_SYSCTL=net.ipv4.tcp_tw_reuse=1
-PROXY_SYSCTLS_JSON='{"net.ipv4.tcp_tw_reuse":"1"}'
-# Inline the same startup script Compose mounts, so reused lane containers do
-# not depend on a previous checkout's files remaining on disk.
-PROXY_STARTUP="$(cat "$TEST_ENV_DIR/start-neon-proxy.sh")"
+SHARED_DATABASE_PORT=5433
+# Retain the legacy proxy namespace only for explicit prune of old resources.
 MAX_LANE_SLOT=399
 
 # Decimal strings only, bounded before arithmetic (including leading zeroes).
@@ -27,7 +19,6 @@ lane_names() {
   local slot="$1"
   LANE_PROXY="pb-lane-${slot}-neon-proxy"
   LANE_DATABASE="pb_lane_${slot}"
-  LANE_PROXY_PORT=$((24000 + slot))
   LANE_SITE_PORT=$((20000 + 10 * slot))
 }
 
