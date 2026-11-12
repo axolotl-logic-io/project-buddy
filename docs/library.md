@@ -13,14 +13,14 @@ Changes to prompts, model inputs, tools, access rules, snapshots, limits or rele
 
 | Reader chapter | Implementation sources under `apps/web/src/` |
 | --- | --- |
-| Getting Started / first-adventure, continue | `chats/`, `projects/`, `memory/`, `plan/`, `app/(workspace)/chat/`, `app/(workspace)/projects/` |
+| Getting Started / first-adventure, continue | `chats/`, `quests/`, `plan/`, `app/(workspace)/chat/`, `app/(workspace)/quests/` |
 | Getting Started / craft | `batteries/catalog.ts`, `components/earn-gold-link.tsx`, `components/chat/reply-cost.tsx` |
-| Constructs / journal-sections | `journal/`, `components/journal/`, `replies/journal-prompt.ts`, `replies/tools/journal-contract.ts`, `replies/tools/journal-tools.ts` |
+| Constructs / plan | `plan/`, `components/plan/`, `replies/plan-prompt.ts`, `replies/tools/change-plan.ts` |
 | Constructs / character, craft, test | `constructs/`, `components/constructs/`, `constructs/visual-generation.ts`, `constructs/avatar-frame.ts`, `prompts/` |
 | Spells / selection, craft, test | `spells/spell-choices.ts`, `spells/cast-spell.ts`, `spells/cast-spell-contract.ts` |
 | Activities / sessions, craft, test | `activities/activity-sessions.ts`, `activities/select-activity.ts`, `activities/prepared-openings.ts`, `replies/chat-opening.ts`, `conversations/start-quest.ts` |
 | Model context / inventory | `replies/reply.ts`, `replies/tools/index.ts`, `replies/chat-opening.ts`, `images/image-provider.ts`, `images/generate-tool.ts`, `images/generate.ts`, `constructs/visual-generation.ts`, `constructs/avatar-frame.ts` |
-| Model context / assembly | `replies/system-prompt.ts`, `replies/global-prompt.ts`, `replies/role-prompt.ts`, `replies/memory-prompt.ts`, `replies/journal-prompt.ts`, `replies/plan-prompt.ts`, `replies/plan-message-prompt.ts`, `replies/milestones-prompt.ts`, `replies/standalone-chat-prompt.ts`, `replies/chat-kickoff.ts`, `replies/author-names.ts`, `accounts/user-name.ts` |
+| Model context / assembly | `replies/system-prompt.ts`, `replies/global-prompt.ts`, `replies/role-prompt.ts`, `replies/plan-prompt.ts`, `replies/plan-message-prompt.ts`, `replies/milestones-prompt.ts`, `replies/standalone-chat-prompt.ts`, `replies/chat-kickoff.ts`, `replies/author-names.ts`, `accounts/user-name.ts` |
 | Model context / tools | `replies/tools/index.ts`, tool contracts and executors, `accounts/owner-scope.ts`, `blender-manual/search-tool.ts`, `blender-manual/cite-tool.ts` |
 | Model context / history | `chats/store.ts`, `replies/conversation-to-answer.ts`, `images/store.ts`, `images/generation-store.ts`, `spells/cast-spell-contract.ts`, `activities/activity-sessions.ts` |
 

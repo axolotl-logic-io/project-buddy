@@ -6,6 +6,7 @@
 // found, and knows the note when the model receives it. The note is sent to
 // the model only, never shown or saved. Because it already knows which tool
 // cites, it also says whether a reply's calls cited the manual.
+
 import type { LanguageModelV4Message } from "@ai-sdk/provider";
 import type { ModelMessage, StepResult, ToolSet } from "ai";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";

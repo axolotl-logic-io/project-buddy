@@ -65,7 +65,7 @@ const NAVIGATION_RECORD = MEASURED.extend({
 const FLOW_RECORD = MEASURED.extend({
   sample: SAMPLE,
   source: z.literal("/home"),
-  destination: z.literal("/projects"),
+  destination: z.enum(["/quests", "/projects"]),
   authenticated: z.literal(true),
   scope: z.literal(
     "Source Home document can contribute lifetime metrics; flow CLS is not an independent transition metric",
@@ -203,7 +203,7 @@ function verifiedTimespan(
   return FLOW_RECORD.parse({
     sample: record.sample,
     source: "/home",
-    destination: "/projects",
+    destination: "/quests",
     authenticated: true,
     scope:
       "Source Home document can contribute lifetime metrics; flow CLS is not an independent transition metric",

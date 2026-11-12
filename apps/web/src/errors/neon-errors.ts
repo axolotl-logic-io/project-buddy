@@ -4,6 +4,7 @@
 // reaching Neon in `sourceError`. This module knows their cases, which of
 // their fields are safe to log, where the original error is kept, and which
 // foreign key a rejected query broke.
+
 import { DrizzleQueryError } from "drizzle-orm";
 import { z } from "zod";
 import type { AppErrorCase } from "@/errors/app-error.ts";

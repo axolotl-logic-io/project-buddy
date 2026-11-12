@@ -33,7 +33,7 @@ import {
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
-import type { ChatId, ProjectId, UserId } from "@/ids.ts";
+import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import {
@@ -54,7 +54,6 @@ import {
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { JOURNAL_SECTIONS_COPY } from "@/ui/copy/journal.ts";
 import {
   CHAT_COMMANDS_COPY,
   PLAN_COPY,
@@ -202,7 +201,7 @@ export function ChatView({
   initialMessages,
   stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
-  projectId,
+  questId,
   initialPlan,
   planActions,
   mockCommands = NO_COMMANDS,
@@ -217,7 +216,7 @@ export function ChatView({
   authorNames?: ReadonlyMap<string, string>;
   // The chat's quest and its plan as the page read it; undefined in a
   // standalone chat.
-  projectId?: ProjectId | undefined;
+  questId?: QuestId | undefined;
   initialPlan?: PlanState | undefined;
   // The plan's Server Actions, which the page hands over in a quest chat.
   planActions?: PlanActions | undefined;
@@ -394,7 +393,7 @@ export function ChatView({
     [chat.messages],
   );
   const plan = usePlanController({
-    projectId,
+    questId,
     actions: planActions,
     chatId,
     initialState: initialPlan,
@@ -438,20 +437,16 @@ export function ChatView({
       return undefined;
     }
     let listings: readonly CommandListing[] = mockCommands;
-    if (projectId !== undefined) {
-      listings = [
-        ...PLAN_COMMAND_LISTINGS,
-        ...JOURNAL_SECTIONS_COPY.commands,
-        ...mockCommands,
-      ];
+    if (questId !== undefined) {
+      listings = [...PLAN_COMMAND_LISTINGS, ...mockCommands];
     }
     return {
       listings,
       mockCommands: mockCommands.length > 0,
-      inQuest: projectId !== undefined,
+      inQuest: questId !== undefined,
       run: runCommand,
     };
-  }, [mockCommands, planActions, projectId, runCommand]);
+  }, [mockCommands, planActions, questId, runCommand]);
   const starterText = starter?.text;
   const { sendMessage } = chat;
   const sendStarter = useCallback((): void => {

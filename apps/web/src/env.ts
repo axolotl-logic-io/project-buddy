@@ -105,15 +105,11 @@ function readVercelBypassSecretIfSet(): string | undefined {
 
 // Which model constructs run: Claude unless CONSTRUCT_MODEL is "mock", which
 // selects the deterministic mock that tests use instead of Anthropic.
-// BUDDY_MODEL, its earlier name, is read when CONSTRUCT_MODEL is unset, so
-// existing installations and test environments keep working.
 // Production deployments (VERCEL_ENV "production") refuse the mock.
 function readConstructModel(): "claude" | "mock" {
   const parsed = z
     .enum(["claude", "mock"])
-    .safeParse(
-      readIfSet("CONSTRUCT_MODEL") ?? readIfSet("BUDDY_MODEL") ?? "claude",
-    );
+    .safeParse(readIfSet("CONSTRUCT_MODEL") ?? "claude");
   if (!parsed.success) {
     throw new Error('CONSTRUCT_MODEL must be unset, "claude" or "mock".');
   }

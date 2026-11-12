@@ -8,6 +8,7 @@
 // changes only as the construct enters another (select_activity). Every
 // function takes the acting user first, and a place or conversation not open
 // to them is not found, exactly as an unknown one.
+
 import { and, eq, isNull, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
@@ -15,7 +16,7 @@ import { currentActivity, newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
   type Chat,
-  type ChatProject,
+  type ChatQuest,
   messageColumns,
   type NewMessage,
   openChat,
@@ -29,14 +30,9 @@ import { getChat, noReplyAwaited } from "@/chats/store.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
-import { chats, messages } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import {
-  type ChatId,
-  type ProjectId,
-  parseChatId,
-  type UserId,
-} from "@/ids.ts";
+import { type ChatId, parseChatId, type QuestId, type UserId } from "@/ids.ts";
 
 // A continuing conversation as the people in it see it: the chat, with its
 // construct (chat.construct) and its current activity.
@@ -55,13 +51,13 @@ interface FoundConversation {
   readonly created: boolean;
 }
 
-// A `chats` row that is the continuing conversation of the project, or, with
-// no project, of the user.
-function continuingIn(project: ProjectId | undefined, user: UserId): SQL {
-  if (project === undefined) {
-    return sql`${and(eq(chats.continuing, true), eq(chats.userId, user), isNull(chats.projectId))}`;
+// A `chats` row that is the continuing conversation of the quest, or, with
+// no quest, of the user.
+function continuingIn(quest: QuestId | undefined, user: UserId): SQL {
+  if (quest === undefined) {
+    return sql`${and(eq(chats.continuing, true), eq(chats.userId, user), isNull(chats.questId))}`;
   }
-  return sql`${and(eq(chats.continuing, true), eq(chats.projectId, project))}`;
+  return sql`${and(eq(chats.continuing, true), eq(chats.questId, quest))}`;
 }
 
 // The conversation with this id, with its current activity, as the owner
@@ -77,17 +73,17 @@ async function readConversation(
   return { ...chat, activity: await currentActivity(owner, chat) };
 }
 
-// The id of the owner's continuing conversation in project, or, with none,
+// The id of the owner's continuing conversation in quest, or, with none,
 // their private Chat's; undefined if it has none or isn't open to them.
 async function continuingId(
   owner: UserId,
-  project: ProjectId | undefined,
+  quest: QuestId | undefined,
 ): Promise<ChatId | undefined> {
   const [row] = await withAppErrors("continuingId", () =>
     getDb()
       .select({ id: chats.id })
       .from(chats)
-      .where(and(continuingIn(project, owner), chatOpenTo(owner))),
+      .where(and(continuingIn(quest, owner), chatOpenTo(owner))),
   );
   return parseChatId(row?.id ?? "");
 }
@@ -97,22 +93,22 @@ async function continuingId(
 // Reading never makes one.
 async function findConversation(
   owner: UserId,
-  project: ProjectId | undefined,
+  quest: QuestId | undefined,
 ): Promise<Conversation | undefined> {
-  const id = await continuingId(owner, project);
+  const id = await continuingId(owner, quest);
   if (id === undefined) {
     return undefined;
   }
   return await readConversation(owner, id);
 }
 
-// The conversation of project, open to the owner, or with no project the
+// The conversation of quest, open to the owner, or with no quest the
 // owner's private Chat, made empty with start if it has none: of concurrent
 // calls, exactly one makes it, and every call returns the same conversation.
 // Undefined if the quest isn't open to the owner.
 async function findOrCreateConversation(
   owner: UserId,
-  project: ChatProject | undefined,
+  quest: ChatQuest | undefined,
   start: ConversationStart,
 ): Promise<FoundConversation | undefined> {
   const id = randomId(parseChatId);
@@ -123,7 +119,7 @@ async function findOrCreateConversation(
         .select(
           newChatRow(
             owner,
-            { project, construct: start.construct, continuing: true },
+            { quest, construct: start.construct, continuing: true },
             id,
           ),
         )
@@ -151,7 +147,7 @@ async function findOrCreateConversation(
     }
     return { conversation, created };
   }
-  const found = await findConversation(owner, project?.id);
+  const found = await findConversation(owner, quest?.id);
   if (found === undefined) {
     return undefined;
   }

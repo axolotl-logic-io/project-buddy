@@ -98,7 +98,7 @@ export function TextField({
   );
 }
 
-// A labelled multi-line input, such as the project's memory.
+// A labelled multi-line input, such as the quest's memory.
 export function TextAreaField({
   label,
   hint,
@@ -119,7 +119,7 @@ export function TextAreaField({
   );
 }
 
-// A labelled choice of one option from a list, such as a chat's project.
+// A labelled choice of one option from a list, such as a chat's quest.
 // children are its <option>s.
 export function SelectField({
   label,

@@ -2,6 +2,7 @@
 // Migration 0030_gold against a scratch database left as the release before
 // gold left it: each existing user is given the starting 100 gold once, and
 // running its backfill again grants nothing twice.
+
 import { expect, test } from "vitest";
 import { z } from "zod";
 import { openPool } from "@/db/client.ts";

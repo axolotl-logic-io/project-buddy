@@ -1,6 +1,7 @@
 // Retirement preserves identity and source tracking.
 // Normal definition stores read only active definitions; this module alone
 // reads retired ones and permanently deletes them through the Retirement UI.
+
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
@@ -15,11 +16,7 @@ import {
   currentConstructText,
   currentSpellText,
 } from "@/prompts/earlier-built-in-texts.ts";
-import {
-  type PromptKind,
-  STORED_PROMPT_KIND,
-  storedPromptKind,
-} from "@/prompts/prompt.ts";
+import { type PromptKind, STORED_PROMPT_KIND } from "@/prompts/prompt.ts";
 import { parseSpellDefinition } from "@/spells/spell-definition.ts";
 
 const RETIRED_ROW = z.object({
@@ -144,7 +141,7 @@ async function retireDefinition(
         and(
           ownPromptOwnedBy(owner),
           eq(ownPrompts.id, promptId),
-          eq(ownPrompts.kind, storedPromptKind(kind)),
+          eq(ownPrompts.kind, kind),
           isNull(ownPrompts.retiredAt),
         ),
       )

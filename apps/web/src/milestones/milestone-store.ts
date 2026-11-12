@@ -1,29 +1,30 @@
-// Each project's milestones, its progress timeline, stored in Postgres. A
-// milestone is its project owner's alone: every function takes the acting
-// user first, so another user's project has no milestones, its milestones read as not found, and nothing is
+// Each quest's milestones, its progress timeline, stored in Postgres. A
+// milestone is its quest owner's alone: every function takes the acting
+// user first, so another user's quest has no milestones, its milestones read as not found, and nothing is
 // written to either. Callers
 // pass text that MILESTONE_TEXT accepts.
+
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { milestoneOpenTo, ownsProject } from "@/accounts/owner-scope.ts";
+import { milestoneOpenTo, ownsQuest } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { milestones } from "@/db/tables/milestones.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   CHAT_ID,
   type ChatId,
   MILESTONE_ID,
   type MilestoneId,
-  type ProjectId,
+  type QuestId,
   type UserId,
 } from "@/ids.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 
-// Where a new milestone comes from: a chat in the project.
+// Where a new milestone comes from: a chat in the quest.
 interface MilestoneSource {
-  readonly projectId: ProjectId;
+  readonly questId: QuestId;
   readonly chatId: ChatId;
 }
 
@@ -58,12 +59,12 @@ function toMilestones(rows: readonly unknown[]): Milestone[] {
   });
 }
 
-// Records a milestone with text, dated now, in the owner's project, from
-// one of its chats. Undefined, with nothing saved, unless the project is the
+// Records a milestone with text, dated now, in the owner's quest, from
+// one of its chats. Undefined, with nothing saved, unless the quest is the
 // owner's and the chat is in it.
 async function recordMilestone(
   owner: UserId,
-  { projectId, chatId }: MilestoneSource,
+  { questId, chatId }: MilestoneSource,
   text: string,
 ): Promise<Milestone | undefined> {
   const qb = new QueryBuilder();
@@ -75,7 +76,7 @@ async function recordMilestone(
           qb
             .select({
               id: sql`gen_random_uuid()`.as("id"),
-              projectId: sql`${chats.projectId}`.as("project_id"),
+              questId: sql`${chats.questId}`.as("quest_id"),
               chatId: sql`${chats.id}`.as("chat_id"),
               text: sql`${text}::text`.as("text"),
               recordedAt: sql`now()`.as("recorded_at"),
@@ -84,8 +85,8 @@ async function recordMilestone(
             .where(
               and(
                 eq(chats.id, chatId),
-                eq(chats.projectId, projectId),
-                ownsProject(owner, projectId),
+                eq(chats.questId, questId),
+                ownsQuest(owner, questId),
               ),
             ),
         )
@@ -95,18 +96,18 @@ async function recordMilestone(
   return recorded;
 }
 
-// The owner's project's milestones, newest first: its progress timeline, or
+// The owner's quest's milestones, newest first: its progress timeline, or
 // only its newest limit milestones when a limit is given.
 function listMilestones(
   owner: UserId,
-  projectId: ProjectId,
+  questId: QuestId,
   limit?: number,
 ): Promise<Milestone[]> {
   return withAppErrors("listMilestones", async () => {
     const query = getDb()
       .select(MILESTONE_COLUMNS)
       .from(milestones)
-      .where(and(eq(milestones.projectId, projectId), milestoneOpenTo(owner)))
+      .where(and(eq(milestones.questId, questId), milestoneOpenTo(owner)))
       .orderBy(desc(milestones.recordedAt), desc(milestones.id));
     if (limit === undefined) {
       return toMilestones(await query);

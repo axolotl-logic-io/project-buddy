@@ -1,6 +1,7 @@
 // What the search_blender_manual tool takes and returns, and the id of the
 // spell that says how to look things up. The browser imports this too, to
 // show a search in the chat, so it imports nothing from the server.
+
 import { z } from "zod";
 import { isManualUrl } from "@/blender-manual/manual-source.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";

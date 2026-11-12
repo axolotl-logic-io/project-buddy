@@ -1,6 +1,6 @@
 // The mock construct's "/mock-system-prompt" command: the mock replies with the
 // text of its system messages, so end-to-end tests can check what the prompt
-// holds, such as the project's memory.
+// holds, such as the quest's memory.
 import type { MockConversation, MockStep } from "@/replies/mock-script.ts";
 
 // A fence no prompt line starts with, so the reply shows the prompt as it is

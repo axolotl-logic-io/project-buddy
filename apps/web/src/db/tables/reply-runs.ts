@@ -6,7 +6,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { chats, messages } from "./projects-and-chats.ts";
+import { chats, messages } from "./quests-and-chats.ts";
 import { users } from "./users.ts";
 
 // Attempts are durable so Stop works across workers and after a reload.

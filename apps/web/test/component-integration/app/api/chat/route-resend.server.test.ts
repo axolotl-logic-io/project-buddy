@@ -4,6 +4,7 @@
 // and so does one sent again while its reply still streams: the first
 // request's claim on the message (claimReply) holds until its reply ends.
 // What the store promises is test/component-integration/chats/store-resend.server.test.ts's.
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";

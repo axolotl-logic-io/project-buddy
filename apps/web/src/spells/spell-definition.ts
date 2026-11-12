@@ -1,4 +1,5 @@
 // Selection metadata is separate from the cast prompt. Legacy JSON is decoded and encoded only at storage boundaries.
+
 import { z } from "zod";
 import { SPELL_TEXT_MAX, type SpellDefinition } from "@/spells/spell.ts";
 

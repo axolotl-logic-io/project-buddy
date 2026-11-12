@@ -15,7 +15,7 @@ import { isActivityId } from "@/activities/index.ts";
 import { type Chat, openChat } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ChatId,

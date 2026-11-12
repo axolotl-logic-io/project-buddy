@@ -4,13 +4,13 @@ import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
 import { parseUserId } from "@/ids.ts";
 
 const stores = vi.hoisted(() => ({
-  getProject: vi.fn(),
+  getQuest: vi.fn(),
   getOwnConstruct: vi.fn(),
   getOwnActivity: vi.fn(),
   getOwnSpell: vi.fn(),
   getRetiredDefinition: vi.fn(),
 }));
-vi.mock("@/projects/store.ts", () => stores);
+vi.mock("@/quests/store.ts", () => stores);
 vi.mock("@/activities/activity-store.ts", () => stores);
 vi.mock("@/constructs/construct-store.ts", () => stores);
 vi.mock("@/spells/spell-store.ts", () => stores);
@@ -35,13 +35,13 @@ beforeEach(() => {
 describe("header navigation hierarchy", () => {
   test("keeps Library books under Library and omits unknown books", async () => {
     expect(await headerBreadcrumbs(MEMBER, ["library"])).toEqual([
-      { label: "Quests", href: "/projects" },
+      { label: "Quests", href: "/quests" },
       { label: "Library" },
     ]);
     expect(
       await headerBreadcrumbs(MEMBER, ["library", "model-context"]),
     ).toEqual([
-      { label: "Quests", href: "/projects" },
+      { label: "Quests", href: "/quests" },
       { label: "Library", href: "/library" },
       { label: "Model context" },
     ]);
@@ -49,43 +49,33 @@ describe("header navigation hierarchy", () => {
   });
   test("puts Chat under Quests, and the old conversation addresses nowhere", async () => {
     expect(await headerBreadcrumbs(MEMBER, ["chat"])).toEqual([
-      { label: "Quests", href: "/projects" },
+      { label: "Quests", href: "/quests" },
       { label: "Chat" },
     ]);
     expect(await headerBreadcrumbs(MEMBER, ["chats", "new"])).toEqual([]);
     expect(await headerBreadcrumbs(MEMBER, ["home"])).toEqual([]);
-    expect(await headerBreadcrumbs(MEMBER, ["projects"])).toEqual([
+    expect(await headerBreadcrumbs(MEMBER, ["quests"])).toEqual([
       { label: "Quests" },
     ]);
   });
 
   test("shows Invitations' trail to an admin alone, who alone can open it", async () => {
     expect(await headerBreadcrumbs(signedIn("admin"), ["invitations"])).toEqual(
-      [{ label: "Quests", href: "/projects" }, { label: "Invitations" }],
+      [{ label: "Quests", href: "/quests" }, { label: "Invitations" }],
     );
     expect(await headerBreadcrumbs(MEMBER, ["invitations"])).toEqual([]);
   });
 
-  test("keeps the quest parent on its Journal", async () => {
-    stores.getProject.mockResolvedValue({ id: "quest", name: "Our quest" });
+  test("removed quest subpages have no breadcrumb", async () => {
     expect(
-      await headerBreadcrumbs(MEMBER, ["projects", "quest", "memory"]),
-    ).toEqual([
-      { label: "Quests", href: "/projects" },
-      {
-        label: "Our quest",
-        href: "/projects/quest",
-        quest: { id: "quest", name: "Our quest" },
-      },
-      { label: "Journal" },
-    ]);
-    expect(stores.getProject).toHaveBeenCalledWith(USER, "quest");
+      await headerBreadcrumbs(MEMBER, ["quests", "quest", "memory"]),
+    ).toEqual([]);
   });
 
   test("exposes no private name or parent for inaccessible and unknown pages", async () => {
     const trails = await Promise.all(
       [
-        "projects",
+        "quests",
         "chats",
         "constructs",
         "activities",
@@ -97,7 +87,7 @@ describe("header navigation hierarchy", () => {
       expect(trail).toEqual([]);
     }
     expect(
-      await headerBreadcrumbs(MEMBER, ["projects", "foreign", "unknown"]),
+      await headerBreadcrumbs(MEMBER, ["quests", "foreign", "unknown"]),
     ).toEqual([]);
     expect(await headerBreadcrumbs(MEMBER, ["missing"])).toEqual([]);
   });
@@ -106,7 +96,7 @@ describe("header navigation hierarchy", () => {
     stores.getOwnConstruct.mockResolvedValue({ name: "My construct" });
     const trail = await headerBreadcrumbs(MEMBER, ["constructs", "own"]);
     expect(trail).toEqual([
-      { label: "Quests", href: "/projects" },
+      { label: "Quests", href: "/quests" },
       { label: "Workshop", href: "/workshop" },
       { label: "My construct" },
     ]);
@@ -120,7 +110,7 @@ describe("header navigation hierarchy", () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["activities", "brainstorming"]),
     ).toEqual([
-      { label: "Quests", href: "/projects" },
+      { label: "Quests", href: "/quests" },
       {
         label: "Workshop",
         href: `/workshop?${new URLSearchParams({ kind: "activity" })}`,

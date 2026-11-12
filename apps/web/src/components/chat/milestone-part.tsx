@@ -5,9 +5,9 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { RECORD_MILESTONE_OUTPUT } from "@/replies/tools/record-milestone-contract.ts";
 import { MILESTONE_COPY } from "@/ui/copy/milestones.ts";
 
-// A milestone the construct added to the project's progress timeline, as a
+// A milestone the construct added to the quest's progress timeline, as a
 // notice set apart from its words: what the user got done, and a link to the
-// timeline on the project's page. Nothing shows until it is recorded.
+// timeline on the quest's page. Nothing shows until it is recorded.
 export function MilestonePart({
   part,
 }: {
@@ -30,7 +30,7 @@ export function MilestonePart({
       <p className="font-medium">{milestone.text}</p>
       <Link
         className="self-start text-link"
-        href={`/projects/${milestone.projectId}`}
+        href={`/quests/${milestone.questId}`}
       >
         {MILESTONE_COPY.timelineLink}
       </Link>

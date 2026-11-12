@@ -27,17 +27,17 @@ import {
   listConstructs,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { startProject } from "@/conversations/start-quest.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { listProjects } from "@/projects/store.ts";
+import { startQuest } from "@/conversations/start-quest.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { listQuests } from "@/quests/store.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { constructReply, messageText } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
-// A project name that fails any model call whose prompt holds it.
-const UNAVAILABLE_PROJECT_NAME = "Fox den /mock-error overloaded_error";
+// A quest name that fails any model call whose prompt holds it.
+const UNAVAILABLE_QUEST_NAME = "Fox den /mock-error overloaded_error";
 const FIRST_MESSAGE = "A low-poly fox, please.";
 
 // The built-in activities a new chat can start in.
@@ -69,9 +69,9 @@ async function questIn(
   if (construct === undefined || activity === undefined) {
     throw new Error("No such construct or activity");
   }
-  const result = await startProject(
+  const result = await startQuest(
     user.id,
-    PROJECT_NAME.parse(name),
+    QUEST_NAME.parse(name),
     construct.construct,
     { activity },
   );
@@ -117,9 +117,9 @@ describe("use_case_prepared_opening", () => {
     const user = await testUser();
     await Promise.all(
       listConstructs().map(async (construct) => {
-        const result = await startProject(
+        const result = await startQuest(
           user.id,
-          PROJECT_NAME.parse(UNAVAILABLE_PROJECT_NAME),
+          QUEST_NAME.parse(UNAVAILABLE_QUEST_NAME),
           {
             id: construct.id,
             ...snapshotOf(construct),
@@ -179,15 +179,15 @@ describe("use_case_prepared_opening", () => {
       throw new Error("Her activity is not hers");
     }
 
-    const result = await startProject(
+    const result = await startQuest(
       user.id,
-      PROJECT_NAME.parse("Fox"),
+      QUEST_NAME.parse("Fox"),
       getConstruct("vellum"),
       { activity: edited },
     );
 
     expect(result.kind).toBe("claudeUnavailable");
-    expect(await listProjects(user.id)).toEqual([]);
+    expect(await listQuests(user.id)).toEqual([]);
   });
 
   test("a second quest has its own conversation, with the same opening, and the first keeps its opening first, once, after her message and a later delete of her construct", async () => {

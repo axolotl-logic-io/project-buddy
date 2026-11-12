@@ -1,6 +1,7 @@
 // A sign-in link's lifetime, against the test database: the link
 // requestSignInLink saves and emails reads as its user for 30 minutes, and
 // then as nothing.
+
 import { afterEach, expect, test, vi } from "vitest";
 import {
   readSignInLinkUser,

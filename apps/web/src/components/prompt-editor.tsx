@@ -16,7 +16,7 @@ import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
-import { type PromptKind, storedPromptKind } from "@/prompts/prompt.ts";
+import type { PromptKind } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
 // The text Reset puts back to its default.
@@ -162,7 +162,7 @@ function PromptEditor({
     }
     setFocusField(undefined);
   }, [focusField]);
-  const draftKey = `prompt:${viewer}:${storedPromptKind(kind)}:${promptId}`;
+  const draftKey = `prompt:${viewer}:${kind}:${promptId}`;
   const [saved] = useState<PromptDraft>(() => ({
     name,
     texts: Object.fromEntries(

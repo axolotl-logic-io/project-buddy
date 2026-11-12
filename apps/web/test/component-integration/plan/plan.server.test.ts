@@ -3,12 +3,11 @@
 // quest's page and from an adventure, the composer's commands, undo, the plan
 // in the construct's prompt, who may change it, and the next step Today
 // shows. How the plan looks is the browser tests'.
+
 import { describe, expect, test, vi } from "vitest";
 import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
-import type { ChatId, ProjectId, UserId } from "@/ids.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { saveMemory } from "@/memory/memory-store.ts";
+import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import { MOST_OPEN_STEPS } from "@/plan/plan.ts";
 import {
   changePlanAction,
@@ -18,7 +17,7 @@ import {
 } from "@/plan/plan-actions.ts";
 import { isPlanMessage } from "@/plan/plan-message.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
-import { readCurrentQuest } from "@/projects/current-quest-store.ts";
+import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { PLAN_NOTE_MARK } from "@/replies/plan-message-prompt.ts";
 import {
   CHANGE_PLAN_OUTPUT,
@@ -58,12 +57,9 @@ function changeCommand(input: unknown): string {
   return `/mock-tool ${CHANGE_PLAN_TOOL} ${JSON.stringify(input)}`;
 }
 
-// The texts of the open steps of the user's project's plan, in order.
-async function openTexts(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<string[]> {
-  const state = await readPlanState(owner, projectId);
+// The texts of the open steps of the user's quest's plan, in order.
+async function openTexts(owner: UserId, questId: QuestId): Promise<string[]> {
+  const state = await readPlanState(owner, questId);
   return (state?.plan.steps ?? []).flatMap(({ text, done }) => {
     if (done) {
       return [];
@@ -73,9 +69,9 @@ async function openTexts(
 }
 
 // The plan's three steps, laid out from the quest's page.
-function laidOut(projectId: ProjectId): Promise<PlanActionResult> {
+function laidOut(questId: QuestId): Promise<PlanActionResult> {
   return changePlanAction({
-    projectId,
+    questId,
     operations: [
       { op: "add", text: BLOCK_OUT },
       { op: "add", text: SCULPT },
@@ -108,7 +104,7 @@ describe("use_case_construct_changes_plan", () => {
       part !== undefined && "output" in part && part.output,
     );
     expect(output).toMatchObject({ status: "changed", version: 1 });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,
     ]);
@@ -116,7 +112,7 @@ describe("use_case_construct_changes_plan", () => {
 
   test("a construct's change naming a step that's gone saves nothing and gives the plan back", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     const reply = await constructReply(
       chat.id,
       changeCommand({
@@ -135,7 +131,7 @@ describe("use_case_construct_changes_plan", () => {
         part !== undefined && "output" in part && part.output,
       ),
     ).toMatchObject({ status: "not-changed", reason: "missing-step" });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,
       RENDER,
@@ -146,14 +142,14 @@ describe("use_case_construct_changes_plan", () => {
     const user = await testUser();
     await signIn(user);
     const data = testData(user);
-    const project = await data.project();
+    const quest = await data.quest();
     const [chat, standalone] = await Promise.all([
-      data.chat(project),
+      data.chat(quest),
       privateChat(user.id),
     ]);
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: [{ op: "complete", step: 1 }],
     });
 
@@ -168,13 +164,13 @@ describe("use_case_construct_changes_plan", () => {
 describe("a quest's plan, changed without the construct", () => {
   test("changes from the quest's page and their undo save new versions", async () => {
     const { user, chat } = await signedInChat();
-    const added = await laidOut(chat.project.id);
+    const added = await laidOut(chat.quest.id);
     const moved = await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: [{ op: "move", step: 3, before: 1 }],
     });
     expect(moved).toMatchObject({ kind: "changed", version: 2 });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       RENDER,
       BLOCK_OUT,
       SCULPT,
@@ -183,26 +179,24 @@ describe("a quest's plan, changed without the construct", () => {
     // Undoing the first change keeps the move made after it.
     expect(added.kind).toBe("changed");
     const undone = await undoPlanChangeAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       version: 1,
     });
     expect(undone).toMatchObject({ kind: "changed", version: 3 });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([]);
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([]);
     const again = await undoPlanChangeAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       version: 1,
     });
     expect(again).toMatchObject({ kind: "failed", reason: "already-undone" });
-    expect((await readPlanState(user.id, chat.project.id))?.undone).toEqual([
-      1,
-    ]);
+    expect((await readPlanState(user.id, chat.quest.id))?.undone).toEqual([1]);
     // Changes made outside an adventure leave its messages alone.
     expect(await listMessages(user.id, chat.id)).toEqual([]);
   });
 
   test("commands change the plan, show it and undo, saving each to the adventure with no reply", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
 
     expect(await command(chat.id, "/done")).toMatchObject({
       kind: "changed",
@@ -217,7 +211,7 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await command(chat.id, "/plan")).toMatchObject({ kind: "shown" });
     expect(await command(chat.id, "/undo")).toMatchObject({ kind: "changed" });
 
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       SCULPT,
       RENDER,
       "Paint the enamel eyes",
@@ -231,7 +225,7 @@ describe("a quest's plan, changed without the construct", () => {
 
   test("the construct reads a person's plan change in the adventure as a note", async () => {
     const { chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     await command(chat.id, "/done 1");
 
     const reply = await constructReply(chat.id, "/mock-recall plan change");
@@ -242,7 +236,7 @@ describe("a quest's plan, changed without the construct", () => {
 
   test("a command with a problem changes nothing and says why", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     const standalone = await privateChat(user.id);
 
     expect(await command(chat.id, "/frobnicate")).toEqual({
@@ -275,65 +269,53 @@ describe("a quest's plan, changed without the construct", () => {
       testUser(),
     ]);
     const data = testData(owner);
-    const project = await data.project();
-    const chat = await data.chat(project);
+    const quest = await data.quest();
+    const chat = await data.chat(quest);
 
     await signIn(owner);
-    await laidOut(project.id);
+    await laidOut(quest.id);
     expect(await command(chat.id, "/done")).toMatchObject({
       kind: "changed",
     });
-    expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
+    expect(await openTexts(owner.id, quest.id)).toEqual([SCULPT, RENDER]);
 
     await signIn(member);
     expect(
       await changePlanAction({
-        projectId: project.id,
+        questId: quest.id,
         operations: [{ op: "remove", step: 2 }],
       }),
     ).toEqual({ kind: "not-found" });
     expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
-    expect(await readPlanState(member.id, project.id)).toBeUndefined();
+    expect(await readPlanState(member.id, quest.id)).toBeUndefined();
 
     await signIn(stranger);
     expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
-    expect(await readPlanState(stranger.id, project.id)).toBeUndefined();
-    expect(await openTexts(owner.id, project.id)).toEqual([SCULPT, RENDER]);
+    expect(await readPlanState(stranger.id, quest.id)).toBeUndefined();
+    expect(await openTexts(owner.id, quest.id)).toEqual([SCULPT, RENDER]);
   });
 
-  test("Continue's next step is the plan's first open step, or the Journal's line before the plan has had a step", async () => {
+  test("Continue's next step comes only from the plan", async () => {
     const { user, chat } = await signedInChat();
     await sendChatMessage(chat.id, "Hello");
-    await saveMemory(user.id, {
-      projectId: chat.project.id,
-      text: "Next step: pick a bed layout",
-      basedOn: MEMORY_VERSION_NUMBER.parse(0),
-      author: "user",
-    });
-    const before = await readCurrentQuest(user.id);
-    expect(before?.nextStep).toBe("pick a bed layout");
-
-    await laidOut(chat.project.id);
-    const after = await readCurrentQuest(user.id);
-    expect(after?.nextStep).toBe(BLOCK_OUT);
-
-    // An emptied plan has no next step, whatever the Journal still says.
+    expect((await readCurrentQuest(user.id))?.nextStep).toBeUndefined();
+    await laidOut(chat.quest.id);
+    expect((await readCurrentQuest(user.id))?.nextStep).toBe(BLOCK_OUT);
     await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: [
         { op: "remove", step: 1 },
         { op: "remove", step: 2 },
         { op: "remove", step: 3 },
       ],
     });
-    const emptied = await readCurrentQuest(user.id);
-    expect(emptied?.nextStep).toBeUndefined();
+    expect((await readCurrentQuest(user.id))?.nextStep).toBeUndefined();
   });
 
   test(`a change may add a step and remove another at the ${MOST_OPEN_STEPS}-step limit`, async () => {
     const { user, chat } = await signedInChat();
     await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: Array.from({ length: MOST_OPEN_STEPS }, (_, index) => ({
         op: "add" as const,
         text: `Study ${index + 1}`,
@@ -341,7 +323,7 @@ describe("a quest's plan, changed without the construct", () => {
     });
     expect(
       await changePlanAction({
-        projectId: chat.project.id,
+        questId: chat.quest.id,
         operations: [{ op: "add", text: "One study more" }],
       }),
     ).toMatchObject({ kind: "failed", reason: "too-many-steps" });
@@ -351,27 +333,27 @@ describe("a quest's plan, changed without the construct", () => {
     });
     expect(
       await changePlanAction({
-        projectId: chat.project.id,
+        questId: chat.quest.id,
         operations: [
           { op: "add", text: "One study more" },
           { op: "remove", step: 1 },
         ],
       }),
     ).toMatchObject({ kind: "changed" });
-    expect(await openTexts(user.id, chat.project.id)).toHaveLength(
+    expect(await openTexts(user.id, chat.quest.id)).toHaveLength(
       MOST_OPEN_STEPS,
     );
   });
 
   test("undoing an older change keeps a newer edit of the same step", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     const first = await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: [{ op: "change", step: 2, text: "Sculpt the brass plates" }],
     });
     await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: [{ op: "change", step: 2, text: "Sculpt the copper plates" }],
     });
     if (first.kind !== "changed") {
@@ -380,11 +362,11 @@ describe("a quest's plan, changed without the construct", () => {
 
     expect(
       await undoPlanChangeAction({
-        projectId: chat.project.id,
+        questId: chat.quest.id,
         version: first.version,
       }),
     ).toMatchObject({ kind: "failed", reason: "nothing-to-undo" });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       "Sculpt the copper plates",
       RENDER,
@@ -395,7 +377,7 @@ describe("a quest's plan, changed without the construct", () => {
 describe("use_case_plan_commands", () => {
   test("after a failed reply, plan changes in the adventure wait, so the message can still be sent again", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     await sendChatMessage(chat.id, FAILING);
     const failed = (await listMessages(user.id, chat.id)).at(-1);
 
@@ -409,7 +391,7 @@ describe("use_case_plan_commands", () => {
     });
     expect(
       await changePlanAction({
-        projectId: chat.project.id,
+        questId: chat.quest.id,
         chatId: chat.id,
         operations: [{ op: "complete", step: 1 }],
       }),
@@ -419,7 +401,7 @@ describe("use_case_plan_commands", () => {
     // again, and the plan is as it was.
     expect((await listMessages(user.id, chat.id)).at(-1)?.id).toBe(failed?.id);
     expect(await readStoppedReply(user.id, chat.id)).toBe(failed?.id);
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,
       RENDER,
@@ -429,7 +411,7 @@ describe("use_case_plan_commands", () => {
     // adventure does too.
     expect(
       await changePlanAction({
-        projectId: chat.project.id,
+        questId: chat.quest.id,
         operations: [{ op: "complete", step: 1 }],
       }),
     ).toMatchObject({ kind: "changed" });
@@ -441,7 +423,7 @@ describe("use_case_plan_commands", () => {
 
   test("while a reply is being made, here or elsewhere, a person's plan change in the adventure waits", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     // Saving the message claims its reply, as the route does before it
     // replies.
     await saveMessage(user.id, chat.id, question("Hello", newMessageId()));
@@ -452,12 +434,12 @@ describe("use_case_plan_commands", () => {
     });
     expect(
       await undoPlanChangeAction({
-        projectId: chat.project.id,
+        questId: chat.quest.id,
         chatId: chat.id,
         version: 1,
       }),
     ).toMatchObject({ kind: "failed", reason: "awaiting-reply" });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,
       RENDER,
@@ -466,12 +448,12 @@ describe("use_case_plan_commands", () => {
 
   test("/undo passes over a change with nothing left to undo", async () => {
     const { user, chat } = await signedInChat();
-    await laidOut(chat.project.id);
+    await laidOut(chat.quest.id);
     await command(chat.id, "/done 1");
     await command(chat.id, "/add Paint the enamel eyes");
     // The added step is removed from the quest's page.
     await changePlanAction({
-      projectId: chat.project.id,
+      questId: chat.quest.id,
       operations: [{ op: "remove", step: 4 }],
     });
 
@@ -483,7 +465,7 @@ describe("use_case_plan_commands", () => {
       kind: "failed",
       reason: "no-such-change",
     });
-    expect(await openTexts(user.id, chat.project.id)).toEqual([
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,
       RENDER,

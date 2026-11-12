@@ -57,7 +57,7 @@ test("redirected or unauthorized detail pages cannot be empty successes", () => 
   expect(() => parseReadinessRow({ ...HOME, path: "/login" })).toThrow();
   expect(() =>
     validateReadinessRows(
-      [{ ...HOME, name: "quest", path: "/projects/:id" }],
+      [{ ...HOME, name: "quest", path: "/quests/:id" }],
       SAMPLES,
     ),
   ).toThrow("Invalid authenticated destination");
@@ -83,7 +83,7 @@ test("repeated observer entries and arbitrary content fields fail validation", (
       ...HOME,
       resources: [
         {
-          path: "/projects/private-id?prompt=private",
+          path: "/quests/private-id?prompt=private",
           start: 0,
           duration: 1,
           bytes: 1,

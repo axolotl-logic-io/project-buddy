@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { AppError } from "@/errors/app-error.ts";
-import type { QuestStatus, StatusApproval } from "@/projects/quest-status.ts";
-import { requestQuestStatus } from "@/projects/quest-status-store.ts";
+import type { QuestStatus, StatusApproval } from "@/quests/quest-status.ts";
+import { requestQuestStatus } from "@/quests/quest-status-store.ts";
 import {
   CHAT_TOOL_CONTEXT,
   type ChatToolContext,
@@ -16,13 +16,13 @@ async function proposeStatus(
   { status }: { readonly status: QuestStatus },
   { context }: { readonly context: ChatToolContext },
 ): Promise<{ status: "awaiting-approval"; approval: StatusApproval }> {
-  if (context.projectId === undefined) {
+  if (context.questId === undefined) {
     throw new AppError("not-found", new Error("Chat has no quest status"));
   }
   const approval = await requestQuestStatus(
     context.actingUser,
     context.chatId,
-    context.projectId,
+    context.questId,
     status,
   );
   if (approval === undefined) {

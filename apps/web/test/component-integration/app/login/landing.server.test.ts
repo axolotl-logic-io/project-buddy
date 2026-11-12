@@ -25,14 +25,14 @@ describe("sign-in landing destination", () => {
     if (destination !== undefined) {
       form.set("next", destination);
     }
-    await expectRedirect(() => continueSignInAction(form), "/projects");
+    await expectRedirect(() => continueSignInAction(form), "/quests");
     expect((await currentUser())?.id).toBe(user.id);
   });
 
   test("preserves an explicit return to an authorized quest", async () => {
     const user = await testUser();
-    const project = await testData(user).project();
-    const destination = `/projects/${project.id}`;
+    const quest = await testData(user).quest();
+    const destination = `/quests/${quest.id}`;
     const form = new FormData();
     form.set("token", await emailedLoginToken(user, sent.sendEmail));
     form.set("next", destination);
@@ -43,7 +43,7 @@ describe("sign-in landing destination", () => {
   test("an invalid sign-in link cannot open a return destination or create a session", async () => {
     const form = new FormData();
     form.set("token", "invalid");
-    form.set("next", "/projects");
+    form.set("next", "/quests");
     await expectRedirect(() => continueSignInAction(form), "/login/link", {
       token: "invalid",
     });

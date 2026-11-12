@@ -12,6 +12,7 @@
 // user's last message: each `/mock-…` command in MOCK_COMMANDS there, with
 // its usage beside it, and a Markdown reply quoting any other message. A
 // test may pass its own MockScript instead.
+
 import type {
   LanguageModelV4,
   LanguageModelV4CallOptions,

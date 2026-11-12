@@ -2,6 +2,7 @@
 // calls her, which fills every {{name}} in her construct's system prompt, and
 // clears it again. The prompt is built as a reply builds it (reply.ts). The
 // field and its status are checked in name-form.test.tsx.
+
 import { expect, test, vi } from "vitest";
 import { readUserName, type User } from "@/accounts/users-store.ts";
 import {
@@ -28,7 +29,7 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 const LUMEN = getConstruct("lumen");
 const VOICE = "Hi {{name}}";
 
-// A chat in a new project of user's, in a clone of Lumen whose voice is
+// A chat in a new quest of user's, in a clone of Lumen whose voice is
 // VOICE, made straight in the stores.
 async function chatInNamedClone(user: User): Promise<Chat> {
   const clone = await cloneConstruct(user.id, "lumen");
@@ -37,9 +38,9 @@ async function chatInNamedClone(user: User): Promise<Chat> {
   }
   const parts = { ...clone.definition, prompt: VOICE };
   await updateConstruct(user.id, clone.id, { definition: parts });
-  const project = await testData(user).project();
+  const quest = await testData(user).quest();
   return createChat(user.id, {
-    project,
+    quest,
     construct: { id: LUMEN.id, name: clone.name, definition: parts },
   });
 }

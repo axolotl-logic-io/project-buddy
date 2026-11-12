@@ -21,7 +21,7 @@ import {
   constructGenerations,
 } from "@/db/tables/construct-visuals.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { UserId } from "@/ids.ts";
 

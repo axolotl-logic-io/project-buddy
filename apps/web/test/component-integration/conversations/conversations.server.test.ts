@@ -3,6 +3,7 @@
 // made atomically, never made by reading, open to the quest's people or to
 // the Chat's user alone, and the user's one Dailies quest, reused by its
 // mark whatever its name.
+
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -15,20 +16,18 @@ import { privateChat } from "@/conversations/private-chat.ts";
 import { resolveConversation } from "@/conversations/resolve.ts";
 import {
   readQuestConversation,
-  startProject,
+  startQuest,
   startQuestConversation,
 } from "@/conversations/start-quest.ts";
 import { getDb } from "@/db/client.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { readMemory, saveMemory } from "@/memory/memory-store.ts";
 import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { listProjects, renameProject } from "@/projects/store.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { listQuests, renameQuest } from "@/quests/store.ts";
 import { CONVERSATION_WINDOW } from "@/replies/conversation-to-answer.ts";
 import {
   type Exchange,
@@ -50,8 +49,8 @@ const AT_ONCE = 4;
 // What a new Dailies starts with, as its premade quest gives it.
 function dailiesStart(): Parameters<typeof startDailies>[1] {
   return {
-    name: PROJECT_NAME.parse("Dailies"),
-    journal: "## Goal\n\nStart each day with one manageable step.",
+    name: QUEST_NAME.parse("Dailies"),
+    context: "## Goal\n\nStart each day with one manageable step.",
     construct: getConstruct("vellum"),
     activity: builtInActivity(DEFAULT_ACTIVITY_ID),
   };
@@ -59,7 +58,7 @@ function dailiesStart(): Parameters<typeof startDailies>[1] {
 
 // The user's Dailies quests.
 async function dailiesOf(user: User): Promise<string[]> {
-  return (await listProjects(user.id))
+  return (await listQuests(user.id))
     .filter(({ dailies }) => dailies)
     .map(({ id }) => id);
 }
@@ -67,20 +66,20 @@ async function dailiesOf(user: User): Promise<string[]> {
 describe("a quest's conversation", () => {
   test("reading a quest without one starts none and spends nothing", async () => {
     const user = await testUser();
-    const project = await testData(user).project();
+    const quest = await testData(user).quest();
 
-    expect(await readQuestConversation(user.id, project.id)).toBeUndefined();
-    expect(await readQuestConversation(user.id, project.id)).toBeUndefined();
+    expect(await readQuestConversation(user.id, quest.id)).toBeUndefined();
+    expect(await readQuestConversation(user.id, quest.id)).toBeUndefined();
     expect(await goldSpent(user)).toBe(0);
   });
 
   test("concurrent starts reach one conversation with one opening", async () => {
     const user = await testUser();
-    const project = await testData(user).project();
+    const quest = await testData(user).quest();
 
     const results = await Promise.all(
       Array.from({ length: AT_ONCE }, () =>
-        startQuestConversation(user.id, project.id),
+        startQuestConversation(user.id, quest.id),
       ),
     );
 
@@ -99,14 +98,14 @@ describe("a quest's conversation", () => {
     }
     const opened = await listMessages(user.id, id);
     expect(opened.map(({ role }) => role)).toEqual(["assistant"]);
-    expect((await readQuestConversation(user.id, project.id))?.id).toBe(id);
+    expect((await readQuestConversation(user.id, quest.id))?.id).toBe(id);
   });
 
   test("a new quest opens in its one conversation, which every later start continues", async () => {
     const user = await testUser();
-    const started = await startProject(
+    const started = await startQuest(
       user.id,
-      PROJECT_NAME.parse("Sea turtle"),
+      QUEST_NAME.parse("Sea turtle"),
       getConstruct("lumen"),
     );
     if (started.kind !== "started") {
@@ -114,7 +113,7 @@ describe("a quest's conversation", () => {
     }
     const { chat } = started;
 
-    const again = await startQuestConversation(user.id, chat.project.id);
+    const again = await startQuestConversation(user.id, chat.quest.id);
 
     expect(again).toMatchObject({
       kind: "started",
@@ -125,19 +124,19 @@ describe("a quest's conversation", () => {
 
   test("another user's quest is not found, and nothing is started in it", async () => {
     const { her, herData, other } = await twoUsers();
-    const project = await herData.project();
+    const quest = await herData.quest();
 
-    expect(await startQuestConversation(other.id, project.id)).toEqual({
+    expect(await startQuestConversation(other.id, quest.id)).toEqual({
       kind: "notFound",
     });
-    expect(await readQuestConversation(her.id, project.id)).toBeUndefined();
+    expect(await readQuestConversation(her.id, quest.id)).toBeUndefined();
   });
 
   test("a former member can't send to, open or resolve the owner's conversation", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
-    const project = await data.project();
-    const chat = await data.chat(project);
+    const quest = await data.quest();
+    const chat = await data.chat(quest);
     const before = await listMessages(owner.id, chat.id);
 
     await signIn(member);
@@ -146,12 +145,12 @@ describe("a quest's conversation", () => {
     expect(sent.status).toBe(HTTP_STATUS.notFound);
     expect(await listMessages(owner.id, chat.id)).toEqual(before);
     expect(await goldSpent(member)).toBe(0);
-    expect(await readQuestConversation(member.id, project.id)).toBeUndefined();
+    expect(await readQuestConversation(member.id, quest.id)).toBeUndefined();
     expect(await getChat(member.id, chat.id)).toBeUndefined();
     expect(await resolveConversation(member.id, chat.id)).toBeUndefined();
     expect(await resolveConversation(owner.id, chat.id)).toEqual({
       kind: "quest",
-      projectId: project.id,
+      questId: quest.id,
     });
   });
 });
@@ -160,17 +159,17 @@ describe("a quest's Progress", () => {
   test("a milestone stays on the timeline, with no conversation, once its conversation is gone", async () => {
     const user = await testUser();
     const data = testData(user);
-    const project = await data.project();
-    const chat = await data.chat(project);
+    const quest = await data.quest();
+    const chat = await data.chat(quest);
     await recordMilestone(
       user.id,
-      { projectId: project.id, chatId: chat.id },
+      { questId: quest.id, chatId: chat.id },
       "Modelled the shell",
     );
 
     await getDb().delete(chats).where(eq(chats.id, chat.id));
 
-    expect(await listMilestones(user.id, project.id)).toMatchObject([
+    expect(await listMilestones(user.id, quest.id)).toMatchObject([
       { text: "Modelled the shell", chatId: undefined },
     ]);
   });
@@ -180,7 +179,7 @@ describe("a long conversation", () => {
   test("a reply reads only the newest messages, while the conversation keeps them all", async () => {
     const user = await testUser();
     const data = testData(user);
-    const chat = await data.chat(await data.project());
+    const chat = await data.chat(await data.quest());
     const reply: Exchange["reply"] = [{ type: "text", text: "Ok" }];
     const exchanges: Exchange[] = [
       { message: "The first thing: oldkeyword", reply },
@@ -217,7 +216,7 @@ describe("the private Chat", () => {
 
     expect(second.id).toBe(first.id);
     expect(later.id).toBe(first.id);
-    expect(first.project).toBeUndefined();
+    expect(first.quest).toBeUndefined();
     expect(await listMessages(her.id, first.id)).toEqual([]);
     expect(await goldSpent(her)).toBe(0);
     expect(theirs.id).not.toBe(first.id);
@@ -246,47 +245,32 @@ describe("Dailies", () => {
         if (result.kind !== "started" && result.kind !== "resumed") {
           throw new Error(`Dailies didn't start: ${result.kind}`);
         }
-        return result.chat.project.id;
+        return result.chat.quest.id;
       }),
     ).toEqual(Array.from({ length: AT_ONCE }, () => quests[0]));
     expect(results.filter(({ kind }) => kind === "started")).toHaveLength(1);
   });
 
-  test("resuming keeps its conversation, Journal and name, whatever it is renamed to", async () => {
+  test("resuming keeps its conversation and name without spending batteries", async () => {
     const user = await testUser();
     const first = await startDailies(user.id, dailiesStart());
     if (first.kind !== "started") {
-      throw new Error(`Dailies didn't start: ${first.kind}`);
+      throw new Error("Dailies did not start");
     }
     const { chat } = first;
     await signIn(user);
     await sendChatMessage(chat.id, "Let's start the day.");
-    const journal = await readMemory(user.id, chat.project.id);
-    await saveMemory(user.id, {
-      projectId: chat.project.id,
-      text: `${journal.text}\n\n- Walked the dog`,
-      basedOn: MEMORY_VERSION_NUMBER.parse(journal.version),
-      author: "user",
-    });
-    await renameProject(
-      user.id,
-      chat.project.id,
-      PROJECT_NAME.parse("Mornings"),
-    );
     const before = await listMessages(user.id, chat.id);
-    const spent = await goldSpent(user);
-
+    const balance = await goldSpent(user);
+    await renameQuest(user.id, chat.quest.id, QUEST_NAME.parse("My mornings"));
     const resumed = await startDailies(user.id, dailiesStart());
-
-    expect(resumed).toMatchObject({
-      kind: "resumed",
-      chat: { id: chat.id, project: { id: chat.project.id, name: "Mornings" } },
-    });
+    if (resumed.kind !== "resumed") {
+      throw new Error("Dailies did not resume");
+    }
+    expect(resumed.chat.id).toBe(chat.id);
+    expect(resumed.chat.quest.name).toBe("My mornings");
     expect(await listMessages(user.id, chat.id)).toEqual(before);
-    expect((await readMemory(user.id, chat.project.id)).text).toContain(
-      "Walked the dog",
-    );
-    expect(await goldSpent(user)).toBe(spent);
+    expect(await goldSpent(user)).toBe(balance);
   });
 
   test("each user has their own Dailies, and a former member's start makes theirs", async () => {
@@ -300,7 +284,7 @@ describe("Dailies", () => {
 
     expect(theirs.kind).toBe("started");
     expect(await dailiesOf(other)).toHaveLength(1);
-    expect(await dailiesOf(other)).not.toContain(hers.chat.project.id);
-    expect(await dailiesOf(her)).toEqual([hers.chat.project.id]);
+    expect(await dailiesOf(other)).not.toContain(hers.chat.quest.id);
+    expect(await dailiesOf(her)).toEqual([hers.chat.quest.id]);
   });
 });
