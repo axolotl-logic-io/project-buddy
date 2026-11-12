@@ -1,6 +1,6 @@
 // The user's private Chat: one continuing conversation for talking without
 // a goal, open to that user alone. It has no quest, so the construct has no
-// Journal, Plan or Progress to read or write in it.
+// Plan or Progress to read or write in it.
 import {
   type Conversation,
   findOrCreateConversation,

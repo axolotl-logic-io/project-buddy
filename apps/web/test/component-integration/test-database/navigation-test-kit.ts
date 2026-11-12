@@ -2,6 +2,7 @@
 // `notFound()`. Both work by throwing an error Next recognizes, so each
 // check passes only if the action rejects with that error. This is the one
 // module that knows how Next marks those errors.
+
 import {
   getAccessFallbackHTTPStatus,
   isHTTPAccessFallbackError,

@@ -3,6 +3,7 @@
 // file mounts with
 //   vi.mock("@/plan/plan-actions.ts", () => import("../plan/plan-actions-test-kit.ts"));
 // Each action is a mock that answers nothing until a test sets an answer.
+
 import { vi } from "vitest";
 import type * as actions from "@/plan/plan-actions.ts";
 

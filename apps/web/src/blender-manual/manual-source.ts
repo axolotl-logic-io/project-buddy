@@ -24,7 +24,7 @@ function parseUrl(link: string): URL | null {
 }
 
 export const MANUAL_REPOSITORY_URL =
-  "https://projects.blender.org/blender/blender-manual.git";
+  "https://quests.blender.org/blender/blender-manual.git";
 export const MANUAL_BRANCH = "blender-v5.3-release";
 
 // Whether filePath, from the repository root, is a page of the manual.

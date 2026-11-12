@@ -5,7 +5,7 @@ import { type JSX, useActionState, useEffect, useState } from "react";
 import {
   answerQuestStatusAction,
   readQuestStatusApprovalAction,
-} from "@/app/(workspace)/projects/status-actions.ts";
+} from "@/app/(workspace)/quests/status-actions.ts";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { UndoStatusChange } from "@/components/quest-status-controls.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -14,7 +14,7 @@ import { Icon } from "@/components/ui/icon.tsx";
 import type {
   StatusActionState,
   StatusApproval,
-} from "@/projects/quest-status.ts";
+} from "@/quests/quest-status.ts";
 import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
@@ -103,7 +103,7 @@ function ApprovalCard({
       )}
       {state.change !== undefined && <UndoStatusChange change={state.change} />}
       <Button asChild={true} variant="quiet" className="self-start">
-        <Link href={`/projects/${details.projectId}`}>
+        <Link href={`/quests/${details.questId}`}>
           {QUEST_STATUS_COPY.open}
         </Link>
       </Button>

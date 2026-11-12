@@ -1,4 +1,5 @@
 // Installed app assets and the temporary retirement worker remain public.
+
 import { unstable_doesMiddlewareMatch as doesProxyMatch } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
 import { expect, test } from "vitest";

@@ -4,8 +4,8 @@
 // their numbers, as the plan shows them (#3 or 3). It imports nothing from
 // the server, because the composer in the browser tells commands apart with
 // the same rules.
+
 import { z } from "zod";
-import { preferenceCommand } from "@/journal/preference-commands.ts";
 import {
   moveToPlace,
   nextPlanStep,
@@ -98,10 +98,7 @@ function isChatCommand(text: string, place: CommandPlace): boolean {
     return false;
   }
   if (!place.inQuest) {
-    return (
-      PLAN_COMMAND_NAME.safeParse(name).success ||
-      preferenceCommand(text) !== undefined
-    );
+    return PLAN_COMMAND_NAME.safeParse(name).success;
   }
   return !(place.mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
 }

@@ -1,7 +1,7 @@
 // The manual's release branch, cloned into memory with isomorphic-git: one
 // branch, one commit deep, with no working tree. Reindexing needs no disk, no
 // git binary and no Node built-ins. Git over HTTPS works even though the
-// projects.blender.org web pages sit behind a bot challenge.
+// quests.blender.org web pages sit behind a bot challenge.
 import { clone, listFiles, readBlob, resolveRef } from "isomorphic-git";
 import { request } from "isomorphic-git/http/web";
 import { createFsFromVolume, Volume } from "memfs";

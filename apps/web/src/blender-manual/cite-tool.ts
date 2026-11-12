@@ -3,6 +3,7 @@
 // search_blender_manual call in the conversation returned are kept, so every link is
 // a real section the construct read. The model reads the result with a reminder
 // that its answer still comes after the call.
+
 import { type ModelMessage, type ToolResultPart, tool } from "ai";
 import {
   CITE_BLENDER_MANUAL_DESCRIPTION,

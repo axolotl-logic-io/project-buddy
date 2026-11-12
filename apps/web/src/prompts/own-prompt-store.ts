@@ -1,4 +1,5 @@
 // Shared ownership, cloning and transaction behavior for saved definitions. The parts column is a legacy storage detail.
+
 import { and, asc, eq, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
@@ -7,11 +8,7 @@ import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type OwnPromptId, parseOwnPromptId, type UserId } from "@/ids.ts";
-import {
-  type NamedDefinition,
-  type PromptKind,
-  storedPromptKind,
-} from "@/prompts/prompt.ts";
+import type { NamedDefinition, PromptKind } from "@/prompts/prompt.ts";
 
 interface DefinitionLimits<Definition> {
   readonly nameMax: number;
@@ -116,7 +113,7 @@ function toPrompts<Definition>(
 function ownedOfKind(owner: UserId, kind: PromptKind): SQL | undefined {
   return and(
     ownPromptOwnedBy(owner),
-    eq(ownPrompts.kind, storedPromptKind(kind)),
+    eq(ownPrompts.kind, kind),
     isNull(ownPrompts.retiredAt),
   );
 }
@@ -180,7 +177,7 @@ async function createOwnPrompt<Definition>(
           .insert(ownPrompts)
           .values({
             userId: owner,
-            kind: storedPromptKind(store.kind),
+            kind: store.kind,
             name: prompt.name,
             parts:
               store.encodeDefinition?.(prompt.definition) ?? prompt.definition,
@@ -237,7 +234,7 @@ async function cloneOwnPrompt<Definition>(
           .insert(ownPrompts)
           .values({
             userId: owner,
-            kind: storedPromptKind(store.kind),
+            kind: store.kind,
             name,
             parts:
               store.encodeDefinition?.(source.definition) ?? source.definition,
@@ -315,7 +312,7 @@ async function deleteOwnPrompt<Definition>(
       .where(
         and(
           ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, storedPromptKind(store.kind)),
+          eq(ownPrompts.kind, store.kind),
           eq(ownPrompts.id, promptId),
           isNotNull(ownPrompts.retiredAt),
         ),

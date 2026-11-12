@@ -16,7 +16,7 @@ import {
 import {
   type StartQuestState,
   startQuestAction,
-} from "@/app/(workspace)/projects/actions.ts";
+} from "@/app/(workspace)/quests/actions.ts";
 import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { FormDialog } from "@/components/form-dialog.tsx";
@@ -25,15 +25,15 @@ import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { type ConstructId, isConstructId } from "@/constructs/index.ts";
-import type { OwnPromptId, ProjectId } from "@/ids.ts";
+import type { OwnPromptId, QuestId } from "@/ids.ts";
 import {
   PREMADE_QUESTS,
   type PremadeQuest,
   type PremadeQuestId,
   type QuestStartPreset,
-} from "@/projects/premade-quests.ts";
-import type { QuestCreationChoices } from "@/projects/quest-creation-choices.ts";
-import { PROJECTS_COPY, QUEST_START_COPY } from "@/ui/copy/projects.ts";
+} from "@/quests/premade-quests.ts";
+import type { QuestCreationChoices } from "@/quests/quest-creation-choices.ts";
+import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 const IDLE: StartQuestState = { kind: "idle" };
 
@@ -69,7 +69,7 @@ function presetConstructId(
 }
 
 // Starts the selected quest with a construct and optional Why. Its name
-// and starting Journal come from the starting point or Chat's preset.
+// and starting context come from the starting point or Chat's preset.
 function QuestStartForm({
   quest,
   choices,
@@ -95,16 +95,16 @@ function QuestStartForm({
         userConstructs={choices.userConstructs}
       />
       <TextAreaField
-        label={PROJECTS_COPY.motivationLabel}
-        hint={PROJECTS_COPY.motivationHint}
+        label={QUESTS_COPY.motivationLabel}
+        hint={QUESTS_COPY.motivationHint}
         name="motivation"
         rows={3}
       />
       <input type="hidden" name="name" value={preset.name ?? quest.name} />
       <input
         type="hidden"
-        name="journal"
-        value={preset.journal ?? quest.journal}
+        name="context"
+        value={preset.context ?? quest.context}
       />
       {state.kind !== "idle" && (
         <Alert>
@@ -167,7 +167,7 @@ function QuestStartTile({
   presentation,
 }: {
   readonly quest: PremadeQuest;
-  readonly dailiesId: ProjectId | undefined;
+  readonly dailiesId: QuestId | undefined;
   readonly onChoose: (id: PremadeQuestId) => void;
   readonly choices: QuestCreationChoices;
   readonly preset: QuestStartPreset;
@@ -189,7 +189,7 @@ function QuestStartTile({
           aria-describedby={taglineId}
           aria-labelledby={nameId}
           className="quest-start-tile"
-          href={`/projects/${dailiesId}`}
+          href={`/quests/${dailiesId}`}
         >
           {face}
         </Link>
@@ -248,7 +248,7 @@ function QuestStartChoices({
   readonly preset?: QuestStartPreset;
   readonly presentation?: "dialog" | "inline";
   readonly initialChoice?: PremadeQuestId | undefined;
-  readonly dailiesId?: ProjectId | undefined;
+  readonly dailiesId?: QuestId | undefined;
 }): JSX.Element {
   const headingId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -269,7 +269,7 @@ function QuestStartChoices({
     show(undefined);
   }, [show]);
   const offered = PREMADE_QUESTS.filter(
-    (quest) => quest.id !== "dailies" || preset.journal === undefined,
+    (quest) => quest.id !== "dailies" || preset.context === undefined,
   );
   const shown = offered.find(({ id }) => id === chosen);
   if (shown !== undefined) {

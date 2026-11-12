@@ -4,6 +4,7 @@
 // How the alerts, the working note and the failure line look is
 // chat-error.test.tsx's, working-note.browser.test.tsx's and
 // chat-view-tool-failure.test.tsx's.
+
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
@@ -11,7 +12,6 @@ import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { readMemoryHistory } from "@/memory/memory-store.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
@@ -111,7 +111,7 @@ describe("use_case_reply_fails", () => {
 test("use_case_session_expired_in_chat", async () => {
   const user = await testUser();
   const data = testData(user);
-  const chat = await data.chat(await data.project());
+  const chat = await data.chat(await data.quest());
   await lapsed(user);
 
   const response = await sendChatMessage(chat.id, "Still there?");
@@ -136,25 +136,4 @@ test("use_case_see_working_note", async () => {
       mockWorkingNoteAnswer(NOTE_TOPIC),
     ],
   ]);
-});
-
-describe("use_case_construct_updates_memory", () => {
-  test("a malformed memory edit saves its failed call and leaves the memory unchanged", async () => {
-    const { user, chat } = await signedInChat();
-
-    await sendChatMessage(
-      chat.id,
-      `/mock-tool update_memory ${JSON.stringify({ oldText: 1 })}`,
-    );
-
-    const reply = (await listMessages(user.id, chat.id)).at(-1);
-    const memoryCalls = reply?.parts.filter(
-      ({ type }) => type === "tool-update_memory",
-    );
-    expect(reply?.role).toBe("assistant");
-    expect(memoryCalls).toEqual([
-      expect.objectContaining({ state: "output-error" }),
-    ]);
-    expect(await readMemoryHistory(user.id, chat.project.id)).toEqual([]);
-  });
 });

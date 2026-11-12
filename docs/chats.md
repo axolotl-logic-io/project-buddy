@@ -4,7 +4,7 @@
 
 A quest has one continuing conversation, and each user has one private Chat (`src/conversations/`). Both are `chats` rows marked `continuing`. Partial unique indexes allow one per quest and one per user, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one. Starting it (`startQuestConversation`) is free when it exists, and charges the acting user for an opening only when the construct writes one.
 
-A conversation keeps the construct it started with. Its activity changes only when the construct enters another with its activity tool, which records the change at its place in the history. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Journal, plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
+A conversation keeps the construct it started with. Its activity changes only when the construct enters another with its activity tool, which records the change at its place in the history. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
 
 ## Start a quest
 
@@ -12,25 +12,25 @@ On Quests, Start Quest opens a dialog with two fields: Construct and Why.
 Construct defaults to the account's New quest construct preference. The visible
 explanation makes clear that this construct joins the first adventure; later
 adventures in the same quest can use other constructs. Why is optional and
-becomes the quest motivation in the opening and first Journal version.
+becomes the quest motivation in the opening and opening conversation.
 
 Starting gives the quest the default name New quest and opens its first adventure
 in Break Down a Project. With no motivation, the existing prepared opening is used
 when available. Failed openings save nothing and keep the construct choice and
 Why for retry. Cancel, Close and Escape create nothing. The premade quest
-previews remain separate and keep their editable name, Journal and activity.
+previews remain separate and keep their editable name and activity.
 
 ## Chat
 
 `/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: old addresses of it reveal nothing to anyone else.
 
-Chat has no Journal, plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
+Chat has no Plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
 
 ### Turn Chat into a quest
 
-Chat's header offers **Turn Chat into a quest**, one of the two ways to create a quest; the other is Start a quest on Quests. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft Journal (`chatSummaryDraft`, built without the model). The user edits the name and Journal and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed Journal. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
+Chat's header offers **Turn Chat into a quest**, one of the two ways to create a quest; the other is Start a quest on Quests. It opens the shared quest start on Do a thing, with the user's latest Chat messages as a draft starting context (`chatSummaryDraft`, built without the model). The user edits the name and starting context and confirms; closing the dialog creates nothing and spends nothing. The new quest gets only the confirmed starting context. No Chat message is copied or moved, so people later invited to the quest see nothing of the Chat.
 
-In Chat only, the construct can offer a quest with `create_project`. The tool creates nothing and spends nothing: its result holds a name, summary and motivation, and the conversation shows them with a Turn Chat into a quest button that opens the same dialog filled in (`QuestFromChat`, through `ChatQuestChoices`). The user confirms there, through `startQuestAction`, like any quest start. A quest's conversation has no `create_project` tool. An offer saved before this change, or shown outside Chat, shows its name with nothing to open, and a saved "created" result still links to its quest. The `quest_transfers` table is no longer read or written; it stays until the held schema cleanup drops it.
+In Chat only, the construct can offer a quest with `create_quest`. The tool creates nothing and spends nothing: its result holds a name, summary and motivation, and the conversation shows them with a Turn Chat into a quest button that opens the same dialog filled in (`QuestFromChat`, through `ChatQuestChoices`). The user confirms there, through `startQuestAction`, like any quest start. A quest's conversation has no `create_quest` tool. An offer saved before this change, or shown outside Chat, shows its name with nothing to open, and a saved "created" result still links to its quest. The `quest_transfers` table is no longer read or written; it stays until the held schema cleanup drops it.
 
 ### Old addresses
 
@@ -38,7 +38,7 @@ In Chat only, the construct can offer a quest with `create_project`. The tool cr
 
 ## Quests landing page
 
-Quests (`/projects`) opens after sign-in when no explicit return destination
+Quests (`/quests`) opens after sign-in when no explicit return destination
 was supplied. The site name and root address lead there too; old `/home`
 bookmarks redirect to Quests. Signed-out visitors still need to sign in.
 Opening these pages makes no model call and spends no batteries.
@@ -49,7 +49,7 @@ quest's four tiles, Dailies, Learn a thing, Make a thing and Do a thing, then
 the user's quests under Active, Completed and Abandoned tabs. Continue names
 the user's own Active quest whose conversation was most recently active, with
 its next step, and opens its conversation; with no Active quest it is absent
-(`src/projects/current-quest-store.ts`). Reading it makes no model call. The
+(`src/quests/current-quest-store.ts`). Reading it makes no model call. The
 Home atlas and its destination panels are removed.
 
 ## Activities and constructs
@@ -64,10 +64,10 @@ Quest interview is retired from new choices. Existing snapshots stay unchanged, 
 
 ## Behavioral evidence
 
-The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_standalone_chat`, `use_case_talk_idea_through` and `use_case_project_from_standalone_chat`, with exactly slug-titled Vitest groups.
+The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_standalone_chat`, `use_case_talk_idea_through` and `use_case_quest_from_standalone_chat`, with exactly slug-titled Vitest groups.
 
 - `apps/web/test/component-integration/app/(workspace)/chat/page.server.test.ts` opens Chat repeatedly as two users with the real stores: one conversation each, nothing spent on the way in, no other user sees it, and old addresses redirect or are not found as above.
-- `apps/web/test/component/start-work/chat-summary-draft.test.ts` checks the draft Journal.
+- `apps/web/test/component/start-work/chat-summary-draft.test.ts` checks the draft starting context.
 
 Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
@@ -228,7 +228,7 @@ Existing adventure snapshots stay unchanged. If the preferred construct is delet
 
 The quest start's construct picker defaults to the New quest construct, and the user can change it before starting.
 
-When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
+When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Break Down a Project. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's opening conversation in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
 
 ## Construct presence
 
@@ -271,7 +271,7 @@ The shared site header (`src/components/site-header.tsx`) has two parts:
 - **The bar** is one row of the brand, the battery balance and the menu, in the header's ink and gold. The brand is a compass medallion and the site's name, and it leads to Quests. Below 32rem (512 CSS pixels) the brand shows only its medallion, and "Project Buddy" stays its accessible name. The bar scrolls away.
 - **The trail band** sits under the bar's gold rim, as a parchment strip with a line beneath it. It shows the links to the pages above the current one, small and muted, separated by `/`, leading into the current page's name. That name is the page's one `h1`, so pages don't repeat it in their content. The band stays pinned while the page scrolls.
 
-Every signed-in page with a place in the site has a band: Quests, a quest and its Journal, Chat, the Library and its books, the Workshop and each construct, activity and spell, Retirement and each retired definition, the Image gallery, Settings, and Invitations for an admin. Quests has a heading and no parent links. The header route (`src/app/@header/[...path]/page.tsx`) builds the trail on each navigation, including back and forward, and resolves names through the acting user's access checks (`src/components/header-breadcrumbs.ts`). Unknown or inaccessible pages, such as Invitations for anyone but an admin, have no band and keep their own heading, as signed-out, sign-in and not-found pages do. A page that fails under a band shows its error under a section heading, below the band's.
+Every signed-in page with a place in the site has a band: Quests, a quest and its Plan, Chat, the Library and its books, the Workshop and each construct, activity and spell, Retirement and each retired definition, the Image gallery, Settings, and Invitations for an admin. Quests has a heading and no parent links. The header route (`src/app/@header/[...path]/page.tsx`) builds the trail on each navigation, including back and forward, and resolves names through the acting user's access checks (`src/components/header-breadcrumbs.ts`). Unknown or inaccessible pages, such as Invitations for anyone but an admin, have no band and keep their own heading, as signed-out, sign-in and not-found pages do. A page that fails under a band shows its error under a section heading, below the band's.
 
 When names are long, the parent links shorten first, each with an ellipsis. They keep full 44-pixel touch targets and their whole names as accessible names. The heading keeps its words and wraps to at most two lines. On a phone, a trail with more than one parent leaves out its Quests link, because the medallion leads there.
 

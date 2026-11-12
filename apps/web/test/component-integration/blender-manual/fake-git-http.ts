@@ -3,6 +3,7 @@
 // memory, so tests run the real client without a network, a disk or a git
 // binary. It serves only what reindexing asks for, a shallow clone of one
 // branch, and answers anything else with 400 Bad Request.
+
 import {
   init,
   packObjects,

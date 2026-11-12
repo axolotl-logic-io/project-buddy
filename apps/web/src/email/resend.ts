@@ -1,6 +1,7 @@
 // Sending an email through Resend's HTTP API, with plain fetch. Each request
 // carries the message's idempotency key, which Resend remembers for 24
 // hours, so a repeated request sends no second email.
+
 import { z } from "zod";
 import { EmailFailure, type EmailProblem } from "@/email/email-failure.ts";
 import { type EmailMessage, emailSender } from "@/email/email-message.ts";

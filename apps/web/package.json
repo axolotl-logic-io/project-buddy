@@ -34,8 +34,7 @@
     "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
     "test-db:reindex": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reindex.ts",
     "audit:performance": "bash scripts/performance/run.sh",
-    "audit:validate": "node --import tsx scripts/performance/validate.mts",
-    "journal:migrate-next-steps": "node --env-file-if-exists=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/migrate-next-steps.ts"
+    "audit:validate": "node --import tsx scripts/performance/validate.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.78",

@@ -5,6 +5,7 @@
 // pages are the default theme's backgrounds, as the browser renders them.
 // That the proxy serves these files without a session is
 // web-app-access.test.ts's to check.
+
 import { afterEach, describe, expect, test } from "vitest";
 import manifest from "@/app/manifest.ts";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";

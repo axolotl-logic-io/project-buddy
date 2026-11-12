@@ -1,11 +1,13 @@
+import { messageText } from "../../../test-database/chat-test-kit.ts";
 // Chat, the user's one private conversation, and the old adventure
 // addresses that now lead to Chat or to a quest, in the test database with
 // the mock construct.
+
 import { describe, expect, test, vi } from "vitest";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import OldChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import OldNewChatPage from "@/app/(workspace)/chats/new/page.tsx";
-import { startQuestAction } from "@/app/(workspace)/projects/actions.ts";
+import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { resolveConversation } from "@/conversations/resolve.ts";
@@ -14,8 +16,7 @@ import {
   startQuestConversation,
 } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
-import { readMemory } from "@/memory/memory-store.ts";
-import { listProjects, type Project } from "@/projects/store.ts";
+import { listQuests, type Quest } from "@/quests/store.ts";
 import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
 import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
@@ -45,9 +46,9 @@ function openOld(chatId: string): Promise<never> {
 // The quest's one conversation, opened for its owner.
 async function questConversationId(
   owner: UserId,
-  project: Project,
+  quest: Quest,
 ): Promise<string> {
-  const started = await startQuestConversation(owner, project.id);
+  const started = await startQuestConversation(owner, quest.id);
   if (started.kind !== "started") {
     throw new Error(`The quest's conversation didn't open: ${started.kind}`);
   }
@@ -82,9 +83,9 @@ describe("use_case_standalone_chat", () => {
   test("an old adventure address opens her Chat or her quest, and reveals nothing else", async () => {
     const { her, herData, other, otherData } = await twoUsers();
     const [ownQuest, sharedQuest, foreignQuest] = await Promise.all([
-      herData.project("Own fox"),
-      otherData.project("Formerly shared fox"),
-      otherData.project("Private fox"),
+      herData.quest("Own fox"),
+      otherData.quest("Formerly shared fox"),
+      otherData.quest("Private fox"),
     ]);
     const [chat, own, shared, foreign] = await Promise.all([
       privateChat(her.id),
@@ -95,7 +96,7 @@ describe("use_case_standalone_chat", () => {
 
     const checks = [
       expectRedirect(() => openOld(chat.id), "/chat"),
-      expectRedirect(() => openOld(own), `/projects/${ownQuest.id}`),
+      expectRedirect(() => openOld(own), `/quests/${ownQuest.id}`),
       expectNotFound(() => openOld(shared)),
       expectNotFound(() => openOld(foreign)),
       expectNotFound(() => openOld("not-a-chat")),
@@ -114,8 +115,8 @@ describe("use_case_standalone_chat", () => {
   });
 });
 
-describe("use_case_project_from_standalone_chat", () => {
-  test("confirming a Chat summary starts a quest with only that Journal, and Chat stays private", async () => {
+describe("use_case_quest_from_standalone_chat", () => {
+  test("confirming a Chat summary starts a quest with the approved summary as conversation context, and Chat stays private", async () => {
     const { her, other } = await twoUsers();
     const chat = await privateChat(her.id);
     await constructReply(chat.id, SAID);
@@ -126,28 +127,35 @@ describe("use_case_project_from_standalone_chat", () => {
       formOf({
         premadeId: "do",
         name: QUEST_NAME,
-        journal: edited,
+        context: edited,
         constructId: "vellum",
       }),
     );
     await Promise.allSettled([starting]);
-    const quest = (await listProjects(her.id)).find(
+    const quest = (await listQuests(her.id)).find(
       ({ name }) => name === QUEST_NAME,
     );
     if (quest === undefined) {
       throw new Error("No quest started");
     }
-    await expectRedirect(() => starting, `/projects/${quest.id}`);
+    await expectRedirect(() => starting, `/quests/${quest.id}`);
 
-    expect((await readMemory(her.id, quest.id)).text).toBe(edited);
     const conversation = await readQuestConversation(her.id, quest.id);
     if (conversation === undefined) {
       throw new Error("The quest has no conversation");
     }
     expect(conversation.id).not.toBe(chat.id);
     const questMessages = await listMessages(her.id, conversation.id);
-    expect(JSON.stringify(questMessages)).not.toContain(SAID);
-    expect(await listMessages(her.id, chat.id)).toHaveLength(2);
+    expect(questMessages.map(({ role }) => role)).toEqual([
+      "user",
+      "assistant",
+    ]);
+    expect(messageText(questMessages[0])).toBe(edited);
+    const privateMessages = await listMessages(her.id, chat.id);
+    expect(privateMessages).toHaveLength(2);
+    for (const message of privateMessages) {
+      expect(questMessages.map(({ id }) => id)).not.toContain(message.id);
+    }
 
     await signIn(other);
     expect(await resolveConversation(other.id, chat.id)).toBeUndefined();

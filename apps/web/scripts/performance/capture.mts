@@ -121,7 +121,7 @@ function stateContent(
       href: `/constructs/${fixture.construct}`,
     };
   }
-  return { check: "fixture-link", href: `/projects/${fixture.project}` };
+  return { check: "fixture-link", href: `/quests/${fixture.quest}` };
 }
 function route(path: string): string {
   return path.split("?")[0]?.replace(UUID, ":id") ?? "/other";
@@ -143,8 +143,8 @@ function safeResource(path: string): ReadinessRow["resources"][number]["path"] {
   const template = route(pathname);
   for (const allowed of [
     "/home",
-    "/projects",
-    "/projects/:id",
+    "/quests",
+    "/quests/:id",
     "/chat",
     "/chats/:id",
     "/activities",
@@ -327,15 +327,11 @@ async function captureMatrix(
     selection = parseReadinessSelection(options.selection);
   }
   const journeys: [ReadinessRow["name"], string, string][] = [
-    ["home", "/home", "/projects"],
-    ["quests", "/projects", "/home"],
-    ["quest", `/projects/${fixture.project}`, "/projects"],
+    ["home", "/home", "/quests"],
+    ["quests", "/quests", "/home"],
+    ["quest", `/quests/${fixture.quest}`, "/quests"],
     ["adventures", "/chat", "/home"],
-    [
-      "long-adventure",
-      `/chats/${fixture.chat}`,
-      `/projects/${fixture.project}`,
-    ],
+    ["long-adventure", `/chats/${fixture.chat}`, `/quests/${fixture.quest}`],
     ["activities", "/activities", "/home"],
     ["workshop", "/workshop", "/home"],
     ["editor", `/constructs/${fixture.construct}`, "/workshop"],
@@ -354,11 +350,11 @@ async function captureMatrix(
         let source = normalSource;
         if (state === "empty-detail") {
           if (name === "quest") {
-            path = `/projects/${fixture.emptyProject}`;
-            source = "/projects";
+            path = `/quests/${fixture.emptyQuest}`;
+            source = "/quests";
           } else {
             path = `/chats/${fixture.emptyChat}`;
-            source = `/projects/${fixture.emptyProject}`;
+            source = `/quests/${fixture.emptyQuest}`;
           }
         }
         for (let sample = 1; sample <= options.samples; sample += 1) {

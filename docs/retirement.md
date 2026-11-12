@@ -26,7 +26,7 @@ A copy bought in the Marketplace before it was removed is an ordinary own defini
 
 ## Storage and release
 
-The shared `buddies` table has a nullable `retired_at` column. Normal definition reads and edits require it to be null. Retirement reads and permanent-deletion actions require it to be set. Retiring twice preserves the first date; restoring clears it. Ownership predicates scope every query.
+The shared `own_prompts` table has a nullable `retired_at` column. Normal definition reads and edits require it to be null. Retirement reads and permanent-deletion actions require it to be set. Retiring twice preserves the first date; restoring clears it. Ownership predicates scope every query.
 
 Migration `0040_charming_tattoo` is additive. Existing rows stay active and old builds can still read and write the table during deployment. An old build does not understand retirement: rolling back the code can expose retired definitions in active lists until a retirement-aware build is restored. The migration itself is not reverted by a code rollback.
 

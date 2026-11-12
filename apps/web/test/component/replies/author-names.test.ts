@@ -6,6 +6,7 @@
 // address is sent. The construct's messages are unchanged, and a conversation
 // with one author goes as it is. The prompt's rules for several people are
 // checked in system-prompt.test.ts.
+
 import { describe, expect, test } from "vitest";
 import {
   type ChatMessage,

@@ -23,14 +23,14 @@ import {
   interviewConstruct,
   saveInterviewConstruct,
 } from "@/constructs/interview-construct.ts";
-import { startProject } from "@/conversations/start-quest.ts";
+import { startQuest } from "@/conversations/start-quest.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
 import type { OwnPrompt } from "@/prompts/own-prompt-store.ts";
-import { type PromptKind, storedPromptKind } from "@/prompts/prompt.ts";
+import type { PromptKind } from "@/prompts/prompt.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
 import {
   deleteRetiredDefinition,
   getRetiredDefinition,
@@ -151,9 +151,9 @@ describe("use_case_retire_definitions", () => {
     if (chosen === undefined) {
       throw new Error("Her copy is not hers");
     }
-    const started = await startProject(
+    const started = await startQuest(
       owner.id,
-      PROJECT_NAME.parse("Fox"),
+      QUEST_NAME.parse("Fox"),
       chosen.construct,
     );
     if (started.kind !== "started") {
@@ -222,7 +222,7 @@ describe("use_case_restore_retired_definition", () => {
       .insert(ownPrompts)
       .values({
         userId: buyer.id,
-        kind: storedPromptKind("construct"),
+        kind: "construct",
         name: "Bought guide",
         parts: { prompt: "Another user's construct, bought earlier." },
         boughtFrom: crypto.randomUUID(),

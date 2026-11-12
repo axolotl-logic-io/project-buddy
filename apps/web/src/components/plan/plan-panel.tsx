@@ -48,7 +48,7 @@ function PlanPanel(): JSX.Element | null {
         <h2 className="adventure-plan-heading">{PLAN_COPY.heading}</h2>
         <PlanSteps look="panel" />
         <Button asChild={true} variant="quiet" className="self-start">
-          <Link href={`/projects/${plan.projectId}?section=plan`}>
+          <Link href={`/quests/${plan.questId}?section=plan`}>
             {PLAN_PANEL_COPY.questPage}
           </Link>
         </Button>

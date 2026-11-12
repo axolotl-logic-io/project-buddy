@@ -23,7 +23,7 @@ const SELECT_ACTIVITY_INPUT = z.object({
 
 // The activity the chat entered, with its instructions, or why it entered
 // none: the id is not one of the user's activities, or the activity needs a
-// project, which this chat has none of. The instructions go to the model in
+// quest, which this chat has none of. The instructions go to the model in
 // the reply that entered the activity, and are never kept with the saved
 // reply nor served from it (withoutActivityInstructions): what the chat
 // shows, the activity's name, is all a saved result holds. The chat's
@@ -36,7 +36,7 @@ const SELECT_ACTIVITY_OUTPUT = z.discriminatedUnion("status", [
     instructions: z.string().optional(),
   }),
   z.object({ status: z.literal("unknown") }),
-  z.object({ status: z.literal("needsProject") }),
+  z.object({ status: z.literal("needsQuest") }),
 ]);
 
 type SelectActivityInput = z.infer<typeof SELECT_ACTIVITY_INPUT>;

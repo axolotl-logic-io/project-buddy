@@ -1,4 +1,5 @@
 // Validated storage conversion separates the activity prompt from its opening request while preserving the live JSON format.
+
 import { z } from "zod";
 import type { ActivityDefinition } from "@/activities/activity.ts";
 

@@ -1,6 +1,7 @@
 // A quest's plan operations, which the construct's change_plan tool, the
 // user's controls and the composer's commands share: what each does, what
 // it says it did, how its undo puts the plan back, and the all-or-none rule.
+
 import { describe, expect, test } from "vitest";
 import {
   applyPlanOperations,

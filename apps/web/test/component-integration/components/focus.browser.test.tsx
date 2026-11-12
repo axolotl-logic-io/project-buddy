@@ -9,19 +9,20 @@
 // picker's bars by Tab, as she would, so they match :focus-visible.
 // test/component-integration/themes/signed-in-pages.browser.test.tsx covers the signed-in pages
 // each theme styles.
+
 import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import { ConstructPicker } from "@/components/construct-picker.tsx";
-import { ProjectList } from "@/components/project-list.tsx";
+import { QuestList } from "@/components/quest-list.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   chatIdFixture,
-  projectIdFixture,
+  questIdFixture,
   userIdFixture,
 } from "../../support/id-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -41,7 +42,7 @@ const OVERLAY_TOLERANCE = 1;
 // The button the keyboard starts from, before the element under test.
 const BEFORE_LABEL = "Before";
 
-const PROJECT_NAME = "Low-poly fox";
+const QUEST_NAME = "Low-poly fox";
 
 // What a theme shows around a focused element beside its outline: whether
 // it glows.
@@ -134,7 +135,7 @@ async function pickerBarFocus(): Promise<
   };
 }
 
-// Focuses a project's link card from the keyboard and reads how it draws
+// Focuses a quest's link card from the keyboard and reads how it draws
 // its focus, and how far its overlay is from the card's size. WebKit's Tab
 // skips links unless the user turns that on, so the link is focused once
 // the keyboard has been used rather than tabbed to.
@@ -144,11 +145,11 @@ async function linkCardFocus(): Promise<
   await render(
     <>
       {BEFORE_BUTTON}
-      <ProjectList
-        projects={[
+      <QuestList
+        quests={[
           {
-            id: projectIdFixture(),
-            name: PROJECT_NAME,
+            id: questIdFixture(),
+            name: QUEST_NAME,
             createdAt: new Date(),
             status: "active",
             statusRevision: 0,
@@ -159,7 +160,7 @@ async function linkCardFocus(): Promise<
     </>,
   );
   await focusBefore();
-  const link = page.getByRole("link", { name: PROJECT_NAME });
+  const link = page.getByRole("link", { name: QUEST_NAME });
   link.element().focus();
   const node = await focused(link);
   const after = getComputedStyle(node, "::after");

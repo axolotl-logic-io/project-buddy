@@ -11,10 +11,7 @@ import {
   constructVisualSource,
   resolveConstructVisual,
 } from "@/constructs/visual.ts";
-import {
-  currentConstructText,
-  earlierConstructText,
-} from "@/prompts/earlier-built-in-texts.ts";
+import { currentConstructText } from "@/prompts/earlier-built-in-texts.ts";
 
 const GENERATED = {
   version: 1,
@@ -60,7 +57,7 @@ test("built-in face framing differs from the complete portrait", () => {
 test("visual edits survive storage compatibility without changing prepared openings", () => {
   const builtIn = getConstruct("lumen");
   const definition = { ...builtIn.definition, visual: GENERATED };
-  const stored = storedConstructPrompt(earlierConstructText(definition));
+  const stored = storedConstructPrompt(definition);
   const parsed = parseConstructDefinition(JSON.parse(JSON.stringify(stored)));
   expect(parsed).toBeDefined();
   if (parsed === undefined) {

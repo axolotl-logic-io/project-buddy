@@ -38,7 +38,7 @@ test("accepts local static operation evidence without query payloads", () => {
 test("rejects unsafe metadata in compressed server evidence", () => {
   for (const unsafe of [
     { userId: "private" },
-    { url: "/projects/private" },
+    { url: "/quests/private" },
     { headers: { cookie: "private" } },
     { prompt: "private" },
   ]) {

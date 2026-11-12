@@ -1,9 +1,10 @@
 // The construct picker in Chromium and WebKit, as the new-chat, standalone-chat
-// and new-project forms show it. "use_case_standalone_chat" in
+// and new-quest forms show it. "use_case_standalone_chat" in
 // use-cases/chats.md: the picker shows one construct at a time, Vellum first;
 // the previous and next bars step through the built-in constructs, then her
 // own, and wrap round at either end; the form sends the shown construct as
 // constructId, and a construct restored after a failed start shows first.
+
 import { describe, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";

@@ -6,8 +6,9 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
 - Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude against it. Automated tests use mocks; paid manual checking requires explicit authorization and an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock model.
-- When `VERCEL_ENV=production`, the app refuses `CONSTRUCT_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `CONSTRUCT_MODEL` unset or set it to `claude` in production. The earlier name, `BUDDY_MODEL`, is still read when `CONSTRUCT_MODEL` is unset, so an environment set before the rename keeps working; rename it there when convenient. Preview, development and test environments can still select the mock.
+- When `VERCEL_ENV=production`, the app refuses `CONSTRUCT_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `CONSTRUCT_MODEL` unset or set it to `claude` in production. Use `CONSTRUCT_MODEL` in every environment; the earlier setting is no longer read. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
+- The [schema cutover notes](quest-nomenclature.md#release-cutover) describe the nomenclature and Plan-only migrations and their rollback limits.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Reaching Vercel and production
@@ -24,7 +25,7 @@ For example, to count the quests after a release:
 
 ```bash
 npm run ops:env -- production
-npm run ops:query -- production "select count(*) from projects"
+npm run ops:query -- production "select count(*) from quests"
 ```
 
 - **Pulled files stay outside the checkout.** `next build` loads `.env.production` and the test commands load `.env*` files, so a pulled file inside the repo could point a build or a test at production. `ops:env` refuses any directory inside the checkout. Set `PROJECT_BUDDY_OPS_DIR` to use another directory outside it.
