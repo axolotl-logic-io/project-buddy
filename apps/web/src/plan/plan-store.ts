@@ -19,7 +19,7 @@ import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { planVersionOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
 import { chatAwaitsReply, noReplyAwaited } from "@/chats/store.ts";
-import { getDb } from "@/db/client.ts";
+import { type Database, getDb } from "@/db/client.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -124,9 +124,13 @@ function toVersion(row: unknown): VersionRow | undefined {
   return VERSION_ROW.safeParse(row).data;
 }
 
-async function questIsOpen(owner: UserId, questId: QuestId): Promise<boolean> {
+async function questIsOpen(
+  owner: UserId,
+  questId: QuestId,
+  database: Database,
+): Promise<boolean> {
   const rows = await withAppErrors("readPlan", () =>
-    getDb()
+    database
       .select({ id: quests.id })
       .from(quests)
       .where(and(eq(quests.id, questId), questOwnedBy(owner))),
@@ -139,6 +143,7 @@ async function questIsOpen(owner: UserId, questId: QuestId): Promise<boolean> {
 async function readPlanState(
   owner: UserId,
   questId: QuestId,
+  database: Database = getDb(),
 ): Promise<PlanState | undefined> {
   const inQuest = and(
     eq(planVersions.questId, questId),
@@ -146,7 +151,7 @@ async function readPlanState(
   );
   const [latest, undone, open] = await Promise.all([
     withAppErrors("readPlan", () =>
-      getDb()
+      database
         .select(VERSION_COLUMNS)
         .from(planVersions)
         .where(inQuest)
@@ -154,12 +159,12 @@ async function readPlanState(
         .limit(1),
     ),
     withAppErrors("readPlan", () =>
-      getDb()
+      database
         .select({ version: planVersions.undoesVersion })
         .from(planVersions)
         .where(and(inQuest, isNotNull(planVersions.undoesVersion))),
     ),
-    questIsOpen(owner, questId),
+    questIsOpen(owner, questId, database),
   ]);
   if (!open) {
     return undefined;
@@ -217,6 +222,7 @@ async function saveVersion(
   owner: UserId,
   source: PlanChangeSource,
   next: NextVersion,
+  database: Database,
 ): Promise<boolean> {
   const { questId, author, chatId } = source;
   let userId: UserId | null = null;
@@ -231,7 +237,7 @@ async function saveVersion(
     }
   }
   const saved = await withAppErrors("changePlan", () =>
-    getDb()
+    database
       .insert(planVersions)
       .select(
         new QueryBuilder()
@@ -274,9 +280,12 @@ async function saveChange(
   owner: UserId,
   source: PlanChangeSource,
   attempt: (state: PlanState) => Promise<Attempt>,
-  tries = 0,
+  {
+    tries = 0,
+    database = getDb(),
+  }: { readonly tries?: number; readonly database?: Database } = {},
 ): Promise<PlanChangeOutcome> {
-  const state = await readPlanState(owner, source.questId);
+  const state = await readPlanState(owner, source.questId, database);
   if (state === undefined) {
     return undefined;
   }
@@ -288,7 +297,7 @@ async function saveChange(
     return { kind: "failed", reason: worked.reason, state };
   }
   const { next } = worked;
-  if (await saveVersion(owner, source, next)) {
+  if (await saveVersion(owner, source, next, database)) {
     const version = next.basedOn + 1;
     return {
       kind: "changed",
@@ -315,7 +324,7 @@ async function saveChange(
       return { kind: "failed", reason: "awaiting-reply", state };
     }
   }
-  return saveChange(owner, source, attempt, tries + 1);
+  return saveChange(owner, source, attempt, { tries: tries + 1, database });
 }
 
 function undoneAfter(state: PlanState, next: NextVersion): readonly number[] {
@@ -350,22 +359,28 @@ async function chatIsInQuest(
 
 // Applies operations to the owner's quest's plan, all or none, as one new
 // version by the source's author, from its chat (applyPlanOperations has
-// the rules).
+// the rules). A supplied database keeps the change in its caller’s transaction.
 function changePlan(
   owner: UserId,
   source: PlanChangeSource,
   operations: readonly PlanUndoOperation[],
+  database: Database = getDb(),
 ): Promise<PlanChangeOutcome> {
-  return saveChange(owner, source, (state): Promise<Attempt> => {
-    const outcome = applyPlanOperations(state.plan, operations);
-    if (outcome.kind === "failed") {
-      return Promise.resolve(outcome);
-    }
-    return Promise.resolve({
-      kind: "save",
-      next: { basedOn: state.version, ...outcome },
-    });
-  });
+  return saveChange(
+    owner,
+    source,
+    (state): Promise<Attempt> => {
+      const outcome = applyPlanOperations(state.plan, operations);
+      if (outcome.kind === "failed") {
+        return Promise.resolve(outcome);
+      }
+      return Promise.resolve({
+        kind: "save",
+        next: { basedOn: state.version, ...outcome },
+      });
+    },
+    { database },
+  );
 }
 
 async function readVersion(

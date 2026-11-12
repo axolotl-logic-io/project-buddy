@@ -21,7 +21,7 @@ describe("chat commands", () => {
   const Standalone = { mockCommands: false, inQuest: false };
 
   test("in a quest, a message that starts with / and a name is a command", () => {
-    expect(isChatCommand("/plan", Quest)).toBe(true);
+    expect(isChatCommand("/plan", Quest)).toBe(false);
     expect(isChatCommand("  /done 3", Quest)).toBe(true);
     expect(isChatCommand("/whatever", Quest)).toBe(true);
     expect(isChatCommand("Finished /plan stuff", Quest)).toBe(false);
@@ -34,12 +34,12 @@ describe("chat commands", () => {
       false,
     );
     expect(isChatCommand("/mock-tool change_plan {}", Quest)).toBe(true);
-    expect(isChatCommand("/plan", QuestWithMock)).toBe(true);
+    expect(isChatCommand("/plan", QuestWithMock)).toBe(false);
   });
 
   test("in a standalone adventure only a plan command's name is a command; any other /word goes to the construct", () => {
     expect(isChatCommand("/add Sketch wings", Standalone)).toBe(true);
-    expect(isChatCommand("/plan", Standalone)).toBe(true);
+    expect(isChatCommand("/plan", Standalone)).toBe(false);
     expect(isChatCommand("/shrug ok let's go", Standalone)).toBe(false);
     expect(
       isChatCommand("/mock-tool change_plan {}", {

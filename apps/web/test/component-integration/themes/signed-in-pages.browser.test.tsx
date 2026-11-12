@@ -36,6 +36,10 @@ import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
 import { applyTheme } from "./theme-test-kit.ts";
 
+vi.mock("@/ideas/idea-store.ts", () => ({
+  listIdeas: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock(
   "@/plan/plan-actions.ts",
   () => import("../plan/plan-actions-test-kit.ts"),
@@ -160,7 +164,7 @@ async function journalBelowLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("link", { name: "Plan" });
+  const link = page.getByRole("button", { name: "Plan", exact: true });
   return (
     link.element().getBoundingClientRect().top >=
     heading.element().getBoundingClientRect().bottom

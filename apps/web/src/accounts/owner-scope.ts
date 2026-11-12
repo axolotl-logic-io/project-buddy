@@ -18,6 +18,7 @@
 
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
+import { activityMessageResults } from "@/db/tables/activity-message-results.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import {
@@ -30,6 +31,7 @@ import { images } from "@/db/tables/images.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
+import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
@@ -69,6 +71,10 @@ function messageOpenTo(user: UserId): SQL {
   return inArray(messages.chatId, openChatIds(user));
 }
 
+function activityResultOpenTo(user: UserId): SQL {
+  return inArray(activityMessageResults.chatId, openChatIds(user));
+}
+
 // An `images` row of a chat open to user.
 function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
@@ -87,6 +93,10 @@ function milestoneOpenTo(user: UserId): SQL {
 // A `plan_versions` row of a quest of user's.
 function planVersionOpenTo(user: UserId): SQL {
   return inArray(planVersions.questId, ownedQuestIds(user));
+}
+
+function ideaOpenTo(user: UserId): SQL {
+  return inArray(questIdeas.questId, ownedQuestIds(user));
 }
 
 // True when the quest is owner's, whatever table the query reads: for an
@@ -180,6 +190,7 @@ function batteryPurchasesOwnedBy(owner: UserId): SQL {
 
 export {
   accountOwnedBy,
+  activityResultOpenTo,
   activitySessionOpenTo,
   batteryPurchasesOwnedBy,
   chatOpenTo,
@@ -189,6 +200,7 @@ export {
   generationOwnedBy,
   goldBalanceOwnedBy,
   goldLedgerOwnedBy,
+  ideaOpenTo,
   imageOpenTo,
   messageOpenTo,
   milestoneOpenTo,

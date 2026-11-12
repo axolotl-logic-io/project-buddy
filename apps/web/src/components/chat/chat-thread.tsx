@@ -38,6 +38,7 @@ export function ChatThread({
   stop,
   stopStatus = "",
   starter,
+  activityStop,
 }: {
   goldBalance?: number | undefined;
   replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
@@ -50,6 +51,9 @@ export function ChatThread({
   onRetry?: (() => void) | undefined;
   stop?: ReplyStop | undefined;
   stopStatus?: string;
+  activityStop?:
+    | { readonly label: string; readonly onStop: () => void }
+    | undefined;
   starter?:
     | { readonly label: string; readonly onStart: () => void }
     | undefined;
@@ -98,15 +102,22 @@ export function ChatThread({
             {goldBalance !== undefined && CHAT_COPY.balance(goldBalance)}
           </p>
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
-          {starter !== undefined && (
-            <Button
-              className="self-start"
-              onClick={starter.onStart}
-              variant="secondary"
-            >
-              {starter.label}
-            </Button>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {activityStop !== undefined && (
+              <Button variant="secondary" onClick={activityStop.onStop}>
+                {activityStop.label}
+              </Button>
+            )}
+            {starter !== undefined && (
+              <Button
+                className="self-start"
+                onClick={starter.onStart}
+                variant="secondary"
+              >
+                {starter.label}
+              </Button>
+            )}
+          </div>
           <ChatComposer inputRef={inputRef} stop={stop} />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>

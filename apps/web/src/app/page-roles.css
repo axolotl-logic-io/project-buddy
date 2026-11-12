@@ -1356,34 +1356,31 @@
   .adventure-main {
     @apply flex min-w-0 flex-col gap-8;
   }
-
-  .adventure-plan-toggle {
-    @apply w-full justify-start;
+  .quest-sidebar-frame {
+    @apply static order-first m-0 w-full min-w-0 border-0 bg-transparent p-0 text-inherit;
   }
 
-  .adventure-plan-next {
-    @apply min-w-0 truncate font-normal text-muted;
+  .quest-sidebar-frame:modal {
+    @apply fixed inset-0 m-0 h-dvh w-screen max-h-none max-w-none overflow-y-auto bg-surface p-4;
   }
 
-  /* The toggle's chevron, at its end, turns as the plan opens. */
-  .adventure-plan-chevron {
-    @apply ms-auto text-muted motion-safe:transition-transform;
+  .quest-sidebar {
+    @apply min-w-0 rounded-box border border-line bg-surface p-3;
   }
-
-  .adventure-plan-toggle[aria-expanded="true"] .adventure-plan-chevron {
-    @apply rotate-180;
+  .quest-sidebar-trigger {
+    @apply w-full justify-between;
   }
-
-  .adventure-plan-body {
-    @apply hidden;
+  .quest-sidebar-content {
+    @apply flex min-w-0 flex-col gap-3 py-3;
   }
-
-  .adventure-plan-body-open {
-    @apply mt-3 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
+  .quest-sidebar-content[data-state="closed"] {
+    display: none;
   }
-
-  .adventure-plan-heading {
-    @apply sr-only;
+  .adventure-layout[data-panel-size="full"] > .adventure-main {
+    display: none;
+  }
+  .adventure-layout[data-panel-size="full"] {
+    @apply grid grid-cols-1;
   }
 
   @media (width >= --theme(--breakpoint-xl)) {
@@ -1391,32 +1388,20 @@
     .page-frame-quest {
       @apply max-w-6xl;
     }
-
     .adventure-layout {
       @apply grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8;
     }
-
-    .adventure-main {
-      @apply col-start-1 row-start-1;
+    .quest-sidebar-frame:not(:modal) {
+      @apply order-none col-start-2 row-start-1;
+      inset-block-start: calc(var(--site-header-height) + 2rem);
+      max-block-size: calc(100dvh - var(--site-header-height) - 4rem);
+      @apply sticky overflow-y-auto;
     }
-
-    .adventure-plan {
-      inset-block-start: calc(var(--site-header-height) + 6rem);
-      max-block-size: calc(100dvh - var(--site-header-height) - 8rem);
-      @apply sticky col-start-2 row-start-1 overflow-y-auto;
+    .adventure-layout[data-panel-size="minimized"] {
+      @apply grid-cols-[minmax(0,1fr)_auto];
     }
-
-    .adventure-plan-toggle {
-      @apply hidden;
-    }
-
-    .adventure-plan-body,
-    .adventure-plan-body-open {
-      @apply mt-0 flex flex-col gap-3 rounded-box border border-line bg-surface p-4;
-    }
-
-    .adventure-plan-heading {
-      @apply not-sr-only font-heading font-semibold text-section-heading;
+    .adventure-layout[data-panel-size="full"] {
+      @apply grid-cols-1;
     }
   }
 

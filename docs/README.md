@@ -25,6 +25,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Spells](spellbook.md): spell instructions, Workshop’s Spells tab, editing and saved casts.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
 
+- [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
+
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
 

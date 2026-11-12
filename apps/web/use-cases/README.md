@@ -61,6 +61,7 @@ Each area's cases are in their own file:
 - [Adventures](chats.md)
 - [Saved images](images.md)
 - [Plan](plan.md)
+- [Ideas](ideas.md)
 - [Constructs](constructs.md)
 - [Activities](activities.md)
 - [Library](library.md)

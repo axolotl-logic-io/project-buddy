@@ -119,15 +119,23 @@ function localReply(
   }
 }
 
-function localConstructModel(): LanguageModelV4 {
-  return scriptedModel(localReply, {
-    provider: "local",
-    modelId: "construct-commands",
-    usage: {
-      inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
-      outputTokens: { total: 0, text: 0, reasoning: undefined },
+function localConstructModel(prepared?: string): LanguageModelV4 {
+  return scriptedModel(
+    (text, conversation) => {
+      if (prepared !== undefined) {
+        return [textStep(prepared)];
+      }
+      return localReply(text, conversation);
     },
-  });
+    {
+      provider: "local",
+      modelId: "construct-commands",
+      usage: {
+        inputTokens: { total: 0, noCache: 0, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: 0, text: 0, reasoning: undefined },
+      },
+    },
+  );
 }
 
 export { localConstructModel };
