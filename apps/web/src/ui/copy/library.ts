@@ -27,7 +27,7 @@ const LOCAL_COMMANDS_CHAPTER: LibraryChapter = {
   title: "Local construct commands",
   links: [],
   paragraphs: [
-    "Constructs currently use local commands inspired by multi-user dungeons. Type help to see commands, look to read starting context, search <query> to search the Blender manual, or cast <spell id> to record a spell cast. Commands can also begin with /. The app sends nothing to AI model companies.",
+    "Constructs currently use local commands inspired by multi-user dungeons. Type help to see commands, look to read the construct’s visual description, search <query> to search the Blender manual, or cast <spell id> to record a spell cast. Commands can also begin with /. The app sends nothing to AI model companies.",
     "The following chapters describe the retained definitions and harness. Automatic planning, activity changes, instruction interpretation, image understanding and image generation are unavailable in this first command engine. Spell casts are saved, but do not execute their instructions. Existing definitions, conversations, images, Plan controls and progress controls remain available. Local replies spend no batteries; the balance gate still applies.",
   ],
 };
@@ -97,7 +97,7 @@ const LIBRARY_COPY: {
             "Workshop shows built-in constructs, activities and spells alongside your private copies, one kind at a time. Choose Create to make your own, or Make a copy on a built-in one to start from a copy. Retirement keeps retired definitions available to restore or delete.",
             "Workshop is where you edit. Edit one section of the instructions at a time, then choose Save. Unsaved edits stay in this browser until you choose Save or Cancel. Saving prompt text makes no model call and spends no batteries. To see how a change works, save it and use it in a quest or in Chat.",
             "The Constructs, Spells and Activities books have worked examples. The Model context book explains exactly what a reply sends to the model.",
-            "Batteries pay for model use: replies, generated openings and images. Each uses the balance of the person who asked. A prepared opening needs no model call. Canceling a request may not return batteries for work already done.",
+            "Local commands spend no batteries. Earlier model use spent the balance of the person who asked. Saved images and prepared openings require no new model call. Canceling an earlier request may not return batteries for work already done.",
             "Under each reply, the conversation shows what it cost you, to one decimal place. That cost includes any retries and images the reply needed. Your balance shows whole batteries.",
             "Settings holds your name, appearance, new quest construct, Batteries balance and purchases, and sign-out controls.",
           ],
@@ -131,7 +131,7 @@ const LIBRARY_COPY: {
           paragraphs: [
             "A construct has a name, instructions and an appearance. In the editor, its instructions are the Prompt field under Instructions, and they start with a Character Sheet heading. Headings inside the sheet organize one text; they aren’t separate settings.",
             "The construct sets the voice. An activity guides what you do in the current session, and a spell adds focused instructions when the construct casts it.",
-            "The Visual description shapes the construct’s artwork only. It never reaches the conversation, and the artwork doesn’t teach the construct its personality. Write how it talks and works in the Character Sheet, even when the artwork suggests it.",
+            "The look command shows the Visual description saved with the conversation’s construct. Editing it saves text without generating artwork or spending batteries. The artwork doesn’t teach the construct its personality. Write how it talks and works in the Character Sheet, even when the artwork suggests it.",
             "A quest keeps its construct as it was when the quest started. A saved change to the name or instructions affects new quests only. Chat uses the default construct.",
           ],
         },
@@ -144,7 +144,7 @@ const LIBRARY_COPY: {
             "Give the construct a name you’ll recognize. In its Character Sheet, describe habits you can see in a reply, such as: “Explain one practical step at a time. Give a concrete example before an abstract idea. When unsure, say what needs checking.” Don’t ask it to invent facts or ignore permissions; instructions can’t change what the site allows.",
             "For example, name a construct “Moss” and give it these instructions: “Use calm, plain language. Help the user choose a small experiment. Ask at most one question per reply. Keep plant names and care steps exact.” Set its Visual description to “A small leafy guide with round glasses.” The leaves shape Moss’s picture; only the Character Sheet shapes its replies.",
             "To start the instructions over, choose Reset prompt to default. The editor shows the built-in construct’s instructions, or the default construct’s when yours didn’t come from a built-in one, and offers Undo reset. Nothing changes until you choose Save, and the Visual description and artwork stay.",
-            "To give the construct artwork, write a Visual description and choose Generate Images. It uses the description as it is in the editor, spends batteries, and saves nothing else. The site makes one picture and frames it for each place it appears; the small round avatar centres on the character’s head. Save then attaches the new artwork without charging again.",
+            "Save keeps your Visual description for future conversations. Existing conversations keep their saved description and artwork. Image generation and the Image gallery have been removed.",
           ],
         },
         {
@@ -283,7 +283,7 @@ const LIBRARY_COPY: {
             "Generated opening: the model receives the same instructions, built for the chosen construct and activity, with your name, your activities and spells, and the quest’s context if there is one. Its only message is the activity’s Opening request, or a special request for some quest starts. It gets no conversation and no tools. A prepared opening makes no call.",
             "Plan commands and the Plan controls make no model call. They change the plan and add a short plan change to the conversation, which the next reply reads as a note marked [Plan change], not as a request. In a conversation they wait while your last message has no reply yet, so Retry or sending again still answers it.",
             "Image in a conversation: the construct’s image tool sends the image model only the image’s description, at most 1,000 characters, not the conversation or the Plan. Conversation images use no reference pictures, and their size and quality are fixed.",
-            "Construct artwork: the image model receives only the Visual description you submitted, which can be an unsaved draft. It receives no name, instructions, old artwork or conversation. One picture serves every place the construct appears. To frame the avatar, a separate small model call receives only that picture, scaled down, and returns where the character’s face and head are; it receives no name, description or instructions, and its cost joins the image’s.",
+            "Construct appearance: look reads the Visual description from the conversation’s saved construct. No image generation or avatar framing call is made.",
             "Manual searches and citations, spell casts, plan changes, milestones, activity changes and quest-status cards aren’t separate model calls. The site runs them and returns their results, which can become input to the reply’s next step. A manual search looks through a local index of the manual’s text.",
           ],
         },
@@ -306,7 +306,7 @@ const LIBRARY_COPY: {
           title: "Tools, retrieved content and access",
           links: [],
           paragraphs: [
-            "Tools are actions the model can ask the site to take. In an ordinary reply it can generate images, search and cite the Blender manual, change activity and cast spells. In Chat it can also suggest a quest, which only fills in Turn Chat into a quest for you to confirm. A quest reply can also change the Plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings have no tools.",
+            "Tools are actions the model can ask the site to take. In an ordinary reply it can search and cite the Blender manual, change activity and cast spells. In Chat it can also suggest a quest, which only fills in Turn Chat into a quest for you to confirm. A quest reply can also change the Plan, record milestones and propose a status change. A plan change applies all or none, names steps by their numbers, and shows in the conversation with Undo. The construct is asked to name steps by those numbers too, rather than restate the plan as a numbered list of its own. Openings have no tools.",
             "Each tool checks your access when it runs. Your own constructs, activities and spells stay private to you, and only you can open your quests and their data.",
             "A manual search returns up to five sections, each with its link and an excerpt of at most 1,500 characters. Citations keep only links that a search in the same conversation returned, and the site shows them apart from the reply’s text. These results are what the model reads; it has no access to the whole web.",
             "The model decides which tools to ask for; the site checks and runs them. A cast returns the spell’s instructions, an activity change returns the new activity’s instructions, and edits return whether they worked. A reply that says the Plan changed isn’t the same as a tool result that says so.",

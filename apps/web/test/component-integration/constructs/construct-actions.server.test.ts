@@ -485,22 +485,13 @@ test("save and reset retain paid art even when a source lookup returns an older 
   }
 });
 
-test("saving an edited Vellum description regenerates artwork from the saved appearance", async () => {
+test("saving a visual description keeps artwork and spends no batteries", async () => {
   const user = await signedInUser();
   const construct = await cloneOf(user, "vellum");
-  const description =
-    "A silver fox with a blue cloak instead of a brass cartographer.";
-  const bytes = await sharp({
-    create: { width: 32, height: 32, channels: 3, background: "white" },
-  })
-    .png()
-    .toBuffer();
-  const generate = vi.fn<ImageProvider["generate"]>().mockResolvedValue({
-    bytes,
-    mediaType: "image/png",
-    costMicroUsd: GENERATED_COST,
-  });
-  const provider = vi.mocked(imageProvider).mockReturnValueOnce({ generate });
+  const before = await goldSpent(user);
+  const description = "A silver fox with a blue cloak.";
+  const generate = vi.fn<ImageProvider["generate"]>(testArtwork);
+  const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
   try {
     const data = constructForm(
       construct.id,
@@ -508,6 +499,8 @@ test("saving an edited Vellum description regenerates artwork from the saved app
       construct.definition,
     );
     data.set("visualDescription", description);
+    // Older clients cannot request generation through Save either.
+    data.set("generateImages", "true");
     data.set("visualRequestId", crypto.randomUUID());
     await expectRedirect(
       () => saveConstructAction(data),
@@ -515,9 +508,11 @@ test("saving an edited Vellum description regenerates artwork from the saved app
     );
     const updated = await stored(user, construct.id);
     expect(updated.definition.visual?.description).toBe(description);
-    expect(updated.definition.visual?.canonical?.kind).toBe("generated");
-    expect(generate).toHaveBeenCalledTimes(1);
-    expect(generate.mock.calls).toEqual([[description]]);
+    expect(updated.definition.visual?.canonical).toEqual(
+      construct.definition.visual?.canonical,
+    );
+    expect(generate).not.toHaveBeenCalled();
+    expect(await goldSpent(user)).toBe(before);
   } finally {
     provider.mockRestore();
   }
@@ -569,79 +564,22 @@ test.each(["prompt", "name", "unchanged", "normalized"] as const)(
   },
 );
 
-test("adding a description generates once; unchanged Save is free and explicit Generate intentionally regenerates with replay protection", async () => {
+test("adding a first visual description saves text without generating artwork", async () => {
   const user = await signedInUser();
   const copy = await createConstruct(user.id, {
     name: "Private name",
     definition: { prompt: "Private voice and habits." },
   });
-  const description = "A silver fox.\nBlue cloak.";
-  const generate = vi.fn<ImageProvider["generate"]>(testArtwork);
-  const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
-  try {
-    const data = constructForm(copy.id, copy.name, copy.definition);
-    data.set("visualDescription", "  A silver fox.\r\nBlue cloak.  ");
-    data.set("visualRequestId", crypto.randomUUID());
-    await expectRedirect(
-      () => saveConstructAction(data),
-      `/constructs/${copy.id}?saved=1`,
-    );
-    const first = (await stored(user, copy.id)).definition.visual;
-    expect(first?.description).toBe(description);
-    expect(generate.mock.calls).toEqual([[description]]);
-    const firstCost = await goldSpent(user);
-    await expectRedirect(
-      () => saveConstructAction(data),
-      `/constructs/${copy.id}?saved=1`,
-    );
-    expect(generate).toHaveBeenCalledTimes(1);
-    expect(await goldSpent(user)).toBe(firstCost);
-    expect((await stored(user, copy.id)).definition.visual).toEqual(first);
-    data.set("generateImages", "true");
-    data.set("visualRequestId", crypto.randomUUID());
-    await expectRedirect(
-      () => saveConstructAction(data),
-      `/constructs/${copy.id}?saved=1`,
-    );
-    const replacement = (await stored(user, copy.id)).definition.visual;
-    expect(replacement?.canonical).not.toEqual(first?.canonical);
-    expect(generate.mock.calls).toEqual([[description], [description]]);
-    const replacementCost = await goldSpent(user);
-    await expectRedirect(
-      () => saveConstructAction(data),
-      `/constructs/${copy.id}?saved=1`,
-    );
-    expect(generate).toHaveBeenCalledTimes(2);
-    expect(await goldSpent(user)).toBe(replacementCost);
-  } finally {
-    provider.mockRestore();
-  }
-});
-
-test("concurrent Saves of the same changed description generate and spend only once", async () => {
-  const user = await signedInUser();
-  const copy = await cloneOf(user, "vellum");
-  const description = "A silver fox in a blue cloak";
-  const generate = vi.fn<ImageProvider["generate"]>(testArtwork);
-  const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
-  try {
-    const forms = Array.from({ length: 2 }, () => {
-      const data = constructForm(copy.id, copy.name, copy.definition);
-      data.set("visualDescription", description);
-      data.set("visualRequestId", crypto.randomUUID());
-      return data;
-    });
-    await Promise.all(
-      forms.map((data) =>
-        expectRedirect(
-          () => saveConstructAction(data),
-          `/constructs/${copy.id}?saved=1`,
-        ),
-      ),
-    );
-    expect(generate.mock.calls).toEqual([[description]]);
-    expect(await goldSpent(user)).toBe(GENERATED_COST);
-  } finally {
-    provider.mockRestore();
-  }
+  const before = await goldSpent(user);
+  const data = constructForm(copy.id, copy.name, copy.definition);
+  data.set("visualDescription", "  A silver fox.\r\nBlue cloak.  ");
+  await expectRedirect(
+    () => saveConstructAction(data),
+    `/constructs/${copy.id}?saved=1`,
+  );
+  expect((await stored(user, copy.id)).definition.visual).toEqual({
+    version: 1,
+    description: "A silver fox.\nBlue cloak.",
+  });
+  expect(await goldSpent(user)).toBe(before);
 });
