@@ -1,4 +1,5 @@
 import type { JSX, ReactNode } from "react";
+import type { ActivitySnapshot } from "@/activities/activity.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -41,13 +42,17 @@ function ChatScreen({
   actions,
   starter,
   header,
+  sideContent,
+  initialSection,
 }: {
-  readonly conversation: Chat;
+  readonly conversation: Chat & { readonly activity?: ActivitySnapshot };
   readonly messages: ChatMessage[];
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
   readonly plan?: PlanState | undefined;
   readonly actions?: ReactNode;
+  readonly sideContent?: ReactNode;
+  readonly initialSection?: string;
   readonly header?: ReactNode;
   readonly starter?:
     | { readonly label: string; readonly text: string }
@@ -72,6 +77,9 @@ function ChatScreen({
     <>
       {heading}
       <ChatView
+        activity={conversation.activity}
+        sideContent={sideContent}
+        initialSection={initialSection}
         viewer={viewer}
         chatId={conversation.id}
         key={conversation.id}

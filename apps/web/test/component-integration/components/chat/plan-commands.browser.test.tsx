@@ -19,7 +19,7 @@ import type {
   runChatCommandAction,
   undoPlanChangeAction,
 } from "@/plan/plan-actions.ts";
-import { planChangeMessage } from "@/plan/plan-message.ts";
+import { planCardMessage, planChangeMessage } from "@/plan/plan-message.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
@@ -146,11 +146,6 @@ async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
       planActions={PLAN_ACTIONS}
     />,
   );
-  await userEvent.click(
-    page
-      .getByRole("complementary", { name: PLAN_COPY.heading, exact: true })
-      .getByRole("button", { expanded: false }),
-  );
 }
 
 function messageBox(): ReturnType<typeof page.getByRole> {
@@ -274,7 +269,7 @@ describe("use_case_plan_panel", () => {
   test("waits, saying why, while the last message's reply stopped, so it can still be sent again", async () => {
     await openAwaitingChat("m1");
     const panel = page.getByRole("complementary", {
-      name: PLAN_COPY.heading,
+      name: "Quest side menu",
       exact: true,
     });
 
@@ -292,7 +287,7 @@ describe("use_case_plan_panel", () => {
   test("waits while a reply is made elsewhere, such as for another member", async () => {
     await openAwaitingChat();
     const panel = page.getByRole("complementary", {
-      name: PLAN_COPY.heading,
+      name: "Quest side menu",
       exact: true,
     });
 
@@ -321,10 +316,9 @@ describe("use_case_plan_panel", () => {
     await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
     await openChat();
     const panel = page.getByRole("complementary", {
-      name: PLAN_COPY.heading,
+      name: "Quest side menu",
       exact: true,
     });
-    await userEvent.click(panel.getByRole("button", { expanded: false }));
 
     await expect.element(panel).toMatchTextContent(PLAN_COPY.nextStep);
     await userEvent.click(
@@ -402,4 +396,18 @@ describe("use_case_plan_panel", () => {
     });
     await expect.element(change).toMatchTextContent(PLAN_CHANGE_COPY.undone);
   });
+});
+
+test("saved Plan cards point to the side menu without inline form controls", async () => {
+  await openChat([planCardMessage("legacy-plan-card", { command: "/plan" })]);
+  await expect.element(page.getByText(PLAN_CHANGE_COPY.sideMenu)).toBeVisible();
+  const history = page.getByRole("list", { name: CHAT_COPY.conversationLabel });
+  await expect.element(history.getByRole("textbox")).not.toBeInTheDocument();
+  await expect
+    .element(
+      page
+        .getByRole("complementary", { name: "Quest side menu" })
+        .getByRole("button", { name: PLAN_COPY.add }),
+    )
+    .toBeVisible();
 });

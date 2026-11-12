@@ -18,10 +18,12 @@ import {
   type UIMessageStreamWriterWithOutcome,
 } from "ai";
 import { after } from "next/server";
+import { activityReply } from "@/activities/activity-reply.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
+import { readConstructModel } from "@/env.ts";
 import {
   AppError,
   type AppErrorCase,
@@ -42,6 +44,7 @@ import {
 import { withAuthorNames } from "@/replies/author-names.ts";
 import type { ChatRequest } from "@/replies/chat-protocol.ts";
 import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
+import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
 import { planPartForModel } from "@/replies/plan-message-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
@@ -235,12 +238,19 @@ async function streamAndSaveReply(
   }
   try {
     const named = withAuthorNames(history);
+    let model = replyModel(accountedGrant);
+    if (readConstructModel() === "local") {
+      const text = await activityReply(actingUser, chat, answered);
+      if (text !== undefined) {
+        model = localConstructModel(text);
+      }
+    }
     const calls: ReplyCalls = {
       actingUser,
       chat,
       cancellation,
       answeredId: answered.id,
-      model: replyModel(accountedGrant),
+      model,
       instructions: await buildReplyInstructions({
         actingUser,
         chat,

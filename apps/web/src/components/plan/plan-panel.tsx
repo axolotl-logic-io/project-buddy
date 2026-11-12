@@ -1,60 +1,147 @@
 "use client";
 
-import Link from "next/link";
-import { type JSX, useCallback, useId, useState } from "react";
+import { Accordion } from "radix-ui";
+import {
+  type JSX,
+  type ReactNode,
+  type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import { usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
-import { nextPlanStep } from "@/plan/plan.ts";
-import { PLAN_COPY, PLAN_PANEL_COPY } from "@/ui/copy/plan.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/activity.ts";
+import { PLAN_COPY } from "@/ui/copy/plan.ts";
 
-// The quest's plan beside an adventure's conversation: a column of its own on
-// a wide screen, and on a narrower one a button above the conversation,
-// naming the next step, that opens it. Changes made here are saved to the
-// adventure, so the construct reads them on its next reply.
-function PlanPanel(): JSX.Element | null {
+type PanelSize = "minimized" | "medium" | "full";
+
+function PlanPanel({
+  children,
+  sideContent,
+  initialSection = "plan",
+}: {
+  readonly children?: ReactNode;
+  readonly sideContent?: ReactNode;
+  readonly initialSection?: string | undefined;
+}): JSX.Element {
   const plan = usePlan();
-  const bodyId = useId();
-  const [open, setOpen] = useState(false);
-  const toggle = useCallback((): void => setOpen((shown) => !shown), []);
-  if (plan === undefined) {
-    return null;
-  }
-  const next = nextPlanStep(plan.state.plan);
-  let look = "adventure-plan-body";
-  if (open === true) {
-    look = "adventure-plan-body adventure-plan-body-open";
-  }
+  const [size, setSize] = useState<PanelSize>("medium");
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog === null) {
+      return;
+    }
+    if (dialog.open) {
+      dialog.close();
+    }
+    if (size === "full") {
+      dialog.showModal();
+    } else {
+      dialog.show();
+    }
+  }, [size]);
+  const cancel = useCallback(
+    (event: SyntheticEvent<HTMLDialogElement>): void => {
+      event.preventDefault();
+      setSize("medium");
+    },
+    [],
+  );
+  const minimize = useCallback((): void => setSize("minimized"), []);
+  const medium = useCallback((): void => setSize("medium"), []);
+  const full = useCallback((): void => setSize("full"), []);
   return (
-    <aside className="adventure-plan" aria-label={PLAN_PANEL_COPY.label}>
-      <Button
-        variant="secondary"
-        className="adventure-plan-toggle"
-        aria-expanded={open}
-        aria-controls={bodyId}
-        onClick={toggle}
+    <div className="adventure-layout" data-panel-size={size}>
+      <div className="adventure-main">{children}</div>
+      <dialog
+        ref={dialogRef}
+        onCancel={cancel}
+        className="quest-sidebar-frame"
+        aria-label={QUEST_SIDEBAR_COPY.label}
       >
-        <Icon name="checklist" />
-        <span className="font-semibold">{PLAN_PANEL_COPY.toggle}</span>
-        {next !== undefined && (
-          <span className="adventure-plan-next">
-            {PLAN_PANEL_COPY.next(next.text)}
-          </span>
-        )}
-        <Icon name="chevron-down" className="adventure-plan-chevron" />
-      </Button>
-      <div id={bodyId} className={look}>
-        <h2 className="adventure-plan-heading">{PLAN_COPY.heading}</h2>
-        <PlanSteps look="panel" />
-        <Button asChild={true} variant="quiet" className="self-start">
-          <Link href={`/quests/${plan.questId}?section=plan`}>
-            {PLAN_PANEL_COPY.questPage}
-          </Link>
-        </Button>
-      </div>
-    </aside>
+        <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
+          <fieldset
+            className="flex flex-wrap gap-2"
+            aria-label={QUEST_SIDEBAR_COPY.size}
+          >
+            <Button
+              variant="quiet"
+              aria-pressed={size === "minimized"}
+              onClick={minimize}
+            >
+              {QUEST_SIDEBAR_COPY.minimize}
+            </Button>
+            <Button
+              variant="quiet"
+              aria-pressed={size === "medium"}
+              onClick={medium}
+            >
+              {QUEST_SIDEBAR_COPY.medium}
+            </Button>
+            <Button
+              variant="quiet"
+              aria-pressed={size === "full"}
+              onClick={full}
+            >
+              {QUEST_SIDEBAR_COPY.full}
+            </Button>
+          </fieldset>
+          <div hidden={size === "minimized"}>
+            <Accordion.Root
+              type="multiple"
+              defaultValue={[initialSection]}
+              className="flex flex-col gap-3"
+            >
+              {plan !== undefined && (
+                <Accordion.Item value="plan">
+                  <Accordion.Header>
+                    <Accordion.Trigger className="button-secondary quest-sidebar-trigger">
+                      {PLAN_COPY.heading}
+                    </Accordion.Trigger>
+                  </Accordion.Header>
+                  <Accordion.Content
+                    forceMount={true}
+                    className="quest-sidebar-content"
+                  >
+                    <PlanSteps look="panel" />
+                  </Accordion.Content>
+                </Accordion.Item>
+              )}
+              {sideContent}
+            </Accordion.Root>
+          </div>
+        </aside>
+      </dialog>
+    </div>
   );
 }
 
-export { PlanPanel };
+// Server-rendered sections retain their forms when their accordion is closed.
+function QuestSidebarSection({
+  name,
+  value,
+  children,
+}: {
+  readonly name: string;
+  readonly value: string;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <Accordion.Item value={value}>
+      <Accordion.Header>
+        <Accordion.Trigger className="button-secondary quest-sidebar-trigger">
+          {name}
+        </Accordion.Trigger>
+      </Accordion.Header>
+      <Accordion.Content forceMount={true} className="quest-sidebar-content">
+        {children}
+      </Accordion.Content>
+    </Accordion.Item>
+  );
+}
+
+export { PlanPanel, QuestSidebarSection };

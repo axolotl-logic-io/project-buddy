@@ -36,12 +36,12 @@ The conversation shows each call as a **Plan change** with Undo (`src/components
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
 - The quest page's **Plan** section, `/quests/QUEST_ID?section=plan`, where `QUEST_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
-- The **Plan panel** beside a quest's conversation: a column beside the conversation on a wide screen, and a button above it on a narrower one, which names the next step and opens the panel. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
+- The **Plan accordion** in the quest side menu, alongside Ideas and Progress. Minimize, Medium and Full screen control its size. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |
 | --- | --- |
-| `/plan` | Shows the plan as a card with every control. Only the newest card holds them. |
+| `/plan` | Enters Plan; subsequent messages become open steps until the Activity changes or stops. |
 | `/add TEXT` | Adds a step at the end. |
 | `/done [STEP]` | Checks off the step, or the next step without one. |
 | `/reopen STEP` | Reopens a done step. |
@@ -62,8 +62,8 @@ The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per c
 
 `src/plan/plan-store.ts` is the only module that reads or writes the table. A version is open to everyone in its quest through `planVersionOpenTo` in `src/accounts/owner-scope.ts`. Migration 0050 adds the table; it is an additive migration, which the live build can run beside.
 
-## Plan-only quest context
+## Quest context
 
-Goal, Preferences, the free-form Journal and their version pages are removed. Plan is the only editable quest context. The model reads the current Plan and the conversation, and can change agreed tasks with `change_plan`. Quest starts keep their supplied context in the opening conversation rather than a Journal.
+Goal, Preferences, the free-form Journal and their version pages are removed. Plan holds agreed tasks. [Ideas](quest-ideas.md) separately holds saved possibilities and can move an idea into Plan. Ideas are not model context. The model reads the current Plan and the conversation, and can change agreed tasks with `change_plan`. Quest starts keep their supplied context in the opening conversation rather than a Journal.
 
 Migration 0059 drops `journal_versions` and `memory_versions` and removes obsolete Journal command records. It does not transfer their content into Plan. Deploy this destructive change with the coordinated cutover described in [nomenclature](quest-nomenclature.md#release-cutover).
