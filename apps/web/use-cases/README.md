@@ -59,7 +59,7 @@ Each area's cases are in their own file:
 - [Quests](quests.md)
 - [Quest status](quest-status.md)
 - [Adventures](chats.md)
-- [Generated images](images.md)
+- [Saved images](images.md)
 - [Plan](plan.md)
 - [Constructs](constructs.md)
 - [Activities](activities.md)

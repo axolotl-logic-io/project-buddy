@@ -2,7 +2,7 @@ const HELP = [
   "Available commands:",
   "",
   "- `help` — show these commands.",
-  "- `look` — view this conversation's starting context.",
+  "- `look` — read the construct's visual description.",
   "- `search <query>` — search the Blender manual.",
   "- `cast <spell id>` — record a spell cast.",
   "",
@@ -12,7 +12,7 @@ const HELP = [
 interface LocalConstructCopy {
   readonly welcome: string;
   readonly help: string;
-  readonly look: (context: string) => string;
+  readonly look: (description: string) => string;
   readonly unknownCommand: string;
   readonly searchUsage: string;
   readonly castUsage: string;
@@ -27,11 +27,11 @@ interface LocalConstructCopy {
 const LOCAL_CONSTRUCT_COPY: LocalConstructCopy = {
   welcome: `Your construct is ready. Type a command to act.\n\n${HELP}`,
   help: HELP,
-  look: (context: string): string => {
-    if (context === "") {
-      return `You are in a conversation with your construct.\n\n${HELP}`;
+  look: (description: string): string => {
+    if (description === "") {
+      return `This construct has no visual description.\n\n${HELP}`;
     }
-    return `Your starting context:\n\n${context}\n\n${HELP}`;
+    return `Visual description:\n\n${description}\n\n${HELP}`;
   },
   unknownCommand: `Your message is saved. This construct responds to commands.\n\n${HELP}`,
   searchUsage: "Use `search <query>` to search the Blender manual.",

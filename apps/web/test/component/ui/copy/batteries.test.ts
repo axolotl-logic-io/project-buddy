@@ -3,7 +3,6 @@ import { userMessage } from "@/errors/app-error.ts";
 import { goldOfMicroUsd, wholeGold } from "@/gold/gold.ts";
 import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
 const STARTING_BALANCE = 100;
@@ -24,7 +23,6 @@ describe("battery amounts", () => {
     [FRACTIONAL_COST, "1.25 batteries"],
   ])("names %s in sentences", (amount, words) => {
     expect(BATTERIES_COPY.amount(amount)).toBe(words);
-    expect(VISUAL_COPY.reservation(amount)).toContain(`${words} before`);
   });
 
   test.each([

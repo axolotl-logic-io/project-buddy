@@ -94,25 +94,6 @@ The user makes a copy of a built-in construct from its page: she can't change it
 - **Next:**
   - `use_case_edit_construct`: change the copy.
 
-## use_case_generate_construct_images
-
-The user generates images for an own construct in the Workshop.
-
-- **Prerequisites:** `use_case_edit_construct`.
-- **Steps:**
-  - The user edits a Visual description. Save stores current edits and attaches matching draft artwork without another charge; otherwise it generates replacement images when that normalized description differs from the saved one. Generate Images uses the current unsaved Visual description, including recovered browser drafts, even when unchanged. It preserves unsaved name and prompt edits and never saves them as a prerequisite.
-  - The Save and generate images action explains the paid replacement and current battery reservation before submission, including at 320 px and through its accessible description. When the description is unchanged, edited then restored, or absent, the action is Save and requests no generation; name and prompt edits preserve artwork and spend no batteries on generation. The Visuals section also shows whether generation is available.
-  - While generation runs, a spinner and accessible loading status are visible; repeated generation and description-changing saves are disabled, while text-only saves remain available without replacing the unresolved UUID. Avatar, portrait, opening and working previews show each role’s state.
-  - While a request is pending, the user can check its status or reload without starting another paid request.
-- **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. The avatar frame is chosen from the image when it is generated, around the character's whole head and face, so small avatars show the head; without a found head it keeps the image's centre. Built-in artwork keeps its own frames. The framing model sees only the generated picture, and its small cost joins the generation's. Existing adventures keep their snapshots. Only changed descriptions mark newly generated art outdated. Name and prompt edits do not stale artwork or discard a valid pending completion. The provider receives exactly the normalized description, without conversational text, name, reference bytes or extra creative instructions. Legacy artwork without an accessible generation-description record shows unknown freshness rather than a prompt-based stale warning.
-- **Variations:** unavailable generation, lack of batteries, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. If the service confirms that the original request never started, the user can explicitly resume the same UUID and payload; an inaccessible construct cannot be resumed. Retry after a confirmed terminal failure uses a new UUID and may spend batteries. Built-ins offer Make a copy instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
-
-After a successful replacement, Restore previous artwork restores one previous image identity and its saved Visual description without a model call or battery charge. Save or discard other edits first. Missing previous artwork offers no restore. A further saved replacement replaces the recovery slot. Adventure snapshots and copies remain immutable; cleanup releases bytes only after their final grant is gone.
-
-Draft generation also accepts a first nonempty unsaved or recovered Visual description. The saved definition stays unchanged until Save; previews and recovery use an owner-scoped generation snapshot. Saving the matching description attaches its artwork without a second charge.
-
-If the saved description changes during generation, the result is stale, prior artwork stays and the one billed call settles. Restore previous artwork uses saved artwork history; draft artwork enters that history after Save.
-
 ## use_case_view_character_profile
 
 The user meets the construct saved in an adventure.
@@ -120,3 +101,11 @@ The user meets the construct saved in an adventure.
 - **Prerequisites:** an adventure.
 - **Steps:** open the portrait and name control in the adventure header.
 - **Outcome:** a named profile shows the saved character's artwork, temperament, approach to quests and a representative sample line. Own or legacy characters without public personality copy show useful generic copy and initials when no art is available. Private conversational instructions and Visual descriptions never appear. The profile uses the adventure snapshot, so source edits do not change it. Opening it makes no model call. Keyboard focus stays inside the profile; Escape and Close return focus to its trigger. The profile fits a 320px phone, scrolls when needed and leaves the composer usable after closing.
+
+### Look command
+
+The user reads the construct’s appearance in their conversation.
+
+- **Prerequisites:** a signed-in user and a conversation.
+- **Steps:** the user sends `look` or `/look`.
+- **Outcome:** the reply shows the Visual description from the conversation’s saved construct, preserving literal placeholders. It shows neither starting context nor Character Sheet instructions. A construct without a description explains that none is available. The command generates no image and spends no batteries.

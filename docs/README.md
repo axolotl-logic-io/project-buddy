@@ -28,7 +28,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
 
-- [Images](images.md): image generation, gallery, battery accounting and deletion.
+- [Images](images.md): saved images, owner access and deletion.
 - [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
 
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
