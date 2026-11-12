@@ -4,7 +4,9 @@
 set -euo pipefail
 here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 scripts="$(cd -- "$here/../../../../scripts/ops" && pwd)"
-work="$(mktemp -d "${TMPDIR:-/tmp}/pb-ops.XXXXXX")"
+# Reproduce a path containing the old short fake secret. Paths are public
+# output; fake secret values must be distinct from a random directory suffix.
+work="$(mktemp -d "${TMPDIR:-/tmp}/pb-ops.hush.XXXXXX")"
 work="$(cd -- "$work" && pwd -P)"
 trap 'rm -rf -- "$work"' EXIT
 
@@ -22,7 +24,7 @@ set -euo pipefail
 printf '%s|%s\n' "$PWD" "$*" >> "$VERCEL_CALLS"
 case "$1" in
   link) mkdir -p .vercel && echo '{}' > .vercel/project.json ;;
-  env) printf 'DATABASE_URL=postgres://secret-value\nSESSION_SECRET=hush\n' > "$3" ;;
+  env) printf 'DATABASE_URL=postgres://secret-value\nSESSION_SECRET=test-session-secret-value\n' > "$3" ;;
 esac
 SH
 chmod +x "$work/bin/vercel"
@@ -39,8 +41,8 @@ bash "$checkout/scripts/ops/pull-env.sh" production > "$work/out"
 contains "$work/calls" "$checkout|env pull $work/ops/production.env --environment=production --yes"
 not_contains "$work/calls" "|link"
 contains "$work/out" "DATABASE_URL SESSION_SECRET"
-not_contains "$work/out" "secret-value"
-not_contains "$work/out" "hush"
+not_contains "$work/out" "postgres://secret-value"
+not_contains "$work/out" "test-session-secret-value"
 [[ "$(stat -c %a "$work/ops/production.env" 2>/dev/null || stat -f %Lp "$work/ops/production.env")" == 600 ]] ||
   die "The pulled file must be readable only by its owner"
 [[ "$(stat -c %a "$work/ops" 2>/dev/null || stat -f %Lp "$work/ops")" == 700 ]] ||
