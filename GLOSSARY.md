@@ -9,7 +9,7 @@ Constructs currently run a local command engine inspired by multi-user dungeons 
 Three concepts shape every [conversation](#conversation):
 
 - A **[construct](#construct)** is who the user works with: a character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
-- A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
+- A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or casting a spell.
 - An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
 
 Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
@@ -569,7 +569,7 @@ An image a construct creates at the [acting user](#acting-user)'s request, spend
 
 ### Image gallery
 
-The generated images made at a user's request. Each user's gallery lists their own generations. Deleting a source conversation, or its quest, also deletes its generated images.
+The generated images made at a user's request. The Image gallery has been removed; saved images remain in their source conversations. Deleting a source conversation, or its quest, also deletes its generated images.
 
 ## Usage
 

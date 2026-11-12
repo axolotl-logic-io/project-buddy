@@ -42,6 +42,7 @@ import { planPromptSection } from "@/replies/plan-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 import { startingContextSection } from "@/replies/starting-context.ts";
+import { visualDescriptionSection } from "@/replies/visual-description.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
 import { spellChoices } from "@/spells/spell-choices.ts";
@@ -185,6 +186,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   planPromptSection,
   milestonesPromptSection,
   activitySection,
+  visualDescriptionSection,
   ({ construct }: ReplyPromptContext): string => construct.definition.prompt,
 ];
 
@@ -215,6 +217,7 @@ function renderReplyInstructions(
     construct: {
       ...construct,
       definition: {
+        ...construct.definition,
         prompt: withUserName(construct.definition.prompt, userName),
       },
     },

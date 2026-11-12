@@ -3,8 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { cache } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
 import { ConstructVisualPreview } from "@/components/constructs/construct-visual-preview.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
@@ -99,9 +99,8 @@ function OwnConstructForm({
   return (
     <>
       <p className="text-muted">{CONSTRUCT_COPY.ownIntro}</p>
-      <ConstructEditor
+      <PromptEditor
         action={saveConstructAction}
-        construct={construct}
         defaultPrompt={constructResetPrompt(construct.clonedFrom).prompt}
         heading={PROMPT_COPY.constructFieldsHeading}
         idName="constructId"

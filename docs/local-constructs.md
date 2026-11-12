@@ -10,7 +10,7 @@ Project Buddy makes no requests to AI model companies. Constructs run a local co
 | `plan` | Enter Plan; save subsequent messages as open steps. |
 | `stop` | Return to Chat without changing existing bucket contents. |
 | `help` | List supported commands. |
-| `look` | Show the conversation's starting context when present. |
+| `look` | Show the Visual description from the conversation's saved construct, or explain that it has none. |
 | `search <query>` | Search the local Blender manual index, save citations and show excerpts. |
 | `cast <spell id>` | Use the existing owner-scoped spell tool and save the cast. |
 
@@ -28,7 +28,7 @@ Local replies report zero tokens and bypass provider spend metering. The existin
 
 The engine does not infer intent, interpret prose instructions, understand attached images, infer plans or propose quest-status changes. Construct, activity and spell definitions and conversation snapshots remain saved. Casting a spell records its use but does not execute its instructions. The saved current Activity controls deterministic message capture. Stop [Activity] appears above the composer beside Start the day when offered. Plan, Ideas and Progress live in the collapsible side menu. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, search and cast keep their command behavior. Prepared openings remain as saved; generated openings use command help.
 
-Remote image generation and avatar framing are disabled at their factories, even if old API credentials remain configured. Existing artwork, image uploads and galleries remain available. Image generation follows the existing unavailable-provider behavior.
+Image generation, its Workshop controls and the Image gallery have been removed. Saving a Visual description changes text without spending batteries or replacing artwork. Existing artwork, saved conversation images and uploads remain available. No remote image generation or avatar framing call is made.
 
 ## Configuration
 
