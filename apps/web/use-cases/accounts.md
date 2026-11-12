@@ -42,8 +42,8 @@ The user signs in with a link the site emails her, on this device or another.
   - The site signs her in and shows Quests.
 - **Outcome:** she is on Quests, where she can continue a quest or choose one of the four premade starting points, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
 - **Next:**
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): see what she has been working on.
-  - [`use_case_new_project`](projects.md#use_case_new_project): start learning something new.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): see what she has been working on.
+  - [`use_case_new_quest`](quests.md#use_case_new_quest): start learning something new.
   - [`use_case_return_signed_in`](access.md#use_case_return_signed_in): come back another day without signing in again.
   - `use_case_sign_in_link_reused`: sign in on another device with the same link.
   - `use_case_sign_in_link_expired`: she opens the link too late.
@@ -92,21 +92,21 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own quests, adventures, Journal, constructs and batteries.
+Two users each see only their own quests, adventures, Plans, constructs and batteries.
 
-- **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a quest that has an adventure ([`use_case_new_project`](projects.md#use_case_new_project)).
+- **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a quest that has an adventure ([`use_case_new_quest`](quests.md#use_case_new_quest)).
 - **Steps:**
-  - The second user opens the addresses of the first user's quest, its Journal and its adventure.
-  - She tries to send a message in that adventure, save that Journal and rename that adventure, using its address.
+  - The second user opens the addresses of the first user's quest, Plan and adventure.
+  - She tries to send a message in that adventure, change that Plan and rename that adventure, using its address.
   - She looks over her own quests, and starts a new adventure.
   - She tries to restore an earlier version of the first user's Journal, and to read, clone, edit and delete the first user's construct.
   - Both users spend batteries.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure, Journal and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. Restoring the first user's Journal answers as for a quest that never existed, shows none of its text and saves nothing. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's batteries pay only for their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's batteries pay only for their own calls.
 - **Variations:**
   - Each user can have many standalone adventures, in no quest: each one she starts, however many at once, is a new adventure of her own. The first user's standalone adventure, and its messages, are not found to her, exactly as an unknown adventure is, and take none of her writes: its address says it cannot be found, and a message sent to it through the adventure API is refused as not found. A standalone adventure is never among a quest's adventures, and goes when its account is deleted.
   - A quest of the first user's that she was once a member of, from when quests could be shared, looks to her exactly like the first user's other quests do: her old membership or quest invitation grants nothing.
 - **Next:**
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): carry on with her own work.
 
 ## use_case_see_gold
 
@@ -150,7 +150,7 @@ The user has spent all her batteries.
   - She sends another message.
   - Instead of a reply, the adventure says "You're out of batteries."
   - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, Settings shows 0 under "Batteries", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation is refused too. With a valid isolated test catalog, model-use shortage messages link to Settings. Otherwise they explain that purchases are unavailable. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
+- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, Settings shows 0 under "Batteries", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation is refused too. With a valid isolated test catalog, model-use shortage messages link to Settings. Otherwise they explain that purchases are unavailable. No smaller model is offered. She can still read her quests, adventures and Plan, edit the Plan herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her batteries.
 

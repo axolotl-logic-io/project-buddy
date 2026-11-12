@@ -1,7 +1,8 @@
 // The text of a quest's plan: the Plan section on the quest's page and the
-// Journal page, the Plan panel beside a quest's conversation, the plan
+// Plan section, the Plan panel beside a quest's conversation, the plan
 // changes and plan cards in it, and the composer's commands. The plan has no
 // deadlines and never nags: no counts of open steps or days.
+
 import {
   MOST_OPEN_STEPS,
   PLAN_STEP_TEXT_MAX_LENGTH,
@@ -99,8 +100,6 @@ export const PLAN_COPY = {
     "not-found": "This quest isn't available any more.",
     "not-saved": "The plan couldn't be saved. Try again.",
   },
-  journalLink: "Open the plan",
-  emptyInJournal: "No steps yet.",
 } as const;
 
 export const PLAN_CHANGE_COPY = {

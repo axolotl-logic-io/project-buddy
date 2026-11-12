@@ -17,7 +17,7 @@ const QUEST_STATUS_COPY = {
   undo: "Undo",
   empty: "No quests with this status.",
   effects:
-    "Your conversation, Journal and progress stay available. You can restore the quest whenever you want.",
+    "Your conversation, Plan and progress stay available. You can restore the quest whenever you want.",
   pending: "Awaiting your approval",
   approvalHeading: "Confirm quest status change",
   confirm: {

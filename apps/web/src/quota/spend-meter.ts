@@ -6,6 +6,7 @@
 // `finish` goes on, so the cost is stored before the reply's response ends;
 // a stream that stops without `finish` is charged an estimate. A generated
 // call is charged when it returns.
+
 import type {
   LanguageModelV4GenerateResult,
   LanguageModelV4Middleware,

@@ -1,5 +1,5 @@
 // Stored data for the phone checks (phone-pages-test-kit.tsx), shaped as the
-// stores return it: what each page shows beyond page-fixtures.ts's projects
+// stores return it: what each page shows beyond page-fixtures.ts's quests
 // and chats.
 
 import type { UIMessage } from "ai";
@@ -12,7 +12,6 @@ import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contrac
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { defaultMockScript } from "@/replies/mock-script.ts";
 import { getSpell } from "@/spells/index.ts";
 import type { OwnSpell } from "@/spells/spell-store.ts";
@@ -20,37 +19,6 @@ import {
   userConstructIdFixture,
   userIdFixture,
 } from "../../support/id-fixtures.ts";
-
-// A memory with a task list and a long item, as she wrote it.
-const MEMORY_TEXT = [
-  "## Goals",
-  "",
-  "- Learn to bevel and to use the Mirror modifier on a low-poly fox den.",
-  "",
-  "## Milestones",
-  "",
-  "- [x] Block out the den's shape",
-  "- [ ] Bevel the roof's edges",
-].join("\n");
-
-// The memory's history, newest first: hers, then the construct's, which ticks a
-// milestone, so the page shows two versions, the older one to restore.
-const MEMORY_HISTORY: readonly MemoryVersion[] = [
-  {
-    version: MEMORY_VERSION_NUMBER.parse(2),
-    text: MEMORY_TEXT.replace("- [ ] Bevel", "- [x] Bevel"),
-    author: "construct",
-    savedBy: undefined,
-    createdAt: new Date("2026-10-11T10:00:00Z"),
-  },
-  {
-    version: MEMORY_VERSION_NUMBER.parse(1),
-    text: MEMORY_TEXT,
-    author: "user",
-    savedBy: undefined,
-    createdAt: new Date("2026-10-11T09:00:00Z"),
-  },
-];
 
 // Her clone of Vellum.
 const VELLUM_CLONE: OwnConstruct = {
@@ -171,7 +139,6 @@ export {
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
   LINK_USER,
-  MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
   VELLUM_CLONE,

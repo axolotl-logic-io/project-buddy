@@ -1,6 +1,7 @@
 // The end-to-end tests' email transport: each email becomes a JSON file in
 // the outbox folder, which test/support/email/outbox-files.ts reads. One of the two files that
 // may use Node's file system (biome.jsonc); only send-email.ts imports it.
+
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { type EmailMessage, emailSender } from "@/email/email-message.ts";

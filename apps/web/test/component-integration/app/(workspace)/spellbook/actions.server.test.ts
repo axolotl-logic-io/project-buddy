@@ -3,6 +3,7 @@
 // one, which she edits within its limits, clones, resets,
 // deletes and has the construct cast; the built-in spells and other users'
 // spells are never changed.
+
 import { getToolName, isToolUIPart } from "ai";
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";

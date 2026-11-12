@@ -1,6 +1,7 @@
 // Her constructs, from the constructs pages' forms, in the test database with the
 // mock construct: what customizing, crafting, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
+
 import { and, eq } from "drizzle-orm";
 import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
@@ -39,7 +40,6 @@ import {
   imageProvider,
 } from "@/images/image-provider.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
-import { EARLIER_VELLUM_PROMPT } from "../../support/earlier-built-in-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -288,7 +288,7 @@ describe("use_case_edit_construct", () => {
     expect(saved.definition.prompt).toBe(prompt);
 
     const chat = await createChat(user.id, {
-      project: await testData(user).project(),
+      quest: await testData(user).quest(),
       construct: {
         id: DEFAULT_CONSTRUCT_ID,
         name: saved.name,
@@ -395,7 +395,7 @@ test("saving a Visual description retains trusted art, ignores submitted assets 
   );
 });
 
-test("Workshop save and reset keep unchanged prompts readable as built-ins by the live build", async () => {
+test("Workshop save and reset keep unchanged prompts stored in current built-in wording", async () => {
   const user = await signedInUser();
   const construct = await cloneOf(user, "vellum");
   await expectRedirect(
@@ -410,7 +410,7 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
     .from(ownPrompts)
     .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
   expect(parseConstructDefinition(saved?.parts)?.prompt).toBe(
-    EARLIER_VELLUM_PROMPT,
+    getConstruct("vellum").definition.prompt,
   );
   await expectRedirect(
     () =>
@@ -428,7 +428,7 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
     .from(ownPrompts)
     .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
   expect(parseConstructDefinition(reset?.parts)?.prompt).toBe(
-    EARLIER_VELLUM_PROMPT,
+    getConstruct("vellum").definition.prompt,
   );
   expect((await stored(user, construct.id)).definition.visual).toEqual(
     construct.definition.visual,

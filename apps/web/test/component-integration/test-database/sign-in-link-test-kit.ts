@@ -4,6 +4,7 @@
 // file mocks the email service and passes the mock in:
 //   const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 //   vi.mock("@/email/send-email.ts", () => sent);
+
 import type { Mock } from "vitest";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { requestSignInLink } from "@/accounts/sign-in-links.ts";

@@ -8,6 +8,7 @@
 // The model sees only the generated picture, scaled down, and a fixed
 // question: no name, description or prompt. Its cost joins the image's in
 // the generation's battery reservation (visual-generation.ts).
+
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText, type LanguageModel, Output } from "ai";
 import sharp from "sharp";

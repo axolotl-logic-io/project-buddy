@@ -3,6 +3,7 @@
 // they come back to the chat, from another page or after a reload. Sending
 // the message empties the box, which forgets the draft. Only the browser
 // imports this module.
+
 import type { AssistantRuntime } from "@assistant-ui/react";
 import { useEffect, useState } from "react";
 import { z } from "zod";

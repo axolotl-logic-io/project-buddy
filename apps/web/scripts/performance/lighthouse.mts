@@ -165,12 +165,12 @@ async function captureLighthouse(
       const viewportBeforeTimespan = await page.evaluate(viewport);
       await flow.startTimespan();
       const viewportInTimespan = await page.evaluate(viewport);
-      await (await visible(page, 'a[href="/projects"]')).click();
-      await page.waitForFunction(() => location.pathname === "/projects");
+      await (await visible(page, 'a[href="/quests"]')).click();
+      await page.waitForFunction(() => location.pathname === "/quests");
       await page.waitForFunction(primaryPresent, {}, "quests");
       const content = stateContent("populated", "quests", fixture);
       const witness = {
-        url: `${options.base}/projects`,
+        url: `${options.base}/quests`,
         viewportBeforeTimespan,
         viewportInTimespan,
         sourceTimeOrigin,

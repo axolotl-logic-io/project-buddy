@@ -1,6 +1,7 @@
 // CONSTRUCT_MODEL picks the model constructs run. BUDDY_MODEL, its earlier
 // name, still works where CONSTRUCT_MODEL is unset, so environments set up
 // before the rename keep the mock.
+
 import { afterEach, expect, test, vi } from "vitest";
 import { readConstructModel } from "@/env.ts";
 
@@ -19,9 +20,9 @@ test("constructs run Claude when neither name is set", () => {
   expect(readConstructModel()).toBe("claude");
 });
 
-test("the legacy BUDDY_MODEL still selects the mock when CONSTRUCT_MODEL is unset", () => {
+test("the removed model setting does not select the mock", () => {
   stubModels("", "mock");
-  expect(readConstructModel()).toBe("mock");
+  expect(readConstructModel()).toBe("claude");
 });
 
 test("CONSTRUCT_MODEL takes precedence over the legacy name", () => {
@@ -36,14 +37,10 @@ test("an unknown model, under either name, is refused", () => {
   expect(readConstructModel).toThrow(
     'CONSTRUCT_MODEL must be unset, "claude" or "mock".',
   );
-  stubModels("", "gpt");
-  expect(readConstructModel).toThrow(
-    'CONSTRUCT_MODEL must be unset, "claude" or "mock".',
-  );
 });
 
-test("production refuses the mock, under either name", () => {
-  stubModels("", "mock");
+test("production refuses the mock", () => {
+  stubModels("mock", "");
   vi.stubEnv("VERCEL_ENV", "production");
   expect(readConstructModel).toThrow("in production");
 });

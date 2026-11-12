@@ -64,7 +64,7 @@ describe("Library maintenance", () => {
       gettingStarted?.chapters.flatMap((chapter) =>
         chapter.links.map((link) => link.href),
       ),
-    ).toEqual(expect.arrayContaining(["/projects", "/workshop"]));
+    ).toEqual(expect.arrayContaining(["/quests", "/workshop"]));
   });
 
   test("keeps every model call site discoverable in the source map", () => {

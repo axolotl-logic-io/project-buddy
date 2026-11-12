@@ -1,11 +1,11 @@
-// The prompt section that gives every chat in a project the project's
+// The prompt section that gives every chat in a quest the quest's
 // newest milestones, as the prompt read them when the turn started, between
 // tags, so the construct can see what is recorded already, in any of the
-// project's chats, and not record it again.
+// quest's chats, and not record it again.
 import type { Milestone } from "@/milestones/milestone.ts";
 import type { ReplyPromptContext } from "@/replies/system-prompt.ts";
 
-// How many of the project's newest milestones the prompt gives.
+// How many of the quest's newest milestones the prompt gives.
 const MILESTONES_IN_PROMPT = 10;
 
 // The line the prompt gives while the timeline is empty.
@@ -23,20 +23,20 @@ function milestoneLine({ recordedAt, text }: Milestone): string {
   return `- ${recordedAt.toISOString().slice(0, "YYYY-MM-DD".length)}: ${text}`;
 }
 
-// The project's newest milestones, between tags that keep them apart from
-// the rest of the prompt, or "" in a standalone chat, which has no project
+// The quest's newest milestones, between tags that keep them apart from
+// the rest of the prompt, or "" in a standalone chat, which has no quest
 // and so no timeline.
-function milestonesPromptSection({ project }: ReplyPromptContext): string {
-  if (project === undefined) {
+function milestonesPromptSection({ quest }: ReplyPromptContext): string {
+  if (quest === undefined) {
     return "";
   }
-  if (project.milestones.length === 0) {
+  if (quest.milestones.length === 0) {
     return EMPTY_TIMELINE_PROMPT;
   }
   return [
     TIMELINE_PROMPT_INTRO,
     TIMELINE_START_TAG,
-    ...project.milestones.map(milestoneLine),
+    ...quest.milestones.map(milestoneLine),
     TIMELINE_END_TAG,
   ].join("\n");
 }

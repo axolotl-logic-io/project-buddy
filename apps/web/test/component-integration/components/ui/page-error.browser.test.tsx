@@ -1,6 +1,7 @@
 // A page that fails while rendering reaches the browser as a bare document
 // without <head>'s pre-paint scripts, and React renders <html> with the
 // default theme attributes. PageError applies the saved mode itself, so the error page looks like every other page.
+
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";

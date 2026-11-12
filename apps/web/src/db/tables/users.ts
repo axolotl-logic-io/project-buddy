@@ -26,7 +26,7 @@ export const users = pgTable(
     sessionEpoch: integer("session_epoch").notNull().default(0),
     hiddenExtras: text("hidden_extras").array().notNull().default(sql`'{}'`),
     name: text("name"),
-    interviewConstructId: text("interview_buddy_id"),
+    interviewConstructId: text("interview_construct_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

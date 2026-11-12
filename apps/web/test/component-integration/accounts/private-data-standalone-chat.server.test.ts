@@ -2,6 +2,7 @@
 // real rows of two users, read through the stores directly: it is hers
 // alone, never a quest's conversation, and deleted with her account.
 // conversations.server.test.ts checks that it is the same Chat each time.
+
 import { describe, expect, test } from "vitest";
 import { getChat } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
@@ -31,12 +32,12 @@ describe("use_case_private_data", () => {
   test("her private Chat is not her quest's conversation", async () => {
     const her = await testUser();
     const herData = testData(her);
-    const project = await herData.project();
-    const projectChat = await herData.chat(project);
+    const quest = await herData.quest();
+    const projectChat = await herData.chat(quest);
     const chat = await privateChat(her.id);
 
     expect(chat.id).not.toBe(projectChat.id);
-    expect((await readQuestConversation(her.id, project.id))?.id).toBe(
+    expect((await readQuestConversation(her.id, quest.id))?.id).toBe(
       projectChat.id,
     );
   });

@@ -1,12 +1,13 @@
 // Private storage and model hydration share this boundary. Callers never
 // fetch an image URL from the network, including URLs supplied by a client.
+
 import type { UIMessage } from "ai";
 import { and, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo, imageOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { images } from "@/db/tables/images.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ChatId, parseImageId, type UserId } from "@/ids.ts";

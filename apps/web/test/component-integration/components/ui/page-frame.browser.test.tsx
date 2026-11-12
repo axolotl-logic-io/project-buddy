@@ -21,7 +21,7 @@ function shell(content: JSX.Element): JSX.Element {
   return (
     <>
       <header>
-        <a href="/projects">{COPY.navigation}</a>
+        <a href="/quests">{COPY.navigation}</a>
       </header>
       <main className="flex flex-1 flex-col">
         <div className="workspace-frame">{content}</div>

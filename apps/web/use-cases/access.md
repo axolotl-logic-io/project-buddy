@@ -10,7 +10,7 @@ The user opens any page of the site without being signed in.
 - **Steps:**
   - She opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page and the menu. The menu offers Light, Dark and System modes and a Credits link. It doesn't ask for a shared code. No one's quests, adventures or Journal appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page and the menu. The menu offers Light, Dark and System modes and a Credits link. It doesn't ask for a shared code. No one's quests, adventures or Plans appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): she has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): she has been invited and has no account yet.
@@ -41,8 +41,8 @@ The user comes back to the site later on the same browser.
   - It goes straight to the page she asked for, without asking her to sign in.
 - **Outcome:** the page she opened shows its content, and she did not have to sign in again.
 - **Next:**
-  - [`use_case_open_project`](projects.md#use_case_open_project): continue a quest's conversation.
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): look over her quests.
+  - [`use_case_open_quest`](quests.md#use_case_open_quest): continue a quest's conversation.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): look over her quests.
   - `use_case_session_expired`: she has been away for more than a month.
   - `use_case_session_expired_in_chat`: her sign-in lapses while an adventure is open.
 
@@ -62,7 +62,7 @@ The user returns after her sign-in has lapsed.
 
 The user's sign-in lapses while an adventure is open, and she sends a message.
 
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), with the quest's conversation left open until her sign-in lapses.
+- **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), with the quest's conversation left open until her sign-in lapses.
 - **Steps:**
   - She sends a message.
   - Instead of a reply, the adventure says she has been signed out and needs to sign in again, with a link to the sign-in page.

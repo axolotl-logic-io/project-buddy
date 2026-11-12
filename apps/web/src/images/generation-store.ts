@@ -7,7 +7,7 @@ import {
 } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
-import { chats } from "@/db/tables/projects-and-chats.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { goldOfMicroUsd, wholeGold } from "@/gold/gold.ts";
 import {
@@ -180,7 +180,7 @@ async function listGeneratedImages(
   before?: { readonly createdAt: Date; readonly id: GenerationId },
 ): Promise<GalleryImage[]> {
   // Only owner's generations in chats still open to them: none from a team
-  // project they have left.
+  // quest they have left.
   const predicates = [generationOwnedBy(owner), generationOpenTo(owner)];
   if (before !== undefined) {
     predicates.push(

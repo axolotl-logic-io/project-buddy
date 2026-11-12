@@ -24,8 +24,8 @@ const COST = 123;
 describe("use_case_see_gold", () => {
   test("reply costs include naming, retain fractions, and are private to the acting user", async () => {
     const [owner, formerMember] = await Promise.all([testUser(), testUser()]);
-    const project = await testData(owner).project();
-    const chat = await testData(owner).chat(project);
+    const quest = await testData(owner).quest();
+    const chat = await testData(owner).chat(quest);
     await signIn(owner);
     await sendChatMessage(chat.id, "Help with this quest.");
     const [cost] = await readReplyCosts(owner.id, chat.id);
@@ -68,8 +68,8 @@ describe("use_case_see_gold", () => {
 
   test("pending and unknown operations never mean zero; settlement is idempotent", async () => {
     const user = await testUser();
-    const project = await testData(user).project();
-    const chat = await testData(user).chat(project);
+    const quest = await testData(user).quest();
+    const chat = await testData(user).chat(quest);
     const messageId = MESSAGE_ID.parse("accounting-is-idempotent");
     await saveMessage(user.id, chat.id, {
       id: messageId,

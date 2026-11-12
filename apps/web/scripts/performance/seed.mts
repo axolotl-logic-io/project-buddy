@@ -18,10 +18,10 @@ async function seedAudit(): Promise<{
   empty: string;
   populated: string;
   details: string;
-  project: string;
+  quest: string;
   chat: string;
   construct: string;
-  emptyProject: string;
+  emptyQuest: string;
   emptyChat: string;
   counts: {
     accounts: number;
@@ -36,8 +36,8 @@ async function seedAudit(): Promise<{
   const empty = await testUser();
   const populated = await testUser();
   const kit = testData(populated);
-  const project = await kit.project("Synthetic audit quest");
-  const chat = await kit.chat(project);
+  const quest = await kit.quest("Synthetic audit quest");
+  const chat = await kit.chat(quest);
   await kit.exchanges(
     chat,
     Array.from(
@@ -63,21 +63,21 @@ async function seedAudit(): Promise<{
   }
   const details = await testUser();
   const detailKit = testData(details);
-  const emptyProject = await detailKit.project("Synthetic empty quest");
-  const emptyChat = await detailKit.chat(emptyProject);
+  const emptyQuest = await detailKit.quest("Synthetic empty quest");
+  const emptyChat = await detailKit.chat(emptyQuest);
   const secret = readSessionSecret();
   return {
     empty: await createSessionToken(empty, secret, new Date()),
     populated: await createSessionToken(populated, secret, new Date()),
     details: await createSessionToken(details, secret, new Date()),
-    project: project.id,
+    quest: quest.id,
     chat: chat.id,
     construct: construct.id,
-    emptyProject: emptyProject.id,
+    emptyQuest: emptyQuest.id,
     emptyChat: emptyChat.id,
     counts: {
       accounts: [empty, populated, details].length,
-      quests: [project, emptyProject].length,
+      quests: [quest, emptyQuest].length,
       messages: EXCHANGES * MESSAGES_PER_EXCHANGE,
       ownConstructs: 1,
       emptyDetailMessages: 0,

@@ -1,13 +1,13 @@
 // Data a server test needs before it starts, made through the app's stores
 // in the test database, for server tests and for test/system/fixtures.ts's
-// testData. Projects and chats belong to a test user and go when the user
+// testData. Quests and chats belong to a test user and go when the user
 // is deleted; manual sections are added beside the others and removed by
 // removeTestData, which the setup file (vitest.server-setup.ts) and the e2e
 // fixture call after each test.
 
 import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
-import { projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { enterActivity } from "@/activities/activity-sessions.ts";
@@ -15,7 +15,7 @@ import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { addManualSections } from "@/blender-manual/manual-index.ts";
 import type { ManualSection } from "@/blender-manual/manual-sections.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
-import type { ProjectChat } from "@/chats/chat-rows.ts";
+import type { QuestChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import {
@@ -29,17 +29,17 @@ import {
   getConstruct,
 } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
-import { messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { messages, quests } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { createProject, type Project } from "@/projects/store.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { createQuest, type Quest } from "@/quests/store.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
 // One of her messages and the construct's reply to it, as the reply's stream
 // saves them. author, another user, writes the message instead, as a
-// member of a team project would; it is recorded straight in the messages
+// member of a team quest would; it is recorded straight in the messages
 // table, since the chat isn't theirs.
 interface Exchange {
   readonly message: string;
@@ -47,20 +47,20 @@ interface Exchange {
   readonly author?: User;
 }
 
-// Projects and chats of one user, and sections of the manual.
+// Quests and chats of one user, and sections of the manual.
 interface TestData {
-  // A new project, named name, or a unique name when name is missing.
+  // A new quest, named name, or a unique name when name is missing.
   // Supply createdAt when a test needs a fixed chronological order.
-  readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
-  // A new chat in project, in the voice of constructId or the default construct.
+  readonly quest: (name?: string, createdAt?: Date) => Promise<Quest>;
+  // A new chat in quest, in the voice of constructId or the default construct.
   readonly chat: (
-    project: Project,
+    quest: Quest,
     constructId?: ConstructId,
-  ) => Promise<ProjectChat>;
+  ) => Promise<QuestChat>;
   // A new construct of the user's own, cloned from the default construct with its
   // voice edited, so it has no prepared opening and writes its own.
   readonly editedConstruct: () => Promise<OwnConstruct>;
-  // Makes the chat, a project chat, its project's interview chat.
+  // Makes the chat, a quest chat, its quest's interview chat.
   readonly interviewChat: (chat: { readonly id: ChatId }) => Promise<void>;
   // Saves the exchanges in the chat, one after another, so they keep their
   // order.
@@ -100,8 +100,8 @@ function uniqueSuffix(): string {
   return crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH);
 }
 
-// Puts the owner's chat in the project interview from its start, as the
-// chat a project is created with is: its project's interview chat.
+// Puts the owner's chat in the quest interview from its start, as the
+// chat a quest is created with is: its quest's interview chat.
 async function setInterviewChat(owner: UserId, chatId: ChatId): Promise<void> {
   await enterActivity(
     owner,
@@ -141,44 +141,44 @@ async function saveExchanges(
   await saveExchanges(owner, chatId, rest);
 }
 
-// A project of the owner's named name, made at createdAt when it is given.
+// A quest of the owner's named name, made at createdAt when it is given.
 // A name the site would refuse now, such as one longer than the limit, is
-// saved as projects named before the limit kept theirs.
-async function testProject(
+// saved as quests named before the limit kept theirs.
+async function testQuest(
   owner: UserId,
   name: string,
   createdAt: Date | undefined,
-): Promise<Project> {
-  const checked = PROJECT_NAME.safeParse(name);
+): Promise<Quest> {
+  const checked = QUEST_NAME.safeParse(name);
   const allowed = checked.success && checked.data === name;
-  let created = PROJECT_NAME.parse(`Test project ${uniqueSuffix()}`);
+  let created = QUEST_NAME.parse(`Test project ${uniqueSuffix()}`);
   if (checked.success) {
     created = checked.data;
   }
-  const project = await createProject(owner, created);
+  const quest = await createQuest(owner, created);
   if (allowed && createdAt === undefined) {
-    return project;
+    return quest;
   }
-  const saved = { name, createdAt: createdAt ?? project.createdAt };
+  const saved = { name, createdAt: createdAt ?? quest.createdAt };
   await getDb()
-    .update(projects)
+    .update(quests)
     .set(saved)
-    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)));
-  return { ...project, ...saved };
+    .where(and(eq(quests.id, quest.id), questOwnedBy(owner)));
+  return { ...quest, ...saved };
 }
 
 // The data of user, a test user from testUser.
 function testData(user: User): TestData {
   return {
-    project: (
+    quest: (
       name = `Test project ${uniqueSuffix()}`,
       createdAt?: Date,
-    ): Promise<Project> => testProject(user.id, name, createdAt),
+    ): Promise<Quest> => testQuest(user.id, name, createdAt),
     chat: (
-      project: Project,
+      quest: Quest,
       constructId: ConstructId = DEFAULT_CONSTRUCT_ID,
-    ): Promise<ProjectChat> =>
-      createChat(user.id, { project, construct: getConstruct(constructId) }),
+    ): Promise<QuestChat> =>
+      createChat(user.id, { quest, construct: getConstruct(constructId) }),
     editedConstruct: (): Promise<OwnConstruct> => testEditedConstruct(user.id),
     interviewChat: (chat: { readonly id: ChatId }): Promise<void> =>
       setInterviewChat(user.id, chat.id),

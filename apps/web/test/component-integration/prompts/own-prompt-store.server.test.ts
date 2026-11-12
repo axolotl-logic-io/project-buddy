@@ -1,6 +1,7 @@
 // Own crafted prompts, against the test database: a new
 // prompt has the name and parts it was written with and no source, is its
 // owner's alone, and is found only as its own kind.
+
 import { expect, test } from "vitest";
 import type { ActivityDefinition } from "@/activities/activity.ts";
 import {

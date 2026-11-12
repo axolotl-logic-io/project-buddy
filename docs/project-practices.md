@@ -74,7 +74,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 ## Site types
 
 - External data parsed at the boundary includes request bodies, form data, env vars, JSON columns and model tool inputs.
-- `ProjectId` and `ChatId` are separate id types.
+- `QuestId` and `ChatId` are separate id types.
 
 ## Site lint
 

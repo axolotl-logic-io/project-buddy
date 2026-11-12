@@ -2,6 +2,7 @@
 // Settings. Another browser is a new browser context, which shares
 // nothing with the test's. The page's usage and name are server and
 // component tests in test/component-integration/app/(workspace)/settings/.
+
 import {
   type Browser,
   expect,
@@ -40,7 +41,7 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
   await openSecurity(page);
-  const other = await anotherBrowser(browser, account, "/projects");
+  const other = await anotherBrowser(browser, account, "/quests");
 
   await test.step("Sign out shows the sign-in page", async () => {
     await page
@@ -58,7 +59,7 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
   });
 
   await test.step("every page in this browser shows the sign-in page", async () => {
-    await page.goto("/projects");
+    await page.goto("/quests");
     await expect(page).toHaveURL("/login");
     await page.goto("/settings");
     await expect(page).toHaveURL("/login");
@@ -67,7 +68,7 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
   await test.step("her other browser stays signed in", async () => {
     await other.reload();
 
-    await expect(other).toHaveURL("/projects");
+    await expect(other).toHaveURL("/quests");
   });
   await other.context().close();
 
@@ -110,7 +111,7 @@ test("use_case_sign_out_everywhere", async ({
   page,
   testData,
 }) => {
-  const chat = await testData.chat(await testData.project());
+  const chat = await testData.chat(await testData.quest());
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
   await openSecurity(page);
@@ -138,7 +139,7 @@ test("use_case_sign_out_everywhere", async ({
   });
 
   await test.step("the other browser shows the sign-in page at its next page", async () => {
-    await other.goto("/projects");
+    await other.goto("/quests");
 
     await expect(other).toHaveURL("/login");
   });

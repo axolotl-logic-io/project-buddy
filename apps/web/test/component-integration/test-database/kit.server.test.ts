@@ -10,7 +10,7 @@ import {
   sessionCookie,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
-import { listProjects } from "@/projects/store.ts";
+import { listQuests } from "@/quests/store.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
@@ -115,8 +115,8 @@ describe("the navigation checks", () => {
 
   test("fail when the action redirects elsewhere or throws another error", async () => {
     await expect(
-      expectRedirect(() => redirect("/projects"), SIGN_IN_PATH),
-    ).rejects.toThrow("not to /projects");
+      expectRedirect(() => redirect("/quests"), SIGN_IN_PATH),
+    ).rejects.toThrow("not to /quests");
     await expect(
       expectRedirect(() => notFound(), SIGN_IN_PATH),
     ).rejects.toThrow("Expected a redirect");
@@ -156,28 +156,28 @@ describe("a server test's projects", () => {
     const data = testData(owner);
     const newerDate = new Date("2026-10-03T09:00:00Z");
     const olderDate = new Date("2026-10-01T09:00:00Z");
-    // Insert the newer project first: insertion order cannot prove chronology.
-    const newer = await data.project("Newer project", newerDate);
-    const older = await data.project("Older project", olderDate);
+    // Insert the newer quest first: insertion order cannot prove chronology.
+    const newer = await data.quest("Newer project", newerDate);
+    const older = await data.quest("Older project", olderDate);
     const otherOwner = await testUser();
-    await testData(otherOwner).project("Foreign project", newerDate);
+    await testData(otherOwner).quest("Foreign project", newerDate);
 
     expect(newer.createdAt).toEqual(newerDate);
     expect(older.createdAt).toEqual(olderDate);
-    expect(await listProjects(owner.id)).toEqual([newer, older]);
+    expect(await listQuests(owner.id)).toEqual([newer, older]);
   });
 });
 
 describe("a server test's users", () => {
   test("are deleted with everything they own", async () => {
     const user = await testUser();
-    await testData(user).project();
+    await testData(user).quest();
 
-    expect(await listProjects(user.id)).toHaveLength(1);
+    expect(await listQuests(user.id)).toHaveLength(1);
 
     await deleteTestUsers();
 
     expect(await findUserByEmail(user.email)).toBeUndefined();
-    expect(await listProjects(user.id)).toStrictEqual([]);
+    expect(await listQuests(user.id)).toStrictEqual([]);
   });
 });

@@ -1,6 +1,7 @@
 // `npm run ops:query` must only read. Each test runs the real command,
 // scripts/ops/query.ts, in its own Node process against a scratch database of
 // this test's own, named by a pulled-style env file in a temporary directory.
+
 import { spawnSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

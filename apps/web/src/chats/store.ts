@@ -1,11 +1,12 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A project chat is open to its project's owner
+// saved by new-chat-store.ts. A quest chat is open to its quest's owner
 // alone; a standalone chat only to the user it names (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's construct and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
+
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
@@ -13,7 +14,7 @@ import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import {
   type Chat,
-  chatWithProjectColumns,
+  chatWithQuestColumns,
   messageColumns,
   type NewMessage,
   openChat,
@@ -28,7 +29,7 @@ import {
   withAuthor,
 } from "@/chats/message-author.ts";
 import { getDb } from "@/db/client.ts";
-import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -39,7 +40,6 @@ import {
   parseUserId,
   type UserId,
 } from "@/ids.ts";
-import { JOURNAL_PART } from "@/journal/journal-message.ts";
 import {
   awaitsReply,
   PLAN_CARD_PART,
@@ -138,9 +138,9 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithQuestColumns())
         .from(chats)
-        .leftJoin(projects, eq(chats.projectId, projects.id))
+        .leftJoin(quests, eq(chats.questId, quests.id))
         .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
     ),
   );
@@ -151,7 +151,7 @@ export async function getChat(
 // with the instructions of every spell the construct cast in them, which the
 // construct follows in later replies. Each user message has its author: the
 // user who sent it or, for a message saved with no author, the chat's
-// owner, who is its project's user or the standalone chat's user. None if
+// owner, who is its quest's user or the standalone chat's user. None if
 // the chat is another user's. A stored message whose role or parts are
 // invalid is left out and logged. With newest, only that many of the newest
 // messages, still oldest first. Only a reply reads these; people read
@@ -175,14 +175,14 @@ export async function listMessagesForModel(
       })
       .from(messages)
       .innerJoin(chats, eq(chats.id, messages.chatId))
-      .leftJoin(projects, eq(projects.id, chats.projectId))
+      .leftJoin(quests, eq(quests.id, chats.questId))
       .leftJoin(
         users,
         and(
           eq(messages.role, "user"),
           eq(
             users.id,
-            sql`coalesce(${messages.userId}, ${chats.userId}, ${projects.userId})`,
+            sql`coalesce(${messages.userId}, ${chats.userId}, ${quests.userId})`,
           ),
         ),
       )
@@ -252,7 +252,7 @@ export function noReplyAwaited(chatId: ChatId): SQL {
     .orderBy(desc(messages.createdAt), desc(messages.id))
     .limit(1)
     .as("newest");
-  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${PLAN_CHANGE_PART}, ${PLAN_CARD_PART}, ${JOURNAL_PART}))))`;
+  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${PLAN_CHANGE_PART}, ${PLAN_CARD_PART}))))`;
 }
 
 // Whether the owner's chat's newest message awaits a reply (noReplyAwaited);

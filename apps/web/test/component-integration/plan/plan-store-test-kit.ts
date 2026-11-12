@@ -3,6 +3,7 @@
 //   vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
 // Every quest's plan is FOX_PLAN_STATE: steps with long words and a done
 // step, so pages show each part of the plan.
+
 import { vi } from "vitest";
 import type { Plan, PlanState } from "@/plan/plan.ts";
 import type * as store from "@/plan/plan-store.ts";

@@ -1,21 +1,6 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { expect, test } from "vitest";
-import {
-  chatOpenTo,
-  imageOpenTo,
-  memoryVersionOpenTo,
-  milestoneOpenTo,
-  ownPromptOwnedBy,
-  planVersionOpenTo,
-  projectOwnedBy,
-} from "@/accounts/owner-scope.ts";
 import { openPool } from "@/db/client.ts";
-import { images } from "@/db/tables/images.ts";
-import { memoryVersions } from "@/db/tables/memory-versions.ts";
-import { milestones } from "@/db/tables/milestones.ts";
-import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { planVersions } from "@/db/tables/plan-versions.ts";
-import { chats, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { USER_ID, type UserId } from "@/ids.ts";
 import {
@@ -29,6 +14,7 @@ import {
 } from "../../../scripts/test-db/test-database.ts";
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
+const LAST_BEFORE_PLAN_ONLY = 58;
 const CONTINUING_MIGRATION = 51;
 const ADVENTURE_DELETION = 52;
 
@@ -50,42 +36,95 @@ const REMOVED = [
   "quest_transfers",
 ];
 
-function visibleData(
+async function visibleData(
   pool: ReturnType<typeof openPool>,
   owner: UserId,
 ): Promise<unknown[]> {
-  const db = drizzle(pool);
-  return Promise.all([
-    db.select().from(projects).where(projectOwnedBy(owner)),
-    db.select().from(chats).where(chatOpenTo(owner)),
-    db.select().from(images).where(imageOpenTo(owner)),
-    db.select().from(memoryVersions).where(memoryVersionOpenTo(owner)),
-    db.select().from(planVersions).where(planVersionOpenTo(owner)),
-    db.select().from(milestones).where(milestoneOpenTo(owner)),
-    db.select().from(ownPrompts).where(ownPromptOwnedBy(owner)),
-  ]);
+  const statements = [
+    "select id from quests where user_id=$1",
+    "select id from chats where user_id=$1 or quest_id in (select id from quests where user_id=$1)",
+    "select id from images where chat_id in (select id from chats where user_id=$1 or quest_id in (select id from quests where user_id=$1))",
+    "select id from memory_versions where quest_id in (select id from quests where user_id=$1)",
+    "select id from plan_versions where quest_id in (select id from quests where user_id=$1)",
+    "select id from milestones where quest_id in (select id from quests where user_id=$1)",
+    "select id from own_prompts where user_id=$1",
+  ];
+  return await Promise.all(
+    statements.map(async (statement) => {
+      const { rows } = await pool.query(statement, [owner]);
+      return rows;
+    }),
+  );
+}
+
+// Before the rename, read the historical schema directly; current predicates
+// below exercise owner isolation through the renamed schema.
+function visibleBefore(
+  pool: ReturnType<typeof openPool>,
+  owner: UserId,
+): Promise<unknown[]> {
+  const statements = [
+    "select id from projects where user_id = $1",
+    "select id from chats where user_id = $1 or project_id in (select id from projects where user_id = $1)",
+    "select id from images where chat_id in (select id from chats where user_id = $1 or project_id in (select id from projects where user_id = $1))",
+    "select id from memory_versions where project_id in (select id from projects where user_id = $1)",
+    "select id from plan_versions where project_id in (select id from projects where user_id = $1)",
+    "select id from milestones where project_id in (select id from projects where user_id = $1)",
+    "select id from buddies where user_id = $1",
+  ];
+  return Promise.all(
+    statements.map(async (statement) => {
+      const { rows } = await pool.query(statement, [owner]);
+      return rows;
+    }),
+  );
 }
 
 // Capture every retained row, including artwork bytes, purchase provenance,
 // balances and approval revisions, rather than just the existence of a quest.
 async function retainedData(
   pool: ReturnType<typeof openPool>,
+  beforeRename = false,
 ): Promise<unknown[]> {
+  let promptTable = "own_prompts";
+  let preference = "interview_construct_id";
+  let constructId = "construct_id";
+  let constructName = "construct_name";
+  let constructParts = "construct_parts";
+  let questTable = "quests";
+  let questColumn = "quest_id";
+  if (beforeRename) {
+    promptTable = "buddies";
+    preference = "interview_buddy_id";
+    constructId = "buddy_id";
+    constructName = "buddy_name";
+    constructParts = "buddy_parts";
+    questTable = "projects";
+    questColumn = "project_id";
+  }
   const { rows } = await pool.query(`select
-    (select jsonb_agg(to_jsonb(t)) from users t) as accounts,
+    (select jsonb_agg(to_jsonb(t) - '${preference}' || jsonb_build_object('interview_construct_id', t.${preference})) from users t) as accounts,
     (select jsonb_agg(to_jsonb(t)) from gold_balances t) as balances,
     (select jsonb_agg(to_jsonb(t)) from gold_ledger t) as ledger,
     (select jsonb_agg(to_jsonb(t)) from purchases t) as purchases,
-    (select jsonb_agg(to_jsonb(t)) from listings t) as listings,
+    (select jsonb_agg(to_jsonb(t) || jsonb_build_object('kind', case when t.kind='buddy' then 'construct' else t.kind end)) from listings t) as listings,
     (select jsonb_agg(to_jsonb(t)) from construct_assets t) as artwork,
     (select jsonb_agg(to_jsonb(t)) from construct_asset_grants t) as grants,
-    (select jsonb_agg(to_jsonb(t)) from quest_status_approvals t) as approvals`);
+    (select jsonb_agg(to_jsonb(t) - '${questColumn}' || jsonb_build_object('quest_id', t.${questColumn})) from quest_status_approvals t) as approvals,
+    (select jsonb_agg(to_jsonb(t)) from ${questTable} t) as quests,
+    (select jsonb_agg(to_jsonb(t) - '${questColumn}' - '${constructId}' - '${constructName}' - '${constructParts}' || jsonb_build_object('quest_id', t.${questColumn}, 'construct_id', t.${constructId}, 'construct_name', t.${constructName}, 'construct_parts', t.${constructParts})) from chats t) as chats,
+    (select jsonb_agg(to_jsonb(t)) from images t) as images,
+    (select jsonb_agg(to_jsonb(t) - '${questColumn}' || jsonb_build_object('quest_id', t.${questColumn})) from memory_versions t) as memory,
+    (select jsonb_agg(to_jsonb(t) - '${questColumn}' || jsonb_build_object('quest_id', t.${questColumn})) from plan_versions t) as plans,
+    (select jsonb_agg(to_jsonb(t) - '${questColumn}' || jsonb_build_object('quest_id', t.${questColumn})) from milestones t) as milestones,
+    (select jsonb_agg(to_jsonb(t) || jsonb_build_object('kind', case when t.kind='buddy' then 'construct' else t.kind end)) from ${promptTable} t) as definitions`);
   return rows;
 }
 
 test("retired storage removal preserves continuing data and denies a former member before and after the transition", async () => {
   const database = scratchDatabase("_retired_storage");
   const before = await copyMigrationsUpTo(CONTINUING_MIGRATION);
+  const throughConstruct = await copyMigrationsUpTo(LAST_BEFORE_PLAN_ONLY);
   const pool = openPool(database.url);
   try {
     await resetTestDatabase(database, before);
@@ -198,13 +237,13 @@ test("retired storage removal preserves continuing data and denies a former memb
     } finally {
       await removeOldMigrations(predecessor);
     }
-    const owned = await visibleData(pool, OWNER);
-    const retained = await retainedData(pool);
+    const owned = await visibleBefore(pool, OWNER);
+    const retained = await retainedData(pool, true);
     expect(owned).toEqual(Array.from({ length: 7 }, () => [expect.anything()]));
-    expect(await visibleData(pool, MEMBER)).toEqual(
+    expect(await visibleBefore(pool, MEMBER)).toEqual(
       Array.from({ length: 7 }, () => []),
     );
-    await migrateTestDatabase(database);
+    await migrateTestDatabase(database, throughConstruct);
     expect(await visibleData(pool, OWNER)).toEqual(owned);
     expect(await visibleData(pool, MEMBER)).toEqual(
       Array.from({ length: 7 }, () => []),
@@ -239,6 +278,7 @@ test("retired storage removal preserves continuing data and denies a former memb
     await pool.end();
     await dropTestDatabase(database);
     await removeOldMigrations(before);
+    await removeOldMigrations(throughConstruct);
   }
 });
 

@@ -10,7 +10,7 @@ import {
   enterActivity,
 } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import type { ProjectChat } from "@/chats/chat-rows.ts";
+import type { QuestChat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import {
   readQuestConversation,
@@ -25,27 +25,19 @@ import {
 } from "@/images/generation-store.ts";
 import { imageId } from "@/images/image-contract.ts";
 import { getImage, saveImage } from "@/images/store.ts";
-import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import {
-  readMemory,
-  readMemoryHistory,
-  saveMemory,
-} from "@/memory/memory-store.ts";
 import {
   deleteMilestone,
   editMilestone,
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { getProject, listProjects, type Project } from "@/projects/store.ts";
+import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
-const MEMORY = "Goal: a sea turtle model.";
 // A second Journal version with historical text.
-const MEMORY_WITH_NOTE = `${MEMORY}\n\n## Notes\n\n- 2026-11-02: Bevel the shell`;
 const MILESTONE = "Modelled the shell";
 const PNG = pngBytes();
 
@@ -54,8 +46,8 @@ const PNG = pngBytes();
 interface FormerMemberQuest {
   readonly owner: User;
   readonly member: User;
-  readonly project: Project;
-  readonly chat: ProjectChat;
+  readonly quest: Quest;
+  readonly chat: QuestChat;
   // The id of an image in the chat.
   readonly imageId: string;
   readonly generationId: GenerationId;
@@ -74,7 +66,7 @@ function savedImageId(url: string | undefined): string {
 // The owner's generated image in the chat, claimed and completed.
 async function generatedImage(
   owner: User,
-  chat: ProjectChat,
+  chat: QuestChat,
 ): Promise<GenerationId> {
   const claim = await claimGeneration({
     owner: owner.id,
@@ -102,8 +94,8 @@ async function generatedImage(
 async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const data = testData(owner);
-  const project = await data.project();
-  const chat = await data.chat(project);
+  const quest = await data.quest();
+  const chat = await data.chat(quest);
   await data.interviewChat(chat);
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
@@ -111,21 +103,9 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const image = savedImageId(
     await saveImage(owner.id, chat.id, PNG, "image/png"),
   );
-  await saveMemory(owner.id, {
-    projectId: project.id,
-    text: MEMORY,
-    basedOn: MEMORY_VERSION_NUMBER.parse(0),
-    author: "user",
-  });
-  await saveMemory(owner.id, {
-    projectId: project.id,
-    text: MEMORY_WITH_NOTE,
-    basedOn: MEMORY_VERSION_NUMBER.parse(1),
-    author: "user",
-  });
   const milestone = await recordMilestone(
     owner.id,
-    { projectId: project.id, chatId: chat.id },
+    { questId: quest.id, chatId: chat.id },
     MILESTONE,
   );
   if (milestone === undefined) {
@@ -135,7 +115,7 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   return {
     owner,
     member,
-    project,
+    quest,
     chat,
     imageId: image,
     generationId,
@@ -144,12 +124,12 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
 }
 
 // Everything user can read of the quest, through each store that
-// reads project data.
+// reads quest data.
 async function seenBy(
   user: User,
-  quest: FormerMemberQuest,
+  fixture: FormerMemberQuest,
 ): Promise<Record<string, unknown>> {
-  const { project, chat } = quest;
+  const { quest, chat } = fixture;
   const [
     found,
     listed,
@@ -159,33 +139,30 @@ async function seenBy(
     image,
     generation,
     activity,
-    memory,
-    history,
+
     milestones,
   ] = await Promise.all([
-    getProject(user.id, project.id),
-    listProjects(user.id),
-    readQuestConversation(user.id, project.id),
+    getQuest(user.id, quest.id),
+    listQuests(user.id),
+    readQuestConversation(user.id, quest.id),
     getChat(user.id, chat.id),
     listMessages(user.id, chat.id),
-    getImage(user.id, quest.imageId),
-    getGeneratedImage(user.id, quest.generationId),
+    getImage(user.id, fixture.imageId),
+    getGeneratedImage(user.id, fixture.generationId),
     currentActivity(user.id, chat),
-    readMemory(user.id, project.id),
-    readMemoryHistory(user.id, project.id),
-    listMilestones(user.id, project.id),
+
+    listMilestones(user.id, quest.id),
   ]);
   return {
-    project: found?.name,
-    listed: listed.some(({ id }) => id === project.id),
+    quest: found?.name,
+    listed: listed.some(({ id }) => id === quest.id),
     conversation: conversation?.id,
     chat: openedChat?.id,
     messages: messages.length,
     image: image?.mediaType,
     generation: generation?.id,
     activity: activity.id,
-    memory: memory.text,
-    history: history.length,
+
     milestones: milestones.map(({ text }) => text),
   };
 }
@@ -193,7 +170,7 @@ async function seenBy(
 // What someone other than the owner reads of the quest: nothing, exactly
 // as of a quest that doesn't exist.
 const NOTHING: Record<string, unknown> = {
-  project: undefined,
+  quest: undefined,
   listed: false,
   conversation: undefined,
   chat: undefined,
@@ -201,8 +178,7 @@ const NOTHING: Record<string, unknown> = {
   image: undefined,
   generation: undefined,
   activity: DEFAULT_ACTIVITY_ID,
-  memory: EMPTY_MEMORY.text,
-  history: 0,
+
   milestones: [],
 };
 
@@ -210,10 +186,9 @@ const NOTHING: Record<string, unknown> = {
 // each answered: whether it took effect.
 async function writesBy(
   user: User,
-  quest: FormerMemberQuest,
+  fixture: FormerMemberQuest,
 ): Promise<Record<string, unknown>> {
-  const { project, chat } = quest;
-  const memory = await readMemory(quest.owner.id, project.id);
+  const { quest, chat } = fixture;
   const message = await saveMessage(user.id, chat.id, {
     ...question("Mine"),
     id: newMessageId(),
@@ -225,19 +200,13 @@ async function writesBy(
     builtInActivity(DEFAULT_ACTIVITY_ID),
     undefined,
   );
-  const memorySave = await saveMemory(user.id, {
-    projectId: project.id,
-    text: `${memory.text}\n\nMore.`,
-    basedOn: memory.version,
-    author: "user",
-  });
   const milestone = await recordMilestone(
     user.id,
-    { projectId: project.id, chatId: chat.id },
+    { questId: quest.id, chatId: chat.id },
     "Rigged the flippers",
   );
-  const edited = await editMilestone(user.id, quest.milestoneId, "Edited");
-  const started = await startQuestConversation(user.id, project.id);
+  const edited = await editMilestone(user.id, fixture.milestoneId, "Edited");
+  const started = await startQuestConversation(user.id, quest.id);
   const conversation =
     started.kind === "started" && started.conversation.id === chat.id;
   const generation = await claimGeneration({
@@ -250,7 +219,7 @@ async function writesBy(
     message,
     image: image !== undefined,
     activity,
-    memory: memorySave.kind,
+
     milestone: milestone !== undefined,
     edited,
     conversation,
@@ -264,7 +233,7 @@ const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
   image: false,
   activity: false,
-  memory: "outdated",
+
   milestone: false,
   edited: false,
   conversation: false,
@@ -276,7 +245,7 @@ const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
   image: true,
   activity: true,
-  memory: "saved",
+
   milestone: true,
   edited: true,
   conversation: true,
@@ -284,8 +253,11 @@ const ALL_TAKEN: Record<string, unknown> = {
 };
 
 // Deletes the milestone as user, which answers nothing of its own.
-async function deletesBy(user: User, quest: FormerMemberQuest): Promise<void> {
-  await deleteMilestone(user.id, quest.milestoneId);
+async function deletesBy(
+  user: User,
+  fixture: FormerMemberQuest,
+): Promise<void> {
+  await deleteMilestone(user.id, fixture.milestoneId);
 }
 
 export type { FormerMemberQuest };

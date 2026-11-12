@@ -5,7 +5,7 @@ import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
-import { getProject, type Project } from "@/projects/store.ts";
+import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import { getSpell, isSpellId } from "@/spells/index.ts";
@@ -13,27 +13,26 @@ import { getOwnSpell } from "@/spells/spell-store.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
-  readonly quest?: Pick<Project, "id" | "name">;
+  readonly quest?: Pick<Quest, "id" | "name">;
 }
 
 const DETAIL_DEPTH = 2;
 const CHILD_DEPTH = 3;
 
 const QUESTS: Breadcrumb = {
-  label: PROJECTS_COPY.heading,
-  href: "/projects",
+  label: QUESTS_COPY.heading,
+  href: "/quests",
 };
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
-    ["projects", { label: PROJECTS_COPY.heading, href: "/projects" }],
+    ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
     ["chat", { label: STANDALONE_CHAT_COPY.heading, href: "/chat" }],
     [
       "constructs",
@@ -74,36 +73,22 @@ async function headerBreadcrumbs(
     ) {
       return [];
     }
-    if (section === "projects") {
+    if (section === "quests") {
       return [{ label: root.label }];
     }
     return [QUESTS, { label: root.label }];
   }
-  if (section === "projects") {
-    if (
-      path.length > CHILD_DEPTH ||
-      (child !== undefined && child !== "memory")
-    ) {
+  if (section === "quests") {
+    if (path.length > CHILD_DEPTH || child !== undefined) {
       return [];
     }
-    const project = await getProject(user.id, id);
-    if (project === undefined) {
+    const quest = await getQuest(user.id, id);
+    if (quest === undefined) {
       return [];
-    }
-    if (child === "memory") {
-      return [
-        QUESTS,
-        {
-          label: project.name,
-          href: `/projects/${project.id}`,
-          quest: { id: project.id, name: project.name },
-        },
-        { label: MEMORY_COPY.heading },
-      ];
     }
     return [
       QUESTS,
-      { label: project.name, quest: { id: project.id, name: project.name } },
+      { label: quest.name, quest: { id: quest.id, name: quest.name } },
     ];
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
