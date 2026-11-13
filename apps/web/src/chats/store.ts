@@ -11,7 +11,6 @@ import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import {
   type Chat,
   chatWithQuestColumns,
@@ -45,7 +44,6 @@ import {
   PLAN_CARD_PART,
   PLAN_CHANGE_PART,
 } from "@/plan/plan-message.ts";
-import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 
 interface MessageRow {
   id: string;
@@ -95,11 +93,6 @@ async function toChatMessage(
   return withAuthor({ id, role, parts }, author);
 }
 
-// The row as a UI message, without the instructions of an activity the
-// construct entered in it, which a reply saved before they were left out may
-// hold (withoutActivityInstructions); or undefined if its role or parts
-// are invalid. The
-// log names an invalid message by its id alone, so it holds no message text.
 async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   const result = await safeValidateUIMessages({ messages: [row] });
   if (result.success) {
@@ -107,7 +100,7 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
     if (message === undefined) {
       return undefined;
     }
-    return withoutActivityInstructions(message);
+    return message;
   }
   logAppError(
     "unknown",
@@ -202,7 +195,7 @@ export async function listMessages(
   chatId: ChatId,
 ): Promise<ChatMessage[]> {
   const read = await listMessagesForModel(owner, chatId);
-  return read.map(withoutSpellInstructions);
+  return read;
 }
 
 // The id of the owner's chat's last message when it is a user message that

@@ -68,8 +68,6 @@ type QuestId = z.infer<typeof QUEST_ID>;
 // A chat's id, as `parseChatId` returns it.
 type ChatId = z.infer<typeof CHAT_ID>;
 
-// The id of a user's own prompt, a construct or an activity, as
-// `parseOwnPromptId` returns it.
 type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
 
 // A milestone's id, as `parseMilestoneId` returns it.

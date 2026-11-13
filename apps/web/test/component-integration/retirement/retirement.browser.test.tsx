@@ -64,17 +64,12 @@ test("use_case_view_retirement", async () => {
     RETIRED_DEFINITIONS.length,
   );
   await page
-    .getByRole("button", { name: RETIREMENT_COPY.kinds.spell, exact: true })
-    .click();
-  expect(page.getByRole("listitem").elements()).toHaveLength(1);
-  await expect
-    .element(page.getByText("Explore three alternatives", { exact: true }))
-    .toBeVisible();
+    .getByRole("searchbox", { name: RETIREMENT_COPY.search })
+    .fill("missing");
+  await expect.element(page.getByText(RETIREMENT_COPY.noMatches)).toBeVisible();
   await page
     .getByRole("searchbox", { name: RETIREMENT_COPY.search })
     .fill("Moss");
-  await expect.element(page.getByText(RETIREMENT_COPY.noMatches)).toBeVisible();
-  await page.getByRole("button", { name: RETIREMENT_COPY.allKinds }).click();
   await expect
     .element(page.getByText(RETIRED_CONSTRUCT.name, { exact: true }))
     .toBeVisible();

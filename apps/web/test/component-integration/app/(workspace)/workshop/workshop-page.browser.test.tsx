@@ -3,18 +3,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
-import { listOwnActivities } from "@/activities/activity-store.ts";
-import { listActivities } from "@/activities/index.ts";
 import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import { listConstructs } from "@/constructs/construct-store.ts";
 import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
-import { PROMPT_KINDS } from "@/prompts/prompt.ts";
-import { listSpells } from "@/spells/index.ts";
-import { listOwnSpells } from "@/spells/spell-store.ts";
-import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { userConstructIdFixture } from "../../../../support/id-fixtures.ts";
 import {
@@ -23,11 +16,7 @@ import {
   signInAs,
   signOut,
 } from "../../../auth/current-user-test-kit.ts";
-import {
-  ASK_ONE_QUESTION_CLONE,
-  BRAINSTORMING_CLONE,
-  VELLUM_CLONE,
-} from "../../phone-pages-fixtures.ts";
+import { VELLUM_CLONE } from "../../phone-pages-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
 vi.mock(
@@ -38,32 +27,12 @@ vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
   listConstructs: vi.fn<typeof listConstructs>(),
 }));
-vi.mock("@/activities/activity-store.ts", () => ({
-  getOwnActivity: vi.fn(),
-  listOwnActivities: vi.fn<typeof listOwnActivities>(),
-}));
-vi.mock("@/spells/spell-store.ts", () => ({
-  getOwnSpell: vi.fn(),
-  listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
 // The page offers these actions; their own pages' tests submit them.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
-  retireActivityAction: vi.fn(),
-  cloneActivityAction: vi.fn(),
-  editBuiltInActivityAction: vi.fn(),
-  newActivityAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  cloneSpellAction: vi.fn(),
-  retireSpellAction: vi.fn(),
-  editBuiltInSpellAction: vi.fn(),
-  newSpellAction: vi.fn(),
 }));
 
 const QUEST_START = /Start a quest/u;
@@ -73,8 +42,6 @@ const OLD_ACTION = /^(?:Craft|Customize|Clone|Tweak|Start a quest)/u;
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-  vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-  vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -126,7 +93,9 @@ describe("use_case_workshop_page", () => {
     await expect
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");
-    await expect.element(tab("activity")).not.toHaveAttribute("aria-current");
+    await expect
+      .element(page.getByRole("link", { name: "Activities", exact: true }))
+      .not.toBeInTheDocument();
 
     const builtIn = listBuiltInConstructs()[0]?.name ?? "";
     await Promise.all(
@@ -173,79 +142,52 @@ describe("use_case_workshop_page", () => {
       .not.toBeInTheDocument();
   });
 
-  test.each(PROMPT_KINDS)("the %s tab's link opens that tab", async (kind) => {
-    await showWorkshop();
-    const href = tab(kind).element().getAttribute("href") ?? "";
-    const target = new URL(href, globalThis.location.origin);
-    expect(target.pathname).toBe("/workshop");
-    await cleanup();
-    await showWorkshop(target.searchParams.get("kind") ?? undefined);
-    await expect.element(tab(kind)).toHaveAttribute("aria-current", "page");
-  });
+  test.each(["construct", "spell"] as const)(
+    "the %s tab's link opens that tab",
+    async (kind) => {
+      await showWorkshop();
+      const href = tab(kind).element().getAttribute("href") ?? "";
+      const target = new URL(href, globalThis.location.origin);
+      expect(target.pathname).toBe("/workshop");
+      await cleanup();
+      await showWorkshop(target.searchParams.get("kind") ?? undefined);
+      await expect.element(tab(kind)).toHaveAttribute("aria-current", "page");
+    },
+  );
 
-  test("the Activities tab offers Create, Make a copy and Edit for activities", async () => {
-    await showWorkshop("activity");
+  test("the Spells tab offers two spells without creation or copy controls", async () => {
+    await showWorkshop("spell");
+    await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
     await expect
-      .element(tab("activity"))
-      .toHaveAttribute("aria-current", "page");
-    const builtIn = listActivities()[0]?.name ?? "";
+      .element(page.getByRole("link", { name: "Activities", exact: true }))
+      .not.toBeInTheDocument();
+    await Promise.all(
+      ["Plan", "Brainstorm"].map((name) =>
+        expect
+          .element(page.getByRole("link", { name, exact: true }))
+          .toBeVisible(),
+      ),
+    );
     await expect
-      .element(
-        page.getByRole("button", {
-          name: ACTIVITIES_COPY.customizeLabel(builtIn),
-        }),
-      )
-      .toBeVisible();
+      .element(page.getByRole("button", { name: "Create spell" }))
+      .not.toBeInTheDocument();
     await expect
-      .element(page.getByRole("button", { name: "Create activity" }))
-      .toBeEnabled();
-    await expect
-      .element(
-        page.getByRole("link", {
-          name: ACTIVITIES_COPY.tweakLabel(BRAINSTORMING_CLONE.name),
-        }),
-      )
-      .toHaveAttribute("href", `/activities/${BRAINSTORMING_CLONE.id}`);
-    await expect
-      .element(
-        page.getByRole("button", {
-          name: ACTIVITIES_COPY.cloneLabel(BRAINSTORMING_CLONE.name),
-        }),
-      )
-      .toBeVisible();
-    await expect
-      .element(page.getByRole("button", { name: "Create construct" }))
+      .element(page.getByRole("button", { name: COPY_ACTION }))
       .not.toBeInTheDocument();
   });
 
-  test("the Spells tab offers Create, Make a copy and Edit for spells", async () => {
+  test("the Spells tab contains exactly Plan and Brainstorm", async () => {
     await showWorkshop("spell");
     await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
-    const builtIn = listSpells()[0]?.name ?? "";
+    expect(page.getByRole("list").last().getByRole("link").all()).toHaveLength(
+      2,
+    );
     await expect
-      .element(
-        page.getByRole("button", {
-          name: SPELLBOOK_COPY.customizeLabel(builtIn),
-        }),
-      )
-      .toBeVisible();
+      .element(page.getByRole("link", { name: "Plan", exact: true }))
+      .toHaveAttribute("href", "/spellbook/plan");
     await expect
-      .element(page.getByRole("button", { name: "Create spell" }))
-      .toBeEnabled();
-    await expect
-      .element(
-        page.getByRole("link", {
-          name: SPELLBOOK_COPY.tweakLabel(ASK_ONE_QUESTION_CLONE.name),
-        }),
-      )
-      .toHaveAttribute("href", `/spellbook/${ASK_ONE_QUESTION_CLONE.id}`);
-    await expect
-      .element(
-        page.getByRole("button", {
-          name: SPELLBOOK_COPY.cloneLabel(ASK_ONE_QUESTION_CLONE.name),
-        }),
-      )
-      .toBeVisible();
+      .element(page.getByRole("link", { name: "Brainstorm", exact: true }))
+      .toHaveAttribute("href", "/spellbook/brainstorm");
   });
 
   test("an unknown kind shows Constructs", async () => {
@@ -291,7 +233,7 @@ test("Create construct supports keyboard submission in Workshop", async () => {
   expect(newConstructAction).toHaveBeenCalledOnce();
 });
 
-test.each(PROMPT_KINDS)(
+test.each(["construct"] as const)(
   "the %s collection uses the shared copy action without a quest start",
   async (kind) => {
     await showWorkshop(kind);

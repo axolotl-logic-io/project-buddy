@@ -1,15 +1,12 @@
 import type { Route } from "next";
 import type { User } from "@/accounts/users-store.ts";
-import { getOwnActivity } from "@/activities/activity-store.ts";
-import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
-import { getSpell, isSpellId } from "@/spells/index.ts";
-import { getOwnSpell } from "@/spells/spell-store.ts";
+import { getSpell, SPELL_ID } from "@/spells/spell.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
@@ -36,10 +33,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     [
       "constructs",
       { label: WORKSHOP_COPY.heading, href: workshopPath("construct") },
-    ],
-    [
-      "activities",
-      { label: WORKSHOP_COPY.heading, href: workshopPath("activity") },
     ],
     [
       "spellbook",
@@ -106,17 +99,10 @@ async function headerBreadcrumbs(
     } else {
       name = (await getOwnConstruct(user.id, id))?.name;
     }
-  } else if (section === "activities") {
-    if (isActivityId(id)) {
-      ({ name } = getActivity(id));
-    } else {
-      name = (await getOwnActivity(user.id, id))?.name;
-    }
   } else if (section === "spellbook") {
-    if (isSpellId(id)) {
-      ({ name } = getSpell(id));
-    } else {
-      name = (await getOwnSpell(user.id, id))?.name;
+    const parsed = SPELL_ID.safeParse(id);
+    if (parsed.success) {
+      ({ name } = getSpell(parsed.data));
     }
   } else if (section === "retirement") {
     name = (await getRetiredDefinition(user.id, id))?.name;

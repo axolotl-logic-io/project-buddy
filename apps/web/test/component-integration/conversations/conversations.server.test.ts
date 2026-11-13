@@ -7,8 +7,6 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
@@ -52,7 +50,6 @@ function dailiesStart(): Parameters<typeof startDailies>[1] {
     name: QUEST_NAME.parse("Dailies"),
     context: "## Goal\n\nStart each day with one manageable step.",
     construct: getConstruct("vellum"),
-    activity: builtInActivity(DEFAULT_ACTIVITY_ID),
   };
 }
 

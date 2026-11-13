@@ -16,19 +16,19 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
 
-- [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.
+- [Prompts](prompts.md): construct instructions, reset and storage.
 
 - [Quest nomenclature](quest-nomenclature.md): code names, storage changes and release cutover notes.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Adventures](chats.md): Quests landing navigation, quest conversations, Chat, activities and reply behavior.
-- [Spells](spellbook.md): spell instructions, Workshop’s Spells tab, editing and saved casts.
+- [Adventures](chats.md): Quests landing navigation, quest conversations, Chat and reply behavior.
+- [Spells](spellbook.md): Plan and Brainstorm modes, casts, stopping and message capture.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
 
 - [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
 
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
-- [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
+- [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs.
 
 - [Images](images.md): saved images, owner access and deletion.
 - [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.

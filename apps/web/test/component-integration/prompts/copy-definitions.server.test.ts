@@ -1,16 +1,9 @@
 import { expect, test, vi } from "vitest";
-import {
-  cloneActivity,
-  listOwnActivities,
-} from "@/activities/activity-store.ts";
-import { cloneActivityAction } from "@/app/(workspace)/activities/actions.ts";
 import { cloneConstructAction } from "@/app/(workspace)/constructs/actions.ts";
-import { cloneSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
   cloneConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
-import { cloneSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { formOf } from "../test-database/chat-test-kit.ts";
 import { expectNotFound } from "../test-database/navigation-test-kit.ts";
@@ -19,15 +12,9 @@ import { signIn } from "../test-database/session-test-kit.ts";
 interface CopyKind {
   readonly kind: string;
   readonly source: string;
-  readonly create:
-    | typeof cloneConstruct
-    | typeof cloneActivity
-    | typeof cloneSpell;
+  readonly create: typeof cloneConstruct;
   readonly copy: typeof cloneConstructAction;
-  readonly list:
-    | typeof listConstructs
-    | typeof listOwnActivities
-    | typeof listOwnSpells;
+  readonly list: typeof listConstructs;
 }
 const KINDS: readonly CopyKind[] = [
   {
@@ -36,20 +23,6 @@ const KINDS: readonly CopyKind[] = [
     create: cloneConstruct,
     copy: cloneConstructAction,
     list: listConstructs,
-  },
-  {
-    kind: "activity",
-    source: "brainstorming",
-    create: cloneActivity,
-    copy: cloneActivityAction,
-    list: listOwnActivities,
-  },
-  {
-    kind: "spell",
-    source: "ask-one-question",
-    create: cloneSpell,
-    copy: cloneSpellAction,
-    list: listOwnSpells,
   },
 ];
 

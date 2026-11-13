@@ -14,7 +14,7 @@ Project Buddy makes no requests to AI model companies. Constructs run a local co
 | `search <query>` | Search the local Blender manual index, save citations and show excerpts. |
 | `cast <spell id>` | Use the existing owner-scoped spell tool and save the cast. |
 
-Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Test-only `/mock-*` commands are unavailable in the local engine. Plan edit commands and controls keep their existing path. `/plan` now enters the Plan Activity instead of showing an inline form card.
+Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Test-only `/mock-*` commands are unavailable in the local engine. Plan edit commands and controls keep their existing path. `/plan` now enters the Plan spell instead of showing an inline form card.
 
 ## Retained architecture
 
@@ -26,7 +26,7 @@ Local replies report zero tokens and bypass provider spend metering. The existin
 
 ## Initial limits
 
-The engine does not infer intent, interpret prose instructions, understand attached images, infer plans or propose quest-status changes. Construct, activity and spell definitions and conversation snapshots remain saved. Casting a spell records its use but does not execute its instructions. The saved current Activity controls deterministic message capture. Stop [Activity] appears above the composer beside Start the day when offered. Plan, Ideas and Progress live in the collapsible side menu. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, search and cast keep their command behavior. Prepared openings remain as saved; generated openings use command help.
+The engine does not infer intent, interpret prose instructions, understand attached images, infer plans or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Plan or Brainstorm activates its deterministic routing; the engine does not interpret prose instructions. The saved active spell controls deterministic message capture. Stop [Spell] appears above the composer beside Start the day when offered. Plan, Ideas and Progress live in the collapsible side menu. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, search and cast keep their command behavior. New quest openings use the shared greeting request.
 
 Image generation, its Workshop controls and the Image gallery have been removed. Saving a Visual description changes text without spending batteries or replacing artwork. Existing artwork, saved conversation images and uploads remain available. No remote image generation or avatar framing call is made.
 
@@ -36,4 +36,6 @@ Unset `CONSTRUCT_MODEL` or set it to `local`. `mock` remains available outside p
 
 ## Message capture
 
-`src/activities/activity-reply.ts` applies explicit Activity commands and routes ordinary messages before the local reply streams. The Activity transition or bucket write and its result commit together. `activity_message_results` keeps one result per source message, so a retry reuses the result without adding a duplicate item. Only the conversation's owner can read or write it. Migration 0061 is additive and works alongside the previous build.
+`src/spells/spell-reply.ts` applies explicit spell commands and routes ordinary messages before the local reply streams. The spell transition or bucket write and its result commit together. `spell_message_results` keeps one result per source message, so a retry reuses the result without adding a duplicate item. Only the conversation's owner can read or write it. Migration 0062 replaces the activity tables with direct spell state and result storage.
+
+Activities and spells now share the [two-spell model](spellbook.md). Only Plan and Brainstorm are offered. The obsolete Activities code and custom spell definitions are removed.

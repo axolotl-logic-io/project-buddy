@@ -52,7 +52,7 @@ test("nested operations count descendants without attributing outside work", asy
       countServerQuery();
       clock.mockReturnValue(INNER_START);
       await measureServerOperation(
-        "activity-data",
+        "spell-data",
         async () => {
           countServerQuery();
           await Promise.resolve();
@@ -67,7 +67,7 @@ test("nested operations count descendants without attributing outside work", asy
     clock,
   );
   expect(recorder.spans).toEqual([
-    { operation: "activity-data", durationMs: 5, queryCount: 2 },
+    { operation: "spell-data", durationMs: 5, queryCount: 2 },
     { operation: "construct-data", durationMs: 10, queryCount: 4 },
   ]);
 });
@@ -89,7 +89,7 @@ test("interleaved sibling operations keep independent query counts", async () =>
     clock,
   );
   const second = measureServerOperation(
-    "activity-data",
+    "spell-data",
     async () => {
       await firstEntered.promise;
       countServerQuery();
@@ -104,7 +104,7 @@ test("interleaved sibling operations keep independent query counts", async () =>
     queryCount: 2,
   });
   expect(recorder.spans).toContainEqual({
-    operation: "activity-data",
+    operation: "spell-data",
     durationMs: 0,
     queryCount: 1,
   });
