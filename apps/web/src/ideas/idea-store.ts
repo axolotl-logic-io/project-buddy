@@ -43,12 +43,14 @@ function changeIdea(
   return withAppErrors("changeIdea", async () => {
     const { questId } = request;
     if (request.op === "reorder") {
+      // Serialize ordering without blocking foreign-key checks when an idea
+      // moves into Plan at the same time.
       return inTransaction(async (tx): Promise<IdeaResult> => {
         const [quest] = await tx
           .select({ id: quests.id })
           .from(quests)
           .where(and(eq(quests.id, questId), questOwnedBy(owner)))
-          .for("update");
+          .for("no key update");
         if (quest === undefined) {
           return NOT_FOUND;
         }
@@ -100,7 +102,7 @@ function changeIdea(
           .select({ id: quests.id })
           .from(quests)
           .where(and(eq(quests.id, questId), questOwnedBy(owner)))
-          .for("update");
+          .for("no key update");
         if (quest === undefined) {
           return NOT_FOUND;
         }
