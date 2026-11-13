@@ -13,6 +13,7 @@ import {
   type Plan,
   type PlanOperation,
 } from "@/plan/plan.ts";
+import { questStatusCommand } from "@/quests/quest-status-commands.ts";
 import { isLocalCommandName } from "@/replies/local-command-contract.ts";
 
 // A command: "/", its name, then its argument, if any, after white space.
@@ -100,7 +101,10 @@ function isChatCommand(text: string, place: CommandPlace): boolean {
     return false;
   }
   if (!place.inQuest) {
-    return PLAN_COMMAND_NAME.safeParse(name).success;
+    return (
+      PLAN_COMMAND_NAME.safeParse(name).success ||
+      questStatusCommand(text) !== undefined
+    );
   }
   return !(place.mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
 }
