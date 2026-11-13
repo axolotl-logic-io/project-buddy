@@ -16,12 +16,7 @@ import { BLENDER_MANUAL_LOOKUP_SPELL } from "@/blender-manual/search-tool-contra
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { mockEmptyAfterSearchAnswer } from "@/replies/mock-empty-after-search.ts";
-import {
-  CAST_SPELL_OUTPUT,
-  CAST_SPELL_TOOL,
-  type CastSpellOutput,
-} from "@/spells/cast-spell-contract.ts";
-import { getSpell } from "@/spells/index.ts";
+import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import {
   manualSection,
   testData,
@@ -66,9 +61,6 @@ const GRONK = manualSection(
   "Gronk Vertices",
   "Open Vertex > Gronk, then press G to gronk.",
 );
-
-// The built-in spell that holds the lookup's instructions.
-const LOOKUP_SPELL = getSpell(BLENDER_MANUAL_LOOKUP_SPELL);
 
 // Her two questions and one reply to each: no second answer.
 const MESSAGES_AFTER_TWO_QUESTIONS = 4;
@@ -172,14 +164,13 @@ test("use_case_ask_any_subject", async () => {
   const prompt = await constructPrompt(chat.id);
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
-  expect(prompt).toContain(`\`${BLENDER_MANUAL_LOOKUP_SPELL}\``);
-  expect(prompt).toContain(LOOKUP_SPELL.definition.whenToUse);
-  expect(prompt).not.toContain(LOOKUP_SPELL.definition.prompt);
+  expect(prompt).not.toContain(`\`${BLENDER_MANUAL_LOOKUP_SPELL}\``);
+  expect(prompt).toContain("`plan`: Plan");
   expect(prompt).not.toContain("get back to the user's project");
   expect(reply.citations).toEqual([]);
 });
 
-test("casting the Blender manual lookup gives the lookup instructions", async () => {
+test("the removed Blender manual lookup spell cannot be cast", async () => {
   const { chat } = await signedInChat();
 
   const reply = await constructReply(
@@ -189,14 +180,5 @@ test("casting the Blender manual lookup gives the lookup instructions", async ()
   const cast = reply.parts.find(
     (part) => isToolUIPart(part) && getToolName(part) === CAST_SPELL_TOOL,
   );
-  if (cast === undefined || !("output" in cast)) {
-    throw new Error("The construct didn't call cast_spell");
-  }
-
-  expect(CAST_SPELL_OUTPUT.parse(cast.output)).toEqual<CastSpellOutput>({
-    status: "cast",
-    spellId: BLENDER_MANUAL_LOOKUP_SPELL,
-    name: LOOKUP_SPELL.name,
-    instructions: LOOKUP_SPELL.definition.prompt,
-  });
+  expect(cast).toMatchObject({ state: "output-error" });
 });

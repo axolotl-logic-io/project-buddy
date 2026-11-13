@@ -55,7 +55,12 @@ export function ChatComposer({
   }, []);
   const onStopBlur = useCallback(
     (event: FocusEvent<HTMLButtonElement>): void => {
-      stopMovedOnRef.current = event.relatedTarget !== null;
+      // Disabling the focused Stop button can send focus to the document
+      // in WebKit. That is focus loss, not a move to another control.
+      stopMovedOnRef.current =
+        event.relatedTarget !== null &&
+        event.relatedTarget !== document.body &&
+        event.relatedTarget !== document.documentElement;
     },
     [],
   );
@@ -72,6 +77,13 @@ export function ChatComposer({
       inputRef?.current?.focus();
     }
   }, [running, inputRef]);
+  const onStopClick = useCallback(async (): Promise<void> => {
+    // WebKit pointer clicks do not focus buttons, unlike keyboard activation.
+    stopMovedOnRef.current = false;
+    if (stop !== undefined) {
+      await stop.onStop();
+    }
+  }, [stop]);
   const hintId = useId();
   const menuId = useId();
   const problemId = useId();
@@ -161,7 +173,7 @@ export function ChatComposer({
         {stop !== undefined && (
           <Button
             variant="secondary"
-            onClick={stop.onStop}
+            onClick={onStopClick}
             disabled={stop.stopping}
             onFocus={onStopFocus}
             onBlur={onStopBlur}

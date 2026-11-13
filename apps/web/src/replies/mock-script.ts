@@ -3,8 +3,8 @@
 // commands in MOCK_COMMANDS and quotes any other message.
 
 import { z } from "zod";
-import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
+import { OPENING_REQUEST } from "@/replies/chat-kickoff.ts";
 import { mockCastReply } from "@/replies/mock-cast.ts";
 import { mockEmptyAfterSearchReply } from "@/replies/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
@@ -230,7 +230,7 @@ function defaultMockScript(
   userText: string,
   conversation: MockConversation,
 ): readonly MockStep[] {
-  if (isBuiltInOpeningKickoff(userText)) {
+  if (userText === OPENING_REQUEST) {
     return mockOpeningReply(conversation);
   }
   const groups = MOCK_COMMAND.exec(userText.trim())?.groups;

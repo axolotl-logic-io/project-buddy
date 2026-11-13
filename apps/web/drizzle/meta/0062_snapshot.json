@@ -1,160 +1,9 @@
 {
-  "id": "ecbd940b-0026-4f71-b29f-341fccdabb42",
+  "id": "7ffb887d-0035-4065-a5a9-bafeca2d1c90",
   "prevId": "cd90246a-742c-481d-94f1-3d0bfe29c590",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.activity_message_results": {
-      "name": "activity_message_results",
-      "schema": "",
-      "columns": {
-        "message_id": {
-          "name": "message_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "chat_id": {
-          "name": "chat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "text": {
-          "name": "text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "activity_message_results_message_id_messages_id_fk": {
-          "name": "activity_message_results_message_id_messages_id_fk",
-          "tableFrom": "activity_message_results",
-          "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "activity_message_results_chat_id_chats_id_fk": {
-          "name": "activity_message_results_chat_id_chats_id_fk",
-          "tableFrom": "activity_message_results",
-          "tableTo": "chats",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.activity_sessions": {
-      "name": "activity_sessions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "chat_id": {
-          "name": "chat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "activity_id": {
-          "name": "activity_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "activity_name": {
-          "name": "activity_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "activity_parts": {
-          "name": "activity_parts",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "start_message_id": {
-          "name": "start_message_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "activity_sessions_chat_id_idx": {
-          "name": "activity_sessions_chat_id_idx",
-          "columns": [
-            {
-              "expression": "chat_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "activity_sessions_chat_id_chats_id_fk": {
-          "name": "activity_sessions_chat_id_chats_id_fk",
-          "tableFrom": "activity_sessions",
-          "tableTo": "chats",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.battery_cash_events": {
       "name": "battery_cash_events",
       "schema": "",
@@ -1333,7 +1182,7 @@
         },
         "listings_kind_known": {
           "name": "listings_kind_known",
-          "value": "\"listings\".\"kind\" in ('construct', 'activity', 'spell')"
+          "value": "\"listings\".\"kind\" in ('construct')"
         },
         "listings_description_length": {
           "name": "listings_description_length",
@@ -1795,7 +1644,7 @@
       "checkConstraints": {
         "own_prompts_kind_known": {
           "name": "own_prompts_kind_known",
-          "value": "\"own_prompts\".\"kind\" in ('construct', 'activity', 'spell')"
+          "value": "\"own_prompts\".\"kind\" in ('construct')"
         }
       },
       "isRLSEnabled": false
@@ -2002,13 +1851,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "position": {
-          "name": "position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -2201,6 +2043,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "spell": {
+          "name": "spell",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "construct_name": {
           "name": "construct_name",
           "type": "text",
@@ -2343,6 +2191,14 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
+        "chats_spell_valid": {
+          "name": "chats_spell_valid",
+          "value": "\"chats\".\"spell\" in ('plan', 'brainstorm')"
+        },
+        "chats_spell_needs_quest": {
+          "name": "chats_spell_needs_quest",
+          "value": "\"chats\".\"spell\" is null or \"chats\".\"quest_id\" is not null"
+        },
         "chats_one_owner": {
           "name": "chats_one_owner",
           "value": "num_nonnulls(\"chats\".\"quest_id\", \"chats\".\"user_id\") = 1"
@@ -2813,6 +2669,64 @@
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.spell_message_results": {
+      "name": "spell_message_results",
+      "schema": "",
+      "columns": {
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "chat_id": {
+          "name": "chat_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "spell_message_results_message_id_messages_id_fk": {
+          "name": "spell_message_results_message_id_messages_id_fk",
+          "tableFrom": "spell_message_results",
+          "tableTo": "messages",
+          "columnsFrom": [
+            "message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "spell_message_results_chat_id_chats_id_fk": {
+          "name": "spell_message_results_chat_id_chats_id_fk",
+          "tableFrom": "spell_message_results",
+          "tableTo": "chats",
+          "columnsFrom": [
+            "chat_id"
           ],
           "columnsTo": [
             "id"

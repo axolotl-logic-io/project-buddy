@@ -8,19 +8,10 @@
 import type { JSX } from "react";
 import { vi } from "vitest";
 import { page } from "vitest/browser";
-import { readInvitation } from "@/accounts/invitations.ts";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
-import {
-  getOwnActivity,
-  listOwnActivities,
-} from "@/activities/activity-store.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
-import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
-import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
@@ -36,7 +27,6 @@ import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
-import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { listMessages } from "@/chats/store.ts";
 import {
@@ -54,7 +44,6 @@ import {
   getRetiredDefinition,
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
-import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
@@ -76,8 +65,6 @@ import {
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
-  ASK_ONE_QUESTION_CLONE,
-  BRAINSTORMING_CLONE,
   GOLD_BALANCE,
   LINK_USER,
   searchAndMarkdownChat,
@@ -89,7 +76,6 @@ import { inWorkspace } from "./workspace-test-kit.tsx";
 // Her Chat, as privateChat reads it.
 const STANDALONE_CONVERSATION: Conversation = {
   ...STANDALONE_CHAT,
-  activity: builtInActivity(DEFAULT_ACTIVITY_ID),
 };
 
 // One page as the phone checks render it.
@@ -140,17 +126,6 @@ function linkPage(
   };
 }
 
-function setupPage(email: string | undefined): () => Promise<JSX.Element> {
-  return async (): Promise<JSX.Element> => {
-    signOut();
-    vi.mocked(readInvitation).mockResolvedValue(email);
-    return await SetupPage({
-      params: NO_PARAMS,
-      searchParams: Promise.resolve({ token: LINK_TOKEN }),
-    });
-  };
-}
-
 // A workspace page, signed in, once the stores answer as setUp makes them.
 function workspacePage(
   setUp: () => void,
@@ -177,14 +152,6 @@ function constructPage(constructId: string): Promise<JSX.Element> {
 }
 
 // The activity page of activityId.
-function activityPage(activityId: string): Promise<JSX.Element> {
-  return ActivityPage({
-    params: Promise.resolve({ activityId }),
-    searchParams: NO_PARAMS,
-  });
-}
-
-// The spell page of spellId.
 function spellPage(spellId: string): Promise<JSX.Element> {
   return SpellPage({
     params: Promise.resolve({ spellId }),
@@ -239,7 +206,6 @@ function projectPageFor(
       vi.mocked(listMessages).mockResolvedValue([]);
       vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
-      vi.mocked(listOwnActivities).mockResolvedValue([]);
       vi.mocked(listConstructs).mockResolvedValue([]);
     },
     async () => (
@@ -264,8 +230,6 @@ function workshopPage(
   return workspacePage(
     () => {
       vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     },
     () =>
@@ -346,16 +310,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the Credits page", render: signedOut(CreditsPage) },
   { name: "the sign-in page", render: signedOut(LoginPage) },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
-  {
-    name: "the invitation page",
-    path: ["invitations"],
-    render: async (): Promise<JSX.Element> => {
-      signInAs({ ...SIGNED_IN_USER, role: "admin" });
-      return inWorkspace(await InvitationsPage());
-    },
-  },
-  { name: "the setup page", render: setupPage("learner@example.com") },
-  { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", path: QUESTS_PATH, render: projectsPage },
@@ -426,26 +380,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => constructPage(VELLUM_CLONE.id),
     ),
   },
-  {
-    name: "the discovery activity's page",
-    path: ["activities", "find-something-to-make"],
-    render: workspacePage(noData, () => activityPage("find-something-to-make")),
-  },
-  {
-    name: "a built-in activity's page",
-    path: ["activities", "brainstorming"],
-    render: workspacePage(noData, () => activityPage("brainstorming")),
-  },
-  {
-    name: "her own activity's page",
-    path: ["activities", BRAINSTORMING_CLONE.id],
-    render: workspacePage(
-      () => {
-        vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
-      },
-      () => activityPage(BRAINSTORMING_CLONE.id),
-    ),
-  },
 
   {
     name: "the Workshop's Constructs tab",
@@ -453,7 +387,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workshopPage("construct"),
   },
   {
-    name: "the Workshop's Activities tab",
+    name: "the former Activities bookmark",
     path: ["workshop"],
     render: workshopPage("activity"),
   },
@@ -464,18 +398,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a built-in spell's page",
-    path: ["spellbook", "ask-one-question"],
-    render: workspacePage(noData, () => spellPage("ask-one-question")),
+    path: ["spellbook", "plan"],
+    render: workspacePage(noData, () => spellPage("plan")),
   },
   {
-    name: "her own spell's page",
-    path: ["spellbook", ASK_ONE_QUESTION_CLONE.id],
-    render: workspacePage(
-      () => {
-        vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
-      },
-      () => spellPage(ASK_ONE_QUESTION_CLONE.id),
-    ),
+    name: "Brainstorm spell",
+    path: ["spellbook", "brainstorm"],
+    render: workspacePage(noData, () => spellPage("brainstorm")),
   },
   {
     name: "Chat, with a search and Markdown",

@@ -18,7 +18,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ActivitySnapshot } from "@/activities/activity.ts";
 import {
   type ChatCommands,
   ChatCommandsContext,
@@ -57,7 +56,6 @@ import {
   CHANGE_PLAN_OUTPUT,
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
-import { ACTIVITY_COPY } from "@/ui/copy/activity.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   CHAT_COMMANDS_COPY,
@@ -65,6 +63,7 @@ import {
   PLAN_PANEL_COPY,
 } from "@/ui/copy/plan.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 
 function pairedReplyCosts(
   messages: readonly UIMessage[],
@@ -150,16 +149,16 @@ const PLAN_COMMAND_LISTINGS: readonly CommandListing[] = PLAN_COMMAND_NAMES.map(
   }),
 );
 
-const ACTIVITY_COMMANDS: readonly CommandListing[] = [
+const SPELL_COMMANDS: readonly CommandListing[] = [
   {
     command: "/brainstorm",
     usage: "/brainstorm",
-    description: "Start Brainstorm; save subsequent messages to Ideas",
+    description: "Cast Brainstorm; save subsequent messages to Ideas",
   },
   {
     command: "/stop",
     usage: "/stop",
-    description: "Stop the current Activity and return to Chat",
+    description: "Stop the active spell and return to Chat",
   },
 ];
 const NO_COMMANDS: readonly CommandListing[] = [];
@@ -224,11 +223,11 @@ export function ChatView({
   planActions,
   mockCommands = NO_COMMANDS,
   starter,
-  activity,
+  spellName,
   sideContent,
   initialSection,
 }: {
-  activity?: ActivitySnapshot | undefined;
+  spellName?: string | undefined;
   sideContent?: ReactNode;
   initialSection?: string | undefined;
   chatId: ChatId;
@@ -466,7 +465,7 @@ export function ChatView({
       listings = [
         ...PLAN_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
-        ...ACTIVITY_COMMANDS,
+        ...SPELL_COMMANDS,
         ...mockCommands,
       ];
     }
@@ -484,7 +483,7 @@ export function ChatView({
       sendMessage({ text: starterText }).catch(() => undefined);
     }
   }, [sendMessage, starterText]);
-  const stopActivity = useCallback((): void => {
+  const stopSpell = useCallback((): void => {
     sendMessage({ text: "/stop" }).catch(() => undefined);
   }, [sendMessage]);
   const retryReply = useCallback((): void => {
@@ -538,15 +537,11 @@ export function ChatView({
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
   }
-  let activityStop: { label: string; onStop: () => void } | undefined;
-  if (
-    activity !== undefined &&
-    activity.name !== "Chat" &&
-    replyStop === undefined
-  ) {
-    activityStop = {
-      label: ACTIVITY_COPY.stop(activity.name),
-      onStop: stopActivity,
+  let spellStop: { label: string; onStop: () => void } | undefined;
+  if (spellName !== undefined && replyStop === undefined) {
+    spellStop = {
+      label: SPELL_MODE_COPY.stop(spellName),
+      onStop: stopSpell,
     };
   }
   const conversation = (
@@ -572,7 +567,7 @@ export function ChatView({
         stop={replyStop}
         stopStatus={stopStatus}
         starter={offeredStarter}
-        activityStop={activityStop}
+        spellStop={spellStop}
       />
     </>
   );

@@ -4,27 +4,19 @@
 
 A quest has one continuing conversation, and each user has one private Chat (`src/conversations/`). Both are `chats` rows marked `continuing`. Partial unique indexes allow one per quest and one per user, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one. Starting it (`startQuestConversation`) is free when it exists, and charges the acting user for an opening only when the construct writes one.
 
-A conversation keeps the construct it started with. Its activity changes only when the construct enters another with its activity tool, which records the change at its place in the history. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
+A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
 
 ## Start a quest
 
-On Quests, Start Quest opens a dialog with two fields: Construct and Why.
-Construct defaults to the account's New quest construct preference. The visible
-explanation makes clear that this construct joins the first adventure; later
-adventures in the same quest can use other constructs. Why is optional and
-becomes the quest motivation in the opening and opening conversation.
+On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Edit the name and starting context, choose a construct, and optionally fill in Why. Confirming creates the quest and its one conversation, with the supplied context followed by the construct’s opening. Plan and Ideas start empty, with no active spell.
 
-Starting gives the quest the default name New quest and opens its first adventure
-in Break Down a Project. With no motivation, the existing prepared opening is used
-when available. Failed openings save nothing and keep the construct choice and
-Why for retry. Cancel, Close and Escape create nothing. The premade quest
-previews remain separate and keep their editable name and activity.
+Failed openings save nothing and keep the form’s edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one.
 
 ## Chat
 
-`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: old addresses of it reveal nothing to anyone else.
+`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and has no active spell. Chat is never shared: old addresses of it reveal nothing to anyone else.
 
-Chat has no Plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
+Chat has no Plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual and offer a quest.
 
 ### Turn Chat into a quest
 
@@ -52,15 +44,11 @@ its next step, and opens its conversation; with no Active quest it is absent
 (`src/quests/current-quest-store.ts`). Reading it makes no model call. The
 Home atlas and its destination panels are removed.
 
-## Activities and constructs
+## Spells and constructs
 
-Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
+A quest conversation can have Plan or Brainstorm active, or neither. Cast one to save subsequent ordinary messages into Plan or Ideas, and stop it with the button beside the composer or the stop command. Reopening preserves the active spell. New conversations start with no active spell. See [Spells](spellbook.md).
 
-Activities are internal instructions, not a destination or a start choice. Each starting point begins in its own activity, which `startQuestAction` takes from `PREMADE_QUESTS` on the server; the form sends none, and an `activityId` from an older form is ignored. Chat begins in Chat. The user customizes activities in the Workshop's Activities tab, and `/activities` redirects there, making nothing ([#905](design/simplification-905.md)).
-
-A quest is created only through Start a quest or Turn Chat into a quest, which share one form. Constructs and activities have no start actions: the construct is picked inside the form, and its activity comes from the starting point. Closing the form creates nothing.
-
-Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
+A quest is created through Start a quest or Turn Chat into a quest, which share one form. The user picks the construct there. Workshop edits constructs and opens read-only spell explanations; it has no Activities catalog.
 
 ## Behavioral evidence
 

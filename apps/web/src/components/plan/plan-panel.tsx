@@ -16,8 +16,8 @@ import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import { usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { QUEST_SIDEBAR_COPY } from "@/ui/copy/activity.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 
 const WIDE_SIDEBAR = "(min-width: 64rem)";
 

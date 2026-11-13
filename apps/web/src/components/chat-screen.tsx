@@ -1,5 +1,4 @@
 import type { JSX, ReactNode } from "react";
-import type { ActivitySnapshot } from "@/activities/activity.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -13,6 +12,7 @@ import {
   undoPlanChangeAction,
 } from "@/plan/plan-actions.ts";
 import { mockCommandListings } from "@/replies/mock-command-listings.ts";
+import { getSpell } from "@/spells/spell.ts";
 
 // The plan's Server Actions, which also run the composer's commands, in a
 // quest's conversation and in Chat alike.
@@ -45,7 +45,7 @@ function ChatScreen({
   sideContent,
   initialSection,
 }: {
-  readonly conversation: Chat & { readonly activity?: ActivitySnapshot };
+  readonly conversation: Chat;
   readonly messages: ChatMessage[];
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
@@ -59,6 +59,10 @@ function ChatScreen({
     | undefined;
 }): JSX.Element {
   const { construct } = conversation;
+  let spellName: string | undefined;
+  if (conversation.spell !== undefined) {
+    spellName = getSpell(conversation.spell).name;
+  }
   let heading = header;
   if (heading === undefined) {
     heading = (
@@ -77,7 +81,7 @@ function ChatScreen({
     <>
       {heading}
       <ChatView
-        activity={conversation.activity}
+        spellName={spellName}
         sideContent={sideContent}
         initialSection={initialSection}
         viewer={viewer}

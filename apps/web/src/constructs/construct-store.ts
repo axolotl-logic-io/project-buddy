@@ -9,7 +9,6 @@ import {
 } from "@/constructs/index.ts";
 import type { ConstructVisual } from "@/constructs/visual.ts";
 import type { UserId } from "@/ids.ts";
-import { currentConstructText } from "@/prompts/earlier-built-in-texts.ts";
 import {
   cloneOwnPrompt,
   createOwnPrompt,
@@ -41,7 +40,7 @@ const CONSTRUCT_STORE: DefinitionStore<ConstructDefinition> = {
     if (text === undefined) {
       return;
     }
-    return currentConstructText(text);
+    return text;
   },
   builtIn: (id: string) => {
     if (!isConstructId(id)) {

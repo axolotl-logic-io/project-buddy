@@ -54,8 +54,7 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 | --- | --- |
 | `GET /login` | HTTP 200 |
 | `GET /textures/parchment.svg` | HTTP 200 with an SVG image content type, without a session |
-| `GET /signup` | HTTP 200, the admin-invitation explanation (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
-| `GET /setup` (no token) | HTTP 200, the unusable-invitation explanation (`SETUP_COPY.unusable`), and the `SETUP_COPY.signIn` link to `/login` |
+| `GET /signup` | HTTP 200, the public sign-up form and introduction (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
 | `GET /` | HTTP 307 with a Location pointing to `/login` |
 | Signed-out `POST /api/chat` with `{}` | HTTP 401 |
 
@@ -63,7 +62,7 @@ Invitation expectations import shared UI copy; they do not maintain separate pro
 
 A wrong status, missing explanation, or missing/misdirected sign-in link reports the request and unmet expectation; any failure makes the command exit unsuccessfully. Copy or anchor markup appearing only in scripts, styles or HTML comments does not satisfy the page checks.
 
-The setup check deliberately supplies **no invitation token**. This state rejects the empty token before an invitation database query. It needs no invitation fixture or email, never confirms an invitation, and creates no account or session. All smoke requests remain signed out: no database writes, email sends or model calls.
+All smoke requests remain signed out: no database writes, email sends or model calls. The sign-up check reads the public form without submitting it.
 
 ## Vercel observations
 

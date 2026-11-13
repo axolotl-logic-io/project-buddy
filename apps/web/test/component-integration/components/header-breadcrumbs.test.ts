@@ -6,14 +6,10 @@ import { parseUserId } from "@/ids.ts";
 const stores = vi.hoisted(() => ({
   getQuest: vi.fn(),
   getOwnConstruct: vi.fn(),
-  getOwnActivity: vi.fn(),
-  getOwnSpell: vi.fn(),
   getRetiredDefinition: vi.fn(),
 }));
 vi.mock("@/quests/store.ts", () => stores);
-vi.mock("@/activities/activity-store.ts", () => stores);
 vi.mock("@/constructs/construct-store.ts", () => stores);
-vi.mock("@/spells/spell-store.ts", () => stores);
 vi.mock("@/retirement/retirement-store.ts", () => stores);
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
@@ -59,13 +55,6 @@ describe("header navigation hierarchy", () => {
     ]);
   });
 
-  test("shows Invitations' trail to an admin alone, who alone can open it", async () => {
-    expect(await headerBreadcrumbs(signedIn("admin"), ["invitations"])).toEqual(
-      [{ label: "Quests", href: "/quests" }, { label: "Invitations" }],
-    );
-    expect(await headerBreadcrumbs(MEMBER, ["invitations"])).toEqual([]);
-  });
-
   test("removed quest subpages have no breadcrumb", async () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["quests", "quest", "memory"]),
@@ -106,14 +95,14 @@ describe("header navigation hierarchy", () => {
     ).toBe("Lumen");
   });
 
-  test("leads from an activity's page to the Workshop's Activities tab", async () => {
+  test("leads from a spell to the Workshop’s Spells tab", async () => {
     expect(
-      await headerBreadcrumbs(MEMBER, ["activities", "brainstorming"]),
+      await headerBreadcrumbs(MEMBER, ["spellbook", "brainstorm"]),
     ).toEqual([
       { label: "Quests", href: "/quests" },
       {
         label: "Workshop",
-        href: `/workshop?${new URLSearchParams({ kind: "activity" })}`,
+        href: `/workshop?${new URLSearchParams({ kind: "spell" })}`,
       },
       { label: "Brainstorm" },
     ]);

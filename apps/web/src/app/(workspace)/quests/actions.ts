@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import { startDailies } from "@/conversations/dailies.ts";
@@ -30,12 +29,6 @@ type StartQuestState =
       readonly message: string;
     };
 
-// The one way to start a quest, from any of its four starting points: an
-// ordinary quest, with its conversation and opening, then opens it.
-// Dailies resumes the user's one Dailies quest if they have it, changing
-// nothing and spending nothing. The construct is checked for the acting
-// user, never trusted from the form; the activity is the starting point's
-// own, which the construct can change later. A failure saves nothing.
 export async function startQuestAction(
   _previous: StartQuestState,
   data: FormData,
@@ -59,13 +52,11 @@ export async function startQuestAction(
   if (premade === undefined || construct === undefined) {
     return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
-  const activity = builtInActivity(premade.activityId);
   const details = {
     name: checked.name,
     context,
     motivation,
     construct: construct.construct,
-    activity,
   };
   let result: Awaited<ReturnType<typeof startDailies>>;
   if (premadeId === "dailies") {
@@ -74,7 +65,6 @@ export async function startQuestAction(
     result = await startQuest(user.id, checked.name, construct.construct, {
       context,
       motivation,
-      activity,
     });
   }
   if (result.kind === "claudeUnavailable") {

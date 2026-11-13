@@ -9,8 +9,6 @@ import { z } from "zod";
 // The longest text a step may have: one line, about a sentence.
 const PLAN_STEP_TEXT_MAX_LENGTH = 200;
 
-// The most open steps a plan may hold. A plan is the next stretch of work, not
-// every idea: the project-breakdown activity asks for no huge task lists.
 const MOST_OPEN_STEPS = 30;
 
 const LINE_BREAK = /[\r\n]/u;

@@ -17,8 +17,6 @@ const KIND_LITERALS = sql.raw(
   STORED_PROMPT_KIND_LIST.map((kind) => `'${kind}'`).join(", "),
 );
 
-// Own constructs, activities and spells share persistence and source tracking.
-// The legacy parts JSON is validated and converted by each definition's codec.
 export const ownPrompts = pgTable(
   "own_prompts",
   {
