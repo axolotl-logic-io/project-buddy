@@ -68,8 +68,9 @@ function presetConstructId(
   );
 }
 
-// Starts the selected quest with a construct and optional Why. Its name
-// and starting context come from the starting point or Chat's preset.
+// Starts the selected quest with a construct and, except for Dailies,
+// optional Why. Its name and starting context come from the starting
+// point or Chat's preset.
 function QuestStartForm({
   quest,
   choices,
@@ -94,12 +95,14 @@ function QuestStartForm({
         defaultConstructId={defaultConstructId}
         userConstructs={choices.userConstructs}
       />
-      <TextAreaField
-        label={QUESTS_COPY.motivationLabel}
-        hint={QUESTS_COPY.motivationHint}
-        name="motivation"
-        rows={3}
-      />
+      {quest.id !== "dailies" && (
+        <TextAreaField
+          label={QUESTS_COPY.motivationLabel}
+          hint={QUESTS_COPY.motivationHint}
+          name="motivation"
+          rows={3}
+        />
+      )}
       <input type="hidden" name="name" value={preset.name ?? quest.name} />
       <input
         type="hidden"

@@ -68,7 +68,6 @@ describe("use_case_browse_premade_quests", () => {
   });
 
   test.each([
-    ["Dailies", "dailies"],
     ["Learn a thing", "learn"],
     ["Make a thing", "make"],
     ["Do a thing", "do"],
@@ -97,6 +96,27 @@ describe("use_case_browse_premade_quests", () => {
       expect(sent?.get("motivation")).toBe("This matters to me.");
     },
   );
+
+  test("the first Dailies start asks only for a construct, without Why", async () => {
+    actions.startQuestAction.mockResolvedValue({ kind: "idle" });
+    await render(<QuestStartChoices choices={CHOICES} />);
+    await choose("Dailies").click();
+    const dialog = page.getByRole("dialog", { name: "Dailies" });
+    await expect
+      .element(
+        dialog.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }),
+      )
+      .not.toBeInTheDocument();
+    await dialog.getByRole("button", { name: QUEST_START_COPY.start }).click();
+
+    await expect.poll(() => actions.startQuestAction.mock.calls.length).toBe(1);
+    const sent = actions.startQuestAction.mock.calls[0]?.[1];
+    expect(sent?.get("premadeId")).toBe("dailies");
+    expect(sent?.get("name")).toBe("Dailies");
+    expect(sent?.get("constructId")).toBe("vellum");
+    expect(sent?.get("context")).toBe("");
+    expect(sent?.has("motivation")).toBe(false);
+  });
 
   test("a refused start keeps the Why in the dialog", async () => {
     actions.startQuestAction.mockResolvedValue({
