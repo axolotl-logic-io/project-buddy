@@ -194,6 +194,39 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await listMessages(user.id, chat.id)).toEqual([]);
   });
 
+  test("sidebar edits and Undo update the plan without saving conversation messages", async () => {
+    const { user, chat } = await signedInChat();
+    await sendChatMessage(chat.id, "Help me with this quest");
+    const before = await listMessages(user.id, chat.id);
+    const added = await changePlanAction({
+      questId: chat.quest.id,
+      chatId: chat.id,
+      operations: [{ op: "add", text: BLOCK_OUT }],
+    });
+    expect(added.kind).toBe("changed");
+    expect(added).not.toHaveProperty("message");
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([BLOCK_OUT]);
+    expect(await listMessages(user.id, chat.id)).toEqual(before);
+    const edited = await changePlanAction({
+      questId: chat.quest.id,
+      chatId: chat.id,
+      operations: [{ op: "change", step: 1, text: SCULPT }],
+    });
+    expect(edited).toMatchObject({ kind: "changed", version: 2 });
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([SCULPT]);
+    expect(await listMessages(user.id, chat.id)).toEqual(before);
+    const undone = await undoPlanChangeAction({
+      questId: chat.quest.id,
+      chatId: chat.id,
+      version: 2,
+    });
+    expect(undone.kind).toBe("changed");
+    expect(undone).not.toHaveProperty("message");
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([BLOCK_OUT]);
+    expect(await listMessages(user.id, chat.id)).toEqual(before);
+    expect(await constructPrompt(chat.id)).toContain(BLOCK_OUT);
+  });
+
   test("commands change the plan, show it and undo, saving each to the adventure with no reply", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);

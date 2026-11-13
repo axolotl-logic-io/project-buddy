@@ -69,17 +69,26 @@ afterEach(() => {
 });
 
 describe("use_case_change_plan", () => {
-  test("shows the next step and the open steps, numbered", async () => {
+  test("shows compact task rows with step numbers and actions in their menus", async () => {
     await render(
       <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
     );
 
-    await expect.element(page.getByText(PLAN_COPY.nextStep)).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: PLAN_COPY.addPlaceholder }))
+      .toBeVisible();
+    expect(page.getByRole("textbox").all()).toHaveLength(0);
     await expect
       .element(openSteps().getByRole("listitem").nth(0))
-      .toMatchTextContent(`#1${BLOCK_OUT}`);
+      .toMatchTextContent(BLOCK_OUT);
+    await page
+      .getByRole("button", { name: PLAN_COPY.actions(BLOCK_OUT) })
+      .click();
+    await expect.element(page.getByText("#1", { exact: true })).toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: PLAN_COPY.moveUp(BLOCK_OUT) }))
+      .element(
+        page.getByRole("menuitem", { name: PLAN_COPY.moveUp(BLOCK_OUT) }),
+      )
       .toBeDisabled();
   });
 
@@ -100,9 +109,10 @@ describe("use_case_change_plan", () => {
       <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
     );
 
-    await userEvent.click(
-      page.getByRole("button", { name: PLAN_COPY.moveUp(SCULPT) }),
-    );
+    await page.getByRole("button", { name: PLAN_COPY.actions(SCULPT) }).click();
+    await page
+      .getByRole("menuitem", { name: PLAN_COPY.moveUp(SCULPT) })
+      .click();
 
     expect(actions.changePlanAction).toHaveBeenCalledWith({
       questId: QUEST_ID,
@@ -126,6 +136,62 @@ describe("use_case_change_plan", () => {
     await expect
       .element(openSteps().getByRole("listitem").nth(0))
       .toMatchTextContent(BLOCK_OUT);
+  });
+
+  test.each(["pointer", "keyboard"])(
+    "reorders tasks with the %s drag handle",
+    async (method) => {
+      actions.changePlanAction.mockResolvedValue({
+        kind: "changed",
+        version: MOVED.version,
+        lines: [{ kind: "move", text: SCULPT, before: BLOCK_OUT }],
+        state: MOVED,
+      });
+      await render(
+        <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
+      );
+      const handle = page.getByRole("button", { name: `Reorder “${SCULPT}”` });
+      if (method === "pointer") {
+        await userEvent.dragAndDrop(
+          handle,
+          page.getByRole("button", { name: PLAN_COPY.edit(BLOCK_OUT) }),
+          { targetPosition: { x: 1, y: 1 } },
+        );
+      } else {
+        handle.element().focus();
+        await userEvent.keyboard("{ArrowUp}");
+      }
+      expect(actions.changePlanAction).toHaveBeenCalledWith({
+        questId: QUEST_ID,
+        chatId: undefined,
+        operations: [{ op: "move", step: 2, before: 1 }],
+      });
+      await expect
+        .element(openSteps().getByRole("listitem").nth(0))
+        .toMatchTextContent(SCULPT);
+      await expect.element(handle).toHaveFocus();
+    },
+  );
+
+  test("a failed save keeps the inline draft and Escape cancels it", async () => {
+    actions.changePlanAction.mockRejectedValueOnce(new Error("Offline"));
+    await render(
+      <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
+    );
+    await page.getByRole("button", { name: PLAN_COPY.edit(SCULPT) }).click();
+    const input = page.getByRole("textbox", { name: PLAN_COPY.textLabel });
+    await expect.element(input).toHaveFocus();
+    await input.fill(BRASS);
+    await userEvent.keyboard("{Enter}");
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent(PLAN_COPY.failed["not-saved"]);
+    await expect.element(input).toHaveValue(BRASS);
+    await userEvent.keyboard("{Escape}");
+    await expect
+      .element(page.getByRole("button", { name: PLAN_COPY.edit(SCULPT) }))
+      .toHaveFocus();
+    await expect.element(page.getByRole("textbox")).not.toBeInTheDocument();
   });
 
   test("editing a step saves its new text, and an empty one says why", async () => {
@@ -173,8 +239,11 @@ describe("use_case_change_plan", () => {
     await render(
       <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
     );
-    const moveUp = page.getByRole("button", { name: PLAN_COPY.moveUp(SCULPT) });
+    const moveUp = page.getByRole("menuitem", {
+      name: PLAN_COPY.moveUp(SCULPT),
+    });
 
+    await page.getByRole("button", { name: PLAN_COPY.actions(SCULPT) }).click();
     await userEvent.click(moveUp);
     await expect
       .element(page.getByRole("alert"))
@@ -186,6 +255,7 @@ describe("use_case_change_plan", () => {
       reason: "too-many-steps",
       state: PLAN,
     });
+    await page.getByRole("button", { name: PLAN_COPY.actions(SCULPT) }).click();
     await userEvent.click(moveUp);
     await expect
       .element(page.getByRole("status"))

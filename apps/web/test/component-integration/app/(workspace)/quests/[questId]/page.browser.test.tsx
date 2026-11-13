@@ -93,8 +93,6 @@ vi.mock("@/constructs/own-construct-choices.ts", () => ({
 // The widest the page's column grows: from the xl breakpoint, the quest's
 // conversation and its plan sit side by side.
 const REMOVED_CONTEXT_LINK = /Journal|Versions/u;
-const CONVERSATION_WIDTH = 1152;
-const MAX_COMPACT_HEADER_HEIGHT = 72;
 
 const PARAMS = Promise.resolve({ questId: FOX_QUEST.id });
 
@@ -129,6 +127,7 @@ test.each(["completed", "abandoned"] as const)(
   async (status) => {
     stores.getQuest.mockResolvedValue({ ...FOX_QUEST, status });
     await renderQuest();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
       .element(page.getByRole("button", { name: "Plan", exact: true }))
       .toHaveAttribute("aria-expanded", "true");
@@ -163,7 +162,7 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       const loadingWorkspace = busy
         .element()
         .firstElementChild?.getBoundingClientRect();
-      expect(before?.width).toBeLessThanOrEqual(CONVERSATION_WIDTH);
+      expect(before?.width).toBeLessThanOrEqual(viewport.width);
       if (!populated) {
         stores.readQuestConversation.mockResolvedValue(undefined);
       }
@@ -174,20 +173,14 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
       await screen.rerender(
         inWorkspace(<QuestLayout params={PARAMS}>{content}</QuestLayout>),
       );
-      // Infrequent quest actions stay in a disclosure beside the sections.
-      const menu = page.getByRole("button", { name: "Quest actions" });
-      await expect.element(menu).toBeVisible();
-      const title = menu.element().getBoundingClientRect();
-      const workspace = menu.element().closest("header")?.parentElement;
-      expect(
-        workspace?.querySelector("header")?.getBoundingClientRect().height,
-      ).toBeLessThanOrEqual(MAX_COMPACT_HEADER_HEIGHT);
+      await expect
+        .element(page.getByRole("button", { name: "Quest actions" }))
+        .not.toBeInTheDocument();
+      const workspace = frame?.firstElementChild;
       expect(workspace?.getBoundingClientRect()).toMatchObject({
         x: loadingWorkspace?.x,
         width: loadingWorkspace?.width,
       });
-      expect(title.left).toBeGreaterThan(0);
-      expect(title.right).toBeLessThan(viewport.width);
       expect(frame?.getBoundingClientRect()).toMatchObject({
         x: before?.x,
         width: before?.width,
@@ -236,7 +229,7 @@ describe.each(["light", "dark"])("quest frame in %s", (mode) => {
   );
 });
 
-test("the workspace keeps navigation and direct status actions compact", async () => {
+test("the quest opens directly on the conversation without a portrait bar", async () => {
   await setViewport(LAPTOP_VIEWPORT);
   await renderQuest();
   expect(
@@ -249,35 +242,18 @@ test("the workspace keeps navigation and direct status actions compact", async (
   const portrait = page.getByRole("button", {
     name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CONVERSATION.construct.name),
   });
-  await expect.element(portrait).toBeVisible();
-  await portrait.click();
-  await expect.element(page.getByRole("dialog")).toBeVisible();
+  await expect.element(portrait).not.toBeInTheDocument();
+  await expect.element(composer()).toBeVisible();
   await expect
-    .element(
-      page.getByRole("heading", { name: FOX_CONVERSATION.construct.name }),
-    )
-    .toBeVisible();
-  await page
-    .getByRole("button", { name: CONSTRUCT_DISCOVERY_COPY.closeProfile })
-    .click();
-  await expect.element(portrait).toHaveFocus();
-  const menu = page.getByRole("button", { name: "Quest actions" });
-  await expect.element(menu).toBeVisible();
-  await expect
-    .element(page.getByRole("button", { name: "Finish Quest", exact: true }))
+    .element(page.getByRole("button", { name: "Quest actions" }))
     .not.toBeInTheDocument();
-  await expect
-    .element(page.getByText("Active", { exact: true }))
-    .not.toBeInTheDocument();
-  const header = menu.element().closest("header")?.getBoundingClientRect();
-  expect(header?.height).toBeLessThanOrEqual(MAX_COMPACT_HEADER_HEIGHT);
-  await menu.click();
-  await expect
-    .element(page.getByRole("button", { name: "Finish Quest", exact: true }))
-    .toBeVisible();
-  await expect
-    .element(page.getByRole("button", { name: "Abandon Quest", exact: true }))
-    .toBeVisible();
+  await Promise.all(
+    ["Finish Quest", "Abandon Quest"].map(async (name) => {
+      await expect
+        .element(page.getByRole("button", { name, exact: true }))
+        .not.toBeInTheDocument();
+    }),
+  );
 });
 
 test("the Plan section shows the todo list without Goal, Preferences or Journal", async () => {
@@ -285,6 +261,7 @@ test("the Plan section shows the todo list without Goal, Preferences or Journal"
   await expect
     .element(page.getByRole("heading", { name: "Plan", exact: true }))
     .toBeVisible();
+  await page.getByRole("button", { name: "Add a step", exact: true }).click();
   await expect.element(page.getByPlaceholder("Add a step")).toBeVisible();
   for (const name of ["Goal", "Preferences"]) {
     expect(

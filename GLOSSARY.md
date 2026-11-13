@@ -181,7 +181,7 @@ The earlier name for one of several conversations in a quest, or a standalone on
 
 A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents. The owner can restore either to Active.
 
-- **UI:** "Active", "Completed", "Abandoned", "Mark completed", "Mark abandoned", "Restore quest", "Quest actions".
+- **UI:** "Active", "Completed", "Abandoned", "/complete", "/abandon", "/restore", "Restore quest".
 
 ### Opening
 

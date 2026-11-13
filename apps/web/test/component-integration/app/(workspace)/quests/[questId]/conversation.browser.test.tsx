@@ -4,10 +4,10 @@
 // adventure button. "use_case_breadcrumbs_in_long_chat" in
 // use-cases/chats.md: a conversation longer than the screen, scrolled to its
 // end. The trail band, with the way back to the quests and the quest's
-// name as the page's heading, the conversation's pinned header and the
+// name as the page's heading, and the
 // composer stay wholly on screen and in reach, on a laptop and on a phone,
 // within the pinned budget even for a name on two lines, and a jump to a
-// message lands below the pinned header. The page sits in
+// message lands below the trail band. The page sits in
 // the main landmark and the workspace's column, as the layouts render it;
 // the site's stylesheet comes from vitest.browser-setup.ts.
 // "use_case_send_message": a reply streams in the quest's conversation.
@@ -29,7 +29,6 @@ import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import {
@@ -47,7 +46,7 @@ import {
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import { FOX_CHAT, FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
+import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
 
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
@@ -266,9 +265,6 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const backLink = page
           .getByRole("navigation", { name: "Breadcrumbs" })
           .getByRole("link", { name: QUESTS_COPY.heading, exact: true });
-        const pinned = page.getByRole("button", {
-          name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
-        });
         const conversation = page.getByRole("list", {
           name: CHAT_COPY.conversationLabel,
         });
@@ -286,26 +282,19 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
         await expect.element(trail).toBeInViewport({ ratio: 1 });
         const shared = trail.element().closest("header");
-        const controls = pinned.element().closest("header");
         expect(shared).not.toBeNull();
-        expect(controls).not.toBeNull();
-        await expect
-          .poll(() => controls?.getBoundingClientRect().top)
-          .toBeCloseTo(shared?.getBoundingClientRect().bottom ?? -1, 0);
         const heading = page.getByRole("heading", { level: 1 });
         await expect.element(heading).toHaveTextContent(name);
         await expect.element(heading).toBeInViewport({ ratio: 1 });
         expect(heading.element().closest("header")).toBe(shared);
         expect(
-          (controls?.getBoundingClientRect().bottom ??
-            Number.POSITIVE_INFINITY) -
+          (shared?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY) -
             Math.max(0, shared?.getBoundingClientRect().top ?? 0),
-          "the band and the pinned header stay within the budget",
+          "the trail band stays within the pinned budget",
         ).toBeLessThanOrEqual(pinnedBudget);
         // Each wholly on screen, and in reach.
         const targets = [
           backLink,
-          pinned,
           page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
         ];
         await Promise.all(
@@ -315,7 +304,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         );
         expect(
           targets.map((target) => topmostAtCentre(target.element())),
-        ).toEqual([true, true, true]);
+        ).toEqual([true, true]);
 
         const first = conversation.element().firstElementChild;
         if (first === null) {
@@ -323,7 +312,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         }
         first.scrollIntoView({ block: "start" });
         expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-          controls?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
+          shared?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
         );
 
         expect(backLink.element()).toHaveAttribute("href", "/quests");
@@ -332,13 +321,11 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
   }
 });
 
-describe("the pinned chat header", () => {
+describe("the pinned quest title", () => {
   test("stays on screen at the end and leaves a tap one screen down reaching the conversation", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
-    const title = page.getByRole("button", {
-      name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
-    });
+    const title = page.getByRole("heading", { level: 1 });
     const conversation = page.getByRole("list", {
       name: CHAT_COPY.conversationLabel,
     });
@@ -353,6 +340,69 @@ describe("the pinned chat header", () => {
       true,
     );
   });
+});
+
+describe("sidebar header clearance", () => {
+  test.each([FOX_QUEST.name, LONG_QUEST_NAME])(
+    "stays below the full header and follows its pinned edge for %s",
+    async (name) => {
+      await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
+      store.getQuest.mockResolvedValue({ ...FOX_QUEST, name });
+      await render(await chatPage());
+      const header = page.getByRole("banner");
+      const panel = page.getByRole("dialog", { name: "Quest side menu" });
+      await expect.element(panel).toBeVisible();
+      globalThis.scrollTo(0, 0);
+      await expect.poll(() => globalThis.scrollY).toBe(0);
+      await expect
+        .poll(
+          () =>
+            panel.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeCloseTo(0, 0);
+      expect(panel.element().getBoundingClientRect().right).toBe(
+        LAPTOP_VIEWPORT.width,
+      );
+      expect(panel.element().getBoundingClientRect().bottom).toBe(
+        LAPTOP_VIEWPORT.height,
+      );
+      await scrollToBottom();
+      await expect
+        .poll(
+          () =>
+            panel.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeCloseTo(0, 0);
+      expect(panel.element().getBoundingClientRect().bottom).toBe(
+        LAPTOP_VIEWPORT.height,
+      );
+      await page
+        .getByRole("button", { name: "Collapse quest sidebar" })
+        .click();
+      const toggle = page.getByRole("button", { name: "Open quest sidebar" });
+      expect(
+        toggle.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(header.element().getBoundingClientRect().bottom);
+      globalThis.scrollTo(0, 0);
+      await expect
+        .poll(
+          () =>
+            toggle.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeGreaterThanOrEqual(0);
+      await toggle.click();
+      await expect
+        .poll(
+          () =>
+            panel.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeCloseTo(0, 0);
+    },
+  );
 });
 
 async function chatPage(): Promise<JSX.Element> {
@@ -480,6 +530,7 @@ describe("use_case_open_quest", () => {
     await expect
       .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
       .toBeVisible();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
