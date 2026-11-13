@@ -30,7 +30,6 @@ import {
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
 import { IMAGE_RESERVATION_MICRO_USD } from "@/images/image-provider.ts";
-import { matchingBuiltInConstruct } from "@/prompts/matching-built-in.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
@@ -477,9 +476,6 @@ describe("legacy construct artwork storage", () => {
     ).toMatchObject({ kind: "saved" });
     const saved = await getOwnConstruct(user.id, copy.id);
     expect(saved?.definition).toEqual(builtIn.definition);
-    expect(
-      saved?.definition && matchingBuiltInConstruct(saved.definition)?.id,
-    ).toBe("lumen");
     const [row] = await getDb()
       .select()
       .from(ownPrompts)

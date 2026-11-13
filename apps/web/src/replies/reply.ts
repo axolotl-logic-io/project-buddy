@@ -18,12 +18,10 @@ import {
   type UIMessageStreamWriterWithOutcome,
 } from "ai";
 import { after } from "next/server";
-import { activityReply } from "@/activities/activity-reply.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
-import { readConstructModel } from "@/env.ts";
 import {
   AppError,
   type AppErrorCase,
@@ -48,10 +46,7 @@ import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
 import { planPartForModel } from "@/replies/plan-message-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
-import {
-  completeReplyAccounting,
-  replyUsageRecorder,
-} from "@/replies/reply-accounting.ts";
+import { completeReplyAccounting } from "@/replies/reply-accounting.ts";
 import { endReply, releaseClaim } from "@/replies/reply-end.ts";
 import {
   beginReplyRun,
@@ -66,6 +61,7 @@ import {
   chatTools,
   streamChatToolCalls,
 } from "@/replies/tools/index.ts";
+import { spellReply } from "@/spells/spell-reply.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // How many model calls one reply may make, besides the answer-now call; each
@@ -218,17 +214,13 @@ async function writeReply(
 // reply, the answer-now call included, is made from grant, the one gold check the
 // message passed.
 async function streamAndSaveReply(
-  { actingUser, chat, grant }: AccessibleChat & { readonly grant: QuotaGrant },
+  { actingUser, chat }: AccessibleChat & { readonly grant: QuotaGrant },
   construct: ConstructSnapshot,
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
   const runId = await beginReplyRun(actingUser, chat.id, answered.id);
   const cancellation = watchReplyCancellation(actingUser, runId);
-  const accountedGrant: QuotaGrant = {
-    ...grant,
-    usage: replyUsageRecorder(actingUser, runId),
-  };
   function accountingFinished(): Promise<void> {
     return completeReplyAccounting(actingUser, runId).catch(
       (error: unknown): void => {
@@ -238,12 +230,10 @@ async function streamAndSaveReply(
   }
   try {
     const named = withAuthorNames(history);
-    let model = replyModel(accountedGrant);
-    if (readConstructModel() === "local") {
-      const text = await activityReply(actingUser, chat, answered);
-      if (text !== undefined) {
-        model = localConstructModel(text);
-      }
+    let model = replyModel();
+    const text = await spellReply(actingUser, chat, answered);
+    if (text !== undefined) {
+      model = localConstructModel(text);
     }
     const calls: ReplyCalls = {
       actingUser,

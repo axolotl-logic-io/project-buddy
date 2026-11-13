@@ -5,7 +5,7 @@
 // as prose after it, as the reply streams and once it is saved. That the
 // chat saves the parts in that order, which a reload reads, is
 // test/component-integration/app/api/chat/reply-failures.server.test.ts's.
-// A note before a spell cast, which loads instructions as a lookup does,
+// A note before a spell cast, which changes the conversation’s spell,
 // shows the same way.
 // The site's stylesheet comes from vitest.browser-setup.ts.
 
@@ -21,10 +21,6 @@ import { cleanup, render } from "vitest-browser-react";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { getConstruct } from "@/constructs/index.ts";
-import {
-  mockWorkingNoteAnswer,
-  mockWorkingNoteText,
-} from "@/replies/mock-working-note.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CAST_SPELL_COPY, CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
@@ -34,8 +30,8 @@ import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
 const TOPIC = "zibble";
-const NOTE = mockWorkingNoteText(TOPIC);
-const ANSWER = mockWorkingNoteAnswer(TOPIC);
+const NOTE = `Searching the manual for ${TOPIC}.`;
+const ANSWER = `The saved answer about ${TOPIC}.`;
 const SEARCH_INPUT: { query: string } = { query: TOPIC };
 const SEARCH_OUTPUT: { sections: never[] } = { sections: [] };
 
@@ -195,7 +191,7 @@ describe("use_case_see_working_note", () => {
     await renderChat([]);
     await page
       .getByRole("textbox", { name: CHAT_COPY.messageLabel })
-      .fill(`/mock-working-note ${TOPIC}`);
+      .fill(`search ${TOPIC}`);
     await page.getByRole("button", { name: CHAT_COPY.send }).click();
     await expect.element(noteText()).toBeVisible();
     await expect.element(answerText()).toBeVisible();
@@ -214,7 +210,7 @@ describe("use_case_see_working_note", () => {
   });
 
   test("a note before a spell cast shows quiet and labelled, and the answer after it as prose", async () => {
-    const spellNote = "Let me cast the manual spell first.";
+    const spellNote = "Let me cast Brainstorm first.";
     const spellAnswer = "Here is the answer, after the cast.";
     await renderChat([
       {
@@ -227,11 +223,11 @@ describe("use_case_see_working_note", () => {
             type: `tool-${CAST_SPELL_TOOL}`,
             toolCallId: "call-cast",
             state: "output-available",
-            input: { spellId: "ask-one-question" },
+            input: { spellId: "brainstorm" },
             output: {
               status: "cast",
-              spellId: "ask-one-question",
-              name: "Ask one question at a time",
+              spellId: "brainstorm",
+              name: "Brainstorm",
             },
           },
           { type: "step-start" },
@@ -243,9 +239,7 @@ describe("use_case_see_working_note", () => {
     const note = page.getByRole("note", { name: CHAT_COPY.workingNote });
     await expect.element(note.getByText(spellNote)).toBeVisible();
     await expect.element(page.getByText(spellAnswer)).toBeVisible();
-    const cast = page
-      .getByText(CAST_SPELL_COPY.cast("Ask one question at a time"))
-      .element();
+    const cast = page.getByText(CAST_SPELL_COPY.cast("Brainstorm")).element();
 
     expect(note.elements()).toHaveLength(1);
     expect(note.element().textContent).not.toContain(spellAnswer);

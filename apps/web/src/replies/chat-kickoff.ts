@@ -1,19 +1,12 @@
-// How every model call's conversation starts with the user, as Claude
-// needs: a chat begins with the construct's opening (chat-opening.ts), so the
-// conversation the model sees starts with a message from the user's side
-// that the user never sees. The opening's own call sends the opening
-// kickoff of the chat's first activity (src/activities/), which asks for the
-// opening. Every other call that would start
-// with the construct gets the neutral kickoff from the userFirst middleware,
-// which src/replies/model.ts wraps every model in. It is here, with the
-// recogniser the mock reads it by: the mock knows it by text, since position
-// can't tell a chat the site started from one a test seeded.
 import type {
   LanguageModelV4CallOptions,
   LanguageModelV4Message,
   LanguageModelV4Middleware,
   LanguageModelV4Prompt,
 } from "@ai-sdk/provider";
+
+const OPENING_REQUEST =
+  "Open the conversation with a brief greeting and ask what the user wants to work on.";
 
 // The user's side of a chat before the construct's opening, in replies and
 // naming calls. It asks for nothing, so the
@@ -26,7 +19,7 @@ function kickoffTurn(kickoff: string): LanguageModelV4Message {
   return { role: "user", content: [{ type: "text", text: kickoff }] };
 }
 
-// Whether text is the neutral kickoff, so the mock can leave it
+// Whether text is the neutral kickoff, so the local engine can leave it
 // out of a chat's messages.
 function isNeutralKickoff(text: string): boolean {
   return text === NEUTRAL_KICKOFF;
@@ -70,4 +63,4 @@ function userFirst(neutralKickoff: string): LanguageModelV4Middleware {
   };
 }
 
-export { isNeutralKickoff, NEUTRAL_KICKOFF, userFirst };
+export { isNeutralKickoff, NEUTRAL_KICKOFF, OPENING_REQUEST, userFirst };

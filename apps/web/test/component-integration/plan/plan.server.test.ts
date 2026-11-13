@@ -4,8 +4,15 @@
 // in the construct's prompt, who may change it, and the next step Today
 // shows. How the plan looks is the browser tests'.
 
+import { convertToModelMessages } from "ai";
 import { describe, expect, test, vi } from "vitest";
-import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
+import {
+  listMessages,
+  listMessagesForModel,
+  readStoppedReply,
+  releaseReply,
+  saveMessage,
+} from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import { MOST_OPEN_STEPS } from "@/plan/plan.ts";
@@ -18,17 +25,15 @@ import {
 import { isPlanMessage } from "@/plan/plan-message.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
-import { PLAN_NOTE_MARK } from "@/replies/plan-message-prompt.ts";
 import {
-  CHANGE_PLAN_OUTPUT,
-  CHANGE_PLAN_TOOL,
-} from "@/replies/tools/change-plan-contract.ts";
+  PLAN_NOTE_MARK,
+  planPartForModel,
+} from "@/replies/plan-message-prompt.ts";
+import { changePlanTool } from "@/replies/tools/change-plan.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
-  constructReply,
-  messageText,
   newMessageId,
   question,
   sendChatMessage,
@@ -49,13 +54,6 @@ const RENDER = "Render a turntable";
 
 // How many commands the commands test runs.
 const COMMANDS_RUN = 5;
-
-// A message whose reply fails at once with the mock model.
-const FAILING = "/mock-error overloaded_error";
-
-function changeCommand(input: unknown): string {
-  return `/mock-tool ${CHANGE_PLAN_TOOL} ${JSON.stringify(input)}`;
-}
 
 // The texts of the open steps of the user's quest's plan, in order.
 async function openTexts(owner: UserId, questId: QuestId): Promise<string[]> {
@@ -87,21 +85,26 @@ function command(chatId: ChatId, text: string): Promise<PlanActionResult> {
 describe("use_case_construct_changes_plan", () => {
   test("the construct lays it out with change_plan, and the adventure keeps the change", async () => {
     const { user, chat } = await signedInChat();
-    const reply = await constructReply(
-      chat.id,
-      changeCommand({
-        operations: [
-          { op: "add", text: BLOCK_OUT },
-          { op: "add", text: SCULPT },
-        ],
-      }),
-    );
-
-    const [part] = reply.parts.filter(
-      ({ type }) => type === `tool-${CHANGE_PLAN_TOOL}`,
-    );
-    const output = CHANGE_PLAN_OUTPUT.parse(
-      part !== undefined && "output" in part && part.output,
+    const output = await Promise.resolve(
+      changePlanTool.execute?.(
+        {
+          operations: [
+            { op: "add", text: BLOCK_OUT },
+            { op: "add", text: SCULPT },
+          ],
+        },
+        {
+          toolCallId: "plan",
+          messages: [],
+          context: {
+            construct: chat.construct,
+            answeredId: newMessageId(),
+            actingUser: user.id,
+            chatId: chat.id,
+            questId: chat.quest.id,
+          },
+        },
+      ),
     );
     expect(output).toMatchObject({ status: "changed", version: 1 });
     expect(await openTexts(user.id, chat.quest.id)).toEqual([
@@ -113,24 +116,31 @@ describe("use_case_construct_changes_plan", () => {
   test("a construct's change naming a step that's gone saves nothing and gives the plan back", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
-    const reply = await constructReply(
-      chat.id,
-      changeCommand({
-        operations: [
-          { op: "complete", step: 1 },
-          { op: "remove", step: 9 },
-        ],
-      }),
-    );
-
-    const [part] = reply.parts.filter(
-      ({ type }) => type === `tool-${CHANGE_PLAN_TOOL}`,
-    );
-    expect(
-      CHANGE_PLAN_OUTPUT.parse(
-        part !== undefined && "output" in part && part.output,
+    const output = await Promise.resolve(
+      changePlanTool.execute?.(
+        {
+          operations: [
+            { op: "complete", step: 1 },
+            { op: "remove", step: 9 },
+          ],
+        },
+        {
+          toolCallId: "plan",
+          messages: [],
+          context: {
+            construct: chat.construct,
+            answeredId: newMessageId(),
+            actingUser: user.id,
+            chatId: chat.id,
+            questId: chat.quest.id,
+          },
+        },
       ),
-    ).toMatchObject({ status: "not-changed", reason: "missing-step" });
+    );
+    expect(output).toMatchObject({
+      status: "not-changed",
+      reason: "missing-step",
+    });
     expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,
@@ -194,6 +204,39 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await listMessages(user.id, chat.id)).toEqual([]);
   });
 
+  test("sidebar edits and Undo update the plan without saving conversation messages", async () => {
+    const { user, chat } = await signedInChat();
+    await sendChatMessage(chat.id, "Help me with this quest");
+    const before = await listMessages(user.id, chat.id);
+    const added = await changePlanAction({
+      questId: chat.quest.id,
+      chatId: chat.id,
+      operations: [{ op: "add", text: BLOCK_OUT }],
+    });
+    expect(added.kind).toBe("changed");
+    expect(added).not.toHaveProperty("message");
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([BLOCK_OUT]);
+    expect(await listMessages(user.id, chat.id)).toEqual(before);
+    const edited = await changePlanAction({
+      questId: chat.quest.id,
+      chatId: chat.id,
+      operations: [{ op: "change", step: 1, text: SCULPT }],
+    });
+    expect(edited).toMatchObject({ kind: "changed", version: 2 });
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([SCULPT]);
+    expect(await listMessages(user.id, chat.id)).toEqual(before);
+    const undone = await undoPlanChangeAction({
+      questId: chat.quest.id,
+      chatId: chat.id,
+      version: 2,
+    });
+    expect(undone.kind).toBe("changed");
+    expect(undone).not.toHaveProperty("message");
+    expect(await openTexts(user.id, chat.quest.id)).toEqual([BLOCK_OUT]);
+    expect(await listMessages(user.id, chat.id)).toEqual(before);
+    expect(await constructPrompt(chat.id)).toContain(BLOCK_OUT);
+  });
+
   test("commands change the plan, show it and undo, saving each to the adventure with no reply", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
@@ -224,12 +267,14 @@ describe("a quest's plan, changed without the construct", () => {
   });
 
   test("the construct reads a person's plan change in the adventure as a note", async () => {
-    const { chat } = await signedInChat();
+    const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
     await command(chat.id, "/done 1");
-
-    const reply = await constructReply(chat.id, "/mock-recall plan change");
-    expect(messageText(reply)).toContain(
+    const context = await convertToModelMessages(
+      await listMessagesForModel(user.id, chat.id),
+      { convertDataPart: planPartForModel },
+    );
+    expect(JSON.stringify(context)).toContain(
       `${PLAN_NOTE_MARK} The user changed the plan, without you: checked off`,
     );
   });
@@ -254,12 +299,6 @@ describe("a quest's plan, changed without the construct", () => {
       kind: "problem",
     });
     expect(await listMessages(user.id, chat.id)).toEqual([]);
-  });
-
-  test("the mock model's own commands still reach it", async () => {
-    const { chat } = await signedInChat();
-    const reply = await constructReply(chat.id, "/mock-markdown");
-    expect(messageText(reply)).toContain("Beveling an edge");
   });
 
   test("only the quest's owner can change its plan, whatever membership another user kept", async () => {
@@ -378,8 +417,9 @@ describe("use_case_plan_commands", () => {
   test("after a failed reply, plan changes in the adventure wait, so the message can still be sent again", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
-    await sendChatMessage(chat.id, FAILING);
-    const failed = (await listMessages(user.id, chat.id)).at(-1);
+    const unanswered = question("An interrupted message");
+    await saveMessage(user.id, chat.id, unanswered);
+    await releaseReply(user.id, chat.id, unanswered.id);
 
     expect(await command(chat.id, "/add Sketch wings")).toMatchObject({
       kind: "failed",
@@ -399,8 +439,10 @@ describe("use_case_plan_commands", () => {
 
     // Nothing came after the failed message, so it is still the one to send
     // again, and the plan is as it was.
-    expect((await listMessages(user.id, chat.id)).at(-1)?.id).toBe(failed?.id);
-    expect(await readStoppedReply(user.id, chat.id)).toBe(failed?.id);
+    expect((await listMessages(user.id, chat.id)).at(-1)?.id).toBe(
+      unanswered.id,
+    );
+    expect(await readStoppedReply(user.id, chat.id)).toBe(unanswered.id);
     expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
       SCULPT,

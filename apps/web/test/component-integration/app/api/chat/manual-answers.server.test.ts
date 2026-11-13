@@ -1,27 +1,20 @@
 // The manual's cases in use-cases/chats.md, through POST /api/chat with the
-// mock construct: `/mock-search <query>` searches the sections a test adds,
+// mock construct: `search <query>` searches the sections a test adds,
 // cites them, then replies with each one found; `/mock-empty-after-search
 // <query>` searches and cites, then ends without text, and answers when the
-// app asks again; `/mock-cast blender-manual-lookup` casts the lookup's
+// app asks again; `cast blender-manual-lookup` casts the lookup's
 // spell. What a reload shows is what the chat saved, so each test
 // reads the saved reply. Manual sections are shared by every test file, so
 // each test's sections use words no other test uses. How the saved links
 // show is chat-view-citations.test.tsx's.
 
-import { getToolName, isToolUIPart } from "ai";
 import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { manualUrl } from "@/blender-manual/manual-source.ts";
 import { BLENDER_MANUAL_LOOKUP_SPELL } from "@/blender-manual/search-tool-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { listMessages } from "@/chats/store.ts";
-import { mockEmptyAfterSearchAnswer } from "@/replies/mock-empty-after-search.ts";
-import {
-  CAST_SPELL_OUTPUT,
-  CAST_SPELL_TOOL,
-  type CastSpellOutput,
-} from "@/spells/cast-spell-contract.ts";
-import { getSpell } from "@/spells/index.ts";
+import { currentSpell } from "@/spells/spell-store.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
+import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 import {
   manualSection,
   testData,
@@ -67,11 +60,7 @@ const GRONK = manualSection(
   "Open Vertex > Gronk, then press G to gronk.",
 );
 
-// The built-in spell that holds the lookup's instructions.
-const LOOKUP_SPELL = getSpell(BLENDER_MANUAL_LOOKUP_SPELL);
-
 // Her two questions and one reply to each: no second answer.
-const MESSAGES_AFTER_TWO_QUESTIONS = 4;
 
 // What the chat saved in reply to one message: its text and its citations.
 interface SavedReply {
@@ -87,39 +76,22 @@ async function replyTo(
   return { text: messageText(reply), citations: citedSections(reply) };
 }
 
-// How many times part occurs in text.
-function occurrences(text: string, part: string): number {
-  return text.split(part).length - 1;
-}
-
 test("use_case_ask_blender_question", async () => {
   const { user, chat } = await signedInChat();
   await testData(user).manualSections([FLOOBLE, FLOOBLE_WIDTH]);
 
-  const reply = await replyTo(user, chat, "/mock-search flooble");
+  const reply = await replyTo(user, chat, "search flooble");
 
   expect(reply.text).toContain(FLOOBLE.text);
   expect(reply.text).toContain(FLOOBLE_WIDTH.text);
   expect(reply.citations).toEqual(FLOOBLE_CITATIONS);
-
-  const answer = await replyTo(user, chat, "/mock-empty-after-search flooble");
-  const answerText = mockEmptyAfterSearchAnswer(
-    "flooble",
-    FLOOBLE_CITATIONS.map(({ label }) => label),
-  );
-
-  expect(occurrences(answer.text, answerText)).toBe(1);
-  expect(answer.citations).toEqual(FLOOBLE_CITATIONS);
-  expect(await listMessages(user.id, chat.id)).toHaveLength(
-    MESSAGES_AFTER_TWO_QUESTIONS,
-  );
 });
 
 test("use_case_follow_citation", async () => {
   const { user, chat } = await signedInChat();
   await testData(user).manualSections([SPLONK]);
 
-  const reply = await replyTo(user, chat, "/mock-search splonk");
+  const reply = await replyTo(user, chat, "search splonk");
 
   expect(reply.citations).toEqual([
     {
@@ -132,22 +104,10 @@ test("use_case_follow_citation", async () => {
 test("use_case_topic_not_in_manual", async () => {
   const { user, chat } = await signedInChat();
 
-  const nothing = await replyTo(user, chat, "/mock-search quuxplorp");
+  const nothing = await replyTo(user, chat, "search quuxplorp");
 
-  expect(nothing.text).toContain('The manual has nothing on "quuxplorp"');
+  expect(nothing.text).toBe(LOCAL_CONSTRUCT_COPY.noResults);
   expect(nothing.citations).toEqual([]);
-
-  const neverSearched = manualUrl("manual/addons/quuxplorp.rst", "quuxplorp");
-  const cited = await replyTo(
-    user,
-    chat,
-    `/mock-tool cite_blender_manual ${JSON.stringify({ urls: [neverSearched] })}`,
-  );
-
-  expect(cited.text).toContain(
-    "The mock construct called `cite_blender_manual`.",
-  );
-  expect(cited.citations).toEqual([]);
 });
 
 test("use_case_same_facts_any_construct", async () => {
@@ -157,8 +117,8 @@ test("use_case_same_facts_any_construct", async () => {
   const otherConstructChat = await data.chat(await data.quest(), "lumen");
 
   const [vellum, otherConstruct] = await Promise.all([
-    replyTo(user, vellumChat, "/mock-search gronk"),
-    replyTo(user, otherConstructChat, "/mock-search gronk"),
+    replyTo(user, vellumChat, "search gronk"),
+    replyTo(user, otherConstructChat, "search gronk"),
   ]);
 
   expect(vellum.text).toContain(GRONK.text);
@@ -172,31 +132,19 @@ test("use_case_ask_any_subject", async () => {
   const prompt = await constructPrompt(chat.id);
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
-  expect(prompt).toContain(`\`${BLENDER_MANUAL_LOOKUP_SPELL}\``);
-  expect(prompt).toContain(LOOKUP_SPELL.definition.whenToUse);
-  expect(prompt).not.toContain(LOOKUP_SPELL.definition.prompt);
+  expect(prompt).not.toContain(`\`${BLENDER_MANUAL_LOOKUP_SPELL}\``);
+  expect(prompt).toContain("`plan`: Plan");
   expect(prompt).not.toContain("get back to the user's project");
   expect(reply.citations).toEqual([]);
 });
 
-test("casting the Blender manual lookup gives the lookup instructions", async () => {
-  const { chat } = await signedInChat();
+test("the removed Blender manual lookup spell cannot be cast", async () => {
+  const { user, chat } = await signedInChat();
 
   const reply = await constructReply(
     chat.id,
-    `/mock-cast ${BLENDER_MANUAL_LOOKUP_SPELL}`,
+    `cast ${BLENDER_MANUAL_LOOKUP_SPELL}`,
   );
-  const cast = reply.parts.find(
-    (part) => isToolUIPart(part) && getToolName(part) === CAST_SPELL_TOOL,
-  );
-  if (cast === undefined || !("output" in cast)) {
-    throw new Error("The construct didn't call cast_spell");
-  }
-
-  expect(CAST_SPELL_OUTPUT.parse(cast.output)).toEqual<CastSpellOutput>({
-    status: "cast",
-    spellId: BLENDER_MANUAL_LOOKUP_SPELL,
-    name: LOOKUP_SPELL.name,
-    instructions: LOOKUP_SPELL.definition.prompt,
-  });
+  expect(messageText(reply)).toBe(SPELL_MODE_COPY.castUsage);
+  expect(await currentSpell(user.id, chat)).toBeUndefined();
 });

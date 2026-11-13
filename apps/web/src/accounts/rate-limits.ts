@@ -58,8 +58,6 @@ const ADDRESS_HMAC_LENGTH = 64;
 const ADDRESS_PREFIX = "address:";
 const ADDRESS_AND_CLIENT_PREFIX = "address-client:";
 const CLIENT_PREFIX = "client:";
-// Legacy rows are only cleaned up, never counted as an authorization gate.
-const WRONG_INVITE_CODE_PREFIX = "wrong-invite-code:";
 
 // The address's HMAC, in hexadecimal, as the keys name it.
 async function addressHmac(address: string): Promise<string> {
@@ -89,10 +87,6 @@ const ADDRESS_AND_CLIENT_CLIENT_START: number =
 
 function clientKeyOf(clientKey: string): string {
   return `${CLIENT_PREFIX}${clientKey}`;
-}
-
-function wrongInviteCodeKey(clientKey: string): string {
-  return `${WRONG_INVITE_CODE_PREFIX}${clientKey}`;
 }
 
 function windowStartCutoff(limit: RateLimit, now: Date): Date {
@@ -199,7 +193,7 @@ async function countSignInLinkRequest(
 // For the tests only: every window of the address's or the client's limits
 // passes, as after the wait, by deleting their rows. With an address, the
 // address's own and its address-and-client rows; with a client, its own,
-// its wrong invite codes and its address-and-client rows; with both, only
+// its address-and-client rows; with both, only
 // the rows of that address and client together.
 async function endRateLimitWindowsFor({
   address,
@@ -224,7 +218,7 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
     return sql`(${rateLimits.key} = ${addressKey(hmac)} or starts_with(${rateLimits.key}, ${`${ADDRESS_AND_CLIENT_PREFIX}${hmac}:`}))`;
   }
   if (clientKey !== undefined) {
-    return sql`(${rateLimits.key} in (${clientKeyOf(clientKey)}, ${wrongInviteCodeKey(clientKey)}) or (starts_with(${rateLimits.key}, ${ADDRESS_AND_CLIENT_PREFIX}) and substr(${rateLimits.key}, ${ADDRESS_AND_CLIENT_CLIENT_START}::int) = ${clientKey}))`;
+    return sql`(${rateLimits.key} = ${clientKeyOf(clientKey)} or (starts_with(${rateLimits.key}, ${ADDRESS_AND_CLIENT_PREFIX}) and substr(${rateLimits.key}, ${ADDRESS_AND_CLIENT_CLIENT_START}::int) = ${clientKey}))`;
   }
   return sql`false`;
 }

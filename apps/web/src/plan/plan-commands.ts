@@ -13,6 +13,7 @@ import {
   type Plan,
   type PlanOperation,
 } from "@/plan/plan.ts";
+import { questStatusCommand } from "@/quests/quest-status-commands.ts";
 import { isLocalCommandName } from "@/replies/local-command-contract.ts";
 
 // A command: "/", its name, then its argument, if any, after white space.
@@ -25,10 +26,6 @@ const STEP_ARGUMENT = /^#?(?<number>\d+)$/u;
 const STEP_THEN_REST = /^(?<step>\S+)(?:\s+(?<rest>[\s\S]*))?$/u;
 
 const WHITE_SPACE = /\s+/u;
-
-// What starts the mock model's own commands (src/replies/mock-script.ts),
-// which go to the construct as messages while the mock model runs.
-const MOCK_COMMAND_PREFIX = "mock-";
 
 // The built-in commands' names, in the order the composer lists them.
 const PLAN_COMMAND_NAMES = [
@@ -81,18 +78,14 @@ function commandNameOf(text: string): string | undefined {
   return name;
 }
 
-// Where a message is typed: whether the mock model runs, and whether the
-// adventure is in a quest.
+// Whether the conversation belongs to a quest.
 interface CommandPlace {
-  readonly mockCommands: boolean;
   readonly inQuest: boolean;
 }
 
 // Whether the site runs text as a command rather than sending it to the
 // construct. In a quest's adventure that is any message that starts with
-// "/" and a name, except local construct commands and, while the mock
-// model runs, its own `/mock-…`
-// commands. In a standalone adventure it is only a plan command's name,
+// "/" and a name, except local construct commands. In a standalone adventure it is only a plan command's name,
 // which says it needs a quest; any other goes to the construct as written.
 function isChatCommand(text: string, place: CommandPlace): boolean {
   const name = commandNameOf(text);
@@ -100,9 +93,12 @@ function isChatCommand(text: string, place: CommandPlace): boolean {
     return false;
   }
   if (!place.inQuest) {
-    return PLAN_COMMAND_NAME.safeParse(name).success;
+    return (
+      PLAN_COMMAND_NAME.safeParse(name).success ||
+      questStatusCommand(text) !== undefined
+    );
   }
-  return !(place.mockCommands && name.startsWith(MOCK_COMMAND_PREFIX));
+  return true;
 }
 
 function problem(found: CommandProblem): PlanCommand {
@@ -246,7 +242,6 @@ export type { CommandProblem, PlanCommand, PlanCommandName };
 export {
   commandNameOf,
   isChatCommand,
-  MOCK_COMMAND_PREFIX,
   PLAN_COMMAND_NAMES,
   PLAN_COMMAND_USAGE,
   parsePlanCommand,

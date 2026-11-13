@@ -1,14 +1,5 @@
-// Dailies: the user's one ongoing quest for starting their day, continued
-// every day in its one conversation, never reset. It is an ordinary quest,
-// marked as the user's Dailies (quests.dailies) so it is found by that mark
-// whatever the user renames it to; the database keeps one per user, so of
-// concurrent starts exactly one makes it. Starting the day is a message the
-// user sends in its conversation, like any other, which the Dailies
-// activity's instructions guide.
-
 import { and, eq } from "drizzle-orm";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
-import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import { isQuestChat, type QuestChat } from "@/chats/chat-rows.ts";
 import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
 import {
@@ -32,14 +23,11 @@ type StartDailiesResult =
   | { readonly kind: "outOfGold" }
   | { readonly kind: "claudeUnavailable" };
 
-// What a new Dailies starts with, from its premade quest: its name and
-// starting context, its construct and its activity.
 interface DailiesStart {
   readonly name: QuestName;
   readonly context: string;
   readonly motivation?: string;
   readonly construct: NewChatConstruct;
-  readonly activity: ChatActivity;
 }
 
 // The id of the user's own Dailies; undefined if they have none.
@@ -87,7 +75,6 @@ async function startDailies(
   const started = await startNewQuest(user, start.name, start.construct, {
     context: start.context,
     motivation: start.motivation ?? "",
-    activity: start.activity,
     dailies: true,
   });
   if (started !== undefined) {

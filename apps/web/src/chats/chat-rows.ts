@@ -24,7 +24,6 @@ import {
   isConstructId,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import {
   type ChatId,
@@ -34,6 +33,7 @@ import {
   type QuestId,
   type UserId,
 } from "@/ids.ts";
+import { SPELL_ID, type SpellId } from "@/spells/spell.ts";
 
 // The quest a chat is in: its id and name.
 interface ChatQuest {
@@ -43,7 +43,7 @@ interface ChatQuest {
 
 interface Chat {
   readonly id: ChatId;
-  readonly activityName?: string | undefined;
+  readonly spell?: SpellId | undefined;
   // The chat's quest, or undefined in a standalone chat.
   readonly quest: ChatQuest | undefined;
   // The construct as it was when the chat started.
@@ -56,11 +56,8 @@ type QuestChat = Chat & { readonly quest: ChatQuest };
 
 type ChatRow = typeof chats.$inferSelect;
 
-// A chats row with its quest's name, which is null for a standalone chat,
-// and its current activity's name (chatColumnsFor).
 type ChatRowWithQuest = ChatRow & {
   readonly questName: string | null;
-  readonly activityName?: string | null;
 };
 
 // A message to save as it is, with an id from the AI SDK.
@@ -139,7 +136,7 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
     return [
       {
         id,
-        activityName: row.activityName ?? undefined,
+        spell: SPELL_ID.optional().parse(row.spell ?? undefined),
         quest: place.quest,
         construct: toConstruct(row),
         createdAt: row.createdAt,
@@ -148,29 +145,14 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
   });
 }
 
-// The columns a chat is read from: its row, with its current activity's
-// name.
-function chatColumnsFor(): ReturnType<typeof getTableColumns<typeof chats>> & {
-  readonly activityName: SQL.Aliased<string | null>;
-} {
-  return {
-    ...getTableColumns(chats),
-    activityName: sql<string | null>`(select ${activitySessions.activityName}
-      from ${activitySessions} where ${activitySessions.chatId} = ${chats.id}
-      order by ${activitySessions.createdAt} desc, ${activitySessions.id} desc limit 1)`.as(
-      "current_activity_name",
-    ),
-  };
-}
-
-// The columns a chat is read from (chatColumnsFor) and its
+// The columns a chat is read from  and its
 // quest's name, which a left join of quests on chats.quest_id gives,
 // null in a standalone chat. The join only reads the quest's columns;
 // chatOpenTo is what keeps a chat open to its reader.
 function chatWithQuestColumns(): {
   readonly questName: typeof quests.name;
-} & ReturnType<typeof chatColumnsFor> {
-  return { ...chatColumnsFor(), questName: quests.name };
+} & ReturnType<typeof getTableColumns<typeof chats>> {
+  return { ...getTableColumns(chats), questName: quests.name };
 }
 
 // Whether the chat is in a quest.

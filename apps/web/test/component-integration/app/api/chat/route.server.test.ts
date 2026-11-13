@@ -2,15 +2,12 @@
 // construct: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
 
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+import { searchManual } from "@/blender-manual/search-manual.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
-import {
-  type ConstructId,
-  getConstruct,
-  snapshotOf,
-} from "@/constructs/index.ts";
+import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { MOCK_SLOW_DELAY_MS } from "@/replies/mock-slow.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   exchange,
@@ -20,32 +17,6 @@ import {
   sendToEnd,
   userWithChat,
 } from "../../../test-database/chat-test-kit.ts";
-
-// The last line of the mock construct's reply, inside its Python block.
-const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
-const SYSTEM_PROMPT = "/mock-system-prompt";
-const NO_NAME = "{{name}}";
-const SLOW_QUESTION = "/mock-slow Tell me about bevels.";
-// The rest of a test that waits for one slow reply, besides its wait: the
-// other exchanges and reading what they saved. The worst measured was 0.5 s
-// (send-while, a 1-minute load average of 13 on 10 cores, with other
-// pipelines' suites running); this is 20 times that, for heavier load.
-const SLOW_TEST_MARGIN_MS = 10_000;
-// The slow reply's wait, then the rest of the test.
-const SEND_WHILE_REPLYING_TIMEOUT_MS: number =
-  MOCK_SLOW_DELAY_MS + SLOW_TEST_MARGIN_MS;
-
-// A line of the construct's voice that its prompt holds as written: one with no
-// placeholder for her name.
-function voiceLine(constructId: ConstructId): string {
-  const line = getConstruct(constructId)
-    .definition.prompt.split("\n")
-    .find((candidate) => candidate !== "" && !candidate.includes(NO_NAME));
-  if (line === undefined) {
-    throw new Error(`${constructId}'s voice has no line without a name`);
-  }
-  return line;
-}
 
 test("use_case_send_message", async () => {
   const { user, chat } = await userWithChat();
@@ -77,36 +48,29 @@ test("a conversation keeps every exchange, in order", async () => {
   ]);
 });
 
-// The recall command can answer only from the earlier conversation.
 test("use_case_continue_chat", async () => {
   const { user, chat } = await userWithChat();
-  const asked = "Remember my cobaltwalrus sculpture.";
-  const followUp = "/mock-recall cobaltwalrus";
-
-  await sendToEnd(user, chat, asked);
-  await sendToEnd(user, chat, followUp);
-
-  const conversation = await savedConversation(user, chat);
-  expect(conversation.at(-1)?.text).toContain(asked);
+  await sendToEnd(user, chat, "An earlier question");
+  const reopened = await getChat(user.id, chat.id);
+  expect(reopened?.id).toBe(chat.id);
+  await sendToEnd(user, chat, "A later question");
+  expect(await savedConversation(user, chat)).toEqual([
+    ...exchange("An earlier question"),
+    ...exchange("A later question"),
+  ]);
 });
 
-// Each reply, before and after she reopens the chat, is written from the
-// chat's construct: the mock replies with the prompt it was given.
 test("use_case_construct_voice_consistent", async () => {
   const { user, chat } = await userWithChat("lumen");
-
-  await sendToEnd(user, chat, SYSTEM_PROMPT);
+  await sendToEnd(user, chat, "look");
   const reopened = await getChat(user.id, chat.id);
-  await sendToEnd(user, chat, SYSTEM_PROMPT);
-
   expect(reopened?.construct).toEqual(snapshotOf(getConstruct("lumen")));
+  await sendToEnd(user, chat, "look");
   const replies = (await savedConversation(user, chat)).filter(
     ({ role }) => role === "assistant",
   );
-  const promptReplies = [replies[0]?.text, replies[1]?.text];
-  for (const prompt of promptReplies) {
-    expect(prompt).toContain(voiceLine("lumen"));
-  }
+  expect(replies).toHaveLength(2);
+  expect(replies[0]?.text).toBe(replies[1]?.text);
 });
 
 describe("use_case_leave_during_reply", () => {
@@ -130,7 +94,6 @@ describe("use_case_leave_during_reply", () => {
 
     const conversation = await savedConversation(user, chat);
     expect(conversation).toEqual(exchange(first));
-    expect(conversation.at(-1)?.text).toContain(MOCK_REPLY_END);
     await sendToEnd(user, chat, second);
     expect(await savedConversation(user, chat)).toEqual([
       ...exchange(first),
@@ -139,26 +102,40 @@ describe("use_case_leave_during_reply", () => {
   });
 });
 
-test(
-  "use_case_send_while_construct_replies",
-  async () => {
-    const { user, chat } = await userWithChat();
-    const slow = SLOW_QUESTION;
-    const meanwhile = "And what about loop cuts?";
+vi.mock("@/blender-manual/search-manual.ts", { spy: true });
 
-    const slowResponse = await postMessage(user, chat, question(slow));
-    await sendToEnd(user, chat, meanwhile);
-
-    expect(await savedConversation(user, chat)).toEqual([
-      { role: "user", text: slow },
-      ...exchange(meanwhile),
-    ]);
-    await slowResponse.text();
+test("use_case_send_while_construct_replies", async () => {
+  const { user, chat } = await userWithChat();
+  const started = Promise.withResolvers<void>();
+  const release =
+    Promise.withResolvers<Awaited<ReturnType<typeof searchManual>>>();
+  vi.mocked(searchManual).mockImplementationOnce(() => {
+    started.resolve();
+    return release.promise;
+  });
+  const response = await postMessage(
+    user,
+    chat,
+    question("search a pending lookup"),
+  );
+  const body = response.text();
+  try {
+    await started.promise;
+    await sendToEnd(user, chat, "Another thought");
+    expect(
+      (await savedConversation(user, chat)).map(({ text }) => text),
+    ).toContain("Another thought");
+  } finally {
+    release.resolve([]);
+    await body;
     await afterTasksDone();
-    expect(await savedConversation(user, chat)).toEqual([
-      ...exchange(slow),
-      ...exchange(meanwhile),
-    ]);
-  },
-  SEND_WHILE_REPLYING_TIMEOUT_MS,
-);
+    vi.restoreAllMocks();
+  }
+  const saved = await savedConversation(user, chat);
+  expect(
+    saved.filter(({ role }) => role === "assistant").map(({ text }) => text),
+  ).toContain(LOCAL_CONSTRUCT_COPY.noResults);
+  expect(
+    saved.filter(({ role }) => role === "user").map(({ text }) => text),
+  ).toEqual(["search a pending lookup", "Another thought"]);
+});

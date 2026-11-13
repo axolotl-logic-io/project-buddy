@@ -1,6 +1,6 @@
 # Access
 
-The conventions for these cases are in [the index](README.md#conventions). Only admin invitations can create new accounts; signing in is by an emailed link ([Accounts](accounts.md)).
+The conventions for these cases are in [the index](README.md#conventions). Anyone can create an account after verifying their email; signing in is by an emailed link ([Accounts](accounts.md)).
 
 ## use_case_visit_signed_out
 
@@ -13,23 +13,7 @@ The user opens any page of the site without being signed in.
 - **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page and the menu. The menu offers Light, Dark and System modes and a Credits link. It doesn't ask for a shared code. No one's quests, adventures or Plans appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): she has an account.
-  - [`use_case_sign_up`](accounts.md#use_case_sign_up): she has been invited and has no account yet.
-
-## use_case_sign_up_requires_invitation
-
-A visitor without an invitation tries to make an account.
-
-- **Prerequisites:** `use_case_visit_signed_out`.
-- **Steps:** The visitor opens the former sign-up page or directly submits its former shared code and an email address.
-- **Outcome:** The page explains that an admin must invite their email address. No shared-code form is offered; even a direct submission with the old code creates no account and sends no email. Normal sign-in for an unknown address still gives the non-disclosing response without creating an account.
-
-## use_case_invitation_unusable
-
-A visitor opens or submits an invalid, replaced, or already-used invitation.
-
-- **Prerequisites:** none.
-- **Steps:** They open or confirm a setup link whose token is missing, malformed, unknown, altered, replaced by another invitation, or already accepted.
-- **Outcome:** The site explains that the invitation cannot be used and offers normal sign-in for an existing account. No account or session is granted by that link. A replaced or used link requires a new invitation from an admin. A link's age alone never makes it unusable. Two concurrent confirmations of one valid invitation grant exactly one account and one session; the loser is refused as already used.
+  - [`use_case_sign_up`](accounts.md#use_case_sign_up): she has no account yet.
 
 ## use_case_return_signed_in
 

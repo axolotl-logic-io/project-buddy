@@ -10,14 +10,13 @@ import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
-  type ReactNode,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import type { ActivitySnapshot } from "@/activities/activity.ts";
 import {
   type ChatCommands,
   ChatCommandsContext,
@@ -32,11 +31,12 @@ import {
   PlanContext,
   usePlanController,
 } from "@/components/plan/use-plan.ts";
+import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
+import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import {
   PLAN_COMMAND_NAMES,
@@ -55,13 +55,14 @@ import {
   CHANGE_PLAN_OUTPUT,
   CHANGE_PLAN_TOOL,
 } from "@/replies/tools/change-plan-contract.ts";
-import { ACTIVITY_COPY } from "@/ui/copy/activity.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   CHAT_COMMANDS_COPY,
   PLAN_COPY,
   PLAN_PANEL_COPY,
 } from "@/ui/copy/plan.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 
 function pairedReplyCosts(
   messages: readonly UIMessage[],
@@ -97,31 +98,10 @@ function takeBackRefusedMessage(
   runtime: AssistantRuntime,
 ): void {
   let refusedText: string | undefined;
-  const refusedImages: {
-    contentType: string;
-    type: "image";
-    name: string;
-    content: [{ type: "image"; image: string }];
-  }[] = [];
   chat.setMessages((messages: UIMessage[]): UIMessage[] => {
     const refused = messages.at(-1);
     if (refused?.role !== "user") {
       return messages;
-    }
-    for (const part of refused.parts) {
-      if (part.type === "file") {
-        refusedImages.push({
-          type: "image",
-          contentType: part.mediaType,
-          name: part.filename ?? "Image",
-          content: [
-            {
-              type: "image",
-              image: new URL(part.url, globalThis.location.origin).href,
-            },
-          ],
-        });
-      }
     }
     refusedText = refused.parts
       .filter(isTextUIPart)
@@ -132,9 +112,6 @@ function takeBackRefusedMessage(
   const { composer } = runtime.thread;
   if (refusedText !== undefined && composer.getState().text === "") {
     composer.setText(refusedText);
-  }
-  for (const image of refusedImages) {
-    composer.addAttachment(image).catch(() => undefined);
   }
 }
 
@@ -147,16 +124,16 @@ const PLAN_COMMAND_LISTINGS: readonly CommandListing[] = PLAN_COMMAND_NAMES.map(
   }),
 );
 
-const ACTIVITY_COMMANDS: readonly CommandListing[] = [
+const SPELL_COMMANDS: readonly CommandListing[] = [
   {
     command: "/brainstorm",
     usage: "/brainstorm",
-    description: "Start Brainstorm; save subsequent messages to Ideas",
+    description: "Cast Brainstorm; save subsequent messages to Ideas",
   },
   {
     command: "/stop",
     usage: "/stop",
-    description: "Stop the current Activity and return to Chat",
+    description: "Stop the active spell and return to Chat",
   },
 ];
 const NO_COMMANDS: readonly CommandListing[] = [];
@@ -219,14 +196,12 @@ export function ChatView({
   questId,
   initialPlan,
   planActions,
-  mockCommands = NO_COMMANDS,
-  starter,
-  activity,
-  sideContent,
+  spellName,
+  sideSections,
   initialSection,
 }: {
-  activity?: ActivitySnapshot | undefined;
-  sideContent?: ReactNode;
+  spellName?: string | undefined;
+  sideSections?: readonly WorkspaceSection[] | undefined;
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
@@ -241,12 +216,6 @@ export function ChatView({
   initialPlan?: PlanState | undefined;
   // The plan's Server Actions, which the page hands over in a quest chat.
   planActions?: PlanActions | undefined;
-  // The mock model's commands, which the composer lists too while it runs.
-  mockCommands?: readonly CommandListing[] | undefined;
-  // A prepared message offered beside the composer, such as the Dailies
-  // quest's Start the day: choosing it sends text as the viewer's own
-  // message, like any other, and leaves the draft in the composer.
-  starter?: { readonly label: string; readonly text: string } | undefined;
 }): JSX.Element {
   const router = useRouter();
   const replyCompletedRef = useRef(false);
@@ -286,7 +255,7 @@ export function ChatView({
     },
   });
   // Saved updates from another viewer replace the conversation without
-  // replacing the runtime that owns this viewer's draft and attachments.
+  // replacing the runtime that owns this viewer's draft.
   const savedMessagesRef = useRef(initialMessages);
   useEffect(() => {
     if (savedMessagesRef.current === initialMessages) {
@@ -375,9 +344,8 @@ export function ChatView({
     }
   }, [gold, router]);
   const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
-  const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
-  const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
-  const reattach = useComposerDraft(runtime, { viewer, chatId });
+  const runtime = useAISDKRuntime(chat);
+  useComposerDraft(runtime, { viewer, chatId });
   const replying = chat.status === "streaming" || chat.status === "submitted";
   const lastSaved = initialMessages.at(-1);
   const replyingElsewhere =
@@ -392,10 +360,8 @@ export function ChatView({
     chat.status === "ready" &&
     chat.messages.at(-1)?.id === stoppedReplyId;
   const replyFailed = chat.status === "error" && refusal === undefined;
-  // The plan's controls here wait while the newest message awaits a reply:
-  // a plan message saved after it would end the conversation its reply, a
-  // retry or "send again" answers. The server refuses one too
-  // (src/chats/store.ts, chatAwaitsReply).
+  // Plan controls wait while the newest message awaits a reply, keeping
+  // the plan stable for the reply and any retry. The server checks too.
   let planDisabledNote: string | undefined;
   if (replying || replyingElsewhere) {
     planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
@@ -421,9 +387,9 @@ export function ChatView({
     disabledNote: planDisabledNote,
     newestCardId: newestPlanCard(chat.messages),
     observed,
-    onMessage: addMessage,
   });
   const receivePlan = plan?.receive;
+  const publishStatus = useContext(StatusFeedbackContext);
   const runCommand = useCallback(
     async (text: string): Promise<string | undefined> => {
       const result = await planActions?.command({ chatId, text });
@@ -431,6 +397,9 @@ export function ChatView({
         return CHAT_COMMANDS_COPY.failed;
       }
       switch (result.kind) {
+        case "quest-status":
+          publishStatus?.(result.feedback);
+          return undefined;
         case "problem":
           return result.text;
         case "not-found":
@@ -449,7 +418,7 @@ export function ChatView({
           return result satisfies never;
       }
     },
-    [addMessage, chatId, planActions, receivePlan],
+    [addMessage, chatId, planActions, receivePlan, publishStatus],
   );
   // Without the plan's actions, as in a test of the conversation alone, the
   // composer runs no commands and sends every message.
@@ -457,29 +426,22 @@ export function ChatView({
     if (planActions === undefined) {
       return undefined;
     }
-    let listings: readonly CommandListing[] = mockCommands;
+    let listings: readonly CommandListing[] = NO_COMMANDS;
     if (questId !== undefined) {
       listings = [
         ...PLAN_COMMAND_LISTINGS,
-        ...ACTIVITY_COMMANDS,
-        ...mockCommands,
+        ...QUEST_STATUS_COPY.commands,
+        ...SPELL_COMMANDS,
       ];
     }
     return {
       listings,
-      mockCommands: mockCommands.length > 0,
       inQuest: questId !== undefined,
       run: runCommand,
     };
-  }, [mockCommands, planActions, questId, runCommand]);
-  const starterText = starter?.text;
+  }, [planActions, questId, runCommand]);
   const { sendMessage } = chat;
-  const sendStarter = useCallback((): void => {
-    if (starterText !== undefined) {
-      sendMessage({ text: starterText }).catch(() => undefined);
-    }
-  }, [sendMessage, starterText]);
-  const stopActivity = useCallback((): void => {
+  const stopSpell = useCallback((): void => {
     sendMessage({ text: "/stop" }).catch(() => undefined);
   }, [sendMessage]);
   const retryReply = useCallback((): void => {
@@ -525,28 +487,19 @@ export function ChatView({
   if (replying || replyingElsewhere) {
     replyStop = { stopping, onStop: stop };
   }
-  let offeredStarter: { label: string; onStart: () => void } | undefined;
-  if (starter !== undefined && replyStop === undefined) {
-    offeredStarter = { label: starter.label, onStart: sendStarter };
-  }
   let openingMessageId: string | undefined;
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
   }
-  let activityStop: { label: string; onStop: () => void } | undefined;
-  if (
-    activity !== undefined &&
-    activity.name !== "Chat" &&
-    replyStop === undefined
-  ) {
-    activityStop = {
-      label: ACTIVITY_COPY.stop(activity.name),
-      onStop: stopActivity,
+  let spellStop: { label: string; onStop: () => void } | undefined;
+  if (spellName !== undefined && replyStop === undefined) {
+    spellStop = {
+      label: SPELL_MODE_COPY.stop(spellName),
+      onStop: stopSpell,
     };
   }
   const conversation = (
     <>
-      {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}
       {replyingElsewhere === true && (
         <Notice role="status">
           {CHAT_COPY.replyingElsewhere(constructName)}
@@ -566,8 +519,7 @@ export function ChatView({
         authorNames={authorNames}
         stop={replyStop}
         stopStatus={stopStatus}
-        starter={offeredStarter}
-        activityStop={activityStop}
+        spellStop={spellStop}
       />
     </>
   );
@@ -579,7 +531,7 @@ export function ChatView({
           {plan !== undefined && (
             <PlanPanel
               initialSection={initialSection}
-              sideContent={sideContent}
+              sideSections={sideSections}
             >
               {conversation}
             </PlanPanel>

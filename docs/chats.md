@@ -4,27 +4,19 @@
 
 A quest has one continuing conversation, and each user has one private Chat (`src/conversations/`). Both are `chats` rows marked `continuing`. Partial unique indexes allow one per quest and one per user, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one. Starting it (`startQuestConversation`) is free when it exists, and charges the acting user for an opening only when the construct writes one.
 
-A conversation keeps the construct it started with. Its activity changes only when the construct enters another with its activity tool, which records the change at its place in the history. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
+A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history. Adventures, several conversations per quest with automatic names, were removed; the [design note](design/simplification-892.md) lists what went and the release order.
 
 ## Start a quest
 
-On Quests, Start Quest opens a dialog with two fields: Construct and Why.
-Construct defaults to the account's New quest construct preference. The visible
-explanation makes clear that this construct joins the first adventure; later
-adventures in the same quest can use other constructs. Why is optional and
-becomes the quest motivation in the opening and opening conversation.
+On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Edit the name and starting context, choose a construct, and optionally fill in Why. Confirming creates the quest and its one conversation, with the supplied context followed by the construct’s opening. Plan and Ideas start empty, with no active spell.
 
-Starting gives the quest the default name New quest and opens its first adventure
-in Break Down a Project. With no motivation, the existing prepared opening is used
-when available. Failed openings save nothing and keep the construct choice and
-Why for retry. Cancel, Close and Escape create nothing. The premade quest
-previews remain separate and keep their editable name and activity.
+Failed openings save nothing and keep the form’s edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one.
 
 ## Chat
 
-`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and the Chat activity; the construct can still change activity with `select_activity`. Chat is never shared: old addresses of it reveal nothing to anyone else.
+`/chat` is the signed-in user's **Chat**: one private conversation for talking without a goal. It has no list, chooser, conversation name or New adventure button. `privateChat` gets or creates the conversation atomically, without an opening or a model call, so opening Chat spends nothing. Chat uses the default construct and has no active spell. Chat is never shared: old addresses of it reveal nothing to anyone else.
 
-Chat has no Plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual, change activity and offer a quest.
+Chat has no Plan or [progress timeline](progress-timeline.md), so its construct has no tools that write them. It can search and cite the Blender manual and offer a quest.
 
 ### Turn Chat into a quest
 
@@ -52,15 +44,11 @@ its next step, and opens its conversation; with no Active quest it is absent
 (`src/quests/current-quest-store.ts`). Reading it makes no model call. The
 Home atlas and its destination panels are removed.
 
-## Activities and constructs
+## Spells and constructs
 
-Every conversation is in one activity at a time: Chat, Brainstorm, Break Down a Project, Find something to make, or one of the user's own activities. The construct changes it with the `select_activity` tool, and its result shows the activity it entered. An activity's saved snapshot applies to the replies that follow.
+A quest conversation can have Plan or Brainstorm active, or neither. Cast one to save subsequent ordinary messages into Plan or Ideas, and stop it with the button beside the composer or the stop command. Reopening preserves the active spell. New conversations start with no active spell. See [Spells](spellbook.md).
 
-Activities are internal instructions, not a destination or a start choice. Each starting point begins in its own activity, which `startQuestAction` takes from `PREMADE_QUESTS` on the server; the form sends none, and an `activityId` from an older form is ignored. Chat begins in Chat. The user customizes activities in the Workshop's Activities tab, and `/activities` redirects there, making nothing ([#905](design/simplification-905.md)).
-
-A quest is created only through Start a quest or Turn Chat into a quest, which share one form. Constructs and activities have no start actions: the construct is picked inside the form, and its activity comes from the starting point. Closing the form creates nothing.
-
-Quest interview is retired from new choices. Existing snapshots stay unchanged, and older interview activity requests lead to Break Down a Project. See the [activities use cases](../apps/web/use-cases/activities.md).
+A quest is created through Start a quest or Turn Chat into a quest, which share one form. The user picks the construct there. Workshop edits constructs and opens read-only spell explanations; it has no Activities catalog.
 
 ## Behavioral evidence
 
@@ -69,15 +57,15 @@ The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_st
 - `apps/web/test/component-integration/app/(workspace)/chat/page.server.test.ts` opens Chat repeatedly as two users with the real stores: one conversation each, nothing spent on the way in, no other user sees it, and old addresses redirect or are not found as above.
 - `apps/web/test/component/start-work/chat-summary-draft.test.ts` checks the draft starting context.
 
-Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
+Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and file email outbox, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
 ## Removed check-ins
 
-Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Start the day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
+Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Reset Day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
 
 ## Conversation header
 
-A quest's pinned section row holds the construct's portrait immediately before Conversation, without its name. The portrait opens the construct's profile. Section links and Quest actions share that row, with no separate construct header. Chat keeps its own pinned header (`src/components/chat-screen.tsx`) with the construct and Turn Chat into a quest. Both sit under the site header's trail band, whose heading names the quest or Chat. The trail band and its rename pencil stay pinned too. On phones, the quest's section links scroll within their row; scroll clearance follows the pinned header's compact size.
+A quest’s conversation starts below the site header’s trail band, without a separate portrait bar. The trail band names the quest and keeps its rename pencil pinned. Quest status changes use `/complete`, `/abandon` and `/restore` in the composer. Chat keeps its own pinned header (`src/components/chat-screen.tsx`) with the construct and Turn Chat into a quest. Scroll clearance keeps quest messages below the trail band.
 
 ## Message authors
 
@@ -117,8 +105,7 @@ construct that only a turn's header says who wrote it, that a name and a colon
 inside a message are just what that person typed, and to address people by
 name. The rules stay out of the prompt's shared, cached part. An adventure with
 one author sends the model exactly what it sent before, and the saved
-messages never hold the headers. The mock model reads a command past the
-header, and `/mock-recall` also searches it.
+messages never hold the headers. The local engine reads commands after the author header.
 
 Only the quest's owner can write in its adventure. Messages other people wrote while quests could be shared keep their authors. Replies, generated images and automatic adventure names charge the acting user; and generated openings charge the starter.
 Server tests write other authors' messages through the `author` field of
@@ -232,7 +219,7 @@ When motivation is supplied, the construct writes an opening using the name and 
 
 ## Construct presence
 
-The adventure header's portrait opens the saved character's profile, with full
+Chat’s header portrait opens the saved character’s profile, with full
 artwork and public personality copy. Its name remains visible in the heading.
 The portrait keeps a full touch target without adding another header row.
 
@@ -275,6 +262,6 @@ Every signed-in page with a place in the site has a band: Quests, a quest and it
 
 When names are long, the parent links shorten first, each with an ellipsis. They keep full 44-pixel touch targets and their whole names as accessible names. The heading keeps its words and wraps to at most two lines. On a phone, a trail with more than one parent leaves out its Quests link, because the medallion leads there.
 
-Page actions that sat beside a page's heading stay in the page's content, in the first row under the band: a quest's Quest actions menu, and Chat's Turn Chat into a quest in the conversation's pinned header. The quest's rename pencil sits beside its name in the trail band. A page's loading state draws no heading, since the band already shows it, so moving between pages keeps the header's footprint and the content's starting point.
+Page actions that sat beside a page's heading stay in the page's content, in the first row under the band: Chat's Turn Chat into a quest in the conversation's pinned header. The quest's rename pencil sits beside its name in the trail band. A page's loading state draws no heading, since the band already shows it, so moving between pages keeps the header's footprint and the content's starting point.
 
-In a long conversation, the trail band and the conversation's pinned header together stay within 112 CSS pixels on phones and 140 on wide screens, even with a two-line heading. Message jumps land below both.
+In a long quest conversation, the trail band stays within 112 CSS pixels on phones and 140 on wide screens, even with a two-line heading. Message jumps land below it. Chat also keeps its construct header below the trail band.

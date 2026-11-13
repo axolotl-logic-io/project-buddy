@@ -3,8 +3,6 @@
 // and chats.
 
 import type { UIMessage } from "ai";
-import type { OwnActivity } from "@/activities/activity-store.ts";
-import { getActivity } from "@/activities/index.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
@@ -12,13 +10,12 @@ import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contrac
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { defaultMockScript } from "@/replies/mock-script.ts";
-import { getSpell } from "@/spells/index.ts";
-import type { OwnSpell } from "@/spells/spell-store.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import {
   userConstructIdFixture,
   userIdFixture,
 } from "../../support/id-fixtures.ts";
+import { markdownReplyText } from "../replies/rich-message-test-kit.ts";
 
 // Her clone of Vellum.
 const VELLUM_CLONE: OwnConstruct = {
@@ -64,20 +61,10 @@ function exchange(
 
 // The mock construct's reply to a message of hers: Markdown with a list and a
 // Python block, or for /mock-markdown every kind of Markdown replies use.
-function mockReplyText(text: string): string {
-  const [step] = defaultMockScript(text, {
-    systemTexts: [],
-    earlierTexts: [],
-    toolResults: [],
-    answerNow: false,
-  });
-  return step?.text ?? "";
-}
-
 // A chat in which she searched the manual for TOPIC, with the reply citing
 // the section found, then asked for the mock construct's Markdown reply.
 function searchAndMarkdownChat(): ChatMessage[] {
-  const query = `/mock-search ${TOPIC}`;
+  const query = `search ${TOPIC}`;
   return [
     ...exchange(0, query, [
       {
@@ -99,8 +86,8 @@ function searchAndMarkdownChat(): ChatMessage[] {
         text: `The manual covers "${TOPIC}":\n\n1. **${GLIMMERWHISK_SECTION.label}**: ${GLIMMERWHISK_SECTION.excerpt}`,
       },
     ]),
-    ...exchange(1, "/mock-markdown", [
-      { type: "text", text: mockReplyText("/mock-markdown") },
+    ...exchange(1, "Show the earlier Markdown", [
+      { type: "text", text: markdownReplyText() },
     ]),
   ];
 }
@@ -109,34 +96,11 @@ function searchAndMarkdownChat(): ChatMessage[] {
 function standaloneChatExchange(): ChatMessage[] {
   const question = "How do I bevel an edge?";
   return exchange(0, question, [
-    { type: "text", text: mockReplyText(question) },
+    { type: "text", text: LOCAL_CONSTRUCT_COPY.unknownCommand },
   ]);
 }
 
-// Her copy of the built-in brainstorming activity.
-const BRAINSTORMING_CLONE: OwnActivity = {
-  id: userConstructIdFixture("5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"),
-  name: `${getActivity("brainstorming").name} (clone)`,
-  definition: getActivity("brainstorming").definition,
-  clonedFrom: "brainstorming",
-  createdAt: new Date("2026-10-12T09:00:00Z"),
-  updatedAt: new Date("2026-10-12T09:00:00Z"),
-};
-
-// A spell of her own, customized from Ask one question at a time, with a
-// name at its longest, so the phone checks see one that long.
-const ASK_ONE_QUESTION_CLONE: OwnSpell = {
-  id: userConstructIdFixture("6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c"),
-  name: "Unbroken".repeat(10),
-  definition: getSpell("ask-one-question").definition,
-  clonedFrom: "ask-one-question",
-  createdAt: new Date("2026-10-13T09:00:00Z"),
-  updatedAt: new Date("2026-10-13T09:00:00Z"),
-};
-
 export {
-  ASK_ONE_QUESTION_CLONE,
-  BRAINSTORMING_CLONE,
   GOLD_BALANCE,
   LINK_USER,
   searchAndMarkdownChat,

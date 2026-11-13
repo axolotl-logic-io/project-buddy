@@ -14,6 +14,12 @@ const IDEA_REQUEST = z.discriminatedUnion("op", [
     id: IDEA_ID,
     text: IDEA_TEXT,
   }),
+  z.object({
+    op: z.literal("reorder"),
+    questId: QUEST_ID,
+    id: IDEA_ID,
+    before: IDEA_ID.optional(),
+  }),
   z.object({ op: z.literal("remove"), questId: QUEST_ID, id: IDEA_ID }),
   z.object({ op: z.literal("move"), questId: QUEST_ID, id: IDEA_ID }),
 ]);

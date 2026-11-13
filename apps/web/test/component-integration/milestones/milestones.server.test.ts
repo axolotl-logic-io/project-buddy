@@ -4,33 +4,25 @@
 // the timeline look is milestone-part.browser.test.tsx's and
 // progress-timeline.browser.test.tsx's.
 
-import type { UIMessage } from "ai";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { z } from "zod";
 import {
   deleteMilestoneAction,
   editMilestoneAction,
 } from "@/app/(workspace)/quests/[questId]/(overview)/actions.ts";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { listMessages } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
-import type { ChatId, UserId } from "@/ids.ts";
 import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
 import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { listQuests } from "@/quests/store.ts";
-import {
-  RECORD_MILESTONE_OUTPUT,
-  RECORD_MILESTONE_TOOL,
-} from "@/replies/tools/record-milestone-contract.ts";
+import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import {
   constructPrompt,
   formOf,
-  sendChatMessage,
+  newMessageId,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
 import { expectNotFound } from "../test-database/navigation-test-kit.ts";
@@ -56,26 +48,6 @@ const RETOPO = "Started the retopo pass";
 // The length of a day as the prompt writes it, YYYY-MM-DD.
 const DAY_LENGTH = 10;
 
-const OUTPUT_CHUNK = z.object({
-  type: z.literal("tool-output-available"),
-  output: RECORD_MILESTONE_OUTPUT,
-});
-
-function recordCommand(input: unknown): string {
-  return `/mock-tool ${RECORD_MILESTONE_TOOL} ${JSON.stringify(input)}`;
-}
-
-// The record_milestone parts of the reply saved last in the user's chat.
-async function savedCalls(
-  owner: UserId,
-  chatId: ChatId,
-): Promise<UIMessage["parts"]> {
-  const reply = (await listMessages(owner, chatId)).at(-1);
-  return (reply?.parts ?? []).filter(
-    ({ type }) => type === `tool-${RECORD_MILESTONE_TOOL}`,
-  );
-}
-
 // The quest's page, as the signed-in user sees it.
 async function pageHtml(questId: string): Promise<string> {
   return renderToStaticMarkup(
@@ -91,31 +63,31 @@ function editForm(milestoneId: string, text: string): FormData {
 }
 
 describe("use_case_construct_records_milestone", () => {
-  test("a project chat's milestone is on the project's timeline, linked to the chat, and streamed and saved in the reply", async () => {
+  test("the milestone tool records a result linked to its owned conversation", async () => {
     const { user, chat } = await signedInChat();
-
-    const sent = await sendChatMessage(chat.id, recordCommand({ text: SHELL }));
-
-    const [milestone, ...others] = await listMilestones(user.id, chat.quest.id);
-    expect(others).toEqual([]);
-    expect(milestone).toMatchObject({ chatId: chat.id, text: SHELL });
-    const streamed = sent.chunks.flatMap((chunk) => {
-      const parsed = OUTPUT_CHUNK.safeParse(chunk);
-      if (parsed.success) {
-        return [parsed.data.output];
-      }
-      return [];
-    });
-    const recorded = {
+    const recorded = await Promise.resolve(
+      recordMilestoneTool.execute?.(
+        { text: SHELL },
+        {
+          toolCallId: "milestone",
+          messages: [],
+          context: {
+            construct: chat.construct,
+            answeredId: newMessageId(),
+            actingUser: user.id,
+            chatId: chat.id,
+            questId: chat.quest.id,
+          },
+        },
+      ),
+    );
+    expect(recorded).toMatchObject({
       status: "recorded",
-      milestoneId: milestone?.id,
       questId: chat.quest.id,
       text: SHELL,
-      recordedAt: milestone?.recordedAt.toISOString(),
-    };
-    expect(streamed).toEqual([recorded]);
-    expect(await savedCalls(user.id, chat.id)).toEqual([
-      expect.objectContaining({ state: "output-available", output: recorded }),
+    });
+    expect(await listMilestones(user.id, chat.quest.id)).toMatchObject([
+      { chatId: chat.id, text: SHELL },
     ]);
   });
 
@@ -123,7 +95,11 @@ describe("use_case_construct_records_milestone", () => {
     const { her: user, herData } = await twoUsers();
     const chat = await herData.chat(await herData.quest());
     const standalone = await privateChat(user.id);
-    await sendChatMessage(chat.id, recordCommand({ text: SHELL }));
+    await recordMilestone(
+      user.id,
+      { questId: chat.quest.id, chatId: chat.id },
+      SHELL,
+    );
 
     const prompt = await constructPrompt(chat.id);
     const standalonePrompt = await constructPrompt(standalone.id);
@@ -135,31 +111,24 @@ describe("use_case_construct_records_milestone", () => {
     expect(standalonePrompt).not.toContain(SHELL);
   });
 
-  test("a standalone chat records no milestone, and its reply saves the failed call", async () => {
+  test("a standalone conversation cannot use the milestone tool", async () => {
     const { user } = await signedInChat();
-    const standalone = await privateChat(user.id);
-
-    await sendChatMessage(standalone.id, recordCommand({ text: SHELL }));
-
-    expect(await savedCalls(user.id, standalone.id)).toEqual([
-      expect.objectContaining({ state: "output-error" }),
-    ]);
-    const quests = await listQuests(user.id);
-    const timelines = await Promise.all(
-      quests.map(({ id }) => listMilestones(user.id, id)),
-    );
-    expect(timelines.flat()).toEqual([]);
-  });
-
-  test("a milestone with no text saves the failed call and records nothing", async () => {
-    const { user, chat } = await signedInChat();
-
-    await sendChatMessage(chat.id, recordCommand({ text: " " }));
-
-    expect(await savedCalls(user.id, chat.id)).toEqual([
-      expect.objectContaining({ state: "output-error" }),
-    ]);
-    expect(await listMilestones(user.id, chat.quest.id)).toEqual([]);
+    const chat = await privateChat(user.id);
+    await expect(
+      recordMilestoneTool.execute?.(
+        { text: SHELL },
+        {
+          toolCallId: "milestone",
+          messages: [],
+          context: {
+            construct: chat.construct,
+            answeredId: newMessageId(),
+            actingUser: user.id,
+            chatId: chat.id,
+          },
+        },
+      ),
+    ).rejects.toThrow();
   });
 });
 

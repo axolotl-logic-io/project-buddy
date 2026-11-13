@@ -1,6 +1,4 @@
 import { describe, expect, test, vi } from "vitest";
-import { cloneActivity, getOwnActivity } from "@/activities/activity-store.ts";
-import { retireActivityAction } from "@/app/(workspace)/activities/actions.ts";
 import { retireConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import {
   cloneConstruct,
@@ -16,8 +14,8 @@ interface RetirementKind {
   readonly field: string;
   readonly path: string;
   readonly query: Record<string, string>;
-  readonly clone: typeof cloneConstruct | typeof cloneActivity;
-  readonly read: typeof getOwnConstruct | typeof getOwnActivity;
+  readonly clone: typeof cloneConstruct;
+  readonly read: typeof getOwnConstruct;
   readonly remove: typeof retireConstructAction;
 }
 const KINDS: readonly RetirementKind[] = [
@@ -31,18 +29,8 @@ const KINDS: readonly RetirementKind[] = [
     read: getOwnConstruct,
     remove: retireConstructAction,
   },
-  {
-    name: "activity",
-    source: "brainstorming",
-    field: "activityId",
-    path: "/workshop",
-    query: { kind: "activity", retired: "1" },
-    clone: cloneActivity,
-    read: getOwnActivity,
-    remove: retireActivityAction,
-  },
 ];
-describe("retiring own constructs and activities", () => {
+describe("retiring own constructs", () => {
   test.each(KINDS)("retires a $name only for its owner", async (kind) => {
     const [owner, other] = await Promise.all([testUser(), testUser()]);
     const copy = await kind.clone(owner.id, kind.source);

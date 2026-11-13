@@ -1,25 +1,5 @@
-// The only access predicates: every query on user data builds its where
-// from these, so a row that the acting user may not reach is never read or
-// written, and a foreign id reads as not found, exactly as an unknown id
-// does.
-//
-// A quest belongs to its owner, the user who made it, and to no one else.
-// Everything reached through a quest is open to its owner alone: its
-// chats, their messages, images and activity sessions, its plan and its milestones. A standalone chat, which is in no
-// quest, and what is reached through it are open to the user the chat
-// names alone. A historical project_members or project_invitations row
-// grants nothing: no predicate reads either table. An own prompt, a
-// construct or an activity, a gold balance and its ledger, an image
-// generation's claim belong to their user alone. A
-// transfer of gold changes the payee's balance too, only by adding to it
-// (goldBalancesOfTransfer).
-//
-// Each predicate is SQL for a where clause or a join, on the table it names.
-
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { activityMessageResults } from "@/db/tables/activity-message-results.ts";
-import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import {
   constructAssetGrants,
@@ -35,6 +15,7 @@ import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
+import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
 import { users } from "@/db/tables/users.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
@@ -71,18 +52,13 @@ function messageOpenTo(user: UserId): SQL {
   return inArray(messages.chatId, openChatIds(user));
 }
 
-function activityResultOpenTo(user: UserId): SQL {
-  return inArray(activityMessageResults.chatId, openChatIds(user));
+function spellResultOpenTo(user: UserId): SQL {
+  return inArray(spellMessageResults.chatId, openChatIds(user));
 }
 
 // An `images` row of a chat open to user.
 function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
-}
-
-// An `activity_sessions` row of a chat open to user.
-function activitySessionOpenTo(user: UserId): SQL {
-  return inArray(activitySessions.chatId, openChatIds(user));
 }
 
 // A `milestones` row of a quest of user's.
@@ -110,8 +86,6 @@ function ownsQuest(owner: UserId, questId: QuestId): SQL {
   );
 }
 
-// A `own_prompts` row of owner's: an own prompt of owner's, a construct or an
-// activity.
 function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
 }
@@ -190,8 +164,6 @@ function batteryPurchasesOwnedBy(owner: UserId): SQL {
 
 export {
   accountOwnedBy,
-  activityResultOpenTo,
-  activitySessionOpenTo,
   batteryPurchasesOwnedBy,
   chatOpenTo,
   constructGenerationOwnedBy,
@@ -211,4 +183,5 @@ export {
   replyRunOpenTo,
   replyRunOwnedBy,
   replyUsageOwnedBy,
+  spellResultOpenTo,
 };

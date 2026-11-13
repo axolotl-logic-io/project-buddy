@@ -4,7 +4,6 @@
 // forms, migrates it to the latest, and reads the rows back.
 
 import { expect, test } from "vitest";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { openPool } from "@/db/client.ts";
 import {
   copyMigrationsUpTo,
@@ -204,7 +203,7 @@ test("the release after #549 rewrites the values saved before it", async () => {
         sessions: [
           {
             chatId: INTERVIEW_CHAT_ID,
-            activityId: INTERVIEW_ACTIVITY_ID,
+            activityId: "interview",
             ...INTERVIEW_AT_549,
             startMessageId: null,
           },

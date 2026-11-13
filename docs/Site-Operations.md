@@ -5,8 +5,8 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude against it. Automated tests use mocks; paid manual checking requires explicit authorization and an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock model.
-- When `VERCEL_ENV=production`, the app refuses `CONSTRUCT_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `CONSTRUCT_MODEL` unset or set it to `local` in production. Remote model settings, including `claude`, fail closed. Use `CONSTRUCT_MODEL` in every environment; the earlier setting is no longer read. Preview, development and test environments can still select the mock.
+- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude against it. Automated tests use mocks; paid manual checking requires explicit authorization and an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate local database and file email outbox.
+- Every environment uses the local construct engine. There is no `CONSTRUCT_MODEL` setting. Production refuses `EMAIL_TRANSPORT=outbox`.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - The [schema cutover notes](quest-nomenclature.md#release-cutover) describe the nomenclature and Plan-only migrations and their rollback limits.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
@@ -36,7 +36,7 @@ npm run ops:query -- production "select count(*) from quests"
 
 ## Token spend boundaries
 
-The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, the Full suite workflow (`full-suite.yml`) runs the tests with the mock model, and no script calls a model. The web app's tests refuse to run unless `CONSTRUCT_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
+The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, the Full suite workflow (`full-suite.yml`) runs the tests with the local engine, and no script calls a model. The web app’s tests require an isolated local database and file email outbox.
 
 At runtime, constructs use local commands and make no requests to AI model companies. Local replies have no token spend. The existing battery balance gate remains in place. See [local construct behavior and limits](local-constructs.md).
 
@@ -54,8 +54,7 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 | --- | --- |
 | `GET /login` | HTTP 200 |
 | `GET /textures/parchment.svg` | HTTP 200 with an SVG image content type, without a session |
-| `GET /signup` | HTTP 200, the admin-invitation explanation (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
-| `GET /setup` (no token) | HTTP 200, the unusable-invitation explanation (`SETUP_COPY.unusable`), and the `SETUP_COPY.signIn` link to `/login` |
+| `GET /signup` | HTTP 200, the public sign-up form and introduction (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
 | `GET /` | HTTP 307 with a Location pointing to `/login` |
 | Signed-out `POST /api/chat` with `{}` | HTTP 401 |
 
@@ -63,7 +62,7 @@ Invitation expectations import shared UI copy; they do not maintain separate pro
 
 A wrong status, missing explanation, or missing/misdirected sign-in link reports the request and unmet expectation; any failure makes the command exit unsuccessfully. Copy or anchor markup appearing only in scripts, styles or HTML comments does not satisfy the page checks.
 
-The setup check deliberately supplies **no invitation token**. This state rejects the empty token before an invitation database query. It needs no invitation fixture or email, never confirms an invitation, and creates no account or session. All smoke requests remain signed out: no database writes, email sends or model calls.
+All smoke requests remain signed out: no database writes, email sends or model calls. The sign-up check reads the public form without submitting it.
 
 ## Vercel observations
 
@@ -105,7 +104,7 @@ Image bytes are stored privately in Postgres, behind `src/images/store.ts` in th
 
 Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
 
-Use the worktree-local `.env.test` and mock model for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
+Use the worktree-local `.env.test` for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
 
 ## Removed check-ins and unread marks
 

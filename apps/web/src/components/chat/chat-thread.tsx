@@ -23,8 +23,7 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // message box, since the button goes once the reply starts. It scrolls to follow a
 // streaming reply unless the user has scrolled up. A user message that
 // authorNames holds shows its author's name; every other one is the
-// viewer's own. starter is a prepared message to offer above the composer,
-// such as Start the day.
+// viewer's own.
 export function ChatThread({
   construct,
   goldBalance,
@@ -37,8 +36,7 @@ export function ChatThread({
   onRetry,
   stop,
   stopStatus = "",
-  starter,
-  activityStop,
+  spellStop,
 }: {
   goldBalance?: number | undefined;
   replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
@@ -51,11 +49,8 @@ export function ChatThread({
   onRetry?: (() => void) | undefined;
   stop?: ReplyStop | undefined;
   stopStatus?: string;
-  activityStop?:
+  spellStop?:
     | { readonly label: string; readonly onStop: () => void }
-    | undefined;
-  starter?:
-    | { readonly label: string; readonly onStart: () => void }
     | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
@@ -72,7 +67,7 @@ export function ChatThread({
         scrollToBottomOnInitialize={false}
         scrollToBottomOnRunStart={false}
         scrollToBottomOnThreadSwitch={false}
-        className="flex flex-col gap-6"
+        className="chat-viewport flex flex-col gap-6"
       >
         <ol
           aria-label={CHAT_COPY.conversationLabel}
@@ -84,7 +79,7 @@ export function ChatThread({
             openingMessageId={openingMessageId}
             authorNames={authorNames}
             replyCosts={replyCosts}
-            activityAllowed={error === undefined && replyStopped !== true}
+            progressAllowed={error === undefined && replyStopped !== true}
           />
         </ol>
         {error !== undefined && (
@@ -103,18 +98,9 @@ export function ChatThread({
           </p>
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
           <div className="flex flex-wrap gap-2">
-            {activityStop !== undefined && (
-              <Button variant="secondary" onClick={activityStop.onStop}>
-                {activityStop.label}
-              </Button>
-            )}
-            {starter !== undefined && (
-              <Button
-                className="self-start"
-                onClick={starter.onStart}
-                variant="secondary"
-              >
-                {starter.label}
+            {spellStop !== undefined && (
+              <Button variant="secondary" onClick={spellStop.onStop}>
+                {spellStop.label}
               </Button>
             )}
           </div>

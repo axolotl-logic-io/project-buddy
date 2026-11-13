@@ -37,17 +37,13 @@ The site cannot load or save the user's quests and adventures.
 - **Next:**
   - [`use_case_view_quests`](quests.md#use_case_view_quests): try again later.
 
-## use_case_start_without_claude
+## use_case_start_without_remote_models
 
-The user starts a quest or an adventure, with a construct or an activity of her own that she has edited, while Claude is unavailable, so the construct can't write the adventure's opening. An adventure with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
+The user starts a quest without a model provider or API key.
 
-- **Prerequisites:** [`use_case_new_quest`](quests.md#use_case_new_quest) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat).
-- **Steps:**
-  - She names a new quest with motivation or an edited New quest construct saved in Settings; or she picks a quest and an edited construct for a new adventure. She starts it.
-  - The site shows that it is working while it asks the construct for the adventure's opening, which fails or takes longer than 30 seconds.
-- **Outcome:** the form stays on screen with what she entered: the quest's name and motivation, or the chosen quest and construct. It shows one fixed message: Claude is unavailable right now, so adventures are turned off, and to try again later. Nothing is saved: no new quest and no new adventure appear in her lists. The site's log records the problem once. Replies inside an adventure that already exists fail as `use_case_reply_fails` says.
-- **Next:**
-  - [`use_case_new_quest`](quests.md#use_case_new_quest) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat): try again later.
+- **Prerequisites:** [`use_case_new_quest`](quests.md#use_case_new_quest).
+- **Steps:** the user names the quest, chooses a construct and starts it.
+- **Outcome:** the quest opens with its locally produced greeting and available commands. Starting it makes no remote model request and spends no batteries. Storage errors still follow `use_case_storage_unavailable`.
 
 ## use_case_send_while_construct_replies
 

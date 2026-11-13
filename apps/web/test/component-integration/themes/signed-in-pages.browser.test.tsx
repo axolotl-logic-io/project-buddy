@@ -30,7 +30,7 @@ import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
-import { markdownReplyText } from "../replies/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../replies/rich-message-test-kit.ts";
 import { LAPTOP_VIEWPORT } from "../viewports-test-kit.ts";
 import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
@@ -52,11 +52,9 @@ vi.mock(
 vi.mock("@/gold/gold-store.ts", () => ({
   readGoldBalance: vi.fn().mockResolvedValue(0),
 }));
-vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
-vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
 }));
@@ -97,10 +95,6 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock("@/constructs/own-construct-choices.ts", () => ({
   ownConstructChoices: () => Promise.resolve([]),
 }));
-vi.mock(
-  "@/activities/activity-choices.ts",
-  () => import("../activities/activity-choices-test-kit.ts"),
-);
 
 // A long quest name, which the trail band's heading wraps.
 const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";
@@ -112,7 +106,7 @@ function markdownExchange(): ChatMessage[] {
     {
       id: "m0",
       role: "user",
-      parts: [{ type: "text", text: "/mock-markdown" }],
+      parts: [{ type: "text", text: "Show the saved example" }],
     },
     {
       id: "r0",
@@ -164,7 +158,7 @@ async function journalBelowLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("button", { name: "Plan", exact: true });
+  const link = page.getByRole("tab", { name: "Plan", exact: true });
   return (
     link.element().getBoundingClientRect().top >=
     heading.element().getBoundingClientRect().bottom

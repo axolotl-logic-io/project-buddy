@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { availableBatteryCatalog } from "@/batteries/catalog.ts";
 import { readBatteryPurchases } from "@/batteries/purchases.ts";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
-import { Button } from "@/components/ui/button.tsx";
 import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { BatteryPurchases } from "./battery-purchases.tsx";
@@ -48,11 +45,6 @@ export default async function SettingsPage({
     <div className="workspace-content flex flex-col gap-4">
       <div id={PROFILE_ID} className="flex flex-col gap-3">
         <NameForm name={user.name} />
-        {user.role === "admin" && (
-          <Button asChild={true} className="self-start" variant="secondary">
-            <Link href="/invitations">{INVITATIONS_COPY.heading}</Link>
-          </Button>
-        )}
       </div>
       <section
         id={APPEARANCE_ID}
