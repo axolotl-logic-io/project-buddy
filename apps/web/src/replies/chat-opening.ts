@@ -1,22 +1,10 @@
-// A new chat's opening: the construct's first message, there before the user
-// writes anything. A chat in a built-in construct and a built-in activity, or
-// own copies of them with the same parts, opens with its prepared opening
-// (src/activities/prepared-openings.ts), which takes no model call. In any
-// other chat the construct writes its opening, as the opening kickoff of the
-// chat's first activity asks, such as a synopsis of what the quest's
-// memory holds and one question. That is a model call of its own, made
-// outside a reply, and before the chat is saved, so such a chat exists only
-// once Claude has opened it.
-
 import { generateId, streamText } from "ai";
-import { withUserName } from "@/accounts/user-name.ts";
-import type { ActivitySnapshot } from "@/activities/activity.ts";
-import { preparedOpening } from "@/activities/prepared-openings.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
+import { OPENING_REQUEST } from "@/replies/chat-kickoff.ts";
 import { replyModel } from "@/replies/model.ts";
 import {
   type ReplyPromptContext,
@@ -27,21 +15,10 @@ import {
 // unavailable.
 const OPENING_TIMEOUT_MS = 30_000;
 
-// The chat to open, before it is saved: its construct and first activity, the
-// grant of its acting user, who a written opening is charged to, and the rest of
-// its prompt's context (system-prompt.ts): the account's activities and
-// spells, the chat's quest and the acting user's name, read only when the construct
-// writes the opening. A kickoff, such as a motivated quest start's, asks for
-// the opening instead of the activity's opening kickoff, so the construct
-// always writes it.
 interface ChatOpeningRequest {
   readonly construct: ConstructSnapshot;
-  readonly activity: ActivitySnapshot;
-  readonly kickoff?: string | undefined;
   readonly grant: QuotaGrant;
-  readonly context: () => Promise<
-    Omit<ReplyPromptContext, "construct" | "activity">
-  >;
+  readonly context: () => Promise<Omit<ReplyPromptContext, "construct">>;
 }
 
 // The construct's message with this text.
@@ -58,7 +35,6 @@ function openingMessage(text: string): NewMessage {
 // once the chat exists.
 async function openingText(
   grant: QuotaGrant,
-  kickoff: string,
   context: ReplyPromptContext,
 ): Promise<{ text: string } | { failure: unknown }> {
   try {
@@ -71,7 +47,7 @@ async function openingText(
       messages: [
         {
           role: "user",
-          content: withUserName(kickoff, context.userName),
+          content: OPENING_REQUEST,
         },
       ],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
@@ -97,33 +73,15 @@ async function openingText(
   }
 }
 
-// The construct's first message in a new chat: its prepared opening, unless a
-// kickoff asks for another, or else the one the construct writes, or undefined when
-// Claude can't write it: any model error, an empty answer or the timeout. That
-// failure is logged once here, and the caller saves no chat, since without
-// Claude there is no chat to have.
 async function chatOpening({
   construct,
-  activity,
-  kickoff,
   grant,
   context,
 }: ChatOpeningRequest): Promise<NewMessage | undefined> {
-  if (kickoff === undefined) {
-    const prepared = preparedOpening(construct.definition, activity.definition);
-    if (prepared !== undefined) {
-      return openingMessage(prepared);
-    }
-  }
-  const opening = await openingText(
-    grant,
-    kickoff ?? activity.definition.openingRequest,
-    {
-      ...(await context()),
-      construct,
-      activity,
-    },
-  );
+  const opening = await openingText(grant, {
+    ...(await context()),
+    construct,
+  });
   if ("failure" in opening) {
     toAppError(opening.failure, "chat opening");
     return undefined;

@@ -15,14 +15,14 @@ function ChatHistoryContent({
   openingMessageId,
   authorNames,
   replyCosts,
-  activityAllowed,
+  progressAllowed,
 }: {
   readonly construct: ConstructSnapshot;
   readonly chatId: ChatId;
   readonly openingMessageId?: string | undefined;
   readonly authorNames: ReadonlyMap<string, string>;
   readonly replyCosts?: ReadonlyMap<string, ReplyCost | undefined> | undefined;
-  readonly activityAllowed: boolean;
+  readonly progressAllowed: boolean;
 }): JSX.Element {
   const renderMessage = useCallback(
     ({ message }: { message: MessageRuntimeState }): ReactNode => (
@@ -30,7 +30,7 @@ function ChatHistoryContent({
         construct={construct}
         destination={{ kind: "adventure", id: chatId }}
         opening={message.id === openingMessageId}
-        activityAllowed={activityAllowed}
+        progressAllowed={progressAllowed}
         authorName={authorNames.get(message.id)}
         role={message.role}
         cost={replyCosts?.get(message.id)}
@@ -40,7 +40,7 @@ function ChatHistoryContent({
       construct,
       chatId,
       openingMessageId,
-      activityAllowed,
+      progressAllowed,
       authorNames,
       replyCosts,
     ],

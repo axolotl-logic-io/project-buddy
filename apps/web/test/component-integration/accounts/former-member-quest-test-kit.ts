@@ -4,12 +4,6 @@
 // no membership rows, as after cleanup, and every store must still deny them.
 
 import type { User } from "@/accounts/users-store.ts";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
-import {
-  currentActivity,
-  enterActivity,
-} from "@/activities/activity-sessions.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
 import type { QuestChat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import {
@@ -32,6 +26,7 @@ import {
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
+import { currentSpell, setSpell } from "@/spells/spell-store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -89,14 +84,14 @@ async function generatedImage(
 }
 
 // A new quest of a new owner's, with a chat holding a message and an image,
-// an interview activity session, a memory of two versions, a milestone and a
+// an active spell, a memory of two versions, a milestone and a
 // generated image; and a second user with no access to it.
 async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const data = testData(owner);
   const quest = await data.quest();
   const chat = await data.chat(quest);
-  await data.interviewChat(chat);
+  await setSpell(owner.id, { chatId: chat.id, spell: "plan" });
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
   ]);
@@ -138,7 +133,7 @@ async function seenBy(
     messages,
     image,
     generation,
-    activity,
+    spell,
 
     milestones,
   ] = await Promise.all([
@@ -149,7 +144,7 @@ async function seenBy(
     listMessages(user.id, chat.id),
     getImage(user.id, fixture.imageId),
     getGeneratedImage(user.id, fixture.generationId),
-    currentActivity(user.id, chat),
+    currentSpell(user.id, chat),
 
     listMilestones(user.id, quest.id),
   ]);
@@ -161,7 +156,7 @@ async function seenBy(
     messages: messages.length,
     image: image?.mediaType,
     generation: generation?.id,
-    activity: activity.id,
+    spell,
 
     milestones: milestones.map(({ text }) => text),
   };
@@ -177,7 +172,7 @@ const NOTHING: Record<string, unknown> = {
   messages: 0,
   image: undefined,
   generation: undefined,
-  activity: DEFAULT_ACTIVITY_ID,
+  spell: undefined,
 
   milestones: [],
 };
@@ -194,12 +189,10 @@ async function writesBy(
     id: newMessageId(),
   });
   const image = await saveImage(user.id, chat.id, PNG, "image/png");
-  const activity = await enterActivity(
-    user.id,
-    chat.id,
-    builtInActivity(DEFAULT_ACTIVITY_ID),
-    undefined,
-  );
+  const spell = await setSpell(user.id, {
+    chatId: chat.id,
+    spell: "brainstorm",
+  });
   const milestone = await recordMilestone(
     user.id,
     { questId: quest.id, chatId: chat.id },
@@ -218,7 +211,7 @@ async function writesBy(
   return {
     message,
     image: image !== undefined,
-    activity,
+    spell,
 
     milestone: milestone !== undefined,
     edited,
@@ -232,7 +225,7 @@ async function writesBy(
 const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
   image: false,
-  activity: false,
+  spell: false,
 
   milestone: false,
   edited: false,
@@ -244,7 +237,7 @@ const NONE_TAKEN: Record<string, unknown> = {
 const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
   image: true,
-  activity: true,
+  spell: true,
 
   milestone: true,
   edited: true,

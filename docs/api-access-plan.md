@@ -56,8 +56,8 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 | Read image gallery, view/download/delete an adventure image; request image generation | Deferred | Undecided | Read/delete are D, generation is M. Existing messages can retain safe image references; no grant to private generation inputs, payer costs or separate generation operations. |
 | Read own model-use availability and operation usage result | Exposed | `usage:read` | D. Clients need actionable insufficient-availability results. Final names and fields follow Batteries, with no Marketplace orbs authority implied. |
 | Transfer, grant or buy balances; read transaction history | Deferred | Undecided | No model call implied. Expose no new commercial policy or administrative balance capability; reconcile supported operations with #779/#782. |
-| Site sign-up/invitations, sign-in links, sign-out, Sign out everywhere; API authorization consent and connection revocation | Site-only browser workflows; connection lifecycle required for API launch | No domain operation permission | D. Reuse current sign-in limits; connections remain distinct from site sessions. Lifecycle semantics below require decisions. |
-| Account name, New quest construct, other account/settings changes | Deferred | Undecided | D. Keep initial domain access small; own-account access never grants admin invitation authority. |
+| Site sign-up, sign-in links, sign-out, Sign out everywhere; API authorization consent and connection revocation | Site-only browser workflows; connection lifecycle required for API launch | No domain operation permission | D. Reuse current sign-in limits; connections remain distinct from site sessions. Lifecycle semantics below require decisions. |
+| Account name, New quest construct, other account/settings changes | Deferred | Undecided | D. Keep initial domain access small; own-account access never grants access to another account. |
 | Appearance, installed app, navigation | Site-only | None | D. Device and presentation behavior, with no proposed command equivalent. Underlying quest/adventure data comes from exposed reads. |
 | Site setup, manual reindex and operational maintenance | Site-only | None | Administrative operations are outside a user's API connection. |
 
@@ -71,7 +71,6 @@ API support needs a shared authorization boundary that supplies the intersection
 | --- | --- |
 | `search_blender_manual`, `cite_blender_manual` | Allow with reply permission; expose only existing safe results/citations. |
 | `cast_spell` | Allow with reply permission for acting user's available spells; keep cast instructions private and restrict any resulting effects independently. |
-| `select_activity` | Require `adventures:write` in addition to reply permission; use available activities and preserve activity snapshots. |
 | `update_memory` | Require `journal:write` and quest access; absent for standalone adventures. |
 | `record_milestone` | Require `milestones:write` and quest access; absent for standalone adventures. |
 | `request_quest_status` | Require `quests:write` and quest access; preserve user approval and revision rules. |
@@ -91,7 +90,7 @@ Paths below are relative to `apps/web/`. They identify reuse/extraction candidat
 | Messages, replies and stop | `src/chats/store.ts`, `src/replies/reply.ts`, `src/replies/stop-reply-action.ts`, `src/replies/tools/index.ts`; extract session/transport orchestration where necessary. Reuse run persistence and authorization rather than starting an independent harness. |
 | Openings | `src/replies/chat-opening.ts`; prepared openings avoid calls, generated openings do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
 | Status and milestones | `src/quests/quest-status-store.ts`, `src/milestones/milestone-store.ts`; preserve revision, confirmation, scope and validation rules. |
-| Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/activities/`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
+| Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
 
 Every submitted API user message retains the connection user's authorship. Derive the connection from authenticated credentials, never a caller-supplied connection id. Site/historical messages need no fabricated connection. Preserve provenance after revocation without retaining usable credentials.
 

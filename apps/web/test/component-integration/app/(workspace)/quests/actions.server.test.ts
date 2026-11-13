@@ -1,3 +1,4 @@
+import { currentSpell } from "@/spells/spell-store.ts";
 // Starting quests, in the test database with the mock construct: what the
 // one start action makes from each of the four starting points, as the
 // stores give it to the pages. Concurrent Dailies starts and their
@@ -5,7 +6,6 @@
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { currentActivity } from "@/activities/activity-sessions.ts";
 import {
   type StartQuestState,
   startQuestAction,
@@ -102,22 +102,16 @@ describe("use_case_new_quest", () => {
     }
   });
 
-  test.each([
-    ["learn", "learn-a-thing"],
-    ["make", "find-something-to-make"],
-    ["do", "project-breakdown"],
-  ] as const)(
-    "%s opens its quest's one conversation in %s, with its opening and Journal",
-    async (id, activityId) => {
+  test.each(["learn", "make", "do"] as const)(
+    "%s opens its quest with its opening and starting context",
+    async (id) => {
       const user = await testUser();
       await signIn(user);
 
       const conversation = await startQuest(user, startForm(id));
 
       expect(conversation.construct.name).toBe(getConstruct("vellum").name);
-      expect((await currentActivity(user.id, conversation)).id).toBe(
-        activityId,
-      );
+      expect(await currentSpell(user.id, conversation)).toBeUndefined();
       const messages = await listMessages(user.id, conversation.id);
       expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
       expect(messages.map(messageText).join("")).not.toBe("");
@@ -159,19 +153,6 @@ describe("use_case_new_quest", () => {
       "Learn to knit",
       "Learn Spanish",
     ]);
-  });
-
-  test("the starting point chooses the activity, whatever an older form sends", async () => {
-    const user = await testUser();
-    await signIn(user);
-    const form = startForm("make");
-    form.set("activityId", "brainstorming");
-
-    const conversation = await startQuest(user, form);
-
-    expect((await currentActivity(user.id, conversation)).id).toBe(
-      "find-something-to-make",
-    );
   });
 });
 

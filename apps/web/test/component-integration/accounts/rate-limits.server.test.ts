@@ -17,9 +17,6 @@ import { getDb } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { sendEmail } from "@/email/send-email.ts";
 import { readSessionSecret } from "@/env.ts";
-import { cleanInvitations } from "../../support/accounts/invitations-test-kit.ts";
-import "./invitation-send-limits-races-test-kit.ts";
-import "./invitation-send-limits-test-kit.ts";
 
 vi.mock("@/email/send-email.ts", () => ({ sendEmail: vi.fn() }));
 vi.mock("next/headers", async () => {
@@ -90,8 +87,7 @@ function minutesLater(start: Date, minutes: number): Date {
 beforeEach(() => {
   vi.mocked(sendEmail).mockReset().mockResolvedValue();
 });
-afterEach(async () => {
-  await cleanInvitations();
+afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });

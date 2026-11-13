@@ -99,11 +99,9 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
-vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
 vi.mock("@/quests/store.ts", () => ({ getQuest: store.getQuest }));
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
@@ -428,7 +426,7 @@ async function chatPage(): Promise<JSX.Element> {
 }
 
 describe("use_case_send_message", () => {
-  test("streams and reopens in the quest's conversation without activity controls", async () => {
+  test("streams and reopens in the quest's conversation with spell casts", async () => {
     await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
     store.listMessages.mockResolvedValue([]);
     const chunks: UIMessageChunk[] = [
@@ -436,18 +434,17 @@ describe("use_case_send_message", () => {
       { type: "start-step" },
       {
         type: "tool-input-available",
-        toolCallId: "activity",
-        toolName: "select_activity",
-        input: { activityId: "brainstorming" },
+        toolCallId: "spell",
+        toolName: "cast_spell",
+        input: { spellId: "brainstorm" },
       },
       {
         type: "tool-output-available",
-        toolCallId: "activity",
+        toolCallId: "spell",
         output: {
-          status: "entered",
-          activityId: "brainstorming",
-          name: "Brainstorming",
-          instructions: "Explore ideas",
+          status: "cast",
+          spellId: "brainstorm",
+          name: "Brainstorm",
         },
       },
       { type: "text-start", id: "text" },
@@ -467,7 +464,7 @@ describe("use_case_send_message", () => {
     await box.fill("Help me brainstorm");
     await send.click();
     await expect
-      .element(page.getByText("Activity: Brainstorming", { exact: true }))
+      .element(page.getByText("Cast Brainstorm", { exact: true }))
       .toBeVisible();
     await expect
       .element(page.getByText("Let's explore your ideas.", { exact: true }))
@@ -495,15 +492,14 @@ describe("use_case_send_message", () => {
         role: "assistant",
         parts: [
           {
-            type: "tool-select_activity",
-            toolCallId: "activity",
+            type: "tool-cast_spell",
+            toolCallId: "spell",
             state: "output-available",
-            input: { activityId: "brainstorming" },
+            input: { spellId: "brainstorm" },
             output: {
-              status: "entered",
-              activityId: "brainstorming",
-              name: "Brainstorming",
-              instructions: "Explore ideas",
+              status: "cast",
+              spellId: "brainstorm",
+              name: "Brainstorm",
             },
           },
           { type: "text", text: "Let's explore your ideas." },
@@ -513,7 +509,7 @@ describe("use_case_send_message", () => {
     store.listMessages.mockResolvedValue(saved);
     await screen.rerender(await chatPage());
     await expect
-      .element(page.getByText("Activity: Brainstorming", { exact: true }))
+      .element(page.getByText("Cast Brainstorm", { exact: true }))
       .toBeVisible();
     await expect
       .element(page.getByText("Let's explore your ideas.", { exact: true }))
@@ -620,11 +616,11 @@ describe("use_case_dailies", () => {
   });
 });
 
-test("Stop Activity sits beside Start the day and sends stop without replacing the draft", async () => {
+test("Stop Spell sits beside Start the day and sends stop without replacing the draft", async () => {
   store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
   store.readQuestConversation.mockResolvedValue({
     ...FOX_CONVERSATION,
-    activity: { ...FOX_CONVERSATION.activity, name: "Brainstorm" },
+    spell: "brainstorm",
   });
   store.listMessages.mockResolvedValue([]);
   const held = holdBeforeChunk(

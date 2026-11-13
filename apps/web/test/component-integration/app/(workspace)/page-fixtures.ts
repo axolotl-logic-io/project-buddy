@@ -1,7 +1,6 @@
 // Stored quests, chats and milestones for the page tests, shaped as the quest and chat
 // stores return them, with fixed canonical UUID ids from the id fixtures.
 
-import { getActivity } from "@/activities/index.ts";
 import type { Chat, QuestChat } from "@/chats/chat-rows.ts";
 import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
@@ -60,11 +59,7 @@ const STANDALONE_CHAT: Chat = {
 };
 
 // The fox quest's one conversation, in its default activity.
-const { id, name, definition } = getActivity("open-chat");
-const FOX_CONVERSATION: Conversation = {
-  ...FOX_CHAT,
-  activity: { id, name, definition },
-};
+const FOX_CONVERSATION: Conversation = FOX_CHAT;
 
 export {
   FOX_BODY_MILESTONE,

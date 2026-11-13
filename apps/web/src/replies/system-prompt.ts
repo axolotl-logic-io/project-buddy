@@ -1,25 +1,6 @@
 import type { SystemModelMessage } from "ai";
-// The construct's system prompt, assembled from two lists of sections. Add a
-// section by adding one entry to a list:
-// - SHARED_SECTIONS don't depend on the chat: the global prompt
-//   (global-prompt.ts) and the lists of the account's activities and
-//   spells. They are cached across one user's chats, so they must not
-//   depend on the chat.
-// - CHAT_SECTIONS render text for one chat: its quest, or the standalone
-//   chat's text when it is in none, the rules for several people when more
-//   than one has written in it, its quest's Plan and newest
-//   milestones, its current activity and its construct. A section that renders
-//   "" is left out.
-// Every {{name}} in the construct's and the activity's parts, and in the spells'
-// when-to-use lines, becomes the user's name here: the stored parts keep it
-// as written. cast_spell names the spell's instructions the same way.
 import { withUserName } from "@/accounts/user-name.ts";
 import { readUserName } from "@/accounts/users-store.ts";
-import type { ActivitySnapshot } from "@/activities/activity.ts";
-import type { ActivityChoice } from "@/activities/activity-choice.ts";
-import { activityChoices } from "@/activities/activity-choices.ts";
-import { currentActivity } from "@/activities/activity-sessions.ts";
-import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
@@ -43,9 +24,8 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 import { startingContextSection } from "@/replies/starting-context.ts";
 import { visualDescriptionSection } from "@/replies/visual-description.ts";
-import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
-import type { SpellChoice } from "@/spells/spell-choice.ts";
-import { spellChoices } from "@/spells/spell-choices.ts";
+import { getSpell, listSpells, type SpellId } from "@/spells/spell.ts";
+import { currentSpell } from "@/spells/spell-store.ts";
 
 // The chat turn a prompt is for, in the acting user's chat, and whether more than
 // one person has written in the chat (src/replies/author-names.ts).
@@ -56,18 +36,10 @@ interface ReplyPromptRequest {
   readonly severalAuthors?: boolean | undefined;
 }
 
-// What a section may read: the activities and spells the account has, the
-// chat's construct and current activity, the acting user's name, or undefined if she has
-// none, for a chat in a quest, the quest, and whether several people have
-// written in the chat, which no new chat has. A standalone chat is in no
-// quest, so it has none. A chat's prompt needs nothing else, so it can be
-// rendered for a chat not yet saved.
 interface ReplyPromptContext {
-  readonly activities: readonly ActivityChoice[];
-  readonly spells: readonly SpellChoice[];
   readonly quest: PromptQuest | undefined;
   readonly construct: ConstructSnapshot;
-  readonly activity: ActivitySnapshot;
+  readonly spell?: SpellId | undefined;
   readonly userName: string | undefined;
   readonly severalAuthors?: boolean | undefined;
 }
@@ -89,47 +61,12 @@ type PromptSection = (context: ReplyPromptContext) => string;
 
 const SECTION_SEPARATOR = "\n\n";
 
-// Any run of white space, line breaks included.
-const WHITE_SPACE = /\s+/gu;
-
-// The text on one line: each run of white space as one space, trimmed.
-function oneLine(text: string): string {
-  return text.replace(WHITE_SPACE, " ").trim();
-}
-
-// One activity in the construct's list: its id, its name and, if it has one,
-// what it is.
-function activityLine({ id, name, description }: ActivityChoice): string {
-  if (description === undefined) {
-    return `- \`${id}\`: ${name}.`;
-  }
-  return `- \`${id}\`: ${name}. ${description}`;
-}
-
-// The activities the construct can move the chat into, built in and the
-// account's own. They depend only on the account, so they share the cache
-// prefix.
-function activitiesSection({ activities }: ReplyPromptContext): string {
-  return [
-    "# Activities",
-    `An activity sets the scene a conversation plays out. The conversation's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. These are the activities:`,
-    ...activities.map(activityLine),
-  ].join("\n");
-}
-
-// One spell in the construct's list: its id, its name and when to use it, each
-// on the one line, so no line break or heading in them can end the list.
-function spellLine({ id, name, whenToUse }: SpellChoice): string {
-  return `- \`${id}\`: ${oneLine(name)}. ${oneLine(whenToUse)}`;
-}
-
-// The spells the construct can cast, built in and the account's own. They
-// depend only on the account, so they share the cache prefix.
-function spellsSection({ spells }: ReplyPromptContext): string {
+function spellsSection(): string {
   return [
     "# Spells",
-    `A spell is a set of instructions you load only when you need them. When a spell's when-to-use line fits what the user needs now, call \`${CAST_SPELL_TOOL}\` with its id before you act, then follow the instructions in the tool's result. A spell gives you no new tools. These are the spells:`,
-    ...spells.map(spellLine),
+    ...listSpells().map(
+      (spell) => `- \`${spell.id}\`: ${spell.name}. ${spell.description}`,
+    ),
   ].join("\n");
 }
 
@@ -139,7 +76,6 @@ const SHARED_SECTIONS: readonly PromptSection[] = [
       (): string =>
         section,
   ),
-  activitiesSection,
   spellsSection,
 ];
 
@@ -160,10 +96,11 @@ function severalAuthorsSection({ severalAuthors }: ReplyPromptContext): string {
   return "";
 }
 
-// The chat's current activity, after the memory it may work from. Quote the
-// snapshot name so line breaks in an own name cannot become headings.
-function activitySection({ activity }: ReplyPromptContext): string {
-  return `Current activity: ${JSON.stringify(activity.name)}\n\n${activity.definition.prompt}`;
+function spellSection({ spell }: ReplyPromptContext): string {
+  if (spell === undefined) {
+    return "No spell is active.";
+  }
+  return `Active spell: ${getSpell(spell).name}`;
 }
 
 const CHAT_SECTIONS: readonly PromptSection[] = [
@@ -185,7 +122,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   startingContextSection,
   planPromptSection,
   milestonesPromptSection,
-  activitySection,
+  spellSection,
   visualDescriptionSection,
   ({ construct }: ReplyPromptContext): string => construct.definition.prompt,
 ];
@@ -207,28 +144,14 @@ function rendered(
 function renderReplyInstructions(
   context: ReplyPromptContext,
 ): SystemModelMessage[] {
-  const { construct, activity, spells, userName } = context;
+  const { construct, userName } = context;
   const named: ReplyPromptContext = {
     ...context,
-    spells: spells.map((spell) => ({
-      ...spell,
-      whenToUse: withUserName(spell.whenToUse, userName),
-    })),
     construct: {
       ...construct,
       definition: {
         ...construct.definition,
         prompt: withUserName(construct.definition.prompt, userName),
-      },
-    },
-    activity: {
-      ...activity,
-      definition: {
-        prompt: withUserName(activity.definition.prompt, userName),
-        openingRequest: withUserName(
-          activity.definition.openingRequest,
-          userName,
-        ),
       },
     },
   };
@@ -281,29 +204,21 @@ async function promptQuest(
   return { ...quest, latestApproval };
 }
 
-// The system messages for one chat turn, with the acting user's name, activities and
-// spells, the chat's current activity and, in a quest chat, the quest's
-// memory and newest milestones, read together, as they are when the turn
-// starts.
 async function buildReplyInstructions({
   actingUser,
   chat,
   construct,
   severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
-  const [activities, spells, quest, activity, userName] = await Promise.all([
-    activityChoices(actingUser),
-    spellChoices(actingUser),
+  const [quest, spell, userName] = await Promise.all([
     promptQuest(actingUser, chat),
-    currentActivity(actingUser, chat),
+    currentSpell(actingUser, chat),
     readUserName(actingUser),
   ]);
   return renderReplyInstructions({
-    activities,
-    spells,
     quest,
     construct,
-    activity,
+    spell,
     userName,
     severalAuthors,
   });

@@ -18,7 +18,6 @@ import {
   type UIMessageStreamWriterWithOutcome,
 } from "ai";
 import { after } from "next/server";
-import { activityReply } from "@/activities/activity-reply.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
@@ -66,6 +65,7 @@ import {
   chatTools,
   streamChatToolCalls,
 } from "@/replies/tools/index.ts";
+import { spellReply } from "@/spells/spell-reply.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // How many model calls one reply may make, besides the answer-now call; each
@@ -240,7 +240,7 @@ async function streamAndSaveReply(
     const named = withAuthorNames(history);
     let model = replyModel(accountedGrant);
     if (readConstructModel() === "local") {
-      const text = await activityReply(actingUser, chat, answered);
+      const text = await spellReply(actingUser, chat, answered);
       if (text !== undefined) {
         model = localConstructModel(text);
       }

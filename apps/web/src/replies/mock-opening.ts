@@ -1,16 +1,3 @@
-// The mock construct's opening for a new chat with no prepared opening, such as
-// one in a construct of the user's own that has been edited (chat-opening.ts),
-// its reply to a built-in activity's kickoff: the quest's memory as its prompt gives
-// it, then one question, or only one question while the memory is empty:
-// the interview's first in a chat whose activity is the interview, and what
-// to work on in any other chat. So the end-to-end tests can see what the
-// opening knew. An opening
-// whose prompt holds "/mock-error <Anthropic error type>", as a quest's
-// name can, fails the way mock-error.ts says, so the tests can start a chat
-// while Claude is down: nobody types into an opening's conversation.
-
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
-import { getActivity } from "@/activities/index.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
 import type { MockConversation, MockStep } from "@/replies/mock-script.ts";
 import { startingContextInPrompt } from "@/replies/starting-context.ts";
@@ -19,9 +6,6 @@ const MOCK_ERROR_IN_PROMPT = /\/mock-error (?<errorType>[a-z_]+)/u;
 
 // The mock opening of the quest's interview chat while the quest's
 // memory is empty.
-const MOCK_FIRST_QUESTION =
-  "The mock construct starts the interview. What would you like to make or learn?";
-
 // The mock opening of any other chat while the quest's memory is empty.
 const MOCK_CHAT_QUESTION =
   "The mock construct starts a conversation. What would you like to work on?";
@@ -46,9 +30,6 @@ function mockOpeningReply({
   }
   const context = startingContextInPrompt(prompt);
   if (context === "") {
-    if (prompt.includes(getActivity(INTERVIEW_ACTIVITY_ID).definition.prompt)) {
-      return [{ text: MOCK_FIRST_QUESTION, toolCalls: [] }];
-    }
     return [{ text: MOCK_CHAT_QUESTION, toolCalls: [] }];
   }
   return [
@@ -65,4 +46,4 @@ function mockOpeningReply({
   ];
 }
 
-export { MOCK_CHAT_QUESTION, MOCK_FIRST_QUESTION, mockOpeningReply };
+export { MOCK_CHAT_QUESTION, mockOpeningReply };

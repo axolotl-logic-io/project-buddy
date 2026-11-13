@@ -6,37 +6,19 @@
 // discards them. The pages' Server Actions are mocked; the server tests
 // cover what Save stores.
 
-import type { JSX } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import {
-  getOwnActivity,
-  type OwnActivity,
-} from "@/activities/activity-store.ts";
-import { getActivity } from "@/activities/index.ts";
-import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
-import { saveActivityAction } from "@/app/(workspace)/activities/actions.ts";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import { saveConstructAction } from "@/app/(workspace)/constructs/actions.ts";
-import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
-import { saveSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
   getOwnConstruct,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { getSpell } from "@/spells/index.ts";
-import { getOwnSpell } from "@/spells/spell-store.ts";
-import { ACTIVITY_DEFINITION_COPY } from "@/ui/copy/activities.ts";
 import { CONSTRUCT_DEFINITION_COPY } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import { SPELL_DEFINITION_COPY } from "@/ui/copy/spells.ts";
-import {
-  ASK_ONE_QUESTION_CLONE,
-  BRAINSTORMING_CLONE,
-  VELLUM_CLONE,
-} from "../app/phone-pages-fixtures.ts";
+import { VELLUM_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import {
@@ -54,26 +36,10 @@ vi.mock(
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
 }));
-vi.mock("@/activities/activity-store.ts", () => ({
-  getOwnActivity: vi.fn<typeof getOwnActivity>(),
-}));
-vi.mock("@/spells/spell-store.ts", () => ({
-  getOwnSpell: vi.fn<typeof getOwnSpell>(),
-}));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   saveConstructAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
-  retireActivityAction: vi.fn(),
-  editBuiltInActivityAction: vi.fn(),
-  saveActivityAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  retireSpellAction: vi.fn(),
-  editBuiltInSpellAction: vi.fn(),
-  saveSpellAction: vi.fn(),
 }));
 
 // Her clone of Lumen, with a prompt of her own.
@@ -96,12 +62,7 @@ afterEach(async () => {
 
 // The form data the action receives once she saves. The action redirects;
 // here it only resolves the form it was given.
-function saved(
-  action:
-    | typeof saveConstructAction
-    | typeof saveActivityAction
-    | typeof saveSpellAction,
-): Promise<FormData> {
+function saved(action: typeof saveConstructAction): Promise<FormData> {
   const submitted = Promise.withResolvers<FormData>();
   vi.mocked(action).mockImplementation((formData: FormData) => {
     submitted.resolve(formData);
@@ -274,65 +235,6 @@ describe("use_case_edit_construct", () => {
   });
 });
 
-test("Reset on her activity's page changes the prompt only, keeping her opening request", async () => {
-  signInAs(SIGNED_IN_USER);
-  const activity: OwnActivity = {
-    ...BRAINSTORMING_CLONE,
-    definition: { prompt: "My prompt.", openingRequest: "My opening." },
-  };
-  vi.mocked(getOwnActivity).mockResolvedValue(activity);
-  await render(
-    inWorkspace(
-      await ActivityPage({
-        params: Promise.resolve({ activityId: activity.id }),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
-  const submitted = saved(saveActivityAction);
-
-  await button(PROMPT_COPY.resetPrompt).click();
-  await button(PROMPT_COPY.save).click();
-
-  const form = await submitted;
-  expect(form.get("prompt")).toBe(
-    getActivity("brainstorming").definition.prompt,
-  );
-  expect(form.get("openingRequest")).toBe("My opening.");
-  await expect
-    .element(field(ACTIVITY_DEFINITION_COPY.openingRequest.label))
-    .toHaveValue("My opening.");
-});
-
-test("Reset on her spell's page changes the prompt only, keeping its when-to-use description", async () => {
-  signInAs(SIGNED_IN_USER);
-  vi.mocked(getOwnSpell).mockResolvedValue({
-    ...ASK_ONE_QUESTION_CLONE,
-    definition: { whenToUse: "When she plans a render.", prompt: "Mine." },
-  });
-  await render(
-    inWorkspace(
-      await SpellPage({
-        params: Promise.resolve({ spellId: ASK_ONE_QUESTION_CLONE.id }),
-        searchParams: Promise.resolve({}),
-      }),
-    ),
-  );
-  const submitted = saved(saveSpellAction);
-
-  await button(PROMPT_COPY.resetPrompt).click();
-  await button(PROMPT_COPY.save).click();
-
-  const form = await submitted;
-  expect(form.get("prompt")).toBe(
-    getSpell("ask-one-question").definition.prompt,
-  );
-  expect(form.get("whenToUse")).toBe("When she plans a render.");
-  await expect
-    .element(field(SPELL_DEFINITION_COPY.whenToUse.label))
-    .toHaveValue("When she plans a render.");
-});
-
 test("Reset twice and leaving preserve the original unsaved text for Undo", async () => {
   const visit = await openConstruct(LUMEN_CLONE);
   await button(CONSTRUCT_PROMPT).click();
@@ -437,33 +339,6 @@ test("saving an edited appearance offers Save without generation controls or req
   expect(data.has("generateImages")).toBe(false);
   expect(request).not.toHaveBeenCalled();
 });
-
-test.each(["activity", "spell"] as const)(
-  "a saved %s shows visible announced confirmation and saved fields",
-  async (kind) => {
-    signInAs(SIGNED_IN_USER);
-    vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
-    vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
-    let view: JSX.Element;
-    if (kind === "activity") {
-      view = await ActivityPage({
-        params: Promise.resolve({ activityId: BRAINSTORMING_CLONE.id }),
-        searchParams: Promise.resolve({ saved: "1" }),
-      });
-    } else {
-      view = await SpellPage({
-        params: Promise.resolve({ spellId: ASK_ONE_QUESTION_CLONE.id }),
-        searchParams: Promise.resolve({ saved: "1" }),
-      });
-    }
-    await render(inWorkspace(view));
-    await expect
-      .element(page.getByRole("status").filter({ hasText: PROMPT_COPY.saved }))
-      .toBeVisible();
-    await expect.element(field("Name")).not.toHaveValue("");
-    await expect.element(button(PROMPT_COPY.discard)).not.toBeInTheDocument();
-  },
-);
 
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
