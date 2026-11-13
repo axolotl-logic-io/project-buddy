@@ -16,7 +16,7 @@ const USER = "00000000-0000-4000-8000-000000000961";
 const QUEST = "00000000-0000-4000-8000-000000000962";
 const CHAT = "00000000-0000-4000-8000-000000000963";
 
-test("spell simplification removes obsolete definitions and sessions, and keeps quest content", async () => {
+test("spell rollout preserves old-build storage while adding direct spell state", async () => {
   const database = scratchDatabase("_spells");
   const before = await copyMigrationsUpTo(BEFORE_SPELLS);
   const pool = openPool(database.url);
@@ -76,8 +76,8 @@ test("spell simplification removes obsolete definitions and sessions, and keeps 
       sessions: string | null;
     }>(`select
       q.name,c.spell,m.parts->0->>'text' as text,
-      (select array_agg(kind) from own_prompts) as kinds,
-      (select array_agg(kind) from listings) as listings,
+      (select array_agg(kind order by kind) from own_prompts) as kinds,
+      (select array_agg(kind order by kind) from listings) as listings,
       (select count(*)::int from purchases) as purchases,
       to_regclass('activity_sessions')::text as sessions
       from quests q join chats c on c.quest_id=q.id join messages m on m.chat_id=c.id`);
@@ -86,10 +86,10 @@ test("spell simplification removes obsolete definitions and sessions, and keeps 
         name: "Fox",
         spell: null,
         text: "Try clay",
-        kinds: ["construct"],
-        listings: ["construct"],
-        purchases: 1,
-        sessions: null,
+        kinds: ["activity", "construct", "spell"],
+        listings: ["activity", "construct", "spell"],
+        purchases: 3,
+        sessions: "activity_sessions",
       },
     ]);
     await pool.query("update chats set spell='plan' where id=$1", [CHAT]);
@@ -100,9 +100,16 @@ test("spell simplification removes obsolete definitions and sessions, and keeps 
       "insert into spell_message_results(message_id,chat_id,text) values ('idea',$1,'Saved')",
       [CHAT],
     );
-    await expect(
-      pool.query("select * from activity_message_results"),
-    ).rejects.toMatchObject({ code: "42P01" });
+    await pool.query(
+      "update activity_message_results set text='Old build still writes' where message_id='idea'",
+    );
+    expect(
+      (
+        await pool.query(
+          "select text from activity_message_results where message_id='idea'",
+        )
+      ).rows,
+    ).toEqual([{ text: "Old build still writes" }]);
   } finally {
     await pool.end();
     await dropTestDatabase(database);

@@ -4,6 +4,7 @@ import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import type { PlanActions } from "@/components/plan/use-plan.ts";
+import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { UserId } from "@/ids.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import {
@@ -11,7 +12,6 @@ import {
   runChatCommandAction,
   undoPlanChangeAction,
 } from "@/plan/plan-actions.ts";
-import { mockCommandListings } from "@/replies/mock-command-listings.ts";
 import { getSpell } from "@/spells/spell.ts";
 
 // The plan's Server Actions, which also run the composer's commands, in a
@@ -28,9 +28,7 @@ const PLAN_ACTIONS: PlanActions = {
 // and the composer. Their own messages are the viewer's; every other user
 // message shows its author's name. stoppedReplyId is the last message's id
 // when its reply stopped (readStoppedReply). plan is given in a quest's
-// conversation alone, which shows the quest's plan beside it. While the
-// mock model runs, the composer lists its commands too. starter is a
-// prepared message offered above the composer, such as Start the day.
+// conversation alone, which shows the quest's plan beside it.
 // header replaces the default construct header; null omits it when the
 // construct is already available in the surrounding navigation.
 function ChatScreen({
@@ -40,9 +38,8 @@ function ChatScreen({
   viewer,
   plan,
   actions,
-  starter,
   header,
-  sideContent,
+  sideSections,
   initialSection,
 }: {
   readonly conversation: Chat;
@@ -51,12 +48,9 @@ function ChatScreen({
   readonly viewer: UserId;
   readonly plan?: PlanState | undefined;
   readonly actions?: ReactNode;
-  readonly sideContent?: ReactNode;
+  readonly sideSections?: readonly WorkspaceSection[] | undefined;
   readonly initialSection?: string | undefined;
   readonly header?: ReactNode;
-  readonly starter?:
-    | { readonly label: string; readonly text: string }
-    | undefined;
 }): JSX.Element {
   const { construct } = conversation;
   let spellName: string | undefined;
@@ -82,7 +76,7 @@ function ChatScreen({
       {heading}
       <ChatView
         spellName={spellName}
-        sideContent={sideContent}
+        sideSections={sideSections}
         initialSection={initialSection}
         viewer={viewer}
         chatId={conversation.id}
@@ -95,8 +89,6 @@ function ChatScreen({
         questId={conversation.quest?.id}
         initialPlan={plan}
         planActions={PLAN_ACTIONS}
-        mockCommands={mockCommandListings()}
-        starter={starter}
       />
     </>
   );

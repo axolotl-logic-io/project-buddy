@@ -98,30 +98,36 @@ describe("use_case_quest_ideas", () => {
     expect(await listIdeas(owner.id, quest.id)).toEqual([idea]);
   });
 
-  test("idea order persists, new ideas append, and reordering stays owner-scoped", async () => {
+  test("new ideas go first, saved order persists and reordering stays owner-scoped", async () => {
     const owner = await testUser();
     const quest = await testData(owner).quest();
     await signIn(owner);
     await changeIdeaAction({ op: "add", questId: quest.id, text: "First" });
     await changeIdeaAction({ op: "add", questId: quest.id, text: "Second" });
     await changeIdeaAction({ op: "add", questId: quest.id, text: "Third" });
-    const [first, second, third] = await listIdeas(owner.id, quest.id);
+    const initial = await listIdeas(owner.id, quest.id);
+    expect(initial.map((idea) => idea.text)).toEqual([
+      "Third",
+      "Second",
+      "First",
+    ]);
+    const [third, second, first] = initial;
     expect(
       await changeIdeaAction({
         op: "reorder",
         questId: quest.id,
-        id: third?.id,
-        before: first?.id,
+        id: first?.id,
+        before: third?.id,
       }),
     ).toEqual({ kind: "saved" });
-    expect(await listIdeas(owner.id, quest.id)).toEqual([third, first, second]);
+    expect(await listIdeas(owner.id, quest.id)).toEqual([first, third, second]);
     await changeIdeaAction({ op: "add", questId: quest.id, text: "Fourth" });
     const after = await listIdeas(owner.id, quest.id);
     expect(after.map((idea) => idea.text)).toEqual([
-      "Third",
-      "First",
-      "Second",
       "Fourth",
+      "First",
+      "Third",
+      "Second",
     ]);
     expect(
       await changeIdeaAction({
@@ -132,9 +138,9 @@ describe("use_case_quest_ideas", () => {
     ).toEqual({ kind: "saved" });
     const moved = await listIdeas(owner.id, quest.id);
     expect(moved.map((idea) => idea.text)).toEqual([
+      "Fourth",
       "First",
       "Second",
-      "Fourth",
       "Third",
     ]);
     const stranger = await testUser();

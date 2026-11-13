@@ -40,6 +40,12 @@ vi.mock("@/quests/rename-quest-action.ts", () => ({
   }),
 }));
 
+vi.mock("@/conversations/reset-conversation-action.ts", () => ({
+  resetConversationAction: vi.fn(() => {
+    throw new Error("Mock the conversation reset action in this test");
+  }),
+}));
+
 // A WebKit error's stack lists only its frames, without the "Name: message"
 // line Chromium's starts with, and reporters that print an error's stack
 // rather than its message, such as the JSON reporter, then show a failure as

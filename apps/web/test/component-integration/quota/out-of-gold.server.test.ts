@@ -14,6 +14,7 @@ import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { listQuests, type Quest } from "@/quests/store.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   spendAllGold,
@@ -30,12 +31,6 @@ import { signIn } from "../test-database/session-test-kit.ts";
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
 const SECOND_MESSAGE = "Now add sprinkles";
-// The first and last lines of the mock construct's reply to her first message
-// (mock-script.ts): a reply holding both was saved in full.
-const REPLY_OPENING = `This is the mock construct. You said: "${FIRST_MESSAGE}".`;
-const ENDS_WITH_CODE_BLOCK =
-  /\n```python\nimport bpy\nbpy\.ops\.mesh\.bevel\(offset=0\.1\)\n```$/u;
-
 // The starting 100 gold, in micro-USD, less 1 gold.
 const ALL_BUT_ONE_GOLD = 990_000;
 const OUT_OF_GOLD: string = userMessage("out-of-gold");
@@ -125,8 +120,8 @@ test("use_case_out_of_gold", async () => {
   const crossing = await sendCrossingMessage(scene);
   expect(crossing.status).toBe(HTTP_STATUS.ok);
   expect(crossing.roles).toStrictEqual(["user", "assistant"]);
-  expect(crossing.reply).toContain(REPLY_OPENING);
-  expect(crossing.reply).toMatch(ENDS_WITH_CODE_BLOCK);
+  expect(crossing.reply).toBe(LOCAL_CONSTRUCT_COPY.unknownCommand);
+  await spendAllGold(user);
 
   const afterFirst = await listMessages(user.id, chat.id);
   const next = refusal(await sendChatMessage(chat.id, SECOND_MESSAGE));

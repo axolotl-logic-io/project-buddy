@@ -10,7 +10,6 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
-import type { CommandListing } from "@/components/chat/chat-commands.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import type { PlanActions } from "@/components/plan/use-plan.ts";
 import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
@@ -85,18 +84,7 @@ const DONE_PLAN: PlanState = {
   undone: [],
 };
 
-const MOCK_COMMANDS: readonly CommandListing[] = [
-  {
-    command: "/mock-markdown",
-    usage: "/mock-markdown",
-    description: "replies with every kind of Markdown",
-  },
-];
-
-async function openChat(
-  initialMessages: UIMessage[] = [],
-  mockCommands: readonly CommandListing[] = [],
-): Promise<void> {
+async function openChat(initialMessages: UIMessage[] = []): Promise<void> {
   await render(
     <QuestStatusFeedback>
       <ChatView
@@ -107,7 +95,6 @@ async function openChat(
         questId={QUEST_ID}
         initialPlan={PLAN}
         planActions={PLAN_ACTIONS}
-        mockCommands={mockCommands}
       />
     </QuestStatusFeedback>,
   );
@@ -166,8 +153,8 @@ afterEach(() => {
 });
 
 describe("use_case_plan_commands", () => {
-  test('"/" lists the built-in commands, and the mock model\'s while it runs', async () => {
-    await openChat([], MOCK_COMMANDS);
+  test('"/" lists the built-in commands', async () => {
+    await openChat();
     await userEvent.type(messageBox(), "/");
 
     await expect.element(commandList()).toBeVisible();
@@ -180,7 +167,6 @@ describe("use_case_plan_commands", () => {
         await expect.element(list).toMatchTextContent(command);
       }),
     );
-    await expect.element(list).toMatchTextContent("/mock-markdown");
 
     await userEvent.type(messageBox(), "dr");
     await expect
@@ -304,16 +290,6 @@ describe("use_case_plan_commands", () => {
       .element(page.getByRole("alert"))
       .toHaveTextContent(CHAT_COMMANDS_COPY.noPlan);
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  test("the mock model's commands go to the construct", async () => {
-    const fetchMock = answerChat(new Response(null));
-    await openChat([], MOCK_COMMANDS);
-    await userEvent.type(messageBox(), "/mock-markdown ");
-    await userEvent.click(page.getByRole("button", { name: CHAT_COPY.send }));
-
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(actions.runChatCommandAction).not.toHaveBeenCalled();
   });
 });
 

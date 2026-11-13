@@ -1,4 +1,5 @@
 import { currentSpell } from "@/spells/spell-store.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 // Starting quests, in the test database with the mock construct: what the
 // one start action makes from each of the four starting points, as the
 // stores give it to the pages. Concurrent Dailies starts and their
@@ -131,7 +132,7 @@ describe("use_case_new_quest", () => {
       const messages = await listMessages(user.id, conversation.id);
       expect(messages.map(({ role }) => role)).toEqual(["user", "assistant"]);
       expect(messageText(messages[0])).toBe("Make time for myself.");
-      expect(messageText(messages[1])).toContain("Make time for myself.");
+      expect(messageText(messages[1])).toBe(LOCAL_CONSTRUCT_COPY.welcome);
     },
   );
 
