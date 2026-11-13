@@ -55,13 +55,6 @@ describe("header navigation hierarchy", () => {
     ]);
   });
 
-  test("shows Invitations' trail to an admin alone, who alone can open it", async () => {
-    expect(await headerBreadcrumbs(signedIn("admin"), ["invitations"])).toEqual(
-      [{ label: "Quests", href: "/quests" }, { label: "Invitations" }],
-    );
-    expect(await headerBreadcrumbs(MEMBER, ["invitations"])).toEqual([]);
-  });
-
   test("removed quest subpages have no breadcrumb", async () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["quests", "quest", "memory"]),

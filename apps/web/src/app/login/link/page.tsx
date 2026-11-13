@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import type { JSX } from "react";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
+import { readSignUpEmail } from "@/accounts/sign-up-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -39,7 +40,8 @@ export default async function SignInLinkPage({
   // a prerender, such as a prefetch's.
   await connection();
   const user = await readSignInLinkUser(token, new Date());
-  if (user === undefined) {
+  const signupEmail = await readSignUpEmail(token, new Date());
+  if (user === undefined && signupEmail === undefined) {
     return (
       <SignInPanel intro={LINK_PAGE_COPY.expired}>
         <Button asChild={true}>

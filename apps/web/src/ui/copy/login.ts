@@ -3,24 +3,24 @@
 import { EMAIL_SENDER_COPY, pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
 export const LOGIN_COPY = {
-  title: pageTitle("Sign in"),
+  title: pageTitle("Log in or sign up"),
   intro:
-    "Enter your email address, and we'll email you a link that signs you in.",
+    "Enter your email address to log in or sign up. We'll email you a link to continue.",
   emailLabel: "Email address",
-  send: "Email me a sign-in link",
+  send: "Email me a link",
   sending: "Sending…",
   needsEmail: "Enter your email address, such as name@example.com.",
   checkEmail:
-    "Check your email. If this address has an account, a sign-in link is on its way. It works for 30 minutes.",
-  signUpPrompt:
-    "Invited and new here? Open the setup link in your invitation email.",
-  signUpLink: "Invitation help",
+    "Check your email for a link to log in or sign up. It works for 30 minutes.",
+  signUpPrompt: "New here?",
+  signUpLink: "Sign up",
 } as const;
 
 export const LINK_PAGE_COPY = {
   title: pageTitle("Continue signing in"),
   loading: "Checking your sign-in link…",
-  intro: "Continue to sign in to Project Buddy in this browser.",
+  intro:
+    "Continue to verify your email and log in or create your Project Buddy account in this browser.",
   continue: "Continue",
   expired:
     "This sign-in link has expired or no longer works. A link works for 30 minutes after it's sent.",
@@ -30,12 +30,12 @@ export const LINK_PAGE_COPY = {
 // The email is Vellum's (EMAIL_SENDER_COPY), for signing in and signing
 // up alike, so it reads right to someone new and to someone coming back.
 export const LOGIN_EMAIL_COPY = {
-  subject: `Your sign-in link for ${SITE_COPY.name}`,
+  subject: `Your login or sign-up link for ${SITE_COPY.name}`,
   greeting: "Greetings, traveller.",
   intro: `Whether this is your first journey or you're returning to familiar ground, here is your way into ${SITE_COPY.name}. Open it whenever you're ready:`,
-  linkText: `Sign in to ${SITE_COPY.name}`,
+  linkText: `Continue to ${SITE_COPY.name}`,
   expiry:
-    "There is no hurry: the link works for 30 minutes, on any device, as many times as you need.",
+    "The link works for 30 minutes, on any device. Continue to verify your email and log in or create your account.",
   notRequested:
     "If you didn't ask for this link, you can safely set this email aside. Nothing changes.",
   signOff: "Safe travels,",

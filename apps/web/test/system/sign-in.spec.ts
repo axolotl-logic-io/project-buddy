@@ -63,13 +63,10 @@ test("use_case_sign_in_by_link", async ({
   });
   await device.close();
 
-  await test.step("an address with no account gets the same answer, and no email", async () => {
+  await test.step("an address with no account gets the same answer and a sign-up link", async () => {
     await askForSignInLink(page, newAddress);
-    // A later email, which arrives after any for newAddress would have.
-    await askForSignInLink(page, account.email);
-
-    await waitForEmailsTo(account.email, 2);
-    expect(await emailsTo(newAddress)).toEqual([]);
+    const [signupEmail] = await waitForEmailsTo(newAddress, 1);
+    expect(() => signInLinkIn(signupEmail)).not.toThrow();
   });
 });
 

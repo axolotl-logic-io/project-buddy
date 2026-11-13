@@ -396,7 +396,7 @@ A person with an account, found by email.
 
 ### Role
 
-A user's account role: user or admin. The admin role grants only the right to send invitations, and no access to other users' data.
+A user's stored account role: user or admin. Neither role grants access to other users' data. Sign-up creates the user role; account invitation administration has been removed.
 
 ### Acting user
 
@@ -415,11 +415,11 @@ Ownership and access are distinct: own constructs, quests and batteries belong t
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
 
-### Invitation, setup link
+### Sign-up link
 
-An **invitation** lets someone create an account. An admin sends it to an email address. Its **setup link** confirms the invitation and creates the account; it can be used once.
+An emailed link that verifies an email address before creating an account. Anyone can request one. It expires after 30 minutes, is replaced by a fresh request and can be confirmed once. Opening it creates nothing; choosing Continue creates the account and signs the browser in. An existing account receives a normal sign-in link instead.
 
-- **UI:** "Invitation", "Set up my account".
+- **UI:** "Sign up", "Continue".
 
 ### Sign-in link
 
