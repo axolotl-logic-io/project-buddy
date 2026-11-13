@@ -5,19 +5,12 @@
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
-import { parseActivityDefinition } from "@/activities/activity-definition.ts";
 import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { OWN_PROMPT_ID, parseOwnPromptId, type UserId } from "@/ids.ts";
-import {
-  currentActivityText,
-  currentConstructText,
-  currentSpellText,
-} from "@/prompts/earlier-built-in-texts.ts";
 import { type PromptKind, STORED_PROMPT_KIND } from "@/prompts/prompt.ts";
-import { parseSpellDefinition } from "@/spells/spell-definition.ts";
 
 const RETIRED_ROW = z.object({
   id: OWN_PROMPT_ID,
@@ -27,7 +20,7 @@ const RETIRED_ROW = z.object({
 });
 type RetiredDefinition = z.infer<typeof RETIRED_ROW>;
 interface RetiredText {
-  readonly name: "prompt" | "openingRequest" | "whenToUse";
+  readonly name: "prompt";
   readonly text: string;
 }
 interface RetiredDetail extends RetiredDefinition {
@@ -58,37 +51,12 @@ async function listRetiredDefinitions(
   });
 }
 
-function textsOf(
-  kind: PromptKind,
-  stored: unknown,
-): readonly RetiredText[] | undefined {
-  if (kind === "construct") {
-    const parsed = parseConstructDefinition(stored);
-    if (parsed === undefined) {
-      return;
-    }
-    return [{ name: "prompt", text: currentConstructText(parsed).prompt }];
-  }
-  if (kind === "activity") {
-    const parsed = parseActivityDefinition(stored);
-    if (parsed === undefined) {
-      return;
-    }
-    const text = currentActivityText(parsed);
-    return [
-      { name: "prompt", text: text.prompt },
-      { name: "openingRequest", text: text.openingRequest },
-    ];
-  }
-  const parsed = parseSpellDefinition(stored);
+function textsOf(stored: unknown): RetiredText[] | undefined {
+  const parsed = parseConstructDefinition(stored);
   if (parsed === undefined) {
-    return;
+    return undefined;
   }
-  const text = currentSpellText(parsed);
-  return [
-    { name: "whenToUse", text: text.whenToUse },
-    { name: "prompt", text: text.prompt },
-  ];
+  return [{ name: "prompt", text: parsed.prompt }];
 }
 
 async function getRetiredDefinition(
@@ -115,7 +83,7 @@ async function getRetiredDefinition(
   if (!parsed.success || row === undefined) {
     return;
   }
-  const texts = textsOf(parsed.data.kind, row.parts);
+  const texts = textsOf(row.parts);
   if (texts === undefined) {
     return;
   }

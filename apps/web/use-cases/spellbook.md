@@ -1,58 +1,11 @@
 # Spells
 
-The conventions for these cases are in [the index](README.md#conventions).
-
-Workshop’s Spells tab lists built-in spells and private copies. Create spell creates a private spell. Retirement retains restore and permanent deletion controls. The old /spellbook collection URL redirects to this Workshop tab.
-
-A spell is a set of instructions the construct loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every adventure's instructions list her spells by name and when-to-use line, and the construct casts a spell when it fits, which gives it the spell's instructions. The site has two built-in spells:
-
-- **Ask one question at a time:** the construct interviews her step by step, one short question per message.
-- **Blender manual lookup:** the construct looks up Blender facts in the Blender manual and cites the sections it read (see [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question)).
-
-Successful saves in an own spell’s Workshop show an accessible “Saved.” confirmation. The creation action is labelled “Create spell” to distinguish it from an own definition named “New spell”.
-
-Built-in, starter, customized and reset prompts use `# Spell Sheet`. The separate name identifies the definition; renaming leaves the sheet heading alone. Edited instructions and existing adventure snapshots keep their text.
+Workshop’s Spells tab offers only Plan and Brainstorm. Their pages explain the modes and are read-only. There are no custom spell creation, copy or editing controls. The old /spellbook collection URL redirects to this tab.
 
 ## use_case_construct_casts_spell
 
-The construct casts one of her spells when it fits what she needs.
-
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
-- **Steps:**
-  - In an adventure, she asks for help with something the construct needs several details about first.
-  - Later, she edits one of her own spells that the construct cast earlier in the adventure.
-  - Another user has spells of their own.
-- **Outcome:** the construct casts Ask one question at a time, and its reply follows the spell's instructions *(checked by the real-Claude smoke test)*. The adventure shows "Cast Ask one question at a time" where the cast happened, including after reopening the adventure. Every adventure's instructions list her spells, built in and her own, by name and when-to-use line, but never their instructions and never another user's spells. A past cast keeps the instructions the spell had then, so her edit changes only later casts. The construct never lists another user's spells, and the adventure's page never sends the instructions of a cast spell. An id that isn't one of her spells casts nothing, and the construct is told so.
-- **Next:**
-  - `use_case_customize_spell`: make a spell of her own.
-
-## use_case_customize_spell
-
-The user makes a spell of her own from a built-in one, and changes it.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
-- **Steps:**
-  - She opens Workshop from any signed-in page’s menu, then chooses Spells. It lists the built-in spells, each with its when-to-use line, then her own.
-  - She chooses Make a copy beside Ask one question at a time. The site makes a spell of hers named "Ask one question at a time (copy)" and opens its page.
-  - She renames it and edits its when-to-use line and instructions, and saves. Each field says how long it may be: the name 80 characters, the when-to-use line 300 and the instructions 20,000.
-  - Back on Workshop’s Spells tab, she chooses Make a copy. On its page, she resets the prompt, then saves it.
-  - She retires the first spell.
-- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The copy is named as its source with " (copy)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active spell choices and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
-- **Variations:**
-  - A copy that came from no built-in one, such as one bought in the Marketplace before it closed, resets to the default instructions. Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
-- **Next:**
-  - `use_case_construct_casts_spell`: have the construct cast it.
-  - `use_case_new_spell`: create a spell of her own.
-
-## use_case_new_spell
-
-The user crafts a spell of her own.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
-- **Steps:**
-  - On the Workshop’s Spells tab, she chooses Create spell. The site makes a new spell of hers and opens its page to edit.
-  - She names it, writes its when-to-use line and instructions, and saves.
-  - She chooses Reset instructions; Undo reset restores the previous draft, and Save keeps the reset. She then has the construct cast the spell in an adventure.
-- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Workshop’s Spells tab lists it with her own, and it works as any spell of hers does: she can edit, rename, copy and retire it, and the construct lists and casts it. Choosing Create spell again makes another spell named "New spell". Another user never sees it.
-- **Next:**
-  - `use_case_construct_casts_spell`: have the construct cast it.
+- **Intent:** Set the conversation’s persistent spell.
+- **Prerequisites:** An owned quest conversation.
+- **Interaction:** Cast Plan or Brainstorm by id. Cast the other spell to switch, or choose Stop beside the composer.
+- **Outcome:** The spell remains active after reopening the conversation. Plan routes ordinary messages into open Plan steps; Brainstorm routes them into Ideas. Reply instructions list only these two spells. Cast results save the spell’s identity. Unknown ids cannot be cast. Chat refuses these spells because it has no quest buckets.
+- **Related:** [Message capture](ideas.md#use_case_spell_buckets).

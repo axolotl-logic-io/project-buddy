@@ -71,7 +71,6 @@ API support needs a shared authorization boundary that supplies the intersection
 | --- | --- |
 | `search_blender_manual`, `cite_blender_manual` | Allow with reply permission; expose only existing safe results/citations. |
 | `cast_spell` | Allow with reply permission for acting user's available spells; keep cast instructions private and restrict any resulting effects independently. |
-| `select_activity` | Require `adventures:write` in addition to reply permission; use available activities and preserve activity snapshots. |
 | `update_memory` | Require `journal:write` and quest access; absent for standalone adventures. |
 | `record_milestone` | Require `milestones:write` and quest access; absent for standalone adventures. |
 | `request_quest_status` | Require `quests:write` and quest access; preserve user approval and revision rules. |
@@ -91,7 +90,7 @@ Paths below are relative to `apps/web/`. They identify reuse/extraction candidat
 | Messages, replies and stop | `src/chats/store.ts`, `src/replies/reply.ts`, `src/replies/stop-reply-action.ts`, `src/replies/tools/index.ts`; extract session/transport orchestration where necessary. Reuse run persistence and authorization rather than starting an independent harness. |
 | Openings | `src/replies/chat-opening.ts`; prepared openings avoid calls, generated openings do not. A prepared start may still be gated by current availability rules; no model call does not imply bypassing those gates. |
 | Status and milestones | `src/quests/quest-status-store.ts`, `src/milestones/milestone-store.ts`; preserve revision, confirmation, scope and validation rules. |
-| Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/activities/`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
+| Definitions, accounting and errors | `src/prompts/own-prompt-store.ts`, `src/constructs/`, `src/spells/`, `src/quota/`, `src/gold/`, `src/errors/app-error.ts`; reuse current ownership and classification, then align accounting interfaces with #779/#782. |
 
 Every submitted API user message retains the connection user's authorship. Derive the connection from authenticated credentials, never a caller-supplied connection id. Site/historical messages need no fabricated connection. Preserve provenance after revocation without retaining usable credentials.
 

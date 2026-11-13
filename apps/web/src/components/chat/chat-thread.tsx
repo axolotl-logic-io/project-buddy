@@ -38,7 +38,7 @@ export function ChatThread({
   stop,
   stopStatus = "",
   starter,
-  activityStop,
+  spellStop,
 }: {
   goldBalance?: number | undefined;
   replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
@@ -51,7 +51,7 @@ export function ChatThread({
   onRetry?: (() => void) | undefined;
   stop?: ReplyStop | undefined;
   stopStatus?: string;
-  activityStop?:
+  spellStop?:
     | { readonly label: string; readonly onStop: () => void }
     | undefined;
   starter?:
@@ -84,7 +84,7 @@ export function ChatThread({
             openingMessageId={openingMessageId}
             authorNames={authorNames}
             replyCosts={replyCosts}
-            activityAllowed={error === undefined && replyStopped !== true}
+            progressAllowed={error === undefined && replyStopped !== true}
           />
         </ol>
         {error !== undefined && (
@@ -103,9 +103,9 @@ export function ChatThread({
           </p>
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
           <div className="flex flex-wrap gap-2">
-            {activityStop !== undefined && (
-              <Button variant="secondary" onClick={activityStop.onStop}>
-                {activityStop.label}
+            {spellStop !== undefined && (
+              <Button variant="secondary" onClick={spellStop.onStop}>
+                {spellStop.label}
               </Button>
             )}
             {starter !== undefined && (

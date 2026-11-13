@@ -40,8 +40,6 @@ import {
   streamText,
   type Tool,
 } from "ai";
-import { selectActivityTool } from "@/activities/select-activity.ts";
-import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import { citeBlenderManualTool } from "@/blender-manual/cite-tool.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { searchBlenderManualTool } from "@/blender-manual/search-tool.ts";
@@ -65,7 +63,6 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 type ChatTools = Readonly<{
   [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
-  [SELECT_ACTIVITY_TOOL]: typeof selectActivityTool;
   [CAST_SPELL_TOOL]: typeof castSpellTool;
   [CREATE_QUEST_TOOL]: typeof createQuestTool;
   [CHANGE_PLAN_TOOL]: typeof changePlanTool;
@@ -101,7 +98,6 @@ function activeChatTools(questId: QuestId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
     SEARCH_BLENDER_MANUAL_TOOL,
     CITE_BLENDER_MANUAL_TOOL,
-    SELECT_ACTIVITY_TOOL,
     CAST_SPELL_TOOL,
   ];
   if (questId === undefined) {
@@ -137,10 +133,6 @@ function chatTools(questId: QuestId | undefined): ChatTools {
     [CITE_BLENDER_MANUAL_TOOL]: withSettings(
       citeBlenderManualTool,
       breakpointOn(CITE_BLENDER_MANUAL_TOOL, active),
-    ),
-    [SELECT_ACTIVITY_TOOL]: withSettings(
-      selectActivityTool,
-      breakpointOn(SELECT_ACTIVITY_TOOL, active),
     ),
     [CAST_SPELL_TOOL]: withSettings(
       castSpellTool,
@@ -219,7 +211,6 @@ function streamChatToolCalls(
     tools: chatTools(questId),
     activeTools: activeChatTools(questId),
     toolsContext: {
-      [SELECT_ACTIVITY_TOOL]: context,
       [CAST_SPELL_TOOL]: context,
       [CHANGE_PLAN_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,

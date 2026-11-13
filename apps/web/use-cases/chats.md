@@ -10,7 +10,7 @@ The user talks with a construct in Chat, her one private conversation for talkin
 - **Steps:**
   - She opens Chat from any signed-in page's header.
   - She sends a message, leaves, and later opens Chat again.
-- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct and the Chat activity. It is hers alone: no other user can open it. It writes no quest's Plan or milestones.
+- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct with no active spell. It is hers alone: no other user can open it. It writes no quest's Plan or milestones.
 - **Variations:**
   - An old adventure address of hers that has no quest opens Chat; one of a quest she can open opens that quest; any other, including another user's, a removed one or a malformed one, shows the not-found page ([`use_case_open_missing_page`](#use_case_open_missing_page)).
   - The old new-adventure address opens Chat and makes nothing.
@@ -18,19 +18,6 @@ The user talks with a construct in Chat, her one private conversation for talkin
   - `use_case_talk_idea_through`: talk an idea over.
   - `use_case_quest_from_standalone_chat`: make the idea a quest.
   - `use_case_send_message`: keep the conversation going.
-
-## use_case_prepared_opening
-
-The user starts an adventure and finds the construct already speaking, with a brief opening prepared for that construct and activity, without waiting for Claude.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
-- **Steps:**
-  - She starts a standalone adventure, an adventure in one of her quests, or a new quest, with a built-in construct and a built-in activity, or with copies of her own that she has customized or cloned and only renamed. Claude may be unavailable meanwhile.
-  - She starts another adventure in the same construct and activity.
-  - In the first adventure, she sends her first message and gets the reply, and later reopens the adventure.
-- **Outcome:** each adventure starts at once, with one message from the construct before she writes anything: the brief opening prepared for that construct and activity, in the construct's voice, and never another construct's. In Chat it asks what she would like to work on or talk about; in brainstorming, which idea or plan to explore; in Break Down a Project, which goal to break down. Starting it asks nothing of Claude, so it starts while Claude is unavailable too. The second adventure is a separate adventure, with the same opening, and the first adventure is unchanged. The opening stays first in the adventure, once, before her message and its reply, and editing or deleting her own construct later doesn't change it. A construct or an activity of her own that she has edited has no prepared opening: its construct writes the opening. Adventures started before prepared openings keep their history unchanged.
-- **Next:**
-  - `use_case_send_message`: answer the construct's question.
 
 ## use_case_talk_idea_through
 

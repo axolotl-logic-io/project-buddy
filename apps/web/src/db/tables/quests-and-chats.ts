@@ -80,6 +80,7 @@ export const chats = pgTable(
       onDelete: "cascade",
     }),
     constructId: text("construct_id").notNull(),
+    spell: text("spell"),
     constructName: text("construct_name"),
     constructParts: jsonb("construct_parts"),
     name: text("name"),
@@ -93,6 +94,11 @@ export const chats = pgTable(
     continuing: boolean("continuing").notNull().default(false),
   },
   (table) => [
+    check("chats_spell_valid", sql`${table.spell} in ('plan', 'brainstorm')`),
+    check(
+      "chats_spell_needs_quest",
+      sql`${table.spell} is null or ${table.questId} is not null`,
+    ),
     index("chats_quest_id_idx").on(table.questId),
     index("chats_user_id_idx").on(table.userId),
     uniqueIndex("chats_continuing_quest_idx")

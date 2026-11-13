@@ -16,20 +16,6 @@ const RETIRED_CONSTRUCT: RetiredDetail = {
     },
   ],
 };
-const RETIRED_DEFINITIONS: readonly RetiredDefinition[] = [
-  RETIRED_CONSTRUCT,
-  {
-    id: userConstructIdFixture("3d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
-    kind: "activity",
-    name: "Weekly reflection",
-    retiredAt: new Date("2026-11-03T10:00:00Z"),
-  },
-  {
-    id: userConstructIdFixture("4d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
-    kind: "spell",
-    name: "Explore three alternatives",
-    retiredAt: new Date("2026-10-30T10:00:00Z"),
-  },
-];
+const RETIRED_DEFINITIONS: readonly RetiredDefinition[] = [RETIRED_CONSTRUCT];
 
 export { RETIRED_CONSTRUCT, RETIRED_DEFINITIONS };

@@ -58,15 +58,9 @@ export const TOOL_FAILURES_COPY = {
   citeManual: "Your construct couldn't show its links to the manual.",
   searchManual: "Your construct couldn't search the manual.",
   createQuest: "Your construct couldn't create the quest.",
-  selectActivity: "Your construct couldn't change the conversation's activity.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
   changePlan: "Your construct couldn't change the quest's plan.",
-} as const;
-
-// The activity change shown in the construct's reply.
-export const SELECT_ACTIVITY_COPY = {
-  entered: (name: string): string => `Activity: ${name}`,
 } as const;
 
 // The spell cast shown in the construct's reply.

@@ -52,11 +52,9 @@ vi.mock(
 vi.mock("@/gold/gold-store.ts", () => ({
   readGoldBalance: vi.fn().mockResolvedValue(0),
 }));
-vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
-vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
 }));
@@ -97,10 +95,6 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock("@/constructs/own-construct-choices.ts", () => ({
   ownConstructChoices: () => Promise.resolve([]),
 }));
-vi.mock(
-  "@/activities/activity-choices.ts",
-  () => import("../activities/activity-choices-test-kit.ts"),
-);
 
 // A long quest name, which the trail band's heading wraps.
 const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";

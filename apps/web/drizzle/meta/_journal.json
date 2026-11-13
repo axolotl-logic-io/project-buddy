@@ -435,6 +435,13 @@
       "when": 1794518598015,
       "tag": "0061_last_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1794527845795,
+      "tag": "0062_wandering_eternals",
+      "breakpoints": true
     }
   ]
 }

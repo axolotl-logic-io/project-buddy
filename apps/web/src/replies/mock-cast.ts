@@ -14,14 +14,10 @@ function textAfterCast(output: unknown): string {
   if (!cast.success) {
     return "The mock construct could not cast the spell.";
   }
-  if (cast.data.status === "unknown") {
-    return `The mock construct cast no spell: ${cast.data.message}`;
+  if (cast.data.status === "needsQuest") {
+    return "The spell needs a quest.";
   }
-  return [
-    `The mock construct cast ${cast.data.name}:`,
-    "",
-    cast.data.instructions ?? "",
-  ].join("\n");
+  return `The mock construct cast ${cast.data.name}.`;
 }
 
 function mockCastReply(
