@@ -1,102 +1,58 @@
-// Admin invitations replace the former shared-code sign-up workflow.
-
-import { expect, type Page } from "@playwright/test";
-import { findUserByEmail, type User } from "@/accounts/users-store.ts";
+import { expect } from "@playwright/test";
+import { findUserByEmail } from "@/accounts/users-store.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { INVITATIONS_COPY, SETUP_COPY } from "@/ui/copy/invitations.ts";
+import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
-import { emailsTo } from "../support/email/outbox-files.ts";
-import { promoteToAdmin } from "../support/test-database/user-test-kit.ts";
 import { test } from "./fixtures.ts";
-import { logIn } from "./log-in.ts";
-import { setupLinkIn, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
+import { signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { fillWhenReady } from "./page-helpers.ts";
-import { continueSignIn, formStatus } from "./sign-in-pages.ts";
+import {
+  continueSignIn,
+  expectSignedInFor30Days,
+  formStatus,
+} from "./sign-in-pages.ts";
 
-async function openInvitations(page: Page, account: User): Promise<void> {
-  await logIn(page, await promoteToAdmin(account));
-  await page.goto("/settings");
-  await page.getByRole("link", { name: INVITATIONS_COPY.heading }).click();
-  await expect(page).toHaveURL("/invitations");
-}
-
-async function sendInvite(page: Page, email: string): Promise<void> {
-  await fillWhenReady(
-    page.getByRole("textbox", { name: INVITATIONS_COPY.emailLabel }),
-    email,
-  );
-  await page.getByRole("button", { name: INVITATIONS_COPY.send }).click();
-  await expect(formStatus(page)).toHaveText(INVITATIONS_COPY.sent);
-}
-
-// What the database holds at each step, and a used link refused, are
-// invitations.server.test.ts's; this walks the recipient's browser.
-test("use_case_sign_up", async ({ account, browser, newAddress, page }) => {
-  await openInvitations(page, account);
-  await sendInvite(page, newAddress);
-  const [email] = await waitForEmailsTo(newAddress, 1);
-  const link = setupLinkIn(email);
-  const recipient = await browser.newContext();
-  try {
-    const other = await recipient.newPage();
-    await other.goto(link);
-    await expect(other.getByText(newAddress)).toBeVisible();
-    expect(
-      (await recipient.cookies()).find(
-        (cookie) => cookie.name === SESSION_COOKIE_NAME,
-      ),
-    ).toBeUndefined();
-    await other.getByRole("button", { name: SETUP_COPY.confirm }).click();
-    await expect(other).toHaveURL(HOME_PATH);
-    await other.goto("/settings");
-    await expect(
-      other.getByRole("link", { name: INVITATIONS_COPY.heading }),
-    ).toHaveCount(0);
-  } finally {
-    await recipient.close();
-  }
-});
-
-test("use_case_sign_up_requires_invitation", async ({ newAddress, page }) => {
-  await page.goto("/signup");
+test("use_case_sign_up", async ({ context, newAddress, page }) => {
+  await page.goto("/login");
+  await page.getByRole("link", { name: LOGIN_COPY.signUpLink }).click();
   await expect(page.getByText(SIGNUP_COPY.intro)).toBeVisible();
-  await expect(page.getByRole("textbox")).toHaveCount(0);
-  await expect(
-    page.getByRole("link", { name: SIGNUP_COPY.signInLink }),
-  ).toHaveAttribute("href", "/login");
-  expect(await findUserByEmail(newAddress)).toBeUndefined();
-  expect(await emailsTo(newAddress)).toEqual([]);
-});
-
-// Ordinary users' and signed-out sessions' refusals are
-// invitations-access.server.test.ts's.
-test("use_case_admin_invites", async ({ account, newAddress, page }) => {
-  await openInvitations(page, account);
-  await sendInvite(page, newAddress);
-
+  await fillWhenReady(
+    page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+    newAddress,
+  );
+  await page.getByRole("button", { name: LOGIN_COPY.send }).click();
+  await expect(formStatus(page)).toHaveText(LOGIN_COPY.checkEmail);
   const [email] = await waitForEmailsTo(newAddress, 1);
-  expect(() => setupLinkIn(email)).not.toThrow();
+  await page.goto(signInLinkIn(email));
+  await expect(
+    page.getByRole("button", { name: LINK_PAGE_COPY.continue }),
+  ).toBeVisible();
   expect(await findUserByEmail(newAddress)).toBeUndefined();
+  expect(
+    (await context.cookies()).find(
+      (cookie) => cookie.name === SESSION_COOKIE_NAME,
+    ),
+  ).toBeUndefined();
+  await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
+  await expect(page).toHaveURL(HOME_PATH);
+  expect((await findUserByEmail(newAddress))?.role).toBe("user");
+  await expectSignedInFor30Days(context);
 });
 
-test("use_case_sign_up_existing_email", async ({
-  account,
-  otherAccount,
-  page,
-  testData,
-}) => {
+test("use_case_sign_up_existing_email", async ({ account, page, testData }) => {
   const quest = await testData.quest();
   const before = await findUserByEmail(account.email);
-  await openInvitations(page, otherAccount);
-  // HTML email inputs strip outer whitespace themselves. Raw padded direct
-  // submissions are covered by the server test.
-  await sendInvite(page, account.email.toUpperCase());
+  await page.goto("/signup");
+  await fillWhenReady(
+    page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+    account.email.toUpperCase(),
+  );
+  await page.getByRole("button", { name: LOGIN_COPY.send }).click();
+  await expect(formStatus(page)).toHaveText(LOGIN_COPY.checkEmail);
   const [email] = await waitForEmailsTo(account.email, 1);
   await continueSignIn(page, signInLinkIn(email));
   await page.goto("/quests");
-  // By role: while the page refreshes after loading, Next keeps a hidden
-  // copy of the list, which a text match finds too.
-  await expect(page.getByRole("link", { name: quest.name })).toBeVisible();
+  await expect(page.getByText(quest.name)).toBeVisible();
   expect(await findUserByEmail(account.email)).toEqual(before);
 });

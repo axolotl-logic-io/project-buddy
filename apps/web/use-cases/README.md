@@ -1,6 +1,6 @@
 # Use cases
 
-How invited users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
+How users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
 
 Playwright e2e tests in `test/system/` cover only the auth workflows. The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 
@@ -20,8 +20,8 @@ A case written before its test is listed in `test/component-integration/use-case
 
 ## Who uses the site
 
-- The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
-- **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; setup links do not expire. They stop working when accepted or replaced. Sign-in links for existing accounts expire after 30 minutes. The former shared code cannot create accounts.
+- The site is open to anyone with an email address they can verify.
+- **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's quests, adventures, Plan and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
 - **Batteries:** each user has one balance of batteries, which model calls spend, including image generation. Every account starts with 100 batteries, once; batteries never reset.
@@ -30,7 +30,7 @@ A case written before its test is listed in `test/component-integration/use-case
 
 - Each use case has a slug of the form `use_case_<name>`. Refer to a case by its slug. Cases are not numbered.
 - A case describes what the user wants, what she does and what she sees. It says nothing about how the system is built: "send the message", not "press the submit button".
-- "The user" is any one of the invited users, and "she" means the user.
+- "The user" is any person using the site, and "she" means the user.
 - **Prerequisites** lists the cases that must have happened first. Every listed case is required.
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things she can see or do on the site, so that a test can check each one.

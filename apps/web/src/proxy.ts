@@ -20,7 +20,6 @@ const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   SIGN_IN_PATH,
   "/credits",
   "/signup",
-  "/setup",
   "/login/link",
   // Stripe authenticates the raw body signature in the route, without cookies.
   "/api/stripe",
