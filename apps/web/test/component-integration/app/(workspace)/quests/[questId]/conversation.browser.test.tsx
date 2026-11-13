@@ -39,7 +39,7 @@ import {
   answerChat,
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
-import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../../../../replies/rich-message-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   NARROWEST_VIEWPORT,
@@ -47,6 +47,10 @@ import {
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
+
+vi.mock("@/conversations/reset-conversation-action.ts", () => ({
+  resetConversationAction: vi.fn(),
+}));
 
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
@@ -136,7 +140,7 @@ function longChat(): ChatMessage[] {
     {
       id: `m${index}`,
       role: "user",
-      parts: [{ type: "text", text: "/mock-markdown" }],
+      parts: [{ type: "text", text: "Show the saved example" }],
     },
     {
       id: `r${index}`,
@@ -540,7 +544,7 @@ describe("use_case_open_quest", () => {
     await Promise.all(
       ["Plan", "Ideas", "Progress"].map((name) =>
         expect
-          .element(page.getByRole("button", { name, exact: true }))
+          .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),
       ),
     );
@@ -571,37 +575,21 @@ describe("use_case_start_quest_conversation", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("Start the day sends its prepared message and keeps the draft", async () => {
+  test("Reset Day is offered above the conversation", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
-    const held = holdBeforeChunk(
-      [{ type: "start", messageId: "day-reply" }, { type: "finish" }],
-      1,
-    );
-    const sent = answerChat(held.response);
     await render(await chatPage());
-    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    await box.fill("A thought for later");
-    await page
-      .getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay })
-      .click();
-
-    await expect
-      .element(
-        page.getByText(QUEST_CONVERSATION_COPY.startTheDayMessage, {
-          exact: true,
-        }),
-      )
-      .toBeVisible();
-    await expect.element(box).toHaveValue("A thought for later");
-    await expect.poll(() => sent.mock.calls.length).toBe(1);
-    expect(String(sent.mock.calls[0]?.[1]?.body)).toContain(
-      QUEST_CONVERSATION_COPY.startTheDayMessage,
+    const reset = page.getByRole("button", {
+      name: QUEST_CONVERSATION_COPY.resetDay,
+    });
+    await expect.element(reset).toBeVisible();
+    const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+    expect(reset.element().getBoundingClientRect().bottom).toBeLessThan(
+      message.element().getBoundingClientRect().top,
     );
-    held.release();
   });
 
-  test("an ordinary quest offers no Start the day", async () => {
+  test("an ordinary quest offers no Reset Day", async () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
 
@@ -610,13 +598,13 @@ describe("use_case_dailies", () => {
       .toBeVisible();
     await expect
       .element(
-        page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay }),
+        page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
       )
       .not.toBeInTheDocument();
   });
 });
 
-test("Stop Spell sits beside Start the day and sends stop without replacing the draft", async () => {
+test("Stop Spell stays beside the composer and sends stop without replacing the draft", async () => {
   store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
   store.readQuestConversation.mockResolvedValue({
     ...FOX_CONVERSATION,
@@ -633,7 +621,7 @@ test("Stop Spell sits beside Start the day and sends stop without replacing the 
   await box.fill("Keep this draft");
   await expect
     .element(
-      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay }),
+      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
     )
     .toBeVisible();
   await page
@@ -645,3 +633,34 @@ test("Stop Spell sits beside Start the day and sends stop without replacing the 
   expect(String(sent.mock.calls[0]?.[1]?.body)).toContain("/stop");
   held.release();
 });
+
+const MAX_COMPOSER_BOTTOM_GAP = 64;
+
+test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
+  "a short conversation keeps its composer near the bottom at $width px",
+  async (size) => {
+    await page.viewport(size.width, size.height);
+    store.listMessages.mockResolvedValue([]);
+    await render(
+      <div className="flex min-h-dvh flex-col">{await chatPage()}</div>,
+    );
+    const collapse = page.getByRole("button", {
+      name: "Collapse quest sidebar",
+    });
+    if (collapse.query() !== null) {
+      await collapse.click();
+    }
+    const send = page.getByRole("button", {
+      name: CHAT_COPY.send,
+      exact: true,
+    });
+    await expect.element(send).toBeVisible();
+    const gap =
+      window.innerHeight - send.element().getBoundingClientRect().bottom;
+    expect(gap).toBeGreaterThanOrEqual(0);
+    expect(gap).toBeLessThanOrEqual(MAX_COMPOSER_BOTTOM_GAP);
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      size.width,
+    );
+  },
+);

@@ -4,7 +4,6 @@
 import { Pool } from "pg";
 import { z } from "zod";
 import {
-  readConstructModel,
   readEmailOutboxDir,
   readEmailTransport,
   readTestDatabaseUrl,
@@ -165,17 +164,11 @@ function checkTestDatabase(databaseUrl: string): TestDatabase {
 
 // The test database that databaseUrl names, DATABASE_URL by default,
 // checked as checkTestDatabase does. Throws, saying why, unless it is set,
-// the construct also runs its mock model, so the tests never call Claude, and
-// email goes to the outbox.
+// email goes to the outbox. Constructs always use local rules.
 function checkTestEnvironment(
   databaseUrl: string = readTestDatabaseUrl(),
 ): TestDatabase {
   const database = checkTestDatabase(databaseUrl);
-  if (readConstructModel() !== "mock") {
-    throw new Error(
-      'CONSTRUCT_MODEL is not "mock", so the tests would run without their test scripts. The test commands load it from .env.test: copy it from .env.test.example.',
-    );
-  }
   checkEmailOutbox();
   return database;
 }

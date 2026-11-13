@@ -16,7 +16,6 @@ afterEach(() => vi.unstubAllEnvs());
 describe("use_case_spell_buckets", () => {
   test("commands cast the persistent spell and route subsequent messages until stopped", async () => {
     const { user, chat } = await signedInChat();
-    vi.stubEnv("CONSTRUCT_MODEL", "local");
     await constructReply(chat.id, "cast Brainstorm");
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
     await constructReply(chat.id, "Make a clay fox");
@@ -39,7 +38,6 @@ describe("use_case_spell_buckets", () => {
 
   test("replaying a saved message adds no second item and foreign access writes nothing", async () => {
     const { user, chat } = await signedInChat();
-    vi.stubEnv("CONSTRUCT_MODEL", "local");
     await constructReply(chat.id, "/brainstorm");
     await constructReply(chat.id, "Try origami");
     const message = (await listMessages(user.id, chat.id)).findLast(
@@ -71,7 +69,6 @@ describe("use_case_spell_buckets", () => {
 
 test("removed spells and cast stop never change the active spell", async () => {
   const { user, chat } = await signedInChat();
-  vi.stubEnv("CONSTRUCT_MODEL", "local");
   await constructReply(chat.id, "/brainstorm");
   await constructReply(chat.id, "cast ask-one-question");
   expect(await currentSpell(user.id, chat)).toBe("brainstorm");

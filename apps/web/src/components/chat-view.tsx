@@ -10,7 +10,6 @@ import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
-  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -34,10 +33,10 @@ import {
 } from "@/components/plan/use-plan.ts";
 import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
+import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import {
   PLAN_COMMAND_NAMES,
@@ -99,31 +98,10 @@ function takeBackRefusedMessage(
   runtime: AssistantRuntime,
 ): void {
   let refusedText: string | undefined;
-  const refusedImages: {
-    contentType: string;
-    type: "image";
-    name: string;
-    content: [{ type: "image"; image: string }];
-  }[] = [];
   chat.setMessages((messages: UIMessage[]): UIMessage[] => {
     const refused = messages.at(-1);
     if (refused?.role !== "user") {
       return messages;
-    }
-    for (const part of refused.parts) {
-      if (part.type === "file") {
-        refusedImages.push({
-          type: "image",
-          contentType: part.mediaType,
-          name: part.filename ?? "Image",
-          content: [
-            {
-              type: "image",
-              image: new URL(part.url, globalThis.location.origin).href,
-            },
-          ],
-        });
-      }
     }
     refusedText = refused.parts
       .filter(isTextUIPart)
@@ -134,9 +112,6 @@ function takeBackRefusedMessage(
   const { composer } = runtime.thread;
   if (refusedText !== undefined && composer.getState().text === "") {
     composer.setText(refusedText);
-  }
-  for (const image of refusedImages) {
-    composer.addAttachment(image).catch(() => undefined);
   }
 }
 
@@ -221,14 +196,12 @@ export function ChatView({
   questId,
   initialPlan,
   planActions,
-  mockCommands = NO_COMMANDS,
-  starter,
   spellName,
-  sideContent,
+  sideSections,
   initialSection,
 }: {
   spellName?: string | undefined;
-  sideContent?: ReactNode;
+  sideSections?: readonly WorkspaceSection[] | undefined;
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
@@ -243,12 +216,6 @@ export function ChatView({
   initialPlan?: PlanState | undefined;
   // The plan's Server Actions, which the page hands over in a quest chat.
   planActions?: PlanActions | undefined;
-  // The mock model's commands, which the composer lists too while it runs.
-  mockCommands?: readonly CommandListing[] | undefined;
-  // A prepared message offered beside the composer, such as the Dailies
-  // quest's Start the day: choosing it sends text as the viewer's own
-  // message, like any other, and leaves the draft in the composer.
-  starter?: { readonly label: string; readonly text: string } | undefined;
 }): JSX.Element {
   const router = useRouter();
   const replyCompletedRef = useRef(false);
@@ -288,7 +255,7 @@ export function ChatView({
     },
   });
   // Saved updates from another viewer replace the conversation without
-  // replacing the runtime that owns this viewer's draft and attachments.
+  // replacing the runtime that owns this viewer's draft.
   const savedMessagesRef = useRef(initialMessages);
   useEffect(() => {
     if (savedMessagesRef.current === initialMessages) {
@@ -377,9 +344,8 @@ export function ChatView({
     }
   }, [gold, router]);
   const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
-  const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
-  const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
-  const reattach = useComposerDraft(runtime, { viewer, chatId });
+  const runtime = useAISDKRuntime(chat);
+  useComposerDraft(runtime, { viewer, chatId });
   const replying = chat.status === "streaming" || chat.status === "submitted";
   const lastSaved = initialMessages.at(-1);
   const replyingElsewhere =
@@ -460,29 +426,21 @@ export function ChatView({
     if (planActions === undefined) {
       return undefined;
     }
-    let listings: readonly CommandListing[] = mockCommands;
+    let listings: readonly CommandListing[] = NO_COMMANDS;
     if (questId !== undefined) {
       listings = [
         ...PLAN_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
         ...SPELL_COMMANDS,
-        ...mockCommands,
       ];
     }
     return {
       listings,
-      mockCommands: mockCommands.length > 0,
       inQuest: questId !== undefined,
       run: runCommand,
     };
-  }, [mockCommands, planActions, questId, runCommand]);
-  const starterText = starter?.text;
+  }, [planActions, questId, runCommand]);
   const { sendMessage } = chat;
-  const sendStarter = useCallback((): void => {
-    if (starterText !== undefined) {
-      sendMessage({ text: starterText }).catch(() => undefined);
-    }
-  }, [sendMessage, starterText]);
   const stopSpell = useCallback((): void => {
     sendMessage({ text: "/stop" }).catch(() => undefined);
   }, [sendMessage]);
@@ -529,10 +487,6 @@ export function ChatView({
   if (replying || replyingElsewhere) {
     replyStop = { stopping, onStop: stop };
   }
-  let offeredStarter: { label: string; onStart: () => void } | undefined;
-  if (starter !== undefined && replyStop === undefined) {
-    offeredStarter = { label: starter.label, onStart: sendStarter };
-  }
   let openingMessageId: string | undefined;
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
@@ -546,7 +500,6 @@ export function ChatView({
   }
   const conversation = (
     <>
-      {reattach && <Notice role="status">{CHAT_COPY.reattach}</Notice>}
       {replyingElsewhere === true && (
         <Notice role="status">
           {CHAT_COPY.replyingElsewhere(constructName)}
@@ -566,7 +519,6 @@ export function ChatView({
         authorNames={authorNames}
         stop={replyStop}
         stopStatus={stopStatus}
-        starter={offeredStarter}
         spellStop={spellStop}
       />
     </>
@@ -579,7 +531,7 @@ export function ChatView({
           {plan !== undefined && (
             <PlanPanel
               initialSection={initialSection}
-              sideContent={sideContent}
+              sideSections={sideSections}
             >
               {conversation}
             </PlanPanel>

@@ -1,6 +1,5 @@
 "use client";
 
-import { Accordion } from "radix-ui";
 import {
   type JSX,
   type ReactNode,
@@ -16,6 +15,8 @@ import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import { usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import type { WorkspaceSection } from "@/components/workspace-section.ts";
+import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 
@@ -37,11 +38,11 @@ function serverWidth(): boolean {
 
 function PlanPanel({
   children,
-  sideContent,
+  sideSections,
   initialSection,
 }: {
   readonly children?: ReactNode;
-  readonly sideContent?: ReactNode;
+  readonly sideSections?: readonly WorkspaceSection[] | undefined;
   readonly initialSection?: string | undefined;
 }): JSX.Element {
   const plan = usePlan();
@@ -80,6 +81,15 @@ function PlanPanel({
     },
     [collapse],
   );
+  const sections: WorkspaceSection[] = [];
+  if (plan !== undefined) {
+    sections.push({
+      id: "plan",
+      label: PLAN_COPY.heading,
+      content: <PlanSteps />,
+    });
+  }
+  sections.push(...(sideSections ?? []));
   return (
     <div className="adventure-layout" data-sidebar-open={open}>
       <div className="adventure-main">{children}</div>
@@ -104,61 +114,28 @@ function PlanPanel({
         aria-label={QUEST_SIDEBAR_COPY.label}
       >
         <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
-          <div className="quest-sidebar-toolbar">
-            <span>{QUEST_SIDEBAR_COPY.heading}</span>
-            <Button
-              variant="quiet"
-              className="quest-sidebar-toggle"
-              aria-label={QUEST_SIDEBAR_COPY.collapse}
-              title={QUEST_SIDEBAR_COPY.collapse}
-              aria-expanded={open}
-              aria-controls={panelId}
-              onClick={collapse}
-            >
-              <Icon name="sidebar" />
-            </Button>
-          </div>
-          <Accordion.Root
-            type="multiple"
-            defaultValue={[initialSection ?? "plan"]}
-            className="quest-sidebar-sections"
-          >
-            {plan !== undefined && (
-              <QuestSidebarSection value="plan" name={PLAN_COPY.heading}>
-                <PlanSteps />
-              </QuestSidebarSection>
-            )}
-            {sideContent}
-          </Accordion.Root>
+          <WorkspaceTabs
+            label={QUEST_SIDEBAR_COPY.label}
+            sections={sections}
+            initialSection={initialSection ?? sections[0]?.id ?? ""}
+            navigation={
+              <Button
+                variant="quiet"
+                className="quest-sidebar-toggle"
+                aria-label={QUEST_SIDEBAR_COPY.collapse}
+                title={QUEST_SIDEBAR_COPY.collapse}
+                aria-expanded={open}
+                aria-controls={panelId}
+                onClick={collapse}
+              >
+                <Icon name="sidebar" />
+              </Button>
+            }
+          />
         </aside>
       </dialog>
     </div>
   );
 }
 
-// Sections stay mounted so collapsing the sidebar preserves unsaved edits.
-function QuestSidebarSection({
-  name,
-  value,
-  children,
-}: {
-  readonly name: string;
-  readonly value: string;
-  readonly children: ReactNode;
-}): JSX.Element {
-  return (
-    <Accordion.Item value={value}>
-      <Accordion.Header>
-        <Accordion.Trigger className="quest-sidebar-trigger">
-          {name}
-          <Icon name="chevron-down" />
-        </Accordion.Trigger>
-      </Accordion.Header>
-      <Accordion.Content forceMount={true} className="quest-sidebar-content">
-        {children}
-      </Accordion.Content>
-    </Accordion.Item>
-  );
-}
-
-export { PlanPanel, QuestSidebarSection };
+export { PlanPanel };

@@ -23,7 +23,7 @@ import {
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
-import type { UserId } from "@/ids.ts";
+import type { ChatId, UserId } from "@/ids.ts";
 
 // Only the latest successful, still-granted draft for this saved appearance is recoverable.
 async function latestDraftVisual(
@@ -291,11 +291,40 @@ async function getVisualAsset(
   return { mediaType: asset.mediaType, data: asset.data };
 }
 
+// Move an owned conversation's retained artwork to its empty replacement.
+async function moveConversationAssets(
+  owner: UserId,
+  tx: Transaction,
+  from: ChatId,
+  to: ChatId,
+): Promise<void> {
+  const destinations = await tx
+    .select({ id: chats.id })
+    .from(chats)
+    .where(and(chatOpenTo(owner), inArray(chats.id, [from, to])));
+  if (destinations.length !== 2) {
+    throw new AppError("not-found", undefined);
+  }
+  await tx
+    .update(constructAssetGrants)
+    .set({ adventureId: to })
+    .where(
+      and(
+        eq(constructAssetGrants.adventureId, from),
+        inArray(
+          constructAssetGrants.adventureId,
+          tx.select({ id: chats.id }).from(chats).where(chatOpenTo(owner)),
+        ),
+      ),
+    );
+}
+
 export {
   destinationGrant,
   getVisualAsset,
   grantVisualAssets,
   latestDraftVisual,
+  moveConversationAssets,
   previousVisualAvailable,
   visualAssetIds,
 };

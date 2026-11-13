@@ -136,7 +136,7 @@ describe("use_case_send_message", () => {
   });
 });
 
-test("restores an image reattach reminder without storing private media", async () => {
+test("restores legacy draft text without offering image uploads", async () => {
   const chatId = chatIdFixture();
   const viewer = userIdFixture();
   const key = `draft:chat:${viewer}:${chatId}`;
@@ -145,7 +145,11 @@ test("restores an image reattach reminder without storing private media", async 
     JSON.stringify({ text: "Unsent text", images: true }),
   );
   await openChat(chatId, viewer);
-  await expect.element(page.getByText(CHAT_COPY.reattach)).toBeVisible();
+  await expect
+    .element(
+      page.getByText("Attach them again before sending.", { exact: false }),
+    )
+    .not.toBeInTheDocument();
   await expect
     .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
     .toHaveValue("Unsent text");

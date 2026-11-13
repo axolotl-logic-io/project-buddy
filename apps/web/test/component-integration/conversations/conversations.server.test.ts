@@ -26,7 +26,10 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { listQuests, renameQuest } from "@/quests/store.ts";
-import { CONVERSATION_WINDOW } from "@/replies/conversation-to-answer.ts";
+import {
+  CONVERSATION_WINDOW,
+  conversationToAnswer,
+} from "@/replies/conversation-to-answer.ts";
 import {
   type Exchange,
   testData,
@@ -34,8 +37,8 @@ import {
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
-  constructReply,
   messageText,
+  question,
   sendChatMessage,
 } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -189,11 +192,14 @@ describe("a long conversation", () => {
     await data.exchanges(chat, exchanges);
     await signIn(user);
 
-    const recalled = await constructReply(chat.id, "/mock-recall oldkeyword");
-    const recent = await constructReply(chat.id, "/mock-recall newkeyword");
-
-    expect(messageText(recalled)).toContain("recalls nothing");
-    expect(messageText(recent)).toContain("The latest thing: newkeyword");
+    const answer = await conversationToAnswer(user.id, chat, question("help"));
+    expect(answer.kind).toBe("reply");
+    if (answer.kind !== "reply") {
+      throw new Error("Reply refused");
+    }
+    const history = answer.conversation.map(messageText).join("\n");
+    expect(history).not.toContain("oldkeyword");
+    expect(history).toContain("newkeyword");
     expect(messageText((await listMessages(user.id, chat.id))[0])).toContain(
       "oldkeyword",
     );

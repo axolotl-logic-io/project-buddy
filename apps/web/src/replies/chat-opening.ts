@@ -3,7 +3,6 @@ import type { NewMessage } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
-import type { QuotaGrant } from "@/quota/quota.ts";
 import { OPENING_REQUEST } from "@/replies/chat-kickoff.ts";
 import { replyModel } from "@/replies/model.ts";
 import {
@@ -17,7 +16,6 @@ const OPENING_TIMEOUT_MS = 30_000;
 
 interface ChatOpeningRequest {
   readonly construct: ConstructSnapshot;
-  readonly grant: QuotaGrant;
   readonly context: () => Promise<Omit<ReplyPromptContext, "construct">>;
 }
 
@@ -34,7 +32,6 @@ function openingMessage(text: string): NewMessage {
 // It is awaited whole rather than streamed, because the chat page shows it
 // once the chat exists.
 async function openingText(
-  grant: QuotaGrant,
   context: ReplyPromptContext,
 ): Promise<{ text: string } | { failure: unknown }> {
   try {
@@ -42,7 +39,7 @@ async function openingText(
     // with an error that only says no text came.
     let modelError: unknown;
     const result = streamText({
-      model: replyModel(grant),
+      model: replyModel(),
       instructions: renderReplyInstructions(context),
       messages: [
         {
@@ -75,10 +72,9 @@ async function openingText(
 
 async function chatOpening({
   construct,
-  grant,
   context,
 }: ChatOpeningRequest): Promise<NewMessage | undefined> {
-  const opening = await openingText(grant, {
+  const opening = await openingText({
     ...(await context()),
     construct,
   });

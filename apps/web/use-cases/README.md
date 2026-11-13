@@ -37,17 +37,10 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Next** lists cases the user might go on to, each with a hint about why she would.
 - The use cases describe the current product contract. Mark preserved legacy behavior explicitly; keep planned features separate until their behavior is agreed and distinguish them from available features. The completeness assessment is recorded in `docs/use-case-assessment.md` at the repository root.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
-- An Outcome item that only real Claude can show is marked *(checked by the real-Claude smoke test)*; the e2e test checks what the mock can.
 
-## Real-Claude smoke list
+## Local construct tests
 
-The Outcome items the mock cannot establish need a manual check with real Claude. Listing them here does not mean the check has passed:
-
-- [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): asked how to do something in Blender, the construct casts Blender manual lookup, then searches the Blender manual and cites what it read; it gives no Blender steps without a search.
-- [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
-- [`use_case_construct_records_milestone`](quests.md#use_case_construct_records_milestone): told she finished something meaningful in a quest adventure, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
-- [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): once she agrees on steps, or finishes one, the construct changes the plan with `change_plan`, adding only agreed steps, and never counts open steps or days.
-- [`use_case_customize_construct`](constructs.md#use_case_customize_construct): a conversation with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any quest or Chat can start with her own construct; its text is saved under the default construct's id.
+Every environment uses deterministic local commands. Tests exercise those commands directly; there is no mock model mode or separate provider smoke list. Browser tests use fixed saved messages to cover rich content from older conversations. Server tests call tool handlers and stores directly when checking their contracts, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Historical accounting and private artwork storage remain covered without provider requests.
 
 ## Areas
 

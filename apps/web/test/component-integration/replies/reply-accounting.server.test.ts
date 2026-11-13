@@ -22,7 +22,7 @@ import { signIn } from "../test-database/session-test-kit.ts";
 const COST = 123;
 
 describe("use_case_see_gold", () => {
-  test("reply costs include naming, retain fractions, and are private to the acting user", async () => {
+  test("local replies cost zero; historical image costs retain fractions and owner isolation", async () => {
     const [owner, formerMember] = await Promise.all([testUser(), testUser()]);
     const quest = await testData(owner).quest();
     const chat = await testData(owner).chat(quest);
@@ -31,7 +31,7 @@ describe("use_case_see_gold", () => {
     const [cost] = await readReplyCosts(owner.id, chat.id);
     expect(cost?.state).toBe("actual");
     expect(cost?.gold).toBe(goldOfMicroUsd(await goldSpent(owner)));
-    expect(cost?.gold).toBeGreaterThan(0);
+    expect(cost?.gold).toBe(0);
     if (cost === undefined) {
       throw new Error("Missing cost");
     }

@@ -2,7 +2,7 @@
 
 Each quest's **Ideas** section holds possibilities the user has not committed to. It sits beside Plan at `/quests/QUEST_ID?section=ideas`, where `QUEST_ID` is the quest's id. Only the quest's owner can read or change its ideas.
 
-Ideas share Plan’s compact editable-list component. Click an idea’s text to open the inline editor, then use Enter or **Save idea** to save, or Escape or **Cancel idea edit** to cancel. **Add idea** opens a new editor above the list. The row menu offers **Move to Plan** and **Remove idea**. Drag a row’s handle to reorder it, or focus the handle and use the arrow keys. Saved order survives reopening the quest. Each idea holds up to 200 characters. Ideas have no done state and stay separate from agreed Plan steps.
+Ideas share Plan’s compact editable-list component. Click an idea’s text to open the inline editor, then use Enter, **Save idea**, or click outside to save and close it. Clicking another idea also opens that editor. Escape or **Cancel idea edit** cancels. **Add idea** opens a new editor above the list and saves the new idea first. The row menu offers **Move to Plan** and **Remove idea**. Drag a row’s handle to reorder it, or focus the handle and use the arrow keys. Saved order survives reopening the quest. Each idea holds up to 200 characters. Ideas have no done state and stay separate from agreed Plan steps.
 
 **Move to Plan** adds the saved idea as an open step at the end of Plan and removes it from Ideas in one transaction. If Plan is full or the save fails, the idea stays available. Concurrent moves of the same idea create at most one step. Save edits before moving an idea.
 

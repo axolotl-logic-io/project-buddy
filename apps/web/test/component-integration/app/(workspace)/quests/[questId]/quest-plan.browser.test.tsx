@@ -263,3 +263,78 @@ describe("use_case_change_plan", () => {
     await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
   });
 });
+
+const OUTSIDE_PLAN = "Another field";
+
+test("clicking outside a Plan step saves and closes its edit without stealing focus", async () => {
+  const updated: PlanState = {
+    ...PLAN,
+    version: PLAN.version + 1,
+    plan: {
+      ...PLAN.plan,
+      steps: [
+        PLAN.plan.steps[0],
+        { number: 2, text: BRASS, done: false },
+      ].filter((step) => step !== undefined),
+    },
+  };
+  actions.changePlanAction.mockResolvedValue({
+    kind: "changed",
+    version: updated.version,
+    lines: [{ kind: "change", text: BRASS, from: SCULPT }],
+    state: updated,
+  });
+  await render(
+    <>
+      <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />
+      <input aria-label={OUTSIDE_PLAN} />
+    </>,
+  );
+  await page.getByRole("button", { name: PLAN_COPY.edit(SCULPT) }).click();
+  await page.getByRole("textbox", { name: PLAN_COPY.textLabel }).fill(BRASS);
+  const outside = page.getByRole("textbox", { name: OUTSIDE_PLAN });
+  await outside.click();
+  await expect
+    .element(page.getByRole("textbox", { name: PLAN_COPY.textLabel }))
+    .not.toBeInTheDocument();
+  expect(actions.changePlanAction).toHaveBeenCalledExactlyOnceWith({
+    questId: QUEST_ID,
+    chatId: undefined,
+    operations: [{ op: "change", step: 2, text: BRASS }],
+  });
+  await expect
+    .element(page.getByRole("button", { name: PLAN_COPY.edit(BRASS) }))
+    .toBeVisible();
+  await expect.element(outside).toHaveFocus();
+});
+
+test("Add a step puts the new step ahead of the existing steps", async () => {
+  const updated: PlanState = {
+    version: PLAN.version + 1,
+    plan: {
+      steps: [{ number: 3, text: BRASS, done: false }, ...PLAN.plan.steps],
+      nextNumber: 4,
+    },
+    undone: [],
+  };
+  actions.changePlanAction.mockResolvedValue({
+    kind: "changed",
+    version: updated.version,
+    lines: [{ kind: "add", text: BRASS, before: BLOCK_OUT }],
+    state: updated,
+  });
+  await render(
+    <QuestPlan questId={QUEST_ID} plan={PLAN} actions={PLAN_ACTIONS} />,
+  );
+  await page.getByRole("button", { name: PLAN_COPY.addPlaceholder }).click();
+  await page.getByRole("textbox", { name: PLAN_COPY.addLabel }).fill(BRASS);
+  await userEvent.keyboard("{Enter}");
+  expect(actions.changePlanAction).toHaveBeenCalledExactlyOnceWith({
+    questId: QUEST_ID,
+    chatId: undefined,
+    operations: [{ op: "add", text: BRASS, before: 1 }],
+  });
+  await expect
+    .element(openSteps().getByRole("listitem").first())
+    .toMatchTextContent(BRASS);
+});

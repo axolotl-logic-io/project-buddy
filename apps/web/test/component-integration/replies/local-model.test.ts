@@ -13,14 +13,12 @@ import {
   getConstruct,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { USER_ID } from "@/ids.ts";
 import { imageProvider } from "@/images/image-provider.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
 import { renderReplyInstructions } from "@/replies/system-prompt.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
-import { quotaGrantFixture } from "../quota/quota-test-kit.ts";
 
 const MAX_STEPS = 4;
 const SEARCH_STEPS = 3;
@@ -39,13 +37,11 @@ afterEach(() => {
 });
 
 test("production streams local help with configured credentials and no model usage", async () => {
-  vi.stubEnv("CONSTRUCT_MODEL", "");
   vi.stubEnv("VERCEL_ENV", "production");
   vi.stubEnv("ANTHROPIC_API_KEY", "unused");
   vi.stubEnv("OPENAI_API_KEY", "unused");
-  const owner = USER_ID.parse("00000000-0000-0000-0000-000000000001");
   const result = streamText({
-    model: replyModel(quotaGrantFixture(owner)),
+    model: replyModel(),
     prompt: "help",
   });
   const chunks: string[] = [];
