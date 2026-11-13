@@ -515,7 +515,7 @@ Conversations were previously called chats, then adventures. Use conversation an
 
 ### Premade quest
 
-One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name and starting context. The user chooses a construct and optionally fills in Why; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
+One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name and starting context. The user chooses a construct and, except for Dailies, optionally fills in Why; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
 
 - **UI:** “Dailies”, “Learn a thing”, “Make a thing”, “Do a thing”.
 - **Avoid:** "quest type", "template".

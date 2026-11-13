@@ -113,7 +113,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - Under Start a quest, they choose Dailies and start it, as in `use_case_new_quest`.
+  - Under Start a quest, they choose Dailies, choose a construct and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
   - They choose Start the day, beside the composer.
 - **Outcome:** Dailies is a quest like any other, with its name, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Start the day sends "Let's start the day." as their own message, in the same conversation, and the construct helps them notice what matters and choose one manageable next step. It is an ordinary message, charged as any other, and leaves the composer's draft. Nothing is cleared or reset: the conversation, Plan and status carry on from day to day. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
@@ -175,7 +175,7 @@ The user looks at the ways to start a quest without starting one.
 
 - **Prerequisites:** signed in on Quests.
 - **Steps:** under Start a quest, they read the four starting points, choose one, review its construct and optional Why, then cancel.
-- **Outcome:** Dailies, Learn a thing, Make a thing and Do a thing are tiles, each with an icon, its name and one short line on what it is for. A whole tile is one target, named by its starting point; there is no separate Choose button. Choosing one opens a modal dialog with what it is for in full, its construct and optional Why. The only setup fields are Construct and Why. Focus stays in the dialog until Cancel, Escape or a click outside closes it and returns focus to its tile. Opening and closing details makes no quest and no model call, and spends nothing. Once they have a Dailies quest, its tile opens it instead.
+- **Outcome:** Dailies, Learn a thing, Make a thing and Do a thing are tiles, each with an icon, its name and one short line on what it is for. A whole tile is one target, named by its starting point; there is no separate Choose button. Choosing one opens a modal dialog with what it is for in full and its construct. Learn a thing, Make a thing and Do a thing also offer an optional Why field; Dailies offers only Construct. Focus stays in the dialog until Cancel, Escape or a click outside closes it and returns focus to its tile. Opening and closing details makes no quest and no model call, and spends nothing. Once they have a Dailies quest, its tile opens it instead.
 
 ## use_case_rename_quest
 

@@ -1,6 +1,6 @@
 # Premade quests
 
-Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name and activity. The user chooses a construct and can add Why before starting. No quest is created and no batteries are spent while browsing or cancelling.
+Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name and activity. The user chooses a construct before starting. Learn a thing, Make a thing and Do a thing also offer an optional Why field. Dailies starts without asking for Why. No quest is created and no batteries are spent while browsing or cancelling.
 
 | Starting point | Activity |
 | --- | --- |
