@@ -4,15 +4,9 @@ This glossary records the domain language of Project Buddy: the words that users
 
 ## Core model
 
-Constructs currently run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Prompts and snapshots remain saved for compatibility; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
+Constructs currently run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Conversations keep their construct snapshots; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
 
-Three concepts shape every [conversation](#conversation):
-
-- A **[construct](#construct)** is who the user works with: a character with a voice and habits, chosen inside Start Quest; [Workshop](#workshop) holds their private definitions.
-- A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or casting a spell.
-- An **[activity](#activity)** is what the user and construct are doing together in a conversation, such as Brainstorm, Chat or Break Down a Project. The user chooses the first one when a quest starts; the construct can change it as the conversation goes on.
-
-Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
+Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Plan saves subsequent messages as agreed steps; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and the two read-only spells.
 
 A conversation is a [quest](#quest)'s one conversation or the user's private [Chat](#chat-destination). Both have the same abilities, except that only a quest has a plan, ideas and a progress timeline.
 
@@ -24,41 +18,41 @@ The product: a personal site where constructs help each user with their own ques
 
 ### Workshop
 
-The shared editor for constructs, activities and spells. It has no test drawer: a saved definition is tried in a quest or Chat.
+The shared page for editing constructs and inspecting Plan and Brainstorm. It has no test drawer: a saved definition is tried in a quest or Chat.
 
 ## Prompts and context
 
 ### Prompt
 
-Instructions for the model. A construct, activity or spell has a prompt. The application assembles prompts into messages sent to the model.
+Instructions describing a construct’s voice and habits. The application assembles these with shared rules and current quest context. The local engine responds to explicit commands rather than interpreting prompt prose.
 
-### Character Sheet, Activity Sheet, Spell Sheet
+### Character Sheet
 
-The generic headings in built-in and starter prompts: `# Character Sheet` for a construct, `# Activity Sheet` for an activity, and `# Spell Sheet` for a spell. The separate name identifies the definition; the sheet contains its instructions. These are prompt headings, not new names for constructs, activities or spells. Renaming a definition does not require editing its heading or identity instructions.
+The `# Character Sheet` heading in construct prompts. The name identifies the construct; the sheet contains its instructions. Renaming a construct does not require editing the heading.
 
-### Built-in construct, activity or spell
+### Built-in construct or spell
 
-A construct, activity or spell that ships with the site.
+A construct or one of the two fixed spells that ships with the site.
 
-### Own construct, activity or spell
+### Own construct
 
-A user's private, editable construct, activity or spell, made by copying another or creating one. Using it in a conversation gives no one else access to the original.
+A user’s private editable construct, created from starter instructions or by copying another construct. Using it in a conversation gives no one access to the original.
 
 ### Retire, Retirement, restore, delete forever
 
-To **retire** an own construct, activity, or spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new quest, a new activity entry, or a future spell cast. Existing conversation snapshots and past casts stay intact.
+To **retire** an own construct is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new quest. Existing conversation snapshots and past casts stay intact.
 
-**Retirement** is the central page listing the user's retired constructs, activities, and spells.
+**Retirement** is the central page listing the user's retired constructs.
 **Restore** makes the same definition available again, preserving its source, without charging batteries.
 **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
 ### Create, make a copy, edit, save, cancel
 
-**Create construct**, **Create activity** and **Create spell** make a private definition from starter instructions. **Make a copy** makes a private, editable copy of either a built-in or an own definition and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
+**Create construct** make a private definition from starter instructions. **Make a copy** makes a private, editable copy of either a built-in or an own definition and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
 
 **Edit** opens an own definition. **Save** stores its name and instructions. **Cancel** puts back the saved fields and clears the browser draft without changing saved data. Leaving the editor without Save or Cancel preserves draft recovery. These actions never start a quest. Creating, copying and saving prompt text spend no batteries; construct artwork keeps its explicit generation and battery rules. **Rename** means changing the name in the editor.
 
-- **UI:** "Create construct", "Create activity", "Create spell", "Make a copy", "Edit", "Save", "Cancel".
+- **UI:** "Create construct", "Make a copy", "Edit", "Save", "Cancel".
 - **Avoid:** "Craft", "Customize", "Clone" and "Tweak" as action labels. Internal identifiers and saved user text may retain earlier names.
 
 ### Message
@@ -77,11 +71,11 @@ A marker in a prompt that is replaced when its text is used. Substitution change
 
 ### Reset prompt or instructions
 
-Replace the draft prompt of an own construct, activity or spell with its built-in source or starter text. Undo reset restores the previous draft; only Save changes the saved instructions. The name and separate opening request or when-to-use description stay unchanged. Existing conversation snapshots and casts stay unchanged. A copy from no built-in source, such as one bought in the Marketplace before it was removed, resets to the starter text.
+Replace an own construct’s draft prompt with its built-in source or starter text. Undo reset restores the previous draft; only Save changes stored instructions. The name and visual description stay unchanged. Existing conversations retain their construct snapshots.
 
 ### Snapshot
 
-A preserved copy of a construct or activity's name and prompt, kept with a conversation. A conversation preserves its construct when it starts and its activity each time it enters an activity. Later edits to those originals do not change their snapshots. Current context, such as the Plan, can still change between replies.
+The construct name and definition saved when a conversation starts. Later changes to the original do not alter this copy. Current quest context and the active spell can change between replies.
 
 ### Harness
 
@@ -89,15 +83,15 @@ The application machinery around the model: it assembles context, makes model ca
 
 ### Global prompt
 
-Instructions that every conversation gets, whatever its construct and activity: the role, the shared rules, and the short rules for starting a quest and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the construct casts when they fit. Users cannot edit the global prompt.
+Shared instructions every conversation receives, including the role and rules for quests, Plan and milestones. Users cannot edit these rules.
 
 ## Constructs
 
 ### Workshop
 
-The single collection destination for inspecting built-in constructs, activities and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Quest starts keep their own construct choice. Old Constructs and Spellbook collection URLs redirect here.
+The single collection destination for inspecting built-in constructs and the two spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Quest starts keep their own construct choice. Old Constructs and Spellbook collection URLs redirect here.
 
-- **UI:** "Workshop", "Constructs", "Activities", "Spells".
+- **UI:** "Workshop", "Constructs", "Spells".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
 
 ### Construct
@@ -111,7 +105,7 @@ A construct is not a prompt; it has one.
 
 ### Construct code names
 
-Use **construct** in code, stored kinds and configuration. Own constructs, activities and spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`; the user’s saved preference is `interview_construct_id`. `CONSTRUCT_MODEL` selects local commands or the non-production test script.
+Use **construct** in code, stored kinds and configuration. Own constructs and the two spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`; the user’s saved preference is `interview_construct_id`. `CONSTRUCT_MODEL` selects local commands or the non-production test script.
 
 The nomenclature migrations transfer existing rows and references. Browser drafts use the construct key. New copies store current built-in wording. Historical built-in text records still let readers recognize unchanged older copies; user-written prompts and conversation snapshots retain their text.
 
@@ -133,117 +127,39 @@ How a construct talks, as described by its prompt.
 
 How a construct works with the user, as described by its prompt. Voice describes how it talks; habits describe how it helps.
 
-Habits hold the construct's personal style, which carries across every activity. Setting the scene and opening the conversation belong to the [activity](#activity), not to habits.
+Habits describe the construct’s personal style across conversations.
 
 - **Avoid:** "teaching rules".
-
-## Activities
-
-### Activity
-
-What the user and construct are doing together in a conversation, such as brainstorming ideas, breaking down a quest, conducting an interview or chatting. An activity has a [prompt](#prompt) that guides the construct. Users can customize built-in activities or write their own.
-
-A conversation has one [current activity](#current-activity). Its instructions guide the construct. Changing activities keeps the conversation and construct, but changes those instructions.
-
-Each activity has a name, a prompt and an [opening request](#activity-opening). The conversation saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
-
-An activity is internal instructions, not a destination. The site has no Activities page and no activity start action, and the user never picks an activity to start a quest: each [starting point](#premade-quest) begins in its own activity, and Chat begins in Chat. After that, the construct chooses from the acting user's built-in and own activities with its activity tool. The user customizes activities in the [Workshop](#workshop)'s Activities tab. Display name changes do not rename own activities or rewrite saved snapshots. Built-in instruction text and ids stay compatible, including `open-chat` for Chat.
-
-- **UI:** "Activity", "Activities" (the Workshop tab only).
-- **Avoid:** "mode", which is a theme setting, and "scene" outside explanations.
-
-### Find something to make
-
-A built-in activity for discovering a small achievable creative project, even when the user has no idea or inspiration source yet. It supports uncertainty and challenges as the user makes their project. It works in Chat or in a quest. Its stable id is `find-something-to-make`.
-
-- **UI:** "Find something to make".
-
-### Current activity
-
-The activity a conversation is in now. A quest starts in its starting point's activity; only the construct changes it after that, with its activity tool.
-
-### Activity session
-
-The stretch of a conversation spent in one activity, from the message where the activity started until the next change. A conversation with no session is in the Chat activity.
-
-### Activity opening
-
-A separate prompt belonging to the activity that tells the construct how to open a new conversation when there is no [prepared opening](#prepared-opening).
-
-- **UI:** "Opening request".
-
-### Built-in activity
-
-An activity that ships with the site.
-
-### Own activity
-
-A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or crafting one.
-
-### Break Down a Project
-
-The built-in activity that helps the user split a goal into milestones and small next steps. It can run with no quest, an existing quest or a new quest. Do a thing starts in it.
-
-- **UI:** "Break Down a Project".
-
-### Interview (retired)
-
-An earlier built-in activity. It is no longer offered for new quests; older links and activity requests lead to Break Down a Project.
-
-### New quest construct
-
-The account setting that defaults the construct for a new quest's conversation, initially Vellum. The user can change it before starting. Existing conversation snapshots stay unchanged. The internal `interview` identifiers remain compatible.
-
-- **UI:** "New quest construct".
-
-### Brainstorm
-
-The built-in activity for exploring an idea, questioning assumptions and making decisions.
-
-- **UI:** "Brainstorm".
-
-### Chat
-
-The built-in activity with no set scene. It is the default when the user picks no activity. It has the `open-chat` id. Not to be confused with the [Chat destination](#chat-destination).
-
-- **UI:** "Chat".
 
 ## Spells
 
 ### Spell
 
-Reusable guidance with a [prompt](#prompt) that the construct loads only when it fits. A spell has a name, a [when-to-use](#when-to-use) description and a prompt, shown as [instructions](#instructions-of-a-spell). The name and when-to-use description help select the spell; they are separate from its prompt. Every conversation's instructions list the user's spells by id, name and when-to-use line, and the construct [casts](#cast) one to load its instructions. A spell grants no tools: its instructions may only say how to use the tools every conversation has.
+A persistent mode in an owned quest conversation. **Plan** saves subsequent ordinary messages as open Plan steps; **Brainstorm** saves them in Ideas. These are the only two spells. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
-Built-in spells are read-only. The user can make, edit and delete their own spells.
-
-- **UI:** "Spell", "Spells".
-- **Avoid:** "skill", "macro", "recipe".
-
-### When to use
-
-A description of when the construct should cast a [spell](#spell). The construct sees this beside the spell's name before casting it.
-
-- **UI:** "When to use".
-- **Avoid:** "trigger", "description".
-
-### Instructions (of a spell)
-
-A [spell](#spell)'s prompt: what the construct does once it casts the spell. Casting makes these instructions available to the construct. An activity's prompt guides the conversation throughout its current activity session.
-
-- **UI:** "Instructions".
+Workshop’s Spells tab opens read-only explanations. Spells have no editable prompt or custom definition.
 
 ### Cast
 
-To make a spell's instructions available to the construct. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that conversation. They are not exposed as readable prompts to people viewing the conversation.
+Set the conversation’s active spell. `cast plan` and `cast brainstorm` work with or without a leading slash. The shorter `plan` and `brainstorm` commands work too. Casting the other spell replaces the current one without moving earlier items.
 
-- **UI:** "Cast SPELL NAME".
-- **Avoid:** "invoke", "run", "load" in copy.
+- **UI:** "Cast Plan", "Cast Brainstorm".
+
+### Stop spell
+
+Clear the active spell and return to ordinary conversation commands. Choose **Stop Plan** or **Stop Brainstorm** beside the composer, or type `stop`.
+
+### New quest construct
+
+The account setting that defaults the construct for a new quest’s conversation, initially Vellum. The user can choose another before starting. Existing conversations keep their saved construct.
+
+- **UI:** "New quest construct".
 
 ## Conversations
 
 ### Conversation
 
-The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner alone, and each user has one private [Chat](#chat-destination). Starting a conversation again reaches the same one; reading a quest never starts one. Changing activity keeps the conversation.
+The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner alone, and each user has one private [Chat](#chat-destination). Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
 
 - **UI:** the quest's or Chat's own page; no list of conversations and no conversation names.
 - **Avoid:** "adventure", "thread", "session", and any second conversation in a quest.
@@ -269,13 +185,7 @@ A quest is Active, Completed or Abandoned. Completed means the user has finished
 
 ### Opening
 
-The construct's first message in a new quest's conversation: its [prepared opening](#prepared-opening), if it has one, or else one the construct writes, as the [activity opening](#activity-opening) of its first activity says. The private Chat starts empty.
-
-- **Avoid:** "synopsis", "first question". Use "opening request" for the prompt that asks for an opening.
-
-### Prepared opening
-
-An opening written ahead of time for a built-in construct in a built-in activity, so the conversation starts at once, without a model call. A construct or activity of the user's own whose prompts are unchanged from built-in ones, such as a copy the user has only renamed, gets the built-in one's. An edited one has none, so its construct writes the opening.
+The construct’s first message in a new quest conversation, generated from the shared greeting request with the quest’s starting context. Private Chat starts empty. New conversations have no active spell.
 
 ### Check-in (removed)
 
@@ -311,14 +221,14 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its plan and progress timeline. A quest can be about any subject and starts from a [premade quest](#premade-quest), with an activity and a construct.
+Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its plan and progress timeline. A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
 
 ### Start a quest
 
-One of the two ways to create a quest: the shared form that offers the four [premade quests](#premade-quest) as tiles, each one target with its name and a one-line tagline, then the chosen one's name, starting context and construct to edit and confirm. Every link that starts a quest opens this same form; no construct or activity page has a start of its own. Browsing or closing it creates nothing and spends nothing.
+One of the two ways to create a quest: the shared form that offers the four [premade quests](#premade-quest) as tiles, each one target with its name and a one-line tagline, then the chosen one's name, starting context and construct to edit and confirm. Every link that starts a quest opens this same form; no construct page has a start of its own. Browsing or closing it creates nothing and spends nothing.
 
 - **UI:** "Start a quest".
 - **Avoid:** "New quest" as a separate flow, "Explore".
@@ -371,9 +281,9 @@ The one small thing the user means to do next in a quest: the first open [step](
 - **UI:** "Next step".
 - **Avoid:** "todo", "task", "action item" as names for this concept.
 
-### Current Activity
+### Active spell
 
-The conversation's saved state. `brainstorm` enters Brainstorm and saves subsequent messages as Ideas. `plan` enters Plan and saves subsequent messages as open steps. Commands accept an optional `/`. **Stop [Activity]**, or `stop`, returns to Chat. Switching Activities never moves earlier messages between buckets.
+The conversation’s saved mode: Plan, Brainstorm or no spell. `cast plan` and `cast brainstorm` set it; `plan` and `brainstorm` are shorter forms. Commands accept an optional `/`. **Stop [Spell]**, or `stop`, returns to Chat. Switching spells never moves earlier messages between buckets.
 
 ### Ideas
 
@@ -413,7 +323,7 @@ A message that starts with "/" and a name, such as `/done 3`, which the site run
 
 ### Tool
 
-A function the model can call during a reply. Tools are available across activities, subject to their requirements: changing the plan and recording a milestone require a quest. An activity guides what the user and construct are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
+A function the model can call during a reply. Tools are subject to their requirements: changing the plan and recording a milestone require a quest. A spell controls message capture without granting tools.
 
 ### Tool part
 
@@ -500,7 +410,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it, and the only user who can reach it ([personal quest](#personal-quest)).
 
-Ownership and access are distinct: own constructs, activities, spells, quests and batteries belong to individual users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs, quests and batteries belong to individual users. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
@@ -597,15 +507,15 @@ A model provider account's prepaid balance. Provider credit is separate from eac
 
 ### Bought copy
 
-A construct, activity or spell a user bought in the Marketplace, which the site no longer has, or cloned from one. It is an ordinary own definition: the user can use, edit, reset, clone, retire, restore and delete it. Its tools stay the user's own, so it can't reach anyone else's data.
+A construct a user bought in the Marketplace, which the site no longer has, or cloned from one. It is an ordinary own definition: the user can use, edit, reset, clone, retire, restore and delete it. Its tools stay the user's own, so it can't reach anyone else's data.
 
 ## Conversation names
 
-Conversations were previously called chats, then adventures. Use conversation and Chat in new product copy and prompts. Existing `chat`/`chats` code and storage names refer to conversations. The Chat activity keeps its `open-chat` id.
+Conversations were previously called chats, then adventures. Use conversation and Chat in new product copy and prompts. Existing `chat`/`chats` code and storage names refer to conversations.
 
 ### Premade quest
 
-One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name, starting context and its own activity. The user chooses a construct and optionally fills in Why; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
+One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name and starting context. The user chooses a construct and optionally fills in Why; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
 
 - **UI:** “Dailies”, “Learn a thing”, “Make a thing”, “Do a thing”.
 - **Avoid:** "quest type", "template".

@@ -31,9 +31,7 @@ const KEPT_DRAFT = z.object({
   beforeReset: z.string().optional(),
 });
 
-// One of the prompt's texts, such as a construct's prompt or an activity's
-// opening request: its field's name, label and help, its saved text, and
-// its limit, if it has one.
+// One editable text field, with its label, help, saved value and optional limit.
 interface PromptEditorText {
   readonly name: string;
   readonly label: string;
@@ -84,22 +82,9 @@ const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
   restored: PROMPT_COPY.restored,
 };
 
-// The editor of one of the user's own constructs, activities or spells: its
-// name, then its texts under its instructions heading, with Save. Nothing changes
-// the saved prompt but Save.
-// - Save refuses a name that is empty or only spaces, saying so beside the
-//   name, which gets focus; what she typed stays.
-// - Reset prompt to default puts defaultPrompt in the text named "prompt",
-//   leaving the others, and says it isn't saved yet, with Undo reset, which
-//   puts back what the text held before.
-// - Her changes are kept in this browser until she saves or discards them
-//   (local-draft.ts), so leaving the page, reloading or closing it loses
-//   nothing: back on the page, the editor shows them again and says so. A
-//   draft based on an older save than savedAt, the time of the save the
-//   page shows, is dropped. Discard changes puts back the saved prompt.
-// action receives the prompt's id as idName, the name as `name`, and each
-// text by its field's name. The page keys the editor by savedAt, so a save
-// starts it afresh.
+// Saves an own construct’s name and text fields. Drafts survive navigation in
+// this browser until Save or Cancel; a newer savedAt invalidates an older draft.
+// Reset affects only the prompt draft and can be undone before saving.
 function PromptEditor({
   action,
   kind,

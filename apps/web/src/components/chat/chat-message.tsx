@@ -117,7 +117,7 @@ function ChatMessage({
   construct,
   destination,
   opening,
-  activityAllowed,
+  progressAllowed,
   authorName,
 }: {
   role: Role;
@@ -125,7 +125,7 @@ function ChatMessage({
   construct: ConstructSnapshot;
   destination: VisualDestination;
   opening: boolean;
-  activityAllowed: boolean;
+  progressAllowed: boolean;
   authorName?: string | undefined;
 }): JSX.Element {
   const look = MESSAGE_LOOKS[role];
@@ -133,7 +133,7 @@ function ChatMessage({
     messageProgress(message),
   );
   let progress = runningProgress;
-  if (!activityAllowed) {
+  if (!progressAllowed) {
     progress = "done";
   }
   const constructName = construct.name;

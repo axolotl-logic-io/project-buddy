@@ -39,7 +39,7 @@ The site cannot load or save the user's quests and adventures.
 
 ## use_case_start_without_claude
 
-The user starts a quest or an adventure, with a construct or an activity of her own that she has edited, while Claude is unavailable, so the construct can't write the adventure's opening. An adventure with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
+The user starts a quest while the opening cannot be written. No quest is saved, and the form keeps their edits for another attempt.
 
 - **Prerequisites:** [`use_case_new_quest`](quests.md#use_case_new_quest) or [`use_case_standalone_chat`](chats.md#use_case_standalone_chat).
 - **Steps:**

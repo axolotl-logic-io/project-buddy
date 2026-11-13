@@ -4,7 +4,7 @@ The signed-in pages below group related content under the site header's trail ba
 
 | Page | Navigation | Actions and state |
 | --- | --- | --- |
-| Workshop | Constructs, Activities, Spells | Each kind lists built-ins and private definitions with inspection, Create, Make a copy, Edit and Retire. Retirement remains the destination for restore and permanent deletion. Old collection URLs redirect to Workshop. |
+| Workshop | Constructs, Spells | Constructs keeps Create, Make a copy, Edit and Retire. Spells explains only Plan and Brainstorm, with no creation or editing controls. Retirement remains the destination for restore and permanent deletion. Old collection URLs redirect to Workshop. |
 | Library | Book links, then a chapter index beside the reading | The index opens Getting Started. Existing book routes, chapter anchors, action links and related books remain available. Chapters stack below the index on phones. |
 | Settings | Profile, Appearance, New quest construct, Batteries, Security on one page | Forms and feedback stay visible. Appearance changes this browser's mode. Batteries keeps balance, purchase options and payment status. Security keeps both sign-out actions; loading and error states also offer sign-out. Old Account URLs preserve queries and reach the corresponding content. |
 | Quest | Conversation with an accordion side menu | Plan, Ideas and Progress share a side menu, with Minimize, Medium and Full screen controls. On phones the menu sits above the conversation. Full screen opens a modal with keyboard focus contained; Escape returns to Medium. Accordion sections and size changes keep drafts mounted. The construct portrait and Quest actions remain in the compact header; the section navigation rail is removed. |

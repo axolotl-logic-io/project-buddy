@@ -89,10 +89,6 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
 vi.mock("@/constructs/own-construct-choices.ts", () => ({
   ownConstructChoices: () => Promise.resolve([]),
 }));
-vi.mock(
-  "@/activities/activity-choices.ts",
-  () => import("../../../../activities/activity-choices-test-kit.ts"),
-);
 
 // The widest the page's column grows: from the xl breakpoint, the quest's
 // conversation and its plan sit side by side.

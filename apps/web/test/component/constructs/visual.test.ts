@@ -1,6 +1,4 @@
 import { expect, test } from "vitest";
-import { getActivity } from "@/activities/index.ts";
-import { preparedOpening } from "@/activities/prepared-openings.ts";
 import {
   parseConstructDefinition,
   storedConstructPrompt,
@@ -11,7 +9,6 @@ import {
   constructVisualSource,
   resolveConstructVisual,
 } from "@/constructs/visual.ts";
-import { currentConstructText } from "@/prompts/earlier-built-in-texts.ts";
 
 const GENERATED = {
   version: 1,
@@ -54,7 +51,7 @@ test("built-in face framing differs from the complete portrait", () => {
   }
 });
 
-test("visual edits survive storage compatibility without changing prepared openings", () => {
+test("visual edits survive storage and construct snapshots", () => {
   const builtIn = getConstruct("lumen");
   const definition = { ...builtIn.definition, visual: GENERATED };
   const stored = storedConstructPrompt(definition);
@@ -63,11 +60,9 @@ test("visual edits survive storage compatibility without changing prepared openi
   if (parsed === undefined) {
     throw new Error("Stored construct was lost");
   }
-  const restored = currentConstructText(parsed);
+  const restored = parsed;
   expect(restored).toEqual(definition);
-  expect(preparedOpening(restored, getActivity("open-chat").definition)).toBe(
-    preparedOpening(builtIn.definition, getActivity("open-chat").definition),
-  );
+
   expect(
     snapshotOf({ name: "Bird", definition: restored }).definition.visual,
   ).toEqual(GENERATED);

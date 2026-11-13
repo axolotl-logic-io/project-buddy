@@ -9,9 +9,6 @@ import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
-import { enterActivity } from "@/activities/activity-sessions.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { addManualSections } from "@/blender-manual/manual-index.ts";
 import type { ManualSection } from "@/blender-manual/manual-sections.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
@@ -61,7 +58,6 @@ interface TestData {
   // voice edited, so it has no prepared opening and writes its own.
   readonly editedConstruct: () => Promise<OwnConstruct>;
   // Makes the chat, a quest chat, its quest's interview chat.
-  readonly interviewChat: (chat: { readonly id: ChatId }) => Promise<void>;
   // Saves the exchanges in the chat, one after another, so they keep their
   // order.
   readonly exchanges: (
@@ -102,15 +98,6 @@ function uniqueSuffix(): string {
 
 // Puts the owner's chat in the quest interview from its start, as the
 // chat a quest is created with is: its quest's interview chat.
-async function setInterviewChat(owner: UserId, chatId: ChatId): Promise<void> {
-  await enterActivity(
-    owner,
-    chatId,
-    builtInActivity(INTERVIEW_ACTIVITY_ID),
-    undefined,
-  );
-}
-
 async function saveExchanges(
   owner: UserId,
   chatId: ChatId,
@@ -180,8 +167,6 @@ function testData(user: User): TestData {
     ): Promise<QuestChat> =>
       createChat(user.id, { quest, construct: getConstruct(constructId) }),
     editedConstruct: (): Promise<OwnConstruct> => testEditedConstruct(user.id),
-    interviewChat: (chat: { readonly id: ChatId }): Promise<void> =>
-      setInterviewChat(user.id, chat.id),
     exchanges: (
       chat: { readonly id: ChatId },
       exchanges: readonly Exchange[],

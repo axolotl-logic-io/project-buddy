@@ -1,11 +1,4 @@
-// What happens to a reply once its stream ends: a completed reply is saved,
-// without its provider bookkeeping or the instructions of an activity it
-// entered; a reply that isn't saved releases its message's
-// claim (claimReply in src/chats/store.ts), so the browser can send the
-// message again at once.
-
 import type { UIMessage, UIMessageStreamOnEndCallback } from "ai";
-import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { releaseReply, saveReply } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
@@ -54,9 +47,7 @@ async function endReply(
     return false;
   }
   try {
-    const savedReply = withoutActivityInstructions(
-      withoutProviderBookkeeping(responseMessage),
-    );
+    const savedReply = withoutProviderBookkeeping(responseMessage);
     await saveReply(actingUser, chat.id, savedReply, answeredId);
     await accountingFinished?.();
     return true;
