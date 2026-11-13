@@ -98,6 +98,75 @@ describe("use_case_quest_ideas", () => {
     expect(await listIdeas(owner.id, quest.id)).toEqual([idea]);
   });
 
+  test("idea order persists, new ideas append, and reordering stays owner-scoped", async () => {
+    const owner = await testUser();
+    const quest = await testData(owner).quest();
+    await signIn(owner);
+    await changeIdeaAction({ op: "add", questId: quest.id, text: "First" });
+    await changeIdeaAction({ op: "add", questId: quest.id, text: "Second" });
+    await changeIdeaAction({ op: "add", questId: quest.id, text: "Third" });
+    const [first, second, third] = await listIdeas(owner.id, quest.id);
+    expect(
+      await changeIdeaAction({
+        op: "reorder",
+        questId: quest.id,
+        id: third?.id,
+        before: first?.id,
+      }),
+    ).toEqual({ kind: "saved" });
+    expect(await listIdeas(owner.id, quest.id)).toEqual([third, first, second]);
+    await changeIdeaAction({ op: "add", questId: quest.id, text: "Fourth" });
+    const after = await listIdeas(owner.id, quest.id);
+    expect(after.map((idea) => idea.text)).toEqual([
+      "Third",
+      "First",
+      "Second",
+      "Fourth",
+    ]);
+    expect(
+      await changeIdeaAction({
+        op: "reorder",
+        questId: quest.id,
+        id: third?.id,
+      }),
+    ).toEqual({ kind: "saved" });
+    const moved = await listIdeas(owner.id, quest.id);
+    expect(moved.map((idea) => idea.text)).toEqual([
+      "First",
+      "Second",
+      "Fourth",
+      "Third",
+    ]);
+    const stranger = await testUser();
+    await signIn(stranger);
+    expect(
+      await changeIdeaAction({
+        op: "reorder",
+        questId: quest.id,
+        id: first?.id,
+        before: second?.id,
+      }),
+    ).toMatchObject({ kind: "problem" });
+    expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
+    const otherQuest = await testData(stranger).quest();
+    await changeIdeaAction({
+      op: "add",
+      questId: otherQuest.id,
+      text: "Foreign",
+    });
+    const [foreign] = await listIdeas(stranger.id, otherQuest.id);
+    await signIn(owner);
+    expect(
+      await changeIdeaAction({
+        op: "reorder",
+        questId: quest.id,
+        id: first?.id,
+        before: foreign?.id,
+      }),
+    ).toMatchObject({ kind: "problem" });
+    expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
+  });
+
   test("a full Plan keeps the idea available after a refused move", async () => {
     const user = await testUser();
     const quest = await testData(user).quest();

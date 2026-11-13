@@ -45,7 +45,7 @@ export function QuestList({
           <Icon name="chevron-right" />
           {quest.status !== "active" && (
             <div className="quests-index-restore">
-              <QuestStatusControls quest={quest} restoreOnly={true} />
+              <QuestStatusControls quest={quest} />
             </div>
           )}
         </li>

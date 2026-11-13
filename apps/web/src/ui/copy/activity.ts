@@ -21,10 +21,9 @@ const ACTIVITY_COPY = {
 
 const QUEST_SIDEBAR_COPY = {
   label: "Quest side menu",
-  size: "Side menu size",
-  minimize: "Minimize",
-  medium: "Medium",
-  full: "Full screen",
+  heading: "Quest",
+  expand: "Open quest sidebar",
+  collapse: "Collapse quest sidebar",
 };
 
 export { ACTIVITY_COPY, QUEST_SIDEBAR_COPY };

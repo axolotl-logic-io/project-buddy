@@ -1,8 +1,8 @@
 # Quest status
 
-A quest starts Active. Its owner can mark it Completed or Abandoned with Finish Quest and Abandon Quest in the Quest actions menu beside the section tabs. Both choices keep the conversation, Plan and progress available. No one else can change its status.
+A quest starts Active. Its owner can mark it Completed or Abandoned by typing `/complete` or `/abandon` in its conversation. Both commands keep the conversation, Plan and progress available. No one else can change its status.
 
-Quests has an underlined tab rail for Active, Completed and Abandoned quests, below the four starting points, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the quest page offers the same action. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
+Quests has an underlined tab rail for Active, Completed and Abandoned quests, below the four starting points, with Active selected by default. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner; the conversation offers `/restore`. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
 Home features only Active quests. Quest choices, such as an activity's start, offer only the user's own Active quests. Completing or abandoning removes a quest from subsequent choices; restoring it makes it available again. A quest's conversation remains available to continue, including in Completed and Abandoned quests. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
 
@@ -20,7 +20,7 @@ Reply instructions include the requesting owner’s latest proposal decision in 
 
 ## Quest workspace
 
-The quest has a compact header under the site header’s trail band, whose heading is the quest’s title. Conversation, Plan and Progress navigation shares one row with a three-dot Quest actions button. The current page has an underlined link. On phones, the section links scroll within their row. The current status and its actions appear only when Quest actions is open. Conversation, the default, follows the header at the page's full width, with its composer. Its construct portrait sits immediately before Conversation in the pinned section row, without a name or a separate row. Other sections appear in a panel below the header.
+The quest’s conversation starts below the site header’s trail band, whose heading is the quest’s title. Plan, Ideas and Progress share the conversation’s accordion side menu. Type `/` in the composer to find `/complete`, `/abandon` and `/restore`. These commands change the whole quest without a construct reply or battery cost. They take no arguments. Conversation, the default, follows the trail band with its composer and no separate portrait bar. The sidebar sits flush with the right page edge on wide screens. A panel icon opens or collapses it. On phones it starts collapsed and opens as a drawer; closing it keeps drafts and returns focus to the toggle.
 
 The owner can choose the pencil beside the quest name in the trail band to open the title editor in a dialog. Save title or Enter saves a trimmed name of up to 80 characters, and the band's heading and parent link show it. Cancel title edit or Escape discards the draft, and focus returns to Rename. Invalid names and storage failures keep the draft open for correction.
 

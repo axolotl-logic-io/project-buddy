@@ -9,7 +9,7 @@ import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { questConversation } from "./quest-conversation.tsx";
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
-// the conversation's pinned header and composer both stay above it.
+// the composer stays above it.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
@@ -35,13 +35,6 @@ export default async function QuestPage({
   }
   const conversation = await questConversation(quest, user.id, current);
   return (
-    <QuestWorkspace
-      quest={quest}
-      current={current}
-      conversation={conversation.content}
-      navigationStart={conversation.portrait}
-    >
-      {statusNotice}
-    </QuestWorkspace>
+    <QuestWorkspace conversation={conversation}>{statusNotice}</QuestWorkspace>
   );
 }

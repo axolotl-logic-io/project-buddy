@@ -12,6 +12,7 @@ import {
   type JSX,
   type ReactNode,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -32,6 +33,7 @@ import {
   PlanContext,
   usePlanController,
 } from "@/components/plan/use-plan.ts";
+import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
@@ -62,6 +64,7 @@ import {
   PLAN_COPY,
   PLAN_PANEL_COPY,
 } from "@/ui/copy/plan.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 function pairedReplyCosts(
   messages: readonly UIMessage[],
@@ -392,10 +395,8 @@ export function ChatView({
     chat.status === "ready" &&
     chat.messages.at(-1)?.id === stoppedReplyId;
   const replyFailed = chat.status === "error" && refusal === undefined;
-  // The plan's controls here wait while the newest message awaits a reply:
-  // a plan message saved after it would end the conversation its reply, a
-  // retry or "send again" answers. The server refuses one too
-  // (src/chats/store.ts, chatAwaitsReply).
+  // Plan controls wait while the newest message awaits a reply, keeping
+  // the plan stable for the reply and any retry. The server checks too.
   let planDisabledNote: string | undefined;
   if (replying || replyingElsewhere) {
     planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
@@ -421,9 +422,9 @@ export function ChatView({
     disabledNote: planDisabledNote,
     newestCardId: newestPlanCard(chat.messages),
     observed,
-    onMessage: addMessage,
   });
   const receivePlan = plan?.receive;
+  const publishStatus = useContext(StatusFeedbackContext);
   const runCommand = useCallback(
     async (text: string): Promise<string | undefined> => {
       const result = await planActions?.command({ chatId, text });
@@ -431,6 +432,9 @@ export function ChatView({
         return CHAT_COMMANDS_COPY.failed;
       }
       switch (result.kind) {
+        case "quest-status":
+          publishStatus?.(result.feedback);
+          return undefined;
         case "problem":
           return result.text;
         case "not-found":
@@ -449,7 +453,7 @@ export function ChatView({
           return result satisfies never;
       }
     },
-    [addMessage, chatId, planActions, receivePlan],
+    [addMessage, chatId, planActions, receivePlan, publishStatus],
   );
   // Without the plan's actions, as in a test of the conversation alone, the
   // composer runs no commands and sends every message.
@@ -461,6 +465,7 @@ export function ChatView({
     if (questId !== undefined) {
       listings = [
         ...PLAN_COMMAND_LISTINGS,
+        ...QUEST_STATUS_COPY.commands,
         ...ACTIVITY_COMMANDS,
         ...mockCommands,
       ];

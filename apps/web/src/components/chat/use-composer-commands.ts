@@ -30,6 +30,9 @@ const WHOLE_COMMANDS: ReadonlySet<string> = new Set([
   "/stop",
   "/undo",
   "/done",
+  "/complete",
+  "/abandon",
+  "/restore",
 ]);
 
 interface ComposerCommands {

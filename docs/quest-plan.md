@@ -6,7 +6,7 @@ Each quest has a plan: its ordered steps of remaining work, which the construct 
 
 A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the plan's first open step. The Plan panel shows the remaining work. A new quest starts with an empty Plan.
+The next step is the plan's first open step. Plan shows the remaining work as compact todo rows, with no separate duplicate next-step card. Click text to edit inline; Enter saves and Escape cancels. Add a step opens a new editor above the list. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable step number. A new quest starts with an empty Plan.
 
 ## Operations
 
@@ -36,7 +36,7 @@ The conversation shows each call as a **Plan change** with Undo (`src/components
 People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
 
 - The quest page's **Plan** section, `/quests/QUEST_ID?section=plan`, where `QUEST_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
-- The **Plan accordion** in the quest side menu, alongside Ideas and Progress. Minimize, Medium and Full screen control its size. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
+- The **Plan accordion** in the quest side menu, alongside Ideas and Progress. Edits and Undo update the Plan and show feedback in the sidebar, without adding conversation messages. A panel icon opens or collapses the sidebar. It docks to the right edge on wide screens and opens as a drawer on phones. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |
@@ -52,9 +52,13 @@ People change the plan through the Server Actions in `src/plan/plan-actions.ts`.
 
 `STEP` is the step's number, with or without "#". In a quest's conversation, any message that starts with "/" and a name runs as a command: an unknown one says so under the message box and keeps the text. In a standalone conversation, only a plan command's name runs, and says it needs a quest; any other "/word" message goes to the construct as written. While the mock model runs, its own `/mock-…` commands are listed too and still go to it as messages (`src/replies/mock-command-listings.ts`), so tests can drive `change_plan` with `/mock-tool change_plan …`.
 
-A change made in a conversation, by the panel, a card or a command, is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, a conversation's naming or a reply's cost. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. A change made on the quest's page adds no message.
+A change made by a command is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, a conversation's naming or a reply's cost. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. Direct changes and Undo from the sidebar, quest page or a saved card add no message. Their saved Plan versions remain available, and the construct reads the current Plan on its next reply.
 
 Only the quest's owner can change its plan. Each change records its author.
+
+## Shared list controls
+
+Plan and Ideas use `src/components/ui/editable-list.tsx` for rows, inline editing, adding, action menus and pointer or keyboard reordering. Domain modules validate text and save their own operations. A failed save keeps the editor and its draft open. Sidebar changes stay out of conversation history.
 
 ## Storage
 

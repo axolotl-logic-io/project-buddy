@@ -1,7 +1,6 @@
 import type { JSX } from "react";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import { QuestSidebarSection } from "@/components/plan/plan-panel.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
@@ -33,17 +32,15 @@ async function questConversation(
   quest: Quest,
   viewer: UserId,
   section = "plan",
-): Promise<{ readonly content: JSX.Element; readonly portrait?: JSX.Element }> {
+): Promise<JSX.Element> {
   const conversation = await readQuestConversation(viewer, quest.id);
   if (conversation === undefined) {
-    return {
-      content: (
-        <div className="flex flex-col items-start gap-3">
-          <Notice>{QUEST_CONVERSATION_COPY.notStarted}</Notice>
-          <StartConversationForm questId={quest.id} />
-        </div>
-      ),
-    };
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <Notice>{QUEST_CONVERSATION_COPY.notStarted}</Notice>
+        <StartConversationForm questId={quest.id} />
+      </div>
+    );
   }
   const [messages, stoppedReplyId, plan, ideas, milestones] = await Promise.all(
     [
@@ -58,49 +55,40 @@ async function questConversation(
   if (quest.dailies && quest.status === "active") {
     starter = START_THE_DAY;
   }
-  let initialSection = section;
+  let initialSection: string | undefined = section;
   if (section === "conversation") {
-    initialSection = "plan";
+    initialSection = undefined;
   }
-  return {
-    portrait: (
-      <AdventureCharacterHeader
-        construct={conversation.construct}
-        destination={{ kind: "adventure", id: conversation.id }}
-        compact={true}
-      />
-    ),
-    content: (
-      <ChatScreen
-        header={null}
-        initialSection={initialSection}
-        sideContent={
-          <>
-            <QuestSidebarSection value="ideas" name={IDEAS_COPY.heading}>
-              <QuestIdeas
-                embedded={true}
-                questId={quest.id}
-                ideas={ideas}
-                action={changeIdeaAction}
-              />
-            </QuestSidebarSection>
-            <QuestSidebarSection
-              value="progress"
-              name={PROGRESS_TIMELINE_COPY.heading}
-            >
-              <ProgressTimeline milestones={milestones} />
-            </QuestSidebarSection>
-          </>
-        }
-        conversation={conversation}
-        messages={messages}
-        stoppedReplyId={stoppedReplyId}
-        viewer={viewer}
-        plan={plan}
-        starter={starter}
-      />
-    ),
-  };
+  return (
+    <ChatScreen
+      header={null}
+      initialSection={initialSection}
+      sideContent={
+        <>
+          <QuestSidebarSection value="ideas" name={IDEAS_COPY.heading}>
+            <QuestIdeas
+              embedded={true}
+              questId={quest.id}
+              ideas={ideas}
+              action={changeIdeaAction}
+            />
+          </QuestSidebarSection>
+          <QuestSidebarSection
+            value="progress"
+            name={PROGRESS_TIMELINE_COPY.heading}
+          >
+            <ProgressTimeline milestones={milestones} />
+          </QuestSidebarSection>
+        </>
+      }
+      conversation={conversation}
+      messages={messages}
+      stoppedReplyId={stoppedReplyId}
+      viewer={viewer}
+      plan={plan}
+      starter={starter}
+    />
+  );
 }
 
 export { questConversation };

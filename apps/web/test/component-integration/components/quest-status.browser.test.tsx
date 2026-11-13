@@ -52,70 +52,47 @@ describe("quest status actions", () => {
     vi.mocked(changeQuestStatusAction).mockReturnValue(saved.promise);
     const result: StatusActionState = {
       kind: "saved",
-      message: "Quest completed.",
+      message: "Quest restored.",
       change: {
         questId: FOX_QUEST.id,
-        fromStatus: "active",
-        toStatus: "completed",
+        fromStatus: "completed",
+        toStatus: "active",
         revision: 1,
       },
     };
-    await render(<QuestStatusControls quest={FOX_QUEST} />);
-    const menu = page.getByRole("button", { name: QUEST_STATUS_COPY.menu });
-    await expect
-      .element(page.getByRole("button", { name: "Finish Quest" }))
-      .not.toBeInTheDocument();
-    menu.element().focus();
+    await render(
+      <QuestStatusControls quest={{ ...FOX_QUEST, status: "completed" }} />,
+    );
+    const restore = page.getByRole("button", { name: "Restore quest" });
+    restore.element().focus();
     await userEvent.keyboard("{Enter}");
-    await expect
-      .element(page.getByRole("button", { name: "Finish Quest" }))
-      .toBeVisible();
-    await userEvent.keyboard("{Escape}");
-    await expect.element(menu).toHaveFocus();
-    await expect
-      .element(page.getByRole("button", { name: "Finish Quest" }))
-      .not.toBeInTheDocument();
-    await userEvent.keyboard("{Enter}");
-    page
-      .getByRole("button", { name: "Finish Quest", exact: true })
-      .element()
-      .focus();
-    await userEvent.keyboard("{Enter}");
-    await expect
-      .element(page.getByRole("button", { name: "Finish Quest", exact: true }))
-      .toBeDisabled();
-    await expect
-      .element(page.getByRole("button", { name: "Abandon Quest", exact: true }))
-      .toBeDisabled();
+    await expect.element(restore).toBeDisabled();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     saved.resolve(result);
     await expect
       .element(page.getByRole("button", { name: "Undo" }))
       .toBeVisible();
     await expect.element(page.getByRole("status")).toHaveFocus();
-    await expect
-      .element(page.getByRole("button", { name: "Abandon Quest" }))
-      .not.toBeInTheDocument();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     const [, sent] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
-    expect(sent?.get("toStatus")).toBe("completed");
+    expect(sent?.get("toStatus")).toBe("active");
     expect(sent?.get("revision")).toBe("0");
     vi.mocked(changeQuestStatusAction).mockResolvedValue({
       kind: "saved",
-      message: "Quest restored.",
+      message: "Quest completed.",
     });
     page.getByRole("button", { name: "Undo" }).element().focus();
     await userEvent.keyboard("{Enter}");
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Quest restored.");
+      .toHaveTextContent("Quest completed.");
     await expect.element(page.getByRole("status")).toHaveFocus();
     await expect
-      .element(page.getByText("Quest completed.", { exact: true }))
+      .element(page.getByText("Quest restored.", { exact: true }))
       .not.toBeInTheDocument();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(2);
     const [, undone] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
-    expect(undone?.get("toStatus")).toBe("active");
+    expect(undone?.get("toStatus")).toBe("completed");
     expect(undone?.get("revision")).toBe("1");
   });
 });
@@ -258,15 +235,11 @@ describe("quest status on phones", () => {
         );
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
-        await view.rerender(<QuestStatusControls quest={FOX_QUEST} />);
-        await page
-          .getByRole("button", { name: QUEST_STATUS_COPY.menu })
-          .click();
+        await view.rerender(
+          <QuestStatusControls quest={{ ...FOX_QUEST, status: "completed" }} />,
+        );
         await expect
-          .element(page.getByRole("button", { name: "Finish Quest" }))
-          .toBeVisible();
-        await expect
-          .element(page.getByRole("button", { name: "Abandon Quest" }))
+          .element(page.getByRole("button", { name: "Restore quest" }))
           .toBeVisible();
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
