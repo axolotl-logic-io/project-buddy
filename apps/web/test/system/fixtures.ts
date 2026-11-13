@@ -36,7 +36,7 @@ import { eq } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { normalizeEmail, type User } from "@/accounts/users-store.ts";
 import { type Database, getDb } from "@/db/client.ts";
-import { invitations } from "@/db/tables/invitations.ts";
+import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";
 import {
   type TestData as AccountData,
@@ -143,7 +143,7 @@ async function useNewAddress(
 ): Promise<void> {
   const address = normalizeEmail(`e2e-new-${crypto.randomUUID()}@example.test`);
   await use(address);
-  await database.delete(invitations).where(eq(invitations.email, address));
+  await database.delete(signUpLinks).where(eq(signUpLinks.email, address));
   await database.delete(users).where(eq(users.email, address));
   await endRateLimitWindowsFor({ address });
 }

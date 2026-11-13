@@ -1,87 +1,45 @@
-import type { UserId } from "@/ids.ts";
-import { currentSpellText } from "@/prompts/earlier-built-in-texts.ts";
-import {
-  cloneOwnPrompt,
-  createOwnPrompt,
-  type DefinitionEdit,
-  type DefinitionStore,
-  deleteOwnPrompt,
-  getOwnPrompt,
-  listOwnPrompts,
-  type OwnPrompt,
-  updateOwnPrompt,
-} from "@/prompts/own-prompt-store.ts";
-import type { NamedDefinition } from "@/prompts/prompt.ts";
-import { getSpell, isSpellId } from "@/spells/index.ts";
-import { SPELL_NAME_MAX, type SpellDefinition } from "@/spells/spell.ts";
-import {
-  parseSpellDefinition,
-  SPELL_DEFINITION_EDIT,
-  storedSpellPrompt,
-} from "@/spells/spell-definition.ts";
+import { and, eq, isNotNull } from "drizzle-orm";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { type Database, getDb } from "@/db/client.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
+import { withAppErrors } from "@/errors/to-app-error.ts";
+import type { ChatId, UserId } from "@/ids.ts";
+import { SPELL_ID, type SpellId } from "@/spells/spell.ts";
 
-type OwnSpell = OwnPrompt<SpellDefinition>;
-
-type SpellEdit = DefinitionEdit<SpellDefinition>;
-
-const SPELL_STORE: DefinitionStore<SpellDefinition> = {
-  kind: "spell",
-  encodeDefinition: (text: SpellDefinition): unknown => storedSpellPrompt(text),
-  parseDefinition: (stored: unknown): SpellDefinition | undefined => {
-    const text = parseSpellDefinition(stored);
-    if (text === undefined) {
-      return;
-    }
-    return currentSpellText(text);
-  },
-  builtIn: (id: string) => {
-    if (!isSpellId(id)) {
-      return;
-    }
-    return getSpell(id);
-  },
-  limits: {
-    nameMax: SPELL_NAME_MAX,
-    definitionFits: (parts: SpellDefinition) =>
-      SPELL_DEFINITION_EDIT.safeParse(parts).success,
-  },
-};
-
-export function listOwnSpells(owner: UserId): Promise<OwnSpell[]> {
-  return listOwnPrompts(SPELL_STORE, owner);
-}
-
-export function getOwnSpell(
+async function currentSpell(
   owner: UserId,
-  id: string,
-): Promise<OwnSpell | undefined> {
-  return getOwnPrompt(SPELL_STORE, owner, id);
+  chat: { readonly id: ChatId },
+  db: Database = getDb(),
+): Promise<SpellId | undefined> {
+  const [row] = await withAppErrors("read spell", () =>
+    db
+      .select({ spell: chats.spell })
+      .from(chats)
+      .where(and(eq(chats.id, chat.id), chatOpenTo(owner))),
+  );
+  return SPELL_ID.optional().parse(row?.spell ?? undefined);
 }
 
-export function createSpell(
+// Set one owned quest conversation's spell. Undefined stops it.
+function setSpell(
   owner: UserId,
-  spell: NamedDefinition<SpellDefinition>,
-): Promise<OwnSpell> {
-  return createOwnPrompt(SPELL_STORE, owner, spell);
+  request: { readonly chatId: ChatId; readonly spell: SpellId | undefined },
+  db: Database = getDb(),
+): Promise<boolean> {
+  return withAppErrors("set spell", async () => {
+    const rows = await db
+      .update(chats)
+      .set({ spell: request.spell ?? null })
+      .where(
+        and(
+          eq(chats.id, request.chatId),
+          chatOpenTo(owner),
+          isNotNull(chats.questId),
+        ),
+      )
+      .returning({ id: chats.id });
+    return rows.length > 0;
+  });
 }
 
-export function cloneSpell(
-  owner: UserId,
-  sourceId: string,
-): Promise<OwnSpell | undefined> {
-  return cloneOwnPrompt(SPELL_STORE, owner, sourceId);
-}
-
-export function updateSpell(
-  owner: UserId,
-  id: string,
-  edit: SpellEdit,
-): Promise<OwnSpell | undefined> {
-  return updateOwnPrompt(SPELL_STORE, owner, id, edit);
-}
-
-export function deleteSpell(owner: UserId, id: string): Promise<boolean> {
-  return deleteOwnPrompt(SPELL_STORE, owner, id);
-}
-
-export type { OwnSpell, SpellEdit };
+export { currentSpell, setSpell };

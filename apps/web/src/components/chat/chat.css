@@ -204,6 +204,7 @@
   .chat-thread {
     --chat-keyboard-inset: 0px;
     padding-block-end: var(--chat-keyboard-inset);
+    flex: 1;
   }
 
   /* The scroll controller owns following and preserving the reading position.
@@ -214,7 +215,12 @@
     }
   }
 
+  .chat-viewport {
+    flex: 1;
+  }
+
   .chat-composer-dock {
+    margin-block-start: auto;
     inset-block-end: var(--chat-keyboard-inset);
     @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
   }
@@ -262,11 +268,6 @@
 }
 
 @layer components {
-  .chat-attach-button {
-    min-inline-size: var(--target-size);
-    flex-shrink: 0;
-  }
-
   /* An image in the chat, 18rem tall and as wide as its shape makes it
      (its width and height attributes until it loads, so the box never
      collapses), within the column. It starts where the text does rather

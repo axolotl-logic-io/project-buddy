@@ -7,12 +7,7 @@ import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { constructReply } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-// What the mock construct's reply costs at Sonnet's configured prices
-// (src/quota/prices.ts), for one input and one output token, rounded up. A
-// reply makes no other model call.
-const REPLY_MICRO_USD = 12;
-
-test("a reply is charged to the user who sent the message, and no one else", async () => {
+test("a local reply charges neither the acting user nor another account", async () => {
   const [sender, other] = await Promise.all([testUser(), testUser()]);
   const data = testData(sender);
   const quest = await data.quest();
@@ -29,6 +24,6 @@ test("a reply is charged to the user who sent the message, and no one else", asy
     goldSpent(sender),
     goldSpent(other),
   ]);
-  expect(senderAfter - senderBefore).toBe(REPLY_MICRO_USD);
+  expect(senderAfter - senderBefore).toBe(0);
   expect(otherAfter).toBe(otherBefore);
 });

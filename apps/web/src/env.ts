@@ -92,23 +92,6 @@ function readVercelBypassSecretIfSet(): string | undefined {
   return readIfSet("VERCEL_AUTOMATION_BYPASS_SECRET");
 }
 
-// Local rules run by default, including in production. The test script is
-// opt-in outside production; no setting enables a remote model provider.
-function readConstructModel(): "local" | "mock" {
-  const parsed = z
-    .enum(["local", "mock"])
-    .safeParse(readIfSet("CONSTRUCT_MODEL") ?? "local");
-  if (!parsed.success) {
-    throw new Error(
-      'CONSTRUCT_MODEL must be unset, "local" or "mock". Remote models are disabled.',
-    );
-  }
-  if (parsed.data === "mock" && readIfSet("VERCEL_ENV") === "production") {
-    throw new Error('CONSTRUCT_MODEL is "mock" in production. Use "local".');
-  }
-  return parsed.data;
-}
-
 // How the site sends email: through Resend, unless EMAIL_TRANSPORT is
 // "outbox", which writes each email to a file in EMAIL_OUTBOX_DIR for the
 // end-to-end tests to read. A production deployment (VERCEL_ENV
@@ -226,7 +209,6 @@ export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
   readBatteryPayments,
-  readConstructModel,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,

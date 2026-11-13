@@ -58,7 +58,7 @@ test("use_case_talk_idea_through", async () => {
   await data.manualSections([QUIBBLEWAND]);
   const standalone = await privateChat(user.id);
 
-  await sendToEnd(user, standalone, `/mock-search ${TOPIC}`);
+  await sendToEnd(user, standalone, `search ${TOPIC}`);
   const answer = (await listMessages(user.id, standalone.id)).at(-1);
   expect(citedUrls(answer)).toEqual([QUIBBLEWAND.url]);
 

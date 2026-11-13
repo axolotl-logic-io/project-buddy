@@ -7,6 +7,7 @@ import {
   ChatQuestChoices,
   QuestFromChat,
 } from "@/components/quest-from-chat.tsx";
+import { ResetConversation } from "@/components/reset-conversation.tsx";
 import { privateChat } from "@/conversations/private-chat.ts";
 import { questCreationChoices } from "@/quests/quest-creation-choices.ts";
 import { chatSummaryDraft } from "@/start-work/chat-summary-draft.ts";
@@ -39,7 +40,12 @@ export default async function StandaloneChatPage(): Promise<JSX.Element> {
         messages={messages}
         stoppedReplyId={stoppedReplyId}
         viewer={user.id}
-        actions={<QuestFromChat context={chatSummaryDraft(messages)} />}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <QuestFromChat context={chatSummaryDraft(messages)} />
+            <ResetConversation chatId={conversation.id} />
+          </div>
+        }
       />
     </ChatQuestChoices>
   );

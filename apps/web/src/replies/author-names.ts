@@ -98,7 +98,7 @@ function withAuthorNames(conversation: readonly ChatMessage[]): {
   };
 }
 
-// Whether text is an author's header, as the mock construct reads its prompt.
+// Whether text is an author's header, as the local command engine reads its prompt.
 function isAuthorHeader(text: string): boolean {
   return AUTHOR_HEADER.test(text);
 }

@@ -1,11 +1,4 @@
 import { describe, expect, test, vi } from "vitest";
-import {
-  cloneActivity,
-  getOwnActivity,
-  listOwnActivities,
-  updateActivity,
-} from "@/activities/activity-store.ts";
-import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { retireConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import {
   deleteRetiredDefinitionAction,
@@ -38,13 +31,6 @@ import {
   restoreDefinition,
   retireDefinition,
 } from "@/retirement/retirement-store.ts";
-import { chosenSpell } from "@/spells/chosen-spell.ts";
-import {
-  cloneSpell,
-  getOwnSpell,
-  listOwnSpells,
-  updateSpell,
-} from "@/spells/spell-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   expectNotFound,
@@ -66,10 +52,7 @@ interface KindCase {
   ) => Promise<OwnPrompt<unknown> | undefined>;
   readonly list: (owner: UserId) => Promise<OwnPrompt<unknown>[]>;
   readonly select: (owner: UserId, id: string) => Promise<unknown>;
-  readonly update:
-    | typeof updateConstruct
-    | typeof updateActivity
-    | typeof updateSpell;
+  readonly update: typeof updateConstruct;
 }
 const KINDS: readonly KindCase[] = [
   {
@@ -80,24 +63,6 @@ const KINDS: readonly KindCase[] = [
     list: listConstructs,
     update: updateConstruct,
     select: chosenConstruct,
-  },
-  {
-    kind: "activity",
-    source: "brainstorming",
-    clone: cloneActivity,
-    read: getOwnActivity,
-    list: listOwnActivities,
-    update: updateActivity,
-    select: chosenActivity,
-  },
-  {
-    kind: "spell",
-    source: "ask-one-question",
-    clone: cloneSpell,
-    read: getOwnSpell,
-    list: listOwnSpells,
-    update: updateSpell,
-    select: chosenSpell,
   },
 ];
 function form(fields: Record<string, string>): FormData {
@@ -281,13 +246,9 @@ describe("use_case_delete_retired_definition", () => {
       expect(await deleteRetiredDefinition(owner.id, copy.id)).toBe(false);
     },
   );
-  test("built-in, malformed, and wrong-kind ids change nothing", async () => {
+  test("built-in and malformed ids change nothing", async () => {
     const owner = await testUser();
-    const copy = await cloneActivity(owner.id, "brainstorming");
-    if (copy === undefined) {
-      throw new Error("No copy");
-    }
-    expect(await retireDefinition(owner.id, "construct", copy.id)).toBe(false);
+
     await Promise.all(
       ["vellum", "not-an-id", "00000000-0000-4000-8000-000000000000"].map(
         async (id) => {
@@ -298,6 +259,5 @@ describe("use_case_delete_retired_definition", () => {
         },
       ),
     );
-    expect(await getOwnActivity(owner.id, copy.id)).toBeDefined();
   });
 });

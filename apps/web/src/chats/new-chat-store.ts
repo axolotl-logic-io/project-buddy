@@ -1,14 +1,6 @@
-// New chats, saved in Postgres: in a quest of the acting user's, or
-// standalone, in none. A chat that starts with the construct's opening is saved with it, and
-// with its first activity session, in one batch, which the database runs as
-// one transaction, so no chat is left without its opening and no quest
-// without its first chat.
-
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
-import { newSession } from "@/activities/activity-sessions.ts";
-import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
   type Chat,
   type ChatQuest,
@@ -22,7 +14,6 @@ import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
 import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
-import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -45,8 +36,6 @@ interface NewChat {
   readonly continuing?: boolean;
 }
 
-// A new quest chat, with no messages and no activity session, as the
-// end-to-end tests make one.
 type NewQuestChat = NewChat & { readonly quest: ChatQuest };
 
 // A new id, made here rather than by the database, so a batch can insert a
@@ -102,6 +91,7 @@ function chatColumns(
     id: sql`${id}::uuid`.as("id"),
     questId: owner.questId,
     constructId: sql`${chat.construct.id}::text`.as("construct_id"),
+    spell: sql`null::text`.as("spell"),
     constructName: sql`${chat.construct.name}::text`.as("construct_name"),
     constructParts:
       sql`${JSON.stringify(storedConstructPrompt(chat.construct.definition))}::jsonb`.as(
@@ -144,12 +134,6 @@ export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
     .getSQL();
 }
 
-// A new chat in the owner's quest, with no messages and no activity
-// session: the quest's conversation when it has none yet, and otherwise
-// an adventure, as the multi-adventure pages still in this release make
-// them. Rejects with the not-found case if the quest is another user's.
-// The site starts every conversation with the construct's opening
-// (src/conversations/); tests make empty ones.
 export function createChat(
   owner: UserId,
   chat: NewQuestChat,
@@ -186,17 +170,11 @@ export function createChat(
   );
 }
 
-// A new quest of the owner's named questName, with its conversation in
-// construct and activity, which opening starts: the quest, the
-// conversation, the message and the activity session are saved together,
-// in one transaction. A Dailies quest (dailies) is saved only when the owner
-// has none; undefined when they have one already, and nothing is saved.
 export function createQuestWithChat(
   owner: UserId,
   questName: QuestName,
   chat: {
     readonly construct: NewChatConstruct;
-    readonly activity: ChatActivity;
     readonly opening: NewMessage;
     readonly context?: string;
     readonly dailies?: boolean;
@@ -245,9 +223,6 @@ export function createQuestWithChat(
       role: chat.opening.role,
       parts: chat.opening.parts,
     });
-    await db
-      .insert(activitySessions)
-      .select(newSession(owner, id, chat.activity, undefined));
     await grantVisualAssets(
       owner,
       db,

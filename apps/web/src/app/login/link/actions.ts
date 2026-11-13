@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
+import { confirmSignUp } from "@/accounts/sign-up-links.ts";
 import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import {
@@ -25,7 +26,8 @@ export async function continueSignInAction(formData: FormData): Promise<never> {
   const token = TOKEN_FIELD.parse(formData.get("token"));
   const destination = localPath(formData.get(SIGN_IN_DESTINATION_PARAMETER));
   const now = new Date();
-  const found = await readSignInLinkUser(token, now);
+  const found =
+    (await readSignInLinkUser(token, now)) ?? (await confirmSignUp(token, now));
   if (found === undefined) {
     const linkPage = new URLSearchParams({ token });
     return redirect(`${SIGN_IN_LINK_PATH}?${linkPage.toString()}`);

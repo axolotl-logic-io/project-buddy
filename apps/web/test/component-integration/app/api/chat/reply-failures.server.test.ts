@@ -6,16 +6,14 @@
 // chat-view-tool-failure.test.tsx's.
 
 import type { UIMessage } from "ai";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import {
-  mockWorkingNoteAnswer,
-  mockWorkingNoteText,
-} from "@/replies/mock-working-note.ts";
+import { localConstructModel } from "@/replies/local-model.ts";
+import { replyModel } from "@/replies/model.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import {
@@ -31,8 +29,14 @@ const ERROR_CHUNK = z.object({
   type: z.literal("error"),
   errorText: z.string(),
 });
-const OVERLOADED = "/mock-error overloaded_error";
-const NOTE_TOPIC = "zibble";
+const QUESTION = "help";
+vi.mock("@/replies/model.ts", { spy: true });
+function failReply(): void {
+  vi.mocked(replyModel).mockReturnValueOnce({
+    ...localConstructModel(),
+    doStream: () => Promise.reject(new Error("Local execution failed")),
+  });
+}
 
 // The error cases a reply's stream sent.
 function streamedErrors({ chunks }: SentMessage): string[] {
@@ -67,21 +71,19 @@ async function savedParts(user: User, chat: Chat): Promise<string[][]> {
 test("use_case_reply_fails", async () => {
   const { user, chat } = await signedInChat();
 
-  const overloaded = await sendChatMessage(chat.id, OVERLOADED);
+  failReply();
+  const failed = await sendChatMessage(chat.id, QUESTION);
 
-  expect(streamedErrors(overloaded)).toEqual(["overloaded"]);
-  expect(await savedParts(user, chat)).toEqual([["user", OVERLOADED]]);
-
-  const billing = await sendChatMessage(chat.id, "/mock-error billing_error");
-
-  expect(streamedErrors(billing)).toEqual(["out-of-credits"]);
+  expect(streamedErrors(failed)).toEqual(["unknown"]);
+  expect(await savedParts(user, chat)).toEqual([["user", QUESTION]]);
 });
 
 describe("use_case_reply_fails", () => {
   test("a reopened chat knows a failed reply stopped, until one answers it", async () => {
     const { user, chat } = await signedInChat();
 
-    await sendChatMessage(chat.id, OVERLOADED);
+    failReply();
+    await sendChatMessage(chat.id, QUESTION);
     const failed = (await listMessages(user.id, chat.id)).at(-1);
     expect(await readStoppedReply(user.id, chat.id)).toBe(failed?.id);
 
@@ -101,7 +103,8 @@ describe("use_case_reply_fails", () => {
 
   test("another user's chat has no stopped reply", async () => {
     const { chat } = await signedInChat();
-    await sendChatMessage(chat.id, OVERLOADED);
+    failReply();
+    await sendChatMessage(chat.id, QUESTION);
     const other = await testUser();
 
     expect(await readStoppedReply(other.id, chat.id)).toBeUndefined();
@@ -119,21 +122,4 @@ test("use_case_session_expired_in_chat", async () => {
   expect(response.status).toBe(HTTP_STATUS.unauthorized);
   expect(response.body).toBe("signed-out");
   expect(await listMessages(user.id, chat.id)).toEqual([]);
-});
-
-test("use_case_see_working_note", async () => {
-  const { user, chat } = await signedInChat();
-  const message = `/mock-working-note ${NOTE_TOPIC}`;
-
-  await sendChatMessage(chat.id, message);
-
-  expect(await savedParts(user, chat)).toEqual([
-    ["user", message],
-    [
-      "assistant",
-      mockWorkingNoteText(NOTE_TOPIC),
-      "tool-search_blender_manual",
-      mockWorkingNoteAnswer(NOTE_TOPIC),
-    ],
-  ]);
 });

@@ -7,11 +7,7 @@ function resetTarget(source: string | undefined): string {
   return `“${source}”`;
 }
 
-// The text every prompt's page shares, a construct's, an activity's or a
-// spell's.
 export const PROMPT_COPY = {
-  activityFieldsHeading: "Instructions and opening request",
-  spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",
   sections: "Editor sections",
   sectionError: " — Needs attention",

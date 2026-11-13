@@ -1,13 +1,12 @@
 // MUD-inspired commands: explicit verbs, tool-backed actions and fixed replies.
 // Sheets and tool outputs are data; they never supply executable commands.
 import type { LanguageModelV4 } from "@ai-sdk/provider";
-import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import {
   SEARCH_BLENDER_MANUAL_OUTPUT,
   SEARCH_BLENDER_MANUAL_TOOL,
 } from "@/blender-manual/search-tool-contract.ts";
-import { isNeutralKickoff } from "@/replies/chat-kickoff.ts";
+import { isNeutralKickoff, OPENING_REQUEST } from "@/replies/chat-kickoff.ts";
 import type { ScriptConversation, ScriptStep } from "@/replies/reply-script.ts";
 import { scriptedModel } from "@/replies/scripted-model.ts";
 import { visualDescriptionInPrompt } from "@/replies/visual-description.ts";
@@ -80,8 +79,8 @@ function castSteps(
   if (result.failed || !parsed.success) {
     return [cast, textStep(LOCAL_CONSTRUCT_COPY.castFailed)];
   }
-  if (parsed.data.status === "unknown") {
-    return [cast, textStep(LOCAL_CONSTRUCT_COPY.unknownSpell)];
+  if (parsed.data.status === "needsQuest") {
+    return [cast, textStep(LOCAL_CONSTRUCT_COPY.needsQuest)];
   }
   return [cast, textStep(LOCAL_CONSTRUCT_COPY.cast(parsed.data.name))];
 }
@@ -90,7 +89,7 @@ function localReply(
   userText: string,
   conversation: ScriptConversation,
 ): ScriptStep[] {
-  if (isBuiltInOpeningKickoff(userText) || isNeutralKickoff(userText)) {
+  if (userText === OPENING_REQUEST || isNeutralKickoff(userText)) {
     return [textStep(LOCAL_CONSTRUCT_COPY.welcome)];
   }
   const { verb = "", argument = "" } =

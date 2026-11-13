@@ -14,6 +14,10 @@ const ICON_PATHS = {
     stroke:
       "M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5zM8 4.75v3.75M8 11.25v.01",
   },
+  grip: {
+    stroke: "M5.5 3h.01M10.5 3h.01M5.5 8h.01M10.5 8h.01M5.5 13h.01M10.5 13h.01",
+  },
+  circle: { stroke: "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z" },
   // A checkmark for confirming an edit.
   check: { stroke: "M3 8l3 3 7-7" },
   // Arrows for moving an item up or down a list, such as a plan's steps.
@@ -46,6 +50,8 @@ const ICON_PATHS = {
   image: { stroke: "M2 2h12v12H2zM2 11l4-4 3 3 2-2 3 3M10 5h.01" },
   // Three lines, for the site's menu.
   menu: { stroke: "M2.5 4h11M2.5 8h11M2.5 12h11" },
+  // A page with a docked side panel, for the quest sidebar.
+  sidebar: { stroke: "M2 2.5h12v11H2zM10 2.5v11" },
   // Three dots, for additional actions.
   more: { stroke: "M3 8h.01M8 8h.01M13 8h.01" },
   // A plus sign, for making something new.

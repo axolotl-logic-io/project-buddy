@@ -1,33 +1,23 @@
 "use client";
 
-import { Popover } from "radix-ui";
 import {
-  createContext,
   type JSX,
   type ReactNode,
   useActionState,
-  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
+import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
-import {
-  QUEST_STATUSES,
-  type StatusActionState,
-  type StatusChange,
-} from "@/quests/quest-status.ts";
+import type { StatusActionState, StatusChange } from "@/quests/quest-status.ts";
 import type { Quest } from "@/quests/store.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 const IDLE: StatusActionState = { kind: "idle" };
-const StatusFeedbackContext = createContext<
-  ((state: StatusActionState) => void) | undefined
->(undefined);
 
 async function changeWithFeedback(
   publish: ((state: StatusActionState) => void) | undefined,
@@ -102,49 +92,22 @@ function UndoControl({
   );
 }
 
-// A popover keeps infrequent status actions out of the navigation row.
+// Quest cards retain a direct restore action.
 function StatusControls({
   quest,
-  restoreOnly = false,
 }: {
   readonly quest: Pick<Quest, "id" | "status" | "statusRevision">;
-  readonly restoreOnly?: boolean;
-}): JSX.Element | null {
+}): JSX.Element {
   const publish = useContext(StatusFeedbackContext);
-  const [open, setOpen] = useState(false);
-  const feedbackFocusRef = useRef<boolean>(false);
-  const submit = useCallback(
-    async (
-      previous: StatusActionState,
-      submitted: FormData,
-    ): Promise<StatusActionState> => {
-      const result = await changeWithFeedback(
-        publish,
-        true,
-        previous,
-        submitted,
-      );
-      feedbackFocusRef.current = true;
-      setOpen(false);
-      return result;
-    },
-    [publish],
+  const [, action, pending] = useActionState(
+    changeWithFeedback.bind(null, publish, true),
+    IDLE,
   );
-  const [, action, pending] = useActionState(submit, IDLE);
-  const changeOpen = useCallback((next: boolean): void => {
-    if (next) {
-      feedbackFocusRef.current = false;
-    }
-    setOpen(next);
-  }, []);
-  const preserveFeedbackFocus = useCallback((event: Event): void => {
-    if (feedbackFocusRef.current) {
-      event.preventDefault();
-    }
-  }, []);
-  let control: JSX.Element;
-  if (restoreOnly === true) {
-    control = (
+  return (
+    <form action={action}>
+      <input type="hidden" name="questId" value={quest.id} />
+      <input type="hidden" name="fromStatus" value={quest.status} />
+      <input type="hidden" name="revision" value={quest.statusRevision} />
       <Button
         type="submit"
         name="toStatus"
@@ -154,66 +117,7 @@ function StatusControls({
       >
         {QUEST_STATUS_COPY.restore}
       </Button>
-    );
-  } else {
-    control = (
-      <div className="quest-status-actions">
-        {QUEST_STATUSES.filter((status) => status !== quest.status).map(
-          (status) => (
-            <Button
-              key={status}
-              type="submit"
-              name="toStatus"
-              value={status}
-              variant="quiet"
-              className={`quest-status-${status}`}
-              disabled={pending}
-            >
-              {status === "completed" && <Icon name="check" />}
-              {QUEST_STATUS_COPY.actions[status]}
-            </Button>
-          ),
-        )}
-      </div>
-    );
-  }
-  const form = (
-    <form id={`quest-status-${quest.id}`} action={action}>
-      <input type="hidden" name="questId" value={quest.id} />
-      <input type="hidden" name="fromStatus" value={quest.status} />
-      <input type="hidden" name="revision" value={quest.statusRevision} />
-      {control}
     </form>
-  );
-  if (restoreOnly === true) {
-    return form;
-  }
-  return (
-    <Popover.Root open={open} onOpenChange={changeOpen}>
-      <Popover.Trigger asChild={true}>
-        <Button
-          variant="quiet"
-          className="quest-actions-trigger"
-          aria-label={QUEST_STATUS_COPY.menu}
-          title={QUEST_STATUS_COPY.menu}
-        >
-          <Icon name="more" />
-        </Button>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          className="quest-actions-panel"
-          align="end"
-          onCloseAutoFocus={preserveFeedbackFocus}
-          aria-label={QUEST_STATUS_COPY.menu}
-        >
-          <p className="text-muted text-sm">
-            {QUEST_STATUS_COPY.labels[quest.status]}
-          </p>
-          {form}
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
   );
 }
 

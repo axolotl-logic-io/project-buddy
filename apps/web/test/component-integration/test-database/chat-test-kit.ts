@@ -16,14 +16,16 @@ import {
   CITE_BLENDER_MANUAL_TOOL,
 } from "@/blender-manual/cite-tool-contract.ts";
 import type { QuestChat } from "@/chats/chat-rows.ts";
-import { listMessages, listMessagesForModel } from "@/chats/store.ts";
+import { getChat, listMessages, listMessagesForModel } from "@/chats/store.ts";
 import type { ConstructId } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
+import { withAuthorNames } from "@/replies/author-names.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
+import { buildReplyInstructions } from "@/replies/system-prompt.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { mockReplyText } from "../replies/mock-markdown-test-kit.ts";
 import { streamChunks } from "../replies/stream-body-test-kit.ts";
 import { afterTasksDone } from "./after-test-kit.ts";
 import { requestWithSession, signIn } from "./session-test-kit.ts";
@@ -149,14 +151,25 @@ function messageText(message: UIMessage | undefined): string {
     .join("");
 }
 
-// The construct's system prompt in the chat, as the mock construct quotes it.
+// Inspect the real context assembly without a model round trip or another saved message.
 async function constructPrompt(chatId: ChatId): Promise<string> {
-  return messageText(await constructReply(chatId, "/mock-system-prompt"));
+  const user = await currentUser();
+  if (user === undefined) {
+    throw new Error("No signed-in user");
+  }
+  const chat = await getChat(user.id, chatId);
+  if (chat === undefined) {
+    throw new Error("No owned conversation");
+  }
+  const history = await listMessagesForModel(user.id, chatId);
+  const instructions = await buildReplyInstructions({
+    actingUser: user.id,
+    chat,
+    construct: chat.construct,
+    severalAuthors: withAuthorNames(history).severalAuthors,
+  });
+  return instructions.map((instruction) => instruction.content).join("\n\n");
 }
-
-// Has the mock construct in the chat change the quest's memory, replacing
-// oldText with newText (an empty oldText adds newText at the end), and
-// returns what the update_memory tool answered.
 
 // Sends message to the chat as user, signed in, as the chat view does. It
 // resolves once the server has claimed the message and the reply has
@@ -212,7 +225,7 @@ async function savedConversation(
 function exchange(userText: string): SavedLine[] {
   return [
     { role: "user", text: userText },
-    { role: "assistant", text: mockReplyText(userText) },
+    { role: "assistant", text: LOCAL_CONSTRUCT_COPY.unknownCommand },
   ];
 }
 

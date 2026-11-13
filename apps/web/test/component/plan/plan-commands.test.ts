@@ -16,9 +16,8 @@ const PLAN: Plan = {
 };
 
 describe("chat commands", () => {
-  const Quest = { mockCommands: false, inQuest: true };
-  const QuestWithMock = { mockCommands: true, inQuest: true };
-  const Standalone = { mockCommands: false, inQuest: false };
+  const Quest = { inQuest: true };
+  const Standalone = { inQuest: false };
 
   test("in a quest, a message that starts with / and a name is a command", () => {
     expect(isChatCommand("/plan", Quest)).toBe(false);
@@ -29,21 +28,12 @@ describe("chat commands", () => {
     expect(isChatCommand("", Quest)).toBe(false);
   });
 
-  test("the mock model's commands go to it while it runs, and are commands otherwise", () => {
-    expect(isChatCommand("/mock-tool change_plan {}", QuestWithMock)).toBe(
-      false,
-    );
-    expect(isChatCommand("/mock-tool change_plan {}", Quest)).toBe(true);
-    expect(isChatCommand("/plan", QuestWithMock)).toBe(false);
-  });
-
   test("in a standalone adventure only a plan command's name is a command; any other /word goes to the construct", () => {
     expect(isChatCommand("/add Sketch wings", Standalone)).toBe(true);
     expect(isChatCommand("/plan", Standalone)).toBe(false);
     expect(isChatCommand("/shrug ok let's go", Standalone)).toBe(false);
     expect(
       isChatCommand("/mock-tool change_plan {}", {
-        mockCommands: true,
         inQuest: false,
       }),
     ).toBe(false);
@@ -108,11 +98,7 @@ describe("chat commands", () => {
 test.each(["/help", "/LOOK", "/search bevel", "/cast example"])(
   "construct command reaches the conversation: %s",
   (text) => {
-    expect(isChatCommand(text, { inQuest: true, mockCommands: false })).toBe(
-      false,
-    );
-    expect(isChatCommand(text, { inQuest: false, mockCommands: false })).toBe(
-      false,
-    );
+    expect(isChatCommand(text, { inQuest: true })).toBe(false);
+    expect(isChatCommand(text, { inQuest: false })).toBe(false);
   },
 );

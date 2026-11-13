@@ -1,21 +1,4 @@
-// Starting a quest, and its conversation: the one place a user works on a
-// goal. A new quest is saved with its conversation and the construct's
-// opening (src/replies/chat-opening.ts) in one transaction, so the user finds
-// the construct already speaking, and no quest is left without its
-// conversation. A built-in construct in a built-in activity has a prepared
-// opening, which takes no model call; otherwise the construct writes it, up
-// to the opening's timeout, and when Claude can't, nothing is saved. Once the
-// acting user is out of batteries (src/quota/quota.ts), nothing is saved
-// either. Reading a quest's conversation never starts one: only an explicit
-// start does, and it spends batteries only on an opening it writes.
 import { readUserName } from "@/accounts/users-store.ts";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
-import { activityChoices } from "@/activities/activity-choices.ts";
-import {
-  builtInActivity,
-  type ChatActivity,
-} from "@/activities/chosen-activity.ts";
-import { motivatedOpeningRequest } from "@/activities/index.ts";
 import type { ChatQuest, QuestChat } from "@/chats/chat-rows.ts";
 import {
   createQuestWithChat,
@@ -37,10 +20,9 @@ import type { QuestId, UserId } from "@/ids.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
-import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
+import { checkGold } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
 import { type PromptQuest, readPromptQuest } from "@/replies/system-prompt.ts";
-import { spellChoices } from "@/spells/spell-choices.ts";
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
 const OUT_OF_GOLD = { kind: "outOfGold" } as const;
@@ -64,59 +46,35 @@ type StartConversationResult =
   | typeof OUT_OF_GOLD
   | typeof NOT_FOUND;
 
-// The construct and activity a conversation starts in when no one chose
-// them: the default construct, in the open chat.
 function defaultStart(): {
   readonly construct: NewChatConstruct;
-  readonly activity: ChatActivity;
 } {
   return {
     construct: getConstruct(DEFAULT_CONSTRUCT_ID),
-    activity: builtInActivity(DEFAULT_ACTIVITY_ID),
   };
 }
 
-// The opening of a conversation of the owner's in a quest, with the quest as
-// readQuest reads it, or in none, in construct and activity, as kickoff asks
-// for it if given, charged to grant if the construct writes it; undefined when
-// Claude can't write it.
 function openingFor(
   owner: UserId,
-  grant: QuotaGrant,
   readQuest: () => Promise<PromptQuest | undefined>,
   {
     construct,
-    activity,
-    kickoff,
   }: {
     readonly construct: ConstructSnapshot;
-    readonly activity: ChatActivity;
-    readonly kickoff?: string | undefined;
   },
 ): ReturnType<typeof chatOpening> {
   return chatOpening({
     construct,
-    activity,
-    kickoff,
-    grant,
     context: async () => {
-      const [activities, spells, userName, quest] = await Promise.all([
-        activityChoices(owner),
-        spellChoices(owner),
+      const [userName, quest] = await Promise.all([
         readUserName(owner),
         readQuest(),
       ]);
-      return { activities, spells, quest, userName };
+      return { quest, userName };
     },
   });
 }
 
-// A new quest of the owner's named name, with its conversation in the
-// construct, kept as it is now, and the chosen activity, opened as the
-// activity asks, and seeded with the context and the motivation in its
-// conversation. A Dailies quest (dailies) is saved only when the owner has none:
-// with one already, the result is undefined and nothing is saved
-// (src/conversations/dailies.ts). A storage failure throws.
 async function startNewQuest(
   owner: UserId,
   name: QuestName,
@@ -124,14 +82,12 @@ async function startNewQuest(
   {
     motivation = "",
     context = "",
-    activity = builtInActivity("project-breakdown"),
     dailies = false,
     transaction,
   }: {
     readonly transaction?: Transaction;
     readonly motivation?: string;
     readonly context?: string;
-    readonly activity?: ChatActivity;
     readonly dailies?: boolean;
   } = {},
 ): Promise<StartQuestResult | undefined> {
@@ -142,13 +98,8 @@ async function startNewQuest(
   const initialContext = [context, motivation]
     .filter((text) => text !== "")
     .join("\n\n");
-  let kickoff: string | undefined;
-  if (initialContext !== "") {
-    kickoff = motivatedOpeningRequest(activity.definition.openingRequest);
-  }
   const opening = await openingFor(
     owner,
-    gold.grant,
     () =>
       Promise.resolve({
         name,
@@ -156,7 +107,7 @@ async function startNewQuest(
         plan: EMPTY_PLAN,
         milestones: [],
       }),
-    { construct, activity, kickoff },
+    { construct },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
@@ -164,7 +115,7 @@ async function startNewQuest(
   const chat = await createQuestWithChat(
     owner,
     name,
-    { construct, activity, opening, context: initialContext, dailies },
+    { construct, opening, context: initialContext, dailies },
     transaction,
   );
   if (chat === undefined) {
@@ -198,12 +149,6 @@ function readQuestConversation(
   return findConversation(viewer, questId);
 }
 
-// The quest's conversation, started for the acting user if it has none, as
-// after the removal of adventures (docs/design/simplification-892.md): in
-// the default construct and the open chat, opened as that activity asks. Of
-// concurrent starts, exactly one makes the conversation and writes its
-// opening, charged to its acting user; the others return the same
-// conversation, as does a start once the quest has one, for free.
 async function startQuestConversation(
   actingUser: UserId,
   questId: QuestId,
@@ -231,7 +176,6 @@ async function startQuestConversation(
   }
   const opening = await openingFor(
     actingUser,
-    gold.grant,
     () => readPromptQuest(actingUser, quest),
     start,
   );

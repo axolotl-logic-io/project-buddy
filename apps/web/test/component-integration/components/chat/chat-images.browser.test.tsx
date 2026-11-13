@@ -1,10 +1,7 @@
-import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
-import { userMessage } from "@/errors/app-error.ts";
-import { MAX_MESSAGE_IMAGES } from "@/images/image-contract.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
@@ -12,60 +9,14 @@ import { pngBytes } from "../../../support/images/image-fixtures.ts";
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 const IMAGE_URL = "/api/images/00000000-0000-4000-8000-000000000001";
-const REPLY = "I can see your image.";
-const REPLY_CHUNKS: UIMessageChunk[] = [
-  { type: "start", messageId: "reply" },
-  { type: "text-start", id: "text" },
-  { type: "text-delta", id: "text", delta: REPLY },
-  { type: "text-end", id: "text" },
-  { type: "finish" },
-];
-function reply(): Response {
-  return createUIMessageStreamResponse({
-    stream: new ReadableStream<UIMessageChunk>({
-      start(controller: ReadableStreamDefaultController<UIMessageChunk>): void {
-        for (const chunk of REPLY_CHUNKS) {
-          controller.enqueue(chunk);
-        }
-        controller.close();
-      },
-    }),
-  });
-}
-function paste(file: File): void {
-  const box = page
-    .getByRole("textbox", { name: CHAT_COPY.messageLabel })
-    .element();
-  const clipboardData = new DataTransfer();
-  clipboardData.items.add(file);
-  box.dispatchEvent(
-    new ClipboardEvent("paste", {
-      clipboardData,
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
-}
-function imageFile(): File {
-  return new File([pngBytes()], "pixel.png", { type: "image/png" });
-}
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe("use_case_chat_images", () => {
-  test("paste previews can be removed, image-only messages send and remain visible when reopened", async () => {
-    const sent: unknown[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>((input, init) => {
-        if (String(input).startsWith("/api/images?")) {
-          return Promise.resolve(Response.json({ url: IMAGE_URL }));
-        }
-        sent.push(JSON.parse(String(init?.body)));
-        return Promise.resolve(reply());
-      }),
-    );
+  test("the composer has no uploads and pasting or dropping images sends no request", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetcher);
     const view = await render(
       <ChatView
         viewer={userIdFixture()}
@@ -74,37 +25,44 @@ describe("use_case_chat_images", () => {
         constructName="Vellum"
       />,
     );
-    paste(imageFile());
     await expect
-      .element(page.getByRole("img", { name: "pixel.png" }))
-      .toBeVisible();
-    await page.getByRole("button", { name: IMAGE_COPY.remove }).click();
+      .element(page.getByRole("button", { name: IMAGE_COPY.add }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByText(IMAGE_COPY.limits))
+      .not.toBeInTheDocument();
+    expect(
+      Array.from(view.container.querySelectorAll("input")).filter(
+        (input) => input.type === "file",
+      ),
+    ).toEqual([]);
+    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+    await box.fill("Keep my question");
+    const clipboardData = new DataTransfer();
+    clipboardData.items.add(
+      new File([pngBytes()], "pixel.png", { type: "image/png" }),
+    );
+    box.element().dispatchEvent(
+      new ClipboardEvent("paste", {
+        clipboardData,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    box.element().dispatchEvent(
+      new DragEvent("drop", {
+        dataTransfer: clipboardData,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    await expect.element(box).toHaveValue("Keep my question");
     await expect
       .element(page.getByRole("img", { name: "pixel.png" }))
       .not.toBeInTheDocument();
-    paste(imageFile());
-    await expect
-      .element(page.getByRole("img", { name: "pixel.png" }))
-      .toBeVisible();
-    await page.getByRole("button", { name: CHAT_COPY.send }).click();
-    await expect.element(page.getByText(REPLY)).toBeVisible();
-    expect(sent).toEqual([
-      expect.objectContaining({
-        message: expect.objectContaining({
-          parts: [
-            expect.objectContaining({
-              type: "file",
-              mediaType: "image/png",
-              url: expect.stringContaining(IMAGE_URL),
-            }),
-          ],
-        }),
-      }),
-    ]);
-    await expect
-      .element(page.getByRole("img", { name: "pixel.png" }))
-      .toBeVisible();
-    await view.unmount();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+  test("saved message images remain visible when reopened", async () => {
     await render(
       <ChatView
         viewer={userIdFixture()}
@@ -130,186 +88,4 @@ describe("use_case_chat_images", () => {
       .element(page.getByRole("img", { name: "pixel.png" }))
       .toBeVisible();
   });
-  test("upload and validation errors retain the text draft and allow removing the failed image", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(() =>
-        Promise.resolve(new Response("overloaded", { status: 503 })),
-      ),
-    );
-    await render(
-      <ChatView
-        viewer={userIdFixture()}
-        chatId={chatIdFixture()}
-        initialMessages={[]}
-        constructName="Vellum"
-      />,
-    );
-    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    await box.fill("What is this?");
-    paste(imageFile());
-    await expect
-      .element(page.getByText(userMessage("overloaded")))
-      .toBeVisible();
-    await expect.element(box).toHaveValue("What is this?");
-    await page.getByRole("button", { name: IMAGE_COPY.remove }).click();
-    paste(new File(["<svg/>"], "drawing.svg", { type: "image/svg+xml" }));
-    await expect
-      .element(page.getByText(IMAGE_COPY.unsupportedType("drawing.svg")))
-      .toBeVisible();
-    await expect.element(box).toHaveValue("What is this?");
-  });
-  test("file selection enforces count limits and a model failure can be retried without losing the next draft", async () => {
-    let attempts = 0;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>((input) => {
-        if (String(input).startsWith("/api/images?")) {
-          return Promise.resolve(Response.json({ url: IMAGE_URL }));
-        }
-        attempts += 1;
-        if (attempts === 1) {
-          return Promise.resolve(new Response("overloaded", { status: 503 }));
-        }
-        return Promise.resolve(reply());
-      }),
-    );
-    const view = await render(
-      <ChatView
-        viewer={userIdFixture()}
-        chatId={chatIdFixture()}
-        initialMessages={[]}
-        constructName="Vellum"
-      />,
-    );
-    const picker = view.container.querySelector("input");
-    if (!(picker instanceof HTMLInputElement) || picker.type !== "file") {
-      throw new Error("No image picker");
-    }
-    await userEvent.upload(picker, [
-      imageFile(),
-      imageFile(),
-      imageFile(),
-      imageFile(),
-      imageFile(),
-    ]);
-    await expect
-      .element(page.getByText(IMAGE_COPY.tooMany(MAX_MESSAGE_IMAGES)))
-      .toBeVisible();
-    await expect
-      .element(page.getByRole("button", { name: CHAT_COPY.send }))
-      .toBeDisabled();
-    // Remove the fifth image and three others, leaving one valid image.
-    await page.getByRole("button", { name: IMAGE_COPY.remove }).last().click();
-    await page.getByRole("button", { name: IMAGE_COPY.remove }).last().click();
-    await page.getByRole("button", { name: IMAGE_COPY.remove }).last().click();
-    await page.getByRole("button", { name: IMAGE_COPY.remove }).last().click();
-    await page.getByRole("button", { name: CHAT_COPY.send }).click();
-    await expect
-      .element(page.getByText(userMessage("overloaded")))
-      .toBeVisible();
-    await expect
-      .element(page.getByRole("img", { name: "pixel.png" }))
-      .toBeVisible();
-    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    await box.fill("My next question");
-    await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
-    await expect.element(page.getByText(REPLY)).toBeVisible();
-    await expect.element(box).toHaveValue("My next question");
-    expect(attempts).toBe(2);
-  });
-  test("an out-of-gold refusal returns image and text to the composer", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>((input) => {
-        if (String(input).startsWith("/api/images?")) {
-          return Promise.resolve(Response.json({ url: IMAGE_URL }));
-        }
-        return Promise.resolve(new Response("out-of-gold", { status: 429 }));
-      }),
-    );
-    await render(
-      <ChatView
-        viewer={userIdFixture()}
-        chatId={chatIdFixture()}
-        initialMessages={[]}
-        constructName="Vellum"
-      />,
-    );
-    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    await box.fill("What is this?");
-    paste(imageFile());
-    await expect
-      .element(page.getByRole("img", { name: "pixel.png" }))
-      .toBeVisible();
-    await page.getByRole("button", { name: CHAT_COPY.send }).click();
-    await expect
-      .element(page.getByText(userMessage("out-of-gold")))
-      .toBeVisible();
-    await expect.element(box).toHaveValue("What is this?");
-    await expect
-      .element(page.getByRole("img", { name: "pixel.png" }))
-      .toBeVisible();
-    await expect
-      .element(page.getByRole("button", { name: IMAGE_COPY.remove }))
-      .toBeVisible();
-  });
-});
-
-const OVERSIZE_BYTES = 3_145_728;
-const OVERSIZE_MIB = 3;
-const LIMIT_MIB = 2;
-
-test("a known oversized image names the failed limit, retains the draft and remains removable", async () => {
-  const fetcher = vi.fn<typeof fetch>();
-  vi.stubGlobal("fetch", fetcher);
-  await render(
-    <ChatView
-      viewer={userIdFixture()}
-      chatId={chatIdFixture()}
-      initialMessages={[]}
-      constructName="Vellum"
-    />,
-  );
-  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-  await box.fill("Keep my question");
-  paste(
-    new File([new Uint8Array(OVERSIZE_BYTES)], "big.png", {
-      type: "image/png",
-    }),
-  );
-  await expect
-    .element(page.getByRole("alert"))
-    .toHaveTextContent(IMAGE_COPY.tooLarge("big.png", OVERSIZE_MIB, LIMIT_MIB));
-  await expect.element(box).toHaveValue("Keep my question");
-  expect(fetcher).not.toHaveBeenCalled();
-  await page.getByRole("button", { name: IMAGE_COPY.remove }).click();
-  await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
-});
-
-test("rejected upload bytes give a data-specific error while preserving text and removal", async () => {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() =>
-      Promise.resolve(new Response("invalid-image", { status: 400 })),
-    ),
-  );
-  await render(
-    <ChatView
-      viewer={userIdFixture()}
-      chatId={chatIdFixture()}
-      initialMessages={[]}
-      constructName="Vellum"
-    />,
-  );
-  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-  await box.fill("Keep this too");
-  paste(imageFile());
-  await expect
-    .element(page.getByRole("alert"))
-    .toHaveTextContent(IMAGE_COPY.invalidContents);
-  await expect.element(box).toHaveValue("Keep this too");
-  await expect
-    .element(page.getByRole("button", { name: IMAGE_COPY.remove }))
-    .toBeEnabled();
 });

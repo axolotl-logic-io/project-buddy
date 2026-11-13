@@ -3,15 +3,15 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { z } from "zod";
 import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
-import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { workshopPath } from "@/routes.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
-import { ActivityLists } from "../activities/activity-lists.tsx";
 import { ConstructLists } from "../constructs/construct-lists.tsx";
 import { SpellLists } from "../spellbook/spell-lists.tsx";
 
+const WORKSHOP_KINDS = ["construct", "spell"] as const;
+
 const QUERY = z.object({
-  kind: z.enum(PROMPT_KINDS).catch("construct"),
+  kind: z.enum(WORKSHOP_KINDS).catch("construct"),
   retired: z.literal("1").optional().catch(undefined),
 });
 
@@ -19,14 +19,18 @@ const QUERY = z.object({
 // other tabs. These query variants share a route. Prefetching them with
 // partial prefetching repeatedly requests a variant on Next 16.4.3; load
 // the selected kind when its link is followed instead.
-function KindTabs({ shown }: { readonly shown: PromptKind }): JSX.Element {
+function KindTabs({
+  shown,
+}: {
+  readonly shown: "construct" | "spell";
+}): JSX.Element {
   return (
     <nav
       aria-label={WORKSHOP_PAGE_COPY.kindsLabel}
       className="border-line border-b"
     >
       <ul className="workspace-tablist">
-        {PROMPT_KINDS.map((kind) => {
+        {WORKSHOP_KINDS.map((kind) => {
           let current: "page" | undefined;
           if (kind === shown) {
             current = "page";
@@ -50,10 +54,7 @@ function KindTabs({ shown }: { readonly shown: PromptKind }): JSX.Element {
 }
 
 // The kind's built-in ones and the user's own, each with its actions.
-function kindLists(kind: PromptKind): Promise<JSX.Element> {
-  if (kind === "activity") {
-    return ActivityLists();
-  }
+function kindLists(kind: "construct" | "spell"): Promise<JSX.Element> {
   if (kind === "spell") {
     return SpellLists();
   }

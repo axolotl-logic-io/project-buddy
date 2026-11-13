@@ -21,8 +21,8 @@ import { grantStartingGold } from "@/gold/gold-store.ts";
 const madeUsers: User[] = [];
 
 // Fixtures may create accounts directly; runtime account creation requires
-// accepting a valid invitation and has no public create-by-address export.
-// Each is given its starting gold, as an accepted invitation's is.
+// confirming an emailed verification link and has no public create-by-address export.
+// Each is given its starting gold, as a verified new account is.
 async function createTestAccount(email: string): Promise<User> {
   await getDb()
     .insert(users)

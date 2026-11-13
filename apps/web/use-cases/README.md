@@ -1,6 +1,6 @@
 # Use cases
 
-How invited users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
+How users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
 
 Playwright e2e tests in `test/system/` cover only the auth workflows. The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 
@@ -20,8 +20,8 @@ A case written before its test is listed in `test/component-integration/use-case
 
 ## Who uses the site
 
-- The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
-- **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; setup links do not expire. They stop working when accepted or replaced. Sign-in links for existing accounts expire after 30 minutes. The former shared code cannot create accounts.
+- The site is open to anyone with an email address they can verify.
+- **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's quests, adventures, Plan and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
 - **Batteries:** each user has one balance of batteries, which model calls spend, including image generation. Every account starts with 100 batteries, once; batteries never reset.
@@ -30,25 +30,17 @@ A case written before its test is listed in `test/component-integration/use-case
 
 - Each use case has a slug of the form `use_case_<name>`. Refer to a case by its slug. Cases are not numbered.
 - A case describes what the user wants, what she does and what she sees. It says nothing about how the system is built: "send the message", not "press the submit button".
-- "The user" is any one of the invited users, and "she" means the user.
+- "The user" is any person using the site, and "she" means the user.
 - **Prerequisites** lists the cases that must have happened first. Every listed case is required.
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things she can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why she would.
 - The use cases describe the current product contract. Mark preserved legacy behavior explicitly; keep planned features separate until their behavior is agreed and distinguish them from available features. The completeness assessment is recorded in `docs/use-case-assessment.md` at the repository root.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
-- An Outcome item that only real Claude can show is marked *(checked by the real-Claude smoke test)*; the e2e test checks what the mock can.
 
-## Real-Claude smoke list
+## Local construct tests
 
-The Outcome items the mock cannot establish need a manual check with real Claude. Listing them here does not mean the check has passed:
-
-- [`use_case_construct_changes_activity`](activities.md#use_case_construct_changes_activity): asked for a breakdown or a brainstorm, the construct calls `select_activity` and follows the new activity in the same reply; older requests for the retired interview enter Break Down a Project, with or without a quest.
-- [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): asked how to do something in Blender, the construct casts Blender manual lookup, then searches the Blender manual and cites what it read; it gives no Blender steps without a search.
-- [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
-- [`use_case_construct_records_milestone`](quests.md#use_case_construct_records_milestone): told she finished something meaningful in a quest adventure, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
-- [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): once she agrees on steps, or finishes one, the construct changes the plan with `change_plan`, adding only agreed steps, and never counts open steps or days.
-- [`use_case_customize_construct`](constructs.md#use_case_customize_construct): a conversation with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any quest or Chat can start with her own construct; its text is saved under the default construct's id.
+Every environment uses deterministic local commands. Tests exercise those commands directly; there is no mock model mode or separate provider smoke list. Browser tests use fixed saved messages to cover rich content from older conversations. Server tests call tool handlers and stores directly when checking their contracts, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Historical accounting and private artwork storage remain covered without provider requests.
 
 ## Areas
 
@@ -63,9 +55,8 @@ Each area's cases are in their own file:
 - [Plan](plan.md)
 - [Ideas](ideas.md)
 - [Constructs](constructs.md)
-- [Activities](activities.md)
 - [Library](library.md)
-- [Workshop](workshop.md): edit and test unsaved constructs, activities and spells.
+- [Workshop](workshop.md): edit constructs and inspect Plan and Brainstorm.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
 - [Spells](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)

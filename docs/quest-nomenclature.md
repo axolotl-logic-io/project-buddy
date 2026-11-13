@@ -10,7 +10,7 @@ The product name remains **Project Buddy**. Build-tool projects, hosting project
 
 ## Construct names
 
-Own definitions share `own_prompts`, with kind `construct`, `activity` or `spell`. Conversation columns use `construct_id`, `construct_name` and `construct_parts`; the saved user preference uses `interview_construct_id`. The construct migrations transfer existing IDs, ownership, snapshots, artwork references and purchase provenance. Browser drafts use the current construct-kind key. New copies store current prompt wording. `CONSTRUCT_MODEL` is the sole model setting.
+Own definitions share `own_prompts`, with kind `construct`, `activity` or `spell`. Conversation columns use `construct_id`, `construct_name` and `construct_parts`; the saved user preference uses `interview_construct_id`. The construct migrations transfer existing IDs, ownership, snapshots, artwork references and purchase provenance. Browser drafts use the current construct-kind key. New copies store current prompt wording. Constructs always run local rules; no model setting is needed.
 
 ## Release cutover
 

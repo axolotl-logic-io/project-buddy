@@ -13,12 +13,7 @@ import type { JSX } from "react";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import type { readInvitation } from "@/accounts/invitations.ts";
 import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import type {
-  getOwnActivity,
-  listOwnActivities,
-} from "@/activities/activity-store.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import type {
   getOwnConstruct,
@@ -30,7 +25,6 @@ import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
-import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { QUEST_COPY } from "@/ui/copy/quests.ts";
@@ -102,14 +96,6 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
 vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
-vi.mock("@/activities/activity-store.ts", () => ({
-  getOwnActivity: vi.fn<typeof getOwnActivity>(),
-  listOwnActivities: vi.fn<typeof listOwnActivities>(),
-}));
-vi.mock("@/spells/spell-store.ts", () => ({
-  getOwnSpell: vi.fn<typeof getOwnSpell>(),
-  listOwnSpells: vi.fn<typeof listOwnSpells>(),
-}));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
   listConstructs: vi.fn<typeof listConstructs>(),
@@ -121,13 +107,7 @@ vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
 }));
 
-vi.mock("@/accounts/invitations.ts", () => ({
-  readInvitation: vi.fn<typeof readInvitation>(),
-}));
-vi.mock("@/app/(workspace)/invitations/actions.ts", () => ({
-  sendInvitationAction: vi.fn(),
-}));
-vi.mock("@/app/setup/actions.ts", () => ({ confirmSetupAction: vi.fn() }));
+vi.mock("@/accounts/sign-up-links.ts", () => ({ readSignUpEmail: vi.fn() }));
 
 // A sign-in link's page waits for the request; ChatView refreshes the page
 // through the App Router.
@@ -138,7 +118,6 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
 vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
-vi.mock("@/app/signup/actions.ts", () => ({ signUpAction: vi.fn() }));
 vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
@@ -152,22 +131,6 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
-  retireActivityAction: vi.fn(),
-  cloneActivityAction: vi.fn(),
-  editBuiltInActivityAction: vi.fn(),
-  newActivityAction: vi.fn(),
-  resetActivityPromptAction: vi.fn(),
-  saveActivityAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  cloneSpellAction: vi.fn(),
-  retireSpellAction: vi.fn(),
-  editBuiltInSpellAction: vi.fn(),
-  newSpellAction: vi.fn(),
-  resetSpellPromptAction: vi.fn(),
-  saveSpellAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
@@ -186,10 +149,6 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
 
-vi.mock(
-  "@/activities/activity-choices.ts",
-  () => import("../activities/activity-choices-test-kit.ts"),
-);
 // A touch screen's pointer, which the browser-touch quest's pages have.
 const COARSE_POINTER = "(pointer: coarse)";
 

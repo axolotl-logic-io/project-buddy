@@ -6,7 +6,8 @@ import {
 } from "@/app/(workspace)/quests/status-actions.ts";
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { HTTP_STATUS } from "@/http-status.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
+import { runChatCommandAction } from "@/plan/plan-actions.ts";
 import { activeQuests } from "@/quests/active-quests.ts";
 import {
   STATUS_APPROVAL_ID,
@@ -22,10 +23,8 @@ import {
 } from "@/quests/quest-status-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
-import {
-  QUEST_STATUS_OUTPUT,
-  QUEST_STATUS_TOOL,
-} from "@/replies/tools/quest-status-contract.ts";
+import { questStatusTool } from "@/replies/tools/quest-status.ts";
+import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -33,7 +32,7 @@ import {
   NOTHING,
   seenBy,
 } from "../accounts/former-member-quest-test-kit.ts";
-import { sendChatMessage } from "../test-database/chat-test-kit.ts";
+import { newMessageId } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
@@ -63,6 +62,52 @@ async function questFixture(): Promise<{
   const chat = await data.chat(quest);
   return { user, quest, chat };
 }
+
+describe("quest status commands", () => {
+  test.each([
+    ["/complete", "completed"],
+    ["/abandon", "abandoned"],
+  ] as const)(
+    "%s changes only the owner's quest and can be restored",
+    async (text, status) => {
+      const { user, quest, chat } = await questFixture();
+      await signIn(user);
+      expect(
+        await runChatCommandAction({ chatId: chat.id, text }),
+      ).toMatchObject({ kind: "quest-status" });
+      expect(await getQuest(user.id, quest.id)).toMatchObject({ status });
+      expect(
+        await runChatCommandAction({ chatId: chat.id, text: "/restore" }),
+      ).toMatchObject({ kind: "quest-status" });
+      expect(await getQuest(user.id, quest.id)).toMatchObject({
+        status: "active",
+      });
+      expect(await listMessages(user.id, chat.id)).toEqual([]);
+      const stranger = await testUser();
+      await signIn(stranger);
+      expect(await runChatCommandAction({ chatId: chat.id, text })).toEqual({
+        kind: "not-found",
+      });
+      expect(await getQuest(user.id, quest.id)).toMatchObject({
+        status: "active",
+      });
+    },
+  );
+  test("status commands reject arguments and standalone conversations", async () => {
+    const { user, quest, chat } = await questFixture();
+    await signIn(user);
+    expect(
+      await runChatCommandAction({ chatId: chat.id, text: "/complete 1" }),
+    ).toMatchObject({ kind: "problem" });
+    expect(await getQuest(user.id, quest.id)).toMatchObject({
+      status: "active",
+    });
+    const standalone = await privateChat(user.id);
+    expect(
+      await runChatCommandAction({ chatId: standalone.id, text: "/abandon" }),
+    ).toMatchObject({ kind: "problem" });
+  });
+});
 
 describe("use_case_change_quest_status", () => {
   test.each(["completed", "abandoned"] as const)(
@@ -182,27 +227,23 @@ describe("use_case_construct_changes_quest_status", () => {
   test("the registered tool creates a card without changing status; explicit approval executes once", async () => {
     const { user, quest, chat } = await questFixture();
     await signIn(user);
-    expect(
-      (
-        await sendChatMessage(
-          chat.id,
-          `/mock-tool ${QUEST_STATUS_TOOL} {"status":"completed"}`,
-        )
-      ).status,
-    ).toBe(HTTP_STATUS.ok);
-    const outputs = (await listMessages(user.id, chat.id)).flatMap(
-      ({ parts }) =>
-        parts.flatMap((part) => {
-          if (
-            part.type !== `tool-${QUEST_STATUS_TOOL}` ||
-            !("output" in part)
-          ) {
-            return [];
-          }
-          return [QUEST_STATUS_OUTPUT.parse(part.output)];
-        }),
+    const output = await Promise.resolve(
+      questStatusTool.execute?.(
+        { status: "completed" },
+        {
+          toolCallId: "status",
+          messages: [],
+          context: {
+            construct: chat.construct,
+            answeredId: newMessageId(),
+            actingUser: user.id,
+            chatId: chat.id,
+            questId: quest.id,
+          },
+        },
+      ),
     );
-    const { approval } = required(outputs[0]);
+    const { approval } = QUEST_STATUS_OUTPUT.parse(output);
     expect(await getQuest(user.id, quest.id)).toMatchObject({
       status: "active",
     });

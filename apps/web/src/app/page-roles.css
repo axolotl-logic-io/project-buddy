@@ -85,44 +85,7 @@
   }
 
   .quest-workspace {
-    @apply flex min-w-0 flex-col gap-4;
-  }
-
-  /* The section rail scrolls inside the space left by the actions button. */
-  .quest-workspace-header {
-    @apply flex min-w-0 items-center gap-2 border-line border-b;
-  }
-
-  .quest-workspace-header.chat-header {
-    @apply py-0;
-  }
-
-  .quest-workspace-rail {
-    @apply min-w-0 flex-1;
-  }
-
-  .quest-workspace-tab {
-    min-block-size: var(--target-size);
-    @apply inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-muted text-sm;
-  }
-
-  .quest-workspace-tab[aria-current="page"],
-  .quest-workspace-tab[data-state="active"] {
-    @apply border-primary text-foreground;
-  }
-
-  .quest-actions-trigger {
-    min-inline-size: var(--target-size);
-    min-block-size: var(--target-size);
-    @apply flex shrink-0 cursor-pointer items-center justify-center rounded-control text-primary hover:bg-surface;
-  }
-
-  .quest-actions-panel {
-    @apply z-30 min-w-max rounded-box border border-line bg-surface p-3 shadow-raised;
-  }
-
-  .quest-status-actions {
-    @apply flex flex-col items-stretch gap-1;
+    @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
   /* A status change's result and its Undo, side by side, under the
@@ -136,10 +99,6 @@
      mounted for announcements. */
   .quest-status-feedback:has(> .notice:empty) {
     @apply absolute;
-  }
-
-  .quest-status-abandoned {
-    @apply text-danger;
   }
 
   .quest-title-edit {
@@ -188,6 +147,10 @@
   /* The column a page's content sits in, below the site header. */
   .page-column {
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
+  }
+
+  .page-column:has(.chat-thread) {
+    @apply pb-0;
   }
 
   .workspace-frame {
@@ -590,6 +553,7 @@
     --trail-band-min-height: calc(var(--target-size) + --spacing(1));
     --trail-heading-leading: 1.15;
     --site-header-height: 0px;
+    --site-header-bottom: var(--site-header-height);
     scroll-padding-top: var(--site-header-height);
   }
 
@@ -643,7 +607,7 @@
      quest from this, which wraps under it on a phone. */
   /* A quest's conversation below its section links and actions. */
   .quest-conversation {
-    @apply flex min-w-0 flex-col gap-4;
+    @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
   .conversation-header {
@@ -652,6 +616,10 @@
 
   /* Leave room for the pinned conversation header, a touch target's
      height, and its fade when jumping to a message. */
+  html:has(.quest-workspace) {
+    scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
+  }
+
   html:has(.chat-header) {
     scroll-padding-top: calc(
       var(--site-header-height) +
@@ -1052,8 +1020,7 @@
 
   /* A tab focused by a click shows no focus ring beside its underline;
      keyboard focus keeps it (src/components/tab-pointer-focus.ts). */
-  .workspace-tab[data-pointer-focus]:focus-visible,
-  .quest-workspace-tab[data-pointer-focus]:focus-visible {
+  .workspace-tab[data-pointer-focus]:focus-visible {
     outline: none;
     box-shadow: none;
   }
@@ -1163,118 +1130,137 @@
     box-shadow: none;
   }
 
-  /* A quest's plan (src/components/plan/plan-steps.tsx): the next step on its
-     own, the open steps in order with their controls, the form for a new
-     step and the done steps, folded away. */
-  .plan {
-    @apply flex min-w-0 flex-col gap-3;
+  /* Shared compact editors for Plan and Ideas. */
+  .plan,
+  .editable-list {
+    @apply flex min-w-0 flex-col gap-0 font-body text-sm;
   }
 
-  .plan-next {
-    @apply flex flex-wrap items-center justify-between gap-3 rounded-box border border-primary bg-surface px-4 py-3 shadow-control;
+  .editable-row {
+    @apply relative grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start rounded-control hover:bg-field/60 focus-within:bg-field/60;
   }
 
-  .plan-next-label {
-    @apply font-semibold text-primary text-xs uppercase tracking-wide;
+  .editable-row:has(.editable-check) {
+    @apply grid-cols-[auto_minmax(0,1fr)_auto];
   }
 
-  .plan-next-text {
-    @apply wrap-anywhere font-heading font-semibold;
+  .editable-row[data-dragging="true"] {
+    @apply opacity-50;
   }
 
-  .plan-steps {
-    @apply flex flex-col;
+  .editable-row[data-drop-before="true"]::before,
+  .editable-list[data-drop-end="true"]::after {
+    content: "";
+    @apply absolute inset-x-0 border-primary border-t-2;
   }
 
-  /* A step: its checkbox, number and text, with its buttons on a row of
-     their own under the text, so a long step keeps the width it needs on a
-     phone. From sm the buttons sit at the end of the step's own row, except
-     in the Plan panel's narrow column. */
-  .plan-step {
-    @apply grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 border-line/40 border-b py-1 last:border-b-0;
+  .editable-list {
+    @apply relative;
   }
 
-  .plan-step-check {
+  .editable-list[data-drop-end="true"]::after {
+    @apply bottom-0;
+  }
+
+  .editable-check,
+  .editable-check input {
     inline-size: var(--target-size);
     block-size: var(--target-size);
-    @apply flex items-center justify-center;
   }
 
-  /* The checkbox is drawn as the Markdown's task-list checkbox is
-     (src/components/chat/chat.css), which sizes it in em: 1em here is
-     1.5rem, at least WCAG 2.5.8's 24 px, inside the step's 44 px target. */
-  .plan-step-check input {
-    font-size: 1.5rem;
-    @apply m-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60;
+  .editable-check input {
+    @apply m-0 grid cursor-pointer appearance-none place-content-center text-muted disabled:cursor-not-allowed disabled:opacity-60;
   }
 
-  .plan-step-check input:focus-visible {
+  .editable-check input::before {
+    content: "";
+    grid-area: 1 / 1;
+    @apply size-5 rounded-full border-2 border-current;
+  }
+
+  .editable-check input:checked::before {
+    @apply border-primary bg-primary;
+  }
+
+  .editable-check input:checked::after {
+    content: "";
+    grid-area: 1 / 1;
+    @apply mx-auto -mt-0.5 h-2.5 w-1.5 rotate-45 border-on-primary border-e-2 border-b-2;
+  }
+
+  .editable-check input:focus-visible {
     outline: var(--focus-outline);
-    outline-offset: var(--focus-offset);
+    outline-offset: calc(-1 * var(--focus-offset));
   }
 
-  /* Wide enough for "#10" whatever the step, so every step's text starts in
-     one column. */
-  .plan-step-number {
-    min-inline-size: 3ch;
-    @apply text-end text-muted text-xs tabular-nums;
+  .editable-text {
+    @apply wrap-anywhere min-w-0 justify-start py-2.5 text-left font-normal text-foreground hover:no-underline disabled:opacity-100;
   }
 
-  .plan-step-text {
-    @apply wrap-anywhere min-w-0;
-  }
-
-  .plan-done .plan-step-text {
+  .editable-row[data-completed="true"] .editable-text {
     @apply text-muted line-through;
   }
 
-  .plan-step-actions {
-    @apply col-span-full flex flex-wrap justify-end;
+  .editable-actions {
+    @apply flex items-center;
   }
 
-  .plan-step-actions .button-quiet {
+  .editable-actions .button-quiet,
+  .editable-form .button-quiet {
     min-inline-size: var(--target-size);
-    @apply justify-center;
+    @apply shrink-0 justify-center text-muted hover:text-foreground hover:no-underline;
   }
 
-  @media (width >= --theme(--breakpoint-sm)) {
-    .plan-step {
-      @apply grid-cols-[auto_auto_minmax(0,1fr)_auto];
-    }
-
-    .plan-step-actions {
-      @apply col-span-1;
-    }
+  .editable-grip {
+    touch-action: none;
+    @apply cursor-grab active:cursor-grabbing;
   }
 
-  @media (width >= --theme(--breakpoint-xl)) {
-    .adventure-plan .plan-step {
-      @apply grid-cols-[auto_auto_minmax(0,1fr)];
-    }
-
-    .adventure-plan .plan-step-actions {
-      @apply col-span-full;
-    }
+  .editable-menu {
+    @apply z-30 min-w-40 rounded-control border border-line/40 bg-surface p-1 text-sm shadow-raised;
   }
 
-  .plan-step-form {
-    @apply flex flex-wrap items-center gap-2;
+  .editable-menu-label {
+    @apply px-3 py-1 text-muted text-xs;
   }
 
-  /* The field waits with its buttons, as they do while the construct
-     replies. */
-  .plan-step-form .input-field {
-    @apply min-w-0 flex-[1_1_10rem] disabled:cursor-not-allowed disabled:opacity-60;
+  .editable-menu-item {
+    min-block-size: var(--target-size);
+    @apply flex cursor-pointer items-center gap-2 rounded-control px-3 text-foreground outline-none data-[highlighted]:bg-field data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50;
   }
 
-  /* A step being edited keeps its place: the form takes the text's column
-     and the buttons', under no number of its own. */
-  .plan-step > .plan-step-form {
-    @apply col-start-3 -col-end-1;
+  .editable-add {
+    @apply w-full justify-start gap-3 rounded-control px-3 text-left text-primary hover:bg-field/60 hover:no-underline;
   }
 
-  .plan-step-problem {
-    @apply basis-full text-sm;
+  .editable-add-form {
+    @apply grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start rounded-control bg-field/60;
+  }
+
+  .editable-add-form > .icon {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply justify-center text-muted;
+  }
+
+  .editable-form {
+    @apply flex min-w-0 flex-wrap items-start;
+  }
+
+  .editable-row > .editable-form {
+    @apply col-start-1 -col-end-1;
+  }
+
+  .editable-row:has(.editable-check) > .editable-form {
+    @apply col-start-2;
+  }
+
+  .editable-row:has(.editable-form) > .editable-actions {
+    @apply col-start-1 -col-end-1 justify-start;
+  }
+
+  .editable-form .error-text {
+    @apply basis-full pb-2 text-sm;
   }
 
   .plan-done > summary {
@@ -1345,63 +1331,87 @@
     @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
   }
 
-  /* An adventure in a quest with its Plan panel (src/components/chat-view.tsx
-     and plan-panel.tsx): above the conversation on a narrower screen, where
-     a button opens it, and a sticky column beside it on a wide one, where
-     the page's column widens to hold both. */
+  /* The quest sidebar docks to the viewport edge. On phones it becomes a
+     modal drawer, keeping the conversation in place behind it. */
+  .page-column.page-frame-quest {
+    @apply max-w-none;
+  }
+
   .adventure-layout {
-    @apply flex min-w-0 flex-col gap-4;
+    @apply flex min-w-0 flex-1 flex-col;
   }
 
   .adventure-main {
-    @apply flex min-w-0 flex-col gap-8;
-  }
-  .quest-sidebar-frame {
-    @apply static order-first m-0 w-full min-w-0 border-0 bg-transparent p-0 text-inherit;
+    @apply mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col gap-8;
   }
 
-  .quest-sidebar-frame:modal {
-    @apply fixed inset-0 m-0 h-dvh w-screen max-h-none max-w-none overflow-y-auto bg-surface p-4;
+  .quest-sidebar-frame {
+    inset-block-start: var(--site-header-bottom);
+    block-size: calc(100dvh - var(--site-header-bottom));
+    inline-size: min(22rem, 100%);
+    max-block-size: none;
+    @apply fixed inset-e-0 inset-s-auto m-0 max-w-none overflow-y-auto border-0 border-s border-line/40 bg-surface p-0 text-foreground;
+  }
+
+  .quest-sidebar-frame::backdrop {
+    @apply bg-foreground/20;
   }
 
   .quest-sidebar {
-    @apply min-w-0 rounded-box border border-line bg-surface p-3;
-  }
-  .quest-sidebar-trigger {
-    @apply w-full justify-between;
-  }
-  .quest-sidebar-content {
-    @apply flex min-w-0 flex-col gap-3 py-3;
-  }
-  .quest-sidebar-content[data-state="closed"] {
-    display: none;
-  }
-  .adventure-layout[data-panel-size="full"] > .adventure-main {
-    display: none;
-  }
-  .adventure-layout[data-panel-size="full"] {
-    @apply grid grid-cols-1;
+    @apply flex min-h-full min-w-0 flex-col px-4 pb-6 text-sm;
   }
 
-  @media (width >= --theme(--breakpoint-xl)) {
-    .page-column:has(.adventure-layout),
-    .page-frame-quest {
-      @apply max-w-6xl;
+  .quest-sidebar .workspace-rail {
+    @apply sticky top-0 z-10 flex-nowrap gap-x-2 border-t-0 bg-surface px-0;
+  }
+
+  .quest-sidebar .workspace-tablist {
+    @apply gap-x-3;
+  }
+
+  .quest-sidebar .workspace-content {
+    @apply px-0 py-4;
+  }
+
+  .quest-sidebar-toggle {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply shrink-0 justify-center rounded-control text-muted hover:bg-field hover:text-foreground hover:no-underline;
+  }
+
+  .quest-sidebar-expand {
+    inset-block-start: calc(var(--site-header-bottom) + --spacing(2));
+    @apply fixed end-4 z-20 bg-surface;
+  }
+
+  .quest-sidebar-expand[hidden] {
+    display: none;
+  }
+
+  .quest-sidebar .input-field {
+    @apply rounded-control border-line/40 bg-transparent text-sm shadow-none;
+  }
+
+  .editable-form .input-field {
+    min-block-size: var(--target-size);
+    @apply min-w-0 flex-[1_1_8rem] rounded-none border-0 bg-transparent px-0 py-2.5 text-sm shadow-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .quest-sidebar .notice {
+    @apply rounded-none border-0 bg-transparent p-0 text-sm shadow-none;
+  }
+
+  .quest-sidebar .page-slot {
+    @apply gap-3;
+  }
+
+  @media (width >= --theme(--breakpoint-lg)) {
+    .adventure-layout[data-sidebar-open="true"] {
+      padding-inline-end: 22rem;
     }
-    .adventure-layout {
-      @apply grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8;
-    }
-    .quest-sidebar-frame:not(:modal) {
-      @apply order-none col-start-2 row-start-1;
-      inset-block-start: calc(var(--site-header-height) + 2rem);
-      max-block-size: calc(100dvh - var(--site-header-height) - 4rem);
-      @apply sticky overflow-y-auto;
-    }
-    .adventure-layout[data-panel-size="minimized"] {
-      @apply grid-cols-[minmax(0,1fr)_auto];
-    }
-    .adventure-layout[data-panel-size="full"] {
-      @apply grid-cols-1;
+
+    .quest-sidebar-frame {
+      @apply z-20;
     }
   }
 

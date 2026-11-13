@@ -4,10 +4,10 @@
 // adventure button. "use_case_breadcrumbs_in_long_chat" in
 // use-cases/chats.md: a conversation longer than the screen, scrolled to its
 // end. The trail band, with the way back to the quests and the quest's
-// name as the page's heading, the conversation's pinned header and the
+// name as the page's heading, and the
 // composer stay wholly on screen and in reach, on a laptop and on a phone,
 // within the pinned budget even for a name on two lines, and a jump to a
-// message lands below the pinned header. The page sits in
+// message lands below the trail band. The page sits in
 // the main landmark and the workspace's column, as the layouts render it;
 // the site's stylesheet comes from vitest.browser-setup.ts.
 // "use_case_send_message": a reply streams in the quest's conversation.
@@ -29,7 +29,6 @@ import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import {
@@ -40,14 +39,18 @@ import {
   answerChat,
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
-import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../../../../replies/rich-message-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import { FOX_CHAT, FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
+import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
+
+vi.mock("@/conversations/reset-conversation-action.ts", () => ({
+  resetConversationAction: vi.fn(),
+}));
 
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
@@ -100,11 +103,9 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@/activities/activity-store.ts", () => ({ getOwnActivity: vi.fn() }));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
-vi.mock("@/spells/spell-store.ts", () => ({ getOwnSpell: vi.fn() }));
 vi.mock("@/quests/store.ts", () => ({ getQuest: store.getQuest }));
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
@@ -139,7 +140,7 @@ function longChat(): ChatMessage[] {
     {
       id: `m${index}`,
       role: "user",
-      parts: [{ type: "text", text: "/mock-markdown" }],
+      parts: [{ type: "text", text: "Show the saved example" }],
     },
     {
       id: `r${index}`,
@@ -268,9 +269,6 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const backLink = page
           .getByRole("navigation", { name: "Breadcrumbs" })
           .getByRole("link", { name: QUESTS_COPY.heading, exact: true });
-        const pinned = page.getByRole("button", {
-          name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
-        });
         const conversation = page.getByRole("list", {
           name: CHAT_COPY.conversationLabel,
         });
@@ -288,26 +286,19 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
         await expect.element(trail).toBeInViewport({ ratio: 1 });
         const shared = trail.element().closest("header");
-        const controls = pinned.element().closest("header");
         expect(shared).not.toBeNull();
-        expect(controls).not.toBeNull();
-        await expect
-          .poll(() => controls?.getBoundingClientRect().top)
-          .toBeCloseTo(shared?.getBoundingClientRect().bottom ?? -1, 0);
         const heading = page.getByRole("heading", { level: 1 });
         await expect.element(heading).toHaveTextContent(name);
         await expect.element(heading).toBeInViewport({ ratio: 1 });
         expect(heading.element().closest("header")).toBe(shared);
         expect(
-          (controls?.getBoundingClientRect().bottom ??
-            Number.POSITIVE_INFINITY) -
+          (shared?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY) -
             Math.max(0, shared?.getBoundingClientRect().top ?? 0),
-          "the band and the pinned header stay within the budget",
+          "the trail band stays within the pinned budget",
         ).toBeLessThanOrEqual(pinnedBudget);
         // Each wholly on screen, and in reach.
         const targets = [
           backLink,
-          pinned,
           page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
         ];
         await Promise.all(
@@ -317,7 +308,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         );
         expect(
           targets.map((target) => topmostAtCentre(target.element())),
-        ).toEqual([true, true, true]);
+        ).toEqual([true, true]);
 
         const first = conversation.element().firstElementChild;
         if (first === null) {
@@ -325,7 +316,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         }
         first.scrollIntoView({ block: "start" });
         expect(first.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-          controls?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
+          shared?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
         );
 
         expect(backLink.element()).toHaveAttribute("href", "/quests");
@@ -334,13 +325,11 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
   }
 });
 
-describe("the pinned chat header", () => {
+describe("the pinned quest title", () => {
   test("stays on screen at the end and leaves a tap one screen down reaching the conversation", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
-    const title = page.getByRole("button", {
-      name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CHAT.construct.name),
-    });
+    const title = page.getByRole("heading", { level: 1 });
     const conversation = page.getByRole("list", {
       name: CHAT_COPY.conversationLabel,
     });
@@ -355,6 +344,69 @@ describe("the pinned chat header", () => {
       true,
     );
   });
+});
+
+describe("sidebar header clearance", () => {
+  test.each([FOX_QUEST.name, LONG_QUEST_NAME])(
+    "stays below the full header and follows its pinned edge for %s",
+    async (name) => {
+      await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
+      store.getQuest.mockResolvedValue({ ...FOX_QUEST, name });
+      await render(await chatPage());
+      const header = page.getByRole("banner");
+      const panel = page.getByRole("dialog", { name: "Quest side menu" });
+      await expect.element(panel).toBeVisible();
+      globalThis.scrollTo(0, 0);
+      await expect.poll(() => globalThis.scrollY).toBe(0);
+      await expect
+        .poll(
+          () =>
+            panel.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeCloseTo(0, 0);
+      expect(panel.element().getBoundingClientRect().right).toBe(
+        LAPTOP_VIEWPORT.width,
+      );
+      expect(panel.element().getBoundingClientRect().bottom).toBe(
+        LAPTOP_VIEWPORT.height,
+      );
+      await scrollToBottom();
+      await expect
+        .poll(
+          () =>
+            panel.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeCloseTo(0, 0);
+      expect(panel.element().getBoundingClientRect().bottom).toBe(
+        LAPTOP_VIEWPORT.height,
+      );
+      await page
+        .getByRole("button", { name: "Collapse quest sidebar" })
+        .click();
+      const toggle = page.getByRole("button", { name: "Open quest sidebar" });
+      expect(
+        toggle.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(header.element().getBoundingClientRect().bottom);
+      globalThis.scrollTo(0, 0);
+      await expect
+        .poll(
+          () =>
+            toggle.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeGreaterThanOrEqual(0);
+      await toggle.click();
+      await expect
+        .poll(
+          () =>
+            panel.element().getBoundingClientRect().top -
+            header.element().getBoundingClientRect().bottom,
+        )
+        .toBeCloseTo(0, 0);
+    },
+  );
 });
 
 async function chatPage(): Promise<JSX.Element> {
@@ -378,7 +430,7 @@ async function chatPage(): Promise<JSX.Element> {
 }
 
 describe("use_case_send_message", () => {
-  test("streams and reopens in the quest's conversation without activity controls", async () => {
+  test("streams and reopens in the quest's conversation with spell casts", async () => {
     await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
     store.listMessages.mockResolvedValue([]);
     const chunks: UIMessageChunk[] = [
@@ -386,18 +438,17 @@ describe("use_case_send_message", () => {
       { type: "start-step" },
       {
         type: "tool-input-available",
-        toolCallId: "activity",
-        toolName: "select_activity",
-        input: { activityId: "brainstorming" },
+        toolCallId: "spell",
+        toolName: "cast_spell",
+        input: { spellId: "brainstorm" },
       },
       {
         type: "tool-output-available",
-        toolCallId: "activity",
+        toolCallId: "spell",
         output: {
-          status: "entered",
-          activityId: "brainstorming",
-          name: "Brainstorming",
-          instructions: "Explore ideas",
+          status: "cast",
+          spellId: "brainstorm",
+          name: "Brainstorm",
         },
       },
       { type: "text-start", id: "text" },
@@ -417,7 +468,7 @@ describe("use_case_send_message", () => {
     await box.fill("Help me brainstorm");
     await send.click();
     await expect
-      .element(page.getByText("Activity: Brainstorming", { exact: true }))
+      .element(page.getByText("Cast Brainstorm", { exact: true }))
       .toBeVisible();
     await expect
       .element(page.getByText("Let's explore your ideas.", { exact: true }))
@@ -445,15 +496,14 @@ describe("use_case_send_message", () => {
         role: "assistant",
         parts: [
           {
-            type: "tool-select_activity",
-            toolCallId: "activity",
+            type: "tool-cast_spell",
+            toolCallId: "spell",
             state: "output-available",
-            input: { activityId: "brainstorming" },
+            input: { spellId: "brainstorm" },
             output: {
-              status: "entered",
-              activityId: "brainstorming",
-              name: "Brainstorming",
-              instructions: "Explore ideas",
+              status: "cast",
+              spellId: "brainstorm",
+              name: "Brainstorm",
             },
           },
           { type: "text", text: "Let's explore your ideas." },
@@ -463,7 +513,7 @@ describe("use_case_send_message", () => {
     store.listMessages.mockResolvedValue(saved);
     await screen.rerender(await chatPage());
     await expect
-      .element(page.getByText("Activity: Brainstorming", { exact: true }))
+      .element(page.getByText("Cast Brainstorm", { exact: true }))
       .toBeVisible();
     await expect
       .element(page.getByText("Let's explore your ideas.", { exact: true }))
@@ -484,6 +534,7 @@ describe("use_case_open_quest", () => {
     await expect
       .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
       .toBeVisible();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
@@ -493,7 +544,7 @@ describe("use_case_open_quest", () => {
     await Promise.all(
       ["Plan", "Ideas", "Progress"].map((name) =>
         expect
-          .element(page.getByRole("button", { name, exact: true }))
+          .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),
       ),
     );
@@ -524,37 +575,21 @@ describe("use_case_start_quest_conversation", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("Start the day sends its prepared message and keeps the draft", async () => {
+  test("Reset Day is offered above the conversation", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
-    const held = holdBeforeChunk(
-      [{ type: "start", messageId: "day-reply" }, { type: "finish" }],
-      1,
-    );
-    const sent = answerChat(held.response);
     await render(await chatPage());
-    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    await box.fill("A thought for later");
-    await page
-      .getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay })
-      .click();
-
-    await expect
-      .element(
-        page.getByText(QUEST_CONVERSATION_COPY.startTheDayMessage, {
-          exact: true,
-        }),
-      )
-      .toBeVisible();
-    await expect.element(box).toHaveValue("A thought for later");
-    await expect.poll(() => sent.mock.calls.length).toBe(1);
-    expect(String(sent.mock.calls[0]?.[1]?.body)).toContain(
-      QUEST_CONVERSATION_COPY.startTheDayMessage,
+    const reset = page.getByRole("button", {
+      name: QUEST_CONVERSATION_COPY.resetDay,
+    });
+    await expect.element(reset).toBeVisible();
+    const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+    expect(reset.element().getBoundingClientRect().bottom).toBeLessThan(
+      message.element().getBoundingClientRect().top,
     );
-    held.release();
   });
 
-  test("an ordinary quest offers no Start the day", async () => {
+  test("an ordinary quest offers no Reset Day", async () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
 
@@ -563,17 +598,17 @@ describe("use_case_dailies", () => {
       .toBeVisible();
     await expect
       .element(
-        page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay }),
+        page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
       )
       .not.toBeInTheDocument();
   });
 });
 
-test("Stop Activity sits beside Start the day and sends stop without replacing the draft", async () => {
+test("Stop Spell stays beside the composer and sends stop without replacing the draft", async () => {
   store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
   store.readQuestConversation.mockResolvedValue({
     ...FOX_CONVERSATION,
-    activity: { ...FOX_CONVERSATION.activity, name: "Brainstorm" },
+    spell: "brainstorm",
   });
   store.listMessages.mockResolvedValue([]);
   const held = holdBeforeChunk(
@@ -586,7 +621,7 @@ test("Stop Activity sits beside Start the day and sends stop without replacing t
   await box.fill("Keep this draft");
   await expect
     .element(
-      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay }),
+      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
     )
     .toBeVisible();
   await page
@@ -598,3 +633,34 @@ test("Stop Activity sits beside Start the day and sends stop without replacing t
   expect(String(sent.mock.calls[0]?.[1]?.body)).toContain("/stop");
   held.release();
 });
+
+const MAX_COMPOSER_BOTTOM_GAP = 64;
+
+test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
+  "a short conversation keeps its composer near the bottom at $width px",
+  async (size) => {
+    await page.viewport(size.width, size.height);
+    store.listMessages.mockResolvedValue([]);
+    await render(
+      <div className="flex min-h-dvh flex-col">{await chatPage()}</div>,
+    );
+    const collapse = page.getByRole("button", {
+      name: "Collapse quest sidebar",
+    });
+    if (collapse.query() !== null) {
+      await collapse.click();
+    }
+    const send = page.getByRole("button", {
+      name: CHAT_COPY.send,
+      exact: true,
+    });
+    await expect.element(send).toBeVisible();
+    const gap =
+      window.innerHeight - send.element().getBoundingClientRect().bottom;
+    expect(gap).toBeGreaterThanOrEqual(0);
+    expect(gap).toBeLessThanOrEqual(MAX_COMPOSER_BOTTOM_GAP);
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      size.width,
+    );
+  },
+);
