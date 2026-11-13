@@ -1,33 +1,22 @@
 # Accounts
 
-The conventions for these cases are in [the index](README.md#conventions). Who may sign up, and the batteries every account starts with, are described [there too](README.md#who-uses-the-site).
-
-## use_case_admin_invites
-
-An admin invites one email address from the signed-in site.
-
-- **Prerequisites:** The designated account, `me@modestprogress.com`, is provisioned or promoted by migration and proves ownership through normal email sign-in. Other accounts remain ordinary users with unchanged data.
-- **Steps:** From Settings, the admin opens Invitations, enters an email address, and sends.
-- **Outcome:** The address receives a direct setup link, fixed to that normalized address, which never expires. The admin sees confirmation only after storage and the email service accept the send. No recipient account or session exists yet. A successful resend replaces the previous unaccepted link. An empty or malformed address is refused without an invitation or email. Storage or delivery failure is reported and can be retried; a failed delivery leaves the previous invitation usable. Existing accounts receive normal login links instead.
-- **Send limits:** Each admin can send 20 invitations per hour. A normalized recipient can receive one admin send per minute across all admins, whether they are a new or existing account. Refusal explains the limit and sends no email. These limits do not use up public sign-in allowances, and public requests do not use up invitation allowances. A failed send frees its budget slot and recipient cooldown so the admin can retry immediately. Concurrent submissions cannot bypass either limit.
-- **Access:** Ordinary users have no invitation link and cannot open or submit the page. Signed-out, expired and revoked sessions must sign in first. Refused requests send no email and issue no invitation. The admin role grants no access to anyone else's private data.
+The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_sign_up
 
-An invited recipient sets up their account with one confirmation.
+Anyone can create an account by verifying their email address.
 
-- **Prerequisites:** `use_case_admin_invites`, for an address without an account.
-- **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
-- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching Quests. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
-- **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
+- **Prerequisites:** The address has no account.
+- **Steps:** Open Log in or sign up, or Sign up, enter an email address and request a link. Open the emailed link and choose Continue.
+- **Outcome:** Requesting a link and opening it create no account or session. Confirmation creates one ordinary account for the verified, normalized address, grants its starting batteries and signs the browser in for 30 days, reaching Quests. No invitation, code or password is required. Verification links expire after 30 minutes, are replaced by a fresh request, and can be confirmed once. Invalid, expired, replaced and used links create no account or session. Concurrent confirmations create at most one account; a failed account insert preserves the link for retry. Public sign-up shares sign-in request limits.
 
 ## use_case_sign_up_existing_email
 
-An admin invites an address that already has an account.
+An existing user enters their address on Sign up.
 
 - **Prerequisites:** `use_case_sign_up`.
-- **Steps:** The admin enters that email address, possibly with surrounding whitespace and different casing, on Invitations and sends.
-- **Outcome:** The address gets a normal, reusable sign-in link, not a new-account invitation. Confirming signs in to the same account. Its role, quests, adventures, settings, and other data are unchanged, and no second account is made.
+- **Steps:** Enter the same email, optionally with different casing or surrounding whitespace, and request a link. Open it and continue.
+- **Outcome:** The address receives a normal reusable login link. The user reaches the same account with its role and data unchanged. No duplicate account or additional starting balance is created. The form gives the same confirmation as for a new address.
 
 ## use_case_sign_in_by_link
 
@@ -35,12 +24,12 @@ The user signs in with a link the site emails her, on this device or another.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:**
-  - On the sign-in page she enters her email address. The page asks only for that, with guidance to open the setup link in her invitation email and an Invitation help link.
+  - On the page labeled "Log in or sign up", she enters her email address. The page asks only for that and offers a Sign up link for new users.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.
   - The site signs her in and shows Quests.
-- **Outcome:** she is on Quests, where she can continue a quest or choose one of the four premade starting points, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
+- **Outcome:** she is on Quests, where she can continue a quest or choose one of the four premade starting points, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer and a verification link to create an account.
 - **Next:**
   - [`use_case_view_quests`](quests.md#use_case_view_quests): see what she has been working on.
   - [`use_case_new_quest`](quests.md#use_case_new_quest): start learning something new.

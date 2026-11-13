@@ -77,7 +77,7 @@ function FieldFrame({
   );
 }
 
-// A labelled one-line input, such as a name or an invite code.
+// A labelled one-line input, such as a name or an email address.
 export function TextField({
   label,
   hint,
