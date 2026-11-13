@@ -3,7 +3,6 @@
 // Only GET requests and one signed-out POST, so it never writes to the
 // database or calls Claude. Imports use relative paths so Node can run it
 // directly, without the app's alias resolver.
-import { SETUP_COPY } from "../../src/ui/copy/invitations.ts";
 import { SIGNUP_COPY } from "../../src/ui/copy/signup.ts";
 
 // The part of fetch the checks use, so a test can pass a fake.
@@ -64,7 +63,7 @@ function checkTexture(response: Response): Promise<string | undefined> {
   return Promise.resolve("expected an SVG image");
 }
 
-async function checkInvitationPage(
+async function checkSignUpPage(
   response: Response,
   explanation: string,
   signIn: string,
@@ -128,15 +127,7 @@ const CHECKS: readonly SmokeCheck[] = [
     path: "/signup",
     init: {},
     check: (response: Response): Promise<string | undefined> =>
-      checkInvitationPage(response, SIGNUP_COPY.intro, SIGNUP_COPY.signInLink),
-  },
-  {
-    // No token: the unusable state rejects it before an invitation query.
-    name: "GET /setup",
-    path: "/setup",
-    init: {},
-    check: (response: Response): Promise<string | undefined> =>
-      checkInvitationPage(response, SETUP_COPY.unusable, SETUP_COPY.signIn),
+      checkSignUpPage(response, SIGNUP_COPY.intro, SIGNUP_COPY.signInLink),
   },
   { name: "GET /", path: "/", init: {}, check: checkHome },
   {

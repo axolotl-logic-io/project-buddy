@@ -3,9 +3,6 @@
 import { expect } from "@playwright/test";
 import { emailsTo, type OutboxEmail } from "../support/email/outbox-files.ts";
 
-// The setup link in an invitation email's text.
-const SETUP_LINK = /https?:\/\/\S+\/setup\?token=[\w-]+/u;
-
 // The sign-in link in an email's text.
 const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?token=[\w-]+/u;
 
@@ -33,12 +30,4 @@ function signInLinkIn(email: OutboxEmail | undefined): string {
   return link;
 }
 
-function setupLinkIn(email: OutboxEmail | undefined): string {
-  const [link] = SETUP_LINK.exec(email?.text ?? "") ?? [];
-  if (link === undefined) {
-    throw new Error("No setup link in the invitation email");
-  }
-  return link;
-}
-
-export { setupLinkIn, signInLinkIn, waitForEmailsTo };
+export { signInLinkIn, waitForEmailsTo };

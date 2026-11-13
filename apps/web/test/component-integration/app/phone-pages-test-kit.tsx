@@ -8,12 +8,10 @@
 import type { JSX } from "react";
 import { vi } from "vitest";
 import { page } from "vitest/browser";
-import { readInvitation } from "@/accounts/invitations.ts";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
-import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
 import LibraryPage from "@/app/(workspace)/library/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
@@ -29,7 +27,6 @@ import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
-import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { listMessages } from "@/chats/store.ts";
 import {
@@ -123,17 +120,6 @@ function linkPage(
     signOut();
     vi.mocked(readSignInLinkUser).mockResolvedValue(user);
     return await SignInLinkPage({
-      params: NO_PARAMS,
-      searchParams: Promise.resolve({ token: LINK_TOKEN }),
-    });
-  };
-}
-
-function setupPage(email: string | undefined): () => Promise<JSX.Element> {
-  return async (): Promise<JSX.Element> => {
-    signOut();
-    vi.mocked(readInvitation).mockResolvedValue(email);
-    return await SetupPage({
       params: NO_PARAMS,
       searchParams: Promise.resolve({ token: LINK_TOKEN }),
     });
@@ -324,16 +310,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the Credits page", render: signedOut(CreditsPage) },
   { name: "the sign-in page", render: signedOut(LoginPage) },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
-  {
-    name: "the invitation page",
-    path: ["invitations"],
-    render: async (): Promise<JSX.Element> => {
-      signInAs({ ...SIGNED_IN_USER, role: "admin" });
-      return inWorkspace(await InvitationsPage());
-    },
-  },
-  { name: "the setup page", render: setupPage("learner@example.com") },
-  { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", path: QUESTS_PATH, render: projectsPage },

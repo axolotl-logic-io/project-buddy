@@ -7,7 +7,6 @@ import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
-import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -42,7 +41,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
-    ["invitations", { label: INVITATIONS_COPY.heading, href: "/invitations" }],
   ]);
 
 // Resolve names only through the same acting-user stores as the page. Unknown
@@ -58,10 +56,7 @@ async function headerBreadcrumbs(
   const [section = "", id, child] = path;
   const root = ROOTS.get(section);
   if (id === undefined) {
-    if (
-      root === undefined ||
-      (section === "invitations" && user.role !== "admin")
-    ) {
+    if (root === undefined) {
       return [];
     }
     if (section === "quests") {
