@@ -105,7 +105,7 @@ A construct is not a prompt; it has one.
 
 ### Construct code names
 
-Use **construct** in code, stored kinds and configuration. Own constructs and the two spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`; the user’s saved preference is `interview_construct_id`. `CONSTRUCT_MODEL` selects local commands or the non-production test script.
+Use **construct** in code, stored kinds and configuration. Own constructs and the two spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`; the user’s saved preference is `interview_construct_id`. Constructs always use the local command engine.
 
 The nomenclature migrations transfer existing rows and references. Browser drafts use the construct key. New copies store current built-in wording. Historical built-in text records still let readers recognize unchanged older copies; user-written prompts and conversation snapshots retain their text.
 
@@ -189,7 +189,7 @@ The construct’s first message in a new quest conversation, generated from the 
 
 ### Check-in (removed)
 
-A message the construct once added to a quest's conversation on a schedule its owner chose, with an email and an unread mark. Automatic check-ins were removed (#903): the construct writes only in answer to the user, and Dailies continues when the user writes or chooses Start the day. `check_in_frequency`, `last_check_in_at` and `chat_unreads` remain in storage, unused, until a held cleanup drops them.
+A message the construct once added to a quest's conversation on a schedule its owner chose, with an email and an unread mark. Automatic check-ins were removed (#903): the construct writes only in answer to the user, and Dailies continues when the user writes or chooses Reset Day. `check_in_frequency`, `last_check_in_at` and `chat_unreads` remain in storage, unused, until a held cleanup drops them.
 
 - **Avoid:** in product copy, prompts and docs, except when describing the removal; also "nudge", "reminder", "ping" for anything the site sends on its own.
 
@@ -314,7 +314,7 @@ A note in a quest's conversation that the construct or a person changed the ques
 
 ### Command
 
-A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The plan commands keep the plan without a model call. With the mock model, its own `/mock-…` commands still go to it as messages. In Chat only the plan commands' names are commands, and they say they need a quest; any other "/word" message goes to the construct.
+A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The plan commands keep the plan without a model call. In Chat only the plan commands' names are commands, and they say they need a quest; any other "/word" message goes to the construct.
 
 - **UI:** "Commands", "/plan", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
 - **Avoid:** "slash command" in UI copy.
@@ -522,9 +522,9 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Plan, whatever the user has renamed it: it is found by its mark, not its name. Start the day is a message the user sends in it. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Plan, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, beside the construct at the top, clears its conversation and active spell. It keeps Plan, Ideas and Progress and reopens completed Plan steps. Dailies keeps no streaks, deadlines or daily resets.
 
-- **UI:** “Dailies”, “Start the day”.
+- **UI:** “Dailies”, “Reset Day”.
 - **Avoid:** "daily quest" for a new quest per day, "streak".
 
 ## Library

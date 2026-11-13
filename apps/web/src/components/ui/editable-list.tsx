@@ -11,6 +11,8 @@ import {
   type SubmitEvent,
   useCallback,
   useContext,
+  useEffect,
+  useEffectEvent,
   useId,
   useRef,
   useState,
@@ -176,18 +178,26 @@ function TextEditor({
   disabled,
   onSave,
   onCancel,
+  onDismiss,
 }: {
   readonly initial: string;
   readonly editor: EditorOptions;
   readonly disabled: boolean;
   readonly onSave: (text: string) => Promise<boolean>;
   readonly onCancel: () => void;
+  readonly onDismiss: () => void;
 }): JSX.Element {
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const savingRef = useRef<boolean>(false);
+  const clickedAwayRef = useRef<boolean>(false);
+  const dismissRequestedRef = useRef<boolean>(false);
   const inputId = useId();
   const problemId = useId();
   const [text, setText] = useState(initial);
   const [problem, setProblem] = useState<string | undefined>();
   const focus = useCallback((input: HTMLInputElement | null): void => {
+    inputRef.current = input;
     input?.focus();
     input?.select();
   }, []);
@@ -205,26 +215,91 @@ function TextEditor({
     },
     [onCancel],
   );
-  const submit = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
-      event.preventDefault();
+  const save = useCallback(
+    async (dismiss: boolean): Promise<void> => {
+      if (savingRef.current || disabled) {
+        return;
+      }
+      if (dismiss && text.trim() === initial.trim()) {
+        onDismiss();
+        return;
+      }
       const checked = editor.validate(text);
       if ("problem" in checked) {
         setProblem(checked.problem);
         return;
       }
-      if (await onSave(checked.text)) {
-        onCancel();
+      savingRef.current = true;
+      try {
+        if (await onSave(checked.text)) {
+          if (dismiss || clickedAwayRef.current) {
+            onDismiss();
+          } else {
+            onCancel();
+          }
+        }
+      } catch {
+        setProblem(EDITABLE_LIST_COPY.failed);
+      } finally {
+        savingRef.current = false;
       }
     },
-    [editor, onCancel, onSave, text],
+    [disabled, editor, initial, onCancel, onDismiss, onSave, text],
   );
+  const submit = useCallback(
+    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
+      event.preventDefault();
+      await save(false);
+    },
+    [save],
+  );
+  const dismissOnClick = useEffectEvent((): void => {
+    clickedAwayRef.current = true;
+    if (disabled) {
+      dismissRequestedRef.current = true;
+      return;
+    }
+    save(true).catch(() => setProblem(EDITABLE_LIST_COPY.failed));
+  });
+  useEffect(() => {
+    // Let the clicked control activate before a save disables the list.
+    // Only an editor present at pointer-down handles the ensuing click.
+    function dismiss(): void {
+      dismissOnClick();
+    }
+    function pointerDown(event: globalThis.PointerEvent): void {
+      if (
+        event.button === 0 &&
+        event.target instanceof Node &&
+        !formRef.current?.contains(event.target)
+      ) {
+        document.addEventListener("click", dismiss, { once: true });
+      }
+    }
+    document.addEventListener("pointerdown", pointerDown, true);
+    return (): void => {
+      document.removeEventListener("pointerdown", pointerDown, true);
+      document.removeEventListener("click", dismiss);
+    };
+  }, []);
+  useEffect(() => {
+    if (!disabled && dismissRequestedRef.current) {
+      dismissRequestedRef.current = false;
+      save(true).catch(() => setProblem(EDITABLE_LIST_COPY.failed));
+    }
+  }, [disabled, save]);
+  useEffect(() => {
+    // A newly selected row can be disabled while the previous row saves.
+    if (!(disabled || clickedAwayRef.current)) {
+      inputRef.current?.focus();
+    }
+  }, [disabled]);
   let describedBy: string | undefined;
   if (problem !== undefined) {
     describedBy = problemId;
   }
   return (
-    <form className="editable-form" onSubmit={submit}>
+    <form ref={formRef} className="editable-form" onSubmit={submit}>
       <label className="sr-only" htmlFor={inputId}>
         {editor.label}
       </label>
@@ -295,10 +370,11 @@ function EditableListRow({
   const [editing, setEditing] = useState(false);
   const editRef = useRef<HTMLButtonElement>(null);
   const startEditing = useCallback((): void => setEditing(true), []);
+  const dismissEditing = useCallback((): void => setEditing(false), []);
   const stopEditing = useCallback((): void => {
-    setEditing(false);
+    dismissEditing();
     queueMicrotask(() => editRef.current?.focus());
-  }, []);
+  }, [dismissEditing]);
   const pointerDown = useCallback(
     (event: PointerEvent<HTMLButtonElement>): void => {
       if (event.button !== 0) {
@@ -370,6 +446,7 @@ function EditableListRow({
           disabled={disabled}
           onSave={onSave}
           onCancel={stopEditing}
+          onDismiss={dismissEditing}
         />
       )}
       {editing === false && (
@@ -442,10 +519,11 @@ function AddListItem({
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const expand = useCallback((): void => setOpen(true), []);
+  const dismiss = useCallback((): void => setOpen(false), []);
   const collapse = useCallback((): void => {
-    setOpen(false);
+    dismiss();
     queueMicrotask(() => triggerRef.current?.focus());
-  }, []);
+  }, [dismiss]);
   if (open === true) {
     return (
       <div className="editable-add-form">
@@ -456,6 +534,7 @@ function AddListItem({
           disabled={disabled}
           onSave={onSave}
           onCancel={collapse}
+          onDismiss={dismiss}
         />
       </div>
     );

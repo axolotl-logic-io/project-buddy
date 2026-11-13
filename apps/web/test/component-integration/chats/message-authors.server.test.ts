@@ -8,6 +8,7 @@
 // How the names are put on the turns is checked in author-names.test.ts,
 // and the chat screen in message-authors.browser.test.tsx.
 
+import { convertToModelMessages } from "ai";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
@@ -21,13 +22,14 @@ import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
+import { withAuthorNames } from "@/replies/author-names.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { mockReplyText } from "../replies/mock-markdown-test-kit.ts";
 import {
   constructPrompt,
   constructReply,
@@ -140,19 +142,16 @@ describe("use_case_chat_with_several_people", () => {
     ]);
     await signIn(sam);
 
-    // The mock construct recalls the lines the model got, from the prompt and
-    // the turns, that hold the word: each turn's header, Alex's by a label
-    // since Alex has no name, and never an email address.
-    const recalled = messageText(
-      await constructReply(chat.id, "/mock-recall Message from"),
-    );
-    expect(recalled).toContain("- [Message from person 1]");
-    expect(recalled).toContain('- [Message from "Sam"]');
-    expect(recalled).not.toContain(alex.email);
-    expect(await constructPrompt(chat.id)).toContain(SEVERAL_AUTHORS_RULES);
-    // What was saved is what Sam wrote, without a header.
+    await sendToEnd(sam, chat, "help");
     const saved = await listMessages(sam.id, chat.id);
-    expect(messageText(saved.at(-2))).toBe("/mock-system-prompt");
+    const named = JSON.stringify(
+      await convertToModelMessages(withAuthorNames(saved).messages),
+    );
+    expect(named).toContain("[Message from person 1]");
+    expect(named).toContain("Sam");
+    expect(named).not.toContain(alex.email);
+    expect(await constructPrompt(chat.id)).toContain(SEVERAL_AUTHORS_RULES);
+    expect(messageText(saved.at(-2))).toBe("help");
   });
 
   test("the owner sees another author's messages under their name, without a named author's address", async () => {
@@ -181,7 +180,7 @@ describe("use_case_chat_with_several_people", () => {
     await signIn(sam);
 
     const reply = await constructReply(chat.id, "Can we look at the shell?");
-    expect(messageText(reply)).toBe(mockReplyText("Can we look at the shell?"));
+    expect(messageText(reply)).toBe(LOCAL_CONSTRUCT_COPY.unknownCommand);
     expect(await constructPrompt(chat.id)).not.toContain(SEVERAL_AUTHORS_RULES);
   });
 });

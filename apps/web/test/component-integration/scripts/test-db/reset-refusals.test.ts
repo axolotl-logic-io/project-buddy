@@ -33,7 +33,6 @@ interface Run {
 // a value replaces it, and undefined leaves it out.
 interface Settings {
   readonly databaseUrl?: string | undefined;
-  readonly replyModel?: string | undefined;
   readonly emailTransport?: string | undefined;
   readonly emailOutboxDir?: string | undefined;
   readonly vercelEnv?: string | undefined;
@@ -41,7 +40,6 @@ interface Settings {
 
 const SAFE: Settings = {
   databaseUrl: LOCAL_DATABASE,
-  replyModel: "mock",
   emailTransport: "outbox",
   emailOutboxDir: "test-results/email-outbox",
 };
@@ -49,7 +47,6 @@ const SAFE: Settings = {
 // Each setting and its environment variable.
 const VARIABLES: readonly (readonly [keyof Settings, string])[] = [
   ["databaseUrl", "DATABASE_URL"],
-  ["replyModel", "CONSTRUCT_MODEL"],
   ["emailTransport", "EMAIL_TRANSPORT"],
   ["emailOutboxDir", "EMAIL_OUTBOX_DIR"],
   ["vercelEnv", "VERCEL_ENV"],
@@ -99,8 +96,7 @@ const DRIVER_OVERRIDE = /permits only sslmode and application_name/u;
 const REPEATED_OPTION = /repeats a connection option/u;
 const NO_CREDENTIALS = /user and password explicitly/u;
 const TOO_LONG = /63-character identifier limit/u;
-const NOT_MOCK = /CONSTRUCT_MODEL is not "mock".*\.env\.test/u;
-const MOCK_IN_PRODUCTION = /CONSTRUCT_MODEL is "mock" in production/u;
+const PRODUCTION_OUTBOX = /EMAIL_TRANSPORT is "outbox" in production/u;
 const NOT_OUTBOX = /EMAIL_TRANSPORT is not "outbox".*\.env\.test/u;
 const NO_OUTBOX_DIR = /EMAIL_OUTBOX_DIR is not set.*\.env\.test/u;
 const MAX_IDENTIFIER_LENGTH = 63;
@@ -202,14 +198,9 @@ describe("the test database reset refuses", () => {
     expect(reset({ databaseUrl: truncated })).toEqual(refusal(TOO_LONG));
   });
 
-  test("the local construct engine, explicitly or by default", () => {
-    expect(reset({ replyModel: undefined })).toEqual(refusal(NOT_MOCK));
-    expect(reset({ replyModel: "local" })).toEqual(refusal(NOT_MOCK));
-  });
-
   test("a production deployment", () => {
     expect(reset({ vercelEnv: "production" })).toEqual(
-      refusal(MOCK_IN_PRODUCTION),
+      refusal(PRODUCTION_OUTBOX),
     );
   });
 

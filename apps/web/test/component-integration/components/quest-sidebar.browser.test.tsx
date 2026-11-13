@@ -1,10 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import {
-  PlanPanel,
-  QuestSidebarSection,
-} from "@/components/plan/plan-panel.tsx";
+import { PlanPanel } from "@/components/plan/plan-panel.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   measureTargets,
@@ -18,6 +15,8 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
+const PLAN_CONTENT = "Plan steps";
+const PROGRESS_CONTENT = "Recorded milestones";
 const MESSAGE_LABEL = "Message";
 const DRAFT_LABEL = "Idea draft";
 
@@ -25,14 +24,24 @@ async function sidebar(initialSection?: string): Promise<void> {
   await render(
     <PlanPanel
       initialSection={initialSection}
-      sideContent={
-        <QuestSidebarSection value="ideas" name="Ideas">
-          <label>
-            {DRAFT_LABEL}
-            <input className="input-field" />
-          </label>
-        </QuestSidebarSection>
-      }
+      sideSections={[
+        { id: "plan", label: "Plan", content: <p>{PLAN_CONTENT}</p> },
+        {
+          id: "ideas",
+          label: "Ideas",
+          content: (
+            <label>
+              {DRAFT_LABEL}
+              <input className="input-field" />
+            </label>
+          ),
+        },
+        {
+          id: "progress",
+          label: "Progress",
+          content: <p>{PROGRESS_CONTENT}</p>,
+        },
+      ]}
     >
       <label>
         {MESSAGE_LABEL}
@@ -51,9 +60,9 @@ describe.each(["light", "dark"])("sidebar in %s", (mode) => {
       await sidebar("ideas");
       const draft = page.getByLabelText(DRAFT_LABEL);
       await draft.fill("Try clay");
-      await page.getByRole("button", { name: "Ideas", exact: true }).click();
+      await page.getByRole("tab", { name: "Plan", exact: true }).click();
       await expect.element(draft).not.toBeVisible();
-      await page.getByRole("button", { name: "Ideas", exact: true }).click();
+      await page.getByRole("tab", { name: "Ideas", exact: true }).click();
       await expect.element(draft).toHaveValue("Try clay");
       const panel = page.getByRole("dialog", { name: "Quest side menu" });
       const bounds = panel.element().getBoundingClientRect();
@@ -80,7 +89,7 @@ test("a phone starts with the conversation and Escape closes its drawer", async 
   const toggle = page.getByRole("button", { name: "Open quest sidebar" });
   await expect.element(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.click();
-  await page.getByRole("button", { name: "Ideas", exact: true }).click();
+  await page.getByRole("tab", { name: "Ideas", exact: true }).click();
   await page.getByLabelText(DRAFT_LABEL).fill("Keep this draft");
   await userEvent.keyboard("{Escape}");
   await expect.element(toggle).toHaveFocus();
@@ -88,4 +97,23 @@ test("a phone starts with the conversation and Escape closes its drawer", async 
   await expect
     .element(page.getByLabelText(DRAFT_LABEL))
     .toHaveValue("Keep this draft");
+});
+
+test("sidebar tabs switch with arrow keys and show one section at a time", async () => {
+  await setViewport(LAPTOP_VIEWPORT);
+  await sidebar("plan");
+  const plan = page.getByRole("tab", { name: "Plan", exact: true });
+  await expect.element(plan).toHaveAttribute("aria-selected", "true");
+  await expect
+    .element(page.getByRole("tabpanel"))
+    .toHaveTextContent("Plan steps");
+  await plan.click();
+  await userEvent.keyboard("{ArrowRight}");
+  await expect.element(page.getByRole("tab", { name: "Ideas" })).toHaveFocus();
+  await expect.element(page.getByLabelText(DRAFT_LABEL)).toBeVisible();
+  await userEvent.keyboard("{ArrowRight}");
+  await expect
+    .element(page.getByRole("tabpanel"))
+    .toHaveTextContent("Recorded milestones");
+  await expect.element(page.getByLabelText(DRAFT_LABEL)).not.toBeVisible();
 });

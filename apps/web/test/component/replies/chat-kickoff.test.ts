@@ -1,7 +1,7 @@
 import type { LanguageModelV4Prompt } from "@ai-sdk/provider";
 import { expect, test } from "vitest";
 import { NEUTRAL_KICKOFF, userFirst } from "@/replies/chat-kickoff.ts";
-import { mockConstructModel } from "@/replies/mock-model.ts";
+import { localConstructModel } from "@/replies/local-model.ts";
 
 test("synthetic provider opening context is labelled as non-human without changing the saved conversation", async () => {
   const history: LanguageModelV4Prompt = [
@@ -15,7 +15,7 @@ test("synthetic provider opening context is labelled as non-human without changi
   const result = await transformParams({
     type: "generate",
     params: { prompt: [...history] },
-    model: mockConstructModel(),
+    model: localConstructModel(),
   });
   expect(result.prompt[0]).toEqual({
     role: "user",

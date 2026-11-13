@@ -129,8 +129,8 @@ test.each(["completed", "abandoned"] as const)(
     await renderQuest();
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
-      .element(page.getByRole("button", { name: "Plan", exact: true }))
-      .toHaveAttribute("aria-expanded", "true");
+      .element(page.getByRole("tab", { name: "Plan", exact: true }))
+      .toHaveAttribute("aria-selected", "true");
     await expect.element(composer()).toBeVisible();
   },
 );
@@ -259,7 +259,7 @@ test("the quest opens directly on the conversation without a portrait bar", asyn
 test("the Plan section shows the todo list without Goal, Preferences or Journal", async () => {
   await renderQuest("plan");
   await expect
-    .element(page.getByRole("heading", { name: "Plan", exact: true }))
+    .element(page.getByRole("tabpanel", { name: "Plan", exact: true }))
     .toBeVisible();
   await page.getByRole("button", { name: "Add a step", exact: true }).click();
   await expect.element(page.getByPlaceholder("Add a step")).toBeVisible();
@@ -276,10 +276,10 @@ test("the Plan section shows the todo list without Goal, Preferences or Journal"
 test("Ideas opens as a separate quest section beside Plan", async () => {
   await renderQuest("ideas");
   await expect
-    .element(page.getByRole("button", { name: "Ideas", exact: true }))
-    .toHaveAttribute("aria-expanded", "true");
+    .element(page.getByRole("tab", { name: "Ideas", exact: true }))
+    .toHaveAttribute("aria-selected", "true");
   await expect
-    .element(page.getByRole("heading", { name: "Ideas", exact: true }))
+    .element(page.getByRole("tabpanel", { name: "Ideas", exact: true }))
     .toBeVisible();
   await expect
     .element(page.getByRole("button", { name: "Add idea" }))

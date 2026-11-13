@@ -18,7 +18,6 @@ import { getImage, saveImage } from "@/images/store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { PNG_BASE64, pngBytes } from "../../support/images/image-fixtures.ts";
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
-import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
@@ -57,7 +56,7 @@ function post(chatId: string, parts: unknown[]): Promise<Response> {
 }
 
 describe("use_case_chat_images", () => {
-  test("image-only messages persist, and follow-ups receive the original image bytes through the fake provider", async () => {
+  test("previous image messages persist without requiring a provider", async () => {
     const { her, herData } = await twoUsers();
     const chat = await herData.chat(await herData.quest());
     const url = await saveImage(her.id, chat.id, pngBytes(), "image/png");
@@ -70,17 +69,6 @@ describe("use_case_chat_images", () => {
     await afterTasksDone();
     const saved = await listMessages(her.id, chat.id);
     expect(saved[0]?.parts).toEqual([imageMessage(url)]);
-    const followUp = await sendChatMessage(chat.id, "/mock-images");
-    expect(followUp.status).toBe(HTTP_STATUS.ok);
-    const reply = (await listMessages(her.id, chat.id)).at(-1);
-    expect(reply?.parts).toContainEqual(
-      expect.objectContaining({
-        type: "text",
-        text: JSON.stringify([
-          { mediaType: "image/png", bytes: [...pngBytes()] },
-        ]),
-      }),
-    );
   });
   test("private delivery and chat deletion apply to uploads, and foreign references cannot be sent", async () => {
     const { her, other } = await twoUsers();

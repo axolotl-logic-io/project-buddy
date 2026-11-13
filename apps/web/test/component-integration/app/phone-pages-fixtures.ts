@@ -10,11 +10,12 @@ import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contrac
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { defaultMockScript } from "@/replies/mock-script.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import {
   userConstructIdFixture,
   userIdFixture,
 } from "../../support/id-fixtures.ts";
+import { markdownReplyText } from "../replies/rich-message-test-kit.ts";
 
 // Her clone of Vellum.
 const VELLUM_CLONE: OwnConstruct = {
@@ -60,20 +61,10 @@ function exchange(
 
 // The mock construct's reply to a message of hers: Markdown with a list and a
 // Python block, or for /mock-markdown every kind of Markdown replies use.
-function mockReplyText(text: string): string {
-  const [step] = defaultMockScript(text, {
-    systemTexts: [],
-    earlierTexts: [],
-    toolResults: [],
-    answerNow: false,
-  });
-  return step?.text ?? "";
-}
-
 // A chat in which she searched the manual for TOPIC, with the reply citing
 // the section found, then asked for the mock construct's Markdown reply.
 function searchAndMarkdownChat(): ChatMessage[] {
-  const query = `/mock-search ${TOPIC}`;
+  const query = `search ${TOPIC}`;
   return [
     ...exchange(0, query, [
       {
@@ -95,8 +86,8 @@ function searchAndMarkdownChat(): ChatMessage[] {
         text: `The manual covers "${TOPIC}":\n\n1. **${GLIMMERWHISK_SECTION.label}**: ${GLIMMERWHISK_SECTION.excerpt}`,
       },
     ]),
-    ...exchange(1, "/mock-markdown", [
-      { type: "text", text: mockReplyText("/mock-markdown") },
+    ...exchange(1, "Show the earlier Markdown", [
+      { type: "text", text: markdownReplyText() },
     ]),
   ];
 }
@@ -105,7 +96,7 @@ function searchAndMarkdownChat(): ChatMessage[] {
 function standaloneChatExchange(): ChatMessage[] {
   const question = "How do I bevel an edge?";
   return exchange(0, question, [
-    { type: "text", text: mockReplyText(question) },
+    { type: "text", text: LOCAL_CONSTRUCT_COPY.unknownCommand },
   ]);
 }
 

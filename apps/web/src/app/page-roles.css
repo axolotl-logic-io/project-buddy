@@ -85,7 +85,7 @@
   }
 
   .quest-workspace {
-    @apply flex min-w-0 flex-col gap-4;
+    @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
   /* A status change's result and its Undo, side by side, under the
@@ -147,6 +147,10 @@
   /* The column a page's content sits in, below the site header. */
   .page-column {
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
+  }
+
+  .page-column:has(.chat-thread) {
+    @apply pb-0;
   }
 
   .workspace-frame {
@@ -603,7 +607,7 @@
      quest from this, which wraps under it on a phone. */
   /* A quest's conversation below its section links and actions. */
   .quest-conversation {
-    @apply flex min-w-0 flex-col gap-4;
+    @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
   .conversation-header {
@@ -1334,11 +1338,11 @@
   }
 
   .adventure-layout {
-    @apply min-w-0;
+    @apply flex min-w-0 flex-1 flex-col;
   }
 
   .adventure-main {
-    @apply mx-auto flex min-w-0 max-w-3xl flex-col gap-8;
+    @apply mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col gap-8;
   }
 
   .quest-sidebar-frame {
@@ -1357,8 +1361,16 @@
     @apply flex min-h-full min-w-0 flex-col px-4 pb-6 text-sm;
   }
 
-  .quest-sidebar-toolbar {
-    @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-surface py-2 text-muted;
+  .quest-sidebar .workspace-rail {
+    @apply sticky top-0 z-10 flex-nowrap gap-x-2 border-t-0 bg-surface px-0;
+  }
+
+  .quest-sidebar .workspace-tablist {
+    @apply gap-x-3;
+  }
+
+  .quest-sidebar .workspace-content {
+    @apply px-0 py-4;
   }
 
   .quest-sidebar-toggle {
@@ -1373,31 +1385,6 @@
   }
 
   .quest-sidebar-expand[hidden] {
-    display: none;
-  }
-
-  .quest-sidebar-sections > div {
-    @apply border-line/40 border-b;
-  }
-
-  .quest-sidebar-trigger {
-    min-block-size: var(--target-size);
-    @apply flex w-full cursor-pointer items-center justify-between gap-3 py-3 text-left font-body font-medium text-sm text-foreground;
-  }
-
-  .quest-sidebar-trigger .icon {
-    @apply text-muted transition-transform motion-reduce:transition-none;
-  }
-
-  .quest-sidebar-trigger[data-state="open"] .icon {
-    @apply rotate-180;
-  }
-
-  .quest-sidebar-content {
-    @apply flex min-w-0 flex-col gap-3 pb-4;
-  }
-
-  .quest-sidebar-content[data-state="closed"] {
     display: none;
   }
 

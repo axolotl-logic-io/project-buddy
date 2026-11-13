@@ -38,7 +38,7 @@ The user starts a quest to learn, make or do something.
 - **Outcome:** the quest opens straight on its one conversation, with no further step, and already holds the construct's opening in its voice. Any starting context or Why appears as a user message before the opening. Plan starts empty and no spell is active. Each starting point can be used again for another quest. The quest is first in their quests list.
 - **Variations:**
   - Closing the details instead creates nothing and spends nothing.
-  - They are out of batteries, or Claude is unavailable: the details stay open with every edit, say why, and nothing is saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
+  - They are out of batteries, or storage is unavailable: the details retain their edits and explain why nothing was saved ([`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable)).
 - **Next:**
   - [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): save goals and plans from the conversation.
   - `use_case_new_quest_without_name`: an invalid request has no name.
@@ -86,7 +86,7 @@ The user opens one of their quests, from Quests.
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Plan, Ideas and Progress. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Plan; on phones it opens as a drawer. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Sidebar sections expand independently and retain drafts. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Plan, Ideas and Progress. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Plan; on phones it opens as a drawer. Opening the quest marks its conversation read for them alone, writes nothing else and spends nothing. Plan, Ideas and Progress are tabs at the top of the sidebar; switching tabs retains drafts. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
 - **Variations:**
   - A quest without a conversation yet, as after the move from adventures: `use_case_start_quest_conversation`.
   - The Dailies quest: `use_case_dailies`.
@@ -115,10 +115,10 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Steps:**
   - Under Start a quest, they choose Dailies, choose a construct and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
-  - They choose Start the day, beside the composer.
-- **Outcome:** Dailies is a quest like any other, with its name, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Start the day sends "Let's start the day." as their own message, in the same conversation, and the construct helps them notice what matters and choose one manageable next step. It is an ordinary message, charged as any other, and leaves the composer's draft. Nothing is cleared or reset: the conversation, Plan and status carry on from day to day. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
+  - They choose Reset Day beside the construct at the top of the conversation.
+- **Outcome:** Dailies is a quest like any other, with its name, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without spending batteries. Plan and Ideas endure; completed Plan steps become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
-  - A quest the user named Dailies by hand has no Start the day: only a quest started as Dailies offers it.
+  - A quest the user named Dailies by hand has no Reset Day: only a quest started as Dailies offers it.
 
 ## use_case_construct_records_milestone
 

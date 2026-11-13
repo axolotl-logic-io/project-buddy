@@ -7,7 +7,6 @@ import {
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
-import { HTTP_STATUS } from "@/http-status.ts";
 import { runChatCommandAction } from "@/plan/plan-actions.ts";
 import { activeQuests } from "@/quests/active-quests.ts";
 import {
@@ -24,10 +23,8 @@ import {
 } from "@/quests/quest-status-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
-import {
-  QUEST_STATUS_OUTPUT,
-  QUEST_STATUS_TOOL,
-} from "@/replies/tools/quest-status-contract.ts";
+import { questStatusTool } from "@/replies/tools/quest-status.ts";
+import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -35,7 +32,7 @@ import {
   NOTHING,
   seenBy,
 } from "../accounts/former-member-quest-test-kit.ts";
-import { sendChatMessage } from "../test-database/chat-test-kit.ts";
+import { newMessageId } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
@@ -230,27 +227,23 @@ describe("use_case_construct_changes_quest_status", () => {
   test("the registered tool creates a card without changing status; explicit approval executes once", async () => {
     const { user, quest, chat } = await questFixture();
     await signIn(user);
-    expect(
-      (
-        await sendChatMessage(
-          chat.id,
-          `/mock-tool ${QUEST_STATUS_TOOL} {"status":"completed"}`,
-        )
-      ).status,
-    ).toBe(HTTP_STATUS.ok);
-    const outputs = (await listMessages(user.id, chat.id)).flatMap(
-      ({ parts }) =>
-        parts.flatMap((part) => {
-          if (
-            part.type !== `tool-${QUEST_STATUS_TOOL}` ||
-            !("output" in part)
-          ) {
-            return [];
-          }
-          return [QUEST_STATUS_OUTPUT.parse(part.output)];
-        }),
+    const output = await Promise.resolve(
+      questStatusTool.execute?.(
+        { status: "completed" },
+        {
+          toolCallId: "status",
+          messages: [],
+          context: {
+            construct: chat.construct,
+            answeredId: newMessageId(),
+            actingUser: user.id,
+            chatId: chat.id,
+            questId: quest.id,
+          },
+        },
+      ),
     );
-    const { approval } = required(outputs[0]);
+    const { approval } = QUEST_STATUS_OUTPUT.parse(output);
     expect(await getQuest(user.id, quest.id)).toMatchObject({
       status: "active",
     });

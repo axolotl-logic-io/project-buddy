@@ -6,7 +6,7 @@ Each quest has a plan: its ordered steps of remaining work, which the construct 
 
 A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the plan's first open step. Plan shows the remaining work as compact todo rows, with no separate duplicate next-step card. Click text to edit inline; Enter saves and Escape cancels. Add a step opens a new editor above the list. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable step number. A new quest starts with an empty Plan.
+The next step is the plan's first open step. Plan shows the remaining work as compact todo rows, with no separate duplicate next-step card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a step opens a new editor above the list and saves the new step first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable step number. A new quest starts with an empty Plan.
 
 ## Operations
 

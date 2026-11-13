@@ -21,10 +21,6 @@ import { cleanup, render } from "vitest-browser-react";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { getConstruct } from "@/constructs/index.ts";
-import {
-  mockWorkingNoteAnswer,
-  mockWorkingNoteText,
-} from "@/replies/mock-working-note.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CAST_SPELL_COPY, CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
@@ -34,8 +30,8 @@ import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
 const TOPIC = "zibble";
-const NOTE = mockWorkingNoteText(TOPIC);
-const ANSWER = mockWorkingNoteAnswer(TOPIC);
+const NOTE = `Searching the manual for ${TOPIC}.`;
+const ANSWER = `The saved answer about ${TOPIC}.`;
 const SEARCH_INPUT: { query: string } = { query: TOPIC };
 const SEARCH_OUTPUT: { sections: never[] } = { sections: [] };
 
@@ -195,7 +191,7 @@ describe("use_case_see_working_note", () => {
     await renderChat([]);
     await page
       .getByRole("textbox", { name: CHAT_COPY.messageLabel })
-      .fill(`/mock-working-note ${TOPIC}`);
+      .fill(`search ${TOPIC}`);
     await page.getByRole("button", { name: CHAT_COPY.send }).click();
     await expect.element(noteText()).toBeVisible();
     await expect.element(answerText()).toBeVisible();

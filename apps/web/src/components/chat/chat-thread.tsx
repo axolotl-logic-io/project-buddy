@@ -23,8 +23,7 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // message box, since the button goes once the reply starts. It scrolls to follow a
 // streaming reply unless the user has scrolled up. A user message that
 // authorNames holds shows its author's name; every other one is the
-// viewer's own. starter is a prepared message to offer above the composer,
-// such as Start the day.
+// viewer's own.
 export function ChatThread({
   construct,
   goldBalance,
@@ -37,7 +36,6 @@ export function ChatThread({
   onRetry,
   stop,
   stopStatus = "",
-  starter,
   spellStop,
 }: {
   goldBalance?: number | undefined;
@@ -54,9 +52,6 @@ export function ChatThread({
   spellStop?:
     | { readonly label: string; readonly onStop: () => void }
     | undefined;
-  starter?:
-    | { readonly label: string; readonly onStart: () => void }
-    | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -72,7 +67,7 @@ export function ChatThread({
         scrollToBottomOnInitialize={false}
         scrollToBottomOnRunStart={false}
         scrollToBottomOnThreadSwitch={false}
-        className="flex flex-col gap-6"
+        className="chat-viewport flex flex-col gap-6"
       >
         <ol
           aria-label={CHAT_COPY.conversationLabel}
@@ -106,15 +101,6 @@ export function ChatThread({
             {spellStop !== undefined && (
               <Button variant="secondary" onClick={spellStop.onStop}>
                 {spellStop.label}
-              </Button>
-            )}
-            {starter !== undefined && (
-              <Button
-                className="self-start"
-                onClick={starter.onStart}
-                variant="secondary"
-              >
-                {starter.label}
               </Button>
             )}
           </div>

@@ -23,7 +23,7 @@ import type {
   ScriptToolResult,
 } from "@/replies/reply-script.ts";
 
-// Streams text a word at a time, as Claude streams it in pieces.
+// Streams text a word at a time, through the existing stream protocol.
 const WORD_BOUNDARY = /(?<= )/u;
 
 function textsOf(message: LanguageModelV4Message): string[] {
@@ -78,10 +78,8 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
   if (userMessage !== undefined) {
     texts = textsOf(userMessage);
   }
-  let authorHeader: string | undefined;
   const [first, ...rest] = texts;
   if (first !== undefined && isAuthorHeader(first)) {
-    authorHeader = first;
     texts = rest;
   }
   const userText = texts.join("\n");
@@ -99,43 +97,13 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
   return {
     userText,
     conversation: {
-      images: prompt.flatMap((message) => {
-        if (message.role !== "user") {
-          return [];
-        }
-        return message.content.flatMap((part) => {
-          if (
-            part.type !== "file" ||
-            part.data.type !== "data" ||
-            !part.mediaType.startsWith("image/")
-          ) {
-            return [];
-          }
-          const bytes = part.data.data;
-          if (typeof bytes === "string") {
-            return [
-              {
-                mediaType: part.mediaType,
-                bytes: [...Buffer.from(bytes, "base64")],
-              },
-            ];
-          }
-          return [{ mediaType: part.mediaType, bytes: [...bytes] }];
-        });
-      }),
       systemTexts: prompt.flatMap((message) => {
         if (message.role === "system") {
           return [message.content];
         }
         return [];
       }),
-      earlierTexts: prompt
-        .slice(0, Math.max(lastUser, 0))
-        .filter((message) => message.role !== "system")
-        .flatMap(textsOf),
-      authorHeader,
       toolResults,
-      answerNow: prompt.slice(lastUser + 1).some(isAnswerNowNote),
     },
   };
 }
@@ -164,7 +132,7 @@ function toolCallsOf(
 ): (LanguageModelV4StreamPart & LanguageModelV4Content)[] {
   return toolCalls.map((call, callIndex) => ({
     type: "tool-call",
-    toolCallId: `mock-call-${index}-${callIndex}`,
+    toolCallId: `local-call-${index}-${callIndex}`,
     toolName: call.toolName,
     input: JSON.stringify(call.input),
   }));
@@ -185,16 +153,6 @@ function endChunks(
   index: number,
   usage: LanguageModelV4Usage,
 ): LanguageModelV4StreamPart[] {
-  if ("error" in step) {
-    return [
-      { type: "error", error: step.error },
-      {
-        type: "finish",
-        usage,
-        finishReason: { unified: "error", raw: undefined },
-      },
-    ];
-  }
   return [
     ...toolCallsOf(step.toolCalls, index),
     {
@@ -226,14 +184,6 @@ function stepNumber(prompt: LanguageModelV4Prompt): number {
     .length;
 }
 
-// How long the model waits before it streams step, or null for no wait.
-function startDelay(step: ScriptStep): number | null {
-  if ("delayMs" in step) {
-    return step.delayMs ?? null;
-  }
-  return null;
-}
-
 // The script's step for this call, and its number.
 function scriptedStep(
   script: ReplyScript,
@@ -257,7 +207,7 @@ function streamStep(
   return {
     stream: simulateReadableStream({
       chunks: stepChunks(step, index, usage),
-      initialDelayInMs: startDelay(step),
+      initialDelayInMs: null,
       chunkDelayInMs: null,
     }),
   };
@@ -271,9 +221,6 @@ function generateStep(
   usage: LanguageModelV4Usage,
 ): Promise<LanguageModelV4GenerateResult> {
   const { step, index } = scriptedStep(script, prompt);
-  if ("error" in step) {
-    return Promise.reject(step.error);
-  }
   const text: LanguageModelV4Content[] = [];
   if (step.text !== "") {
     text.push({ type: "text", text: step.text });

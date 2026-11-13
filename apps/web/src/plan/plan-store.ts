@@ -383,6 +383,47 @@ function changePlan(
   );
 }
 
+// A fresh day keeps the entire list and its numbering, reopening completed
+// steps even when the saved list is longer than the usual new-step allowance.
+async function reopenPlan(
+  owner: UserId,
+  questId: QuestId,
+  database: Database = getDb(),
+): Promise<void> {
+  const result = await saveChange(
+    owner,
+    { questId, author: "person" },
+    (state): Promise<Attempt> => {
+      const completed = state.plan.steps.filter((step) => step.done);
+      if (completed.length === 0) {
+        return Promise.resolve({ kind: "failed", reason: "unchanged" });
+      }
+      return Promise.resolve({
+        kind: "save",
+        next: {
+          basedOn: state.version,
+          plan: {
+            ...state.plan,
+            steps: state.plan.steps.map((step) => ({ ...step, done: false })),
+          },
+          lines: completed.map((step) => ({ kind: "reopen", text: step.text })),
+          undo: completed.map((step) => ({
+            op: "complete",
+            step: step.number,
+          })),
+        },
+      });
+    },
+    { database },
+  );
+  if (
+    result === undefined ||
+    (result.kind === "failed" && result.reason !== "unchanged")
+  ) {
+    throw new Error("Could not reopen the plan for a fresh conversation");
+  }
+}
+
 async function readVersion(
   owner: UserId,
   questId: QuestId,
@@ -483,4 +524,11 @@ export type {
   PlanChangeSource,
   PlanUndoFailure,
 };
-export { changePlan, readPlan, readPlanState, undoableChanges, undoPlanChange };
+export {
+  changePlan,
+  readPlan,
+  readPlanState,
+  reopenPlan,
+  undoableChanges,
+  undoPlanChange,
+};
