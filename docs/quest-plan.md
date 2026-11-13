@@ -41,7 +41,7 @@ People change the plan through the Server Actions in `src/plan/plan-actions.ts`.
 
 | Command | Effect |
 | --- | --- |
-| `/plan` | Enters Plan; subsequent messages become open steps until the Activity changes or stops. |
+| `/plan` | Enters Plan; subsequent messages become open steps until the spell changes or stops. |
 | `/add TEXT` | Adds a step at the end. |
 | `/done [STEP]` | Checks off the step, or the next step without one. |
 | `/reopen STEP` | Reopens a done step. |

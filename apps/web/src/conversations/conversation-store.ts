@@ -1,19 +1,6 @@
-// Continuing conversations, stored in Postgres as `chats` rows marked
-// continuing: one per quest, open to its owner alone, and one private
-// Chat per user, open to that user alone (src/accounts/owner-scope.ts). The
-// database's partial unique indexes keep them one per place, so finding or
-// making one is atomic: concurrent requests reach the same conversation, and
-// only the request that made it may write its opening. A conversation's
-// construct is chosen when it is made and kept as it was then; its activity
-// changes only as the construct enters another (select_activity). Every
-// function takes the acting user first, and a place or conversation not open
-// to them is not found, exactly as an unknown one.
-
 import { and, eq, isNull, not, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { currentActivity, newSession } from "@/activities/activity-sessions.ts";
-import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import {
   type Chat,
   type ChatQuest,
@@ -29,20 +16,14 @@ import {
 import { getChat, noReplyAwaited } from "@/chats/store.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
-import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats, messages } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ChatId, parseChatId, type QuestId, type UserId } from "@/ids.ts";
 
-// A continuing conversation as the people in it see it: the chat, with its
-// construct (chat.construct) and its current activity.
-type Conversation = Chat & { readonly activity: ChatActivity };
+type Conversation = Chat;
 
-// What a conversation starts with: its construct, kept as it is now, and its
-// first activity.
 interface ConversationStart {
   readonly construct: NewChatConstruct;
-  readonly activity: ChatActivity;
 }
 
 // The conversation found or made, and whether this call made it.
@@ -58,19 +39,6 @@ function continuingIn(quest: QuestId | undefined, user: UserId): SQL {
     return sql`${and(eq(chats.continuing, true), eq(chats.userId, user), isNull(chats.questId))}`;
   }
   return sql`${and(eq(chats.continuing, true), eq(chats.questId, quest))}`;
-}
-
-// The conversation with this id, with its current activity, as the owner
-// reads it; undefined if it isn't open to them.
-async function readConversation(
-  owner: UserId,
-  id: string,
-): Promise<Conversation | undefined> {
-  const chat = await getChat(owner, id);
-  if (chat === undefined) {
-    return undefined;
-  }
-  return { ...chat, activity: await currentActivity(owner, chat) };
 }
 
 // The id of the owner's continuing conversation in quest, or, with none,
@@ -99,7 +67,7 @@ async function findConversation(
   if (id === undefined) {
     return undefined;
   }
-  return await readConversation(owner, id);
+  return await getChat(owner, id);
 }
 
 // The conversation of quest, open to the owner, or with no quest the
@@ -128,9 +96,6 @@ async function findOrCreateConversation(
       if (inserted.length === 0) {
         return false;
       }
-      await db
-        .insert(activitySessions)
-        .select(newSession(owner, id, start.activity, undefined));
       await grantVisualAssets(
         owner,
         db,
@@ -141,7 +106,7 @@ async function findOrCreateConversation(
     }),
   );
   if (created) {
-    const conversation = await readConversation(owner, id);
+    const conversation = await getChat(owner, id);
     if (conversation === undefined) {
       return undefined;
     }
@@ -207,5 +172,4 @@ export {
   findConversation,
   findOrCreateConversation,
   isEmptyConversation,
-  readConversation,
 };

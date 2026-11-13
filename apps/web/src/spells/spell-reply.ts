@@ -1,13 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { activityResultOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { currentActivity, newSession } from "@/activities/activity-sessions.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { messageOpenTo, spellResultOpenTo } from "@/accounts/owner-scope.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
-import { activityMessageResults } from "@/db/tables/activity-message-results.ts";
-import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { messages } from "@/db/tables/quests-and-chats.ts";
+import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { IDEA_REQUEST } from "@/ideas/idea.ts";
 import { changeIdea } from "@/ideas/idea-store.ts";
@@ -15,13 +12,15 @@ import type { UserId } from "@/ids.ts";
 import { PLAN_STEP_TEXT } from "@/plan/plan.ts";
 import { changePlan } from "@/plan/plan-store.ts";
 import type { ChatRequest } from "@/replies/chat-protocol.ts";
-import { ACTIVITY_COPY } from "@/ui/copy/activity.ts";
+import { getSpell, SPELL_ID, type SpellId } from "@/spells/spell.ts";
+import { currentSpell, setSpell } from "@/spells/spell-store.ts";
+import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 
 const COMMAND = z.enum(["brainstorm", "plan", "stop"]);
 const LEADING_SLASH = /^\//u;
 const OTHER_COMMAND = /^\s*(?:\/|help\b|look\b|search\b|cast\b)/iu;
 
-interface ActivityResponse {
+interface SpellResponse {
   readonly text: string | null;
 }
 
@@ -30,51 +29,48 @@ async function respond(
   chat: Chat,
   message: ChatRequest["message"],
   tx: Transaction,
-): Promise<ActivityResponse> {
+): Promise<SpellResponse> {
   const text = message.parts
     .filter((part) => part.type === "text")
     .map((part) => part.text)
     .join("\n")
     .trim();
-  const command = COMMAND.safeParse(
-    text.toLowerCase().replace(LEADING_SLASH, ""),
-  );
+  let verb = text.toLowerCase().replace(LEADING_SLASH, "");
+  if (verb.startsWith("cast ")) {
+    const cast = SPELL_ID.safeParse(verb.slice("cast ".length).trim());
+    if (!cast.success) {
+      return { text: SPELL_MODE_COPY.castUsage };
+    }
+    verb = cast.data;
+  }
+  const command = COMMAND.safeParse(verb);
   if (command.success) {
     const name = command.data;
     if (chat.quest === undefined && name.toLowerCase() !== "stop") {
-      return { text: ACTIVITY_COPY.noQuest };
+      return { text: SPELL_MODE_COPY.noQuest };
     }
-    let id: "open-chat" | "brainstorming" | "project-breakdown" = "open-chat";
-    let label = ACTIVITY_COPY.chat;
-    if (name.toLowerCase() === "brainstorm") {
-      id = "brainstorming";
-      label = ACTIVITY_COPY.brainstorm;
+    let spellId: SpellId | undefined;
+    if (name !== "stop") {
+      spellId = SPELL_ID.parse(name);
     }
-    if (name.toLowerCase() === "plan") {
-      id = "project-breakdown";
-      label = ACTIVITY_COPY.plan;
+    await setSpell(owner, { chatId: chat.id, spell: spellId }, tx);
+    if (spellId === undefined) {
+      return { text: SPELL_MODE_COPY.stopped };
     }
-    const activity = { ...builtInActivity(id), name: label };
-    await tx
-      .insert(activitySessions)
-      .select(newSession(owner, chat.id, activity, message.id));
-    if (id === "open-chat") {
-      return { text: ACTIVITY_COPY.stopped };
-    }
-    return { text: ACTIVITY_COPY.started(label) };
+    return { text: SPELL_MODE_COPY.started(getSpell(spellId).name) };
   }
   if (OTHER_COMMAND.test(text) || chat.quest === undefined) {
     return { text: null };
   }
-  const activity = await currentActivity(owner, chat, tx);
-  if (activity.id !== "brainstorming" && activity.id !== "project-breakdown") {
+  const spell = await currentSpell(owner, chat, tx);
+  if (spell === undefined) {
     return { text: null };
   }
   const parsed = PLAN_STEP_TEXT.safeParse(text);
   if (!parsed.success) {
-    return { text: ACTIVITY_COPY.invalid };
+    return { text: SPELL_MODE_COPY.invalid };
   }
-  if (activity.id === "brainstorming") {
+  if (spell === "brainstorm") {
     await changeIdea(
       owner,
       IDEA_REQUEST.parse({
@@ -84,7 +80,7 @@ async function respond(
       }),
       tx,
     );
-    return { text: ACTIVITY_COPY.ideaSaved };
+    return { text: SPELL_MODE_COPY.ideaSaved };
   }
   const result = await changePlan(
     owner,
@@ -93,19 +89,19 @@ async function respond(
     tx,
   );
   if (result?.kind !== "changed") {
-    return { text: ACTIVITY_COPY.full };
+    return { text: SPELL_MODE_COPY.full };
   }
-  return { text: ACTIVITY_COPY.planSaved };
+  return { text: SPELL_MODE_COPY.planSaved };
 }
 
-// Executes the current Activity once per saved message. The result and bucket
+// Executes the active spell once per saved message. The result and bucket
 // write commit together; retrying after a lost reply never adds a second item.
-function activityReply(
+function spellReply(
   owner: UserId,
   chat: Chat,
   message: ChatRequest["message"],
 ): Promise<string | undefined> {
-  return withAppErrors("activityReply", () =>
+  return withAppErrors("spellReply", () =>
     inTransaction(async (tx): Promise<string | undefined> => {
       const [saved] = await tx
         .select({ id: messages.id })
@@ -122,12 +118,12 @@ function activityReply(
         return undefined;
       }
       const [previous] = await tx
-        .select({ text: activityMessageResults.text })
-        .from(activityMessageResults)
+        .select({ text: spellMessageResults.text })
+        .from(spellMessageResults)
         .where(
           and(
-            eq(activityMessageResults.messageId, message.id),
-            activityResultOpenTo(owner),
+            eq(spellMessageResults.messageId, message.id),
+            spellResultOpenTo(owner),
           ),
         );
       if (previous !== undefined) {
@@ -135,7 +131,7 @@ function activityReply(
       }
       const response = await respond(owner, chat, message, tx);
       if (response.text !== null) {
-        await tx.insert(activityMessageResults).values({
+        await tx.insert(spellMessageResults).values({
           messageId: message.id,
           chatId: chat.id,
           text: response.text,
@@ -147,4 +143,4 @@ function activityReply(
   );
 }
 
-export { activityReply };
+export { spellReply };

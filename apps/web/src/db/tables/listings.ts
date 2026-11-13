@@ -20,14 +20,6 @@ const KIND_LITERALS = sql.raw(
   STORED_PROMPT_KIND_LIST.map((kind) => `'${kind}'`).join(", "),
 );
 
-// Each row is one Marketplace listing (src/marketplace/listing-store.ts): a
-// copy of one of its seller's own prompts, of any kind (a construct, an
-// activity or a spell), as kind says, with its name and parts as they were when the seller last published
-// it, a description the seller wrote and a price in whole gold. source_id is
-// the own prompt it was published from, which may since have been deleted,
-// so it has no foreign key; an own prompt has at most one listing. A
-// listing stays once unlisted (unlisted_at), for its seller's counts, and
-// goes with its seller's user.
 export const listings = pgTable(
   "listings",
   {

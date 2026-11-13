@@ -10,8 +10,6 @@ const SERVER_OPERATIONS = z.enum([
   "home-summary",
   "construct-metadata",
   "construct-data",
-  "activity-metadata",
-  "activity-data",
   "spell-metadata",
   "spell-data",
 ]);

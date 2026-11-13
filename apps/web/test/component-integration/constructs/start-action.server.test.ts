@@ -50,6 +50,6 @@ describe("a construct's start action", () => {
 
     const conversation = await readQuestConversation(user.id, quest.id);
     expect(conversation?.construct.name).toBe(own.name);
-    expect(conversation?.activity.id).toBe("project-breakdown");
+    expect(conversation?.spell).toBeUndefined();
   });
 });

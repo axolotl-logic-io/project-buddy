@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 import { describe, expect, test } from "vitest";
 import SOURCE_MAP from "../../../../../docs/library.md?raw";
-import { PROMPT_KINDS } from "../../../src/prompts/prompt.ts";
 import { LIBRARY_COPY } from "../../../src/ui/copy/library.ts";
 
 const SOURCES = import.meta.glob<string>("/src/**/*.{ts,tsx}", {
@@ -27,7 +26,7 @@ function destinationExists(href: string): boolean {
   if (
     url.search !== "" &&
     (url.pathname !== "/workshop" ||
-      !PROMPT_KINDS.some((kind) => kind === url.searchParams.get("kind")))
+      !["construct", "spell"].includes(url.searchParams.get("kind") ?? ""))
   ) {
     return false;
   }
@@ -42,7 +41,6 @@ describe("Library maintenance", () => {
   test("connects practical chapters to Workshop and deeper mechanics", () => {
     for (const [bookId, kind] of [
       ["constructs", "construct"],
-      ["activities", "activity"],
       ["spells", "spell"],
     ]) {
       const chapter = LIBRARY_COPY.books

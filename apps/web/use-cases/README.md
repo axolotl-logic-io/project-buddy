@@ -43,7 +43,6 @@ A case written before its test is listed in `test/component-integration/use-case
 
 The Outcome items the mock cannot establish need a manual check with real Claude. Listing them here does not mean the check has passed:
 
-- [`use_case_construct_changes_activity`](activities.md#use_case_construct_changes_activity): asked for a breakdown or a brainstorm, the construct calls `select_activity` and follows the new activity in the same reply; older requests for the retired interview enter Break Down a Project, with or without a quest.
 - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): asked how to do something in Blender, the construct casts Blender manual lookup, then searches the Blender manual and cites what it read; it gives no Blender steps without a search.
 - [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
 - [`use_case_construct_records_milestone`](quests.md#use_case_construct_records_milestone): told she finished something meaningful in a quest adventure, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
@@ -63,9 +62,8 @@ Each area's cases are in their own file:
 - [Plan](plan.md)
 - [Ideas](ideas.md)
 - [Constructs](constructs.md)
-- [Activities](activities.md)
 - [Library](library.md)
-- [Workshop](workshop.md): edit and test unsaved constructs, activities and spells.
+- [Workshop](workshop.md): edit constructs and inspect Plan and Brainstorm.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
 - [Spells](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)
