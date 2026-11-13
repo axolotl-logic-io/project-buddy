@@ -3,7 +3,6 @@ import { expect, test, vi } from "vitest";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { requestSignInLink } from "@/accounts/sign-in-links.ts";
 import { findUserByEmail } from "@/accounts/users-store.ts";
-import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
@@ -21,12 +20,11 @@ const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?token=[\w-]+/u;
 const ADMIN_EMAIL = "me@modestprogress.com";
 const CLIENT = "initial-admin-test";
 
-test("the initial admin must prove ownership by normal emailed-link confirmation before using invitations", async () => {
+test("the initial admin must prove ownership by normal emailed-link confirmation before signing in", async () => {
   const admin = await findUserByEmail(ADMIN_EMAIL);
   expect(admin?.role).toBe("admin");
   expect(await currentUser()).toBeUndefined();
   try {
-    await expectRedirect(InvitationsPage, "/login");
     await requestSignInLink({
       email: ` ${ADMIN_EMAIL.toUpperCase()} `,
       requestHeaders: new Headers({
@@ -45,7 +43,6 @@ test("the initial admin must prove ownership by normal emailed-link confirmation
     await expectRedirect(() => continueSignInAction(data), HOME_PATH);
     expect((await currentUser())?.id).toBe(admin?.id);
     expect((await currentUser())?.role).toBe("admin");
-    expect(await InvitationsPage()).toBeDefined();
   } finally {
     if (admin !== undefined) {
       await getDb().delete(signInLinks).where(eq(signInLinks.userId, admin.id));

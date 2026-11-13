@@ -5,6 +5,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, inTransaction } from "@/db/client.ts";
+import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { signInLinks, users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId, type UserId } from "@/ids.ts";
@@ -96,6 +97,14 @@ async function endEverySession(id: UserId): Promise<void> {
         .set({ sessionEpoch: sql`${users.sessionEpoch} + 1` })
         .where(eq(users.id, id));
       await tx.delete(signInLinks).where(eq(signInLinks.userId, id));
+      await tx
+        .delete(signUpLinks)
+        .where(
+          eq(
+            signUpLinks.email,
+            sql`(select email from users where id = ${id})`,
+          ),
+        );
     }),
   );
 }

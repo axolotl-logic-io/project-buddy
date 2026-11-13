@@ -52,7 +52,8 @@ function statusOf(
   return "";
 }
 
-// An email-only request form, for public sign-in or admin invitations. children are what else the request carries, such as
+// An email-only request form for public login or sign-up.
+// Children are what else the request carries, such as
 // hidden inputs.
 export function LinkRequestForm({
   action,

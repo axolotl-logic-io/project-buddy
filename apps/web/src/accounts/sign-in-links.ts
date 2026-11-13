@@ -13,6 +13,7 @@ import {
   TOKEN_FORMAT,
 } from "@/accounts/emailed-link.ts";
 import { countSignInLinkRequest } from "@/accounts/rate-limits.ts";
+import { sendSignUpLink } from "@/accounts/sign-up-links.ts";
 import {
   findUserByEmail,
   normalizeEmail,
@@ -111,7 +112,9 @@ async function emailSignInLink(
 ): Promise<void> {
   try {
     const user = await findUserByEmail(request.email);
-    if (user !== undefined) {
+    if (user === undefined) {
+      await sendSignUpLink(request.email, origin);
+    } else {
       await sendSignInLink(user, origin);
     }
   } catch (error) {
