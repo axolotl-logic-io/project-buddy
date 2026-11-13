@@ -52,7 +52,7 @@ function ChatScreen({
   readonly plan?: PlanState | undefined;
   readonly actions?: ReactNode;
   readonly sideContent?: ReactNode;
-  readonly initialSection?: string;
+  readonly initialSection?: string | undefined;
   readonly header?: ReactNode;
   readonly starter?:
     | { readonly label: string; readonly text: string }

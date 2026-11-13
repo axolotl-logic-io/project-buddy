@@ -6,7 +6,7 @@
 - **Prerequisites:** A quest owned by the signed-in user.
 - **Interaction:**
   - Open the quest's Ideas section.
-  - Add an idea, edit and save its text, or remove it.
+  - Ideas use the same compact editable list as Plan, without completion controls. Click an idea’s text to edit it; Enter or Save idea saves, and Escape or Cancel idea edit discards the draft. Add idea opens a new row. Drag a handle to reorder ideas, or focus it and use the arrow keys. The action menu offers Move to Plan and Remove idea. Order persists after reopening the quest.
   - Choose Move to Plan when ready to commit to it.
 - **Outcome:** Ideas persist separately from Plan. Moving adds the saved text as one open step and removes the idea in one save. A refused move keeps the idea. Each idea holds 1–200 characters. Empty or longer text saves nothing. Other users cannot read or change these ideas. These controls spend no batteries.
 

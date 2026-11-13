@@ -6,7 +6,9 @@ import {
 } from "@/app/(workspace)/quests/status-actions.ts";
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { privateChat } from "@/conversations/private-chat.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { runChatCommandAction } from "@/plan/plan-actions.ts";
 import { activeQuests } from "@/quests/active-quests.ts";
 import {
   STATUS_APPROVAL_ID,
@@ -63,6 +65,52 @@ async function questFixture(): Promise<{
   const chat = await data.chat(quest);
   return { user, quest, chat };
 }
+
+describe("quest status commands", () => {
+  test.each([
+    ["/complete", "completed"],
+    ["/abandon", "abandoned"],
+  ] as const)(
+    "%s changes only the owner's quest and can be restored",
+    async (text, status) => {
+      const { user, quest, chat } = await questFixture();
+      await signIn(user);
+      expect(
+        await runChatCommandAction({ chatId: chat.id, text }),
+      ).toMatchObject({ kind: "quest-status" });
+      expect(await getQuest(user.id, quest.id)).toMatchObject({ status });
+      expect(
+        await runChatCommandAction({ chatId: chat.id, text: "/restore" }),
+      ).toMatchObject({ kind: "quest-status" });
+      expect(await getQuest(user.id, quest.id)).toMatchObject({
+        status: "active",
+      });
+      expect(await listMessages(user.id, chat.id)).toEqual([]);
+      const stranger = await testUser();
+      await signIn(stranger);
+      expect(await runChatCommandAction({ chatId: chat.id, text })).toEqual({
+        kind: "not-found",
+      });
+      expect(await getQuest(user.id, quest.id)).toMatchObject({
+        status: "active",
+      });
+    },
+  );
+  test("status commands reject arguments and standalone conversations", async () => {
+    const { user, quest, chat } = await questFixture();
+    await signIn(user);
+    expect(
+      await runChatCommandAction({ chatId: chat.id, text: "/complete 1" }),
+    ).toMatchObject({ kind: "problem" });
+    expect(await getQuest(user.id, quest.id)).toMatchObject({
+      status: "active",
+    });
+    const standalone = await privateChat(user.id);
+    expect(
+      await runChatCommandAction({ chatId: standalone.id, text: "/abandon" }),
+    ).toMatchObject({ kind: "problem" });
+  });
+});
 
 describe("use_case_change_quest_status", () => {
   test.each(["completed", "abandoned"] as const)(

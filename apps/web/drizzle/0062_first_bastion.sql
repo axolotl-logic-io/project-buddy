@@ -1,0 +1,1 @@
+ALTER TABLE "quest_ideas" ADD COLUMN "position" integer DEFAULT 0 NOT NULL;

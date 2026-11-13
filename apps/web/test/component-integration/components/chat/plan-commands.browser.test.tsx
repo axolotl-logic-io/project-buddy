@@ -9,9 +9,11 @@ import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 import type { CommandListing } from "@/components/chat/chat-commands.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import type { PlanActions } from "@/components/plan/use-plan.ts";
+import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import type {
@@ -96,16 +98,18 @@ async function openChat(
   mockCommands: readonly CommandListing[] = [],
 ): Promise<void> {
   await render(
-    <ChatView
-      chatId={CHAT_ID}
-      viewer={userIdFixture()}
-      constructName={getConstruct("vellum").name}
-      initialMessages={initialMessages}
-      questId={QUEST_ID}
-      initialPlan={PLAN}
-      planActions={PLAN_ACTIONS}
-      mockCommands={mockCommands}
-    />,
+    <QuestStatusFeedback>
+      <ChatView
+        chatId={CHAT_ID}
+        viewer={userIdFixture()}
+        constructName={getConstruct("vellum").name}
+        initialMessages={initialMessages}
+        questId={QUEST_ID}
+        initialPlan={PLAN}
+        planActions={PLAN_ACTIONS}
+        mockCommands={mockCommands}
+      />
+    </QuestStatusFeedback>,
   );
 }
 
@@ -171,6 +175,11 @@ describe("use_case_plan_commands", () => {
     await expect.element(list).toMatchTextContent("/add TEXT");
     await expect.element(list).toMatchTextContent("/done [STEP]");
     await expect.element(list).toMatchTextContent("/undo");
+    await Promise.all(
+      ["/complete", "/abandon", "/restore"].map(async (command) => {
+        await expect.element(list).toMatchTextContent(command);
+      }),
+    );
     await expect.element(list).toMatchTextContent("/mock-markdown");
 
     await userEvent.type(messageBox(), "dr");
@@ -212,6 +221,49 @@ describe("use_case_plan_commands", () => {
     await expect.element(messageBox()).toHaveValue("");
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  test.each([
+    ["/complete", "completed"],
+    ["/abandon", "abandoned"],
+    ["/restore", "active"],
+  ] as const)(
+    "%s changes quest status without a construct reply and offers Undo",
+    async (command, toStatus) => {
+      const fetchMock = answerChat(new Response(null));
+      actions.runChatCommandAction.mockResolvedValue({
+        kind: "quest-status",
+        feedback: {
+          kind: "saved",
+          message: "Quest status changed.",
+          change: {
+            questId: QUEST_ID,
+            fromStatus: "active",
+            toStatus,
+            revision: 1,
+          },
+        },
+      });
+      await openChat();
+      await userEvent.type(messageBox(), `${command}{Enter}`);
+      expect(actions.runChatCommandAction).toHaveBeenCalledWith({
+        chatId: CHAT_ID,
+        text: command,
+      });
+      await expect
+        .element(page.getByText("Quest status changed.", { exact: true }))
+        .toHaveFocus();
+      await expect.element(messageBox()).toHaveValue("");
+      expect(fetchMock).not.toHaveBeenCalled();
+      vi.mocked(changeQuestStatusAction).mockResolvedValue({
+        kind: "saved",
+        message: "Quest restored.",
+      });
+      await page.getByRole("button", { name: "Undo", exact: true }).click();
+      await expect
+        .element(page.getByText("Quest restored.", { exact: true }))
+        .toHaveFocus();
+    },
+  );
 
   test("a command with a problem keeps its text and says why", async () => {
     actions.runChatCommandAction.mockResolvedValue({
@@ -268,6 +320,7 @@ describe("use_case_plan_commands", () => {
 describe("use_case_plan_panel", () => {
   test("waits, saying why, while the last message's reply stopped, so it can still be sent again", async () => {
     await openAwaitingChat("m1");
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     const panel = page.getByRole("complementary", {
       name: "Quest side menu",
       exact: true,
@@ -280,12 +333,13 @@ describe("use_case_plan_panel", () => {
       )
       .toBeDisabled();
     await expect
-      .element(panel.getByRole("button", { name: PLAN_COPY.add }))
+      .element(panel.getByRole("button", { name: PLAN_COPY.addPlaceholder }))
       .toBeDisabled();
   });
 
   test("waits while a reply is made elsewhere, such as for another member", async () => {
     await openAwaitingChat();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     const panel = page.getByRole("complementary", {
       name: "Quest side menu",
       exact: true,
@@ -315,12 +369,15 @@ describe("use_case_plan_panel", () => {
     // A phone's width, where a button above the conversation opens the panel.
     await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
     await openChat();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     const panel = page.getByRole("complementary", {
       name: "Quest side menu",
       exact: true,
     });
 
-    await expect.element(panel).toMatchTextContent(PLAN_COPY.nextStep);
+    await expect
+      .element(panel.getByRole("button", { name: PLAN_COPY.edit(BLOCK_OUT) }))
+      .toBeVisible();
     await userEvent.click(
       panel.getByRole("checkbox", { name: PLAN_COPY.checkOff(BLOCK_OUT) }),
     );
@@ -334,10 +391,100 @@ describe("use_case_plan_panel", () => {
       .element(panel.getByRole("list", { name: PLAN_COPY.stepsLabel }))
       .not.toHaveTextContent(BLOCK_OUT);
     await expect
+      .element(panel.getByRole("status"))
+      .toMatchTextContent(`Checked off “${BLOCK_OUT}”`);
+    actions.undoPlanChangeAction.mockResolvedValue({
+      kind: "changed",
+      version: DONE_PLAN.version + 1,
+      lines: [{ kind: "reopen", text: BLOCK_OUT }],
+      state: {
+        ...PLAN,
+        version: DONE_PLAN.version + 1,
+        undone: [DONE_PLAN.version],
+      },
+    });
+    await panel
+      .getByRole("button", { name: PLAN_COPY.undo, exact: true })
+      .click();
+    await expect
+      .element(
+        panel.getByRole("checkbox", { name: PLAN_COPY.checkOff(BLOCK_OUT) }),
+      )
+      .not.toBeChecked();
+    await expect
+      .element(panel.getByRole("status"))
+      .toMatchTextContent(`Reopened “${BLOCK_OUT}”`);
+    await page.getByRole("button", { name: "Collapse quest sidebar" }).click();
+    await expect
       .element(
         page.getByRole("complementary", { name: PLAN_CHANGE_COPY.label }),
       )
-      .toMatchTextContent(`Checked off “${BLOCK_OUT}”`);
+      .not.toBeInTheDocument();
+    const history = page.getByRole("list", {
+      name: CHAT_COPY.conversationLabel,
+    });
+    expect(history.getByRole("listitem").all()).toHaveLength(0);
+  });
+
+  test("inline editing, dragging and row menus work inside the phone drawer", async () => {
+    await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
+    const moved: PlanState = {
+      ...PLAN,
+      version: PLAN.version + 1,
+      plan: {
+        ...PLAN.plan,
+        steps: [PLAN.plan.steps[1], PLAN.plan.steps[0]].filter(
+          (step) => step !== undefined,
+        ),
+      },
+    };
+    actions.changePlanAction.mockResolvedValue({
+      kind: "changed",
+      version: moved.version,
+      lines: [{ kind: "move", text: SCULPT, before: BLOCK_OUT }],
+      state: moved,
+    });
+    await openChat();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    const panel = page.getByRole("dialog", { name: "Quest side menu" });
+    await panel
+      .getByRole("button", { name: PLAN_COPY.edit(BLOCK_OUT) })
+      .click();
+    await expect
+      .element(panel.getByRole("textbox", { name: PLAN_COPY.textLabel }))
+      .toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(panel).toBeVisible();
+    await userEvent.dragAndDrop(
+      panel.getByRole("button", { name: `Reorder “${SCULPT}”` }),
+      panel.getByRole("button", { name: PLAN_COPY.edit(BLOCK_OUT) }),
+      { targetPosition: { x: 1, y: 1 } },
+    );
+    await expect
+      .element(
+        panel
+          .getByRole("list", { name: PLAN_COPY.stepsLabel })
+          .getByRole("listitem")
+          .first(),
+      )
+      .toMatchTextContent(SCULPT);
+    await panel
+      .getByRole("button", { name: PLAN_COPY.actions(SCULPT) })
+      .click();
+    await expect
+      .element(page.getByRole("menuitem", { name: PLAN_COPY.moveUp(SCULPT) }))
+      .toBeDisabled();
+    await expect
+      .element(page.getByRole("menuitem", { name: PLAN_COPY.moveDown(SCULPT) }))
+      .toBeVisible();
+    await page
+      .getByRole("menuitem", { name: PLAN_COPY.moveDown(SCULPT) })
+      .click();
+    expect(actions.changePlanAction).toHaveBeenLastCalledWith({
+      questId: QUEST_ID,
+      chatId: CHAT_ID,
+      operations: [{ op: "move", step: 2 }],
+    });
   });
 
   test("the construct's change shows in the conversation, and Undo undoes it", async () => {
@@ -400,6 +547,7 @@ describe("use_case_plan_panel", () => {
 
 test("saved Plan cards point to the side menu without inline form controls", async () => {
   await openChat([planCardMessage("legacy-plan-card", { command: "/plan" })]);
+  await page.getByRole("button", { name: "Open quest sidebar" }).click();
   await expect.element(page.getByText(PLAN_CHANGE_COPY.sideMenu)).toBeVisible();
   const history = page.getByRole("list", { name: CHAT_COPY.conversationLabel });
   await expect.element(history.getByRole("textbox")).not.toBeInTheDocument();
@@ -407,7 +555,7 @@ test("saved Plan cards point to the side menu without inline form controls", asy
     .element(
       page
         .getByRole("complementary", { name: "Quest side menu" })
-        .getByRole("button", { name: PLAN_COPY.add }),
+        .getByRole("button", { name: PLAN_COPY.addPlaceholder }),
     )
     .toBeVisible();
 });

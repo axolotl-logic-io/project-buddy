@@ -29,7 +29,7 @@ export function QuestPlan({
   });
   return (
     <PlanContext.Provider value={controller}>
-      <PlanSteps look="page" />
+      <PlanSteps />
     </PlanContext.Provider>
   );
 }

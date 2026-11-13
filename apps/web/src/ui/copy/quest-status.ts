@@ -1,10 +1,5 @@
 const QUEST_STATUS_COPY = {
   labels: { active: "Active", completed: "Completed", abandoned: "Abandoned" },
-  actions: {
-    active: "Restore quest",
-    completed: "Finish Quest",
-    abandoned: "Abandon Quest",
-  },
   saved: {
     active: "Quest restored.",
     completed: "Quest completed.",
@@ -12,7 +7,24 @@ const QUEST_STATUS_COPY = {
   },
   option: (name: string, status: string): string => `${name} (${status})`,
   tabs: "Quest status",
-  menu: "Quest actions",
+  noQuest: "This command needs a quest. Open a quest and try again.",
+  commands: [
+    {
+      command: "/complete",
+      usage: "/complete",
+      description: "Complete this quest",
+    },
+    {
+      command: "/abandon",
+      usage: "/abandon",
+      description: "Abandon this quest",
+    },
+    {
+      command: "/restore",
+      usage: "/restore",
+      description: "Restore this quest",
+    },
+  ],
   restore: "Restore quest",
   undo: "Undo",
   empty: "No quests with this status.",

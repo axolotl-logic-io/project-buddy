@@ -6,8 +6,9 @@ import { z } from "zod";
 // The Server Actions that change a quest's plan without the construct: from
 // the quest's page, from the Plan panel and plan cards in an adventure, and
 // from the composer's commands. None calls a model or spends batteries. A
-// change made in an adventure is saved to it as a plan message, which the
-// action answers with so the adventure can show it at once.
+// command saves a plan message to the conversation. Direct controls return
+// the updated plan for local feedback without adding a message.
+import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, withAuthor } from "@/chats/message-author.ts";
@@ -40,7 +41,11 @@ import {
   undoableChanges,
   undoPlanChange,
 } from "@/plan/plan-store.ts";
+import type { StatusActionState } from "@/quests/quest-status.ts";
+import { questStatusCommand } from "@/quests/quest-status-commands.ts";
+import { getQuest } from "@/quests/store.ts";
 import { CHAT_COMMANDS_COPY } from "@/ui/copy/plan.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 // The most operations one request may make, as many as the construct's.
 const MOST_OPERATIONS = 40;
@@ -75,6 +80,7 @@ const COMMAND_REQUEST = z.object({
 // a command, in words to show; or found no quest or adventure open to the
 // user.
 type PlanActionResult =
+  | { readonly kind: "quest-status"; readonly feedback: StatusActionState }
   | {
       readonly kind: "changed";
       readonly version: number;
@@ -183,7 +189,7 @@ async function changePlanAction(request: unknown): Promise<PlanActionResult> {
     { questId, chatId, author: "person" },
     operations,
   );
-  return answer(user.id, chatId, outcome);
+  return answer(user.id, undefined, outcome);
 }
 
 // Undoes a change to the plan of a quest open to the signed-in user, made by
@@ -208,7 +214,7 @@ async function undoPlanChangeAction(
     { questId, chatId, author: "person" },
     version,
   );
-  return answer(user.id, chatId, outcome);
+  return answer(user.id, undefined, outcome);
 }
 
 async function showPlan(
@@ -320,6 +326,27 @@ async function runChatCommandAction(
     return NOT_FOUND;
   }
   const questId = chat.quest?.id;
+  const status = questStatusCommand(text);
+  if (status !== undefined) {
+    const quest = await getQuest(user.id, questId ?? "");
+    if (quest === undefined) {
+      return { kind: "problem", text: QUEST_STATUS_COPY.noQuest };
+    }
+    const form = new FormData();
+    form.set("questId", quest.id);
+    form.set("fromStatus", quest.status);
+    form.set("toStatus", status);
+    form.set("revision", String(quest.statusRevision));
+    const feedback = await changeQuestStatusAction({ kind: "idle" }, form);
+    if (feedback.kind !== "saved") {
+      return {
+        kind: "problem",
+        text: feedback.message ?? QUEST_STATUS_COPY.failed,
+      };
+    }
+    return { kind: "quest-status", feedback };
+  }
+
   const command = parsePlanCommand(text, { steps: [], nextNumber: 1 });
   if (command.kind === "problem" && command.problem.kind === "unknown") {
     return {

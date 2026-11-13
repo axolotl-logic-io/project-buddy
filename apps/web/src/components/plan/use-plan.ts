@@ -10,7 +10,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { ChatMessage } from "@/chats/message-author.ts";
 import type { ChatId, QuestId } from "@/ids.ts";
 import type { PlanOperation, PlanState } from "@/plan/plan.ts";
 import type {
@@ -31,10 +30,9 @@ interface PlanActions {
 }
 
 // What the last change from these controls said: a line to show, and the
-// version it saved, which Undo undoes, when it changed the plan outside an
-// adventure. failed is true when the change failed, as when it couldn't be
-// saved or the quest is gone, rather than being refused with a reason, such
-// as the 30-step limit.
+// version it saved, which Undo undoes. failed is true when the change
+// could not be saved or the quest is gone, rather than being refused with
+// a reason such as the 30-step limit.
 interface PlanFeedback {
   readonly text: string;
   readonly undoVersion?: number | undefined;
@@ -45,8 +43,7 @@ interface PlanFeedback {
 // to it from here, without the construct.
 interface PlanController {
   readonly questId: QuestId;
-  // The adventure the controls are in, if any: their changes are saved to
-  // it as plan messages.
+  // The conversation the controls are in, for ownership and change history.
   readonly chatId?: ChatId | undefined;
   readonly state: PlanState;
   // Why the controls are off, such as while the construct replies; undefined
@@ -58,7 +55,7 @@ interface PlanController {
   // The id of the adventure's newest plan card message, the one that shows
   // the live plan; undefined outside an adventure or without one.
   readonly newestCardId?: string | undefined;
-  readonly change: (operations: readonly PlanOperation[]) => Promise<void>;
+  readonly change: (operations: readonly PlanOperation[]) => Promise<boolean>;
   readonly undo: (version: number) => Promise<void>;
   // Takes a newer plan from elsewhere, such as the construct's change or an
   // action's answer; an older one is ignored.
@@ -78,7 +75,6 @@ interface PlanControllerOptions {
   // The newest plan a construct's change in the adventure showed, which the
   // controller takes when it is newer than its own.
   readonly observed?: Pick<PlanState, "version" | "plan"> | undefined;
-  readonly onMessage?: ((message: ChatMessage) => void) | undefined;
 }
 
 const PlanContext = createContext<PlanController | undefined>(undefined);
@@ -96,21 +92,15 @@ function newer(current: PlanState, next: PlanState): PlanState {
   return next;
 }
 
-// What an action's result shows: a line for a change made outside an
-// adventure, where no plan message shows it, and why nothing changed.
-function feedbackOf(
-  result: PlanActionResult,
-  inAdventure: boolean,
-): PlanFeedback | undefined {
+// Direct controls show their result and Undo locally, without a conversation message.
+function feedbackOf(result: PlanActionResult): PlanFeedback | undefined {
   switch (result.kind) {
     case "changed":
-      if (inAdventure) {
-        return undefined;
-      }
       return {
         text: result.lines.map(planLineText).join(". "),
         undoVersion: result.version,
       };
+    case "quest-status":
     case "shown":
       return undefined;
     case "failed":
@@ -134,7 +124,6 @@ function usePlanController({
   disabledNote,
   newestCardId,
   observed,
-  onMessage,
 }: PlanControllerOptions): PlanController | undefined {
   const [state, setState] = useState<PlanState>(initialState ?? NO_PLAN);
   const [pending, setPending] = useState(false);
@@ -153,26 +142,27 @@ function usePlanController({
   }, []);
   const settle = useCallback(
     (result: PlanActionResult): void => {
-      if (result.kind !== "problem" && result.kind !== "not-found") {
+      if (
+        result.kind !== "problem" &&
+        result.kind !== "not-found" &&
+        result.kind !== "quest-status"
+      ) {
         receive(result.state);
       }
-      if (
-        (result.kind === "changed" || result.kind === "shown") &&
-        result.message !== undefined
-      ) {
-        onMessage?.(result.message);
-      }
-      setFeedback(feedbackOf(result, chatId !== undefined));
+      setFeedback(feedbackOf(result));
     },
-    [chatId, onMessage, receive],
+    [receive],
   );
   const run = useCallback(
-    async (action: () => Promise<PlanActionResult>): Promise<void> => {
+    async (action: () => Promise<PlanActionResult>): Promise<boolean> => {
       setPending(true);
       try {
-        settle(await action());
+        const result = await action();
+        settle(result);
+        return result.kind === "changed";
       } catch {
         setFeedback({ text: PLAN_COPY.failed["not-saved"], failed: true });
+        return false;
       } finally {
         setPending(false);
       }
@@ -180,7 +170,7 @@ function usePlanController({
     [settle],
   );
   const change = useCallback(
-    (operations: readonly PlanOperation[]): Promise<void> =>
+    (operations: readonly PlanOperation[]): Promise<boolean> =>
       run(async () => {
         if (actions === undefined) {
           return { kind: "not-found" };
@@ -190,13 +180,14 @@ function usePlanController({
     [run, actions, questId, chatId],
   );
   const undo = useCallback(
-    (version: number): Promise<void> =>
-      run(async () => {
+    async (version: number): Promise<void> => {
+      await run(async () => {
         if (actions === undefined) {
           return { kind: "not-found" };
         }
         return await actions.undo({ questId, chatId, version });
-      }),
+      });
+    },
     [run, actions, questId, chatId],
   );
   let shown = state;

@@ -7,29 +7,50 @@ import {
   type SyntheticEvent,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import { usePlan } from "@/components/plan/use-plan.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/activity.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 
-type PanelSize = "minimized" | "medium" | "full";
+const WIDE_SIDEBAR = "(min-width: 64rem)";
+
+function subscribeWidth(notify: () => void): () => void {
+  const media = globalThis.matchMedia(WIDE_SIDEBAR);
+  media.addEventListener("change", notify);
+  return (): void => media.removeEventListener("change", notify);
+}
+
+function isWide(): boolean {
+  return globalThis.matchMedia(WIDE_SIDEBAR).matches;
+}
+
+function serverWidth(): boolean {
+  return false;
+}
 
 function PlanPanel({
   children,
   sideContent,
-  initialSection = "plan",
+  initialSection,
 }: {
   readonly children?: ReactNode;
   readonly sideContent?: ReactNode;
   readonly initialSection?: string | undefined;
 }): JSX.Element {
   const plan = usePlan();
-  const [size, setSize] = useState<PanelSize>("medium");
+  const wide = useSyncExternalStore(subscribeWidth, isWide, serverWidth);
+  const [expanded, setExpanded] = useState<boolean | undefined>();
+  const open = expanded ?? (wide || initialSection !== undefined);
+  const panelId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog === null) {
@@ -38,89 +59,84 @@ function PlanPanel({
     if (dialog.open) {
       dialog.close();
     }
-    if (size === "full") {
-      dialog.showModal();
-    } else {
-      dialog.show();
+    if (open) {
+      if (wide) {
+        // Nonmodal desktop navigation must not take focus from the composer.
+        dialog.setAttribute("open", "");
+      } else {
+        dialog.showModal();
+      }
     }
-  }, [size]);
+  }, [open, wide]);
+  const expand = useCallback((): void => setExpanded(true), []);
+  const collapse = useCallback((): void => {
+    setExpanded(false);
+    queueMicrotask(() => toggleRef.current?.focus());
+  }, []);
   const cancel = useCallback(
     (event: SyntheticEvent<HTMLDialogElement>): void => {
       event.preventDefault();
-      setSize("medium");
+      collapse();
     },
-    [],
+    [collapse],
   );
-  const minimize = useCallback((): void => setSize("minimized"), []);
-  const medium = useCallback((): void => setSize("medium"), []);
-  const full = useCallback((): void => setSize("full"), []);
   return (
-    <div className="adventure-layout" data-panel-size={size}>
+    <div className="adventure-layout" data-sidebar-open={open}>
       <div className="adventure-main">{children}</div>
+      <Button
+        ref={toggleRef}
+        variant="quiet"
+        className="quest-sidebar-toggle quest-sidebar-expand"
+        aria-label={QUEST_SIDEBAR_COPY.expand}
+        title={QUEST_SIDEBAR_COPY.expand}
+        aria-expanded={open}
+        aria-controls={panelId}
+        hidden={open}
+        onClick={expand}
+      >
+        <Icon name="sidebar" />
+      </Button>
       <dialog
+        id={panelId}
         ref={dialogRef}
         onCancel={cancel}
         className="quest-sidebar-frame"
         aria-label={QUEST_SIDEBAR_COPY.label}
       >
         <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
-          <fieldset
-            className="flex flex-wrap gap-2"
-            aria-label={QUEST_SIDEBAR_COPY.size}
-          >
+          <div className="quest-sidebar-toolbar">
+            <span>{QUEST_SIDEBAR_COPY.heading}</span>
             <Button
               variant="quiet"
-              aria-pressed={size === "minimized"}
-              onClick={minimize}
+              className="quest-sidebar-toggle"
+              aria-label={QUEST_SIDEBAR_COPY.collapse}
+              title={QUEST_SIDEBAR_COPY.collapse}
+              aria-expanded={open}
+              aria-controls={panelId}
+              onClick={collapse}
             >
-              {QUEST_SIDEBAR_COPY.minimize}
+              <Icon name="sidebar" />
             </Button>
-            <Button
-              variant="quiet"
-              aria-pressed={size === "medium"}
-              onClick={medium}
-            >
-              {QUEST_SIDEBAR_COPY.medium}
-            </Button>
-            <Button
-              variant="quiet"
-              aria-pressed={size === "full"}
-              onClick={full}
-            >
-              {QUEST_SIDEBAR_COPY.full}
-            </Button>
-          </fieldset>
-          <div hidden={size === "minimized"}>
-            <Accordion.Root
-              type="multiple"
-              defaultValue={[initialSection]}
-              className="flex flex-col gap-3"
-            >
-              {plan !== undefined && (
-                <Accordion.Item value="plan">
-                  <Accordion.Header>
-                    <Accordion.Trigger className="button-secondary quest-sidebar-trigger">
-                      {PLAN_COPY.heading}
-                    </Accordion.Trigger>
-                  </Accordion.Header>
-                  <Accordion.Content
-                    forceMount={true}
-                    className="quest-sidebar-content"
-                  >
-                    <PlanSteps look="panel" />
-                  </Accordion.Content>
-                </Accordion.Item>
-              )}
-              {sideContent}
-            </Accordion.Root>
           </div>
+          <Accordion.Root
+            type="multiple"
+            defaultValue={[initialSection ?? "plan"]}
+            className="quest-sidebar-sections"
+          >
+            {plan !== undefined && (
+              <QuestSidebarSection value="plan" name={PLAN_COPY.heading}>
+                <PlanSteps />
+              </QuestSidebarSection>
+            )}
+            {sideContent}
+          </Accordion.Root>
         </aside>
       </dialog>
     </div>
   );
 }
 
-// Server-rendered sections retain their forms when their accordion is closed.
+// Sections stay mounted so collapsing the sidebar preserves unsaved edits.
 function QuestSidebarSection({
   name,
   value,
@@ -133,8 +149,9 @@ function QuestSidebarSection({
   return (
     <Accordion.Item value={value}>
       <Accordion.Header>
-        <Accordion.Trigger className="button-secondary quest-sidebar-trigger">
+        <Accordion.Trigger className="quest-sidebar-trigger">
           {name}
+          <Icon name="chevron-down" />
         </Accordion.Trigger>
       </Accordion.Header>
       <Accordion.Content forceMount={true} className="quest-sidebar-content">
