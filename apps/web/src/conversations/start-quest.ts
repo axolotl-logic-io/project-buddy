@@ -20,7 +20,7 @@ import type { QuestId, UserId } from "@/ids.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
-import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
+import { checkGold } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
 import { type PromptQuest, readPromptQuest } from "@/replies/system-prompt.ts";
 
@@ -56,7 +56,6 @@ function defaultStart(): {
 
 function openingFor(
   owner: UserId,
-  grant: QuotaGrant,
   readQuest: () => Promise<PromptQuest | undefined>,
   {
     construct,
@@ -66,7 +65,6 @@ function openingFor(
 ): ReturnType<typeof chatOpening> {
   return chatOpening({
     construct,
-    grant,
     context: async () => {
       const [userName, quest] = await Promise.all([
         readUserName(owner),
@@ -102,7 +100,6 @@ async function startNewQuest(
     .join("\n\n");
   const opening = await openingFor(
     owner,
-    gold.grant,
     () =>
       Promise.resolve({
         name,
@@ -179,7 +176,6 @@ async function startQuestConversation(
   }
   const opening = await openingFor(
     actingUser,
-    gold.grant,
     () => readPromptQuest(actingUser, quest),
     start,
   );

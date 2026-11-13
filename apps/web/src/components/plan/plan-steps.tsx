@@ -182,7 +182,9 @@ function PlanSteps(): JSX.Element | null {
       if (plan === undefined) {
         return false;
       }
-      return await plan.change([{ op: "add", text }]);
+      return await plan.change([
+        { op: "add", text, before: openSteps(plan.state.plan)[0]?.number },
+      ]);
     },
     [plan],
   );

@@ -19,7 +19,7 @@ function kickoffTurn(kickoff: string): LanguageModelV4Message {
   return { role: "user", content: [{ type: "text", text: kickoff }] };
 }
 
-// Whether text is the neutral kickoff, so the mock can leave it
+// Whether text is the neutral kickoff, so the local engine can leave it
 // out of a chat's messages.
 function isNeutralKickoff(text: string): boolean {
   return text === NEUTRAL_KICKOFF;

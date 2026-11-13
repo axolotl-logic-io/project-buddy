@@ -82,7 +82,7 @@ Quests at `/quests` is the signed-in landing page. Start Quest offers Dailies, L
 
 A construct is chosen when a conversation starts. Activities guide its replies and can change through the construct's activity tool (`src/activities/`). Workshop at `/workshop` is the single collection for built-in and private constructs, activities and spells. Settings at `/settings` holds profile, appearance, batteries and security. Old conversation, collection, Home and Account addresses have access-checked redirects where their replacement exists.
 
-Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Plan and recent milestones. Set `CONSTRUCT_MODEL=mock` for deterministic local tests; see `.env.example`.
+Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Plan and recent milestones. Constructs always run the local command engine; there is no model mode setting. Tests exercise local commands and tool handlers directly.
 
 ### Errors
 
@@ -123,7 +123,7 @@ The fast default keeps costly stages off by default, not deleted or skipped. `np
 | `npm run test:server` (opt-in) | Resets/migrates the supplied isolated database before testing. |
 | `npm run test:e2e` (opt-in) | Server tests, production build/font check and Playwright; database, site port and Docker required. |
 
-Keep timeout, concurrency, isolation, mock-model fences and assertions unchanged. Optimize retained slow-stage timing separately, or schedule these tasks in an explicitly authorized integration stage. Keep cheap guards in the default gate; do not mark unrun stages passed. The instruction counter's cheap fake-pi subprocess checks remain in its default gate; they make no real-model calls.
+Keep timeout, concurrency, isolation, local database fences and assertions unchanged. Optimize retained slow-stage timing separately, or schedule these tasks in an explicitly authorized integration stage. Keep cheap guards in the default gate; do not mark unrun stages passed. The instruction counter's cheap fake-pi subprocess checks remain in its default gate; they make no real-model calls.
 
 ### Orchestrator-owned local tests
 
@@ -131,7 +131,7 @@ The orchestrator provides `apps/web/.env.test`, with `DATABASE_URL` and `E2E_POR
 
 Test commands only consume the supplied file. A missing `.env.test` is an error: no automatic copying, allocation or fallback to another database/port. Lane resources are reusable and are not torn down on a test command's exit. Separate active lanes have separate databases and site ports; the orchestrator must not assign the same lane to independent concurrent runs. Build artifacts in one checkout are not isolated.
 
-For a **manual run**, `npm run test-env:init` in `apps/web` writes `apps/web/.env.test` from the example with a database and site port derived from the worktree's path, one database per worktree, and keeps any `.env.test` already there. Or copy the example by hand and configure a local test database and an unused site port. From `apps/web`, run `npm run test-db:up` to start the local server, then `npm run test-db:reset` to create/migrate that configured database. Never share a manual database or port between simultaneous runs. Safety guards require localhost/127.0.0.1, safe database names (including `pb_lane_K`, never the server's own databases), the mock model and file email outbox.
+For a **manual run**, `npm run test-env:init` in `apps/web` writes `apps/web/.env.test` from the example with a database and site port derived from the worktree's path, one database per worktree, and keeps any `.env.test` already there. Or copy the example by hand and configure a local test database and an unused site port. From `apps/web`, run `npm run test-db:up` to start the local server, then `npm run test-db:reset` to create/migrate that configured database. Never share a manual database or port between simultaneous runs. Safety guards require localhost/127.0.0.1, safe database names (including `pb_lane_K`, never the server's own databases), the file email outbox.
 
 The shared server publishes native PostgreSQL on `127.0.0.1:5433`; no Neon proxy or pgbouncer is needed. App queries reuse a bounded connection pool. A locally installed PostgreSQL also works: set `DATABASE_URL` to its `localhost` or `127.0.0.1` address and port. The app also recognizes IPv6 loopback (`[::1]`); destructive test commands still require localhost or 127.0.0.1.
 

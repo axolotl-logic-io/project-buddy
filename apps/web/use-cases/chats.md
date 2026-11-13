@@ -258,16 +258,14 @@ The user follows the latest messages without repeatedly scrolling down.
 
 ## use_case_chat_images
 
-The user asks their construct about images in a quest or standalone adventure.
+The user views images already saved in a conversation.
 
-- **Prerequisites:** `use_case_send_message`.
+- **Prerequisites:** `use_case_send_message` and a conversation with saved images.
 - **Steps:**
-  - The user selects images with Attach images, including the phone's image picker, or pastes images into the message box.
-  - They preview the attachments and remove any they do not want to send.
-  - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
-  - They reopen the adventure and ask a follow-up question about an earlier image.
-- **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure. Replies and generated images charge the acting user, and generated openings charge the starter. Deleting the adventure, its quest or its account deletes its images.
-- **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-batteries refusal returns text and attachments to the composer. No paid model runs during tests.
+  - The user opens the conversation and views an earlier image.
+  - They write a text message in the composer.
+- **Outcome:** saved images remain visible after reload. The composer accepts text only: it has no image picker, upload button or image-limit hint, and pasting or dropping images does not upload them. Delivery of saved images still requires access to the conversation. Deleting the conversation, its quest or its account deletes its images.
+
 
 ## use_case_construct_presence
 
@@ -288,3 +286,11 @@ The user stops a reply that is still running.
 - **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
 - **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests provider cancellation and prevents further model and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Batteries charged for use are not refunded.
 - **Variations:** only the adventure's owner can stop its reply; other users cannot. Repeating Stop does not repeat effects or charges. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
+
+## use_case_reset_chat
+
+The user clears their private Chat and starts fresh.
+
+- **Prerequisites:** signed in, with a private Chat.
+- **Steps:** choose Reset beside Turn Chat into a quest at the top of Chat.
+- **Outcome:** the old messages and images are removed, and the same construct is available in an empty conversation. No old browser draft or pending reply reappears. Reset spends no batteries and changes no quests. Another user cannot reset this Chat.

@@ -79,6 +79,10 @@ const STANDALONE_CONVERSATION: Conversation = {
 };
 
 // One page as the phone checks render it.
+vi.mock("@/conversations/reset-conversation-action.ts", () => ({
+  resetConversationAction: vi.fn(),
+}));
+
 interface PhonePage {
   readonly name: string;
   // Sets the page's data, signs in or out, and returns the page in its
@@ -331,13 +335,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project", path: QUEST_PATH, render: projectPage },
   {
-    name: "the Dailies quest, with Start the day",
+    name: "the Dailies quest, with Reset Day",
     path: QUEST_PATH,
     render: projectPageFor("conversation", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
         page
-          .getByRole("button", { name: QUEST_CONVERSATION_COPY.startTheDay })
+          .getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay })
           .element(),
       );
     },

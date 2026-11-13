@@ -14,9 +14,6 @@ interface CommandListing {
 
 interface ChatCommands {
   readonly listings: readonly CommandListing[];
-  // Whether the mock model runs, so its own `/mock-…` commands go to it as
-  // messages.
-  readonly mockCommands: boolean;
   // Whether the adventure is in a quest; outside one, only the plan
   // commands' names run as commands (isChatCommand).
   readonly inQuest: boolean;

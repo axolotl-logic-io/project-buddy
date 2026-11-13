@@ -30,7 +30,7 @@ import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
-import { markdownReplyText } from "../replies/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../replies/rich-message-test-kit.ts";
 import { LAPTOP_VIEWPORT } from "../viewports-test-kit.ts";
 import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
@@ -106,7 +106,7 @@ function markdownExchange(): ChatMessage[] {
     {
       id: "m0",
       role: "user",
-      parts: [{ type: "text", text: "/mock-markdown" }],
+      parts: [{ type: "text", text: "Show the saved example" }],
     },
     {
       id: "r0",
@@ -158,7 +158,7 @@ async function journalBelowLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("button", { name: "Plan", exact: true });
+  const link = page.getByRole("tab", { name: "Plan", exact: true });
   return (
     link.element().getBoundingClientRect().top >=
     heading.element().getBoundingClientRect().bottom

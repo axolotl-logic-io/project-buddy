@@ -51,9 +51,8 @@ test("use_case_see_gold", async () => {
   const { status } = await sendChatMessage(chat.id, MESSAGE);
 
   expect(status).toBe(HTTP_STATUS.ok);
-  // A reply from the mock construct costs a fraction of a gold, which the page
-  // rounds down.
-  expect(await balanceShown()).toBe("86");
+  // Local replies leave the balance unchanged.
+  expect(await balanceShown()).toBe("87");
 });
 
 test("a balance below 0 shows as 0", async () => {

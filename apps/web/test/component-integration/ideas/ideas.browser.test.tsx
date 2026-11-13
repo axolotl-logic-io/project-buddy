@@ -157,3 +157,102 @@ test.each(["pointer", "keyboard"])(
     await expect.element(handle).toHaveFocus();
   },
 );
+
+const OUTSIDE_LIST = "Outside the list";
+const SECOND_IDEA = IDEA.parse({
+  id: "22222222-2222-4222-8222-222222222222",
+  text: "Try charcoal",
+});
+
+test("clicking another idea saves the old edit and hands off focus; clicking outside saves and closes the new edit", async () => {
+  const saved = Promise.withResolvers<Awaited<ReturnType<IdeaAction>>>();
+  const action = vi.fn<IdeaAction>().mockResolvedValue({ kind: "saved" });
+  action.mockReturnValueOnce(saved.promise);
+  await render(
+    <>
+      <QuestIdeas
+        questId={FOX_QUEST.id}
+        ideas={[IDEA_FIXTURE, SECOND_IDEA]}
+        action={action}
+      />
+      <input aria-label={OUTSIDE_LIST} />
+    </>,
+  );
+  await page
+    .getByRole("button", { name: "Edit idea", exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole("textbox", { name: "Idea", exact: true })
+    .fill("Try ink");
+  await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+  expect(action).toHaveBeenCalledExactlyOnceWith({
+    op: "edit",
+    questId: FOX_QUEST.id,
+    id: IDEA_FIXTURE.id,
+    text: "Try ink",
+  });
+  saved.resolve({ kind: "saved" });
+  const editor = page.getByRole("textbox", { name: "Idea", exact: true });
+  await expect.element(editor).toHaveValue(SECOND_IDEA.text);
+  await expect.element(editor).toHaveFocus();
+  await editor.fill("Try pastels");
+  const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
+  await outside.click();
+  await expect.element(editor).not.toBeInTheDocument();
+  expect(action).toHaveBeenLastCalledWith({
+    op: "edit",
+    questId: FOX_QUEST.id,
+    id: SECOND_IDEA.id,
+    text: "Try pastels",
+  });
+  await expect.element(outside).toHaveFocus();
+});
+
+test("clicking outside an unchanged idea closes it without a redundant save", async () => {
+  const action = vi.fn<IdeaAction>();
+  await render(
+    <>
+      <QuestIdeas
+        questId={FOX_QUEST.id}
+        ideas={[IDEA_FIXTURE]}
+        action={action}
+      />
+      <input aria-label={OUTSIDE_LIST} />
+    </>,
+  );
+  await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+  await page.getByRole("textbox", { name: OUTSIDE_LIST }).click();
+  await expect
+    .element(page.getByRole("textbox", { name: "Idea", exact: true }))
+    .not.toBeInTheDocument();
+  expect(action).not.toHaveBeenCalled();
+});
+
+test("a save already in progress does not reclaim focus after clicking outside", async () => {
+  const saved = Promise.withResolvers<Awaited<ReturnType<IdeaAction>>>();
+  const action = vi.fn<IdeaAction>().mockReturnValue(saved.promise);
+  await render(
+    <>
+      <QuestIdeas
+        questId={FOX_QUEST.id}
+        ideas={[IDEA_FIXTURE]}
+        action={action}
+      />
+      <input aria-label={OUTSIDE_LIST} />
+    </>,
+  );
+  await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Idea", exact: true })
+    .fill("Try ink");
+  await userEvent.keyboard("{Enter}");
+  const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
+  await outside.click();
+  saved.resolve({ kind: "saved" });
+  await expect
+    .element(page.getByRole("textbox", { name: "Idea", exact: true }))
+    .not.toBeInTheDocument();
+  await expect.element(outside).toHaveFocus();
+  expect(action).toHaveBeenCalledTimes(1);
+});

@@ -65,8 +65,7 @@ function withAnswerNowNote(
 }
 
 // Whether message, as the model receives it, is the answer-now note's
-// default text. The mock model reads the note this way, as Claude reads its
-// text.
+// default text. The local protocol adapter recognizes this note.
 function isAnswerNowNote(message: LanguageModelV4Message): boolean {
   if (message.role !== "user") {
     return false;

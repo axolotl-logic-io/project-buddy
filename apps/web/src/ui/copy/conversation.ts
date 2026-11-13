@@ -6,6 +6,6 @@ export const QUEST_CONVERSATION_COPY = {
     "This quest’s conversation hasn’t started yet. Start it to hear from its construct.",
   start: "Start the conversation",
   starting: "Starting…",
-  startTheDay: "Start the day",
-  startTheDayMessage: "Let’s start the day.",
+  resetDay: "Reset Day",
+  reset: "Reset",
 } as const;

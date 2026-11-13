@@ -57,11 +57,11 @@ The [conversation use cases](../apps/web/use-cases/chats.md) define `use_case_st
 - `apps/web/test/component-integration/app/(workspace)/chat/page.server.test.ts` opens Chat repeatedly as two users with the real stores: one conversation each, nothing spent on the way in, no other user sees it, and old addresses redirect or are not found as above.
 - `apps/web/test/component/start-work/chat-summary-draft.test.ts` checks the draft starting context.
 
-Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and mock model, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
+Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and file email outbox, guarded by `checkTestEnvironment`; never substitute a production database or a real model.
 
 ## Removed check-ins
 
-Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Start the day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
+Automatic check-ins were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). No scheduler, page or reply writes a message into a conversation on its own, so every model call starts from something a user did. Dailies continues only when the user writes or chooses Reset Day. The [design note](design/simplification-903.md) lists what went and the columns kept for the live build.
 
 ## Conversation header
 
@@ -105,8 +105,7 @@ construct that only a turn's header says who wrote it, that a name and a colon
 inside a message are just what that person typed, and to address people by
 name. The rules stay out of the prompt's shared, cached part. An adventure with
 one author sends the model exactly what it sent before, and the saved
-messages never hold the headers. The mock model reads a command past the
-header, and `/mock-recall` also searches it.
+messages never hold the headers. The local engine reads commands after the author header.
 
 Only the quest's owner can write in its adventure. Messages other people wrote while quests could be shared keep their authors. Replies, generated images and automatic adventure names charge the acting user; and generated openings charge the starter.
 Server tests write other authors' messages through the `author` field of

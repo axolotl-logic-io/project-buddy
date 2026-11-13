@@ -25,8 +25,6 @@ export const CHAT_COPY = {
   stopCompleted: "The reply finished before Stop took effect.",
   cancelledReply:
     "Reply stopped at your request. Tool effects already started may remain or finish. Batteries charged for use are not refunded.",
-  reattach:
-    "Images from your unsent message were not kept. Attach them again before sending.",
   replyingElsewhere: (name: string): string =>
     `${name} is still replying. This conversation will update when the reply finishes.`,
   headerLink: "Chat",

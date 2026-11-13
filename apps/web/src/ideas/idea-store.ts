@@ -97,7 +97,7 @@ function changeIdea(
     if (request.op === "add") {
       return database.transaction(async (tx): Promise<IdeaResult> => {
         // Additions and reorders share the quest lock so a concurrent add
-        // stays after the newly ordered list.
+        // stays at the top of the newly ordered list.
         const [quest] = await tx
           .select({ id: quests.id })
           .from(quests)
@@ -115,7 +115,7 @@ function changeIdea(
                 questId: sql`${questId}::uuid`.as("quest_id"),
                 text: sql`${request.text}::text`.as("text"),
                 position:
-                  sql`(select coalesce(max(${questIdeas.position}) + 1, 0) from ${questIdeas} where ${questIdeas.questId} = ${questId}::uuid and ${ideaOpenTo(owner)})`.as(
+                  sql`(select coalesce(min(${questIdeas.position}) - 1, 0) from ${questIdeas} where ${questIdeas.questId} = ${questId}::uuid and ${ideaOpenTo(owner)})`.as(
                     "position",
                   ),
                 createdAt: sql`now()`.as("created_at"),
