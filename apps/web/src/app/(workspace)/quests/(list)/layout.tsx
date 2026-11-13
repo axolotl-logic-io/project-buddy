@@ -10,7 +10,6 @@ export default function QuestListLayout({
 }: LayoutProps<"/quests">): JSX.Element {
   return (
     <PageFrame>
-      <p className="text-muted">{QUESTS_COPY.intro}</p>
       {children}
     </PageFrame>
   );
