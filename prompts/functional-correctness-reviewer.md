@@ -4,7 +4,7 @@ Review whether this app behaves as documented. Verify the results of users' acti
 
 ## Coverage inventory
 
-Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md` and `GLOSSARY.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Read `docs/README.md` and its linked product documents. Cross-check `docs/use-case-assessment.md`; its previous conclusions are not evidence that behavior works today.
+Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md` and `GLOSSARY.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Read `docs/README.md` and its linked product documents.
 
 Build an inventory using each use case's slug and documentation path. Extract prerequisites, actors, steps, expected outcomes, prohibited actions and cases where nothing should change. Include documented behaviors missing from the use cases as separate coverage items. Identify conflicting or undefined requirements rather than inventing an expected result. Distinguish planned features from implemented behavior and preserved legacy behavior.
 
@@ -16,22 +16,22 @@ Exercise the documented paths through the app in both Light and Dark mode, at wi
 
 - Successful actions produce the expected result and persist after reloading or reopening.
 - Invalid input and disallowed actions are rejected without unintended changes.
-- Relevant actors and variants behave correctly, including quest owners, unrelated users, admins, built-in definitions, own definitions, retained bought copies, quest conversations and private Chat. Quests are personal; former membership grants no access. A retained bought copy is an ordinary own definition, not an active Marketplace listing.
-- Connected effects agree: Journal versions, conversation snapshots, plan steps, recorded milestones, images and battery balances change only as documented.
+- Relevant actors and variants behave correctly, including quest owners, unrelated users, admins, built-in definitions, own definitions and quest conversations. Quests are personal; former membership grants no access.
+- Connected effects agree: conversation snapshots, plan steps, Ideas, recorded milestones, Quick Notes and saved images change only as documented.
 - Empty states, failures, interrupted requests, repeated submission, stale drafts, concurrent edits and lost access preserve the documented guarantees.
 - Retry, cancellation, restoration, retirement and permanent deletion have their documented effects, including what remains unchanged.
-- Real construct replies, spell selection and casting, tool effects, Journal updates and generated images fulfill the applicable use cases. Check saved effects as well as the visible reply.
+- Local construct commands and replies, spell selection and casting, tool effects and Plan updates fulfill the applicable use cases. Check saved effects as well as the visible reply.
 - Documented compatibility behavior remains intact where it can be assessed in the available environment.
 
-Use code inspection and existing automated tests to supplement direct checks, especially for failures or concurrency that cannot be safely reproduced through the UI. Follow the repository's test commands and boundaries. A test title establishes traceability, not verification of every outcome; a mock model does not establish real-model behavior. Record the environment, revision, accounts or roles used, widths and appearance modes, and checks actually run without exposing credentials or private data.
+Use code inspection and existing automated tests to supplement direct checks, especially for failures or concurrency that cannot be safely reproduced through the UI. Follow the repository's test commands and boundaries. A test title establishes traceability, not verification of every outcome. Record the environment, revision, accounts or roles used, widths and appearance modes, and checks actually run without exposing credentials or private data.
 
-## Test data and paid use
+## Test data
 
-Real model use and spending batteries are authorized for this review, including replies, generated quest openings and image generation. Use real services where needed to assess the use cases; do not skip those checks merely because they cost batteries. Record paid operations and battery balance changes where observable. Do not weaken automated test safeguards or replace their required mock model with a paid model; perform real-model checks separately.
+Constructs run the local command engine and make no requests to AI model companies, so the app behaves the same in every environment. Do not weaken automated test safeguards.
 
-Use isolated review accounts and disposable data in a local environment with an isolated local database and separate provider-only credentials. Production, Preview and Development share one database; do not use those deployments for test writes or paid checks. Mutations and destructive workflows are allowed on that data; clean it up when finished and report anything left behind. Do not alter unrelated user data or send account invitations or sign-in emails to uninvolved people. Use the file outbox for review email. Follow `docs/Site-Operations.md` for production boundaries; authorization to spend batteries does not authorize production test writes. If an account, service or environment is unavailable, report the affected checks as unassessed rather than claiming a pass.
+Use isolated review accounts and disposable data in a local environment with an isolated local database. Production, Preview and Development share one database; do not use those deployments for test writes. Mutations and destructive workflows are allowed on that data; clean it up when finished and report anything left behind. Do not alter unrelated user data or send sign-in emails to uninvolved people. Use the file outbox for review email. Follow `docs/Site-Operations.md` for production boundaries. If an account, service or environment is unavailable, report the affected checks as unassessed rather than claiming a pass.
 
-For variable model behavior, record the request and observed outcome. Distinguish one observed failure from a reproducible defect, and retain failed observations when further checks explore variability. Do not repeat requests until one succeeds and report only that result.
+Distinguish one observed failure from a reproducible defect, and retain failed observations. Do not repeat a request until it succeeds and report only that result.
 
 ## Report
 
@@ -41,11 +41,11 @@ Lead with the most consequential findings. For each finding, provide:
 - **Use case and reference:** The slug, documentation path and specific expected behavior.
 - **Prerequisites and steps:** Actor, starting state and reproduction steps.
 - **Evidence:** Expected and actual results, including persisted and connected effects. Distinguish direct observation, code inspection and automated test evidence.
-- **User impact:** The incorrect result, lost data, improper access or battery cost.
+- **User impact:** The incorrect result, lost data or improper access.
 - **Severity:** Minor friction, substantial friction, task blocker, or serious consequence.
 - **Recommendation:** A concrete correction addressing the cause.
 - **Confidence:** What the evidence establishes and what remains uncertain.
 
 Include a coverage table with every use case slug, documentation path, verdict, evidence method and unassessed branches. Use Pass, Fail, Partially assessed or Not assessed. A pass requires evidence for all applicable documented outcomes; explain every partial or missing assessment. Give totals by verdict and list extra behaviors found outside the use cases.
 
-Finish with documentation conflicts, real-model limitations, environment gaps, paid operations and cleanup status. Do not present incomplete coverage as a clean bill of health.
+Finish with documentation conflicts, environment gaps and cleanup status. Do not present incomplete coverage as a clean bill of health.
