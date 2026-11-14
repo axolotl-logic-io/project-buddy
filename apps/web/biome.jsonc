@@ -188,14 +188,18 @@
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
     // check only the root layout, the frame it renders (header, the site
-    // menu and its appearance choices) and the global CSS files whose
-    // classes pages use.
+    // menu, its appearance choices and the Quick Note dialog, with the form
+    // fields and notices it shows) and the global CSS files whose classes
+    // pages use.
     {
       "includes": [
         "src/app/layout.tsx",
         "src/components/site-header.tsx",
         "src/components/site-menu.tsx",
         "src/components/appearance-choices.tsx",
+        "src/components/quick-note.tsx",
+        "src/components/ui/field.tsx",
+        "src/components/ui/form-message.tsx",
         "src/app/page-roles.css",
         "src/components/chat/chat.css",
         "src/components/constructs/construct-discovery.css"

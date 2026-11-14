@@ -212,7 +212,7 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its plan and progress timeline. A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
+Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its plan, progress timeline and [Quick Notes](#quick-note). A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
@@ -278,6 +278,19 @@ The conversation’s saved mode: Plan, Brainstorm or no spell. `cast plan` and `
 A quest's saved possibilities that the user has not committed to. Ideas is separate from Plan. The owner can add, edit or remove an idea, or move it into Plan as an open step. Ideas have no done state and spend no batteries.
 
 - **UI:** "Ideas", "Add idea", "Move to Plan".
+
+### Quick Note
+
+A short, dated line the user saves to one of their Active quests from the site menu, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
+
+- **UI:** "Quick Note" for the menu item, the dialog and a single item; "Quick Notes" for the tab and the collection.
+- **Avoid:** "note" alone, "memo", "jot", "inbox" or "quick capture".
+
+### Quest sidebar actions
+
+The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and Reset Day for an Active Dailies quest.
+
+- **UI:** "Actions".
 
 ### Plan
 

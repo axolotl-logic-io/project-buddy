@@ -156,3 +156,19 @@ vi.mock("@/spells/own-spell-store.ts", () => ({
   listOwnSpells: vi.fn().mockResolvedValue([]),
   getOwnSpell: vi.fn(),
 }));
+
+// The site menu's Quick Note dialog and a quest's Quick Notes tab reach these
+// from every signed-in page. Tests of those flows supply their own results.
+vi.mock("@/notes/note-actions.ts", () => ({
+  listNoteQuestsAction: vi.fn(() => Promise.resolve([])),
+  saveNoteAction: vi.fn(() => {
+    throw new Error("Mock the Quick Note save action in this test");
+  }),
+  deleteNoteAction: vi.fn(() => {
+    throw new Error("Mock the Quick Note delete action in this test");
+  }),
+}));
+
+vi.mock("@/notes/note-store.ts", () => ({
+  listNotes: vi.fn(() => Promise.resolve([])),
+}));

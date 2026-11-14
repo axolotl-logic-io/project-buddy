@@ -13,15 +13,28 @@ import { questConversation } from "./quest-conversation.tsx";
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
-// its composer; the others are its plan and progress timeline.
+// its composer; the others are its Plan, Ideas, progress timeline, Quick
+// Notes and actions.
 export default async function QuestPage({
   params,
   searchParams,
 }: PageProps<"/quests/[questId]">): Promise<JSX.Element> {
   const { questId } = await params;
   const { section } = await searchParams;
-  let current: "conversation" | "plan" | "ideas" | "progress" = "conversation";
-  if (section === "plan" || section === "ideas" || section === "progress") {
+  let current:
+    | "conversation"
+    | "plan"
+    | "ideas"
+    | "progress"
+    | "notes"
+    | "actions" = "conversation";
+  if (
+    section === "plan" ||
+    section === "ideas" ||
+    section === "progress" ||
+    section === "notes" ||
+    section === "actions"
+  ) {
     current = section;
   }
   const user = await requireUser();
