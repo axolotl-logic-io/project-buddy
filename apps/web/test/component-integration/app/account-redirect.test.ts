@@ -5,10 +5,7 @@ const TEMPORARY_REDIRECT = 307;
 
 test.each([
   ["", ""],
-  ["?section=batteries", "?section=batteries#batteries"],
   ["?section=security", "?section=security#security"],
-  ["?battery=returned", "?battery=returned#buy-batteries"],
-  ["?battery=canceled", "?battery=canceled#buy-batteries"],
   ["?section=unknown", "?section=unknown"],
 ])(
   "old Account links retain their query and reach the correct Settings section (%s)",

@@ -112,7 +112,7 @@ export const PLAN_CHANGE_COPY = {
   undo: "Undo",
   undoLabel: "Undo this plan change",
   undone: "Undone",
-  noModel: "No batteries spent",
+  noModel: "Plan change",
   notChanged: "The plan didn't change.",
   cardLabel: "Plan card",
   sideMenu: "The Plan controls are in the quest side menu.",
@@ -132,7 +132,7 @@ export const PLAN_PANEL_COPY = {
 
 export const CHAT_COMMANDS_COPY = {
   listLabel: "Commands",
-  hint: "Commands run at once and spend no batteries. Steps are named by their numbers, such as #3.",
+  hint: "Commands run at once. Steps are named by their numbers, such as #3.",
   description: (name: PlanCommandName): string =>
     PLAN_COMMAND_DESCRIPTIONS[name],
   noPlan: "Plan commands work in a quest's conversation. Chat has no quest.",

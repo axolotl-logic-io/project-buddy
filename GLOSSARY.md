@@ -301,7 +301,7 @@ One piece of remaining work in a [plan](#plan): one short line, open or done, wi
 
 ### Plan change
 
-A note in a quest's conversation that the construct or a person changed the quest's [plan](#plan): what each operation did, with Undo. A person's plan change, made with the Plan panel or a command, spends no batteries; the construct reads it on its next reply.
+A note in a quest's conversation that the construct or a person changed the quest's [plan](#plan): what each operation did, with Undo. A person's plan change, made with the Plan panel or a command, the construct reads it on its next reply.
 
 - **UI:** "Plan change", "Undid a plan change".
 - **Avoid:** "Plan change card", "plan update".
@@ -340,7 +340,7 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 ### Settings
 
-The single destination for profile name, appearance, the new quest construct, Batteries and security. Old Account links redirect here.
+The single destination for profile name, appearance, the new quest construct and security. Old Account links redirect here.
 
 - **UI:** "Settings".
 
@@ -366,7 +366,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it, and the only user who can reach it ([personal quest](#personal-quest)).
 
-Ownership and access are distinct: own constructs, quests and batteries belong to individual users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs and quests belong to individual users. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
@@ -431,39 +431,15 @@ The `login` command starts browser-based authorization for a command utility to 
 
 ### Generated image
 
-An image a construct creates at the [acting user](#acting-user)'s request, spending that user's [batteries](#batteries). It belongs to its source conversation. An image in a quest's conversation is accessible to the quest's owner alone.
+An image a construct creates at the [acting user](#acting-user)'s request, in their conversation. It belongs to its source conversation. An image in a quest's conversation is accessible to the quest's owner alone.
 
 ### Image gallery
 
 The generated images made at a user's request. The Image gallery has been removed; saved images remain in their source conversations. Deleting a source conversation, or its quest, also deletes its generated images.
 
-## Usage
+## Removed Batteries
 
-### Batteries
-
-Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies and generated images spend the [acting user](#acting-user)'s batteries. A new quest's generated opening spends the batteries of the user starting it. Reading a quest spends none.
-
-Batteries fund model use only. Older ledger rows may record Marketplace sales, from before the Marketplace was removed, when the same balance paid for them.
-
-- **UI:** "Batteries", "1 battery", "100 batteries", "Buy batteries", "You're out of batteries."
-- **Avoid:** "gold" in new model-use copy except compatibility identifiers; "credits", "coins", "tokens", "budget", "quota", "spend" as a noun, and "monthly usage" in UI copy.
-
-### Battery balance
-
-How many batteries a user has available.
-
-- **UI:** "Batteries balance".
-- **Avoid:** "usage meter" in UI copy and docs.
-
-### Credit
-
-A model provider account's prepaid balance. Provider credit is separate from each user's batteries.
-
-- **Avoid:** "credits" for batteries.
-
-### Bought copy
-
-A construct a user bought in the Marketplace, which the site no longer has, or cloned from one. It is an ordinary own definition: the user can use, edit, reset, clone, retire, restore and delete it. Its tools stay the user's own, so it can't reach anyone else's data.
+Batteries, purchases and balance limits have been removed. Conversations and quest openings have no balance requirement. Historical ledger and payment rows remain stored.
 
 ## Conversation names
 
@@ -471,7 +447,7 @@ Conversations were previously called chats, then adventures. Use conversation an
 
 ### Premade quest
 
-One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name and starting context. The user chooses a construct and, except for Dailies, optionally fills in Why; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing and spends no batteries.
+One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name and starting context. The user chooses a construct and, except for Dailies, optionally fills in Why; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing.
 
 - **UI:** “Dailies”, “Learn a thing”, “Make a thing”, “Do a thing”.
 - **Avoid:** "quest type", "template".

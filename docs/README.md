@@ -8,8 +8,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
 
-- [Battery purchases](battery-purchases.md): test-mode Stripe Checkout, payment audit, launch blockers and replay.
-- [Batteries](batteries.md): model-use terminology, accounting compatibility and purchase availability.
 
 - [Premade quests](premade-quests.md): the four starting points, Dailies, and the one quest start.
 

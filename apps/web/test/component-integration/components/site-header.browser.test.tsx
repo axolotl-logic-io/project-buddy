@@ -122,15 +122,7 @@ function stayOnThisPage(event: MouseEvent): void {
 }
 
 function renderSignedIn(): ReturnType<typeof render> {
-  return render(
-    <SiteHeader
-      links={
-        <>
-          <SiteMenu links={<AccountLinks />} />
-        </>
-      }
-    />,
-  );
+  return render(<SiteHeader links={<SiteMenu links={<AccountLinks />} />} />);
 }
 
 beforeAll(() => {

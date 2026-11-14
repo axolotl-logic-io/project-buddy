@@ -206,9 +206,7 @@ async function writeReply(
 // reply.
 // The response tees off a copy that after() reads to the end, so a
 // disconnect stops only the browser's copy and the reply is still saved.
-// The response ends once the reply is saved. Every model call of the
-// reply, the answer-now call included, is made from grant, the one gold check the
-// message passed.
+// The response ends once the reply is saved.
 async function streamAndSaveReply(
   { actingUser, chat }: AccessibleChat,
   construct: ConstructSnapshot,
@@ -358,8 +356,7 @@ async function streamAndSaveReply(
 // and saves the reply once it completes, even if the browser disconnects
 // first. An unknown chat, or another user's, answers 404 with the not-found
 // case, unlogged; a message answered already, 409 with the already-answered
-// case; a new message once the acting user is out of gold, 429 with the
-// out-of-gold case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
+// case. Any other failure is logged once and reaches the browser as its
 // case, in the response before the reply streams and in the stream after; a
 // failed reply is not saved, and releases its message's claim so the
 // browser can send it again.

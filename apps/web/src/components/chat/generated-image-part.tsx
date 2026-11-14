@@ -29,11 +29,7 @@ function GeneratedImagePart({
   const result = output.data;
   if (result.status !== "generated") {
     const status: string = GENERATION_COPY[result.status];
-    return (
-      <>
-        <p role="status">{status}</p>
-      </>
-    );
+    return <p role="status">{status}</p>;
   }
   let linkClass = "generated-image-link";
   let imageClass = "chat-image";

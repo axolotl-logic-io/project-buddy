@@ -377,10 +377,5 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
 ];
 
-vi.mock("@/app/(workspace)/settings/battery-actions.ts", () => ({
-  buyBatteries: vi.fn(),
-  refreshBatteryPayments: vi.fn(),
-}));
-
 export type { PhonePage };
 export { PHONE_PAGES };
