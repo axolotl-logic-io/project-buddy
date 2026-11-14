@@ -24,7 +24,7 @@ The user keeps the plan beside a conversation.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a conversation in one of their quests.
 - **Steps:**
-  - Plan, Ideas and Progress are sidebar tabs in the quest side menu. A panel icon opens or collapses the sidebar without discarding drafts. The sidebar sits flush with the right page edge on wide screens; phones start collapsed and open a modal drawer, which Escape closes.
+  - Plan, Ideas, Progress, Quick Notes and Actions are sidebar tabs in the quest side menu. A panel icon opens or collapses the sidebar without discarding drafts. The sidebar sits flush with the right page edge on wide screens; phones start collapsed and open a modal drawer, which Escape closes.
   - The user changes the plan there, as on the Plan section.
 - **Outcome:** each sidebar change updates the Plan and shows feedback with Undo in the sidebar, without adding a message to the conversation. Undo also adds no message. The construct reads the current Plan on its next reply. The panel follows the construct's changes as they arrive. While the construct replies, the panel's controls wait for the reply to end. While their last message has no reply because its reply failed or stopped, they wait too and say why, so that Retry or "send again" still answers that message; the user can change the plan on the quest's page meanwhile.
 - **Next:**

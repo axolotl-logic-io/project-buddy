@@ -293,9 +293,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the Dailies quest, with Reset Day",
     path: QUEST_PATH,
-    render: projectPageFor("conversation", true),
+    render: projectPageFor("actions", true),
     open: async (): Promise<void> => {
-      await page.getByRole("button", { name: "Open quest sidebar" }).click();
       await vi.waitFor(() =>
         page
           .getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay })

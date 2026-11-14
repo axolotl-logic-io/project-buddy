@@ -7,7 +7,6 @@ import type { UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
-  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -132,11 +131,9 @@ function ChatView({
   spellName,
   sideSections,
   initialSection,
-  sidebarActions,
 }: {
   spellName?: string | undefined;
   sideSections?: readonly WorkspaceSection[] | undefined;
-  sidebarActions?: ReactNode;
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
@@ -372,7 +369,6 @@ function ChatView({
           {plan === undefined && conversation}
           {plan !== undefined && (
             <PlanPanel
-              sidebarActions={sidebarActions}
               initialSection={initialSection}
               sideSections={sideSections}
             >
