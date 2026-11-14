@@ -1,5 +1,5 @@
 {
-  "id": "fa574333-454a-4f9c-802f-e31c80305b94",
+  "id": "bc75aa2d-b56a-40cf-a0fc-00aaba9f9848",
   "prevId": "7e61dd54-8acd-46c5-8a4c-5439bc9c753f",
   "version": "7",
   "dialect": "postgresql",
@@ -1099,7 +1099,7 @@
         },
         "listings_kind_known": {
           "name": "listings_kind_known",
-          "value": "\"listings\".\"kind\" in ('construct', 'spell')"
+          "value": "\"listings\".\"kind\" in ('construct', 'activity', 'spell')"
         },
         "listings_description_length": {
           "name": "listings_description_length",
@@ -1561,7 +1561,7 @@
       "checkConstraints": {
         "own_prompts_kind_known": {
           "name": "own_prompts_kind_known",
-          "value": "\"own_prompts\".\"kind\" in ('construct', 'spell')"
+          "value": "\"own_prompts\".\"kind\" in ('construct', 'activity', 'spell')"
         }
       },
       "isRLSEnabled": false

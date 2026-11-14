@@ -146,3 +146,13 @@ vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
 }));
+
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  castSpellAction: vi.fn(),
+}));
+
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  findSpell: vi.fn(),
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+  getOwnSpell: vi.fn(),
+}));

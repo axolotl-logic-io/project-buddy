@@ -7,7 +7,6 @@ import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { setSpell } from "@/spells/spell-store.ts";
-import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   exchange,
@@ -112,8 +111,8 @@ test("use_case_send_while_construct_replies", async () => {
     started.resolve();
     return release.promise;
   });
-  const response = await postMessage(user, chat, question("cast brainstorm"));
-  const body = response.text();
+  // Spell execution precedes the response, so keep the first request in flight.
+  const response = postMessage(user, chat, question("cast brainstorm"));
   try {
     await started.promise;
     await sendToEnd(user, chat, "Another thought");
@@ -122,14 +121,16 @@ test("use_case_send_while_construct_replies", async () => {
     ).toContain("Another thought");
   } finally {
     release.resolve(true);
-    await body;
+    await (await response).text();
     await afterTasksDone();
     vi.restoreAllMocks();
   }
   const saved = await savedConversation(user, chat);
   expect(
     saved.filter(({ role }) => role === "assistant").map(({ text }) => text),
-  ).toContain(LOCAL_CONSTRUCT_COPY.cast("Brainstorm"));
+  ).toContain(
+    "Cast Brainstorm. Subsequent messages go into Ideas. Use stop when you’re finished.",
+  );
   expect(
     saved.filter(({ role }) => role === "user").map(({ text }) => text),
   ).toEqual(["cast brainstorm", "Another thought"]);
