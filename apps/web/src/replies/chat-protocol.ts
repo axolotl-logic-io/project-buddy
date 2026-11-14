@@ -91,12 +91,6 @@ async function readChatRequest(
   return { chatId, message: parsed.data.message };
 }
 
-// The refusal of a message once the acting user is out of gold: 429, with the
-// out-of-gold case as its body.
-function outOfGoldResponse(): Response {
-  return appErrorResponse("out-of-gold", HTTP_STATUS.tooManyRequests);
-}
-
 // The case of a failed request or reply. useChat raises both as an Error
 // whose message is the text the server or the proxy sent: a case name.
 // Any other text is the unknown case.
@@ -116,6 +110,5 @@ export {
   CHAT_TRANSPORT,
   chatFailureCase,
   isFromNewerBuild,
-  outOfGoldResponse,
   readChatRequest,
 };

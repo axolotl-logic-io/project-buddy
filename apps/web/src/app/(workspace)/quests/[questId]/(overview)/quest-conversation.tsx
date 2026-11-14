@@ -59,9 +59,6 @@ async function questConversation(
             construct={conversation.construct}
             destination={{ kind: "adventure", id: conversation.id }}
           />
-          {quest.dailies && quest.status === "active" && (
-            <ResetConversation chatId={conversation.id} dailies={true} />
-          )}
         </div>
       </header>
     );
@@ -69,6 +66,16 @@ async function questConversation(
   return (
     <ChatScreen
       header={header}
+      sidebarActions={
+        quest.dailies &&
+        quest.status === "active" && (
+          <ResetConversation
+            chatId={conversation.id}
+            label={QUEST_CONVERSATION_COPY.resetDay}
+            quest={true}
+          />
+        )
+      }
       initialSection={initialSection}
       sideSections={[
         {

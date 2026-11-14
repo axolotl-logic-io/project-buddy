@@ -8,7 +8,7 @@ Constructs currently run a local command engine inspired by multi-user dungeons 
 
 Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Plan saves subsequent messages as agreed steps; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and the two read-only spells.
 
-A conversation is a [quest](#quest)'s one conversation or the user's private [Chat](#chat-destination). Both have the same abilities, except that only a quest has a plan, ideas and a progress timeline.
+A conversation is a [quest](#quest)'s one conversation, with its plan, ideas and progress timeline.
 
 ## Product
 
@@ -18,7 +18,7 @@ The product: a personal site where constructs help each user with their own ques
 
 ### Workshop
 
-The shared page for editing constructs and inspecting Plan and Brainstorm. It has no test drawer: a saved definition is tried in a quest or Chat.
+The shared page for editing constructs and inspecting Plan and Brainstorm. It has no test drawer: a saved definition is tried in a quest.
 
 ## Prompts and context
 
@@ -117,7 +117,7 @@ A construct that ships with the site. Its voice and habits are independent of th
 
 ### Default construct
 
-The construct initially chosen when starting a quest, and the construct of the private Chat.
+The construct initially chosen when starting a quest.
 
 ### Voice
 
@@ -159,21 +159,18 @@ The account setting that defaults the construct for a new quest’s conversation
 
 ### Conversation
 
-The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner alone, and each user has one private [Chat](#chat-destination). Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
+The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner alone. Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
 
-- **UI:** the quest's or Chat's own page; no list of conversations and no conversation names.
+- **UI:** the quest's own page; no list of conversations and no conversation names.
 - **Avoid:** "adventure", "thread", "session", and any second conversation in a quest.
 
-### Chat (destination)
+### Chat (removed destination)
 
-The user's private conversation for talking without a goal, in no quest. It has no Plan or progress timeline. The user can [turn it into a quest](#turn-chat-into-a-quest), and the construct can offer to; confirming makes a new quest with its own conversation and moves no Chat messages into it.
-
-- **UI:** "Chat".
-- **Avoid:** "standalone adventure", "central chat", "Chats".
+The former standalone conversation destination has been removed. Conversations now belong to quests. Existing `chat` and `chats` storage names still refer to conversations.
 
 ### Adventure (removed)
 
-The earlier name for one of several conversations in a quest, or a standalone one. Adventures were removed (#892): a quest has one conversation, and the user has one Chat. Existing adventures are deleted by a later cutover release. `chat`/`chats` names in code and storage remain for conversations.
+The earlier name for one of several conversations in a quest, or a standalone one. Adventures were removed (#892): a quest has one conversation. Existing adventures are deleted by a later cutover release. `chat`/`chats` names in code and storage remain for conversations.
 
 - **Avoid:** in product copy, prompts and docs, except when describing the removal.
 
@@ -185,7 +182,7 @@ A quest is Active, Completed or Abandoned. Completed means the user has finished
 
 ### Opening
 
-The construct’s first message in a new quest conversation, generated from the shared greeting request with the quest’s starting context. Private Chat starts empty. New conversations have no active spell.
+The construct’s first message in a new quest conversation, generated from the shared greeting request with the quest’s starting context. New conversations have no active spell.
 
 ### Check-in (removed)
 
@@ -233,12 +230,9 @@ One of the two ways to create a quest: the shared form that offers the four [pre
 - **UI:** "Start a quest".
 - **Avoid:** "New quest" as a separate flow, "Explore".
 
-### Turn Chat into a quest
+### Turn Chat into a quest (removed)
 
-The other way to create a quest: from [Chat](#chat-destination), the same form as Start a quest, opened on Do a thing with a summary of the Chat, or the construct's offered name and summary, as the starting context to confirm. The construct's offer creates nothing on its own. A quest's conversation can't create quests.
-
-- **UI:** "Turn Chat into a quest".
-- **Avoid:** "Start a quest from this", "transfer".
+The former standalone Chat action has been removed. Start a quest from Quests.
 
 ### Quest code names
 
@@ -329,47 +323,9 @@ A function the model can call during a reply. Tools are subject to their require
 
 How a tool call appears in a conversation: inline in the reply, or under it.
 
-## Blender resources
+## Working note
 
-### Blender manual lookup
-
-Searching the Blender manual and citing what the construct read. Its instructions are a built-in spell. Casting the spell gives guidance for the lookup; it does not grant access to the tools.
-
-### Blender manual
-
-The Blender Reference Manual. Use “Blender manual” on first mention and in labels that stand alone. For contextual shortening, follow the [docs style guide](docs/docs-style-guide.md#contextual-shortening).
-
-- **UI:** "the Blender manual".
-
-### Manual section
-
-One heading of the Blender manual and its text: the unit that a search returns and a citation links to.
-
-### Manual index, reindex
-
-A **manual index** is the searchable copy of the Blender manual. To **reindex** is to rebuild that copy.
-
-### Lookup
-
-One call to a search tool.
-
-- **UI:** "Searching the Blender manual" for a Blender manual lookup.
-
-### Working note
-
-Text a construct writes before a lookup or a spell [cast](#cast), shown muted above it.
-
-### Citation
-
-A link to a Blender manual section the construct used in its reply.
-
-- **UI:** "From the Blender manual".
-- **Avoid:** "manual credit", which is the licence credit on the Credits page.
-
-### Manual credit
-
-The licence attribution for the Blender Reference Manual.
-
+Text a construct writes before a spell cast, shown muted above it.
 
 ## Installed app
 
@@ -485,7 +441,7 @@ The generated images made at a user's request. The Image gallery has been remove
 
 ### Batteries
 
-Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies and generated images spend the [acting user](#acting-user)'s batteries. A new quest's generated opening spends the batteries of the user starting it. Reading a quest or Chat spends none.
+Formerly called **gold**. The balance each user spends on model use. It does not reset periodically. Replies and generated images spend the [acting user](#acting-user)'s batteries. A new quest's generated opening spends the batteries of the user starting it. Reading a quest spends none.
 
 Batteries fund model use only. Older ledger rows may record Marketplace sales, from before the Marketplace was removed, when the same balance paid for them.
 
@@ -522,13 +478,11 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Plan, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, beside the construct at the top, clears its conversation and active spell. It keeps Plan, Ideas and Progress and reopens completed Plan steps. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Plan, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, above the workspace tabs, asks for confirmation before clearing its conversation and active spell. By default, it keeps Plan, Ideas and Progress and reopens completed Plan steps. The user can also choose to remove Steps and Ideas. Dailies keeps no streaks, deadlines or daily resets.
 
 - **UI:** “Dailies”, “Reset Day”.
 - **Avoid:** "daily quest" for a new quest per day, "streak".
 
-## Library
+## Library (removed)
 
-The in-site reading area with Getting Started and books on Constructs, Spells, Activities and Model context. A book explains a subject through navigable chapters, practical examples and links to site actions. This Library is distinct from Workshop and the Quest library of premade quests.
-
-- **UI:** “Library”, “Getting Started”, “Chapters”.
+The former in-site reading area has been removed. Repository documentation remains under `docs/`. This is distinct from Workshop and the Quest library of premade quests.

@@ -2,16 +2,12 @@
 
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
 import type { JSX } from "react";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import { CreateQuestPart } from "@/components/chat/create-quest-part.tsx";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
-import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
 import { PlanChangeToolPart } from "@/components/chat/plan-change-part.tsx";
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
-import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
 import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
 import { CREATE_QUEST_TOOL } from "@/replies/tools/create-quest-contract.ts";
@@ -61,7 +57,6 @@ type PlacedPart =
 // chatTools (src/replies/tools/index.ts) needs an entry,
 // which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
-// `[SEARCH_BLENDER_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     QUEST_STATUS_TOOL,
@@ -83,27 +78,6 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       failure: GENERATION_COPY.failed,
       placement: "inline",
       textBefore: "prose",
-    },
-  ],
-  [
-    CITE_BLENDER_MANUAL_TOOL,
-    {
-      render: (part: ToolCallPart): JSX.Element => (
-        <ManualCitationsPart part={part} />
-      ),
-      failure: TOOL_FAILURES_COPY.citeManual,
-      placement: "under",
-    },
-  ],
-  [
-    SEARCH_BLENDER_MANUAL_TOOL,
-    {
-      render: (part: ToolCallPart): JSX.Element => (
-        <SearchManualPart part={part} />
-      ),
-      failure: TOOL_FAILURES_COPY.searchManual,
-      placement: "inline",
-      textBefore: "working-note",
     },
   ],
   [

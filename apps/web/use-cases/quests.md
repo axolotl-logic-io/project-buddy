@@ -43,7 +43,6 @@ The user starts a quest to learn, make or do something.
   - [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): save goals and plans from the conversation.
   - `use_case_new_quest_without_name`: an invalid request has no name.
   - `use_case_new_quest_with_construct`: they want another construct, one of their own.
-  - [`use_case_quest_from_standalone_chat`](chats.md#use_case_quest_from_standalone_chat): they talked the idea through in Chat first.
 
 ## use_case_new_quest_with_construct
 
@@ -115,7 +114,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Steps:**
   - Under Start a quest, they choose Dailies, choose a construct and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
-  - They choose Reset Day beside the construct at the top of the conversation.
+  - They choose Reset Day above the workspace tabs and confirm in a modal. They can choose to remove Steps and Ideas separately; both options are off by default.
 - **Outcome:** Dailies is a quest like any other, with its name, Plan and conversation theirs to change. It opens with the construct asking what matters to them today. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without spending batteries. Plan and Ideas endure; completed Plan steps become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
   - A quest the user named Dailies by hand has no Reset Day: only a quest started as Dailies offers it.

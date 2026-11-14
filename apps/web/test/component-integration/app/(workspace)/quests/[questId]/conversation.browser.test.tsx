@@ -575,18 +575,38 @@ describe("use_case_start_quest_conversation", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("Reset Day is offered above the conversation", async () => {
+  test("Reset Day is offered above the workspace tabs and confirms reset options", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     const reset = page.getByRole("button", {
       name: QUEST_CONVERSATION_COPY.resetDay,
     });
     await expect.element(reset).toBeVisible();
-    const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    expect(reset.element().getBoundingClientRect().bottom).toBeLessThan(
-      message.element().getBoundingClientRect().top,
+    const tabs = page.getByRole("tablist");
+    expect(reset.element().getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      tabs.element().getBoundingClientRect().top,
     );
+    await reset.click();
+    const dialog = page.getByRole("dialog", {
+      name: QUEST_CONVERSATION_COPY.resetDay,
+    });
+    await expect.element(dialog).toBeVisible();
+    await expect
+      .element(
+        dialog.getByRole("checkbox", {
+          name: QUEST_CONVERSATION_COPY.clearSteps,
+        }),
+      )
+      .not.toBeChecked();
+    await expect
+      .element(
+        dialog.getByRole("checkbox", {
+          name: QUEST_CONVERSATION_COPY.clearIdeas,
+        }),
+      )
+      .not.toBeChecked();
   });
 
   test("an ordinary quest offers no Reset Day", async () => {
@@ -619,11 +639,6 @@ test("Stop Spell stays beside the composer and sends stop without replacing the 
   await render(await chatPage());
   const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
   await box.fill("Keep this draft");
-  await expect
-    .element(
-      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
-    )
-    .toBeVisible();
   await page
     .getByRole("button", { name: "Stop Brainstorm", exact: true })
     .click();

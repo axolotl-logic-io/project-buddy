@@ -21,8 +21,6 @@ const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   "/credits",
   "/signup",
   "/login/link",
-  // Stripe authenticates the raw body signature in the route, without cookies.
-  "/api/stripe",
 ]);
 
 // The `Link` header value that preloads each font of the theme a theme

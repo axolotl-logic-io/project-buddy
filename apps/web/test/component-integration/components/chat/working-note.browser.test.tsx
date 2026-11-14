@@ -18,22 +18,25 @@ import {
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CAST_SPELL_COPY, CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
+import { CAST_SPELL_COPY, CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
 const TOPIC = "zibble";
-const NOTE = `Searching the manual for ${TOPIC}.`;
+const NOTE = "Let me cast Brainstorm first.";
 const ANSWER = `The saved answer about ${TOPIC}.`;
-const SEARCH_INPUT: { query: string } = { query: TOPIC };
-const SEARCH_OUTPUT: { sections: never[] } = { sections: [] };
+const SEARCH_INPUT = { spellId: "brainstorm" };
+const SEARCH_OUTPUT = {
+  status: "cast",
+  spellId: "brainstorm",
+  name: "Brainstorm",
+};
 
 // The reply as it streams.
 const STREAMED_REPLY: UIMessageChunk[] = [
@@ -45,7 +48,7 @@ const STREAMED_REPLY: UIMessageChunk[] = [
   {
     type: "tool-input-available",
     toolCallId: "call-search",
-    toolName: SEARCH_BLENDER_MANUAL_TOOL,
+    toolName: CAST_SPELL_TOOL,
     input: SEARCH_INPUT,
   },
   {
@@ -70,7 +73,7 @@ const SAVED_REPLY: UIMessage = {
     { type: "step-start" },
     { type: "text", text: NOTE },
     {
-      type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
+      type: `tool-${CAST_SPELL_TOOL}`,
       toolCallId: "call-search",
       state: "output-available",
       input: SEARCH_INPUT,
@@ -143,7 +146,7 @@ function readReply(): ReplyShape {
     .elements();
   const note = noteText().element();
   const answer = answerText().element();
-  const search = page.getByText(CITATIONS_COPY.searched(TOPIC)).element();
+  const search = page.getByText(CAST_SPELL_COPY.cast("Brainstorm")).element();
   return {
     order: {
       oneNote: notes.length === 1,
@@ -191,7 +194,7 @@ describe("use_case_see_working_note", () => {
     await renderChat([]);
     await page
       .getByRole("textbox", { name: CHAT_COPY.messageLabel })
-      .fill(`search ${TOPIC}`);
+      .fill("cast brainstorm");
     await page.getByRole("button", { name: CHAT_COPY.send }).click();
     await expect.element(noteText()).toBeVisible();
     await expect.element(answerText()).toBeVisible();

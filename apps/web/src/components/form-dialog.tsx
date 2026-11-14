@@ -28,11 +28,13 @@ export function FormDialog({
   closeLabel,
   children,
   trigger,
+  portalContainer,
 }: {
   title: string;
   closeLabel: string;
   children: ReactNode;
   trigger?: ReactNode;
+  portalContainer?: HTMLElement | undefined;
 }): JSX.Element {
   let triggerButton = trigger;
   if (triggerButton === undefined) {
@@ -46,7 +48,7 @@ export function FormDialog({
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild={true}>{triggerButton}</Dialog.Trigger>
-      <Dialog.Portal>
+      <Dialog.Portal container={portalContainer}>
         <Dialog.Overlay className="dialog-overlay" />
         <Dialog.Content
           aria-describedby={undefined}

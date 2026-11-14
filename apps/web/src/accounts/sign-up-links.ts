@@ -8,7 +8,6 @@ import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { sendEmail } from "@/email/send-email.ts";
 import { signInLinkEmail } from "@/email/sign-in-link-email.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { grantStartingGold } from "@/gold/gold-store.ts";
 import { parseUserId } from "@/ids.ts";
 import { SIGN_IN_LINK_PATH } from "@/routes.ts";
 
@@ -105,9 +104,6 @@ async function confirmSignUp(
   if (row === undefined || id === undefined) {
     return undefined;
   }
-  await grantStartingGold(id).catch(() => {
-    // Balance reads retry the idempotent starting grant after a storage failure.
-  });
   return {
     id,
     sessionEpoch: row.sessionEpoch,

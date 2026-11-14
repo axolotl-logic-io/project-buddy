@@ -1,16 +1,11 @@
 import { generateText, isStepCount, streamText, tool } from "ai";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { z } from "zod";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
-import {
-  SEARCH_BLENDER_MANUAL_INPUT,
-  SEARCH_BLENDER_MANUAL_TOOL,
-  type SearchBlenderManualOutput,
-} from "@/blender-manual/search-tool-contract.ts";
 import { avatarFramer } from "@/constructs/avatar-frame.ts";
 import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
+  listConstructs,
   snapshotOf,
 } from "@/constructs/index.ts";
 import { imageProvider } from "@/images/image-provider.ts";
@@ -21,7 +16,6 @@ import { renderReplyInstructions } from "@/replies/system-prompt.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 
 const MAX_STEPS = 4;
-const SEARCH_STEPS = 3;
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -48,62 +42,11 @@ test("production streams local help with configured credentials and no model usa
   for await (const chunk of result.textStream) {
     chunks.push(chunk);
   }
-  expect(chunks.join("")).toContain("search <query>");
+  expect(chunks.join("")).toContain("cast <spell id>");
   expect((await result.totalUsage).totalTokens).toBe(0);
   expect(imageProvider()).toBeUndefined();
   expect(avatarFramer()).toBeUndefined();
   expect(fetch).not.toHaveBeenCalled();
-});
-
-test("search executes the tool and cites its actual result before answering", async () => {
-  const search = vi.fn((_input: { query: string }) => ({
-    sections: [
-      {
-        label: "Bevel",
-        url: "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html",
-        excerpt: "Round an edge.",
-      },
-    ],
-  }));
-  const cite = vi.fn(() => ({ status: "cited" }));
-  const result = await generateText({
-    model: localConstructModel(),
-    prompt: "/SeArCh bevel",
-    stopWhen: isStepCount(MAX_STEPS),
-    tools: {
-      [SEARCH_BLENDER_MANUAL_TOOL]: tool({
-        inputSchema: SEARCH_BLENDER_MANUAL_INPUT,
-        execute: search,
-      }),
-      [CITE_BLENDER_MANUAL_TOOL]: tool({
-        inputSchema: z.object({ urls: z.array(z.string()) }),
-        execute: cite,
-      }),
-    },
-  });
-  expect(search.mock.calls[0]?.[0]).toMatchObject({ query: "bevel" });
-  expect(cite).toHaveBeenCalledOnce();
-  expect(result.text).toContain("Round an edge.");
-  expect(result.steps).toHaveLength(SEARCH_STEPS);
-});
-
-test("a failed search ends with actionable feedback", async () => {
-  const result = await generateText({
-    model: localConstructModel(),
-    prompt: "search bevel",
-    stopWhen: isStepCount(MAX_STEPS),
-    tools: {
-      [SEARCH_BLENDER_MANUAL_TOOL]: tool({
-        inputSchema: SEARCH_BLENDER_MANUAL_INPUT,
-        execute: (_input: {
-          query: string;
-        }): Promise<SearchBlenderManualOutput> =>
-          Promise.reject(new Error("offline")),
-      }),
-    },
-  });
-  expect(result.text).toContain("search failed");
-  expect(result.steps).toHaveLength(2);
 });
 
 test("cast uses the supported spell identity from its tool result", async () => {
@@ -193,4 +136,34 @@ test("look explains when a legacy construct has no visual description", async ()
   });
   expect(result.text).toContain("no visual description");
   expect(result.toolCalls).toHaveLength(0);
+});
+
+test("use_case_ask_any_subject", async () => {
+  const result = await generateText({
+    model: localConstructModel(),
+    prompt: "Help me plan a balcony garden",
+  });
+  expect(result.text).toContain("Your message is saved");
+  expect(result.text).toContain("Available commands");
+  expect(result.toolCalls).toHaveLength(0);
+});
+
+test("use_case_same_facts_any_construct", async () => {
+  const answers = await Promise.all(
+    listConstructs().map(async (construct): Promise<string> => {
+      const result = await generateText({
+        model: localConstructModel(),
+        system: renderReplyInstructions({
+          userName: "Sam",
+          quest: undefined,
+          construct: snapshotOf(construct),
+        }),
+        prompt: "help",
+      });
+      return result.text;
+    }),
+  );
+  expect(answers.length).toBeGreaterThan(1);
+  expect(new Set(answers).size).toBe(1);
+  expect(answers[0]).toContain("Available commands");
 });

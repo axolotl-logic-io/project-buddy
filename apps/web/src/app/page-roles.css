@@ -1084,21 +1084,6 @@
     @apply flex min-w-0 flex-col gap-2;
   }
 
-  .workspace-reading {
-    @apply flex min-w-0 flex-col gap-6;
-  }
-
-  /* A link in a Library book: a chapter, a page it points to or a related
-     book. A target's height, underlined like a link in text. */
-  .library-link {
-    overflow-wrap: anywhere;
-    min-inline-size: 0;
-    @apply inline-flex min-h-(--target-size) items-center self-start rounded-control text-sm underline decoration-(length:--line-width) underline-offset-4 hover:text-primary hover:decoration-primary;
-  }
-
-  .workspace-reading > section {
-    scroll-margin-block-start: var(--site-header-height);
-  }
   .appearance-settings .menu-modes {
     @apply mx-0 grid-cols-1 gap-2 overflow-visible border-0;
   }
@@ -1358,7 +1343,7 @@
   }
 
   .quest-sidebar {
-    @apply flex min-h-full min-w-0 flex-col px-4 pb-6 text-sm;
+    @apply flex min-h-full min-w-0 flex-col p-4 text-sm;
   }
 
   .quest-sidebar .workspace-rail {

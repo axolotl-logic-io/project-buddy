@@ -8,7 +8,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
 
-- [Library](library.md): in-site learning books, model-input source map and content maintenance.
 - [Battery purchases](battery-purchases.md): test-mode Stripe Checkout, payment audit, launch blockers and replay.
 - [Batteries](batteries.md): model-use terminology, accounting compatibility and purchase availability.
 
@@ -21,7 +20,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quest nomenclature](quest-nomenclature.md): code names, storage changes and release cutover notes.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Adventures](chats.md): Quests landing navigation, quest conversations, Chat and reply behavior.
+- [Adventures](chats.md): Quests landing navigation, quest conversations and reply behavior.
 - [Spells](spellbook.md): Plan and Brainstorm modes, casts, stopping and message capture.
 - [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
 

@@ -1,4 +1,4 @@
-// Profile, Batteries and security forms in Settings.
+// Profile and security forms in Settings.
 export const ACCOUNT_COPY = {
   loading: "Loading Settings…",
   nameHeading: "Your name",
@@ -11,9 +11,6 @@ export const ACCOUNT_COPY = {
   nameTooLong: (maxLength: number): string =>
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
-  goldHeading: "Batteries",
-  goldHint:
-    "What your constructs spend on your replies and images. It doesn't reset.",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",

@@ -50,7 +50,7 @@ function sent(form: HTMLFormElement): FormDataEntryValue | null {
   return new FormData(form).get("constructId");
 }
 
-describe("use_case_standalone_chat", () => {
+describe("quest construct selection", () => {
   test("the bars step to the next and previous construct and wrap round at either end", async () => {
     const form = await renderPicker();
     const next = page.getByRole("button", {

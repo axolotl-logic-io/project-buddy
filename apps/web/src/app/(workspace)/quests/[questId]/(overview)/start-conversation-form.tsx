@@ -1,7 +1,6 @@
 "use client";
 
 import { type JSX, useActionState } from "react";
-import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { QuestId } from "@/ids.ts";
@@ -38,7 +37,6 @@ function StartConversationForm({
       {state.kind !== "idle" && (
         <Alert>
           <span>{state.message}</span>
-          {state.kind === "outOfGold" && <EarnGoldLink />}
         </Alert>
       )}
     </form>

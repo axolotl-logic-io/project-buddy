@@ -20,12 +20,10 @@ import type { QuestId, UserId } from "@/ids.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
-import { checkGold } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
 import { type PromptQuest, readPromptQuest } from "@/replies/system-prompt.ts";
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
-const OUT_OF_GOLD = { kind: "outOfGold" } as const;
 const NOT_FOUND = { kind: "notFound" } as const;
 
 // A new quest, saved with its conversation and opening, or why nothing was
@@ -33,8 +31,7 @@ const NOT_FOUND = { kind: "notFound" } as const;
 // batteries.
 type StartQuestResult =
   | { readonly kind: "started"; readonly chat: QuestChat }
-  | typeof CLAUDE_UNAVAILABLE
-  | typeof OUT_OF_GOLD;
+  | typeof CLAUDE_UNAVAILABLE;
 
 // A quest's conversation, found or started, or why it wasn't: the quest
 // isn't open to the acting user, they are out of batteries, or Claude
@@ -43,7 +40,6 @@ type StartQuestResult =
 type StartConversationResult =
   | { readonly kind: "started"; readonly conversation: Conversation }
   | typeof CLAUDE_UNAVAILABLE
-  | typeof OUT_OF_GOLD
   | typeof NOT_FOUND;
 
 function defaultStart(): {
@@ -91,10 +87,6 @@ async function startNewQuest(
     readonly dailies?: boolean;
   } = {},
 ): Promise<StartQuestResult | undefined> {
-  const gold = await checkGold(owner);
-  if (gold.kind === "outOfGold") {
-    return OUT_OF_GOLD;
-  }
   const initialContext = [context, motivation]
     .filter((text) => text !== "")
     .join("\n\n");
@@ -160,10 +152,6 @@ async function startQuestConversation(
   const existing = await findConversation(actingUser, quest.id);
   if (existing !== undefined) {
     return { kind: "started", conversation: existing };
-  }
-  const gold = await checkGold(actingUser);
-  if (gold.kind === "outOfGold") {
-    return OUT_OF_GOLD;
   }
   const chatQuest: ChatQuest = { id: quest.id, name: quest.name };
   const start = defaultStart();

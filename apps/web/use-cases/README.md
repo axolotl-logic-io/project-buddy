@@ -55,7 +55,6 @@ Each area's cases are in their own file:
 - [Plan](plan.md)
 - [Ideas](ideas.md)
 - [Constructs](constructs.md)
-- [Library](library.md)
 - [Workshop](workshop.md): edit constructs and inspect Plan and Brainstorm.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
 - [Spells](spellbook.md)

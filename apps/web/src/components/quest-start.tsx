@@ -18,7 +18,6 @@ import {
   startQuestAction,
 } from "@/app/(workspace)/quests/actions.ts";
 import { ConstructPicker } from "@/components/construct-picker.tsx";
-import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
@@ -112,7 +111,6 @@ function QuestStartForm({
       {state.kind !== "idle" && (
         <Alert>
           <span>{state.message}</span>
-          {state.kind === "outOfGold" && <EarnGoldLink />}
         </Alert>
       )}
       <div className="flex flex-wrap items-center gap-3">

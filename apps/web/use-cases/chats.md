@@ -2,55 +2,11 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-## use_case_standalone_chat
-
-The user talks with a construct in Chat, her one private conversation for talking without a goal.
-
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no quest.
-- **Steps:**
-  - She opens Chat from any signed-in page's header.
-  - She sends a message, leaves, and later opens Chat again.
-- **Outcome:** Chat opens straight on its conversation and composer, with no list, chooser, name or New adventure button. Each visit opens the same conversation, with its messages in order. Opening Chat creates the conversation the first time without a model call, so it spends no batteries; the construct speaks first only after she does. Chat uses the default construct with no active spell. It is hers alone: no other user can open it. It writes no quest's Plan or milestones.
-- **Variations:**
-  - An old adventure address of hers that has no quest opens Chat; one of a quest she can open opens that quest; any other, including another user's, a removed one or a malformed one, shows the not-found page ([`use_case_open_missing_page`](#use_case_open_missing_page)).
-  - The old new-adventure address opens Chat and makes nothing.
-- **Next:**
-  - `use_case_talk_idea_through`: talk an idea over.
-  - `use_case_quest_from_standalone_chat`: make the idea a quest.
-  - `use_case_send_message`: keep the conversation going.
-
-## use_case_talk_idea_through
-
-The user talks an idea through in Chat before it becomes a quest, if it ever does.
-
-- **Prerequisites:** `use_case_standalone_chat`.
-- **Steps:**
-  - She describes an idea, and asks a Blender question about it.
-  - She sends another message once she is out of batteries.
-- **Outcome:** the replies arrive as in a quest, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). The construct has no Plan or milestone tools in Chat, so talking there changes no quest. Out of batteries, her message is refused with the out-of-batteries message ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
-- **Next:**
-  - `use_case_quest_from_standalone_chat`: the idea becomes a quest.
-
-## use_case_quest_from_standalone_chat
-
-The user turns what she talked through in Chat into a quest.
-
-- **Prerequisites:** `use_case_standalone_chat`.
-- **Steps:**
-  - In Chat, she chooses Turn Chat into a quest.
-  - A dialog opens the quest start on Do a thing, with a summary of her recent Chat messages as the new quest’s starting context. She chooses a construct and optionally fills in Why.
-  - She closes the dialog without starting. Another time, she starts the quest.
-  - Instead of the button, she can ask the construct to make the idea a quest; it offers a name and summary, and its offer's Turn Chat into a quest opens the same dialog using that name and summary. She chooses a construct and optionally fills in Why before starting.
-- **Outcome:** closing the dialog creates nothing and spends nothing. Starting creates one quest with an empty Plan. Its conversation begins with the confirmed summary and optional Why as a user message, followed by the construct’s opening. Chat keeps its original messages and stays private. A construct's offer alone creates nothing and spends nothing. In a quest's conversation the construct can't offer another quest. Planned steps never become completed milestones.
-- **Variations:** an invalid name fails before anything is created. An unavailable opening, insufficient batteries or a storage failure saves no quest and keeps her edits for a retry.
-- **Next:**
-  - [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): save goals and plans.
-
 ## use_case_send_message
 
 The user writes to the construct and gets a reply.
 
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
+- **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - She types a message and sends it.
   - Her message appears in the adventure at once, under her name.
@@ -59,10 +15,8 @@ The user writes to the construct and gets a reply.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the adventure, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
 - **Variations:**
-  - In a standalone adventure, which is in no quest, the reply arrives the same way. The construct helps her talk an idea through and decide whether it should become a quest, and no quest is changed.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
-  - `use_case_ask_blender_question`: ask how to do something.
   - `use_case_read_formatted_reply`: the reply has steps, shortcuts or a script.
   - `use_case_leave_during_reply`: she has to go before the reply finishes.
   - `use_case_chat_with_several_people`: other people write in the adventure too.
@@ -91,7 +45,6 @@ The user reads a reply laid out with headings, lists and code, the way a written
 - **Outcome:** once the reply has finished, it shows no raw formatting marks, such as `**`, a leading `#` or backticks, and it looks the same after she reopens the adventure. Her own messages appear exactly as she typed them, marks included.
 - **Next:**
   - `use_case_send_message`: ask about one of the steps.
-  - `use_case_ask_blender_question`: ask for something she can follow step by step.
 
 - **Drafts:** unsent message text stays in this browser per viewer and adventure across visits until sent or cleared; unsent image attachments do not survive leaving.
 
@@ -109,78 +62,21 @@ The user leaves the adventure while the construct is still replying.
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 
-## use_case_ask_blender_question
-
-The user asks how to do something in Blender and gets an answer backed by the manual.
-
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
-- **Steps:**
-  - She asks how to do something, such as beveling an edge.
-  - The construct casts Blender manual lookup, unless it has cast it in this adventure already. The adventure shows "Cast Blender manual lookup" where the cast happened.
-  - The construct looks the topic up in the Blender Reference Manual, sometimes more than once.
-  - It answers in the construct's voice. Steps, menu paths and keyboard shortcuts are exact whichever construct is speaking.
-  - Each fact taken from the manual comes with a link to the manual section it came from, shown apart from the construct's words.
-  - The answer arrives once, in the same reply, even when the construct's last step after its searches held no words for her. She never has to ask again.
-- **Outcome:** the construct casts Blender manual lookup before its first search in the adventure, and the adventure shows "Cast Blender manual lookup" inline, before the searches *(checked by the real-Claude smoke test)*. It gives no Blender steps without a search *(checked by the real-Claude smoke test)*. The reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the construct's words is a list of manual links, each named after a section the construct looked up for this answer. The links are still there after she reopens the adventure.
-- **Next:**
-  - `use_case_follow_citation`: read the manual section for more detail.
-  - `use_case_send_message`: ask a follow-up.
-  - `use_case_topic_not_in_manual`: ask about something the manual may not cover.
-  - `use_case_ask_any_subject`: ask about something other than Blender.
-  - [`use_case_construct_changes_plan`](plan.md#use_case_construct_changes_plan): report that she finished a milestone.
 
 ## use_case_see_working_note
 
-The user tells the construct's working notes apart from its answer.
+The user sees a labelled working note before a spell cast and the answer after it.
 
-- **Prerequisites:** `use_case_ask_blender_question`, with a reply in which the construct notes what it needs before it looks something up.
-- **Steps:**
-  - The reply arrives. Before a search of the manual, the construct writes a short note to itself, such as which page it needs.
-  - The note shows where it was written, before the search, smaller and quieter than the answer and labelled as a working note.
-  - The answer, written after the construct's last search, reads as normal prose.
-  - She reopens the adventure.
-- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the adventure. A note the construct writes before it casts a spell ([`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell)) shows the same way. Her own messages are never shown as notes.
-- **Next:**
-  - `use_case_follow_citation`: read the manual section the answer came from.
-  - `use_case_send_message`: ask a follow-up.
-
-## use_case_follow_citation
-
-The user opens the manual section the construct cited.
-
-- **Prerequisites:** `use_case_ask_blender_question`.
-- **Steps:**
-  - She opens one of the links under the answer.
-  - The official Blender manual opens at the section the construct used, for the current Blender release.
-- **Outcome:** the link leads to the official Blender Reference Manual for the current release, at the page and heading the link is named after.
-- **Next:**
-  - `use_case_send_message`: come back and ask about something she read.
-
-## use_case_topic_not_in_manual
-
-The user asks about something the Blender manual does not cover.
-
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
-- **Steps:**
-  - She asks about something the manual has nothing on, such as a third-party add-on.
-  - The construct looks the topic up in the manual and finds nothing about it.
-  - It says plainly, in the construct's voice, that the manual does not cover this. If it found a related section, it points her to that, with a link.
-- **Outcome:** the reply says the manual does not cover the topic, and it gives no Blender steps without a manual link. Any link under the reply leads to a real manual section that the construct looked up. When nothing related was found, no links appear.
-- **Next:**
-  - `use_case_follow_citation`: read the related section.
-  - `use_case_ask_blender_question`: ask about something the manual does cover.
+- **Prerequisites:** an open quest conversation.
+- **Steps:** The construct writes a note, casts a spell, then writes an answer.
+- **Outcome:** The note is visually quieter than the answer and remains before the cast, both while streaming and when reopened.
 
 ## use_case_ask_any_subject
 
-The user asks the construct about something that has nothing to do with Blender.
-
-- **Prerequisites:** `use_case_standalone_chat` or [`use_case_open_quest`](quests.md#use_case_open_quest).
-- **Steps:**
-  - She asks about something else, such as a recipe.
-  - The construct answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
-- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Activity instructions to advance a plan do not override an unrelated request: no irrelevant quest reminder, next step or return question is appended. The conversation and Plan supply relevant quest context. Her next Blender question is answered as usual, with its manual links.
-- **Next:**
-  - `use_case_ask_blender_question`: ask about Blender.
+- **Goal:** Save a message about any subject in the quest conversation.
+- **Prerequisites:** an open quest conversation.
+- **Steps:** The user sends an ordinary message without a spell active.
+- **Outcome:** The message is saved and the construct explains the supported local commands. It makes no external lookup or model request.
 
 ## use_case_continue_chat
 
@@ -208,15 +104,9 @@ The construct keeps its voice for the whole adventure, across visits.
 
 ## use_case_same_facts_any_construct
 
-The user asks two constructs the same question and gets the same facts in different voices.
-
-- **Prerequisites:** [`use_case_new_quest_with_construct`](quests.md#use_case_new_quest_with_construct), twice, so two quests have different constructs.
-- **Steps:**
-  - She asks the same Blender question in both quests, such as how to bevel an edge.
-  - Each construct answers in its own voice.
-- **Outcome:** the two replies are worded differently, but they give the same steps, menu paths and keyboard shortcuts. The manual links under both replies lead to the same sections.
-- **Next:**
-  - `use_case_follow_citation`: check the steps in the manual.
+- **Goal:** Receive consistent command guidance with every construct.
+- **Steps:** The user types help with different constructs.
+- **Outcome:** Each construct lists the same supported commands.
 
 ## use_case_open_missing_page
 
@@ -289,8 +179,7 @@ The user stops a reply that is still running.
 
 ## use_case_reset_chat
 
-The user clears their private Chat and starts fresh.
-
-- **Prerequisites:** signed in, with a private Chat.
-- **Steps:** choose Reset beside Turn Chat into a quest at the top of Chat.
-- **Outcome:** the old messages and images are removed, and the same construct is available in an empty conversation. No old browser draft or pending reply reappears. Reset spends no batteries and changes no quests. Another user cannot reset this Chat.
+- **Goal:** Start Dailies again with an empty conversation.
+- **Prerequisites:** The user owns an active Dailies quest.
+- **Steps:** Choose Reset Day above the workspace tabs, optionally select removal of Steps or Ideas, and confirm.
+- **Outcome:** The conversation and active spell are cleared. By default Steps are kept and unchecked and Ideas stay. Selected lists are removed. Progress and the construct stay.

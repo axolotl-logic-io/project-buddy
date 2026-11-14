@@ -42,7 +42,7 @@ function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
 }
 
-describe("use_case_see_manual_credit", () => {
+describe("use_case_see_icon_credit", () => {
   for (const { name, signedIn, content } of PAGES) {
     test(`the site menu on ${name} links to Credits, and following it closes the menu`, async () => {
       signOut();
@@ -82,25 +82,6 @@ describe("use_case_see_manual_credit", () => {
         .element(page.getByRole("heading", { name: "Credits", exact: true }))
         .toBeVisible();
       await expect
-        .element(
-          page.getByText(
-            "Includes content adapted from the Blender Reference Manual, licensed under CC BY-SA 4.0.",
-            { exact: true },
-          ),
-        )
-        .toBeVisible();
-      await expect
-        .element(page.getByRole("link", { name: CREDITS_COPY.manual }))
-        .toHaveAttribute("href", "https://docs.blender.org/manual/en/latest/");
-      const license = page.getByRole("link", { name: CREDITS_COPY.license });
-      await expect
-        .element(license)
-        .toHaveAttribute(
-          "href",
-          "https://creativecommons.org/licenses/by-sa/4.0/",
-        );
-      await expect.element(license).toHaveAttribute("rel", "license");
-      await expect
         .element(page.getByRole("link", { name: CREDITS_COPY.iconLibrary }))
         .toHaveAttribute("href", "https://lucide.dev");
       const iconLicense = page.getByRole("link", {
@@ -110,9 +91,12 @@ describe("use_case_see_manual_credit", () => {
         .element(iconLicense)
         .toHaveAttribute("href", "/licenses/lucide.txt");
       await expect.element(iconLicense).toHaveAttribute("rel", "license");
-      page.getByRole("link", { name: CREDITS_COPY.manual }).element().focus();
+      page
+        .getByRole("link", { name: CREDITS_COPY.iconLibrary })
+        .element()
+        .focus();
       await tabForward();
-      await expect.element(license).toHaveFocus();
+      await expect.element(iconLicense).toHaveFocus();
     });
   }
 });

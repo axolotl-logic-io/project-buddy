@@ -1,17 +1,14 @@
-// Where an old conversation link leads now: the conversation's quest, or the
-// viewer's private Chat. Links to adventures, from emails and bookmarks made
-// before quests had one conversation, resolve here, so an adapter route can
-// send the viewer on without showing what the link held.
+// Resolves an accessible conversation to its quest. Standalone conversations
+// have no destination.
 import { getChat } from "@/chats/store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
-type ResolvedConversation =
-  | { readonly kind: "quest"; readonly questId: QuestId }
-  | { readonly kind: "chat" };
+interface ResolvedConversation {
+  readonly kind: "quest";
+  readonly questId: QuestId;
+}
 
-// Where the conversation with this id leads the viewer: its quest, or, for
-// a conversation in no quest, their private Chat; undefined if the id is
-// malformed, unknown, removed or not open to them.
+// Unknown, inaccessible and standalone conversations have no destination.
 async function resolveConversation(
   viewer: UserId,
   id: string,
@@ -21,7 +18,7 @@ async function resolveConversation(
     return undefined;
   }
   if (chat.quest === undefined) {
-    return { kind: "chat" };
+    return undefined;
   }
   return { kind: "quest", questId: chat.quest.id };
 }

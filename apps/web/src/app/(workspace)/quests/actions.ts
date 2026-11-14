@@ -6,7 +6,6 @@ import { requireUser } from "@/auth/current-user.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import { startDailies } from "@/conversations/dailies.ts";
 import { startQuest } from "@/conversations/start-quest.ts";
-import { userMessage } from "@/errors/app-error.ts";
 import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
@@ -25,7 +24,7 @@ const START_DETAILS = z.object({
 type StartQuestState =
   | { readonly kind: "idle" }
   | {
-      readonly kind: "invalid" | "claudeUnavailable" | "outOfGold";
+      readonly kind: "invalid" | "claudeUnavailable";
       readonly message: string;
     };
 
@@ -69,9 +68,6 @@ export async function startQuestAction(
   }
   if (result.kind === "claudeUnavailable") {
     return { kind: result.kind, message: OPENING_COPY.claudeUnavailable };
-  }
-  if (result.kind === "outOfGold") {
-    return { kind: result.kind, message: userMessage("out-of-gold") };
   }
   redirect(`/quests/${result.chat.quest.id}`);
 }

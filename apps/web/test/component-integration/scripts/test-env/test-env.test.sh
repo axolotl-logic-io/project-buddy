@@ -292,7 +292,7 @@ done
 # Every public environment-dependent command fails before Docker/DB/test work.
 rm "$checkout/.env.test"
 clear_log
-for command in test:server test:playwright test:e2e test-db:up test-db:down test-db:reset test-db:reindex; do
+for command in test:server test:playwright test:e2e test-db:up test-db:down test-db:reset; do
   fails bash -c 'cd "$1" && npm run "$2"' -- "$checkout" "$command"
   contains "$work/error" 'Missing apps/web/.env.test'
   contains "$work/error" 'orchestrator provides'

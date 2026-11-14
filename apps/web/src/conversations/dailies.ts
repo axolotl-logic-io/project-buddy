@@ -20,7 +20,6 @@ type StartDailiesResult =
       readonly kind: "started" | "resumed";
       readonly chat: QuestChat;
     }
-  | { readonly kind: "outOfGold" }
   | { readonly kind: "claudeUnavailable" };
 
 interface DailiesStart {
