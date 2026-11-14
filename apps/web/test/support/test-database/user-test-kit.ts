@@ -4,7 +4,7 @@
 // e2e fixtures (test/system/fixtures.ts) delete them, with everything they own and
 // their rate-limit rows, after each test.
 
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import {
   findUserByEmail,
@@ -40,16 +40,6 @@ async function testUser(): Promise<User> {
   );
   madeUsers.push(user);
   return user;
-}
-
-// Makes the user an admin, as the migration makes the designated account.
-// The site has no way to grant the role, so this names the table.
-async function promoteToAdmin(user: User): Promise<User> {
-  await getDb()
-    .update(users)
-    .set({ role: "admin" })
-    .where(eq(users.id, user.id));
-  return { ...user, role: "admin" };
 }
 
 // Deletes every user the test made, with everything they own and their
@@ -88,4 +78,4 @@ async function deleteTestUsers(): Promise<void> {
   );
 }
 
-export { createTestAccount, deleteTestUsers, promoteToAdmin, testUser };
+export { createTestAccount, deleteTestUsers, testUser };

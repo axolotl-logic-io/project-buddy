@@ -49,5 +49,4 @@ async function reopenAccount(user: User): Promise<User> {
   return again;
 }
 
-export type { TwoUsers };
 export { deleteAccount, reopenAccount, twoUsers };

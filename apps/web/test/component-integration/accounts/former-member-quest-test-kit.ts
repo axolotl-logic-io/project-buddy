@@ -213,7 +213,6 @@ async function deletesBy(
   await deleteMilestone(user.id, fixture.milestoneId);
 }
 
-export type { FormerMemberQuest };
 export {
   ALL_TAKEN,
   deletesBy,

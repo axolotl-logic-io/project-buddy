@@ -148,11 +148,4 @@ function smallTargets(
 }
 
 export type { MeasuredTarget };
-export {
-  CONTROLS,
-  measureEach,
-  measureTargets,
-  pageScrollWidth,
-  smallTargets,
-  targetIndexes,
-};
+export { measureTargets, pageScrollWidth, smallTargets };
