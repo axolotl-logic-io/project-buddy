@@ -18,6 +18,6 @@ Each ordinary message becomes one item of at most 200 characters. Commands bypas
 
 ## Storage and migration
 
-Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` retains the destination. Migration 0065 adds that column and broadens definition kind constraints. It adds no destructive change; the previous build can read the existing destination column during deployment. Built-in spells already active before migration continue using their definitions.
+Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` retains the destination. Migration 0065 adds that column and preserves the definition and listing kind constraints, including historical activity records. It adds no destructive change; the previous build can read the existing destination column during deployment. Built-in spells already active before migration continue using their definitions.
 
 Destination identifiers and display labels are shared by the editor, spell cards, retirement details, reply placeholders and active-spell context. Capture selects a destination handler that validates and saves with the destination’s own rules inside the message transaction.

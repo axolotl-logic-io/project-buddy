@@ -12,7 +12,7 @@ import {
 import { STORED_PROMPT_KIND_LIST } from "../../prompts/prompt.ts";
 import { users } from "./users.ts";
 
-// The kinds an own prompt may be, as stored, as SQL literals.
+// Retain historical activity rows until a separate cleanup release.
 const KIND_LITERALS = sql.raw(
   STORED_PROMPT_KIND_LIST.map((kind) => `'${kind}'`).join(", "),
 );
