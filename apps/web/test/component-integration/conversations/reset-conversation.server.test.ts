@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
@@ -24,18 +25,32 @@ import { currentSpell, setSpell } from "@/spells/spell-store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 async function writeMessage(
   user: Awaited<ReturnType<typeof testUser>>,
-  chat: Awaited<ReturnType<typeof privateChat>>,
+  chat: Chat,
 ): Promise<void> {
   await saveMessage(user.id, chat.id, {
     id: messageIdFixture(),
     role: "user",
     parts: [{ type: "text", text: "An earlier day" }],
   });
+}
+
+// The user's Dailies conversation, the one kind that can be reset.
+async function dailiesChat(
+  user: Awaited<ReturnType<typeof testUser>>,
+): Promise<Chat> {
+  const started = await startDailies(user.id, {
+    name: QUEST_NAME.parse("My day"),
+    context: "Make room for creativity",
+    construct: getConstruct("vellum"),
+  });
+  if (started.kind !== "started") {
+    throw new Error("Dailies did not start");
+  }
+  return started.chat;
 }
 
 describe("conversation resets", () => {
@@ -68,7 +83,7 @@ describe("conversation resets", () => {
     const nextId = await resetConversation(user.id, before.id);
     expect(nextId).toBeDefined();
     const next = await getChat(user.id, nextId ?? "");
-    expect(next?.quest?.id).toBe(questId);
+    expect(next?.quest.id).toBe(questId);
     expect(await getQuest(user.id, questId)).toBeDefined();
     expect((await readPlan(user.id, questId))?.steps).toEqual([
       { number: 1, text: "Make tea", done: false },
@@ -111,14 +126,15 @@ describe("conversation resets", () => {
     expect(await listIdeas(user.id, questId)).toEqual([]);
   });
 
-  test("another user cannot reset a private conversation", async () => {
+  test("another user cannot reset a Dailies conversation", async () => {
     const owner = await testUser();
     const other = await testUser();
-    const chat = await privateChat(owner.id);
+    const chat = await dailiesChat(owner);
     await writeMessage(owner, chat);
+    const before = await listMessages(owner.id, chat.id);
     expect(await resetConversation(other.id, chat.id)).toBeUndefined();
-    expect(await listMessages(owner.id, chat.id)).toHaveLength(1);
-    expect((await privateChat(owner.id)).id).toBe(chat.id);
+    expect(await listMessages(owner.id, chat.id)).toEqual(before);
+    expect((await getChat(owner.id, chat.id))?.id).toBe(chat.id);
   });
   test("ordinary quest conversations cannot be reset", async () => {
     const user = await testUser();
@@ -130,7 +146,7 @@ describe("conversation resets", () => {
   });
   test("reset preserves artwork retained only by the conversation", async () => {
     const user = await testUser();
-    const chat = await privateChat(user.id);
+    const chat = await dailiesChat(user);
     const assetId = crypto.randomUUID();
     await getDb()
       .insert(constructAssets)

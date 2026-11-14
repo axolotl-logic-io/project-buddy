@@ -5,9 +5,7 @@ import {
   type Chat,
   type ChatQuest,
   type ChatRow,
-  isQuestChat,
   type NewMessage,
-  type QuestChat,
   toChats,
 } from "@/chats/chat-rows.ts";
 import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
@@ -15,7 +13,6 @@ import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
 import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
-import { users } from "@/db/tables/users.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ChatId, parseChatId, parseQuestId, type UserId } from "@/ids.ts";
@@ -26,17 +23,14 @@ import type { QuestName } from "@/quests/quest-name.ts";
 // the user's own, the default construct's, for the build that reads only ids.
 type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
 
-// The chat a new chat is: its quest, or none for a standalone chat, and
-// its construct.
+// The chat a new chat is: its quest and its construct.
 interface NewChat {
-  readonly quest: ChatQuest | undefined;
+  readonly quest: ChatQuest;
   readonly construct: NewChatConstruct;
   // Whether it is its place's one continuing conversation
   // (src/conversations/); a legacy adventure otherwise.
   readonly continuing?: boolean;
 }
-
-type NewQuestChat = NewChat & { readonly quest: ChatQuest };
 
 // A new id, made here rather than by the database, so a batch can insert a
 // row and the rows that refer to it together.
@@ -48,18 +42,11 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it into quest, or into none, returned. The
-// not-found failure when nothing was inserted, because the
-// owner has no such quest.
-function insertedChat(
-  rows: readonly ChatRow[],
-  quest: ChatQuest | undefined,
-): Chat {
+// The chat that inserting it into quest returned. The not-found failure
+// when nothing was inserted, because the owner has no such quest.
+function insertedChat(rows: readonly ChatRow[], quest: ChatQuest): Chat {
   const [chat] = toChats(
-    rows.map((row) => ({
-      ...row,
-      questName: quest?.name ?? null,
-    })),
+    rows.map((row) => ({ ...row, questName: quest.name })),
   );
   if (chat === undefined) {
     throw new AppError("not-found", new Error("No such quest to chat in"));
@@ -67,29 +54,15 @@ function insertedChat(
   return chat;
 }
 
-// The chat that inserting it into quest returned, as a quest chat.
-function insertedQuestChat(
-  rows: readonly ChatRow[],
-  quest: ChatQuest,
-): QuestChat {
-  const chat = insertedChat(rows, quest);
-  if (!isQuestChat(chat)) {
-    throw new AppError("not-found", new Error("No such quest to chat in"));
-  }
-  return chat;
-}
-
 // The columns of the new chat's row, with this id, in the table's order, as
-// insert … select needs them: its quest and user, as owner says, then
-// what every chat has.
+// insert … select from the chat's quest needs them.
 function chatColumns(
   chat: NewChat,
   id: ChatId,
-  owner: { readonly questId: SQL.Aliased; readonly userId: SQL.Aliased },
 ): Record<keyof ChatRow, SQL.Aliased> {
   return {
     id: sql`${id}::uuid`.as("id"),
-    questId: owner.questId,
+    questId: sql`${quests.id}`.as("quest_id"),
     constructId: sql`${chat.construct.id}::text`.as("construct_id"),
     spell: sql`null::text`.as("spell"),
     spellSnapshot: sql`null::jsonb`.as("spell_snapshot"),
@@ -101,44 +74,22 @@ function chatColumns(
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
     createdAt: sql`now()`.as("created_at"),
-    userId: owner.userId,
+    userId: sql`null::uuid`.as("user_id"),
     continuing: sql`${chat.continuing === true}::boolean`.as("continuing"),
   };
 }
 
-// The select that yields the new chat's row, with this id: in its quest
-// when that is the owner's, and nothing otherwise; or, with no quest, the
-// owner's standalone chat.
+// The select that yields the new chat's row, with this id, in its quest
+// when that is the owner's, and nothing otherwise.
 export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
-  const { quest } = chat;
-  if (quest === undefined) {
-    return new QueryBuilder()
-      .select(
-        chatColumns(chat, id, {
-          questId: sql`null::uuid`.as("quest_id"),
-          userId: sql`${users.id}`.as("user_id"),
-        }),
-      )
-      .from(users)
-      .where(eq(users.id, owner))
-      .getSQL();
-  }
   return new QueryBuilder()
-    .select(
-      chatColumns(chat, id, {
-        questId: sql`${quests.id}`.as("quest_id"),
-        userId: sql`null::uuid`.as("user_id"),
-      }),
-    )
+    .select(chatColumns(chat, id))
     .from(quests)
-    .where(and(eq(quests.id, quest.id), questOwnedBy(owner)))
+    .where(and(eq(quests.id, chat.quest.id), questOwnedBy(owner)))
     .getSQL();
 }
 
-export function createChat(
-  owner: UserId,
-  chat: NewQuestChat,
-): Promise<QuestChat> {
+export function createChat(owner: UserId, chat: NewChat): Promise<Chat> {
   return withAppErrors("createChat", () =>
     inTransaction(async (tx) => {
       const conversation = await tx
@@ -159,7 +110,7 @@ export function createChat(
           .select(newChatRow(owner, chat, randomId(parseChatId)))
           .returning();
       }
-      const result = insertedQuestChat(created, chat.quest);
+      const result = insertedChat(created, chat.quest);
       await grantVisualAssets(
         owner,
         tx,
@@ -181,8 +132,8 @@ export function createQuestWithChat(
     readonly dailies?: boolean;
   },
   transaction?: Transaction,
-): Promise<QuestChat | undefined> {
-  async function save(db: Transaction): Promise<QuestChat | undefined> {
+): Promise<Chat | undefined> {
+  async function save(db: Transaction): Promise<Chat | undefined> {
     const questId = randomId(parseQuestId);
     const id = randomId(parseChatId);
     const dailies = chat.dailies === true;
@@ -230,7 +181,7 @@ export function createQuestWithChat(
       { kind: "adventure", id },
       { parts: chat.construct.definition },
     );
-    return insertedQuestChat(created, { id: questId, name: questName });
+    return insertedChat(created, { id: questId, name: questName });
   }
   return withAppErrors("createQuestWithChat", () => {
     if (transaction !== undefined) {

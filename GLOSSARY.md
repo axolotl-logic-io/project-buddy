@@ -85,7 +85,7 @@ Shared instructions every conversation receives, including the role and rules fo
 
 ### Workshop
 
-The single collection destination for inspecting built-in constructs and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Each quest starting point assigns its construct. Old Constructs and Spellbook collection URLs redirect here.
+The single collection destination for inspecting built-in constructs and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Each quest starting point assigns its construct.
 
 - **UI:** "Workshop", "Constructs", "Spells".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
@@ -336,7 +336,7 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 ### Settings
 
-The single destination for profile name, appearance and security. Old Account links redirect here.
+The single destination for profile name, appearance and security.
 
 - **UI:** "Settings".
 
@@ -445,6 +445,6 @@ The site has no balance, charges or purchases. The `gold_balances`, `gold_ledger
 
 ### Other inert storage
 
-The `manual_sections` table, the `users.interview_construct_id` and `users.hidden_extras` columns, and the quests' `check_in_frequency` and `last_check_in_at` columns stay in storage, unread by the site. The site sends nothing on its own.
+Standalone chats, `chats` rows with a `user_id` and no quest that an older build made, are open to no one. The `manual_sections` table, the `users.interview_construct_id` and `users.hidden_extras` columns, and the quests' `check_in_frequency` and `last_check_in_at` columns stay in storage, unread by the site. The site sends nothing on its own.
 
 - **Avoid:** "check-in", "nudge", "reminder" or "ping" for anything the site sends.

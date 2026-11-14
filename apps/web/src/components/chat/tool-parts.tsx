@@ -3,14 +3,12 @@
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
 import type { JSX } from "react";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
-import { CreateQuestPart } from "@/components/chat/create-quest-part.tsx";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
 import { PlanChangeToolPart } from "@/components/chat/plan-change-part.tsx";
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
 import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
-import { CREATE_QUEST_TOOL } from "@/replies/tools/create-quest-contract.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
@@ -112,16 +110,6 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       placement: "inline",
       // A cast loads instructions, as a lookup does, often before a search.
       textBefore: "working-note",
-    },
-  ],
-  [
-    CREATE_QUEST_TOOL,
-    {
-      render: (part: ToolCallPart): JSX.Element => (
-        <CreateQuestPart part={part} />
-      ),
-      failure: TOOL_FAILURES_COPY.createQuest,
-      placement: "under",
     },
   ],
 ]);

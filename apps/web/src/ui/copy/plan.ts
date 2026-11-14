@@ -115,7 +115,6 @@ export const CHAT_COMMANDS_COPY = {
   hint: "Commands run at once. Steps are named by their numbers, such as #3.",
   description: (name: PlanCommandName): string =>
     PLAN_COMMAND_DESCRIPTIONS[name],
-  noPlan: "Plan commands work in a quest's conversation. Chat has no quest.",
   problem: (found: CommandProblem): string => {
     switch (found.kind) {
       case "unknown":

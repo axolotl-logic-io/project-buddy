@@ -4,7 +4,7 @@
 // no membership rows, as after cleanup, and every store must still deny them.
 
 import type { User } from "@/accounts/users-store.ts";
-import type { QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import {
   readQuestConversation,
@@ -39,7 +39,7 @@ interface FormerMemberQuest {
   readonly owner: User;
   readonly member: User;
   readonly quest: Quest;
-  readonly chat: QuestChat;
+  readonly chat: Chat;
   // The id of an image in the chat.
   readonly imageId: string;
   readonly generationId: GenerationId;

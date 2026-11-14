@@ -115,7 +115,7 @@ test("use_case_sign_out_everywhere", async ({
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
   await openSecurity(page);
-  const other = await anotherBrowser(browser, account, `/chats/${chat.id}`);
+  const other = await anotherBrowser(browser, account, `/quests/${chat.quest.id}`);
 
   await test.step("cancelling changes nothing", async () => {
     await answerSignOutEverywhere(page, ACCOUNT_COPY.stay);

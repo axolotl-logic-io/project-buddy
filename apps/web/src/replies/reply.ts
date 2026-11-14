@@ -239,7 +239,7 @@ async function streamAndSaveReply(
     const messages = await convertToModelMessages(
       await hydrateImages(actingUser, chat.id, named.messages),
       {
-        tools: chatTools(chat.quest?.id),
+        tools: chatTools(),
         convertDataPart: planPartForModel,
       },
     );

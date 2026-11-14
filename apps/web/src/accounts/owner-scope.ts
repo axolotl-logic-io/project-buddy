@@ -27,10 +27,10 @@ function ownedQuestIds(owner: UserId): SQL {
     .where(questOwnedBy(owner))}`;
 }
 
-// A `chats` row open to user: a standalone chat of theirs, or a chat in a
-// quest of theirs.
+// A `chats` row open to user: a chat in a quest of theirs. A standalone
+// chat that an older build made is open to no one.
 function chatOpenTo(user: UserId): SQL {
-  return sql`(${eq(chats.userId, user)} or ${inArray(chats.questId, ownedQuestIds(user))})`;
+  return inArray(chats.questId, ownedQuestIds(user));
 }
 
 // The ids of the chats open to user, as a subquery.

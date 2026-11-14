@@ -20,7 +20,6 @@ import {
 } from "@/replies/milestones-prompt.ts";
 import { planPromptSection } from "@/replies/plan-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
-import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 import { startingContextSection } from "@/replies/starting-context.ts";
 import { visualDescriptionSection } from "@/replies/visual-description.ts";
 import { getSpell, listSpells, type SpellId } from "@/spells/spell.ts";
@@ -38,7 +37,7 @@ interface ReplyPromptRequest {
 }
 
 interface ReplyPromptContext {
-  readonly quest: PromptQuest | undefined;
+  readonly quest: PromptQuest;
   readonly construct: ConstructSnapshot;
   readonly spell?: SpellId | undefined;
   readonly activeSpell?: SpellSnapshot | undefined;
@@ -81,11 +80,8 @@ const SHARED_SECTIONS: readonly PromptSection[] = [
   spellsSection,
 ];
 
-// Where the chat is: its quest, or no quest in a standalone chat.
+// The quest the conversation is about.
 function placeSection({ quest }: ReplyPromptContext): string {
-  if (quest === undefined) {
-    return STANDALONE_CHAT_PROMPT;
-  }
   return `This conversation is about the user's quest "${quest.name}".`;
 }
 
@@ -111,13 +107,13 @@ function spellSection({ spell, activeSpell }: ReplyPromptContext): string {
 const CHAT_SECTIONS: readonly PromptSection[] = [
   placeSection,
   ({ quest }: ReplyPromptContext): string => {
-    if (quest?.status === undefined) {
+    if (quest.status === undefined) {
       return "";
     }
     return `Current quest status: ${quest.status}. This current status takes precedence over older proposal cards in the conversation.`;
   },
   ({ quest }: ReplyPromptContext): string => {
-    const approval = quest?.latestApproval;
+    const approval = quest.latestApproval;
     if (approval === undefined) {
       return "";
     }
@@ -177,14 +173,11 @@ async function readPromptQuest(
   };
 }
 
-// The chat's quest as its prompt reads it; undefined in a standalone chat.
+// The chat's quest as its prompt reads it.
 async function promptQuest(
   actingUser: UserId,
   chat: Pick<Chat, "quest"> & { readonly id?: ChatId },
-): Promise<PromptQuest | undefined> {
-  if (chat.quest === undefined) {
-    return undefined;
-  }
+): Promise<PromptQuest> {
   let approval: Promise<StatusApproval | undefined> =
     Promise.resolve(undefined);
   if (chat.id !== undefined) {

@@ -25,7 +25,6 @@ import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   formerMemberQuest,
@@ -98,7 +97,7 @@ describe("quest status commands", () => {
       });
     },
   );
-  test("status commands reject arguments and standalone conversations", async () => {
+  test("status commands reject arguments", async () => {
     const { user, quest, chat } = await questFixture();
     await signIn(user);
     expect(
@@ -107,10 +106,6 @@ describe("quest status commands", () => {
     expect(await getQuest(user.id, quest.id)).toMatchObject({
       status: "active",
     });
-    const standalone = await privateChat(user.id);
-    expect(
-      await runChatCommandAction({ chatId: standalone.id, text: "/abandon" }),
-    ).toMatchObject({ kind: "problem" });
   });
 });
 

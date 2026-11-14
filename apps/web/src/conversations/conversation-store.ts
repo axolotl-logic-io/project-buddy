@@ -1,4 +1,4 @@
-import { and, eq, isNull, type SQL, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import {
@@ -32,36 +32,32 @@ interface FoundConversation {
   readonly created: boolean;
 }
 
-// A `chats` row that is the continuing conversation of the quest, or, with
-// no quest, of the user.
-function continuingIn(quest: QuestId | undefined, user: UserId): SQL {
-  if (quest === undefined) {
-    return sql`${and(eq(chats.continuing, true), eq(chats.userId, user), isNull(chats.questId))}`;
-  }
-  return sql`${and(eq(chats.continuing, true), eq(chats.questId, quest))}`;
-}
-
-// The id of the owner's continuing conversation in quest, or, with none,
-// their private Chat's; undefined if it has none or isn't open to them.
+// The id of the owner's continuing conversation in quest; undefined if it
+// has none or isn't open to them.
 async function continuingId(
   owner: UserId,
-  quest: QuestId | undefined,
+  quest: QuestId,
 ): Promise<ChatId | undefined> {
   const [row] = await withAppErrors("continuingId", () =>
     getDb()
       .select({ id: chats.id })
       .from(chats)
-      .where(and(continuingIn(quest, owner), chatOpenTo(owner))),
+      .where(
+        and(
+          eq(chats.continuing, true),
+          eq(chats.questId, quest),
+          chatOpenTo(owner),
+        ),
+      ),
   );
   return parseChatId(row?.id ?? "");
 }
 
-// The owner's conversation in the quest, or their private Chat with no
-// quest; undefined if there is none yet, or the quest isn't open to them.
-// Reading never makes one.
+// The owner's conversation in the quest; undefined if there is none yet,
+// or the quest isn't open to them. Reading never makes one.
 async function findConversation(
   owner: UserId,
-  quest: QuestId | undefined,
+  quest: QuestId,
 ): Promise<Conversation | undefined> {
   const id = await continuingId(owner, quest);
   if (id === undefined) {
@@ -70,13 +66,13 @@ async function findConversation(
   return await getChat(owner, id);
 }
 
-// The conversation of quest, open to the owner, or with no quest the
-// owner's private Chat, made empty with start if it has none: of concurrent
-// calls, exactly one makes it, and every call returns the same conversation.
-// Undefined if the quest isn't open to the owner.
+// The conversation of quest, open to the owner, made empty with start if it
+// has none: of concurrent calls, exactly one makes it, and every call
+// returns the same conversation. Undefined if the quest isn't open to the
+// owner.
 async function findOrCreateConversation(
   owner: UserId,
-  quest: ChatQuest | undefined,
+  quest: ChatQuest,
   start: ConversationStart,
 ): Promise<FoundConversation | undefined> {
   const id = randomId(parseChatId);
@@ -112,7 +108,7 @@ async function findOrCreateConversation(
     }
     return { conversation, created };
   }
-  const found = await findConversation(owner, quest?.id);
+  const found = await findConversation(owner, quest.id);
   if (found === undefined) {
     return undefined;
   }

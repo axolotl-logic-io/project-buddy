@@ -18,7 +18,6 @@ interface LocalConstructCopy {
   readonly unknownCommand: string;
   readonly castUsage: string;
   readonly castFailed: string;
-  readonly needsQuest: string;
   readonly cast: (name: string) => string;
 }
 
@@ -32,10 +31,8 @@ const LOCAL_CONSTRUCT_COPY: LocalConstructCopy = {
     return `Visual description:\n\n${description}\n\n${HELP}`;
   },
   unknownCommand: `Your message is saved. This construct responds to commands.\n\n${HELP}`,
-  castUsage:
-    "Use `cast plan`, `cast brainstorm` or an own spell’s name in a quest.",
+  castUsage: "Use `cast plan`, `cast brainstorm` or an own spell’s name.",
   castFailed: "The spell could not be cast. Try the command again.",
-  needsQuest: "Open a quest to cast Plan or Brainstorm.",
   cast: (name: string): string =>
     `Cast **${name}**. Use stop when you’re finished.`,
 };

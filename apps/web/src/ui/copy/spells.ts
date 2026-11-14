@@ -41,7 +41,6 @@ const SPELL_MODE_COPY = {
   ambiguous:
     "Several spells share that name. Rename one in Workshop before casting it.",
   stop: (name: string): string => `Stop ${name}`,
-  noQuest: "Open a quest to cast Plan or Brainstorm.",
 };
 
 export { SPELL_MODE_COPY, SPELLBOOK_COPY };

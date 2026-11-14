@@ -8,7 +8,11 @@ import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  questIdFixture,
+  userIdFixture,
+} from "../../../support/id-fixtures.ts";
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "../../viewports-test-kit.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
 
@@ -40,6 +44,7 @@ function bottomGap(): number {
 async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
   await render(
     <ChatView
+      questId={questIdFixture()}
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       constructName="Vellum"

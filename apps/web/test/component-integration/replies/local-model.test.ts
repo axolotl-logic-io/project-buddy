@@ -151,7 +151,7 @@ test("constructs share command guidance", async () => {
         model: localConstructModel(),
         system: renderReplyInstructions({
           userName: "Sam",
-          quest: undefined,
+          quest: { name: "Test quest", plan: EMPTY_PLAN, milestones: [] },
           construct: snapshotOf(construct),
         }),
         prompt: "help",

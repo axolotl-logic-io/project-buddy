@@ -24,12 +24,8 @@ function milestoneLine({ recordedAt, text }: Milestone): string {
 }
 
 // The quest's newest milestones, between tags that keep them apart from
-// the rest of the prompt, or "" in a standalone chat, which has no quest
-// and so no timeline.
+// the rest of the prompt.
 function milestonesPromptSection({ quest }: ReplyPromptContext): string {
-  if (quest === undefined) {
-    return "";
-  }
   if (quest.milestones.length === 0) {
     return EMPTY_TIMELINE_PROMPT;
   }
