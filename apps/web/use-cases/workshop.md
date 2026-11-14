@@ -24,7 +24,7 @@ The user edits an own construct in Workshop and saves it.
 - **Steps:**
   - Edit the name, then one instruction section at a time.
   - Choose Save, or Cancel to put back the saved prompt.
-- **Outcome:** Save stores the name and every section, including sections not shown. A save makes no model call and spends no batteries. The Workshop offers no test conversation: the user tries a saved definition in a quest or Chat.
+- **Outcome:** Save stores the name and every section, including sections not shown. A save makes no model call and makes no model request. The Workshop offers no test conversation: the user tries a saved definition in a quest or Chat.
 - **Variations:**
   - The editor uses the available width. Its section choices keep longer instructions separate, and Save remains within reach while scrolling the form. Save stays pinned with its hint and status line, while Reset prompt to default and Cancel follow it at the form's end, so on a phone the pinned bar is one short row; on short viewports the actions scroll with the editor.
   - Saving with an invalid field in another section shows that section and focuses the field. The name is checked first, and sections with errors are marked.

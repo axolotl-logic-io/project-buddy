@@ -1,11 +1,9 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import {
-  AssistantRuntimeProvider,
-} from "@assistant-ui/react";
+import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
-import { type UIMessage } from "ai";
+import type { UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
@@ -195,7 +193,6 @@ export function ChatView({
       if (isFromNewerBuild(error)) {
         reloadForNewerBuild();
       }
-
     },
   });
   // Saved updates from another viewer replace the conversation without

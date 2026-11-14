@@ -32,13 +32,7 @@ function ChatHistoryContent({
         role={message.role}
       />
     ),
-    [
-      construct,
-      chatId,
-      openingMessageId,
-      progressAllowed,
-      authorNames,
-    ],
+    [construct, chatId, openingMessageId, progressAllowed, authorNames],
   );
   return <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>;
 }

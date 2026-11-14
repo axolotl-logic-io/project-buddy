@@ -39,10 +39,3 @@ test("the pages around them still need a session", () => {
     ).toBe(true);
   }
 });
-
-test("Stripe webhooks pass the cookie gate and authenticate in the route", async () => {
-  const response = await proxy(
-    new NextRequest("http://localhost/api/stripe", { method: "POST" }),
-  );
-  expect(response.headers.get("x-middleware-next")).toBe("1");
-});

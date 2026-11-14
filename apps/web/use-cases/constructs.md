@@ -108,4 +108,4 @@ The user reads the construct’s appearance in their conversation.
 
 - **Prerequisites:** a signed-in user and a conversation.
 - **Steps:** the user sends `look` or `/look`.
-- **Outcome:** the reply shows the Visual description from the conversation’s saved construct, preserving literal placeholders. It shows neither starting context nor Character Sheet instructions. A construct without a description explains that none is available. The command generates no image and spends no batteries.
+- **Outcome:** the reply shows the Visual description from the conversation’s saved construct, preserving literal placeholders. It shows neither starting context nor Character Sheet instructions. A construct without a description explains that none is available. The command generates no image and makes no model request.

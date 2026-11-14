@@ -43,7 +43,7 @@ The user starts a quest without a model provider or API key.
 
 - **Prerequisites:** [`use_case_new_quest`](quests.md#use_case_new_quest).
 - **Steps:** the user names the quest, chooses a construct and starts it.
-- **Outcome:** the quest opens with its locally produced greeting and available commands. Starting it makes no remote model request and spends no batteries. Storage errors still follow `use_case_storage_unavailable`.
+- **Outcome:** the quest opens with its locally produced greeting and available commands. Starting it makes no remote model request and makes no model request. Storage errors still follow `use_case_storage_unavailable`.
 
 ## use_case_send_while_construct_replies
 

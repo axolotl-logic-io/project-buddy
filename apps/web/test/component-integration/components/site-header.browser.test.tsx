@@ -36,10 +36,7 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
-import {
-  SIGNED_IN_USER,
-  signInAs,
-} from "../auth/current-user-test-kit.ts";
+import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -60,7 +57,6 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-
 
 // Saving a theme choice is a round trip to the server, which
 // save-theme-choice-action.server.test.ts covers.
@@ -590,4 +586,3 @@ describe("the trail band", () => {
       .toBeVisible();
   });
 });
-

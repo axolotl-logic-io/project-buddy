@@ -9,11 +9,9 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { z } from "zod";
 import {
   type AppErrorCase,
-  appErrorResponse,
   isUnrecognisedCaseName,
   readAppErrorCase,
 } from "@/errors/app-error.ts";
-import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, MESSAGE_ID, parseChatId } from "@/ids.ts";
 import {
   IMAGE_FILE_PART,

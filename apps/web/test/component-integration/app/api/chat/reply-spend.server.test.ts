@@ -1,12 +1,18 @@
 import { expect, test } from "vitest";
 import { getDb } from "@/db/client.ts";
 import { goldBalances } from "@/db/tables/gold.ts";
-import { constructReply, userWithChat } from "../../../test-database/chat-test-kit.ts";
-import { eq } from "drizzle-orm";
+import {
+  constructReply,
+  messageText,
+  userWithChat,
+} from "../../../test-database/chat-test-kit.ts";
 
 test("a quest reply works with an empty retained balance", async () => {
   const { user, chat } = await userWithChat();
-  await getDb().update(goldBalances).set({ balance: 0 }).where(eq(goldBalances.userId, user.id));
+  await getDb()
+    .insert(goldBalances)
+    .values({ userId: user.id, microUsd: 0 })
+    .onConflictDoUpdate({ target: goldBalances.userId, set: { microUsd: 0 } });
   const reply = await constructReply(chat.id, "help");
-  expect(reply).toBeDefined();
+  expect(messageText(reply)).toContain("Available commands");
 });

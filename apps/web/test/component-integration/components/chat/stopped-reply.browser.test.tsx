@@ -15,9 +15,9 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { FOX_CHAT } from "../../app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER } from "../../auth/current-user-test-kit.ts";
-import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { refresh } from "../router-test-kit.ts";
 
 vi.mock(
@@ -269,4 +269,3 @@ describe("use_case_stop_reply", () => {
     }
   });
 });
-

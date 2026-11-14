@@ -28,17 +28,7 @@ function GeneratedImagePart({
   }
   const result = output.data;
   if (result.status !== "generated") {
-    let status: string = GENERATION_COPY[result.status];
-    if (
-      result.status === "outOfGold" &&
-      result.requiredGold !== undefined &&
-      result.availableGold !== undefined
-    ) {
-      status = GENERATION_COPY.reservationRefused(
-        result.requiredGold,
-        result.availableGold,
-      );
-    }
+    const status: string = GENERATION_COPY[result.status];
     return (
       <>
         <p role="status">{status}</p>

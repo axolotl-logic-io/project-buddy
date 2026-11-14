@@ -5,9 +5,5 @@ import type { JSX } from "react";
 export default function WorkspaceLayout({
   children,
 }: LayoutProps<"/">): JSX.Element {
-  return (
-    <div className="workspace-frame">
-      {children}
-    </div>
-  );
+  return <div className="workspace-frame">{children}</div>;
 }
