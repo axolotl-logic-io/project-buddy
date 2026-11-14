@@ -106,7 +106,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 
 ## Product documentation
 
-Changes to prompts, model inputs, tools or relevant user flows update the corresponding repository documentation in the same PR. The in-site Library has been removed.
+Changes to prompts, model inputs, tools or relevant user flows update the corresponding repository documentation in the same PR.
 
 ## Site prompts and the AI SDK
 

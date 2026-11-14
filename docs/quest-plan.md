@@ -1,6 +1,6 @@
 # Quest plan
 
-Each quest has a plan: its ordered steps of remaining work, which the construct and the quest's people keep together. Plan is the quest’s todo list. The construct changes it with a tool, and people change it directly, without a model call, from the quest's page, from the Plan panel beside a conversation, or with commands in the message box. The [glossary](../GLOSSARY.md#plan) defines the words this page uses, and the [design](design/quest-plan.md) records how the three ways in were chosen.
+Each quest has a plan: its ordered steps of remaining work, which the construct and the quest's owner keep together. Plan is the quest’s todo list. The construct changes it with a tool, and the owner changes it directly, without a model call, from the quest's page, from the Plan panel beside a conversation, or with commands in the message box. The [glossary](../GLOSSARY.md#plan) defines the words this page uses.
 
 ## Steps
 
@@ -31,9 +31,9 @@ Every quest conversation's prompt lists the current Plan, between `<quest_plan>`
 
 The conversation shows each call as a **Plan change** with Undo (`src/components/chat/plan-change-part.tsx`), while the reply streams and after the user reopens the quest. The tool is active only in quest conversations.
 
-## People
+## The owner
 
-People change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model or spends batteries:
+The owner changes the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model:
 
 - The quest page's **Plan** section, `/quests/QUEST_ID?section=plan`, where `QUEST_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
 - The **Plan accordion** in the quest side menu, alongside Ideas, Progress, Quick Notes and Actions. Edits and Undo update the Plan and show feedback in the sidebar, without adding conversation messages. A panel icon opens or collapses the sidebar. It docks to the right edge on wide screens and opens as a drawer on phones. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
@@ -50,9 +50,9 @@ People change the plan through the Server Actions in `src/plan/plan-actions.ts`.
 | `/drop STEP` | Removes a step. |
 | `/undo` | Undoes the user's last plan change in this conversation that has something left to undo. |
 
-`STEP` is the step's number, with or without "#". In a quest's conversation, any message that starts with "/" and a name runs as a command: an unknown one says so under the message box and keeps the text. In a standalone conversation, only a plan command's name runs, and says it needs a quest; any other "/word" message goes to the construct as written. While the mock model runs, its own `/mock-…` commands are listed too and still go to it as messages (`src/replies/mock-command-listings.ts`), so tests can drive `change_plan` with `/mock-tool change_plan …`.
+`STEP` is the step's number, with or without "#". In a quest's conversation, any message that starts with "/" and a name runs as a command: an unknown one says so under the message box and keeps the text.
 
-A change made by a command is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply, a conversation's naming or a reply's cost. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. Direct changes and Undo from the sidebar, quest page or a saved card add no message. Their saved Plan versions remain available, and the construct reads the current Plan on its next reply.
+A change made by a command is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. Direct changes and Undo from the sidebar, quest page or a saved card add no message. Their saved Plan versions remain available, and the construct reads the current Plan on its next reply.
 
 Only the quest's owner can change its plan. Each change records its author.
 
@@ -64,10 +64,8 @@ Plan and Ideas use `src/components/ui/editable-list.tsx` for rows, inline editin
 
 The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per change: the whole plan after it, what it did, the operations that undo it, the version it undid if it is an undo, its author, the person who made it and the conversation it was made in. The newest version is the plan. A change is saved on top of the newest version in one `insert … select`, and tried again from the newest plan when another change saved that version first; a unique index on the quest and version, and another on the quest and the version undone, keep two changes, or two undos of one change, from both landing. Versions go with their quest; a deleted conversation or account leaves them, without the link.
 
-`src/plan/plan-store.ts` is the only module that reads or writes the table. A version is open to everyone in its quest through `planVersionOpenTo` in `src/accounts/owner-scope.ts`. Migration 0050 adds the table; it is an additive migration, which the live build can run beside.
+`src/plan/plan-store.ts` is the only module that reads or writes the table. A version is open to its quest's owner through `planVersionOpenTo` in `src/accounts/owner-scope.ts`.
 
 ## Quest context
 
-Goal, Preferences, the free-form Journal and their version pages are removed. Plan holds agreed tasks. [Ideas](quest-ideas.md) separately holds saved possibilities and can move an idea into Plan. Ideas are not model context. The model reads the current Plan and the conversation, and can change agreed tasks with `change_plan`. Quest starts keep their supplied context in the opening conversation rather than a Journal.
-
-Migration 0059 drops `journal_versions` and `memory_versions` and removes obsolete Journal command records. It does not transfer their content into Plan. Deploy this destructive change with the coordinated cutover described in [nomenclature](quest-nomenclature.md#release-cutover).
+Plan holds agreed tasks; a quest has no separate Goal, Preferences or Journal. [Ideas](quest-ideas.md) separately holds saved possibilities and can move an idea into Plan. Ideas are not model context. The model reads the current Plan and the conversation, and can change agreed tasks with `change_plan`. Quest starts keep their supplied context in the opening conversation.

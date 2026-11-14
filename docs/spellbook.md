@@ -16,8 +16,8 @@ A cast saves a snapshot of its name, destination and replies. Editing, retiring 
 
 Each ordinary message becomes one item of at most 200 characters. Commands bypass capture. Validation failures keep the conversation message and show feedback. Capture and its saved result commit together, so retries add no duplicate item. Plan and Ideas have no limit on the number of entries.
 
-## Storage and migration
+## Storage
 
-Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` retains the destination. Migration 0065 adds that column and preserves the definition and listing kind constraints, including historical activity records. It adds no destructive change; the previous build can read the existing destination column during deployment. Built-in spells already active before migration continue using their definitions.
+Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` holds the destination.
 
 Destination identifiers and display labels are shared by the editor, spell cards, retirement details, reply placeholders and active-spell context. Capture selects a destination handler that validates and saves with the destination’s own rules inside the message transaction.
