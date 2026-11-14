@@ -117,11 +117,10 @@ async function sessionCookie(
   };
 }
 
-export type { SessionCookie, SessionUser };
+export type { SessionUser };
 export {
   createSessionToken,
   readSessionToken,
   SESSION_COOKIE_NAME,
-  SESSION_MAX_AGE_SECONDS,
   sessionCookie,
 };

@@ -102,21 +102,12 @@ function constructVisualSource(
   return undefined;
 }
 
-export type {
-  ConstructVisual,
-  ResolvedConstructVisual,
-  VisualAsset,
-  VisualDestination,
-  VisualFrame,
-  VisualRole,
-};
+export type { ConstructVisual, VisualDestination, VisualRole };
 export {
   CONSTRUCT_VISUAL,
   constructVisualSource,
   normalizeVisualDescription,
   resolveConstructVisual,
-  VISUAL_ASSET,
   VISUAL_DESTINATION,
-  VISUAL_FRAME,
   VISUAL_ROLE,
 };

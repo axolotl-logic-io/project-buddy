@@ -1,5 +1,3 @@
-"use client";
-
 import type { JSX } from "react";
 import { PlanSteps } from "@/components/plan/plan-steps.tsx";
 import {
@@ -10,9 +8,8 @@ import {
 import type { QuestId } from "@/ids.ts";
 import type { PlanState } from "@/plan/plan.ts";
 
-// The quest's plan on its page, with every control to change it. A change
-// here is saved outside any adventure; the construct reads the plan as it is
-// on its next reply.
+// The plan's steps with every control to change them, as the quest's
+// conversation shows them.
 export function QuestPlan({
   questId,
   plan,

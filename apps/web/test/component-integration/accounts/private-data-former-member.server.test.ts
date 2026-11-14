@@ -6,7 +6,6 @@
 
 import { describe, expect, test } from "vitest";
 import { listMessages } from "@/chats/store.ts";
-import { listGeneratedImages } from "@/images/generation-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   ALL_TAKEN,
@@ -52,7 +51,6 @@ describe("use_case_private_data", () => {
     expect(await seenBy(quest.member, quest)).toEqual(NOTHING);
     expect(await writesBy(quest.member, quest)).toEqual(NONE_TAKEN);
     await deletesBy(quest.member, quest);
-    expect(await listGeneratedImages(quest.member.id)).toEqual([]);
     expect(await seenBy(quest.owner, quest)).toEqual(before);
   });
 

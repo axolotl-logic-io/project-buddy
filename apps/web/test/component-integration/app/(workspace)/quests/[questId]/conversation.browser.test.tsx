@@ -70,9 +70,6 @@ vi.mock(
   "@/plan/plan-store.ts",
   () => import("../../../../plan/plan-store-test-kit.ts"),
 );
-vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn().mockResolvedValue(0),
-}));
 
 vi.mock(
   "@/auth/current-user.ts",

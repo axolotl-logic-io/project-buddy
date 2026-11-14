@@ -18,7 +18,6 @@ import {
   otherAuthorNames,
 } from "@/chats/message-author.ts";
 import { listMessages } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
@@ -29,6 +28,7 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,

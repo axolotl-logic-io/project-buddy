@@ -15,14 +15,12 @@ import { getDb } from "@/db/client.ts";
 import { batteryCashEvents } from "@/db/tables/battery-cash-events.ts";
 import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
 import { users } from "@/db/tables/users.ts";
-import { grantStartingGold } from "@/gold/gold-store.ts";
 
 // The users this test has made and not yet deleted.
 const madeUsers: User[] = [];
 
 // Fixtures may create accounts directly; runtime account creation requires
 // confirming an emailed verification link and has no public create-by-address export.
-// Each is given its starting gold, as a verified new account is.
 async function createTestAccount(email: string): Promise<User> {
   await getDb()
     .insert(users)
@@ -32,7 +30,6 @@ async function createTestAccount(email: string): Promise<User> {
   if (user === undefined) {
     throw new Error("The fixture account was not saved");
   }
-  await grantStartingGold(user.id);
   return user;
 }
 

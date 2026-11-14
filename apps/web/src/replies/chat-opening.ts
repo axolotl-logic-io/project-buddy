@@ -85,5 +85,4 @@ async function chatOpening({
   return openingMessage(opening.text);
 }
 
-export type { ChatOpeningRequest };
 export { chatOpening };

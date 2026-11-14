@@ -29,9 +29,6 @@ const LINK_USER: SessionUser = {
   sessionEpoch: 0,
 };
 
-// Her gold, in micro-USD: 87 gold.
-const GOLD_BALANCE = 870_000;
-
 const OWN_SPELL: OwnSpell = {
   id: OWN_PROMPT_ID.parse("e17f52de-1234-4123-8123-123456789abc"),
   name: "Small experiments",
@@ -43,4 +40,4 @@ const OWN_SPELL: OwnSpell = {
   updatedAt: new Date("2026-11-01T00:00:00Z"),
 };
 
-export { GOLD_BALANCE, LINK_USER, OWN_SPELL, VELLUM_CLONE };
+export { LINK_USER, OWN_SPELL, VELLUM_CLONE };

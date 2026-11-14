@@ -11,7 +11,6 @@ import {
   editMilestoneAction,
 } from "@/app/(workspace)/quests/[questId]/(overview)/actions.ts";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
 import {
   listMilestones,
@@ -19,6 +18,7 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import {
   constructPrompt,
   formOf,

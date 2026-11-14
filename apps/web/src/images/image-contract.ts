@@ -46,7 +46,6 @@ function imageId(url: string): string | undefined {
 export {
   IMAGE_FILE_PART,
   IMAGE_MEDIA_TYPE,
-  IMAGE_TYPES,
   imageId,
   imageUrl,
   MAX_IMAGE_BYTES,

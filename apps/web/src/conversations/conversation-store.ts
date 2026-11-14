@@ -1,4 +1,4 @@
-import { and, eq, isNull, not, type SQL, sql } from "drizzle-orm";
+import { and, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import {
@@ -144,32 +144,5 @@ async function appendConstructMessage(
   return saved.length > 0;
 }
 
-// Whether the owner's conversation has no messages yet; false for one not
-// open to them.
-async function isEmptyConversation(
-  owner: UserId,
-  chatId: ChatId,
-): Promise<boolean> {
-  const rows = await withAppErrors("isEmptyConversation", () =>
-    getDb()
-      .select({ id: chats.id })
-      .from(chats)
-      .where(
-        and(
-          openChat(owner, chatId),
-          not(
-            sql`exists (select 1 from ${messages} where ${messages.chatId} = ${chats.id})`,
-          ),
-        ),
-      ),
-  );
-  return rows.length > 0;
-}
-
-export type { Conversation, ConversationStart, FoundConversation };
-export {
-  appendConstructMessage,
-  findConversation,
-  findOrCreateConversation,
-  isEmptyConversation,
-};
+export type { Conversation };
+export { appendConstructMessage, findConversation, findOrCreateConversation };

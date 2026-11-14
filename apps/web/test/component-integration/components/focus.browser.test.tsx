@@ -1,12 +1,10 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
-// WebKit: how each theme draws focus, read from the computed styles. The
-// construct picker's bars draw their focus ring inside the picker, whose
-// corners would clip one outside; focus draws no filter, which would
-// make the element a containing block for its positioned descendants, so a
-// link card's overlay still covers the whole card; the message's field box
-// shows the message's focus with an outline; and the theme's glow is one
-// more layer of the focused element's box-shadow. The keyboard reaches the
-// picker's bars by Tab, as she would, so they match :focus-visible.
+// WebKit: how each theme draws focus, read from the computed styles. Focus
+// draws no filter, which would make the element a containing block for its
+// positioned descendants, so a link card's overlay still covers the whole
+// card; the message's field box shows the message's focus with an outline;
+// and the theme's glow is one more layer of the focused element's
+// box-shadow.
 // test/component-integration/themes/signed-in-pages.browser.test.tsx covers the signed-in pages
 // each theme styles.
 
@@ -15,11 +13,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
-import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { QuestList } from "@/components/quest-list.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
-import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   chatIdFixture,
   questIdFixture,
@@ -31,7 +28,6 @@ import {
   type ShadowLayer,
   showsGlow,
 } from "./focus-look-test-kit.ts";
-import { tabForward } from "./keyboard-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
@@ -104,34 +100,6 @@ function expectedFocus(expected: FocusShadows): DrawnFocus {
     focusVisible: true,
     filter: "none",
     glow: expected.glow,
-  };
-}
-
-// Tabs from the button before the construct picker to its first control, the
-// bar to the previous construct, and reads how the bar draws its focus: whether
-// it has an outline, and whether the outline lies wholly inside the bar.
-async function pickerBarFocus(): Promise<
-  DrawnFocus & { readonly outlined: boolean; readonly ringInside: boolean }
-> {
-  await render(
-    <>
-      {BEFORE_BUTTON}
-      <ConstructPicker />
-    </>,
-  );
-  await focusBefore();
-  await tabForward();
-  const bar = await focused(
-    page.getByRole("button", { name: NEW_CHAT_COPY.previousConstruct }),
-  );
-  const style = getComputedStyle(bar);
-  return {
-    ...drawnFocus(bar),
-    outlined: focusLook(bar).outline !== "none",
-    ringInside:
-      Number.parseFloat(style.outlineOffset) +
-        Number.parseFloat(style.outlineWidth) <=
-      0,
   };
 }
 
@@ -209,14 +177,6 @@ describe("use_case_choose_theme", () => {
     describe(`the ${name} theme`, () => {
       beforeEach(() => {
         applyTheme(id);
-      });
-
-      test("a construct picker's bar draws its focus ring inside the picker", async () => {
-        expect(await pickerBarFocus()).toEqual({
-          ...expectedFocus(FOCUS_SHADOWS[id]),
-          outlined: true,
-          ringInside: true,
-        });
       });
 
       test("a focused link card draws no filter, so its overlay covers the card", async () => {

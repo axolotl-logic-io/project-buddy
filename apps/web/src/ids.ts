@@ -111,20 +111,10 @@ function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type {
-  ChatId,
-  ImageId,
-  MessageId,
-  MilestoneId,
-  OwnPromptId,
-  QuestId,
-  UserId,
-};
+export type { ChatId, MessageId, MilestoneId, OwnPromptId, QuestId, UserId };
 export {
   CHAT_ID,
-  IMAGE_ID,
   MESSAGE_ID,
-  MESSAGE_ID_MAX_LENGTH,
   MILESTONE_ID,
   OWN_PROMPT_ID,
   parseChatId,

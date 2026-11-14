@@ -49,9 +49,6 @@ vi.mock(
   () => import("../auth/current-user-test-kit.ts"),
 );
 // The header slot reads the balance and resolves the trail's names.
-vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn().mockResolvedValue(0),
-}));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
@@ -92,9 +89,6 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
-vi.mock("@/constructs/own-construct-choices.ts", () => ({
-  ownConstructChoices: () => Promise.resolve([]),
-}));
 
 // A long quest name, which the trail band's heading wraps.
 const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";

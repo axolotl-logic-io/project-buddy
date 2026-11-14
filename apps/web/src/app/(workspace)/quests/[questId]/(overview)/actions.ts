@@ -49,7 +49,7 @@ type StartConversationState =
       readonly message: typeof OPENING_COPY.claudeUnavailable;
     };
 
-export type { EditMilestoneResult, EditMilestoneState, StartConversationState };
+export type { EditMilestoneState, StartConversationState };
 
 // Saves her text as the milestone's, keeping its date and chat, or says why
 // the text won't do. A milestone whose id is malformed, unknown or another

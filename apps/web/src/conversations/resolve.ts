@@ -23,5 +23,4 @@ async function resolveConversation(
   return { kind: "quest", questId: chat.quest.id };
 }
 
-export type { ResolvedConversation };
 export { resolveConversation };

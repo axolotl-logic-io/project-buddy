@@ -22,15 +22,5 @@ interface EmailMessage {
   readonly idempotencyKey: string;
 }
 
-// Text as HTML shows it, for an email's HTML body.
-function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("'", "&#39;");
-}
-
 export type { EmailMessage };
-export { emailSender, escapeHtml };
+export { emailSender };

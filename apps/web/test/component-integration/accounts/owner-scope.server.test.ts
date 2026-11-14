@@ -1,7 +1,6 @@
 // The ownership predicates against the test database: two users side by
 // side, each with a quest, a chat in it, a standalone chat, their messages,
-// a memory version, a gold balance and its ledger, and a construct. Each predicate, for her,
-// selects exactly her rows of the two users', through her quest or, for a
+// and a construct. Each predicate, for her, selects exactly her rows of the two users', through her quest or, for a
 // standalone chat, through the chat's own user. owner-scope-coverage.test.ts
 // checks every store builds its queries from these predicates.
 
@@ -9,8 +8,6 @@ import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import {
   chatOpenTo,
-  goldBalanceOwnedBy,
-  goldLedgerOwnedBy,
   messageOpenTo,
   ownPromptOwnedBy,
   ownsQuest,
@@ -19,9 +16,7 @@ import {
 import type { User } from "@/accounts/users-store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
-import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
@@ -30,6 +25,7 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 const EXCHANGE: Exchange = {
@@ -46,8 +42,7 @@ interface OwnedRows {
 }
 
 // Saves a row of each kind for user: a quest with a chat and its memory,
-// a standalone chat, an exchange in each chat and a construct. Gold comes with
-// the account.
+// a standalone chat, an exchange in each chat and a construct.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const quest = await data.quest();
@@ -118,44 +113,21 @@ async function ownQuestsAndChats(
   };
 }
 
-// Her rows among both users' memory versions, gold balances, gold ledgers
-// and constructs.
-async function ownGoldAndConstructs(
+// Her rows among both users' constructs.
+async function ownConstructs(
   her: User,
-  other: User,
   hers: OwnedRows,
   theirs: OwnedRows,
 ): Promise<readonly unknown[]> {
-  const db = getDb();
-  return [
-    await db
-      .select({ userId: goldBalances.userId })
-      .from(goldBalances)
-      .where(
-        and(
-          inArray(goldBalances.userId, [her.id, other.id]),
-          goldBalanceOwnedBy(her.id),
-        ),
+  return await getDb()
+    .select({ id: ownPrompts.id })
+    .from(ownPrompts)
+    .where(
+      and(
+        inArray(ownPrompts.id, [hers.constructId, theirs.constructId]),
+        ownPromptOwnedBy(her.id),
       ),
-    await db
-      .selectDistinct({ userId: goldLedger.userId })
-      .from(goldLedger)
-      .where(
-        and(
-          inArray(goldLedger.userId, [her.id, other.id]),
-          goldLedgerOwnedBy(her.id),
-        ),
-      ),
-    await db
-      .select({ id: ownPrompts.id })
-      .from(ownPrompts)
-      .where(
-        and(
-          inArray(ownPrompts.id, [hers.constructId, theirs.constructId]),
-          ownPromptOwnedBy(her.id),
-        ),
-      ),
-  ];
+    );
 }
 
 // Whether ownsProject holds for her and the quest, on her user row.
@@ -185,13 +157,11 @@ describe("ownership predicates select only the owner's rows", () => {
     });
   });
 
-  test("gold and constructs", async () => {
-    const { her, other, hers, theirs } = await bothUsersRows();
+  test("constructs", async () => {
+    const { her, hers, theirs } = await bothUsersRows();
 
-    expect(await ownGoldAndConstructs(her, other, hers, theirs)).toEqual([
-      [{ userId: her.id }],
-      [{ userId: her.id }],
-      [{ id: hers.constructId }],
+    expect(await ownConstructs(her, hers, theirs)).toEqual([
+      { id: hers.constructId },
     ]);
   });
 

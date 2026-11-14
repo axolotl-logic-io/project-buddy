@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
@@ -68,12 +67,11 @@ describe("use_case_view_character_profile", () => {
       .toBeVisible();
   });
 
-  test("picker and profile fit a 320px phone, and closing leaves the composer usable", async () => {
+  test("the profile fits a 320px phone, and closing leaves the composer usable", async () => {
     await setViewport(NARROWEST_VIEWPORT);
     await render(
       <div>
         <AdventureCharacterHeader construct={getConstruct("lumen")} />
-        <ConstructPicker />
         <textarea aria-label="Message" />
       </div>,
     );
