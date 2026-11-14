@@ -55,4 +55,4 @@ async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("button", { name: CHAT_COPY.send }).click();
 }
 
-export { chatMessages, constructName, lastMessage, sendMessage };
+export { constructName, lastMessage, sendMessage };

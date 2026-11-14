@@ -222,7 +222,7 @@ async function signedInChat(
   return scene;
 }
 
-export type { SavedLine, SentMessage };
+export type { SentMessage };
 export {
   constructPrompt,
   constructReply,
