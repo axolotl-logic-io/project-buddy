@@ -384,6 +384,38 @@ An emailed link that signs in an existing user.
 
 A **session** keeps a user signed in. **Sign out everywhere** ends their existing sessions and invalidates their sign-in links.
 
+## Multi-user quests (planned)
+
+These terms describe planned [multi-user quests](docs/multi-user-quests.md). The owner-only definitions elsewhere in this glossary describe the current product until this feature is implemented.
+
+### Multi-user quest
+
+A quest with one owner who invites other users into its one conversation and shared Plan. Accepted members have the owner's powers except deleting the quest and removing the owner. The quest keeps one construct; messages keep their individual authors.
+
+### Member
+
+A user who has accepted a quest invitation. Members can change quest contents, invite users, remove other members, rename the quest and change its status. Membership grants access to that quest, not to another user's private constructs, spells or other quests.
+
+- **UI:** "Member", "Members".
+
+### Quest invitation
+
+An invitation to join one quest. Inviting a person creates their account immediately if they do not already have one. Following the invitation's acceptance link accepts only that quest invitation. Other quest invitations remain pending.
+
+### Pending quest
+
+A quest the user has been invited to but has not accepted. The Quests page lists these quests in its Pending tab. Pending describes the user's invitation, not the quest's Active, Completed or Abandoned status.
+
+- **UI:** "Pending".
+
+### Invited account
+
+An account created when a person is invited, before they complete sign-up. The site distinguishes it from a signed-up account. Account state is separate from acceptance of each quest invitation.
+
+### Signed-up account
+
+An account whose user has completed sign-up. Completing sign-up keeps the account created by the invitation. Accepting a quest invitation does not accept other quest invitations.
+
 ## API access (planned)
 
 These terms describe planned API access, tracked in [API access requirements](https://github.com/axolotl-logic-io/project-buddy/issues/684). They do not mean the API or connection management is already available.
