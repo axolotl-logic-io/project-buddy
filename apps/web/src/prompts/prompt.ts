@@ -4,8 +4,9 @@ const PROMPT_KINDS = ["construct", "spell"] as const;
 
 type PromptKind = (typeof PROMPT_KINDS)[number];
 
-// Stored kinds use the domain names without translation.
-const STORED_PROMPT_KIND_LIST: typeof PROMPT_KINDS = PROMPT_KINDS;
+// Historical activities remain stored until a separate cleanup release.
+// Runtime definitions still accept only the current prompt kinds.
+const STORED_PROMPT_KIND_LIST = ["construct", "activity", "spell"] as const;
 const STORED_PROMPT_KIND = z.enum(PROMPT_KINDS);
 
 interface NamedDefinition<Definition> {
