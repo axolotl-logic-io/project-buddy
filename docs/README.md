@@ -20,7 +20,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Saved images](images.md): conversation images, owner access and deletion.
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and asset ownership.
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
-- [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
+- [Installed app](notifications.md): installing on a phone's Home Screen.
 
 ## Practices
 

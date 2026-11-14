@@ -1,8 +1,9 @@
 // The ownership predicates against the test database: two users side by
-// side, each with a quest, a chat in it, a standalone chat, their messages,
-// and a construct. Each predicate, for her, selects exactly her rows of the two users', through her quest or, for a
-// standalone chat, through the chat's own user. owner-scope-coverage.test.ts
-// checks every store builds its queries from these predicates.
+// side, each with a quest, a chat in it and its messages, a standalone chat
+// an older build made, and a construct. Each predicate, for her, selects
+// exactly her rows of the two users', through her quest; a standalone chat
+// is no one's. owner-scope-coverage.test.ts checks every store builds its
+// queries from these predicates.
 
 import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -20,12 +21,11 @@ import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
-import type { ChatId, OwnPromptId, QuestId } from "@/ids.ts";
+import { CHAT_ID, type ChatId, type OwnPromptId, type QuestId } from "@/ids.ts";
 import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 const EXCHANGE: Exchange = {
@@ -41,15 +41,17 @@ interface OwnedRows {
   readonly constructId: OwnPromptId;
 }
 
-// Saves a row of each kind for user: a quest with a chat and its memory,
-// a standalone chat, an exchange in each chat and a construct.
+// Saves a row of each kind for user: a quest with a chat and an exchange in
+// it, a standalone chat as an older build saved it, and a construct.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const quest = await data.quest();
   const projectChat = await data.chat(quest);
-  const standaloneChat = await privateChat(user.id);
+  const [standaloneChat] = await getDb()
+    .insert(chats)
+    .values({ userId: user.id, continuing: true, constructId: "vellum" })
+    .returning({ id: chats.id });
   await data.exchanges(projectChat, [EXCHANGE]);
-  await data.exchanges(standaloneChat, [EXCHANGE]);
   const construct = await cloneConstruct(user.id, DEFAULT_CONSTRUCT_ID);
   if (construct === undefined) {
     throw new Error("The default construct could not be cloned");
@@ -57,7 +59,7 @@ async function ownedRows(user: User): Promise<OwnedRows> {
   return {
     questId: quest.id,
     projectChatId: projectChat.id,
-    standaloneChatId: standaloneChat.id,
+    standaloneChatId: CHAT_ID.parse(standaloneChat?.id),
     constructId: construct.id,
   };
 }
@@ -140,20 +142,24 @@ async function holds(her: User, questId: QuestId): Promise<boolean> {
 }
 
 describe("ownership predicates select only the owner's rows", () => {
-  test("projects, project chats, standalone chats and their messages", async () => {
+  test("quests, their chats and messages, and no standalone chat", async () => {
     const { her, hers, theirs } = await bothUsersRows();
-    const herChats = [hers.projectChatId, hers.standaloneChatId];
 
     expect(
       await ownQuestsAndChats(
         her,
         [hers.questId, theirs.questId],
-        [...herChats, theirs.projectChatId, theirs.standaloneChatId],
+        [
+          hers.projectChatId,
+          hers.standaloneChatId,
+          theirs.projectChatId,
+          theirs.standaloneChatId,
+        ],
       ),
     ).toEqual({
       questIds: [hers.questId],
-      chatIds: sorted(herChats),
-      messageChatIds: sorted(herChats),
+      chatIds: [hers.projectChatId],
+      messageChatIds: [hers.projectChatId],
     });
   });
 

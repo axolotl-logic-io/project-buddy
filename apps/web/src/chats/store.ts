@@ -1,6 +1,6 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A quest chat is open to its quest's owner
-// alone; a standalone chat only to the user it names (src/accounts/owner-scope.ts). Every function takes the acting user
+// saved by new-chat-store.ts. A chat is open to its quest's owner alone
+// (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's construct and name, and each message's role and
@@ -142,7 +142,7 @@ export async function getChat(
 // with the instructions of every spell the construct cast in them, which the
 // construct follows in later replies. Each user message has its author: the
 // user who sent it or, for a message saved with no author, the chat's
-// owner, who is its quest's user or the standalone chat's user. None if
+// owner, who is its quest's user. None if
 // the chat is another user's. A stored message whose role or parts are
 // invalid is left out and logged. With newest, only that many of the newest
 // messages, still oldest first. Only a reply reads these; people read

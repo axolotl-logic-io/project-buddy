@@ -27,7 +27,6 @@ export const CHAT_COPY = {
 
 export const TOOL_FAILURES_COPY = {
   questStatus: "Your construct couldn’t request the quest status change.",
-  createQuest: "Your construct couldn't create the quest.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
   changePlan: "Your construct couldn't change the quest's plan.",
@@ -36,16 +35,6 @@ export const TOOL_FAILURES_COPY = {
 // The spell cast shown in the construct's reply.
 export const CAST_SPELL_COPY = {
   cast: (name: string): string => `Cast ${name}`,
-} as const;
-
-// The quest the construct offers in Chat, or, in a result saved before
-// offers, the quest it created or why it created none.
-export const CREATE_QUEST_COPY = {
-  offered: (name: string): string => `Suggested quest: ${name}`,
-  created: (name: string): string => `Created the quest “${name}”`,
-  openQuest: "Open the quest",
-  claudeUnavailable:
-    "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
 } as const;
 
 // What the new-quest and new-chat forms say when Claude can't write the new

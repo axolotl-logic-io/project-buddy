@@ -1,8 +1,7 @@
-// Quests' and Chat's continuing conversations, in the test database with
-// the local construct engine: one per quest and one private Chat per user, found or
-// made atomically, never made by reading, open to the quest's people or to
-// the Chat's user alone, and the user's one Dailies quest, reused by its
-// mark whatever its name.
+// Quests' continuing conversations, in the test database with the local
+// construct engine: one per quest, found or made atomically, never made by
+// reading, open to the quest's owner alone, and the user's one Dailies
+// quest, reused by its mark whatever its name.
 
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -10,7 +9,6 @@ import type { User } from "@/accounts/users-store.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
-import { resolveConversation } from "@/conversations/resolve.ts";
 import {
   readQuestConversation,
   startQuest,
@@ -33,7 +31,6 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   messageText,
@@ -130,7 +127,7 @@ describe("a quest's conversation", () => {
     expect(await readQuestConversation(her.id, quest.id)).toBeUndefined();
   });
 
-  test("a former member can't send to, open or resolve the owner's conversation", async () => {
+  test("a former member can't send to or open the owner's conversation", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
     const quest = await data.quest();
@@ -144,11 +141,6 @@ describe("a quest's conversation", () => {
     expect(await listMessages(owner.id, chat.id)).toEqual(before);
     expect(await readQuestConversation(member.id, quest.id)).toBeUndefined();
     expect(await getChat(member.id, chat.id)).toBeUndefined();
-    expect(await resolveConversation(member.id, chat.id)).toBeUndefined();
-    expect(await resolveConversation(owner.id, chat.id)).toEqual({
-      kind: "quest",
-      questId: quest.id,
-    });
   });
 });
 
@@ -200,28 +192,6 @@ describe("a long conversation", () => {
     expect(messageText((await listMessages(user.id, chat.id))[0])).toContain(
       "oldkeyword",
     );
-  });
-});
-
-describe("the private Chat", () => {
-  test("its user returns to the same conversation, which no one else can reach", async () => {
-    const { her, other } = await twoUsers();
-
-    const [first, second] = await Promise.all([
-      privateChat(her.id),
-      privateChat(her.id),
-    ]);
-    const later = await privateChat(her.id);
-    const theirs = await privateChat(other.id);
-
-    expect(second.id).toBe(first.id);
-    expect(later.id).toBe(first.id);
-    expect(first.quest).toBeUndefined();
-    expect(await listMessages(her.id, first.id)).toEqual([]);
-    expect(theirs.id).not.toBe(first.id);
-    expect(await getChat(other.id, first.id)).toBeUndefined();
-    expect(await resolveConversation(other.id, first.id)).toBeUndefined();
-    expect(await resolveConversation(her.id, first.id)).toBeUndefined();
   });
 });
 

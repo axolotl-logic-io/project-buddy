@@ -1,5 +1,5 @@
 // The construct's system prompt: the rules for several people go in the chat's
-// own part, after where the chat is, in a chat where more than one person
+// own part, after its quest, in a chat where more than one person
 // has written, and every other chat's prompt is exactly what it was, with
 // the shared, cached part unchanged in both. The user's spells go in the
 // shared, cached part, one line each, with {{name}} as the user's name.
@@ -10,6 +10,7 @@ import {
   getConstruct,
   snapshotOf,
 } from "@/constructs/index.ts";
+import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type ReplyPromptContext,
@@ -17,7 +18,7 @@ import {
 } from "@/replies/system-prompt.ts";
 
 const CONTEXT: ReplyPromptContext = {
-  quest: undefined,
+  quest: { name: "Birdhouse", plan: EMPTY_PLAN, milestones: [] },
   construct: snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
   userName: "Sam",
 };

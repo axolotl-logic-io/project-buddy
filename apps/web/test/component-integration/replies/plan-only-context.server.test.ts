@@ -20,8 +20,8 @@ test("use_case_ask_whats_next", async () => {
   expect(prompt).not.toContain("<quest_goal>");
   expect(prompt).not.toContain("<quest_preferences>");
   expect(prompt).not.toContain("<quest_memory>");
-  expect(Object.keys(chatTools(chat.quest.id))).toContain("change_plan");
+  expect(Object.keys(chatTools())).toContain("change_plan");
   for (const tool of ["set_goal", "change_preferences", "update_memory"]) {
-    expect(Object.keys(chatTools(chat.quest.id))).not.toContain(tool);
+    expect(Object.keys(chatTools())).not.toContain(tool);
   }
 });

@@ -12,12 +12,10 @@ import {
   type Tool,
 } from "ai";
 import type { Chat } from "@/chats/chat-rows.ts";
-import type { MessageId, QuestId, UserId } from "@/ids.ts";
+import type { MessageId, UserId } from "@/ids.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { changePlanTool } from "@/replies/tools/change-plan.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
-import { createQuestTool } from "@/replies/tools/create-quest.ts";
-import { CREATE_QUEST_TOOL } from "@/replies/tools/create-quest-contract.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
@@ -29,16 +27,12 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 // tool set must be a plain record.
 type ChatTools = Readonly<{
   [CAST_SPELL_TOOL]: typeof castSpellTool;
-  [CREATE_QUEST_TOOL]: typeof createQuestTool;
   [CHANGE_PLAN_TOOL]: typeof changePlanTool;
   [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
   [QUEST_STATUS_TOOL]: typeof questStatusTool;
 }>;
 
-type ChatToolName = keyof ChatTools;
-
-// The chat a reply is in: its id, its quest, undefined in a standalone
-// chat, and its construct, which a quest it starts takes.
+// The chat a reply is in: its id, its quest and its construct.
 type ChatToolsChat = Pick<Chat, "id" | "quest" | "construct">;
 
 // What one request sets on a tool: its provider options, such as a cache
@@ -55,58 +49,17 @@ function withSettings<ChatTool extends Tool>(
   return { ...chatTool, ...settings };
 }
 
-// The tools a chat in a quest, or in none when questId is undefined, can
-// call: every tool, but change_plan, record_milestone and
-// request_quest_status only in a quest, and create_quest only in Chat,
-// the one conversation that can be turned into a quest.
-function activeChatTools(questId: QuestId | undefined): ChatToolName[] {
-  const tools: ChatToolName[] = [CAST_SPELL_TOOL];
-  if (questId === undefined) {
-    tools.push(CREATE_QUEST_TOOL);
-  } else {
-    tools.push(CHANGE_PLAN_TOOL, RECORD_MILESTONE_TOOL, QUEST_STATUS_TOOL);
-  }
-  return tools;
-}
-
-// The cache breakpoint, on the last tool the chat can call.
-function breakpointOn(
-  tool: ChatToolName,
-  active: readonly ChatToolName[],
-): ToolSettings {
-  if (active.at(-1) !== tool) {
-    return {};
-  }
-  return { providerOptions: PROMPT_CACHE_BREAKPOINT };
-}
-
-// The tools for one request in a chat in a quest, or in none when
-// questId is undefined, in the order the provider gets them. The last tool the chat can call ends the tools with a
-// cache breakpoint, so they stay cached when a part in the system prompt
-// after them changes.
-function chatTools(questId: QuestId | undefined): ChatTools {
-  const active = activeChatTools(questId);
+// The tools for one request, in the order the provider gets them. The last
+// tool ends the tools with a cache breakpoint, so they stay cached when a
+// part in the system prompt after them changes.
+function chatTools(): ChatTools {
   return {
-    [CAST_SPELL_TOOL]: withSettings(
-      castSpellTool,
-      breakpointOn(CAST_SPELL_TOOL, active),
-    ),
-    [CREATE_QUEST_TOOL]: withSettings(
-      createQuestTool,
-      breakpointOn(CREATE_QUEST_TOOL, active),
-    ),
-    [CHANGE_PLAN_TOOL]: withSettings(
-      changePlanTool,
-      breakpointOn(CHANGE_PLAN_TOOL, active),
-    ),
-    [RECORD_MILESTONE_TOOL]: withSettings(
-      recordMilestoneTool,
-      breakpointOn(RECORD_MILESTONE_TOOL, active),
-    ),
-    [QUEST_STATUS_TOOL]: withSettings(
-      questStatusTool,
-      breakpointOn(QUEST_STATUS_TOOL, active),
-    ),
+    [CAST_SPELL_TOOL]: castSpellTool,
+    [CHANGE_PLAN_TOOL]: changePlanTool,
+    [RECORD_MILESTONE_TOOL]: recordMilestoneTool,
+    [QUEST_STATUS_TOOL]: withSettings(questStatusTool, {
+      providerOptions: PROMPT_CACHE_BREAKPOINT,
+    }),
   };
 }
 
@@ -145,24 +98,22 @@ type ChatToolCalls = Pick<
 > & { readonly steps: PromiseLike<ChatToolStep[]> };
 
 // Streams model calls with settings and the tools of reply's chat. Each tool
-// that declares a context gets the acting user, the chat, its quest, if any, and
-// its construct.
+// that declares a context gets the acting user, the chat, its quest and its
+// construct.
 function streamChatToolCalls(
   { actingUser, chat, answeredId }: ChatToolsReply,
   settings: ChatToolCallSettings,
 ): ChatToolCalls {
-  const questId = chat.quest?.id;
   const context = {
     actingUser,
     chatId: chat.id,
-    questId,
+    questId: chat.quest.id,
     construct: chat.construct,
     answeredId,
   };
   return streamText({
     ...settings,
-    tools: chatTools(questId),
-    activeTools: activeChatTools(questId),
+    tools: chatTools(),
     toolsContext: {
       [CAST_SPELL_TOOL]: context,
       [CHANGE_PLAN_TOOL]: context,

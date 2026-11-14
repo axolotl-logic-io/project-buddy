@@ -14,9 +14,6 @@ interface CommandListing {
 
 interface ChatCommands {
   readonly listings: readonly CommandListing[];
-  // Whether the adventure is in a quest; outside one, only the plan
-  // commands' names run as commands (isChatCommand).
-  readonly inQuest: boolean;
   // Runs the command and answers with why it did nothing, or undefined once
   // it ran.
   readonly run: (text: string) => Promise<string | undefined>;
