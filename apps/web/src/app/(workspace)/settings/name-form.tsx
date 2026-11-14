@@ -65,6 +65,7 @@ export function NameForm({
           label={ACCOUNT_COPY.nameLabel}
           maxLength={USER_NAME_MAX_LENGTH}
           name="name"
+          required={true}
           onChange={updateDraft}
           type="text"
           value={draft}

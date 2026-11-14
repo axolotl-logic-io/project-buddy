@@ -39,7 +39,7 @@ function TrailBand({
         <nav aria-label={SITE_COPY.breadcrumbs} className="trail-parents">
           <ol>
             {parents.map((parent) => (
-              <li key={parent.href}>
+              <li key={`${parent.href}/${parent.label}`}>
                 <Link href={parent.href} title={parent.label}>
                   {parent.label}
                 </Link>

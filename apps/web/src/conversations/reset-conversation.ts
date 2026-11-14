@@ -73,6 +73,7 @@ async function resetConversation(
         ...previous,
         id: nextId,
         spell: null,
+        spellSnapshot: null,
         continuing: false,
         createdAt: new Date(),
       });

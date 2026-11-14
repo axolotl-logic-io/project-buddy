@@ -1,12 +1,12 @@
-# Retirement
+# Graveyard
 
-Retirement puts aside the user's own constructs, activities, and spells without losing their definitions. The [glossary](../GLOSSARY.md#retire-retirement-restore-delete-forever) defines the words. [Issue #728](https://github.com/axolotl-logic-io/project-buddy/issues/728) records the approved behavior; the [interactive mockups](mockups/retirement-manager.html) record the design direction.
+Graveyard puts aside the user's own constructs and spells without losing their definitions. The [glossary](../GLOSSARY.md#retire-graveyard-restore-delete-forever) defines the words. [Issue #728](https://github.com/axolotl-logic-io/project-buddy/issues/728) records the approved behavior; the [interactive mockups](mockups/retirement-manager.html) record the design direction.
 
 ## Retire
 
 Each private definition in Workshop has Retire beside Edit and Make a copy. An own definition's editing page also has Retire. Built-in definitions cannot be retired.
 
-Retire removes the definition from active collections, new-adventure choices, model activity choices, and future spell casts. Stale edit, clone, and start requests cannot use it. Existing adventure snapshots and past casts retain their instructions. A completion message links the user to Retirement through the collection's Retirement link.
+Retire removes the definition from active collections, new-adventure choices, model activity choices, and future spell casts. Stale edit, clone, and start requests cannot use it. Existing adventure snapshots and past casts retain their instructions. A completion message links the user to Graveyard through the collection's Graveyard link.
 
 If the preferred interview construct is retired, new quests use Vellum. Restoring it makes the saved preference available again. Existing adventures keep their construct snapshots.
 
@@ -18,7 +18,7 @@ View opens `/retirement/ID`, with the saved instructions as read-only text. Rest
 
 Delete forever asks for confirmation naming the definition. Keep retired cancels. Confirming permanently removes the original, while existing adventure snapshots and past casts remain. A deletion request refuses an active definition, including one restored after the confirmation opened. Unknown and repeated requests change nothing. Originals permanently deleted before this feature cannot be recovered.
 
-Only the definition's owner can read or change it. A former quest membership gives no access to another user's originals or Retirement.
+Only the definition's owner can read or change it. A former quest membership gives no access to another user's originals or Graveyard.
 
 ## Bought copies
 
@@ -26,8 +26,8 @@ A copy bought in the Marketplace before it was removed is an ordinary own defini
 
 ## Storage and release
 
-The shared `own_prompts` table has a nullable `retired_at` column. Normal definition reads and edits require it to be null. Retirement reads and permanent-deletion actions require it to be set. Retiring twice preserves the first date; restoring clears it. Ownership predicates scope every query.
+The shared `own_prompts` table has a nullable `retired_at` column. Normal definition reads and edits require it to be null. Graveyard reads and permanent-deletion actions require it to be set. Retiring twice preserves the first date; restoring clears it. Ownership predicates scope every query.
 
 Migration `0040_charming_tattoo` is additive. Existing rows stay active and old builds can still read and write the table during deployment. An old build does not understand retirement: rolling back the code can expose retired definitions in active lists until a retirement-aware build is restored. The migration itself is not reverted by a code rollback.
 
-Retirement dates use the browser’s local day. On phones, names use the card width and actions wrap below them. Search uses a labelled text field with the shared input styling and touch target.
+Graveyard dates use the browser’s local day. On phones, names use the card width and actions wrap below them. Search uses a labelled text field with the shared input styling and touch target.

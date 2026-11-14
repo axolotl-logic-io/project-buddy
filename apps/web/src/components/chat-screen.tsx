@@ -57,7 +57,8 @@ function ChatScreen({
   const { construct } = conversation;
   let spellName: string | undefined;
   if (conversation.spell !== undefined) {
-    spellName = getSpell(conversation.spell).name;
+    spellName =
+      conversation.activeSpell?.name ?? getSpell(conversation.spell).name;
   }
   let heading = header;
   if (heading === undefined) {

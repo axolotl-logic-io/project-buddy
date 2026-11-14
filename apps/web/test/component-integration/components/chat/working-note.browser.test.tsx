@@ -1,4 +1,4 @@
-// "use_case_see_working_note" in use-cases/chats.md, in Chromium and WebKit:
+// Regression coverage for saved working note rendering.
 // the parts the mock construct's `/mock-working-note zibble` streams, a note, a
 // search of the manual for "zibble", then the answer. The note shows quiet
 // (smaller, in another colour) and labelled before the search, and the answer
@@ -179,7 +179,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("use_case_see_working_note", () => {
+describe("saved working note rendering", () => {
   test("the note shows quiet and labelled before the search, live and saved alike", async () => {
     vi.stubGlobal(
       "fetch",

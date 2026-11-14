@@ -3,9 +3,9 @@ export const ACCOUNT_COPY = {
   loading: "Loading Settings…",
   nameHeading: "Your name",
   nameLabel: "Name",
-  nameHint:
-    "What your constructs call you. A construct uses your name wherever its instructions say {{name}}. Leave it empty and it says “the user” instead.",
+  nameHint: "Used by {{name}} in spell replies.",
   saveName: "Save",
+  nameRequired: "Enter your name.",
   nameSaved: "Saved",
   nameMultiLine: "A name is one line. Take out the line break.",
   nameTooLong: (maxLength: number): string =>

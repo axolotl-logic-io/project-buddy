@@ -3,11 +3,7 @@
 // changes and plan cards in it, and the composer's commands. The plan has no
 // deadlines and never nags: no counts of open steps or days.
 
-import {
-  MOST_OPEN_STEPS,
-  PLAN_STEP_TEXT_MAX_LENGTH,
-  type PlanChangeLine,
-} from "@/plan/plan.ts";
+import { PLAN_STEP_TEXT_MAX_LENGTH, type PlanChangeLine } from "@/plan/plan.ts";
 import type { CommandProblem, PlanCommandName } from "@/plan/plan-commands.ts";
 
 function quoted(text: string): string {
@@ -93,7 +89,6 @@ export const PLAN_COPY = {
   failed: {
     "missing-step":
       "That step isn't in the plan any more. The plan now shows the latest steps.",
-    "too-many-steps": `The plan holds ${MOST_OPEN_STEPS} open steps at most. Finish or remove one first.`,
     unchanged: "Nothing changed.",
     "already-undone": "That change was undone already.",
     "no-such-change": "There's no change to undo.",

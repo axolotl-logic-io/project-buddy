@@ -36,6 +36,7 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
 }));
 
 const QUEST_START = /Start a quest/u;
+const BUILT_IN_SPELL_NAMES = /^(?:Plan|Brainstorm)$/u;
 const COPY_ACTION = /^Make a copy of /u;
 const OLD_ACTION = /^(?:Craft|Customize|Clone|Tweak|Start a quest)/u;
 
@@ -83,9 +84,7 @@ describe("use_case_workshop_page", () => {
   });
   test("shows Constructs first, with a tab for each kind", async () => {
     await showWorkshop();
-    await expect
-      .element(page.getByText(WORKSHOP_PAGE_COPY.intro))
-      .toBeVisible();
+    await expect.element(page.getByText(CONSTRUCTS_COPY.intro)).toBeVisible();
     expect(
       page.getByRole("heading", { level: 1 }).query(),
       "the trail band, not the page, names it",
@@ -155,7 +154,30 @@ describe("use_case_workshop_page", () => {
     },
   );
 
-  test("the Spells tab offers two spells without creation or copy controls", async () => {
+  test.each([
+    {
+      kind: "construct",
+      button: "Create construct",
+      heading: "Built-in constructs",
+    },
+    { kind: "spell", button: "Create spell", heading: "Built-in spells" },
+  ])(
+    "$kind creation appears before the collection",
+    async ({ kind, button, heading }) => {
+      await showWorkshop(kind);
+      const create = page.getByRole("button", { name: button, exact: true });
+      await expect.element(create).toBeVisible();
+      const collection = page.getByRole("heading", {
+        name: heading,
+        exact: true,
+      });
+      expect(
+        create.element().getBoundingClientRect().bottom,
+      ).toBeLessThanOrEqual(collection.element().getBoundingClientRect().top);
+    },
+  );
+
+  test("the Spells tab offers built-ins with creation and copying", async () => {
     await showWorkshop("spell");
     await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
     await expect
@@ -170,18 +192,20 @@ describe("use_case_workshop_page", () => {
     );
     await expect
       .element(page.getByRole("button", { name: "Create spell" }))
-      .not.toBeInTheDocument();
+      .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: COPY_ACTION }))
-      .not.toBeInTheDocument();
+      .element(
+        page.getByRole("button", { name: "Make a copy", exact: true }).first(),
+      )
+      .toBeVisible();
   });
 
-  test("the Spells tab contains exactly Plan and Brainstorm", async () => {
+  test("the Spells tab offers built-in spells and custom creation", async () => {
     await showWorkshop("spell");
     await expect.element(tab("spell")).toHaveAttribute("aria-current", "page");
-    expect(page.getByRole("list").last().getByRole("link").all()).toHaveLength(
-      2,
-    );
+    expect(
+      page.getByRole("link", { name: BUILT_IN_SPELL_NAMES }).all(),
+    ).toHaveLength(2);
     await expect
       .element(page.getByRole("link", { name: "Plan", exact: true }))
       .toHaveAttribute("href", "/spellbook/plan");
@@ -266,3 +290,15 @@ test("Workshop keeps private constructs in the store’s oldest-first order", as
       .map((link) => link.textContent),
   ).toEqual(["Zebra guide", "Edit", "Alpine guide", "Edit"]);
 });
+
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  castSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
+  cloneSpellAction: vi.fn(),
+  saveSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
+}));
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  findSpell: vi.fn().mockResolvedValue(undefined),
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+}));

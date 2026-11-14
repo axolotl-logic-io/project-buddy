@@ -11,6 +11,12 @@ import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { OWN_PROMPT_ID, parseOwnPromptId, type UserId } from "@/ids.ts";
 import { type PromptKind, STORED_PROMPT_KIND } from "@/prompts/prompt.ts";
+import {
+  SPELL_DEFINITION,
+  SPELL_RESPONSE_KEYS,
+  type SpellResponseKey,
+} from "@/spells/spell-definition.ts";
+import { spellDestinationLabel } from "@/spells/spell-destination.ts";
 
 const RETIRED_ROW = z.object({
   id: OWN_PROMPT_ID,
@@ -20,7 +26,7 @@ const RETIRED_ROW = z.object({
 });
 type RetiredDefinition = z.infer<typeof RETIRED_ROW>;
 interface RetiredText {
-  readonly name: "prompt";
+  readonly name: "visualDescription" | "destination" | SpellResponseKey;
   readonly text: string;
 }
 interface RetiredDetail extends RetiredDefinition {
@@ -51,12 +57,29 @@ async function listRetiredDefinitions(
   });
 }
 
-function textsOf(stored: unknown): RetiredText[] | undefined {
+function textsOf(stored: unknown, kind: PromptKind): RetiredText[] | undefined {
+  if (kind === "spell") {
+    const spell = SPELL_DEFINITION.safeParse(stored);
+    if (!spell.success) {
+      return undefined;
+    }
+    const destination = spellDestinationLabel(spell.data.destination);
+    return [
+      { name: "destination", text: destination },
+      ...SPELL_RESPONSE_KEYS.map((name) => ({
+        name,
+        text: spell.data[name].join("\n\n"),
+      })),
+    ];
+  }
   const parsed = parseConstructDefinition(stored);
   if (parsed === undefined) {
     return undefined;
   }
-  return [{ name: "prompt", text: parsed.prompt }];
+  if (parsed.visual === undefined) {
+    return [];
+  }
+  return [{ name: "visualDescription", text: parsed.visual.description }];
 }
 
 async function getRetiredDefinition(
@@ -83,7 +106,7 @@ async function getRetiredDefinition(
   if (!parsed.success || row === undefined) {
     return;
   }
-  const texts = textsOf(row.parts);
+  const texts = textsOf(row.parts, parsed.data.kind);
   if (texts === undefined) {
     return;
   }

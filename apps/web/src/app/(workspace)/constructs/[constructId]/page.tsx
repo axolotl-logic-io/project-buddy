@@ -5,7 +5,6 @@ import { cache } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructVisualPreview } from "@/components/constructs/construct-visual-preview.tsx";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
-import { PromptText } from "@/components/prompt-text.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
@@ -13,7 +12,6 @@ import {
   getOwnConstruct,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
-import { constructResetPrompt } from "@/constructs/default-prompt.ts";
 import {
   type Construct,
   getConstruct,
@@ -22,17 +20,11 @@ import {
 import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
-import {
-  CONSTRUCT_COPY,
-  CONSTRUCT_DEFINITION_COPY,
-  CONSTRUCTS_COPY,
-} from "@/ui/copy/constructs.ts";
+import { CONSTRUCT_COPY, CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 import { editBuiltInConstructAction, saveConstructAction } from "../actions.ts";
 import { RetireConstructForm } from "../retire-construct-form.tsx";
-
-const PROMPT_HEADING_ID = "construct-parts-heading";
 
 function BuiltInConstruct({
   construct,
@@ -55,20 +47,6 @@ function BuiltInConstruct({
           {construct.definition.visual?.description}
         </p>
         <ConstructVisualPreview construct={construct} />
-      </section>
-      <section
-        aria-labelledby={PROMPT_HEADING_ID}
-        className="flex flex-col gap-4"
-      >
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.constructFieldsHeading}
-        </h2>
-        <PromptText
-          editable={false}
-          name="prompt"
-          text={construct.definition.prompt}
-          {...CONSTRUCT_DEFINITION_COPY.prompt}
-        />
       </section>
     </>
   );
@@ -93,7 +71,6 @@ function OwnConstructForm({
   // Artwork attachments must not invalidate an otherwise current browser draft.
   const draftRevision = JSON.stringify([
     construct.name,
-    construct.definition.prompt,
     construct.definition.visual?.description ?? "",
   ]);
   return (
@@ -101,8 +78,8 @@ function OwnConstructForm({
       <p className="text-muted">{CONSTRUCT_COPY.ownIntro}</p>
       <PromptEditor
         action={saveConstructAction}
-        defaultPrompt={constructResetPrompt(construct.clonedFrom).prompt}
-        heading={PROMPT_COPY.constructFieldsHeading}
+        defaultPrompt={undefined}
+        heading={VISUAL_COPY.heading}
         idName="constructId"
         key={draftRevision}
         kind="construct"
@@ -111,11 +88,6 @@ function OwnConstructForm({
         savedAt={draftRevision}
         viewer={viewer}
         texts={[
-          {
-            name: "prompt",
-            text: construct.definition.prompt,
-            ...CONSTRUCT_DEFINITION_COPY.prompt,
-          },
           {
             name: "visualDescription",
             text: construct.definition.visual?.description ?? "",

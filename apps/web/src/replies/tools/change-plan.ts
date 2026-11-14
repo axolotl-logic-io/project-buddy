@@ -49,7 +49,7 @@ async function changeChatPlan(
     // other reason reads as the plan unchanged.
     const { reason: found } = outcome;
     let reason: PlanFailure = "unchanged";
-    if (found === "missing-step" || found === "too-many-steps") {
+    if (found === "missing-step") {
       reason = found;
     }
     return { status: "not-changed", reason, plan: outcome.state.plan };

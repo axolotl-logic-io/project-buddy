@@ -17,21 +17,18 @@ import {
   type StartQuestState,
   startQuestAction,
 } from "@/app/(workspace)/quests/actions.ts";
-import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { type ConstructId, isConstructId } from "@/constructs/index.ts";
-import type { OwnPromptId, QuestId } from "@/ids.ts";
+import type { QuestId } from "@/ids.ts";
 import {
   PREMADE_QUESTS,
   type PremadeQuest,
   type PremadeQuestId,
   type QuestStartPreset,
 } from "@/quests/premade-quests.ts";
-import type { QuestCreationChoices } from "@/quests/quest-creation-choices.ts";
 import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 const IDLE: StartQuestState = { kind: "idle" };
@@ -52,31 +49,14 @@ function submitQuest(
   startTransition(() => start(data));
 }
 
-// The construct to show first: the preset's, if it is one the user can
-// choose, or else their New quest preference.
-function presetConstructId(
-  choices: QuestCreationChoices,
-  { constructId }: QuestStartPreset,
-): ConstructId | OwnPromptId {
-  if (constructId !== undefined && isConstructId(constructId)) {
-    return constructId;
-  }
-  return (
-    choices.userConstructs.find(({ id }) => id === constructId)?.id ??
-    choices.preferredConstructId
-  );
-}
-
-// Starts the selected quest with a construct and, except for Dailies,
+// Starts the selected quest with its assigned construct and, except for Dailies,
 // optional Why. Its name and starting context come from the starting
 // point or Chat's preset.
 function QuestStartForm({
   quest,
-  choices,
   preset,
 }: {
   readonly quest: PremadeQuest;
-  readonly choices: QuestCreationChoices;
   readonly preset: QuestStartPreset;
 }): JSX.Element {
   const [state, action, pending] = useActionState(startQuestAction, IDLE);
@@ -85,15 +65,10 @@ function QuestStartForm({
   if (pending) {
     status = QUEST_START_COPY.starting;
   }
-  const defaultConstructId = presetConstructId(choices, preset);
   return (
     <form className="flex flex-col gap-5" onSubmit={onSubmit}>
       <p className="text-muted">{quest.description}</p>
       <input type="hidden" name="premadeId" value={quest.id} />
-      <ConstructPicker
-        defaultConstructId={defaultConstructId}
-        userConstructs={choices.userConstructs}
-      />
       {quest.id !== "dailies" && (
         <TextAreaField
           label={QUESTS_COPY.motivationLabel}
@@ -163,14 +138,12 @@ function QuestStartTile({
   quest,
   dailiesId,
   onChoose,
-  choices,
   preset,
   presentation,
 }: {
   readonly quest: PremadeQuest;
   readonly dailiesId: QuestId | undefined;
   readonly onChoose: (id: PremadeQuestId) => void;
-  readonly choices: QuestCreationChoices;
   readonly preset: QuestStartPreset;
   readonly presentation: "dialog" | "inline";
 }): JSX.Element {
@@ -214,7 +187,7 @@ function QuestStartTile({
             </button>
           }
         >
-          <QuestStartForm quest={quest} choices={choices} preset={preset} />
+          <QuestStartForm quest={quest} preset={preset} />
         </FormDialog>
       </li>
     );
@@ -239,13 +212,11 @@ function QuestStartTile({
 // Presets carry the Chat's summary; Dailies isn't offered with one.
 // An existing Dailies opens directly. Browsing and cancelling save nothing.
 function QuestStartChoices({
-  choices,
   preset = NO_PRESET,
   initialChoice,
   dailiesId,
   presentation = "dialog",
 }: {
-  readonly choices: QuestCreationChoices;
   readonly preset?: QuestStartPreset;
   readonly presentation?: "dialog" | "inline";
   readonly initialChoice?: PremadeQuestId | undefined;
@@ -290,7 +261,7 @@ function QuestStartChoices({
             {QUEST_START_COPY.back}
           </Button>
         </div>
-        <QuestStartForm quest={shown} choices={choices} preset={preset} />
+        <QuestStartForm quest={shown} preset={preset} />
       </section>
     );
   }
@@ -311,7 +282,6 @@ function QuestStartChoices({
             quest={offering}
             dailiesId={dailiesId}
             onChoose={show}
-            choices={choices}
             preset={preset}
             presentation={presentation}
           />

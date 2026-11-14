@@ -4,10 +4,10 @@ import { connection } from "next/server";
 import type { JSX } from "react";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { readSignUpEmail } from "@/accounts/sign-up-links.ts";
-import { continueSignInAction } from "@/app/login/link/actions.ts";
+import { ContinueForm } from "@/app/login/link/continue-form.tsx";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { localPath, SIGN_IN_DESTINATION_PARAMETER } from "@/routes.ts";
+import { localPath } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 
 // The token a link gives once; a repeated or missing one reads as empty,
@@ -50,19 +50,14 @@ export default async function SignInLinkPage({
       </SignInPanel>
     );
   }
+  let intro: string = LINK_PAGE_COPY.intro;
+  const signup = user === undefined;
+  if (signup) {
+    intro = LINK_PAGE_COPY.signupIntro;
+  }
   return (
-    <SignInPanel intro={LINK_PAGE_COPY.intro}>
-      <form action={continueSignInAction} className="flex flex-col">
-        <input name="token" type="hidden" value={token} />
-        {destination !== undefined && (
-          <input
-            name={SIGN_IN_DESTINATION_PARAMETER}
-            type="hidden"
-            value={destination}
-          />
-        )}
-        <Button type="submit">{LINK_PAGE_COPY.continue}</Button>
-      </form>
+    <SignInPanel intro={intro}>
+      <ContinueForm token={token} destination={destination} signup={signup} />
     </SignInPanel>
   );
 }

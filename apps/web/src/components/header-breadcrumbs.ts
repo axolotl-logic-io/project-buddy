@@ -6,11 +6,12 @@ import { getConstruct, isConstructId } from "@/constructs/index.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
+import { findSpell } from "@/spells/own-spell-store.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
   readonly quest?: Pick<Quest, "id" | "name">;
@@ -28,11 +29,14 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
     [
       "constructs",
-      { label: WORKSHOP_COPY.heading, href: workshopPath("construct") },
+      {
+        label: WORKSHOP_PAGE_COPY.kinds.construct,
+        href: workshopPath("construct"),
+      },
     ],
     [
       "spellbook",
-      { label: WORKSHOP_COPY.heading, href: workshopPath("spell") },
+      { label: WORKSHOP_PAGE_COPY.kinds.spell, href: workshopPath("spell") },
     ],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
@@ -55,10 +59,7 @@ async function headerBreadcrumbs(
     if (root === undefined) {
       return [];
     }
-    if (section === "quests") {
-      return [{ label: root.label }];
-    }
-    return [QUESTS, { label: root.label }];
+    return [{ label: root.label }];
   }
   if (section === "quests") {
     if (path.length > CHILD_DEPTH || child !== undefined) {
@@ -87,6 +88,8 @@ async function headerBreadcrumbs(
     const parsed = SPELL_ID.safeParse(id);
     if (parsed.success) {
       ({ name } = getSpell(parsed.data));
+    } else {
+      name = (await findSpell(user.id, id))?.name;
     }
   } else if (section === "retirement") {
     name = (await getRetiredDefinition(user.id, id))?.name;
@@ -94,7 +97,14 @@ async function headerBreadcrumbs(
   if (name === undefined) {
     return [];
   }
-  return [QUESTS, root, { label: name }];
+  if (section === "constructs" || section === "spellbook") {
+    return [
+      { label: WORKSHOP_COPY.heading, href: "/workshop" },
+      root,
+      { label: name },
+    ];
+  }
+  return [root, { label: name }];
 }
 
 export { headerBreadcrumbs };

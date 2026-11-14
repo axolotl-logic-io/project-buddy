@@ -38,6 +38,7 @@ import {
   getRetiredDefinition,
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
+import { findSpell, getOwnSpell } from "@/spells/own-spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -58,6 +59,7 @@ import {
 import {
   GOLD_BALANCE,
   LINK_USER,
+  OWN_SPELL,
   VELLUM_CLONE,
 } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
@@ -360,6 +362,17 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(noData, () => spellPage("plan")),
   },
   {
+    name: "an own spell editor",
+    path: ["spellbook", OWN_SPELL.id],
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnSpell).mockResolvedValue(OWN_SPELL);
+        vi.mocked(findSpell).mockResolvedValue(OWN_SPELL);
+      },
+      () => spellPage(OWN_SPELL.id),
+    ),
+  },
+  {
     name: "Brainstorm spell",
     path: ["spellbook", "brainstorm"],
     render: workspacePage(noData, () => spellPage("brainstorm")),
@@ -376,6 +389,19 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: projectPageFor("progress"),
   },
 ];
+
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  castSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
+  cloneSpellAction: vi.fn(),
+  saveSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
+}));
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  getOwnSpell: vi.fn(),
+  findSpell: vi.fn().mockResolvedValue(undefined),
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+}));
 
 export type { PhonePage };
 export { PHONE_PAGES };

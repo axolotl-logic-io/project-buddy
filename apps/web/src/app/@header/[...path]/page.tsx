@@ -1,26 +1,10 @@
 import type { JSX } from "react";
-import { currentUser } from "@/auth/current-user.ts";
-import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
-import { QuestTitle } from "@/components/quest-title.tsx";
-import { SignedInLinks } from "@/components/site-header.tsx";
+import { HeaderLinksAt } from "@/components/header-links.tsx";
 
-// The header links, and the trail band whose last item is the page's
-// heading, for each page.
+// Resolve the catch-all header for detail and public routes.
 export default async function HeaderLinks({
   params,
 }: PageProps<"/[...path]">): Promise<JSX.Element> {
   const { path } = await params;
-  const user = await currentUser();
-  let breadcrumbs: readonly Breadcrumb[] = [];
-  if (user !== undefined) {
-    const resolved = await headerBreadcrumbs(user, path);
-    breadcrumbs = resolved.map((item) => {
-      if (item.quest === undefined) {
-        return item;
-      }
-      return { ...item, action: <QuestTitle quest={item.quest} /> };
-    });
-  }
-  return SignedInLinks({ breadcrumbs });
+  return HeaderLinksAt({ path });
 }

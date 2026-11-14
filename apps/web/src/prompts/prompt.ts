@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const PROMPT_KINDS = ["construct"] as const;
+const PROMPT_KINDS = ["construct", "spell"] as const;
 
 type PromptKind = (typeof PROMPT_KINDS)[number];
 

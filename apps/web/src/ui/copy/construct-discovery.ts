@@ -7,8 +7,7 @@ const CONSTRUCT_DISCOVERY_COPY = {
   temperament: "Temperament",
   approach: "Approach to quests",
   own: {
-    temperament:
-      "A character of your own, with a voice shaped by its saved instructions.",
+    temperament: "A construct of your own, with its saved name and appearance.",
     approach:
       "Explore ideas, ask questions and work through your next step together.",
     sample: "Where would you like to begin?",

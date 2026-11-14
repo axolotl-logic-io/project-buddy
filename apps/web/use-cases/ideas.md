@@ -14,4 +14,4 @@
 
 - **Intent:** Route messages using the active spell.
 - **Interaction:** Enter `brainstorm`, send ideas, enter `plan`, send agreed steps, then use Stop [Spell] beside the composer.
-- **Outcome:** Each ordinary message goes into its current bucket. Commands accept a leading slash and ignore case. Stop returns to Chat. Changing Activity preserves earlier items. Retrying a captured message creates no duplicate. Other users cannot route messages into this conversation's buckets. Plan limits and the 200-character item limit apply without losing the conversation message.
+- **Outcome:** Each ordinary message goes into its current bucket. Commands accept a leading slash and ignore case. Stop returns to Chat. Switching spells preserves earlier items. Retrying a captured message creates no duplicate. Other users cannot route messages into this conversation's buckets. Plan and Ideas have no entry-count limit. The 200-character limit for each entry applies without losing the conversation message.

@@ -142,7 +142,7 @@ test("Delete forever names the definition, supports cancellation, and submits on
   expect((await submitted.promise).get("promptId")).toBe(RETIRED_CONSTRUCT.id);
 });
 
-test("the read-only retired view shows its saved instructions and restores the same definition", async () => {
+test("the read-only retired view shows its saved Visual description and restores the same definition", async () => {
   const submitted = Promise.withResolvers<FormData>();
   vi.mocked(restoreDefinitionAction).mockImplementation((form) => {
     submitted.resolve(form);
@@ -157,7 +157,9 @@ test("the read-only retired view shows its saved instructions and restores the s
     ),
   );
   await expect
-    .element(page.getByText("Voice: calm and curious.", { exact: false }))
+    .element(
+      page.getByText("A moss-covered clockwork guide.", { exact: false }),
+    )
     .toBeVisible();
   expect(
     page.getByRole("heading", { level: 1 }).query(),
@@ -172,7 +174,7 @@ test("the read-only retired view shows its saved instructions and restores the s
   expect((await submitted.promise).get("promptId")).toBe(RETIRED_CONSTRUCT.id);
 });
 
-test("an empty Retirement explains where retired things will appear", async () => {
+test("an empty Graveyard explains where retired things will appear", async () => {
   vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
   await renderRetirement();
   await expect.element(page.getByText(RETIREMENT_COPY.empty)).toBeVisible();
@@ -183,7 +185,7 @@ const TOUCH_TARGET_PX = 44;
 for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
   const { width } = viewport;
   for (const mode of ["light", "dark"] as const) {
-    test(`Retirement names and search remain readable at ${width}px in ${mode}`, async () => {
+    test(`Graveyard names and search remain readable at ${width}px in ${mode}`, async () => {
       applyTheme("parchment", mode);
       await setViewport(viewport);
       const name = "A very long retired construct name".repeat(

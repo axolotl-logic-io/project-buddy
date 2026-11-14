@@ -1,4 +1,4 @@
-// "use_case_chat_with_several_people" in use-cases/chats.md, against the
+// Regression coverage for saved message authors.
 // test database: a chat records who wrote each user message, reads a message
 // saved with no author as the chat owner's, and, once more than one person
 // has written in it, sends each user turn to the construct with its author's
@@ -86,7 +86,7 @@ async function samAndAlex(): Promise<{
   return { sam, alex, chat };
 }
 
-describe("use_case_chat_with_several_people", () => {
+describe("saved message authors", () => {
   test("each user message records the person who sent it", async () => {
     const { sam, alex, chat } = await samAndAlex();
     await testData(sam).exchanges(chat, [

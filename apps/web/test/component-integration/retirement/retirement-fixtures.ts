@@ -11,8 +11,8 @@ const RETIRED_CONSTRUCT: RetiredDetail = {
   retiredAt: new Date("2026-11-05T10:00:00Z"),
   texts: [
     {
-      name: "prompt",
-      text: "Voice: calm and curious.\n\nHabits: ask one question at a time.",
+      name: "visualDescription",
+      text: "A moss-covered clockwork guide.",
     },
   ],
 };
