@@ -46,7 +46,7 @@ type StartConversationState =
   | { readonly kind: "idle" }
   | {
       readonly kind: "claudeUnavailable";
-      readonly message: string;
+      readonly message: typeof OPENING_COPY.claudeUnavailable;
     };
 
 export type { EditMilestoneResult, EditMilestoneState, StartConversationState };

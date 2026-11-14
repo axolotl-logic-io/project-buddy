@@ -117,25 +117,8 @@ function newestPlanCard(messages: readonly UIMessage[]): string | undefined {
   )?.id;
 }
 
-// A chat with the construct: the saved conversation, then each new message and
-// its streamed reply. A refusal for being out of gold is kept in the view's own
-// state, not as the chat's error: while the chat has an error and no last
-// message, as when an empty chat's first message is taken back, assistant-ui
-// shows an empty reply. The chat calls onError before it records the error,
-// so the error is cleared a microtask later; the refusal's alert stays until
-// she sends again. A message that was answered already, such as one sent
-// again after a lost connection, gets no second reply: the page reloads the
-// saved conversation instead, answer included, while keeping the composer.
-// A failure that names a
-// case this build doesn't know came from a newer build, mid-deploy: the
-// page reloads once to pick that build up, and shows the unknown message if
-// it already did within the last minute (newer-build-reload.ts).
-// authorNames names the authors of the saved user messages someone else
-// wrote, by message id; every other user message is the viewer's own.
-// stoppedReplyId is the saved last message's id when its reply stopped,
-// such as after a failure before a reload: until the user sends or retries, the
-// chat says so and offers to retry the reply.
-export function ChatView({
+// A continuing conversation with streamed replies, commands and workspace sections.
+function ChatView({
   chatId,
   viewer,
   constructName,
@@ -401,3 +384,5 @@ export function ChatView({
     </AssistantRuntimeProvider>
   );
 }
+
+export { ChatView };

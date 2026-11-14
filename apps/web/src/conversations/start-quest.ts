@@ -27,14 +27,13 @@ const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
 const NOT_FOUND = { kind: "notFound" } as const;
 
 // A new quest, saved with its conversation and opening, or why nothing was
-// saved: Claude is unavailable to write the opening, or the owner is out of
-// batteries.
+// saved: the opening is unavailable.
 type StartQuestResult =
   | { readonly kind: "started"; readonly chat: QuestChat }
   | typeof CLAUDE_UNAVAILABLE;
 
 // A quest's conversation, found or started, or why it wasn't: the quest
-// isn't open to the acting user, they are out of batteries, or Claude
+// isn't open to the acting user, or the construct
 // couldn't write the opening of the conversation this call made, which is
 // then saved empty, for the user to write in first.
 type StartConversationResult =
@@ -133,7 +132,7 @@ async function startQuest(
 
 // The quest's conversation as the viewer reads it, or undefined if it has
 // none yet or the quest isn't open to them. Reading never starts one, so it
-// writes nothing and spends no batteries.
+// writes nothing.
 function readQuestConversation(
   viewer: UserId,
   questId: QuestId,

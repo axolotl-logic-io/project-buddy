@@ -138,17 +138,17 @@ test("look explains when a legacy construct has no visual description", async ()
   expect(result.toolCalls).toHaveLength(0);
 });
 
-test("use_case_ask_any_subject", async () => {
+test("ordinary prose receives command guidance", async () => {
   const result = await generateText({
     model: localConstructModel(),
-    prompt: "Help me plan a balcony garden",
+    prompt: "I want a balcony garden",
   });
   expect(result.text).toContain("Your message is saved");
   expect(result.text).toContain("Available commands");
   expect(result.toolCalls).toHaveLength(0);
 });
 
-test("use_case_same_facts_any_construct", async () => {
+test("constructs share command guidance", async () => {
   const answers = await Promise.all(
     listConstructs().map(async (construct): Promise<string> => {
       const result = await generateText({

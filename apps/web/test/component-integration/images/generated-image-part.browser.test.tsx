@@ -7,8 +7,6 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
 const ID = GENERATION_ID.parse("baaf1045-0bcb-4f49-b600-18cfeb6936f4");
 const PROMPT = "A blue bird above a forest";
-const IMAGE_RESERVATION_GOLD = 25;
-const AVAILABLE_GOLD = 20;
 const CHAT_IMAGE_HEIGHT_PX = 288;
 
 test("an adventure's generated image keeps its fixed height", async () => {
@@ -41,26 +39,3 @@ test.each(["failed", "unavailable", "outOfGold", "pending"] as const)(
     await expect.element(page.getByRole("img")).not.toBeInTheDocument();
   },
 );
-
-test("insufficient image-reservation gold explains the amounts without claiming the balance is zero", async () => {
-  await render(
-    <GeneratedImagePart
-      part={{
-        result: {
-          status: "outOfGold",
-          requiredGold: IMAGE_RESERVATION_GOLD,
-          availableGold: AVAILABLE_GOLD,
-        },
-      }}
-    />,
-  );
-  await expect
-    .element(page.getByRole("status"))
-    .toHaveTextContent(
-      GENERATION_COPY.reservationRefused(
-        IMAGE_RESERVATION_GOLD,
-        AVAILABLE_GOLD,
-      ),
-    );
-  await expect.element(page.getByRole("link")).not.toBeInTheDocument();
-});

@@ -6,7 +6,7 @@
 // request still replies to it is not answered again: each reply is made
 // under a claim on its message (claimReply in src/chats/store.ts), which
 // the request that answers releases if its reply fails. Nothing is answered
-// once the acting user is out of gold (src/quota/quota.ts). A conversation
+// A conversation
 // continues for as long as its quest does, so a reply reads only its newest
 // CONVERSATION_WINDOW messages: the quest's Plan and Progress, in
 // every reply's instructions, carry what matters from before them.
@@ -71,8 +71,7 @@ function idTaken(): ConversationToAnswer {
 // it; one another request still replies to is refused as already answered,
 // as is one with anything after it, and one missing from the history but
 // saved by another request by the time this one saves it, since that
-// request answers it. Either is refused, and a new one isn't saved, once the
-// acting user is out of gold. The caller releases the claim if its reply fails.
+// request answers it. The caller releases the claim if its reply fails.
 async function conversationToAnswer(
   actingUser: UserId,
   chat: Chat,
