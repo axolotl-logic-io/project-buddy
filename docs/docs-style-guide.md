@@ -27,4 +27,4 @@ Based on the [Google developer documentation style guide](https://developers.goo
 
 ## Contextual shortening
 
-Use the full domain term on first mention and in labels that stand alone. Shorten later mentions only when the subject remains unambiguous. For example, use “Blender manual” first; “the manual” is sufficient later in the same explanation. Keep full names when several subjects could fit the shorter term.
+Use the full domain term on first mention and in labels that stand alone. Shorten later mentions only when the subject remains unambiguous. For example, use “quest conversation” first; “the conversation” is sufficient later in the same explanation. Keep full names when several subjects could fit the shorter term.

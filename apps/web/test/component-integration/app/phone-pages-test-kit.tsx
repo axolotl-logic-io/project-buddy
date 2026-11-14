@@ -9,11 +9,7 @@ import type { JSX } from "react";
 import { vi } from "vitest";
 import { page } from "vitest/browser";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import StandaloneChatLayout from "@/app/(workspace)/chat/layout.tsx";
-import StandaloneChatPage from "@/app/(workspace)/chat/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
-import BookPage from "@/app/(workspace)/library/[book]/page.tsx";
-import LibraryPage from "@/app/(workspace)/library/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
@@ -33,8 +29,6 @@ import {
   getOwnConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
-import type { Conversation } from "@/conversations/conversation-store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
@@ -45,10 +39,8 @@ import {
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
-import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { QUEST_FROM_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -62,21 +54,13 @@ import {
   FOX_CONVERSATION,
   FOX_MILESTONES,
   FOX_QUEST,
-  STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
   GOLD_BALANCE,
   LINK_USER,
-  searchAndMarkdownChat,
-  standaloneChatExchange,
   VELLUM_CLONE,
 } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
-
-// Her Chat, as privateChat reads it.
-const STANDALONE_CONVERSATION: Conversation = {
-  ...STANDALONE_CHAT,
-};
 
 // One page as the phone checks render it.
 vi.mock("@/conversations/reset-conversation-action.ts", () => ({
@@ -163,16 +147,6 @@ function spellPage(spellId: string): Promise<JSX.Element> {
   });
 }
 
-// Chat, her private conversation.
-async function chatPage(): Promise<JSX.Element> {
-  vi.mocked(listConstructs).mockResolvedValue([]);
-  return (
-    <StandaloneChatLayout params={NO_PARAMS}>
-      {await StandaloneChatPage()}
-    </StandaloneChatLayout>
-  );
-}
-
 // The Quests page, with one quest, which it offers to continue under a
 // long name.
 const projectsPage = workspacePage(
@@ -245,26 +219,6 @@ function workshopPage(
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
-  {
-    name: "Library",
-    path: ["library"],
-    render: workspacePage(
-      () => {
-        /* Reading needs no store fixtures. */
-      },
-      () => LibraryPage(),
-    ),
-  },
-  ...LIBRARY_COPY.books.map((book) => ({
-    name: `Library: ${book.title}`,
-    path: ["library", book.id],
-    render: workspacePage(
-      () => {
-        /* Reading needs no store fixtures. */
-      },
-      () => BookPage({ params: Promise.resolve({ book: book.id }) }),
-    ),
-  })),
   {
     name: "Retirement",
     path: ["retirement"],
@@ -411,41 +365,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(noData, () => spellPage("brainstorm")),
   },
   {
-    name: "Chat, with a search and Markdown",
-    path: ["chat"],
-    render: workspacePage(() => {
-      vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
-      vi.mocked(listMessages).mockResolvedValue(searchAndMarkdownChat());
-    }, chatPage),
-    laidOutWhenShown: ["Copy Code", "Download file"],
-  },
-  {
-    name: "Chat",
-    path: ["chat"],
-    render: workspacePage(() => {
-      vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
-      vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
-    }, chatPage),
-  },
-  {
-    name: "Chat's Turn Chat into a quest",
-    path: ["chat"],
-    render: workspacePage(() => {
-      vi.mocked(privateChat).mockResolvedValue(STANDALONE_CONVERSATION);
-      vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
-    }, chatPage),
-    open: async (): Promise<void> => {
-      await page
-        .getByRole("button", { name: QUEST_FROM_CHAT_COPY.open })
-        .click();
-      await vi.waitFor(() =>
-        page
-          .getByRole("dialog", { name: QUEST_FROM_CHAT_COPY.heading })
-          .element(),
-      );
-    },
-  },
-  {
     name: "a quest's Ideas",
     path: QUEST_PATH,
     render: projectPageFor("ideas"),
@@ -458,12 +377,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
 ];
 
-vi.mock("@/batteries/catalog.ts", () => ({
-  availableBatteryCatalog: () => [],
-}));
-vi.mock("@/batteries/purchases.ts", () => ({
-  readBatteryPurchases: async () => [],
-}));
 vi.mock("@/app/(workspace)/settings/battery-actions.ts", () => ({
   buyBatteries: vi.fn(),
   refreshBatteryPayments: vi.fn(),

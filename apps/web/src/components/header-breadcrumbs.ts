@@ -7,11 +7,9 @@ import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
-import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { STANDALONE_CHAT_COPY } from "@/ui/copy/start-work.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
@@ -28,7 +26,6 @@ const QUESTS: Breadcrumb = {
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
-    ["chat", { label: STANDALONE_CHAT_COPY.heading, href: "/chat" }],
     [
       "constructs",
       { label: WORKSHOP_COPY.heading, href: workshopPath("construct") },
@@ -37,7 +34,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
       "spellbook",
       { label: WORKSHOP_COPY.heading, href: workshopPath("spell") },
     ],
-    ["library", { label: LIBRARY_COPY.heading, href: "/library" }],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
@@ -79,13 +75,6 @@ async function headerBreadcrumbs(
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
-  }
-  if (section === "library") {
-    const book = LIBRARY_COPY.books.find((candidate) => candidate.id === id);
-    if (book === undefined) {
-      return [];
-    }
-    return [QUESTS, root, { label: book.title }];
   }
   let name: string | undefined;
   if (section === "constructs") {

@@ -11,7 +11,6 @@ Project Buddy makes no requests to AI model companies. Constructs run a local co
 | `stop` | Return to Chat without changing existing bucket contents. |
 | `help` | List supported commands. |
 | `look` | Show the Visual description from the conversation's saved construct, or explain that it has none. |
-| `search <query>` | Search the local Blender manual index, save citations and show excerpts. |
 | `cast <spell id>` | Use the existing owner-scoped spell tool and save the cast. |
 
 Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Plan edit commands and controls keep their existing path. `/plan` now enters the Plan spell instead of showing an inline form card.
@@ -20,13 +19,13 @@ Verbs ignore case and accept an optional leading `/`. Missing arguments get usag
 
 `src/replies/model.ts` uses local rules in every environment. `src/replies/local-model.ts` owns command behavior. `src/replies/scripted-model.ts` adapts rule outputs to the existing SDK stream protocol. The SDK does not contact a provider by itself.
 
-Replies keep the existing context assembly, streaming, tool execution, ownership checks and persistence. Search and cast use their existing tool contracts; the engine never dispatches arbitrary tool names or JSON from chat text. No schema migration is needed.
+Replies keep the existing context assembly, streaming, tool execution, ownership checks and persistence. Casts use their existing tool contract; the engine never dispatches arbitrary tool names or JSON from chat text. No schema migration is needed.
 
 Local replies report zero tokens and bypass provider spend metering. The existing balance check remains part of the harness, so an exhausted account still cannot start a reply. Historical accounting tests record costs directly, while local reply tests assert zero spending.
 
 ## Initial limits
 
-The engine does not infer intent, interpret prose instructions, understand attached images, infer plans or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Plan or Brainstorm activates its deterministic routing; the engine does not interpret prose instructions. The saved active spell controls deterministic message capture. Stop [Spell] appears above the composer. Plan, Ideas and Progress are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, search and cast keep their command behavior. New quest openings use the shared greeting request.
+The engine does not infer intent, interpret prose instructions, understand attached images, infer plans or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Plan or Brainstorm activates its deterministic routing; the engine does not interpret prose instructions. The saved active spell controls deterministic message capture. Stop [Spell] appears above the composer. Plan, Ideas and Progress are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help and cast keep their command behavior. New quest openings use the shared greeting request.
 
 Image generation, its Workshop controls and the Image gallery have been removed. Saving a Visual description changes text without spending batteries or replacing artwork. Existing artwork and saved conversation images remain available; the composer accepts text only. No remote image generation or avatar framing call is made.
 

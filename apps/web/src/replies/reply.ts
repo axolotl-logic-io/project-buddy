@@ -32,10 +32,8 @@ import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { MessageId, UserId } from "@/ids.ts";
 import { hydrateImages } from "@/images/store.ts";
-import type { QuotaGrant } from "@/quota/quota.ts";
 import {
   ANSWER_NOW_NOTE,
-  calledCiteManual,
   endsWithoutText,
   withAnswerNowNote,
 } from "@/replies/answer-now.ts";
@@ -46,7 +44,6 @@ import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
 import { planPartForModel } from "@/replies/plan-message-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
-import { completeReplyAccounting } from "@/replies/reply-accounting.ts";
 import { endReply, releaseClaim } from "@/replies/reply-end.ts";
 import {
   beginReplyRun,
@@ -192,7 +189,6 @@ async function writeReply(
   logReplySteps(replySteps, {
     answerNow,
     stoppedAtStepLimit,
-    calledCiteManual: calledCiteManual(replySteps),
   });
   writer.write({
     type: "finish",
@@ -214,20 +210,13 @@ async function writeReply(
 // reply, the answer-now call included, is made from grant, the one gold check the
 // message passed.
 async function streamAndSaveReply(
-  { actingUser, chat }: AccessibleChat & { readonly grant: QuotaGrant },
+  { actingUser, chat }: AccessibleChat,
   construct: ConstructSnapshot,
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
   const runId = await beginReplyRun(actingUser, chat.id, answered.id);
   const cancellation = watchReplyCancellation(actingUser, runId);
-  function accountingFinished(): Promise<void> {
-    return completeReplyAccounting(actingUser, runId).catch(
-      (error: unknown): void => {
-        toAppError(error, "finish reply accounting");
-      },
-    );
-  }
   try {
     const named = withAuthorNames(history);
     let model = replyModel();
@@ -306,7 +295,6 @@ async function streamAndSaveReply(
               {
                 actingUser,
                 chat,
-                accountingFinished,
                 answeredId: answered.id,
                 cancelled: true,
               },
@@ -323,7 +311,6 @@ async function streamAndSaveReply(
               {
                 actingUser,
                 chat,
-                accountingFinished,
                 answeredId: answered.id,
               },
               ended,
@@ -336,7 +323,6 @@ async function streamAndSaveReply(
           }
         } catch (error) {
           await releaseClaim(actingUser, chat, answered.id);
-          await accountingFinished();
           await finishReplyRun(actingUser, runId, "failed");
           throw error;
         } finally {
@@ -363,7 +349,6 @@ async function streamAndSaveReply(
     });
   } catch (error) {
     cancellation.close();
-    await accountingFinished();
     await finishReplyRun(actingUser, runId, "failed");
     throw error;
   }
@@ -398,7 +383,7 @@ async function replyToChat(
     }
     claimedIn = chat;
     return await streamAndSaveReply(
-      { actingUser, chat, grant: answer.grant },
+      { actingUser, chat },
       construct,
       answer.conversation,
       message,

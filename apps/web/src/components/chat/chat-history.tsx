@@ -5,7 +5,6 @@ import { type JSX, memo, type ReactNode, useCallback } from "react";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
-import type { ReplyCost } from "@/replies/reply-accounting.ts";
 
 // The complete, server-rendered history. Composer updates need not render
 // this list again when its message presentation has not changed.
@@ -14,14 +13,12 @@ function ChatHistoryContent({
   chatId,
   openingMessageId,
   authorNames,
-  replyCosts,
   progressAllowed,
 }: {
   readonly construct: ConstructSnapshot;
   readonly chatId: ChatId;
   readonly openingMessageId?: string | undefined;
   readonly authorNames: ReadonlyMap<string, string>;
-  readonly replyCosts?: ReadonlyMap<string, ReplyCost | undefined> | undefined;
   readonly progressAllowed: boolean;
 }): JSX.Element {
   const renderMessage = useCallback(
@@ -33,7 +30,6 @@ function ChatHistoryContent({
         progressAllowed={progressAllowed}
         authorName={authorNames.get(message.id)}
         role={message.role}
-        cost={replyCosts?.get(message.id)}
       />
     ),
     [
@@ -42,7 +38,6 @@ function ChatHistoryContent({
       openingMessageId,
       progressAllowed,
       authorNames,
-      replyCosts,
     ],
   );
   return <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>;

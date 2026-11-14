@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { startQuestConversation } from "@/conversations/start-quest.ts";
-import { userMessage } from "@/errors/app-error.ts";
 import { MILESTONE_ID, QUEST_ID } from "@/ids.ts";
 import {
   MILESTONE_TEXT,
@@ -46,7 +45,7 @@ function refusal(text: string): string {
 type StartConversationState =
   | { readonly kind: "idle" }
   | {
-      readonly kind: "claudeUnavailable" | "outOfGold";
+      readonly kind: "claudeUnavailable";
       readonly message: string;
     };
 
@@ -103,9 +102,6 @@ export async function startConversationAction(
   const result = await startQuestConversation(user.id, form.data.questId);
   if (result.kind === "notFound") {
     notFound();
-  }
-  if (result.kind === "outOfGold") {
-    return { kind: "outOfGold", message: userMessage("out-of-gold") };
   }
   if (result.kind === "claudeUnavailable") {
     return {

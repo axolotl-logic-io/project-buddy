@@ -18,7 +18,6 @@ const APP_ERROR_CASES = [
   "signed-out",
   "not-found",
   "already-answered",
-  "out-of-gold",
   "unknown",
 ] as const;
 
@@ -54,10 +53,6 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
-  // The user's gold (src/gold/) is spent: the chat, the new-chat and
-  // new-quest forms and image generation all refuse with this.
-  "out-of-gold":
-    "You're out of batteries. The construct can't reply or start new quests without them.",
   unknown: "Something went wrong. Please try again later.",
 };
 

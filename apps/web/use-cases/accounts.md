@@ -90,27 +90,13 @@ Two users each see only their own quests, adventures, Plans, constructs and batt
   - She looks over her own quests, and starts a new adventure.
   - She tries to restore an earlier version of the first user's Journal, and to read, clone, edit and delete the first user's construct.
   - Both users spend batteries.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's batteries pay only for their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs.
 - **Variations:**
   - Each user can have many standalone adventures, in no quest: each one she starts, however many at once, is a new adventure of her own. The first user's standalone adventure, and its messages, are not found to her, exactly as an unknown adventure is, and take none of her writes: its address says it cannot be found, and a message sent to it through the adventure API is refused as not found. A standalone adventure is never among a quest's adventures, and goes when its account is deleted.
   - A quest of the first user's that she was once a member of, from when quests could be shared, looks to her exactly like the first user's other quests do: her old membership or quest invitation grants nothing.
 - **Next:**
   - [`use_case_view_quests`](quests.md#use_case_view_quests): carry on with her own work.
 
-## use_case_see_gold
-
-The user checks how many Batteries they have left.
-
-- **Prerequisites:** `use_case_sign_in_by_link`.
-- **Steps:**
-  - They read their Batteries balance in the shared header, including Quests, without opening a menu.
-  - They open Settings and go to Batteries to see the same balance and its explanation. Profile holds the name form; Security holds Sign out and Sign out everywhere. Checkout return links reach Batteries. Loading and failed balance states still offer sign-out.
-  - They send an adventure message and wait for its reply and accounting to finish.
-- **Outcome:** the header shows the viewing user's own Batteries. Settings and the header round down to whole units: a new account has 100; a balance below one, including a negative balance, shows 0. Completed model charges and balance transfers refresh the header without a manual reload, including construct image generation. Checking a recovered image generation updates any reserved or settled balance. Settings shows the number large, under a small "Batteries" label. The header shows a battery and the number on one line, which screen readers read as "Batteries: 100". An unavailable balance says "Unavailable" instead of zero. Signed-out visitors see no balance. The header stays readable at 320 px in Light and Dark modes and announces balance changes to screen readers. It exposes no provider costs.
-- **Adventure replies:** the acting user's balance appears near the composer. Actual fractional battery costs include retries, images and automatic adventure naming. Pending or unknown accounting never appears as zero or a free reply. Only the payer sees their costs. Cancellation retains incurred charges. Historic replies have unavailable costs; no accounting history is invented.
-- **Next:**
-  - `use_case_out_of_gold`: they spend their last Batteries.
-  - `use_case_sign_out`: they are done for the day.
 
 ## use_case_set_name
 
@@ -129,19 +115,6 @@ The user tells the construct what to call her, so a construct that says `{{name}
 - **Next:**
   - [`use_case_edit_construct`](constructs.md#use_case_edit_construct): put `{{name}}` in a construct of hers.
 
-## use_case_out_of_gold
-
-The user has spent all her batteries.
-
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with 1 battery left.
-- **Steps:**
-  - With 1 battery left, she sends a message. Its reply takes her under 1 battery, and it finishes in full.
-  - She sends another message.
-  - Instead of a reply, the adventure says "You're out of batteries."
-  - She tries to start a new adventure, and to start a new quest.
-- **Outcome:** the reply that spent the last of her batteries is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole battery, Settings shows 0 under "Batteries", and the next message gets no reply, and the adventure shows the out-of-batteries message, with no reset date, rather than a general error. Start Quest keeps the selected construct and optional Why after refusal. Named quest forms also keep the entered name and motivation. New adventure and Start Quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation is refused too. With a valid isolated test catalog, model-use shortage messages link to Settings. Otherwise they explain that purchases are unavailable. No smaller model is offered. She can still read her quests, adventures and Plan, edit the Plan herself and rename adventures.
-- **Next:**
-  - `use_case_see_gold`: check her batteries.
 
 ## use_case_sign_out
 
@@ -170,15 +143,3 @@ The user signs out of every browser and device at once, for example after signin
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where she wants to be.
 
-## use_case_buy_batteries
-
-The signed-in user buys batteries for model use through Stripe-hosted Checkout.
-
-- **Prerequisites:** a configured test-mode catalog; live purchases are unavailable pending approved pricing, tax and refund terms.
-- **Steps:**
-  - In Settings, the user reviews a package's battery amount and price with its currency.
-  - The user continues to Stripe Checkout and pays using Stripe test mode.
-  - Stripe confirms the payment to the site, even if the user closes Checkout.
-  - The user refreshes payment status in Settings.
-- **Outcome:** the buyer's balance increases by the configured amount once. Settings shows the fulfilled purchase with its price and currency. Browser redirects grant nothing. Model-use rates do not change. The grant changes only the Batteries balance.
-- **Variations:** unpaid, failed and expired sessions grant nothing. Closing Checkout shows a cancellation notice without claiming a payment failed. Duplicate and concurrent events grant once. After a storage failure, replaying the Stripe event completes the same grant safely.

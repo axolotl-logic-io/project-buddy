@@ -8,9 +8,6 @@ const SIGN_IN_PATH = "/login";
 // Quests is the signed-in landing destination.
 const HOME_PATH = "/quests";
 
-// Chat, the user's one private conversation for talking without a goal.
-const STANDALONE_CHAT_PATH = "/chat";
-
 function workshopPath(kind: "construct" | "spell"): Route {
   if (kind === "construct") {
     return "/workshop";
@@ -47,6 +44,5 @@ export {
   SIGN_IN_DESTINATION_PARAMETER,
   SIGN_IN_LINK_PATH,
   SIGN_IN_PATH,
-  STANDALONE_CHAT_PATH,
   workshopPath,
 };

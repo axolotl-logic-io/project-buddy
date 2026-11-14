@@ -124,7 +124,7 @@ function tokens(
 
 // Logs one construct reply as `[construct-steps]` followed by JSON: the facts the
 // construct passes (whether the answer-now call ran, whether the step limit
-// stopped the reply's model calls, whether any call cited the manual), then
+// stopped the reply's model calls), then
 // from the steps how many characters of text the reply holds, its tokens
 // over every model call, and for each call how it finished (the AI SDK's
 // reason and Anthropic's stop_reason), the input tokens it was sent, which
@@ -136,11 +136,9 @@ export function logReplySteps(
   {
     answerNow,
     stoppedAtStepLimit,
-    calledCiteManual,
   }: {
     answerNow: boolean;
     stoppedAtStepLimit: boolean;
-    calledCiteManual: boolean;
   },
 ): void {
   console.info(
@@ -148,7 +146,6 @@ export function logReplySteps(
     JSON.stringify({
       answerNow,
       stoppedAtStepLimit,
-      calledCiteManual,
       textChars: textLength(steps),
       tokens: {
         input: tokens(steps, (usage) => usage.inputTokens),

@@ -225,9 +225,7 @@ describe("the private Chat", () => {
     expect(theirs.id).not.toBe(first.id);
     expect(await getChat(other.id, first.id)).toBeUndefined();
     expect(await resolveConversation(other.id, first.id)).toBeUndefined();
-    expect(await resolveConversation(her.id, first.id)).toEqual({
-      kind: "chat",
-    });
+    expect(await resolveConversation(her.id, first.id)).toBeUndefined();
   });
 });
 

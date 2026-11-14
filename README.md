@@ -1,6 +1,6 @@
 # project-buddy
 
-project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs can use tools to search and cite the Blender manual. The [glossary](GLOSSARY.md) defines the site's words.
+project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs use local commands to keep quest Plans and Ideas. The [glossary](GLOSSARY.md) defines the site's words.
 
 Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [project practices](docs/project-practices.md). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
@@ -51,7 +51,6 @@ npm run check        # fast default: Biome, typecheck, test:scripts, repository 
 npm run build        # production build
 npm run db:generate  # generate SQL migrations in drizzle/ from src/db/tables/
 npm run db:migrate   # apply migrations to the database at DATABASE_URL
-npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 ```
 
 [Biome](https://biomejs.dev) lints and formats the code; its settings are split across two files: the root `biome.jsonc` holds the policy for the whole repo, and `apps/web/biome.jsonc` extends it with the site's scoped overrides, whose globs are relative to `apps/web/`. `npx biome check` gives the same result at the root or in `apps/web/`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
@@ -97,14 +96,6 @@ Existing accounts receive reusable 30-minute sign-in links (`src/accounts/sign-i
 Account invitation administration, emails and setup routes have been removed. Migration 0063 adds `signup_links` and drops the account invitation tables. It is a destructive migration and does not support the previous build during deployment or rollback; coordinate the release accordingly.
 
 `src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Vellum's name) in `.env.local` and in the Vercel project; see `.env.example`. Sign-up and login need `DATABASE_URL` too.
-
-### Manual index
-
-The construct's Blender manual lookup tools (`src/blender-manual/`) search the Blender Reference Manual through the `manual_sections` table. `npm run manual:reindex` makes a shallow `git clone` of the manual's latest stable release branch into a temporary directory, splits every RST file under `manual/` into one section per heading, and replaces the table's contents in one transaction. It reads `DATABASE_URL` from the environment or `.env.local`, and the table must already exist (`npm run db:migrate`). Each section links to `https://docs.blender.org/manual/en/latest/<path>.html#<anchor>`, with the anchor Sphinx gives the heading. `searchManual()` in `src/blender-manual/search-manual.ts` queries the index.
-
-When a new stable Blender release ships, set `MANUAL_BRANCH` in `src/blender-manual/manual-source.ts` to its release branch, such as `blender-v5.4-release`, and run `npm run manual:reindex`.
-
-The script runs under Node's built-in TypeScript support, so modules it imports use relative imports with a `.ts` extension instead of the `@/` alias.
 
 ### Tests
 

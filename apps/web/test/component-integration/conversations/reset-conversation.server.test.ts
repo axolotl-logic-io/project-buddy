@@ -40,20 +40,6 @@ async function writeMessage(
 
 describe("conversation resets", () => {
   test("use_case_reset_chat", async () => {
-    // Private Chat starts empty with its saved construct.
-    const user = await testUser();
-    const before = await privateChat(user.id);
-    await writeMessage(user, before);
-    const nextId = await resetConversation(user.id, before.id);
-    const after = await privateChat(user.id);
-    expect(after.id).toBe(nextId);
-    expect(after.id).not.toBe(before.id);
-    expect(after.construct).toEqual(before.construct);
-    expect(await listMessages(user.id, after.id)).toEqual([]);
-    expect(await getChat(user.id, before.id)).toBeUndefined();
-  });
-
-  test("Reset Day retains the quest and Ideas and reopens all Plan steps", async () => {
     const user = await testUser();
     const started = await startDailies(user.id, {
       name: QUEST_NAME.parse("My day"),
@@ -98,6 +84,31 @@ describe("conversation resets", () => {
     expect(await listMessages(user.id, next.id)).toEqual([]);
     expect(await currentSpell(user.id, next)).toBeUndefined();
     expect(await getChat(user.id, before.id)).toBeUndefined();
+  });
+
+  test("reset can remove Steps and Ideas when requested", async () => {
+    const user = await testUser();
+    const started = await startDailies(user.id, {
+      name: QUEST_NAME.parse("My day"),
+      context: "Make room for creativity",
+      construct: getConstruct("vellum"),
+    });
+    if (started.kind !== "started") {
+      throw new Error("Dailies did not start");
+    }
+    const questId = started.chat.quest.id;
+    await changePlan(user.id, { questId, author: "person" }, [
+      { op: "add", text: "Make tea" },
+    ]);
+    await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
+    expect(
+      await resetConversation(user.id, started.chat.id, {
+        clearSteps: true,
+        clearIdeas: true,
+      }),
+    ).toBeDefined();
+    expect((await readPlan(user.id, questId))?.steps).toEqual([]);
+    expect(await listIdeas(user.id, questId)).toEqual([]);
   });
 
   test("another user cannot reset a private conversation", async () => {

@@ -10,7 +10,6 @@ import {
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
 import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
-import { ReplyCostLabel } from "@/components/chat/reply-cost.tsx";
 import { placementOf } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
@@ -23,7 +22,6 @@ import {
   resolveConstructVisual,
   type VisualDestination,
 } from "@/constructs/visual.ts";
-import type { ReplyCost } from "@/replies/reply-accounting.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 type Role = MessageRuntimeState["role"];
@@ -113,7 +111,6 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 // way it is marked busy.
 function ChatMessage({
   role,
-  cost,
   construct,
   destination,
   opening,
@@ -121,7 +118,6 @@ function ChatMessage({
   authorName,
 }: {
   role: Role;
-  cost?: ReplyCost | undefined;
   construct: ConstructSnapshot;
   destination: VisualDestination;
   opening: boolean;
@@ -226,9 +222,6 @@ function ChatMessage({
             </>
           )}
         </div>
-        {role === "assistant" && opening !== true && progress === "done" && (
-          <ReplyCostLabel cost={cost} />
-        )}
       </li>
     </MessagePrimitive.Root>
   );
