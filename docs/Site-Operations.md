@@ -1,14 +1,13 @@
 # Site operations
 
-The repo's `README.md` is the operating guide for setup, tests, indexing and releases. [Project practices](project-practices.md) holds the production and secrets rules. This page adds the production boundaries, the smoke checks and troubleshooting notes. The Vercel and troubleshooting notes are observations from earlier versions of the tools, not guaranteed current behaviour.
+The repo's `README.md` is the operating guide for setup, tests and releases. [Project practices](project-practices.md) holds the production and secrets rules. This page adds the production boundaries, the smoke checks and troubleshooting notes. The Vercel and troubleshooting notes are observations from earlier versions of the tools, not guaranteed current behaviour.
 
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude against it. Automated tests use mocks; paid manual checking requires explicit authorization and an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate local database and file email outbox.
+- Production, Preview and Development share one Neon database. Agents must never connect to it. Manual checking uses an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate local database and file email outbox.
 - Every environment uses the local construct engine. There is no `CONSTRUCT_MODEL` setting. Production refuses `EMAIL_TRANSPORT=outbox`.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
-- The [schema cutover notes](quest-nomenclature.md#release-cutover) describe the nomenclature and Plan-only migrations and their rollback limits.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Reaching Vercel and production
@@ -38,7 +37,7 @@ npm run ops:query -- production "select count(*) from quests"
 
 The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, the Full suite workflow (`full-suite.yml`) runs the tests with the local engine, and no script calls a model. The web app’s tests require an isolated local database and file email outbox.
 
-At runtime, constructs use local commands and make no requests to AI model companies. Local replies have no token spend. The existing battery balance gate remains in place. See [local construct behavior and limits](local-constructs.md).
+At runtime, constructs use local commands and make no requests to AI model companies. Local replies have no token spend. See [local construct behavior and limits](local-constructs.md).
 
 ## Signed-out smoke checks
 
@@ -58,7 +57,7 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 | `GET /` | HTTP 307 with a Location pointing to `/login` |
 | Signed-out `POST /api/chat` with `{}` | HTTP 401 |
 
-Invitation expectations import shared UI copy; they do not maintain separate prose or require the retired invite-code field. Those imports (including their dependencies) must stay runnable by plain Node.
+The page expectations import shared UI copy; they don't maintain separate prose. Those imports (including their dependencies) must stay runnable by plain Node.
 
 A wrong status, missing explanation, or missing/misdirected sign-in link reports the request and unmet expectation; any failure makes the command exit unsuccessfully. Copy or anchor markup appearing only in scripts, styles or HTML comments does not satisfy the page checks.
 
@@ -83,51 +82,10 @@ All smoke requests remain signed out: no database writes, email sends or model c
 
 ## Validation
 
-The release workflow checks signed-out requests, not real construct behaviour.
+The release workflow checks signed-out requests only. It doesn't check construct replies or any signed-in page.
 
-### Production validation gap
+## Saved conversation images
 
-The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Release PR merges into `main` automatically run signed-out production smoke checks. The release workflow's smoke test covers signed-out requests only; it doesn't check construct replies or prompt caching.
+Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Every read checks conversation ownership. The authenticated delivery routes send `private, no-store`. Deleting a conversation, quest or account cascades to its image bytes, so database backups contain images as well as messages.
 
-Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited construct. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
-
-## Image generation
-
-Remote image generation and avatar vision calls are disabled, even when old provider credentials remain configured. Existing images and uploads remain available. Automated tests use fake providers and never the shared database. Explicitly authorized paid manual checks use an isolated local database and separate provider-only credentials. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.
-
-## Chat image attachments
-
-Users can select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Text is optional. Phone users can use their image picker; HEIC images must first be exported as JPEG or PNG. The composer shows previews, removal controls, upload progress and errors. Failed uploads preserve the draft. A failed model reply keeps the sent images visible and offers Retry reply.
-
-Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing gold check and provider-reported spend accounting; uploads make no model call.
-
-Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
-
-Use the worktree-local `.env.test` for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
-
-## Removed check-ins and unread marks
-
-The site has no scheduled jobs. Automatic check-ins, with their Vercel cron, `/api/check-ins` route, `CRON_SECRET`, emails and unread marks, were removed in [#903](https://github.com/axolotl-logic-io/project-buddy/issues/903). The `crons` entry is gone from `apps/web/vercel.json`, so a deployment of this build registers no cron, and a request to the old route starts nothing.
-
-Removing the code needs no migration. `projects.check_in_frequency`, `projects.last_check_in_at` and the `chat_unreads` table stay, unread and unwritten by this build, because earlier builds read them. A held cleanup drops them once no live or rollback build reads them.
-
-After the release is live, an operator can delete `CRON_SECRET` from the Vercel project; nothing reads it. A rollback to a build before #903 brings the cron and check-ins back for quests whose `check_in_frequency` is still on, until the build with #903 is promoted again.
-
-The history of the check-in columns follows. Migration 0022 added `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults.
-
-Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release that added 0028 (#638) also kept writing `chats.unread` for the chat's owner; the release of #665 stopped writing it.
-
-Migration 0034 is a drop: it removes `chats.unread` (#637). It needs the build from #665 live in production first, since builds before it still write the column; that build neither reads nor writes it, so it works on the new schema in the minutes before the promotion. After 0034, a rollback to any build before #665 is unsafe: those builds insert and select `chats.unread`, so starting a chat, a check-in or a chat list fails there. Roll back only to #665's build or later.
-
-When 0028 was released, the previous build kept reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
-
-- A check-in that the previous build started was marked only in `chats.unread`, so the new build showed it as read.
-- A user who opened a check-in on the previous build cleared `chats.unread` but not their `chat_unreads` row. After the promotion the chat showed Unread again, and the project got no new check-in until the owner opened the chat once more.
-
-Both could happen only in those few minutes, and neither needed action.
-
-Migration 0030 is additive. It adds `gold_balances`, each user's [gold](../GLOSSARY.md#batteries) in micro-USD, and `gold_ledger`, every grant and transfer of it, and gives every existing user the starting 100 gold once, whatever they spent before. The new build reads and writes only gold; `monthly_spend` stayed, unread, until migration 0035 dropped it. In the minutes between the migration and the promotion, the previous build keeps charging `monthly_spend`, so calls made then cost no gold, and an account it creates then has no balance: the new build grants that account its 100 gold the first time it reads its balance. A rollback to the previous build brings the monthly quota back, counting only what was spent before this release; spending under gold isn't in `monthly_spend`.
-
-Migration 0035 drops `monthly_spend`, and makes `image_generations.month` nullable. The drop is destructive: it ran only once the gold release was live in production, and a rollback to a build before gold is no longer safe, because that build charges `monthly_spend`. Making the column nullable is additive. The build no longer writes `image_generations.month`, so new claims leave it empty; the build before it still writes it, and nothing reads it. Migration 0036 drops it ([#655](https://github.com/axolotl-logic-io/project-buddy/issues/655)).
-
-The model-use balance is now called [Batteries](batteries.md). The migration history above retains its original terminology and schema names. The rename itself has no migration or new grant.
+Use the worktree-local `.env.test` for tests. Image tests exercise real local storage and delivery. Never run these tests against the shared database.

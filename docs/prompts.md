@@ -4,7 +4,7 @@ Constructs have editable names and Visual descriptions. Their saved name and app
 
 Spells have editable names, message destinations and reply lists. The editor shows Message destination directly below Name, followed by **Spell Messages**. Cast a spell by its name, such as `cast Alstorm`. Matching ignores case and repeated whitespace. If several available spells have the same name, rename one before casting.
 
-Prose Instructions, Prompt and Character Sheet fields and their reset controls have been removed from both editors because the local engine does not interpret them. Old construct prompt text may remain in storage, but it is not editable or included in reply context. Spell definitions discard that field.
+Neither editor has a prose Instructions, Prompt or Character Sheet field, because the local engine does not interpret them. Stored construct prompt text is not editable or included in reply context.
 
 `own_prompts` stores owner-scoped constructs and spells. The local command engine interprets explicit commands and uses spell destinations and reply templates. See [Spells](spellbook.md) for snapshot and reply-list behavior.
 
