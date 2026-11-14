@@ -100,20 +100,6 @@ async function openChat(initialMessages: UIMessage[] = []): Promise<void> {
   );
 }
 
-// A standalone adventure: no quest and no plan, though the page still hands
-// over the plan's actions, which run the commands.
-async function openStandaloneChat(): Promise<void> {
-  await render(
-    <ChatView
-      chatId={CHAT_ID}
-      viewer={userIdFixture()}
-      constructName={getConstruct("vellum").name}
-      initialMessages={[]}
-      planActions={PLAN_ACTIONS}
-    />,
-  );
-}
-
 // A quest adventure whose last message has no reply, with the Plan panel
 // open at a phone's width: its reply stopped, or, without stoppedReplyId,
 // is being made elsewhere.
@@ -263,33 +249,6 @@ describe("use_case_plan_commands", () => {
       .element(page.getByRole("alert"))
       .toHaveTextContent("The plan has no step 9.");
     await expect.element(messageBox()).toHaveValue("/done 9");
-  });
-
-  test("in an adventure with no quest, any other /word goes to the construct", async () => {
-    const fetchMock = answerChat(new Response(null));
-    await openStandaloneChat();
-    await userEvent.type(messageBox(), "/");
-    await expect.element(commandList()).not.toBeInTheDocument();
-
-    await userEvent.type(messageBox(), "shrug ok let's go{Enter}");
-
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(actions.runChatCommandAction).not.toHaveBeenCalled();
-  });
-
-  test("in an adventure with no quest, a plan command says it needs a quest", async () => {
-    const fetchMock = answerChat(new Response(null));
-    actions.runChatCommandAction.mockResolvedValue({
-      kind: "problem",
-      text: CHAT_COMMANDS_COPY.noPlan,
-    });
-    await openStandaloneChat();
-    await userEvent.type(messageBox(), "/add Sketch wings{Enter}");
-
-    await expect
-      .element(page.getByRole("alert"))
-      .toHaveTextContent(CHAT_COMMANDS_COPY.noPlan);
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 

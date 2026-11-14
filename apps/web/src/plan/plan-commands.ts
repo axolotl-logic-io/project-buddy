@@ -13,7 +13,6 @@ import {
   type Plan,
   type PlanOperation,
 } from "@/plan/plan.ts";
-import { questStatusCommand } from "@/quests/quest-status-commands.ts";
 import { isLocalCommandName } from "@/replies/local-command-contract.ts";
 
 // A command: "/", its name, then its argument, if any, after white space.
@@ -78,27 +77,12 @@ function commandNameOf(text: string): string | undefined {
   return name;
 }
 
-// Whether the conversation belongs to a quest.
-interface CommandPlace {
-  readonly inQuest: boolean;
-}
-
 // Whether the site runs text as a command rather than sending it to the
-// construct. In a quest's adventure that is any message that starts with
-// "/" and a name, except local construct commands. In a standalone adventure it is only a plan command's name,
-// which says it needs a quest; any other goes to the construct as written.
-function isChatCommand(text: string, place: CommandPlace): boolean {
+// construct: any message that starts with "/" and a name, except local
+// construct commands.
+function isChatCommand(text: string): boolean {
   const name = commandNameOf(text);
-  if (name === undefined || isLocalCommandName(name)) {
-    return false;
-  }
-  if (!place.inQuest) {
-    return (
-      PLAN_COMMAND_NAME.safeParse(name).success ||
-      questStatusCommand(text) !== undefined
-    );
-  }
-  return true;
+  return name !== undefined && !isLocalCommandName(name);
 }
 
 function problem(found: CommandProblem): PlanCommand {

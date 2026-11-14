@@ -28,11 +28,8 @@ function planLines(plan: Plan): string[] {
 }
 
 // The quest's plan, between tags that keep it apart from the rest of the
-// prompt, or "" in a standalone chat, which has no quest and so no plan.
+// prompt.
 function planPromptSection({ quest }: ReplyPromptContext): string {
-  if (quest === undefined) {
-    return "";
-  }
   if (quest.plan.steps.length === 0) {
     return EMPTY_PLAN_PROMPT;
   }

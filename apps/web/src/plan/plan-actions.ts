@@ -111,7 +111,7 @@ async function chatInQuest(
   chatId: ChatId,
 ): Promise<Chat | undefined> {
   const chat = await getChat(user, chatId);
-  if (chat?.quest?.id !== questId) {
+  if (chat?.quest.id !== questId) {
     return undefined;
   }
   return chat;
@@ -325,10 +325,10 @@ async function runChatCommandAction(
   if (chat === undefined) {
     return NOT_FOUND;
   }
-  const questId = chat.quest?.id;
+  const questId = chat.quest.id;
   const status = questStatusCommand(text);
   if (status !== undefined) {
-    const quest = await getQuest(user.id, questId ?? "");
+    const quest = await getQuest(user.id, questId);
     if (quest === undefined) {
       return { kind: "problem", text: QUEST_STATUS_COPY.noQuest };
     }
@@ -353,9 +353,6 @@ async function runChatCommandAction(
       kind: "problem",
       text: CHAT_COMMANDS_COPY.problem(command.problem),
     };
-  }
-  if (questId === undefined) {
-    return { kind: "problem", text: CHAT_COMMANDS_COPY.noPlan };
   }
   const state = await readPlanState(user.id, questId);
   if (state === undefined) {

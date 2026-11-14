@@ -15,7 +15,11 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  questIdFixture,
+  userIdFixture,
+} from "../../../support/id-fixtures.ts";
 import { answerChat, holdBeforeChunk } from "../chat-stream-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
@@ -57,6 +61,7 @@ async function openChat(
 ): Promise<{ unmount: () => Promise<void> }> {
   const screen = await render(
     <ChatView
+      questId={questIdFixture()}
       chatId={chatId}
       viewer={viewer}
       initialMessages={[]}
@@ -71,6 +76,7 @@ describe("use_case_send_message", () => {
     const heldFinish = holdChatFinish();
     await render(
       <ChatView
+        questId={questIdFixture()}
         chatId={chatIdFixture()}
         viewer={userIdFixture()}
         initialMessages={[]}

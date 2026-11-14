@@ -17,9 +17,6 @@ async function castSpell(
   { name }: CastSpellInput,
   { context }: { context: ChatToolContext },
 ): Promise<CastSpellOutput> {
-  if (context.questId === undefined) {
-    return { status: "needsQuest" };
-  }
   const resolved = await resolveSpellName(context.actingUser, name);
   if (resolved.kind !== "found") {
     return { status: "unavailable" };

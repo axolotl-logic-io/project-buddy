@@ -16,9 +16,6 @@ async function proposeStatus(
   { status }: { readonly status: QuestStatus },
   { context }: { readonly context: ChatToolContext },
 ): Promise<{ status: "awaiting-approval"; approval: StatusApproval }> {
-  if (context.questId === undefined) {
-    throw new AppError("not-found", new Error("Chat has no quest status"));
-  }
   const approval = await requestQuestStatus(
     context.actingUser,
     context.chatId,

@@ -37,7 +37,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "request-too-large":
     "This message is too long for Claude to read in one go. Shorten it, or send fewer images, and try again.",
   "invalid-image":
-    "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
+    "An image saved in this conversation is no longer available.",
   "invalid-request":
     "The construct could not answer this request. Try again, or try again later if it keeps failing.",
   "model-server-error":

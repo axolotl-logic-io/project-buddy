@@ -10,7 +10,7 @@ import type { UIMessage } from "ai";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { currentUser } from "@/auth/current-user.ts";
-import type { QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, listMessagesForModel } from "@/chats/store.ts";
 import type { ConstructId } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -47,7 +47,7 @@ interface SavedLine {
 // constructId or the default construct.
 async function userWithChat(
   constructId?: ConstructId,
-): Promise<{ user: User; chat: QuestChat }> {
+): Promise<{ user: User; chat: Chat }> {
   const user = await testUser();
   const data = testData(user);
   const chat = await data.chat(await data.quest(), constructId);
@@ -163,7 +163,7 @@ async function constructPrompt(chatId: ChatId): Promise<string> {
 // through the test's one cookie jar.
 async function postMessage(
   user: User,
-  chat: Pick<QuestChat, "id">,
+  chat: Pick<Chat, "id">,
   message: ChatRequest["message"],
   signal: AbortSignal | null = null,
 ): Promise<Response> {
@@ -176,7 +176,7 @@ async function postMessage(
 // took the message.
 async function sendToEnd(
   user: User,
-  chat: Pick<QuestChat, "id">,
+  chat: Pick<Chat, "id">,
   text: string,
 ): Promise<void> {
   const response = await postMessage(user, chat, question(text));
@@ -198,7 +198,7 @@ function formOf(fields: Readonly<Record<string, string>>): FormData {
 // The messages saved in user's chat, oldest first, as lines.
 async function savedConversation(
   user: User,
-  chat: Pick<QuestChat, "id">,
+  chat: Pick<Chat, "id">,
 ): Promise<SavedLine[]> {
   return (await listMessages(user.id, chat.id)).map((message) => ({
     role: message.role,
@@ -216,7 +216,7 @@ function exchange(userText: string): SavedLine[] {
 
 async function signedInChat(
   constructId?: ConstructId,
-): Promise<{ user: User; chat: QuestChat }> {
+): Promise<{ user: User; chat: Chat }> {
   const scene = await userWithChat(constructId);
   await signIn(scene.user);
   return scene;
