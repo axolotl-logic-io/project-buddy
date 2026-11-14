@@ -104,9 +104,9 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 - **Schema changes go only through migrations.** Change the tables in `src/db/tables/`, then `npm run db:generate`. Never edit `drizzle/meta/` by hand; on a merge conflict in it, regenerate.
 - **The release workflow migrates production while the old build is live** (`.github/workflows/release.yml`): it builds the new deployment, migrates, and only then makes the new build live, so the old build runs on the new schema for a few minutes. A Vercel rollback (`vercel rollback`, or the dashboard) restores old code but never reverts the schema. **A migration must work with the build that is live:** add tables and nullable or defaulted columns first; drop or rename something, or make it `NOT NULL`, only in a later release, once the live build no longer reads or writes the old form. A release PR can contain several integration merges: don't merge the second step into `integration` until the first is live in production. Say in the PR which kind each migration is.
 
-## Library maintenance
+## Product documentation
 
-Changes to prompts, model inputs, tools or relevant user flows update the corresponding in-site Library chapters in the same PR. See [Library content ownership and source map](library.md). Review conditional inputs and saved snapshots against the implementation; keep book routes and chapter anchors stable.
+Changes to prompts, model inputs, tools or relevant user flows update the corresponding repository documentation in the same PR. The in-site Library has been removed.
 
 ## Site prompts and the AI SDK
 

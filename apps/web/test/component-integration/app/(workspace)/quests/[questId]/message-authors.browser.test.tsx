@@ -1,4 +1,4 @@
-// "use_case_chat_with_several_people" in use-cases/chats.md, in Chromium and
+// Regression coverage for saved message authors.
 // WebKit: a quest's conversation names the author of each user message someone else
 // wrote, before its text, and shows "You" on the viewer's own, as a chat
 // only the viewer writes in always has. A long name wraps on the narrowest
@@ -118,7 +118,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("use_case_chat_with_several_people", () => {
+describe("saved message authors", () => {
   test("someone else's messages show their name, and hers show You", async () => {
     await render(
       conversation([
@@ -134,7 +134,7 @@ describe("use_case_chat_with_several_people", () => {
     expect(messageTexts()).toStrictEqual([
       "AlexThe flipper loops are fixed.",
       `${CHAT_COPY.you}Nice. Can we look at the shell next?`,
-      `${FOX_CHAT.construct.name}Great work, Alex.${CHAT_COPY.costUnknown}`,
+      `${FOX_CHAT.construct.name}Great work, Alex.`,
     ]);
   });
 
@@ -149,7 +149,7 @@ describe("use_case_chat_with_several_people", () => {
     await expect.element(page.getByText("Great work.")).toBeInTheDocument();
     expect(messageTexts()).toStrictEqual([
       `${CHAT_COPY.you}The flipper loops are fixed.`,
-      `${FOX_CHAT.construct.name}Great work.${CHAT_COPY.costUnknown}`,
+      `${FOX_CHAT.construct.name}Great work.`,
     ]);
   });
 
@@ -171,3 +171,15 @@ describe("use_case_chat_with_several_people", () => {
     );
   });
 });
+
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  castSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
+  cloneSpellAction: vi.fn(),
+  saveSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
+}));
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  findSpell: vi.fn().mockResolvedValue(undefined),
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+}));

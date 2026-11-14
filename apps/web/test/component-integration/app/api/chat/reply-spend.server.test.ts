@@ -1,29 +1,42 @@
-// Whom a reply's model calls are charged to: the user who sent the message,
-// read from the request's session, and never anyone else.
 import { expect, test } from "vitest";
+import { getConstruct } from "@/constructs/index.ts";
+import { startDailies } from "@/conversations/dailies.ts";
+import { getDb } from "@/db/client.ts";
+import { goldBalances } from "@/db/tables/gold.ts";
+import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
-import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
-import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import { constructReply } from "../../../test-database/chat-test-kit.ts";
-import { signIn } from "../../../test-database/session-test-kit.ts";
+import {
+  constructReply,
+  messageText,
+  signedInChat,
+} from "../../../test-database/chat-test-kit.ts";
 
-test("a local reply charges neither the acting user nor another account", async () => {
-  const [sender, other] = await Promise.all([testUser(), testUser()]);
-  const data = testData(sender);
-  const quest = await data.quest();
-  const chat = await data.chat(quest);
-  await signIn(sender);
-  const [senderBefore, otherBefore] = await Promise.all([
-    goldSpent(sender),
-    goldSpent(other),
+test("use_case_ask_any_subject", async () => {
+  const { user, chat } = await signedInChat();
+  await getDb()
+    .insert(goldBalances)
+    .values({ userId: user.id, microUsd: 0 })
+    .onConflictDoUpdate({ target: goldBalances.userId, set: { microUsd: 0 } });
+  const reply = await constructReply(chat.id, "I want a balcony garden");
+  expect(messageText(reply)).toContain("Your message is saved");
+  expect(messageText(reply)).toContain("Available commands");
+  const started = await startDailies(user.id, {
+    name: QUEST_NAME.parse("A fresh day"),
+    context: "Make room for creativity",
+    construct: getConstruct("vellum"),
+  });
+  expect(started.kind).toBe("started");
+});
+
+test("use_case_same_facts_any_construct", async () => {
+  const { user, chat } = await signedInChat();
+  const data = testData(user);
+  const quest = await data.quest("Another construct");
+  const other = await data.chat(quest, "lumen");
+  const replies = await Promise.all([
+    constructReply(chat.id, "help"),
+    constructReply(other.id, "help"),
   ]);
-
-  await constructReply(chat.id, "Bevel a donut");
-
-  const [senderAfter, otherAfter] = await Promise.all([
-    goldSpent(sender),
-    goldSpent(other),
-  ]);
-  expect(senderAfter - senderBefore).toBe(0);
-  expect(otherAfter).toBe(otherBefore);
+  expect(messageText(replies[0])).toContain("Available commands");
+  expect(messageText(replies[1])).toBe(messageText(replies[0]));
 });

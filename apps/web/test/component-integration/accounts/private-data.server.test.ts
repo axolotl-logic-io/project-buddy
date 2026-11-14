@@ -12,7 +12,6 @@ import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { privateChat } from "@/conversations/private-chat.ts";
 import type { Quest } from "@/quests/store.ts";
-import { STANDALONE_CHAT_PATH } from "@/routes.ts";
 import { chatIdFixture, questIdFixture } from "../../support/id-fixtures.ts";
 import {
   expectNotFound,
@@ -74,8 +73,8 @@ function projectsIn(html: string, quests: readonly Quest[]): string[] {
 }
 
 describe("use_case_private_data", () => {
-  // Her quest chat's old address and her standalone chat's still open for
-  // her, at the quest and at her Chat.
+  // The old quest conversation address opens its quest. A standalone
+  // conversation has no destination, even for its owner.
   test("another user's project, memory and chat pages can't be found", async () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.quest();
@@ -90,10 +89,7 @@ describe("use_case_private_data", () => {
     await signIn(her);
     await expect(projectPage(hers.id)).resolves.toBeDefined();
     await expectRedirect(() => chatPage(herChat.id), `/quests/${hers.id}`);
-    await expectRedirect(
-      () => chatPage(herStandalone.id),
-      STANDALONE_CHAT_PATH,
-    );
+    await expectNotFound(() => chatPage(herStandalone.id));
   });
 
   test("each sees only their own projects", async () => {

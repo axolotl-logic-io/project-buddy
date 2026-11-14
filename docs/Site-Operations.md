@@ -80,7 +80,6 @@ All smoke requests remain signed out: no database writes, email sends or model c
 
 - Turbopack builds failed when `node_modules` was a symlink. Replacing it with a real directory from `npm ci` resolved that case.
 - Docker Desktop's credential helper could hang while pulling test-database images. A credential-free `DOCKER_CONFIG` was the recorded workaround.
-- `npm run manual:reindex` once peaked at about 450–510 MB of memory and wrote about 8,974 sections. These are past measurements, not limits or an expected count.
 
 ## Validation
 

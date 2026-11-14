@@ -21,29 +21,22 @@ import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import {
   AccountLinks,
-  HeaderBalance,
   SignedInLinks,
   SiteHeader,
   TrailBand,
 } from "@/components/site-header.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
-import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
-import {
-  SIGNED_IN_USER,
-  signInAs,
-  signOut,
-} from "../auth/current-user-test-kit.ts";
+import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -57,7 +50,6 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
-import { tabForward } from "./keyboard-test-kit.ts";
 import { closeMenu, menuButton, openMenu } from "./site-menu-test-kit.ts";
 
 // site-header.tsx reads the session for SignedInLinks, server code.
@@ -65,8 +57,6 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-
-vi.mock("@/gold/gold-store.ts", () => ({ readGoldBalance: vi.fn() }));
 
 // Saving a theme choice is a round trip to the server, which
 // save-theme-choice-action.server.test.ts covers.
@@ -78,7 +68,6 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 // The height of a button, as --target-size sets it in
 // src/app/page-roles.css.
 const BUTTON_HEIGHT_PX = 44;
-const LOCATION_BALANCE = 870_000;
 // Narrower than this (32rem), the brand is its medallion alone and a deeper
 // trail leaves out its Quests link.
 const PHONE_LAYOUT_BELOW_PX = 512;
@@ -86,8 +75,6 @@ const PHONE_LAYOUT_BELOW_PX = 512;
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
   QUESTS_COPY.headerLink,
-  CHAT_COPY.headerLink,
-  LIBRARY_COPY.heading,
   WORKSHOP_COPY.heading,
   RETIREMENT_COPY.heading,
 ] as const;
@@ -135,16 +122,7 @@ function stayOnThisPage(event: MouseEvent): void {
 }
 
 function renderSignedIn(): ReturnType<typeof render> {
-  return render(
-    <SiteHeader
-      links={
-        <>
-          <HeaderBalance microUsd={870_000} />
-          <SiteMenu links={<AccountLinks />} />
-        </>
-      }
-    />,
-  );
+  return render(<SiteHeader links={<SiteMenu links={<AccountLinks />} />} />);
 }
 
 beforeAll(() => {
@@ -226,7 +204,7 @@ describe("use_case_use_on_phone", () => {
 });
 
 test.each(SCREENS)(
-  "Quests and Chat are reached through the menu on $name",
+  "Quests is reached through the menu on $name",
   async (screen) => {
     await setViewport(screen.viewport);
     await renderSignedIn();
@@ -251,13 +229,13 @@ test.each(SCREENS)(
           .getByRole("dialog")
           .getByRole("link", { name: CHAT_COPY.headerLink }),
       )
-      .toHaveAttribute("href", "/chat");
+      .not.toBeInTheDocument();
     await closeMenu();
   },
 );
 
 describe("the site menu", () => {
-  test("groups Chats, Projects, Workshop apart from Settings, above the appearance choices and Credits", async () => {
+  test("groups Quests and Workshop apart from Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
@@ -361,7 +339,6 @@ function bandedHeader(items: readonly Breadcrumb[]): JSX.Element {
     <SiteHeader
       links={
         <>
-          <HeaderBalance microUsd={LOCATION_BALANCE} />
           <SiteMenu links={<AccountLinks />} />
           <TrailBand items={items} />
         </>
@@ -388,7 +365,6 @@ describe("the trail band", () => {
     async ({ viewport, mode }) => {
       applyTheme("parchment", mode);
       signInAs(SIGNED_IN_USER);
-      vi.mocked(readGoldBalance).mockResolvedValue(LOCATION_BALANCE);
       await setViewport(viewport);
       async function location(quests: boolean): Promise<JSX.Element> {
         let trail: readonly Breadcrumb[] = [{ label: QUESTS_COPY.heading }];
@@ -600,90 +576,5 @@ describe("the trail band", () => {
         trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
       )
       .toBeVisible();
-  });
-});
-
-describe("header battery balance", () => {
-  test("signed-in session reads its balance and unavailable reads stay explicit", async () => {
-    signInAs(SIGNED_IN_USER);
-    vi.mocked(readGoldBalance).mockRejectedValueOnce(new Error("Unavailable"));
-    await render(<SiteHeader links={await SignedInLinks()} />);
-    await expect
-      .element(page.getByRole("status"))
-      .toHaveTextContent("Batteries: Unavailable");
-  });
-
-  test("signed-out session supplies no balance", async () => {
-    signOut();
-    await render(<SiteHeader links={await SignedInLinks()} />);
-    expect(page.getByRole("status").query()).toBeNull();
-  });
-
-  test.each(["light", "dark"])(
-    "fits Quests and shared controls at 320px in %s",
-    async (mode) => {
-      applyTheme("parchment", mode);
-      await setViewport(NARROWEST_VIEWPORT);
-      await render(
-        <>
-          <SiteHeader
-            links={
-              <>
-                <HeaderBalance microUsd={870_000} />
-                <SiteMenu links={<AccountLinks />} />
-              </>
-            }
-          />
-          <main>
-            <h1>{QUESTS_COPY.heading}</h1>
-          </main>
-        </>,
-      );
-      await expect.element(page.getByRole("status")).toBeVisible();
-      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
-        NARROWEST_VIEWPORT.width,
-      );
-      const balanceBox = page
-        .getByRole("status")
-        .element()
-        .getBoundingClientRect();
-      const menuBox = menuButton().element().getBoundingClientRect();
-      expect(balanceBox.right).toBeLessThanOrEqual(menuBox.left);
-      await tabForward();
-      await expect
-        .element(page.getByRole("link", { name: SITE_COPY.name }))
-        .toHaveFocus();
-    },
-  );
-
-  const Balances = [
-    { microUsd: 0, shown: "0" },
-    { microUsd: 9999, shown: "0" },
-    { microUsd: 870_001, shown: "87" },
-  ];
-  test.each(Balances)(
-    "rounds $microUsd like Account",
-    async ({ microUsd, shown }) => {
-      await render(<HeaderBalance microUsd={microUsd} />);
-      await expect
-        .element(page.getByRole("status"))
-        .toHaveTextContent(`Batteries: ${shown}`);
-    },
-  );
-
-  test("shows the balance on one line, named for screen readers", async () => {
-    await render(<HeaderBalance microUsd={870_001} />);
-    const balance = page.getByRole("status");
-    await expect.element(balance).toHaveTextContent("Batteries: 87");
-    const element = balance.element();
-    const line = Number.parseFloat(getComputedStyle(element).lineHeight);
-    expect(element.getBoundingClientRect().height).toBeLessThan(line * 2);
-  });
-
-  test("unavailable is distinct from zero", async () => {
-    await render(<HeaderBalance microUsd={undefined} />);
-    await expect
-      .element(page.getByRole("status"))
-      .toHaveTextContent("Batteries: Unavailable");
   });
 });

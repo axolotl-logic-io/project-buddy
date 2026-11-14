@@ -9,9 +9,6 @@ import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import { addManualSections } from "@/blender-manual/manual-index.ts";
-import type { ManualSection } from "@/blender-manual/manual-sections.ts";
-import { manualUrl } from "@/blender-manual/manual-source.ts";
 import type { QuestChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
@@ -64,11 +61,6 @@ interface TestData {
     chat: { readonly id: ChatId },
     exchanges: readonly Exchange[],
   ) => Promise<void>;
-  // Sections added to the manual index, beside any others, so the construct's
-  // search can find them. manualSection makes one.
-  readonly manualSections: (
-    sections: readonly ManualSection[],
-  ) => Promise<void>;
 }
 
 // The owner's clone of the default construct, with its voice edited.
@@ -90,7 +82,6 @@ async function testEditedConstruct(owner: UserId): Promise<OwnConstruct> {
 }
 
 // Removes what the test added to the manual index.
-const removers: (() => Promise<void>)[] = [];
 
 function uniqueSuffix(): string {
   return crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH);
@@ -171,30 +162,8 @@ function testData(user: User): TestData {
       chat: { readonly id: ChatId },
       exchanges: readonly Exchange[],
     ): Promise<void> => saveExchanges(user.id, chat.id, exchanges),
-    manualSections: async (
-      sections: readonly ManualSection[],
-    ): Promise<void> => {
-      removers.push(await addManualSections(sections));
-    },
   };
 }
 
-// A section of a made-up manual page, for a test's own sections
-// (manualSections), with the URL the app links its citation to.
-function manualSection(
-  page: string,
-  anchor: string,
-  title: string,
-  text: string,
-): ManualSection {
-  const filePath = `manual/${page}.rst`;
-  return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
-}
-
-// Removes the manual sections the test added.
-async function removeTestData(): Promise<void> {
-  await Promise.all(removers.splice(0).map((remove) => remove()));
-}
-
 export type { Exchange, TestData };
-export { manualSection, removeTestData, testData };
+export { testData };

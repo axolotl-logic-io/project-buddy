@@ -29,27 +29,28 @@ beforeEach(() => {
 });
 
 describe("header navigation hierarchy", () => {
-  test("keeps Library books under Library and omits unknown books", async () => {
-    expect(await headerBreadcrumbs(MEMBER, ["library"])).toEqual([
-      { label: "Quests", href: "/quests" },
-      { label: "Library" },
-    ]);
-    expect(
-      await headerBreadcrumbs(MEMBER, ["library", "model-context"]),
-    ).toEqual([
-      { label: "Quests", href: "/quests" },
-      { label: "Library", href: "/library" },
-      { label: "Model context" },
-    ]);
-    expect(await headerBreadcrumbs(MEMBER, ["library", "unknown"])).toEqual([]);
+  test.each([
+    { section: "workshop", label: "Workshop" },
+    { section: "retirement", label: "Graveyard" },
+    { section: "settings", label: "Settings" },
+  ])("$label is a top-level destination", async ({ section, label }) => {
+    const trail = await headerBreadcrumbs(MEMBER, [section]);
+    expect(trail).toHaveLength(1);
+    expect(trail[0]?.label).toBe(label);
+    expect(trail[0]?.href).toBeUndefined();
   });
-  test("puts Chat under Quests, and the old conversation addresses nowhere", async () => {
-    expect(await headerBreadcrumbs(MEMBER, ["chat"])).toEqual([
-      { label: "Quests", href: "/quests" },
-      { label: "Chat" },
-    ]);
-    expect(await headerBreadcrumbs(MEMBER, ["chats", "new"])).toEqual([]);
-    expect(await headerBreadcrumbs(MEMBER, ["home"])).toEqual([]);
+
+  test("removed destinations have no breadcrumb", async () => {
+    const paths = [
+      ["library"],
+      ["library", "model-context"],
+      ["chat"],
+      ["chats", "new"],
+    ];
+    const trails = await Promise.all(
+      paths.map((path) => headerBreadcrumbs(MEMBER, path)),
+    );
+    expect(trails).toEqual([[], [], [], []]);
     expect(await headerBreadcrumbs(MEMBER, ["quests"])).toEqual([
       { label: "Quests" },
     ]);
@@ -85,8 +86,8 @@ describe("header navigation hierarchy", () => {
     stores.getOwnConstruct.mockResolvedValue({ name: "My construct" });
     const trail = await headerBreadcrumbs(MEMBER, ["constructs", "own"]);
     expect(trail).toEqual([
-      { label: "Quests", href: "/quests" },
       { label: "Workshop", href: "/workshop" },
+      { label: "Constructs", href: "/workshop" },
       { label: "My construct" },
     ]);
     expect(stores.getOwnConstruct).toHaveBeenCalledWith(USER, "own");
@@ -99,9 +100,9 @@ describe("header navigation hierarchy", () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["spellbook", "brainstorm"]),
     ).toEqual([
-      { label: "Quests", href: "/quests" },
+      { label: "Workshop", href: "/workshop" },
       {
-        label: "Workshop",
+        label: "Spells",
         href: `/workshop?${new URLSearchParams({ kind: "spell" })}`,
       },
       { label: "Brainstorm" },

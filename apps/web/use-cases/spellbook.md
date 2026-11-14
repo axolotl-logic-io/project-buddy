@@ -1,11 +1,12 @@
 # Spells
 
-Workshop’s Spells tab offers only Plan and Brainstorm. Their pages explain the modes and are read-only. There are no custom spell creation, copy or editing controls. The old /spellbook collection URL redirects to this tab.
+Workshop’s Spells tab offers built-in Plan and Brainstorm and the user's private spells. Built-in pages are read-only and offer Make a copy. Own spells can be created, edited, copied and retired.
 
 ## use_case_construct_casts_spell
 
-- **Intent:** Set the conversation’s persistent spell.
-- **Prerequisites:** An owned quest conversation.
-- **Interaction:** Cast Plan or Brainstorm by id. Cast the other spell to switch, or choose Stop beside the composer.
-- **Outcome:** The spell remains active after reopening the conversation. Plan routes ordinary messages into open Plan steps; Brainstorm routes them into Ideas. Reply instructions list only these two spells. Cast results save the spell’s identity. Unknown ids cannot be cast. Chat refuses these spells because it has no quest buckets.
-- **Related:** [Message capture](ideas.md#use_case_spell_buckets).
+The user sets the conversation's persistent spell.
+
+- **Prerequisites:** an owned quest conversation.
+- **Steps:** choose a built-in or own spell in the sidebar and cast it, or send `cast <spell name>`. `plan` and `brainstorm` cast the built-ins. Cast another spell to switch, or choose Stop [Spell] above the composer or send `stop`.
+- **Outcome:** the spell remains active after reopening. Its saved destination routes ordinary messages into open Plan steps or Ideas. A cast saves the name, replies and destination; subsequent definition edits or retirement do not alter the active snapshot. Unknown, foreign and retired definitions cannot be cast. A conversation without a quest refuses spells because it has no quest buckets. Spell names are matched without regard to case or repeated whitespace. Duplicate names must be renamed before casting.
+- **Next:** [Message capture](ideas.md#use_case_spell_buckets), [custom spells](workshop.md#use_case_customize_spell).

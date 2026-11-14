@@ -78,7 +78,7 @@ function BuiltInConstructCards({
               <Button
                 aria-label={CONSTRUCTS_COPY.customizeLabel(construct.name)}
                 type="submit"
-                variant="quiet"
+                variant="secondary"
               >
                 {CONSTRUCTS_COPY.customize}
               </Button>
@@ -118,7 +118,7 @@ function OwnConstructList({
                 <Button
                   aria-label={CONSTRUCTS_COPY.cloneLabel(construct.name)}
                   type="submit"
-                  variant="quiet"
+                  variant="secondary"
                 >
                   {CONSTRUCTS_COPY.clone}
                 </Button>
@@ -155,6 +155,12 @@ async function ConstructLists(): Promise<JSX.Element> {
 
   return (
     <>
+      <div className="flex flex-col gap-4">
+        <p className="text-muted">{CONSTRUCTS_COPY.intro}</p>
+        <form action={newConstructAction}>
+          <Button type="submit">{CONSTRUCTS_COPY.newConstruct}</Button>
+        </form>
+      </div>
       <section
         aria-labelledby={BUILT_IN_HEADING_ID}
         className="flex flex-col gap-4"
@@ -165,16 +171,9 @@ async function ConstructLists(): Promise<JSX.Element> {
         <BuiltInConstructCards constructs={listBuiltInConstructs()} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="section-heading" id={OWN_HEADING_ID}>
-            {CONSTRUCTS_COPY.ownHeading}
-          </h2>
-          <form action={newConstructAction}>
-            <Button type="submit" variant="secondary">
-              {CONSTRUCTS_COPY.newConstruct}
-            </Button>
-          </form>
-        </div>
+        <h2 className="section-heading" id={OWN_HEADING_ID}>
+          {CONSTRUCTS_COPY.ownHeading}
+        </h2>
         <OwnConstructCards constructs={own} />
       </section>
     </>

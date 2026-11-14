@@ -6,6 +6,7 @@ export const CONSTRUCT_IDS = ["vellum", "lumen"] as const;
 export type ConstructId = (typeof CONSTRUCT_IDS)[number];
 
 export interface ConstructDefinition {
+  // Historical storage only; the local engine does not interpret it.
   readonly prompt: string;
   readonly visual?: ConstructVisual | undefined;
 }

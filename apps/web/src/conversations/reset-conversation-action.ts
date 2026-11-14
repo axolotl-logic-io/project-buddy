@@ -14,15 +14,18 @@ async function resetConversationAction(formData: FormData): Promise<void> {
   }
   const conversation = await getChat(user.id, id.data);
   if (
-    conversation === undefined ||
-    (await resetConversation(user.id, id.data)) === undefined
+    conversation?.quest === undefined ||
+    (await resetConversation(user.id, id.data, {
+      clearSteps: formData.get("clearSteps") === "on",
+      clearIdeas: formData.get("clearIdeas") === "on",
+    })) === undefined
   ) {
     notFound();
   }
   if (conversation.quest !== undefined) {
     redirect(`/quests/${conversation.quest.id}?section=conversation`);
   }
-  redirect("/chat");
+  redirect("/quests");
 }
 
 export { resetConversationAction };

@@ -43,6 +43,7 @@ export function PromptText({
   name,
   editable,
   maxLength,
+  literal = false,
 }: {
   readonly text: string;
   readonly label: string;
@@ -50,11 +51,15 @@ export function PromptText({
   readonly name: string;
   readonly editable: boolean;
   readonly maxLength?: number;
+  readonly literal?: boolean;
 }): JSX.Element {
   const id = useId();
   const headingId = `${id}-heading`;
   const helpId = `${id}-help`;
-  const hints = [help, PROMPT_COPY.namePlaceholderHint];
+  const hints = [help];
+  if (literal !== true) {
+    hints.push(PROMPT_COPY.namePlaceholderHint);
+  }
   if (maxLength !== undefined) {
     hints.push(PROMPT_COPY.limit(maxLength));
   }

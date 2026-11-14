@@ -6,9 +6,8 @@ const WORKSPACES_COPY = {
   appearance: "Appearance",
   conversation: "Conversation",
   standalone: "Standalone",
-  settingsIntro: "Your profile, appearance, batteries and security.",
+  settingsIntro: "Your profile, appearance and security.",
   openWorkshop: "Open Workshop",
-  books: "Library books",
 } as const;
 
 export { WORKSPACES_COPY };

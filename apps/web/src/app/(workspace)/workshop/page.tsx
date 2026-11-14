@@ -72,7 +72,6 @@ export default async function WorkshopPage({
   return (
     <>
       <RetirementFeedback completed={retired === "1"} />
-      <p className="text-muted">{WORKSHOP_PAGE_COPY.intro}</p>
       <KindTabs shown={kind} />
       {await kindLists(kind)}
     </>

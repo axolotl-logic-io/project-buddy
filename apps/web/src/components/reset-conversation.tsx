@@ -1,7 +1,9 @@
 "use client";
 
-import type { JSX } from "react";
+import { Dialog } from "radix-ui";
+import { type JSX, type MouseEvent, useCallback, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { resetConversationAction } from "@/conversations/reset-conversation-action.ts";
 import type { ChatId } from "@/ids.ts";
@@ -18,20 +20,52 @@ function ResetButton({ label }: { readonly label: string }): JSX.Element {
 
 function ResetConversation({
   chatId,
-  dailies = false,
+  quest = false,
+  label = QUEST_CONVERSATION_COPY.reset,
 }: {
   readonly chatId: ChatId;
-  readonly dailies?: boolean;
+  readonly label?: string;
+  readonly quest?: boolean;
 }): JSX.Element {
-  let label: string = QUEST_CONVERSATION_COPY.reset;
-  if (dailies === true) {
-    label = QUEST_CONVERSATION_COPY.resetDay;
-  }
+  const [portalContainer, setPortalContainer] = useState<
+    HTMLElement | undefined
+  >();
+  const open = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
+    setPortalContainer(event.currentTarget.closest("dialog") ?? undefined);
+  }, []);
   return (
-    <form action={resetConversationAction}>
-      <input type="hidden" name="chatId" value={chatId} />
-      <ResetButton label={label} />
-    </form>
+    <FormDialog
+      portalContainer={portalContainer}
+      title={label}
+      closeLabel={QUEST_CONVERSATION_COPY.cancel}
+      trigger={
+        <Button variant="secondary" onClick={open}>
+          {label}
+        </Button>
+      }
+    >
+      <form action={resetConversationAction} className="flex flex-col gap-3">
+        <p>{QUEST_CONVERSATION_COPY.confirmReset}</p>
+        {quest === true && (
+          <>
+            <label>
+              <input type="checkbox" name="clearSteps" />{" "}
+              {QUEST_CONVERSATION_COPY.clearSteps}
+            </label>
+            <p className="text-muted">{QUEST_CONVERSATION_COPY.keepSteps}</p>
+            <label>
+              <input type="checkbox" name="clearIdeas" />{" "}
+              {QUEST_CONVERSATION_COPY.clearIdeas}
+            </label>
+          </>
+        )}
+        <Dialog.Close asChild={true}>
+          <Button variant="secondary">{QUEST_CONVERSATION_COPY.cancel}</Button>
+        </Dialog.Close>
+        <input type="hidden" name="chatId" value={chatId} />
+        <ResetButton label={label} />
+      </form>
+    </FormDialog>
   );
 }
 

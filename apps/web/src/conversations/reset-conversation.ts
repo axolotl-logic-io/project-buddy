@@ -1,8 +1,13 @@
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
-import { chatOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import {
+  chatOpenTo,
+  ideaOpenTo,
+  questOwnedBy,
+} from "@/accounts/owner-scope.ts";
 import { getChat } from "@/chats/store.ts";
 import { moveConversationAssets } from "@/constructs/visual-asset-store.ts";
 import { inTransaction } from "@/db/client.ts";
+import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { CHAT_ID, type ChatId, type UserId } from "@/ids.ts";
@@ -14,6 +19,10 @@ import { reopenPlan } from "@/plan/plan-store.ts";
 async function resetConversation(
   owner: UserId,
   id: ChatId,
+  options: { clearSteps: boolean; clearIdeas: boolean } = {
+    clearSteps: false,
+    clearIdeas: false,
+  },
 ): Promise<ChatId | undefined> {
   const conversation = await getChat(owner, id);
   if (conversation === undefined) {
@@ -47,13 +56,24 @@ async function resetConversation(
         return;
       }
       if (conversation.quest !== undefined) {
-        await reopenPlan(owner, conversation.quest.id, db);
+        await reopenPlan(owner, conversation.quest.id, db, options.clearSteps);
+        if (options.clearIdeas) {
+          await db
+            .delete(questIdeas)
+            .where(
+              and(
+                eq(questIdeas.questId, conversation.quest.id),
+                ideaOpenTo(owner),
+              ),
+            );
+        }
       }
       const nextId = CHAT_ID.parse(crypto.randomUUID());
       await db.insert(chats).values({
         ...previous,
         id: nextId,
         spell: null,
+        spellSnapshot: null,
         continuing: false,
         createdAt: new Date(),
       });

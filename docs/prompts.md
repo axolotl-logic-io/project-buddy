@@ -1,13 +1,11 @@
-# Prompts
+# Workshop definitions
 
-A construct has a name and a prompt describing its voice and habits. Its editor shows the Prompt field under Instructions. The Character Sheet heading organizes that text. The separate Visual description describes its appearance. Built-in constructs are read-only; Make a copy creates an editable own construct.
+Constructs have editable names and Visual descriptions. Their saved name and appearance are used when starting a quest. The local `look` command reads the Visual description from that conversation’s snapshot. Built-in constructs are read-only; Make a copy opens an editable own construct.
 
-Workshop offers Constructs and Spells. Only constructs have editable definitions. Plan and Brainstorm are fixed conversation modes with descriptions, not prompts or custom definitions. See [Spells](spellbook.md).
+Spells have editable names, message destinations and reply lists. The editor shows Message destination directly below Name, followed by **Spell Messages**. Cast a spell by its name, such as `cast Alstorm`. Matching ignores case and repeated whitespace. If several available spells have the same name, rename one before casting.
 
-Reset prompt to default changes the editor draft and offers Undo reset. Only Save changes the stored prompt. Reset restores the source built-in prompt or the default construct prompt. Unsaved names and visual descriptions stay intact. Browser drafts preserve unsaved edits for that user and definition until Save or Cancel.
+Prose Instructions, Prompt and Character Sheet fields and their reset controls have been removed from both editors because the local engine does not interpret them. Old construct prompt text may remain in storage, but it is not editable or included in reply context. Spell definitions discard that field.
 
-Saving instructions makes no model call and spends no batteries. A conversation keeps the construct snapshot chosen at its start; later edits apply to future conversations. `{{name}}` stays literal in storage and is replaced with the user’s name when assembling reply context.
+`own_prompts` stores owner-scoped constructs and spells. The local command engine interprets explicit commands and uses spell destinations and reply templates. See [Spells](spellbook.md) for snapshot and reply-list behavior.
 
-`own_prompts` stores own constructs. Its JSON codec validates their prompt and optional visual metadata. There is no activity definition, custom spell definition or historical built-in matching layer. Quest openings use a shared brief greeting request with the selected construct and quest context, and new conversations have no active spell.
-
-The local command engine interprets explicit commands, not prompt prose. [Local constructs](local-constructs.md) describes the available behavior; [Library](library.md) maps the reply context and tool protocol to their sources.
+New accounts require a name when confirming the emailed signup link from Login. Settings can change the name but cannot clear it. Existing accounts sign in without repeating the name step.

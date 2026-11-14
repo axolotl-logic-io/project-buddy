@@ -3,11 +3,10 @@
 // view's tests' (src/components/chat-view*.test.tsx).
 
 import { describe, expect, test, vi } from "vitest";
-import { searchManual } from "@/blender-manual/search-manual.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   exchange,
@@ -102,23 +101,18 @@ describe("use_case_leave_during_reply", () => {
   });
 });
 
-vi.mock("@/blender-manual/search-manual.ts", { spy: true });
+vi.mock("@/spells/spell-store.ts", { spy: true });
 
 test("use_case_send_while_construct_replies", async () => {
   const { user, chat } = await userWithChat();
   const started = Promise.withResolvers<void>();
-  const release =
-    Promise.withResolvers<Awaited<ReturnType<typeof searchManual>>>();
-  vi.mocked(searchManual).mockImplementationOnce(() => {
+  const release = Promise.withResolvers<Awaited<ReturnType<typeof setSpell>>>();
+  vi.mocked(setSpell).mockImplementationOnce(() => {
     started.resolve();
     return release.promise;
   });
-  const response = await postMessage(
-    user,
-    chat,
-    question("search a pending lookup"),
-  );
-  const body = response.text();
+  // Spell execution precedes the response, so keep the first request in flight.
+  const response = postMessage(user, chat, question("cast brainstorm"));
   try {
     await started.promise;
     await sendToEnd(user, chat, "Another thought");
@@ -126,16 +120,18 @@ test("use_case_send_while_construct_replies", async () => {
       (await savedConversation(user, chat)).map(({ text }) => text),
     ).toContain("Another thought");
   } finally {
-    release.resolve([]);
-    await body;
+    release.resolve(true);
+    await (await response).text();
     await afterTasksDone();
     vi.restoreAllMocks();
   }
   const saved = await savedConversation(user, chat);
   expect(
     saved.filter(({ role }) => role === "assistant").map(({ text }) => text),
-  ).toContain(LOCAL_CONSTRUCT_COPY.noResults);
+  ).toContain(
+    "Cast Brainstorm. Subsequent messages go into Ideas. Use stop when you’re finished.",
+  );
   expect(
     saved.filter(({ role }) => role === "user").map(({ text }) => text),
-  ).toEqual(["search a pending lookup", "Another thought"]);
+  ).toEqual(["cast brainstorm", "Another thought"]);
 });

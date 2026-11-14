@@ -1,19 +1,16 @@
-// Profile, Batteries and security forms in Settings.
+// Profile and security forms in Settings.
 export const ACCOUNT_COPY = {
   loading: "Loading Settings…",
   nameHeading: "Your name",
   nameLabel: "Name",
-  nameHint:
-    "What your constructs call you. A construct uses your name wherever its instructions say {{name}}. Leave it empty and it says “the user” instead.",
+  nameHint: "Used by {{name}} in spell replies.",
   saveName: "Save",
+  nameRequired: "Enter your name.",
   nameSaved: "Saved",
   nameMultiLine: "A name is one line. Take out the line break.",
   nameTooLong: (maxLength: number): string =>
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
-  goldHeading: "Batteries",
-  goldHint:
-    "What your constructs spend on your replies and images. It doesn't reset.",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",

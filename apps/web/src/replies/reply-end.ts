@@ -9,7 +9,6 @@ import { withoutProviderBookkeeping } from "@/replies/provider-bookkeeping.ts";
 // message it answers.
 interface EndedReply {
   readonly cancelled?: boolean;
-  readonly accountingFinished?: () => Promise<void>;
   readonly actingUser: UserId;
   readonly chat: Chat;
   readonly answeredId: MessageId;
@@ -35,7 +34,7 @@ async function releaseClaim(
 // stream, so a failed save is logged here rather than failing the stream.
 // The stream stays open until this resolves.
 async function endReply(
-  { actingUser, chat, answeredId, cancelled, accountingFinished }: EndedReply,
+  { actingUser, chat, answeredId, cancelled }: EndedReply,
   {
     responseMessage,
     outcome,
@@ -43,13 +42,11 @@ async function endReply(
 ): Promise<boolean> {
   if (outcome.status !== "completed") {
     await releaseClaim(actingUser, chat, answeredId);
-    await accountingFinished?.();
     return false;
   }
   try {
     const savedReply = withoutProviderBookkeeping(responseMessage);
     await saveReply(actingUser, chat.id, savedReply, answeredId);
-    await accountingFinished?.();
     return true;
   } catch (error) {
     toAppError(error, "save chat reply");
@@ -57,7 +54,6 @@ async function endReply(
     if (cancelled === true) {
       throw error;
     }
-    await accountingFinished?.();
     return false;
   }
 }

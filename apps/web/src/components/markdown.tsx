@@ -8,16 +8,13 @@ import {
   type PluginConfig,
   Streamdown,
 } from "streamdown";
-import { isManualUrl } from "@/blender-manual/manual-source.ts";
 import { CODE_HIGHLIGHTER } from "@/components/code-highlighting.ts";
 
 const STREAMDOWN_PLUGINS: PluginConfig = { code: CODE_HIGHLIGHTER };
 
-// Links into the Blender manual open straight away; any other link asks
-// first.
+// Ask before opening links from conversation text.
 const LINK_SAFETY: LinkSafetyConfig = {
   enabled: true,
-  onLinkCheck: isManualUrl,
 };
 
 const HEADING_TAGS = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;

@@ -1,9 +1,8 @@
 // Installed app assets and the temporary retirement worker remain public.
 
 import { unstable_doesMiddlewareMatch as doesProxyMatch } from "next/experimental/testing/server";
-import { NextRequest } from "next/server";
 import { expect, test } from "vitest";
-import { config, proxy } from "@/proxy.ts";
+import { config } from "@/proxy.ts";
 import { APP_ICONS } from "@/ui/web-app.ts";
 
 const PUBLIC_FILES: readonly string[] = [
@@ -38,11 +37,4 @@ test("the pages around them still need a session", () => {
       path,
     ).toBe(true);
   }
-});
-
-test("Stripe webhooks pass the cookie gate and authenticate in the route", async () => {
-  const response = await proxy(
-    new NextRequest("http://localhost/api/stripe", { method: "POST" }),
-  );
-  expect(response.headers.get("x-middleware-next")).toBe("1");
 });

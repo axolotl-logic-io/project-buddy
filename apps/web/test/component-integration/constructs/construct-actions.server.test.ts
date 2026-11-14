@@ -2,48 +2,33 @@
 // mock construct: what customizing, crafting, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
 
-import { and, eq } from "drizzle-orm";
 import sharp from "sharp";
-import { describe, expect, test, vi } from "vitest";
-import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
-import { saveUserName, type User } from "@/accounts/users-store.ts";
+import { expect, test, vi } from "vitest";
+import type { User } from "@/accounts/users-store.ts";
 import {
   cloneConstructAction,
   editBuiltInConstructAction,
   newConstructAction,
-  resetConstructPromptAction,
   saveConstructAction,
 } from "@/app/(workspace)/constructs/actions.ts";
-import { createChat } from "@/chats/new-chat-store.ts";
-import { chosenConstruct } from "@/constructs/chosen-construct.ts";
-import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   cloneConstruct,
   createConstruct,
   getOwnConstruct,
   listConstructs as listOwnConstructs,
   type OwnConstruct,
-  updateConstruct,
 } from "@/constructs/construct-store.ts";
-import {
-  type ConstructDefinition,
-  DEFAULT_CONSTRUCT_ID,
-  getConstruct,
-} from "@/constructs/index.ts";
+import { type ConstructDefinition, getConstruct } from "@/constructs/index.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { generateConstructVisual } from "@/constructs/visual-generation.ts";
-import { getDb } from "@/db/client.ts";
-import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import {
   type GeneratedImage,
   type ImageProvider,
   imageProvider,
 } from "@/images/image-provider.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { constructPrompt } from "../test-database/chat-test-kit.ts";
 import {
   expectNotFound,
   expectRedirect,
@@ -59,6 +44,7 @@ vi.mock("@/images/image-provider.ts", async (importOriginal) => {
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const LUMEN: ConstructDefinition = getConstruct("lumen").definition;
+const TOO_LONG_VISUAL_DESCRIPTION = 4001;
 const GENERATED_COST = 10_000;
 
 async function testArtwork(): Promise<GeneratedImage> {
@@ -147,12 +133,6 @@ async function writeNew(user: User): Promise<OwnConstruct> {
   return construct;
 }
 
-// Resets one part of her construct, from its reset button, and checks it
-// showed the construct's page again.
-async function resetPrompt(constructId: string): Promise<void> {
-  await resetConstructPromptAction(form({ constructId }));
-}
-
 // Making a copy opens that new private definition in the editor.
 async function copyOwn(user: User, sourceId: string): Promise<void> {
   const copying = cloneConstructAction(form({ sourceId }));
@@ -164,199 +144,61 @@ async function copyOwn(user: User, sourceId: string): Promise<void> {
   await expectRedirect(() => copying, `/constructs/${copy.id}`);
 }
 
-describe("use_case_customize_construct", () => {
-  test("customizing a built-in construct makes a copy of her own, and cloning a clone works", async () => {
-    const user = await signedInUser();
-
-    const copy = await customize(user, "vellum");
-    expect(copy).toMatchObject({
-      name: "Vellum (copy)",
-      definition: getConstruct("vellum").definition,
-    });
-
-    await copyOwn(user, copy.id);
-    expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
-      "Vellum (copy)",
-      "Vellum (copy) (copy)",
-    ]);
-  });
+test("use_case_customize_construct", async () => {
+  const user = await signedInUser();
+  const copy = await customize(user, "lumen");
+  expect(copy.name).toContain(getConstruct("lumen").name);
+  expect(copy.definition.visual).toEqual(LUMEN.visual);
+  await copyOwn(user, copy.id);
+  expect(await listOwnConstructs(user.id)).toHaveLength(2);
 });
 
-describe("use_case_new_construct", () => {
-  test("a new construct starts with default instructions, and each Craft construct makes another", async () => {
-    const user = await signedInUser();
-
-    const construct = await writeNew(user);
-    expect(construct).toMatchObject({
-      name: CONSTRUCTS_COPY.newConstructName,
-      definition: {
-        prompt: getConstruct(DEFAULT_CONSTRUCT_ID).definition.prompt,
-      },
-      clonedFrom: undefined,
-    });
-    expect(construct.definition.visual).toBeUndefined();
-
-    const edited = {
-      prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
-    };
-    expect(
-      (await updateConstruct(user.id, construct.id, { definition: edited }))
-        ?.definition,
-    ).toEqual(edited);
-    await resetPrompt(construct.id);
-    await resetPrompt(construct.id);
-    expect((await stored(user, construct.id)).definition).toEqual(
-      construct.definition,
-    );
-
-    await writeNew(user);
-    expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
-      CONSTRUCTS_COPY.newConstructName,
-      CONSTRUCTS_COPY.newConstructName,
-    ]);
-  });
-
-  test("her new construct can be named, written, chosen for a chat and cloned, and is hers alone", async () => {
-    const user = await signedInUser();
-    const construct = await writeNew(user);
-    const parts = {
-      prompt: ["Kind and brief.", "## Habits", "- Asks first."].join("\n\n"),
-    };
-
-    await expectRedirect(
-      () => saveConstructAction(constructForm(construct.id, "Pal", parts)),
-      `/constructs/${construct.id}?saved=1`,
-    );
-    expect(await chosenConstruct(user.id, construct.id)).toEqual({
-      id: construct.id,
-      construct: { id: DEFAULT_CONSTRUCT_ID, name: "Pal", definition: parts },
-    });
-    await copyOwn(user, construct.id);
-    expect((await listOwnConstructs(user.id)).at(-1)).toMatchObject({
-      name: "Pal (copy)",
-      definition: parts,
-    });
-
-    const other = await signedInUser();
-    await expectNotFound(() =>
-      saveConstructAction(constructForm(construct.id, "Taken", parts)),
-    );
-    expect(await chosenConstruct(other.id, construct.id)).toBeUndefined();
-    expect(await listOwnConstructs(other.id)).toEqual([]);
-    expect((await stored(user, construct.id)).name).toBe("Pal");
-  });
+test("use_case_new_construct", async () => {
+  const user = await signedInUser();
+  const first = await writeNew(user);
+  const second = await writeNew(user);
+  expect(first.id).not.toBe(second.id);
+  expect(first.name).toBe(CONSTRUCTS_COPY.newConstructName);
+  expect(first.definition.visual).toBeUndefined();
 });
 
-describe("use_case_edit_construct", () => {
-  test("her edits to the name and parts are saved", async () => {
-    const user = await signedInUser();
-    const construct = await cloneOf(user, "lumen");
-    // A browser sends a textarea's line breaks as CRLF.
-    const prompt = "Pity the fool\r\nwho skips the manual.";
-
-    await expectRedirect(
-      () =>
-        saveConstructAction(
-          constructForm(construct.id, " Lumen, edited ", { ...LUMEN, prompt }),
-        ),
-      `/constructs/${construct.id}?saved=1`,
-    );
-
-    expect(await stored(user, construct.id)).toMatchObject({
-      name: "Lumen, edited",
-      definition: {
-        ...LUMEN,
-        prompt: "Pity the fool\nwho skips the manual.",
-      },
-    });
+test("use_case_edit_construct", async () => {
+  const user = await signedInUser();
+  const copy = await cloneOf(user, "lumen");
+  const data = form({
+    constructId: copy.id,
+    name: "My light",
+    visualDescription: "A blue lantern.",
   });
-
-  test("a voice that says {{name}} is kept as written and reaches her chat's prompt with her name", async () => {
-    const user = await signedInUser();
-    await saveUserName(user.id, "Mabel");
-    const construct = await cloneOf(user, "lumen");
-    const prompt = "Hi {{name}}, fool.";
-
-    await expectRedirect(
-      () =>
-        saveConstructAction(
-          constructForm(construct.id, construct.name, { ...LUMEN, prompt }),
-        ),
-      `/constructs/${construct.id}?saved=1`,
-    );
-    const saved = await stored(user, construct.id);
-    expect(saved.definition.prompt).toBe(prompt);
-
-    const chat = await createChat(user.id, {
-      quest: await testData(user).quest(),
-      construct: {
-        id: DEFAULT_CONSTRUCT_ID,
-        name: saved.name,
-        definition: saved.definition,
-      },
-    });
-    const rendered = await constructPrompt(chat.id);
-    expect(rendered).toContain("Hi Mabel, fool.");
-    expect(rendered).not.toContain("{{name}}");
-  });
+  data.set("prompt", "Forged instructions must not be saved.");
+  await expectRedirect(
+    () => saveConstructAction(data),
+    `/constructs/${copy.id}?saved=1`,
+  );
+  const edited = await stored(user, copy.id);
+  expect(edited.name).toBe("My light");
+  expect(edited.definition.visual?.description).toBe("A blue lantern.");
+  expect(edited.definition.prompt).toBe(copy.definition.prompt);
+  const other = await signedInUser();
+  await expectNotFound(() => saveConstructAction(data));
+  expect(await getOwnConstruct(other.id, copy.id)).toBeUndefined();
 });
 
-describe("use_case_reset_construct_part", () => {
-  test("reset restores the whole built-in construct prompt", async () => {
-    const user = await signedInUser();
-    const construct = await cloneOf(user, "lumen");
-    await updateConstruct(user.id, construct.id, {
-      definition: {
-        ...construct.definition,
-        prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
-      },
-    });
-
-    await resetPrompt(construct.id);
-    expect((await stored(user, construct.id)).definition).toEqual(LUMEN);
-
-    await resetPrompt(construct.id);
-    expect((await stored(user, construct.id)).definition).toEqual(LUMEN);
-  });
-
-  test("the prompt of a clone of her own construct goes back to Vellum's", async () => {
-    const user = await signedInUser();
-    const construct = await cloneOf(user, (await cloneOf(user, "lumen")).id);
-
-    await resetPrompt(construct.id);
-
-    expect((await stored(user, construct.id)).definition.prompt).toBe(
-      getConstruct("vellum").definition.prompt,
-    );
-  });
+test("use_case_customize_built_in_construct", async () => {
+  await signedInUser();
+  await expectNotFound(() =>
+    saveConstructAction(
+      form({
+        constructId: "lumen",
+        name: "Changed",
+        visualDescription: "A lantern.",
+      }),
+    ),
+  );
+  expect(getConstruct("lumen").name).toBe("Lumen");
 });
 
-describe("use_case_customize_built_in_construct", () => {
-  test("a built-in construct can't be saved or reset", async () => {
-    const user = await signedInUser();
-    const lumen = getConstruct("lumen");
-
-    await expectNotFound(() =>
-      saveConstructAction(
-        constructForm(lumen.id, lumen.name, {
-          ...lumen.definition,
-          prompt: "Edited",
-        }),
-      ),
-    );
-    await expectNotFound(() =>
-      resetConstructPromptAction(
-        form({ constructId: lumen.id, part: "voice" }),
-      ),
-    );
-
-    expect(await listOwnConstructs(user.id)).toEqual([]);
-  });
-});
-
-const TOO_LONG_VISUAL_DESCRIPTION = 4001;
-
-test("saving a Visual description retains trusted art, ignores submitted assets and reset preserves visuals", async () => {
+test("saving a Visual description retains trusted art, ignores submitted assets and preserves visuals", async () => {
   const user = await signedInUser();
   const construct = await cloneOf(user, "lumen");
   const data = constructForm(
@@ -384,7 +226,6 @@ test("saving a Visual description retains trusted art, ignores submitted assets 
   expect((await stored(user, construct.id)).definition.visual).toEqual(
     expected,
   );
-  await resetPrompt(construct.id);
   expect((await stored(user, construct.id)).definition.visual).toEqual(
     expected,
   );
@@ -395,47 +236,7 @@ test("saving a Visual description retains trusted art, ignores submitted assets 
   );
 });
 
-test("Workshop save and reset keep unchanged prompts stored in current built-in wording", async () => {
-  const user = await signedInUser();
-  const construct = await cloneOf(user, "vellum");
-  await expectRedirect(
-    () =>
-      saveConstructAction(
-        constructForm(construct.id, construct.name, construct.definition),
-      ),
-    `/constructs/${construct.id}?saved=1`,
-  );
-  const [saved] = await getDb()
-    .select({ parts: ownPrompts.parts })
-    .from(ownPrompts)
-    .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
-  expect(parseConstructDefinition(saved?.parts)?.prompt).toBe(
-    getConstruct("vellum").definition.prompt,
-  );
-  await expectRedirect(
-    () =>
-      saveConstructAction(
-        constructForm(construct.id, construct.name, {
-          ...construct.definition,
-          prompt: "Edited",
-        }),
-      ),
-    `/constructs/${construct.id}?saved=1`,
-  );
-  await resetPrompt(construct.id);
-  const [reset] = await getDb()
-    .select({ parts: ownPrompts.parts })
-    .from(ownPrompts)
-    .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
-  expect(parseConstructDefinition(reset?.parts)?.prompt).toBe(
-    getConstruct("vellum").definition.prompt,
-  );
-  expect((await stored(user, construct.id)).definition.visual).toEqual(
-    construct.definition.visual,
-  );
-});
-
-test("save and reset retain paid art even when a source lookup returns an older snapshot", async () => {
+test("saving retains paid art even when a source lookup returns an older snapshot", async () => {
   const user = await signedInUser();
   const stale = await cloneOf(user, "lumen");
   const generated = await generateConstructVisual(
@@ -471,8 +272,6 @@ test("save and reset retain paid art even when a source lookup returns an older 
         ),
       `/constructs/${stale.id}?saved=1`,
     );
-    const reset = form({ constructId: stale.id });
-    await resetConstructPromptAction(reset);
     expect(
       await getVisualAsset(
         user.id,
@@ -518,7 +317,7 @@ test("saving a visual description keeps artwork and spends no batteries", async 
   }
 });
 
-test.each(["prompt", "name", "unchanged", "normalized"] as const)(
+test.each(["name", "unchanged", "normalized"] as const)(
   "a %s-only Save retains paid artwork without requesting or charging generation",
   async (change) => {
     const user = await signedInUser();
@@ -535,11 +334,8 @@ test.each(["prompt", "name", "unchanged", "normalized"] as const)(
     const provider = vi.mocked(imageProvider).mockReturnValue({ generate });
     try {
       let { name } = copy;
-      let { prompt } = copy.definition;
+      const { prompt } = copy.definition;
       let editedDescription = description;
-      if (change === "prompt") {
-        prompt = "New conversational instructions.";
-      }
       if (change === "name") {
         name = "Captain Quill";
       }

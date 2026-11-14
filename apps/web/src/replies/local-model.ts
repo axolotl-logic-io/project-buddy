@@ -1,11 +1,6 @@
 // MUD-inspired commands: explicit verbs, tool-backed actions and fixed replies.
 // Sheets and tool outputs are data; they never supply executable commands.
 import type { LanguageModelV4 } from "@ai-sdk/provider";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
-import {
-  SEARCH_BLENDER_MANUAL_OUTPUT,
-  SEARCH_BLENDER_MANUAL_TOOL,
-} from "@/blender-manual/search-tool-contract.ts";
 import { isNeutralKickoff, OPENING_REQUEST } from "@/replies/chat-kickoff.ts";
 import type { ScriptConversation, ScriptStep } from "@/replies/reply-script.ts";
 import { scriptedModel } from "@/replies/scripted-model.ts";
@@ -22,54 +17,13 @@ function textStep(text: string): ScriptStep {
   return { text, toolCalls: [] };
 }
 
-function searchSteps(
-  query: string,
-  { toolResults }: ScriptConversation,
-): ScriptStep[] {
-  const search: ScriptStep = {
-    text: "",
-    toolCalls: [{ toolName: SEARCH_BLENDER_MANUAL_TOOL, input: { query } }],
-  };
-  const [result, citation] = toolResults;
-  if (result === undefined) {
-    return [search];
-  }
-  const parsed = SEARCH_BLENDER_MANUAL_OUTPUT.safeParse(result.output);
-  if (result.failed || !parsed.success) {
-    return [search, textStep(LOCAL_CONSTRUCT_COPY.searchFailed)];
-  }
-  const { sections } = parsed.data;
-  if (sections.length === 0) {
-    return [search, textStep(LOCAL_CONSTRUCT_COPY.noResults)];
-  }
-  const cite: ScriptStep = {
-    text: "",
-    toolCalls: [
-      {
-        toolName: CITE_BLENDER_MANUAL_TOOL,
-        input: { urls: sections.map(({ url }) => url) },
-      },
-    ],
-  };
-  if (citation === undefined) {
-    return [search, cite];
-  }
-  const lines = sections.map(
-    ({ label, excerpt }, index) => `${index + 1}. **${label}**: ${excerpt}`,
-  );
-  if (citation.failed) {
-    lines.unshift(LOCAL_CONSTRUCT_COPY.citationFailed);
-  }
-  return [search, cite, textStep(lines.join("\n\n"))];
-}
-
 function castSteps(
-  spellId: string,
+  name: string,
   { toolResults }: ScriptConversation,
 ): ScriptStep[] {
   const cast: ScriptStep = {
     text: "",
-    toolCalls: [{ toolName: CAST_SPELL_TOOL, input: { spellId } }],
+    toolCalls: [{ toolName: CAST_SPELL_TOOL, input: { name } }],
   };
   const [result] = toolResults;
   if (result === undefined) {
@@ -81,6 +35,9 @@ function castSteps(
   }
   if (parsed.data.status === "needsQuest") {
     return [cast, textStep(LOCAL_CONSTRUCT_COPY.needsQuest)];
+  }
+  if (parsed.data.status === "unavailable") {
+    return [cast, textStep(LOCAL_CONSTRUCT_COPY.castFailed)];
   }
   return [cast, textStep(LOCAL_CONSTRUCT_COPY.cast(parsed.data.name))];
 }
@@ -103,11 +60,6 @@ function localReply(
       );
       return [textStep(LOCAL_CONSTRUCT_COPY.look(description))];
     }
-    case "search":
-      if (argument !== "") {
-        return searchSteps(argument, conversation);
-      }
-      return [textStep(LOCAL_CONSTRUCT_COPY.searchUsage)];
     case "cast":
       if (argument !== "") {
         return castSteps(argument, conversation);

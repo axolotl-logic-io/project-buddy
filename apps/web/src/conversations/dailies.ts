@@ -13,14 +13,12 @@ import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 
 // The user's Dailies, newly started or resumed as it was, with its
-// conversation, or why it wasn't started: the user is out of batteries, or
-// Claude couldn't write its opening.
+// conversation, or why its opening was unavailable.
 type StartDailiesResult =
   | {
       readonly kind: "started" | "resumed";
       readonly chat: QuestChat;
     }
-  | { readonly kind: "outOfGold" }
   | { readonly kind: "claudeUnavailable" };
 
 interface DailiesStart {
@@ -62,7 +60,7 @@ async function resume(
 }
 
 // The user's Dailies: resumed as it is when they have one, which changes
-// nothing, writes nothing and spends no batteries; otherwise started from
+// nothing, writes nothing; otherwise started from
 // start, like any new quest. A storage failure throws.
 async function startDailies(
   user: UserId,

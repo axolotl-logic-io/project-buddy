@@ -4,6 +4,7 @@ import { ChatScreen } from "@/components/chat-screen.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { ResetConversation } from "@/components/reset-conversation.tsx";
+import { SpellPicker } from "@/components/spell-picker.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { changeIdeaAction } from "@/ideas/idea-actions.ts";
@@ -12,6 +13,8 @@ import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readPlanState } from "@/plan/plan-store.ts";
 import type { Quest } from "@/quests/store.ts";
+import { listOwnSpells } from "@/spells/own-spell-store.ts";
+import { listSpells } from "@/spells/spell.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
@@ -37,15 +40,15 @@ async function questConversation(
       </div>
     );
   }
-  const [messages, stoppedReplyId, plan, ideas, milestones] = await Promise.all(
-    [
+  const [messages, stoppedReplyId, plan, ideas, milestones, ownSpells] =
+    await Promise.all([
       listMessages(viewer, conversation.id),
       readStoppedReply(viewer, conversation.id),
       readPlanState(viewer, quest.id),
       listIdeas(viewer, quest.id),
       listMilestones(viewer, quest.id),
-    ],
-  );
+      listOwnSpells(viewer),
+    ]);
   let initialSection: string | undefined = section;
   if (section === "conversation") {
     initialSection = undefined;
@@ -59,9 +62,6 @@ async function questConversation(
             construct={conversation.construct}
             destination={{ kind: "adventure", id: conversation.id }}
           />
-          {quest.dailies && quest.status === "active" && (
-            <ResetConversation chatId={conversation.id} dailies={true} />
-          )}
         </div>
       </header>
     );
@@ -69,6 +69,21 @@ async function questConversation(
   return (
     <ChatScreen
       header={header}
+      sidebarActions={
+        <div className="flex flex-col gap-3">
+          {quest.dailies && quest.status === "active" && (
+            <ResetConversation
+              chatId={conversation.id}
+              label={QUEST_CONVERSATION_COPY.resetDay}
+              quest={true}
+            />
+          )}
+          <SpellPicker
+            chatId={conversation.id}
+            spells={[...listSpells(), ...ownSpells]}
+          />
+        </div>
+      }
       initialSection={initialSection}
       sideSections={[
         {

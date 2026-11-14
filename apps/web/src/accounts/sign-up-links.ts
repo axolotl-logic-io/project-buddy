@@ -1,6 +1,7 @@
 import { and, eq, gt, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { hashToken, newToken, TOKEN_FORMAT } from "@/accounts/emailed-link.ts";
+import { checkUserName } from "@/accounts/user-name.ts";
 import { normalizeEmail } from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
@@ -8,7 +9,6 @@ import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { sendEmail } from "@/email/send-email.ts";
 import { signInLinkEmail } from "@/email/sign-in-link-email.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { grantStartingGold } from "@/gold/gold-store.ts";
 import { parseUserId } from "@/ids.ts";
 import { SIGN_IN_LINK_PATH } from "@/routes.ts";
 
@@ -78,14 +78,19 @@ async function readSignUpEmail(
   return row?.email;
 }
 
-// Claims verification and creates or returns the address's ordinary account
+// Validates the required name, claims verification and creates or returns the address's ordinary account
 // atomically. A failed insert preserves the link. Concurrent confirmations
 // cannot consume the same link twice or create duplicate accounts.
 async function confirmSignUp(
   token: string,
   now: Date,
+  name: string,
 ): Promise<SessionUser | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
+    return undefined;
+  }
+  const checked = checkUserName(name);
+  if (checked.kind !== "valid") {
     return undefined;
   }
   const tokenHash = await hashToken(token);
@@ -95,7 +100,7 @@ async function confirmSignUp(
       delete from signup_links where token_hash = ${tokenHash} and expires_at > ${now.toISOString()}::timestamptz
       returning email
     )
-    insert into users (email) select email from claimed
+    insert into users (email, name) select email, ${checked.name} from claimed
     on conflict (email) do update set email = excluded.email
     returning id, session_epoch as "sessionEpoch"
   `),
@@ -105,9 +110,6 @@ async function confirmSignUp(
   if (row === undefined || id === undefined) {
     return undefined;
   }
-  await grantStartingGold(id).catch(() => {
-    // Balance reads retry the idempotent starting grant after a storage failure.
-  });
   return {
     id,
     sessionEpoch: row.sessionEpoch,

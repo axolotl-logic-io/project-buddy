@@ -12,7 +12,7 @@
 // the site's stylesheet comes from vitest.browser-setup.ts.
 // "use_case_send_message": a reply streams in the quest's conversation.
 // "use_case_dailies": Start the day sends its prepared message like any
-// other, keeping the draft. "use_case_start_quest_conversation": a quest
+// other, keeping the draft. "conversation initialization fallback": a quest
 // without a conversation offers to start it, and reading it starts nothing.
 
 import type { UIMessageChunk } from "ai";
@@ -557,7 +557,7 @@ describe("use_case_open_quest", () => {
   });
 });
 
-describe("use_case_start_quest_conversation", () => {
+describe("conversation initialization fallback", () => {
   test("a quest with no conversation yet offers to start it, starting nothing on view", async () => {
     store.readQuestConversation.mockResolvedValue(undefined);
     await render(await chatPage());
@@ -575,18 +575,38 @@ describe("use_case_start_quest_conversation", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("Reset Day is offered above the conversation", async () => {
+  test("Reset Day is offered above the workspace tabs and confirms reset options", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
     const reset = page.getByRole("button", {
       name: QUEST_CONVERSATION_COPY.resetDay,
     });
     await expect.element(reset).toBeVisible();
-    const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    expect(reset.element().getBoundingClientRect().bottom).toBeLessThan(
-      message.element().getBoundingClientRect().top,
+    const tabs = page.getByRole("tablist");
+    expect(reset.element().getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      tabs.element().getBoundingClientRect().top,
     );
+    await reset.click();
+    const dialog = page.getByRole("dialog", {
+      name: QUEST_CONVERSATION_COPY.resetDay,
+    });
+    await expect.element(dialog).toBeVisible();
+    await expect
+      .element(
+        dialog.getByRole("checkbox", {
+          name: QUEST_CONVERSATION_COPY.clearSteps,
+        }),
+      )
+      .not.toBeChecked();
+    await expect
+      .element(
+        dialog.getByRole("checkbox", {
+          name: QUEST_CONVERSATION_COPY.clearIdeas,
+        }),
+      )
+      .not.toBeChecked();
   });
 
   test("an ordinary quest offers no Reset Day", async () => {
@@ -619,11 +639,6 @@ test("Stop Spell stays beside the composer and sends stop without replacing the 
   await render(await chatPage());
   const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
   await box.fill("Keep this draft");
-  await expect
-    .element(
-      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
-    )
-    .toBeVisible();
   await page
     .getByRole("button", { name: "Stop Brainstorm", exact: true })
     .click();
@@ -664,3 +679,15 @@ test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
     );
   },
 );
+
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  castSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
+  cloneSpellAction: vi.fn(),
+  saveSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
+}));
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  findSpell: vi.fn().mockResolvedValue(undefined),
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+}));

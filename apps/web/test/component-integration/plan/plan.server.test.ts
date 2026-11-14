@@ -15,7 +15,6 @@ import {
 } from "@/chats/store.ts";
 import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import { MOST_OPEN_STEPS } from "@/plan/plan.ts";
 import {
   changePlanAction,
   type PlanActionResult,
@@ -82,7 +81,7 @@ function command(chatId: ChatId, text: string): Promise<PlanActionResult> {
   return runChatCommandAction({ chatId, text });
 }
 
-describe("use_case_construct_changes_plan", () => {
+describe("Plan tool contract", () => {
   test("the construct lays it out with change_plan, and the adventure keeps the change", async () => {
     const { user, chat } = await signedInChat();
     const output = await Promise.resolve(
@@ -351,11 +350,12 @@ describe("a quest's plan, changed without the construct", () => {
     expect((await readCurrentQuest(user.id))?.nextStep).toBeUndefined();
   });
 
-  test(`a change may add a step and remove another at the ${MOST_OPEN_STEPS}-step limit`, async () => {
+  test("controls and commands can add beyond the former step limit", async () => {
+    const ManySteps = 40;
     const { user, chat } = await signedInChat();
     await changePlanAction({
       questId: chat.quest.id,
-      operations: Array.from({ length: MOST_OPEN_STEPS }, (_, index) => ({
+      operations: Array.from({ length: ManySteps }, (_, index) => ({
         op: "add" as const,
         text: `Study ${index + 1}`,
       })),
@@ -363,25 +363,13 @@ describe("a quest's plan, changed without the construct", () => {
     expect(
       await changePlanAction({
         questId: chat.quest.id,
-        operations: [{ op: "add", text: "One study more" }],
-      }),
-    ).toMatchObject({ kind: "failed", reason: "too-many-steps" });
-    expect(await command(chat.id, "/add Study 31")).toMatchObject({
-      kind: "failed",
-      reason: "too-many-steps",
-    });
-    expect(
-      await changePlanAction({
-        questId: chat.quest.id,
-        operations: [
-          { op: "add", text: "One study more" },
-          { op: "remove", step: 1 },
-        ],
+        operations: [{ op: "add", text: "One more study" }],
       }),
     ).toMatchObject({ kind: "changed" });
-    expect(await openTexts(user.id, chat.quest.id)).toHaveLength(
-      MOST_OPEN_STEPS,
-    );
+    expect(await command(chat.id, "/add Another study")).toMatchObject({
+      kind: "changed",
+    });
+    expect(await openTexts(user.id, chat.quest.id)).toHaveLength(ManySteps + 2);
   });
 
   test("undoing an older change keeps a newer edit of the same step", async () => {

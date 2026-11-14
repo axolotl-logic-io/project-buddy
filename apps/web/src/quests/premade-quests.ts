@@ -1,3 +1,5 @@
+import type { ConstructId } from "@/constructs/index.ts";
+
 type PremadeQuestId = "dailies" | "learn" | "make" | "do";
 
 interface PremadeQuest {
@@ -8,12 +10,12 @@ interface PremadeQuest {
   // What it is for, in a sentence or two, shown with its details.
   readonly description: string;
   readonly context: string;
+  readonly constructId: ConstructId;
 }
 
 interface QuestStartPreset {
   readonly name?: string | undefined;
   readonly context?: string | undefined;
-  readonly constructId?: string | undefined;
 }
 
 const PREMADE_QUESTS: readonly PremadeQuest[] = [
@@ -24,6 +26,7 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
     description:
       "Start each day here: notice what matters and choose one manageable next step. One ongoing quest you come back to.",
     context: "",
+    constructId: "vellum",
   },
   {
     id: "learn",
@@ -32,6 +35,7 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
     description:
       "Find your starting point and learn by doing, one small practice step at a time.",
     context: "",
+    constructId: "vellum",
   },
   {
     id: "make",
@@ -40,6 +44,7 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
     description:
       "Discover what you want to make and get to a small first version.",
     context: "",
+    constructId: "lumen",
   },
   {
     id: "do",
@@ -48,6 +53,7 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
     description:
       "Any other outcome you want: break it into steps and take the first one.",
     context: "",
+    constructId: "lumen",
   },
 ];
 

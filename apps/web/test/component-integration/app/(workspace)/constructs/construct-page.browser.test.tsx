@@ -64,29 +64,24 @@ async function openPage(construct: OwnConstruct): Promise<void> {
   );
 }
 
-test("her copy of a built-in construct resets to that construct's prompt, by name", async () => {
+test("constructs expose name and appearance without prose instructions or reset", async () => {
   await openPage(ownConstruct({ clonedFrom: "lumen" }));
   await expect
     .element(
-      page.getByRole("button", {
-        name: PROMPT_COPY.resetPrompt,
-      }),
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
     )
     .toBeVisible();
-  expect(
-    page.getByRole("heading", { level: 1 }).query(),
-    "the trail band, not the page, names it",
-  ).toBeNull();
-});
-
-// A construct that came from no built-in one, such as a copy bought in the
-// Marketplace before it closed, resets to the default construct's prompt.
-test("a construct from no built-in one offers reset to the default prompt", async () => {
-  await openPage(ownConstruct({ clonedFrom: undefined }));
-
+  await expect
+    .element(
+      page.getByRole("textbox", { name: "Visual description", exact: true }),
+    )
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("textbox", { name: "Prompt", exact: true }))
+    .not.toBeInTheDocument();
   await expect
     .element(page.getByRole("button", { name: PROMPT_COPY.resetPrompt }))
-    .toBeVisible();
+    .not.toBeInTheDocument();
 });
 
 vi.mock("@/retirement/retirement-store.ts", () => ({
@@ -125,7 +120,7 @@ test("built-in visuals stay read-only beside Make a copy and all four role previ
     .element(
       page.getByRole("region", { name: PROMPT_COPY.constructFieldsHeading }),
     )
-    .toBeVisible();
+    .not.toBeInTheDocument();
   await expect
     .element(
       page.getByRole("heading", {
@@ -134,5 +129,5 @@ test("built-in visuals stay read-only beside Make a copy and all four role previ
         exact: true,
       }),
     )
-    .toBeVisible();
+    .not.toBeInTheDocument();
 });

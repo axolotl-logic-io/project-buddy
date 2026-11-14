@@ -1,4 +1,4 @@
-// "use_case_construct_records_milestone" in use-cases/quests.md, in Chromium
+// Regression coverage for milestone tool contract.
 // and WebKit: a reopened chat whose saved reply recorded a milestone shows
 // it apart from the construct's words, with a link to the progress timeline,
 // and a call that failed shows the failure line. What the reply streams and
@@ -60,7 +60,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("use_case_construct_records_milestone", () => {
+describe("milestone tool contract", () => {
   test("a reopened chat shows the milestone it recorded, linked to the progress timeline", async () => {
     await renderSavedChat({
       type: `tool-${RECORD_MILESTONE_TOOL}`,

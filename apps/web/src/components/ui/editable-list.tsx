@@ -8,7 +8,6 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
-  type SubmitEvent,
   useCallback,
   useContext,
   useEffect,
@@ -187,9 +186,10 @@ function TextEditor({
   readonly onCancel: () => void;
   readonly onDismiss: () => void;
 }): JSX.Element {
-  const formRef = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFieldSetElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const savingRef = useRef<boolean>(false);
+  const savingRef = useRef<Promise<boolean> | undefined>(undefined);
+  const resubmittingRef = useRef<boolean>(false);
   const clickedAwayRef = useRef<boolean>(false);
   const dismissRequestedRef = useRef<boolean>(false);
   const inputId = useId();
@@ -205,53 +205,101 @@ function TextEditor({
     setText(event.currentTarget.value);
     setProblem(undefined);
   }, []);
-  const keyDown = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>): void => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        onCancel();
-      }
-    },
-    [onCancel],
-  );
   const save = useCallback(
-    async (dismiss: boolean): Promise<void> => {
-      if (savingRef.current || disabled) {
-        return;
+    (dismiss: boolean): Promise<boolean> => {
+      if (savingRef.current !== undefined) {
+        return savingRef.current;
+      }
+      if (disabled) {
+        return Promise.resolve(false);
       }
       if (dismiss && text.trim() === initial.trim()) {
         onDismiss();
-        return;
+        return Promise.resolve(true);
       }
       const checked = editor.validate(text);
       if ("problem" in checked) {
         setProblem(checked.problem);
-        return;
+        return Promise.resolve(false);
       }
-      savingRef.current = true;
-      try {
-        if (await onSave(checked.text)) {
+      const { text: savedText } = checked;
+      async function persist(): Promise<boolean> {
+        try {
+          if (!(await onSave(savedText))) {
+            return false;
+          }
           if (dismiss || clickedAwayRef.current) {
             onDismiss();
           } else {
             onCancel();
           }
+          return true;
+        } catch {
+          setProblem(EDITABLE_LIST_COPY.failed);
+          return false;
+        } finally {
+          savingRef.current = undefined;
         }
-      } catch {
-        setProblem(EDITABLE_LIST_COPY.failed);
-      } finally {
-        savingRef.current = false;
       }
+      const pending = Promise.resolve().then(persist);
+      savingRef.current = pending;
+      return pending;
     },
     [disabled, editor, initial, onCancel, onDismiss, onSave, text],
   );
-  const submit = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
-      event.preventDefault();
-      await save(false);
+  const submitParent = useEffectEvent((event: SubmitEvent): void => {
+    if (resubmittingRef.current) {
+      return;
+    }
+    const parent = event.target;
+    if (!(parent instanceof HTMLFormElement)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const { submitter } = event;
+    save(true)
+      .then((saved) => {
+        if (!saved) {
+          return;
+        }
+        resubmittingRef.current = true;
+        if (submitter === null) {
+          parent.requestSubmit();
+        } else {
+          parent.requestSubmit(submitter);
+        }
+        resubmittingRef.current = false;
+      })
+      .catch(() => setProblem(EDITABLE_LIST_COPY.failed));
+  });
+  useEffect(() => {
+    const parent = formRef.current?.closest("form");
+    if (parent === undefined || parent === null) {
+      return;
+    }
+    function submitOuter(event: SubmitEvent): void {
+      submitParent(event);
+    }
+    parent.addEventListener("submit", submitOuter, true);
+    return (): void => parent.removeEventListener("submit", submitOuter, true);
+  }, []);
+  const submit = useCallback(async (): Promise<void> => {
+    await save(false);
+  }, [save]);
+  const keyDown = useCallback(
+    async (event: KeyboardEvent<HTMLInputElement>): Promise<void> => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onCancel();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
+        await save(false);
+      }
     },
-    [save],
+    [onCancel, save],
   );
   const dismissOnClick = useEffectEvent((): void => {
     clickedAwayRef.current = true;
@@ -299,7 +347,7 @@ function TextEditor({
     describedBy = problemId;
   }
   return (
-    <form ref={formRef} className="editable-form" onSubmit={submit}>
+    <fieldset ref={formRef} className="editable-form" aria-label={editor.label}>
       <label className="sr-only" htmlFor={inputId}>
         {editor.label}
       </label>
@@ -317,7 +365,8 @@ function TextEditor({
         disabled={disabled}
       />
       <Button
-        type="submit"
+        type="button"
+        onClick={submit}
         variant="quiet"
         aria-label={editor.save}
         title={editor.save}
@@ -335,7 +384,7 @@ function TextEditor({
         <Icon name="close" />
       </Button>
       {problem !== undefined && <Alert id={problemId}>{problem}</Alert>}
-    </form>
+    </fieldset>
   );
 }
 

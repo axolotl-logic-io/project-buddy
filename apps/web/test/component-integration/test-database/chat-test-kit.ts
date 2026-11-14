@@ -7,14 +7,9 @@
 // postMessage reply saved awaits it first.
 
 import type { UIMessage } from "ai";
-import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { currentUser } from "@/auth/current-user.ts";
-import {
-  CITE_BLENDER_MANUAL_OUTPUT,
-  CITE_BLENDER_MANUAL_TOOL,
-} from "@/blender-manual/cite-tool-contract.ts";
 import type { QuestChat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, listMessagesForModel } from "@/chats/store.ts";
 import type { ConstructId } from "@/constructs/index.ts";
@@ -32,16 +27,6 @@ import { requestWithSession, signIn } from "./session-test-kit.ts";
 
 // Where the requests go; the route reads only the body and the cookies.
 const CHAT_API_URL = `http://localhost${CHAT_API_PATH}`;
-
-// A citation under a saved reply: the section's label and its link.
-type Citation = z.infer<typeof CITE_BLENDER_MANUAL_OUTPUT>["citations"][number];
-
-// A cite_blender_manual call of a saved reply that returned its citations.
-const CITE_MANUAL_PART = z.object({
-  type: z.literal(`tool-${CITE_BLENDER_MANUAL_TOOL}`),
-  state: z.literal("output-available"),
-  output: CITE_BLENDER_MANUAL_OUTPUT,
-});
 
 // What the route answered to one message, whatever its status.
 interface SentMessage {
@@ -229,18 +214,6 @@ function exchange(userText: string): SavedLine[] {
   ];
 }
 
-// The sections a saved reply cites, in its order, from its cite_blender_manual
-// calls.
-function citedSections(message: UIMessage): Citation[] {
-  return message.parts.flatMap((part) => {
-    const cited = CITE_MANUAL_PART.safeParse(part);
-    if (cited.success) {
-      return cited.data.output.citations;
-    }
-    return [];
-  });
-}
-
 async function signedInChat(
   constructId?: ConstructId,
 ): Promise<{ user: User; chat: QuestChat }> {
@@ -249,9 +222,8 @@ async function signedInChat(
   return scene;
 }
 
-export type { Citation, SavedLine, SentMessage };
+export type { SavedLine, SentMessage };
 export {
-  citedSections,
   constructPrompt,
   constructReply,
   exchange,
