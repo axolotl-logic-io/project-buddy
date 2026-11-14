@@ -322,13 +322,7 @@ async function deleteOwnPrompt<Definition>(
   return deleted.length > 0;
 }
 
-export type {
-  DefinitionEdit,
-  DefinitionLimits,
-  DefinitionStore,
-  OwnPrompt,
-  OwnPromptChoice,
-};
+export type { DefinitionEdit, DefinitionStore, OwnPrompt, OwnPromptChoice };
 export {
   cloneOwnPrompt,
   createOwnPrompt,

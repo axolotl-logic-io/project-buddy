@@ -7,7 +7,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { expectNotFound } from "../../../../test-database/navigation-test-kit.ts";
 import { twoUsers } from "../../../../test-database/two-users-test-kit.ts";
@@ -23,17 +22,15 @@ async function pageHtml(questId: string): Promise<string> {
 }
 
 describe("conversation initialization fallback", () => {
-  test("a quest without a conversation offers to start it, and opening it starts nothing and spends nothing", async () => {
+  test("a quest without a conversation offers to start it, and opening it starts nothing", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest("Own fox");
-    const before = await readGoldBalance(her.id);
 
     const html = await pageHtml(quest.id);
 
     expect(html).toContain(QUEST_CONVERSATION_COPY.notStarted);
     expect(html).toContain(QUEST_CONVERSATION_COPY.start);
     expect(await readQuestConversation(her.id, quest.id)).toBeUndefined();
-    expect(await readGoldBalance(her.id)).toBe(before);
   });
 });
 

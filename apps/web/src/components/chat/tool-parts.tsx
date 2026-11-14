@@ -148,5 +148,5 @@ function makesNoteOfTextBefore(part: PlacedPart): boolean {
   return entry?.placement === "inline" && entry.textBefore === "working-note";
 }
 
-export type { PlacedPart, Placement, PlacementKind, ToolCallPart, ToolPart };
+export type { PlacedPart, ToolCallPart };
 export { makesNoteOfTextBefore, placementOf, TOOL_PARTS };

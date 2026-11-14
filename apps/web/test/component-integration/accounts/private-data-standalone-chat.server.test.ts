@@ -5,9 +5,9 @@
 
 import { describe, expect, test } from "vitest";
 import { getChat } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   deleteAccount,

@@ -85,5 +85,4 @@ async function startDailies(
   return await resume(user, made);
 }
 
-export type { DailiesStart, StartDailiesResult };
 export { startDailies };

@@ -7,7 +7,6 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -15,6 +14,7 @@ import { changePlan } from "@/plan/plan-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 // Explicit start times, oldest first, decide the order of conversations

@@ -172,12 +172,5 @@ function streamChatToolCalls(
   });
 }
 
-export type {
-  ChatToolCallSettings,
-  ChatToolCalls,
-  ChatToolStep,
-  ChatTools,
-  ChatToolsChat,
-  ChatToolsReply,
-};
+export type { ChatToolCalls, ChatToolStep };
 export { chatTools, streamChatToolCalls };

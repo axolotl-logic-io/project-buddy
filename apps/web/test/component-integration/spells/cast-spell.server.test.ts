@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { listMessages } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { CAST_SPELL_INPUT } from "@/spells/cast-spell-contract.ts";
 import { getSpell } from "@/spells/spell.ts";
 import { spellResponse } from "@/spells/spell-response.ts";
 import { currentSpell } from "@/spells/spell-store.ts";
 import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import {
   constructPrompt,
   constructReply,

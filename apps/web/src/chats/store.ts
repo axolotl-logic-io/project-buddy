@@ -116,8 +116,6 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
 // forged client sends.
 type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 
-export type { MessageSaveResult };
-
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(

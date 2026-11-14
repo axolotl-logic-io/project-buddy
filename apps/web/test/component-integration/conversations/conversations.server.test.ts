@@ -10,7 +10,6 @@ import type { User } from "@/accounts/users-store.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { resolveConversation } from "@/conversations/resolve.ts";
 import {
   readQuestConversation,
@@ -34,7 +33,7 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
-import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   messageText,
@@ -64,13 +63,12 @@ async function dailiesOf(user: User): Promise<string[]> {
 }
 
 describe("a quest's conversation", () => {
-  test("reading a quest without one starts none and spends nothing", async () => {
+  test("reading a quest without one starts none", async () => {
     const user = await testUser();
     const quest = await testData(user).quest();
 
     expect(await readQuestConversation(user.id, quest.id)).toBeUndefined();
     expect(await readQuestConversation(user.id, quest.id)).toBeUndefined();
-    expect(await goldSpent(user)).toBe(0);
   });
 
   test("concurrent starts reach one conversation with one opening", async () => {
@@ -144,7 +142,6 @@ describe("a quest's conversation", () => {
 
     expect(sent.status).toBe(HTTP_STATUS.notFound);
     expect(await listMessages(owner.id, chat.id)).toEqual(before);
-    expect(await goldSpent(member)).toBe(0);
     expect(await readQuestConversation(member.id, quest.id)).toBeUndefined();
     expect(await getChat(member.id, chat.id)).toBeUndefined();
     expect(await resolveConversation(member.id, chat.id)).toBeUndefined();
@@ -221,7 +218,6 @@ describe("the private Chat", () => {
     expect(later.id).toBe(first.id);
     expect(first.quest).toBeUndefined();
     expect(await listMessages(her.id, first.id)).toEqual([]);
-    expect(await goldSpent(her)).toBe(0);
     expect(theirs.id).not.toBe(first.id);
     expect(await getChat(other.id, first.id)).toBeUndefined();
     expect(await resolveConversation(other.id, first.id)).toBeUndefined();
@@ -252,7 +248,7 @@ describe("Dailies", () => {
     expect(results.filter(({ kind }) => kind === "started")).toHaveLength(1);
   });
 
-  test("resuming keeps its conversation and name without spending batteries", async () => {
+  test("resuming keeps its conversation and name", async () => {
     const user = await testUser();
     const first = await startDailies(user.id, dailiesStart());
     if (first.kind !== "started") {
@@ -262,7 +258,6 @@ describe("Dailies", () => {
     await signIn(user);
     await sendChatMessage(chat.id, "Let's start the day.");
     const before = await listMessages(user.id, chat.id);
-    const balance = await goldSpent(user);
     await renameQuest(user.id, chat.quest.id, QUEST_NAME.parse("My mornings"));
     const resumed = await startDailies(user.id, dailiesStart());
     if (resumed.kind !== "resumed") {
@@ -271,7 +266,6 @@ describe("Dailies", () => {
     expect(resumed.chat.id).toBe(chat.id);
     expect(resumed.chat.quest.name).toBe("My mornings");
     expect(await listMessages(user.id, chat.id)).toEqual(before);
-    expect(await goldSpent(user)).toBe(balance);
   });
 
   test("each user has their own Dailies, and a former member's start makes theirs", async () => {

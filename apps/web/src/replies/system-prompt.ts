@@ -217,5 +217,5 @@ async function buildReplyInstructions({
   });
 }
 
-export type { PromptQuest, ReplyPromptContext, ReplyPromptRequest };
+export type { PromptQuest, ReplyPromptContext };
 export { buildReplyInstructions, readPromptQuest, renderReplyInstructions };

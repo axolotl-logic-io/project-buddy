@@ -230,5 +230,5 @@ function usePlan(): PlanController | undefined {
   return useContext(PlanContext);
 }
 
-export type { PlanActions, PlanController, PlanFeedback };
+export type { PlanActions, PlanController };
 export { PlanContext, usePlan, usePlanController };

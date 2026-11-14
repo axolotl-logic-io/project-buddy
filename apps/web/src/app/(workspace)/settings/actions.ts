@@ -42,7 +42,7 @@ function refusal(problem: UserNameProblem): string {
   }
 }
 
-export type { SetNameResult, SetNameState };
+export type { SetNameState };
 
 // Signs this browser out, keeping other sessions and sign-in links valid.
 export async function signOutAction(): Promise<never> {

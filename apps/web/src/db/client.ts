@@ -114,11 +114,4 @@ async function inTransaction<T>(
 }
 
 export type { Database, Transaction };
-export {
-  closeDb,
-  getDb,
-  inTransaction,
-  isOnThisMachine,
-  openPool,
-  pooledDatabase,
-};
+export { closeDb, getDb, inTransaction, openPool, pooledDatabase };

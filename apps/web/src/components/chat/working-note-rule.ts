@@ -31,5 +31,4 @@ function isWorkingNote(
   return message.parts.slice(runEnd + 1).some(makesNoteOfTextBefore);
 }
 
-export type { NoteMessage };
 export { isWorkingNote };

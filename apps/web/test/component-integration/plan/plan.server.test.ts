@@ -13,7 +13,6 @@ import {
   releaseReply,
   saveMessage,
 } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   changePlanAction,
@@ -30,6 +29,7 @@ import {
 } from "@/replies/plan-message-prompt.ts";
 import { changePlanTool } from "@/replies/tools/change-plan.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,

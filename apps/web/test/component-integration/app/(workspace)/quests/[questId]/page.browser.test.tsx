@@ -67,9 +67,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
   readQuestConversation: stores.readQuestConversation,
   startQuestConversation: vi.fn(),
 }));
-vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn().mockResolvedValue(0),
-}));
 vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
@@ -85,9 +82,6 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
-}));
-vi.mock("@/constructs/own-construct-choices.ts", () => ({
-  ownConstructChoices: () => Promise.resolve([]),
 }));
 
 // The widest the page's column grows: from the xl breakpoint, the quest's

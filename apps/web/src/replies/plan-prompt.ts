@@ -49,4 +49,4 @@ function planPromptSection({ quest }: ReplyPromptContext): string {
   return lines.join("\n");
 }
 
-export { EMPTY_PLAN_PROMPT, PLAN_END_TAG, PLAN_START_TAG, planPromptSection };
+export { planPromptSection };

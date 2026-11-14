@@ -238,9 +238,8 @@ function parsePlanCommand(text: string, plan: Plan): PlanCommand {
   }
 }
 
-export type { CommandProblem, PlanCommand, PlanCommandName };
+export type { CommandProblem, PlanCommandName };
 export {
-  commandNameOf,
   isChatCommand,
   PLAN_COMMAND_NAMES,
   PLAN_COMMAND_USAGE,

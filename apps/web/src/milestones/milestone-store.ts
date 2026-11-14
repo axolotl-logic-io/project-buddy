@@ -146,5 +146,4 @@ async function deleteMilestone(owner: UserId, id: MilestoneId): Promise<void> {
   );
 }
 
-export type { MilestoneSource };
 export { deleteMilestone, editMilestone, listMilestones, recordMilestone };

@@ -6,11 +6,3 @@ export const SETTINGS_COPY = {
   headerLink: "Settings",
   heading: "Settings",
 } as const;
-
-export const INTERVIEW_CONSTRUCT_COPY = {
-  heading: "New quest construct",
-  hint: "New quests start with this construct unless you choose another. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
-  save: "Save new quest construct",
-  saved: "New quest construct saved.",
-  invalid: "Choose a construct for new quests.",
-} as const;
