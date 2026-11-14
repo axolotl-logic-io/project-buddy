@@ -3,35 +3,12 @@
 import dynamic from "next/dynamic";
 import { type JSX, useId } from "react";
 
-import { TextAreaField, TextField } from "@/components/ui/field.tsx";
+import { TextAreaField } from "@/components/ui/field.tsx";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
 const Markdown = dynamic(() =>
   import("@/components/markdown.tsx").then((module) => module.Markdown),
 );
-
-export function PromptNameField({
-  name,
-  maxLength,
-}: {
-  readonly name: string;
-  readonly maxLength?: number;
-}): JSX.Element {
-  let hint: string | undefined;
-  if (maxLength !== undefined) {
-    hint = PROMPT_COPY.limit(maxLength);
-  }
-  return (
-    <TextField
-      defaultValue={name}
-      hint={hint}
-      label={PROMPT_COPY.nameLabel}
-      maxLength={maxLength}
-      name="name"
-      required={true}
-    />
-  );
-}
 
 // Shared Markdown/source rendering; each page names its own concrete fields.
 // Read-only text renders as Markdown on the field surface, so it reads as a

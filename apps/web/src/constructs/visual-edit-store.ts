@@ -110,5 +110,4 @@ async function editConstructMetadata(
   });
 }
 
-export type { ConstructMetadataEdit, ConstructMetadataOutcome };
 export { editConstructMetadata };

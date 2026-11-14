@@ -240,5 +240,5 @@ export function createQuestWithChat(
   });
 }
 
-export type { NewChat, NewChatConstruct };
+export type { NewChatConstruct };
 export { randomId };

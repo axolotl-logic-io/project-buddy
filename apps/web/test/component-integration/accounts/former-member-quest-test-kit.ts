@@ -12,11 +12,7 @@ import {
 } from "@/conversations/start-quest.ts";
 import type { MilestoneId } from "@/ids.ts";
 import type { GenerationId } from "@/images/generation-contract.ts";
-import {
-  claimGeneration,
-  completeGeneration,
-  getGeneratedImage,
-} from "@/images/generation-store.ts";
+import { getGeneratedImage } from "@/images/generation-store.ts";
 import { imageId } from "@/images/image-contract.ts";
 import { getImage, saveImage } from "@/images/store.ts";
 import {
@@ -28,6 +24,7 @@ import {
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
+import { seedGeneratedImage } from "../../support/test-database/artwork-test-kit.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
@@ -58,31 +55,6 @@ function savedImageId(url: string | undefined): string {
   return id;
 }
 
-// The owner's generated image in the chat, claimed and completed.
-async function generatedImage(
-  owner: User,
-  chat: QuestChat,
-): Promise<GenerationId> {
-  const claim = await claimGeneration({
-    owner: owner.id,
-    chatId: chat.id,
-    requestId: crypto.randomUUID(),
-    prompt: "A sea turtle",
-  });
-  if (claim.status !== "claimed") {
-    throw new Error(`The generation was not claimed: ${claim.status}`);
-  }
-  const completed = await completeGeneration(owner.id, claim.id, {
-    bytes: PNG,
-    mediaType: "image/png",
-    costMicroUsd: 1000,
-  });
-  if (!completed) {
-    throw new Error("The generation was not completed");
-  }
-  return claim.id;
-}
-
 // A new quest of a new owner's, with a chat holding a message and an image,
 // an active spell, a memory of two versions, a milestone and a
 // generated image; and a second user with no access to it.
@@ -106,7 +78,7 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   if (milestone === undefined) {
     throw new Error("The milestone was not recorded");
   }
-  const generationId = await generatedImage(owner, chat);
+  const generationId = await seedGeneratedImage(owner.id, chat.id);
   return {
     owner,
     member,
@@ -202,21 +174,13 @@ async function writesBy(
   const started = await startQuestConversation(user.id, quest.id);
   const conversation =
     started.kind === "started" && started.conversation.id === chat.id;
-  const generation = await claimGeneration({
-    owner: user.id,
-    chatId: chat.id,
-    requestId: crypto.randomUUID(),
-    prompt: "A turtle",
-  });
   return {
     message,
     image: image !== undefined,
     spell,
-
     milestone: milestone !== undefined,
     edited,
     conversation,
-    generation: generation.status,
   };
 }
 
@@ -226,11 +190,9 @@ const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
   image: false,
   spell: false,
-
   milestone: false,
   edited: false,
   conversation: false,
-  generation: "failed",
 };
 
 // What every write answers for the owner: each one taken.
@@ -238,11 +200,9 @@ const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
   image: true,
   spell: true,
-
   milestone: true,
   edited: true,
   conversation: true,
-  generation: "claimed",
 };
 
 // Deletes the milestone as user, which answers nothing of its own.
@@ -253,7 +213,6 @@ async function deletesBy(
   await deleteMilestone(user.id, fixture.milestoneId);
 }
 
-export type { FormerMemberQuest };
 export {
   ALL_TAKEN,
   deletesBy,

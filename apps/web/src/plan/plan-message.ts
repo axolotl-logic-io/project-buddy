@@ -82,7 +82,6 @@ function planCardMessage(id: string, data: PlanCardData): ChatMessage {
   return { id, role: "user", parts: [{ type: PLAN_CARD_PART, data }] };
 }
 
-export type { PlanCardData, PlanChangeData, PlanMessagePart };
 export {
   awaitsReply,
   isPlanMessage,

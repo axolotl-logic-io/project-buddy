@@ -102,7 +102,6 @@ function requestWithSession(url: string, init: RequestInit = {}): Request {
   return new Request(url, { ...init, headers });
 }
 
-export type { TestCookie, TestCookieStore };
 export {
   clearCookies,
   lapsed,

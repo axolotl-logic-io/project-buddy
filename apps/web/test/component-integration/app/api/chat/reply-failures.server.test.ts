@@ -1,5 +1,5 @@
 // A reply that fails, or that holds a failed step, through POST /api/chat
-// with the mock construct (use-cases/when-things-go-wrong.md and chats.md): what
+// with the local construct engine (use-cases/when-things-go-wrong.md and chats.md): what
 // the route streams and what the chat saves, which is all a reload shows.
 // How the alerts, the working note and the failure line look is
 // chat-error.test.tsx's, working-note.browser.test.tsx's and

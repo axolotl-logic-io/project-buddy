@@ -6,9 +6,8 @@ import {
 } from "@/app/(workspace)/quests/status-actions.ts";
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
+import type { UserId } from "@/ids.ts";
 import { runChatCommandAction } from "@/plan/plan-actions.ts";
-import { activeQuests } from "@/quests/active-quests.ts";
 import {
   STATUS_APPROVAL_ID,
   type StatusApproval,
@@ -21,11 +20,12 @@ import {
   readStatusApproval,
   requestQuestStatus,
 } from "@/quests/quest-status-store.ts";
-import { getQuest, listQuests } from "@/quests/store.ts";
+import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   formerMemberQuest,
@@ -36,6 +36,11 @@ import { newMessageId } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+
+// The user's Active quests, which the Quick Note dialog offers.
+async function activeQuests(user: UserId): Promise<Quest[]> {
+  return (await listQuests(user)).filter((quest) => quest.status === "active");
+}
 
 function form(values: Readonly<Record<string, string | number>>): FormData {
   const data = new FormData();

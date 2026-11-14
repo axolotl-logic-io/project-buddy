@@ -1,5 +1,5 @@
 // For server tests of chatting: the user's messages, sent through POST
-// /api/chat as the chat view sends them, the replies the mock construct writes,
+// /api/chat as the chat view sends them, the replies the local construct engine writes,
 // and readers of what the route saved. A reply's later work runs in
 // next/server's after(), which the setup file (vitest.server-setup.ts)
 // mocks with after-test-kit.ts's. sendChatMessage, and what builds on it,
@@ -206,7 +206,7 @@ async function savedConversation(
   }));
 }
 
-// The user's message userText and the mock construct's reply to it, as lines.
+// The user's message userText and the construct's reply to it, as lines.
 function exchange(userText: string): SavedLine[] {
   return [
     { role: "user", text: userText },
@@ -222,7 +222,7 @@ async function signedInChat(
   return scene;
 }
 
-export type { SavedLine, SentMessage };
+export type { SentMessage };
 export {
   constructPrompt,
   constructReply,

@@ -96,14 +96,6 @@ function toConstruct({
   return snapshotOf(getConstruct(toConstructId(constructId)));
 }
 
-// A chat's construct as a new chat would keep it: its snapshot (toConstruct) and
-// the id saved beside it.
-function toConstructWithId(
-  row: Pick<ChatRow, ConstructColumns>,
-): ConstructSnapshot & { readonly id: ConstructId } {
-  return { ...toConstruct(row), id: toConstructId(row.constructId) };
-}
-
 // A chat's quest: { quest: undefined } for a standalone chat, or
 // undefined for a row that is neither, which the chats_one_owner check and
 // the foreign key forbid: a quest id that is not a UUID or has no
@@ -234,14 +226,7 @@ function messageColumns(
   };
 }
 
-export type {
-  Chat,
-  ChatQuest,
-  ChatRow,
-  ChatRowWithQuest,
-  NewMessage,
-  QuestChat,
-};
+export type { Chat, ChatQuest, ChatRow, NewMessage, QuestChat };
 export {
   chatWithQuestColumns,
   isQuestChat,
@@ -251,5 +236,4 @@ export {
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
   toChats,
-  toConstructWithId,
 };

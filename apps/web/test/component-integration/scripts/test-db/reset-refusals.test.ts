@@ -1,6 +1,6 @@
 // `npm run test-db:reset` drops and recreates the database it is given, so it
 // must refuse every environment that isn't this machine's test database with
-// the mock construct and the email outbox, before it connects to anything. Each
+// the local construct engine and the email outbox, before it connects to anything. Each
 // test runs the real command, scripts/test-db/reset.ts, in its own Node
 // process with only the environment it names (`real-dependency-tests`): no
 // .env file is loaded, and no refusal case names a reachable database.

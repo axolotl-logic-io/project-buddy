@@ -10,9 +10,9 @@ import { describe, expect, test } from "vitest";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { privateChat } from "@/conversations/private-chat.ts";
 import type { Quest } from "@/quests/store.ts";
 import { chatIdFixture, questIdFixture } from "../../support/id-fixtures.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import {
   expectNotFound,
   expectRedirect,

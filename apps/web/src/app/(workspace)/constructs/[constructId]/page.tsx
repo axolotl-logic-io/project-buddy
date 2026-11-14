@@ -17,7 +17,6 @@ import {
   getConstruct,
   isConstructId,
 } from "@/constructs/index.ts";
-import { measureServerOperation } from "@/performance/server-spans.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 import { CONSTRUCT_COPY, CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
@@ -116,11 +115,7 @@ export async function generateMetadata({
   if (isConstructId(constructId)) {
     ({ name } = getConstruct(constructId));
   } else {
-    name = (
-      await measureServerOperation("construct-metadata", () =>
-        readOwnDefinition(user.id, constructId),
-      )
-    )?.name;
+    name = (await readOwnDefinition(user.id, constructId))?.name;
   }
   return { title: pageTitle(name ?? "Construct") };
 }
@@ -140,9 +135,7 @@ export default async function ConstructPage({
       </Workshop>
     );
   }
-  const construct = await measureServerOperation("construct-data", () =>
-    readOwnDefinition(user.id, constructId),
-  );
+  const construct = await readOwnDefinition(user.id, constructId);
   if (construct === undefined) {
     const retired = await getRetiredDefinition(user.id, constructId);
     if (retired?.kind === "construct") {

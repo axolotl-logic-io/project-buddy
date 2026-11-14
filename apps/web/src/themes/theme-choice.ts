@@ -152,6 +152,5 @@ export {
   subscribeToThemeChoice,
   THEME_ATTRIBUTE,
   THEME_PRE_PAINT_SCRIPT,
-  themeChoiceCookie,
   themeChoiceSetCookie,
 };

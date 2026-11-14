@@ -174,10 +174,4 @@ async function readSignInLinkUser(
 }
 
 export type { SignInLinkRequest };
-export {
-  newSignInLinkUrl,
-  readSignInLinkUser,
-  requestSignInLink,
-  SIGN_IN_LINK_LIFETIME_MINUTES,
-  sendSignInLink,
-};
+export { readSignInLinkUser, requestSignInLink, SIGN_IN_LINK_LIFETIME_MINUTES };

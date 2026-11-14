@@ -1,14 +1,5 @@
-// The text of conversations: the construct picker, the conversation,
-// the construct's tool parts, and chat names.
-
-export const NEW_CHAT_COPY = {
-  constructLabel: "Construct",
-  previousConstruct: "Previous construct",
-  nextConstruct: "Next construct",
-  constructPosition: (position: number, count: number): string =>
-    `${position} of ${count}`,
-  ownConstructDescription: "One of your own constructs.",
-} as const;
+// The text of conversations: the conversation, the construct's tool parts,
+// and chat names.
 
 export const CHAT_COPY = {
   stop: "Stop reply",
@@ -20,8 +11,6 @@ export const CHAT_COPY = {
     "Reply stopped at your request. Tool effects already started may remain or finish.",
   replyingElsewhere: (name: string): string =>
     `${name} is still replying. This conversation will update when the reply finishes.`,
-  headerLink: "Chat",
-  loading: "Loading Chat…",
   conversationLabel: "Conversation",
   you: "You",
   thinking: (constructName: string): string => `${constructName} is thinking…`,
