@@ -13,8 +13,7 @@ import {
 import type { MilestoneId } from "@/ids.ts";
 import type { GenerationId } from "@/images/generation-contract.ts";
 import { getGeneratedImage } from "@/images/generation-store.ts";
-import { imageId } from "@/images/image-contract.ts";
-import { getImage, saveImage } from "@/images/store.ts";
+import { getImage } from "@/images/store.ts";
 import {
   deleteMilestone,
   editMilestone,
@@ -23,15 +22,16 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
-import { pngBytes } from "../../support/images/image-fixtures.ts";
-import { seedGeneratedImage } from "../../support/test-database/artwork-test-kit.ts";
+import {
+  seedGeneratedImage,
+  seedImage,
+} from "../../support/test-database/artwork-test-kit.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
-// A second Journal version with historical text.
+// The milestone the owner records in the quest.
 const MILESTONE = "Modelled the shell";
-const PNG = pngBytes();
 
 // A quest, its owner and a former member, with one of each kind of data the
 // owner saved in it.
@@ -46,15 +46,6 @@ interface FormerMemberQuest {
   readonly milestoneId: MilestoneId;
 }
 
-// The image id the url names, which saveImage returned.
-function savedImageId(url: string | undefined): string {
-  const id = imageId(url ?? "");
-  if (id === undefined) {
-    throw new Error("The image was not saved");
-  }
-  return id;
-}
-
 // A new quest of a new owner's, with a chat holding a message and an image,
 // an active spell, a memory of two versions, a milestone and a
 // generated image; and a second user with no access to it.
@@ -67,9 +58,7 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
   ]);
-  const image = savedImageId(
-    await saveImage(owner.id, chat.id, PNG, "image/png"),
-  );
+  const image = await seedImage(chat.id);
   const milestone = await recordMilestone(
     owner.id,
     { questId: quest.id, chatId: chat.id },
@@ -160,7 +149,6 @@ async function writesBy(
     ...question("Mine"),
     id: newMessageId(),
   });
-  const image = await saveImage(user.id, chat.id, PNG, "image/png");
   const spell = await setSpell(user.id, {
     chatId: chat.id,
     spell: "brainstorm",
@@ -176,7 +164,6 @@ async function writesBy(
     started.kind === "started" && started.conversation.id === chat.id;
   return {
     message,
-    image: image !== undefined,
     spell,
     milestone: milestone !== undefined,
     edited,
@@ -188,7 +175,6 @@ async function writesBy(
 // taken.
 const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
-  image: false,
   spell: false,
   milestone: false,
   edited: false,
@@ -198,7 +184,6 @@ const NONE_TAKEN: Record<string, unknown> = {
 // What every write answers for the owner: each one taken.
 const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
-  image: true,
   spell: true,
   milestone: true,
   edited: true,

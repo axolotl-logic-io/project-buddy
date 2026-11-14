@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import LegacyHome from "@/app/(workspace)/home/page.tsx";
 import Root from "@/app/page.tsx";
 import { proxy } from "@/proxy.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
@@ -10,14 +9,11 @@ afterEach(() => {
 });
 
 describe("Quests landing navigation", () => {
-  test("root and old Home addresses lead directly to Quests", async () => {
+  test("the root address leads directly to Quests", async () => {
     await expect(expectRedirect(Root, "/quests")).resolves.toBeUndefined();
-    await expect(
-      expectRedirect(LegacyHome, "/quests"),
-    ).resolves.toBeUndefined();
   });
 
-  test.each(["/", "/home", "/quests"])(
+  test.each(["/", "/quests"])(
     "%s still requires sign-in before reading quests",
     async (path) => {
       vi.stubEnv("SESSION_SECRET", "landing-test-session-secret");
