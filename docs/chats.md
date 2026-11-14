@@ -2,7 +2,7 @@
 
 ## Conversations
 
-A quest has one continuing conversation (`src/conversations/`), stored as a `chats` row marked `continuing`. A partial unique index allows one per quest, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one. An old `/chats/CHAT_ID` link opens the quest that owns the conversation, where `CHAT_ID` is the conversation's id.
+A quest has one continuing conversation (`src/conversations/`), stored as a `chats` row marked `continuing`. A partial unique index allows one per quest, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one.
 
 A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history.
 
@@ -14,7 +14,7 @@ Failed openings save nothing and keep the form's edits for retry. Cancel, Close 
 
 ## Quests landing page
 
-Quests (`/quests`) opens after sign-in when no explicit return destination was supplied. The site name and root address lead there too, and `/home` redirects there. Signed-out visitors need to sign in. Opening these pages makes no model call.
+Quests (`/quests`) opens after sign-in when no explicit return destination was supplied. The site name and root address lead there too. Signed-out visitors need to sign in. Opening these pages makes no model call.
 
 Quests is laid out flush on the page, as Workshop is: its heading and introduction, then Continue, for the user's current quest, then Start a quest's four tiles, Dailies, Learn a thing, Make a thing and Do a thing, then the user's quests under Active, Completed and Abandoned tabs. Continue names the user's own Active quest whose conversation was most recently active, with its next step, and opens its conversation; with no Active quest it is absent (`src/quests/current-quest-store.ts`). Reading it makes no model call.
 

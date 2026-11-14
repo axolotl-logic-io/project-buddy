@@ -3,7 +3,11 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  questIdFixture,
+  userIdFixture,
+} from "../../../support/id-fixtures.ts";
 import { pngBytes } from "../../../support/images/image-fixtures.ts";
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -18,6 +22,7 @@ describe("saved conversation image access", () => {
     vi.stubGlobal("fetch", fetcher);
     const view = await render(
       <ChatView
+        questId={questIdFixture()}
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
@@ -58,6 +63,7 @@ describe("saved conversation image access", () => {
   test("saved message images remain visible when reopened", async () => {
     await render(
       <ChatView
+        questId={questIdFixture()}
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
         constructName="Vellum"

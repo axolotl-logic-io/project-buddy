@@ -14,7 +14,6 @@ import { changePlan } from "@/plan/plan-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 // Explicit start times, oldest first, decide the order of conversations
@@ -41,17 +40,10 @@ async function setStartedAt(
 }
 
 describe("use_case_continue_quest", () => {
-  test("a new user, or one with only Chat, has nothing to continue", async () => {
-    const [fresh, chatter] = await Promise.all([testUser(), testUser()]);
-    await privateChat(chatter.id);
+  test("a new user has nothing to continue", async () => {
+    const fresh = await testUser();
 
-    const [none, chatOnly] = await Promise.all([
-      readCurrentQuest(fresh.id),
-      readCurrentQuest(chatter.id),
-    ]);
-
-    expect(none).toBeUndefined();
-    expect(chatOnly).toBeUndefined();
+    expect(await readCurrentQuest(fresh.id)).toBeUndefined();
   });
 
   test("continues the quest whose conversation was most recently active, with its next step", async () => {

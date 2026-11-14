@@ -32,7 +32,7 @@ The user reads a reply laid out with headings, lists and code, the way a written
 - **Next:**
   - `use_case_send_message`: ask about one of the steps.
 
-- **Drafts:** unsent message text stays in this browser per viewer and conversation across visits until sent or cleared; unsent image attachments do not survive leaving.
+- **Drafts:** unsent message text stays in this browser per viewer and conversation across visits until sent or cleared.
 
 ## use_case_leave_during_reply
 

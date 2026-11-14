@@ -10,14 +10,15 @@ import { getGeneratedImage } from "@/images/generation-store.ts";
 import { imageId } from "@/images/image-contract.ts";
 import { getImage } from "@/images/store.ts";
 import { seedGeneratedImage } from "../../support/test-database/artwork-test-kit.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
+import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
 
 describe("generated images", () => {
   test("only their owner can read or download them", async () => {
     const [user, stranger] = await Promise.all([testUser(), testUser()]);
-    const chat = await privateChat(user.id);
+    const data = testData(user);
+    const chat = await data.chat(await data.quest());
     const id = await seedGeneratedImage(user.id, chat.id);
 
     expect(await getGeneratedImage(stranger.id, id)).toBeUndefined();
@@ -44,7 +45,8 @@ describe("generated images", () => {
 
   test("deleting the source chat deletes their metadata and bytes", async () => {
     const user = await testUser();
-    const chat = await privateChat(user.id);
+    const data = testData(user);
+    const chat = await data.chat(await data.quest());
     const id = await seedGeneratedImage(user.id, chat.id);
     const saved = await getGeneratedImage(user.id, id);
     const storedId = imageId(saved?.imageUrl ?? "");

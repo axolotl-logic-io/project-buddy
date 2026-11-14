@@ -18,7 +18,6 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import {
   constructPrompt,
   formOf,
@@ -94,7 +93,7 @@ describe("milestone tool contract", () => {
   test("the conversation's next reply gets the milestone in its prompt, so the construct can see it is recorded", async () => {
     const { her: user, herData } = await twoUsers();
     const chat = await herData.chat(await herData.quest());
-    const standalone = await privateChat(user.id);
+    const other = await herData.chat(await herData.quest("Another quest"));
     await recordMilestone(
       user.id,
       { questId: chat.quest.id, chatId: chat.id },
@@ -102,33 +101,13 @@ describe("milestone tool contract", () => {
     );
 
     const prompt = await constructPrompt(chat.id);
-    const standalonePrompt = await constructPrompt(standalone.id);
+    const otherPrompt = await constructPrompt(other.id);
 
     const [recorded] = await listMilestones(user.id, chat.quest.id);
     const day = recorded?.recordedAt.toISOString().slice(0, DAY_LENGTH);
     expect(prompt).toContain(`- ${day}: ${SHELL}`);
     expect(prompt).toContain("never record any of them again");
-    expect(standalonePrompt).not.toContain(SHELL);
-  });
-
-  test("a standalone conversation cannot use the milestone tool", async () => {
-    const { user } = await signedInChat();
-    const chat = await privateChat(user.id);
-    await expect(
-      recordMilestoneTool.execute?.(
-        { text: SHELL },
-        {
-          toolCallId: "milestone",
-          messages: [],
-          context: {
-            construct: chat.construct,
-            answeredId: newMessageId(),
-            actingUser: user.id,
-            chatId: chat.id,
-          },
-        },
-      ),
-    ).rejects.toThrow();
+    expect(otherPrompt).not.toContain(SHELL);
   });
 });
 

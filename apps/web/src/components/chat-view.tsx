@@ -85,7 +85,6 @@ const SPELL_COMMANDS: readonly CommandListing[] = [
     description: "Stop the active spell and return to Chat",
   },
 ];
-const NO_COMMANDS: readonly CommandListing[] = [];
 
 // The newest plan the construct's change_plan calls in the messages saved,
 // or undefined if none did.
@@ -142,9 +141,8 @@ function ChatView({
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
-  // The chat's quest and its plan as the page read it; undefined in a
-  // standalone chat.
-  questId?: QuestId | undefined;
+  // The chat's quest and its plan as the page read it.
+  questId: QuestId;
   initialPlan?: PlanState | undefined;
   // The plan's Server Actions, which the page hands over in a quest chat.
   planActions?: PlanActions | undefined;
@@ -270,20 +268,15 @@ function ChatView({
     if (planActions === undefined) {
       return undefined;
     }
-    let listings: readonly CommandListing[] = NO_COMMANDS;
-    if (questId !== undefined) {
-      listings = [
+    return {
+      listings: [
         ...PLAN_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
         ...SPELL_COMMANDS,
-      ];
-    }
-    return {
-      listings,
-      inQuest: questId !== undefined,
+      ],
       run: runCommand,
     };
-  }, [planActions, questId, runCommand]);
+  }, [planActions, runCommand]);
   const { sendMessage } = chat;
   const stopSpell = useCallback((): void => {
     sendMessage({ text: "/stop" }).catch(() => undefined);

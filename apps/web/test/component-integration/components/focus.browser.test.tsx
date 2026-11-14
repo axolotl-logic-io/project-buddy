@@ -152,6 +152,7 @@ async function fieldBoxFocus(): Promise<
 > {
   await render(
     <ChatView
+      questId={questIdFixture()}
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={[]}

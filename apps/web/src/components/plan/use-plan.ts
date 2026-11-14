@@ -66,7 +66,7 @@ interface PlanController {
 // the page read it, what the controls answer with in an adventure, and why
 // they are off, if they are.
 interface PlanControllerOptions {
-  readonly questId: QuestId | undefined;
+  readonly questId: QuestId;
   readonly actions: PlanActions | undefined;
   readonly chatId?: ChatId | undefined;
   readonly initialState: PlanState | undefined;
@@ -114,8 +114,7 @@ function feedbackOf(result: PlanActionResult): PlanFeedback | undefined {
   }
 }
 
-// The controller of one quest's plan, or undefined without a quest, such as
-// in a standalone adventure.
+// The controller of one quest's plan, or undefined without its actions.
 function usePlanController({
   questId,
   actions,
@@ -195,7 +194,7 @@ function usePlanController({
     shown = { ...observed, undone: state.undone };
   }
   return useMemo(() => {
-    if (questId === undefined || actions === undefined) {
+    if (actions === undefined) {
       return;
     }
     return {

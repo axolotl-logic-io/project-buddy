@@ -7,16 +7,11 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { Quest } from "@/quests/store.ts";
-import { chatIdFixture, questIdFixture } from "../../support/id-fixtures.ts";
-import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
-import {
-  expectNotFound,
-  expectRedirect,
-} from "../test-database/navigation-test-kit.ts";
+import { questIdFixture } from "../../support/id-fixtures.ts";
+import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
@@ -36,10 +31,6 @@ function pageArgs<Params>(params: Params): PageArgs<Params> {
 
 function projectPage(questId: string): Promise<unknown> {
   return QuestPage(pageArgs({ questId }));
-}
-
-function chatPage(chatId: string): Promise<unknown> {
-  return ChatPage(pageArgs({ chatId }));
 }
 
 // The signed-in user's quests page, as HTML.
@@ -73,23 +64,15 @@ function projectsIn(html: string, quests: readonly Quest[]): string[] {
 }
 
 describe("use_case_private_data", () => {
-  // The old quest conversation address opens its quest. A standalone
-  // conversation has no destination, even for its owner.
-  test("another user's project, memory and chat pages can't be found", async () => {
+  test("another user's quest page can't be found", async () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.quest();
-    const herChat = await herData.chat(hers);
-    const herStandalone = await privateChat(her.id);
     await signIn(other);
 
     await expectNotFoundAsUnknown(projectPage, hers.id, questIdFixture());
-    await expectNotFoundAsUnknown(chatPage, herChat.id, chatIdFixture());
-    await expectNotFoundAsUnknown(chatPage, herStandalone.id, chatIdFixture());
 
     await signIn(her);
     await expect(projectPage(hers.id)).resolves.toBeDefined();
-    await expectRedirect(() => chatPage(herChat.id), `/quests/${hers.id}`);
-    await expectNotFound(() => chatPage(herStandalone.id));
   });
 
   test("each sees only their own projects", async () => {
