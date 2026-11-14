@@ -22,4 +22,4 @@ The timeline celebrates and doesn't nag. Its copy (`src/ui/copy/milestones.ts`) 
 
 ## Storage
 
-The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its quest, the conversation it was recorded in, if that still exists, its text and when it was recorded. A milestone is open to its quest's owner alone, through `milestoneOpenTo` in `src/accounts/owner-scope.ts`, and is deleted with its quest; it outlives the conversation it was recorded in. `src/milestones/milestone-store.ts` is the only module that reads or writes the table.
+The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its quest, the conversation it was recorded in, if that still exists, its text and when it was recorded. A milestone is open to its quest's owner and members, through `milestoneOpenTo` in `src/accounts/owner-scope.ts`, and is deleted with its quest; it outlives the conversation it was recorded in. `src/milestones/milestone-store.ts` is the only module that reads or writes the table.

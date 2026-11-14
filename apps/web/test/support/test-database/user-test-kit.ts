@@ -18,6 +18,9 @@ import { users } from "@/db/tables/users.ts";
 
 // The users this test has made and not yet deleted.
 const madeUsers: User[] = [];
+// Addresses this test handed out for the site to make accounts for, such as
+// by a quest invitation.
+const madeAddresses: string[] = [];
 
 // Fixtures may create accounts directly; runtime account creation requires
 // confirming an emailed verification link and has no public create-by-address export.
@@ -42,12 +45,29 @@ async function testUser(): Promise<User> {
   return user;
 }
 
+// A new address of the test's own, for the site itself to make an account
+// for, such as an invitation's invited account. Its account, if any, is
+// deleted after the test like testUser's.
+function testAddress(): string {
+  const address = `invited-${crypto.randomUUID()}@example.test`;
+  madeAddresses.push(address);
+  return address;
+}
+
 // Deletes every user the test made, with everything they own and their
 // address's rate-limit rows. The stores have no delete, so this names the
 // table. One statement deletes them all: deleting a team quest's owner
 // and its member apart, at once, would deadlock on the membership row that
 // both cascade to.
 async function deleteTestUsers(): Promise<void> {
+  const invited = await Promise.all(
+    madeAddresses.splice(0).map((address) => findUserByEmail(address)),
+  );
+  for (const user of invited) {
+    if (user !== undefined) {
+      madeUsers.push(user);
+    }
+  }
   const made = madeUsers.splice(0);
   if (made.length === 0) {
     return;
@@ -78,4 +98,4 @@ async function deleteTestUsers(): Promise<void> {
   );
 }
 
-export { createTestAccount, deleteTestUsers, testUser };
+export { createTestAccount, deleteTestUsers, testAddress, testUser };

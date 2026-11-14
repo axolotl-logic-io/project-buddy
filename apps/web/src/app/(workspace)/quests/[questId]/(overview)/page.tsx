@@ -14,7 +14,8 @@ export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
 // its composer; the others are its Plan, Ideas, progress timeline, Quick
-// Notes and actions.
+// Notes, members and actions. It is open to the quest's owner and members;
+// to anyone else, a pending invitee included, it is not found.
 export default async function QuestPage({
   params,
   searchParams,
@@ -27,12 +28,14 @@ export default async function QuestPage({
     | "ideas"
     | "progress"
     | "notes"
+    | "members"
     | "actions" = "conversation";
   if (
     section === "plan" ||
     section === "ideas" ||
     section === "progress" ||
     section === "notes" ||
+    section === "members" ||
     section === "actions"
   ) {
     current = section;

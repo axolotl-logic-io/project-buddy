@@ -265,7 +265,9 @@ test("retired storage removal preserves continuing data and denies a former memb
         [LISTING, OWNER],
       ),
     ).rejects.toThrow("Marketplace purchases are paused");
-    // ORM-generated INSERT and RETURNING still work after the trigger removal.
+    // ORM-generated INSERT and RETURNING still work after the trigger
+    // removal, once the later migrations bring the schema up to the ORM's.
+    await migrateTestDatabase(database);
     const added = await pooledDatabase(pool)
       .insert(users)
       .values({ email: "new-after-cleanup@example.test" })

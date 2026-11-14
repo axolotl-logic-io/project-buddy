@@ -4,7 +4,7 @@
 // records (nextStepOfQuest).
 
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
-import { chatOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo, questOpenTo } from "@/accounts/owner-scope.ts";
 import type { ChatQuest } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
@@ -47,7 +47,7 @@ function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
       .innerJoin(quests, eq(chats.questId, quests.id))
       .where(
         and(
-          questOwnedBy(owner),
+          questOpenTo(owner),
           chatOpenTo(owner),
           eq(chats.continuing, true),
           eq(quests.status, "active"),

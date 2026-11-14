@@ -1,6 +1,7 @@
 // The site's rate limits: how many sign-in emails may be asked for, so that
 // no one can flood an inbox or Resend's quota, or keep someone else from
-// signing in.
+// signing in; and how many quest invitations a user may send, since each
+// one emails an address the inviter chose.
 //
 // Each limit counts requests under its own key in the rate_limits table,
 // within one fixed window per key that starts at the key's first request,
@@ -17,6 +18,7 @@ import { type Database, getDb, inTransaction } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { readSessionSecret } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import type { UserId } from "@/ids.ts";
 
 const MS_PER_MINUTE = 60_000;
 const HEXADECIMAL = 16;
@@ -37,11 +39,14 @@ interface RateLimit {
 const ADDRESS_AND_CLIENT_LIMIT: RateLimit = { requests: 3, windowMinutes: 15 };
 const ADDRESS_LIMIT: RateLimit = { requests: 10, windowMinutes: 15 };
 const CLIENT_LIMIT: RateLimit = { requests: 20, windowMinutes: 60 };
+// Sending quest invitations, counted per inviter across every quest.
+const INVITATION_LIMIT: RateLimit = { requests: 20, windowMinutes: 60 };
 // After the longest window, a row counts nothing, so it can be deleted.
 const LONGEST_WINDOW_MINUTES: number = Math.max(
   ADDRESS_AND_CLIENT_LIMIT.windowMinutes,
   ADDRESS_LIMIT.windowMinutes,
   CLIENT_LIMIT.windowMinutes,
+  INVITATION_LIMIT.windowMinutes,
 );
 // The most rows one count deletes.
 const EXPIRED_ROWS_PER_COUNT = 100;
@@ -58,6 +63,7 @@ const ADDRESS_HMAC_LENGTH = 64;
 const ADDRESS_PREFIX = "address:";
 const ADDRESS_AND_CLIENT_PREFIX = "address-client:";
 const CLIENT_PREFIX = "client:";
+const INVITER_PREFIX = "quest-invitation:";
 
 // The address's HMAC, in hexadecimal, as the keys name it.
 async function addressHmac(address: string): Promise<string> {
@@ -190,6 +196,29 @@ async function countSignInLinkRequest(
   );
 }
 
+// Counts a quest invitation the inviter sends, and answers whether it is
+// within the inviter's limit.
+async function countQuestInvitation(
+  inviter: UserId,
+  now: Date,
+): Promise<boolean> {
+  const byInviter = counting(`${INVITER_PREFIX}${inviter}`, INVITATION_LIMIT, {
+    now,
+  });
+  const [counted] = await withAppErrors("countQuestInvitation", () =>
+    inTransaction(async (tx) => {
+      const rows = await tx
+        .insert(rateLimits)
+        .values(byInviter.values)
+        .onConflictDoUpdate({ target: rateLimits.key, set: byInviter.set })
+        .returning({ count: rateLimits.count });
+      await tx.delete(rateLimits).where(expiredRows(tx, now));
+      return rows;
+    }),
+  );
+  return (counted?.count ?? 0) <= INVITATION_LIMIT.requests;
+}
+
 // For the tests only: every window of the address's or the client's limits
 // passes, as after the wait, by deleting their rows. With an address, the
 // address's own and its address-and-client rows; with a client, its own,
@@ -223,4 +252,9 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
   return sql`false`;
 }
 
-export { countSignInLinkRequest, endRateLimitWindowsFor };
+export {
+  countQuestInvitation,
+  countSignInLinkRequest,
+  endRateLimitWindowsFor,
+  INVITATION_LIMIT,
+};

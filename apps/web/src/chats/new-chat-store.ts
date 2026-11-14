@@ -1,6 +1,6 @@
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { questOwnedBy } from "@/accounts/owner-scope.ts";
+import { questOpenTo } from "@/accounts/owner-scope.ts";
 import {
   type Chat,
   type ChatQuest,
@@ -85,7 +85,7 @@ export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
   return new QueryBuilder()
     .select(chatColumns(chat, id))
     .from(quests)
-    .where(and(eq(quests.id, chat.quest.id), questOwnedBy(owner)))
+    .where(and(eq(quests.id, chat.quest.id), questOpenTo(owner)))
     .getSQL();
 }
 

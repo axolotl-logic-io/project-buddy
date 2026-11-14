@@ -1,11 +1,11 @@
-// Quests, stored in Postgres. A quest is its owner's alone
-// (src/accounts/owner-scope.ts): every function takes the acting user first
-// and reads only their own quests. An id from outside the code, such as a
+// Quests, stored in Postgres. A quest is open to its owner and its
+// accepted members (src/accounts/owner-scope.ts): every function takes the
+// acting user first and reads only quests open to them. An id from outside the code, such as a
 // route parameter, is looked up as a string; anything malformed, unknown or
 // another user's is not found.
 
 import { and, desc, eq } from "drizzle-orm";
-import { questOwnedBy } from "@/accounts/owner-scope.ts";
+import { questOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -76,21 +76,22 @@ function toQuests(rows: readonly QuestRow[]): Quest[] {
 
 export type { Quest };
 
-// The user's quests, newest first.
+// The quests open to the user, their own and those they are a member of,
+// newest first.
 export function listQuests(user: UserId): Promise<Quest[]> {
   return withAppErrors("listQuests", async () =>
     toQuests(
       await getDb()
         .select(QUEST_COLUMNS)
         .from(quests)
-        .where(questOwnedBy(user))
+        .where(questOpenTo(user))
         .orderBy(desc(quests.createdAt)),
     ),
   );
 }
 
-// The user's quest with this id, or undefined if the id is malformed,
-// unknown or another user's.
+// The quest with this id, or undefined if the id is malformed, unknown or
+// not open to the user.
 export async function getQuest(
   user: UserId,
   id: string,
@@ -104,7 +105,7 @@ export async function getQuest(
       await getDb()
         .select(QUEST_COLUMNS)
         .from(quests)
-        .where(and(eq(quests.id, questId), questOwnedBy(user))),
+        .where(and(eq(quests.id, questId), questOpenTo(user))),
     ),
   );
   return quest;
@@ -132,7 +133,8 @@ export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
   });
 }
 
-// Only the owner can rename a quest. Unknown or inaccessible ids change nothing.
+// The owner or a member can rename a quest. Unknown or inaccessible ids
+// change nothing.
 export function renameQuest(
   owner: UserId,
   id: QuestId,
@@ -142,7 +144,7 @@ export function renameQuest(
     const changed = await getDb()
       .update(quests)
       .set({ name })
-      .where(and(eq(quests.id, id), questOwnedBy(owner)))
+      .where(and(eq(quests.id, id), questOpenTo(owner)))
       .returning({ id: quests.id });
     return changed.length > 0;
   });

@@ -78,8 +78,10 @@ async function readSignUpEmail(
   return row?.email;
 }
 
-// Validates the required name, claims verification and creates or returns the address's ordinary account
-// atomically. A failed insert preserves the link. Concurrent confirmations
+// Validates the required name, claims verification and creates or returns
+// the address's signed-up account atomically. An account an invitation
+// created since the link was sent completes its sign-up, keeping its
+// invitations; a signed-up account keeps its saved name. A failed insert preserves the link. Concurrent confirmations
 // cannot consume the same link twice or create duplicate accounts.
 async function confirmSignUp(
   token: string,
@@ -101,7 +103,9 @@ async function confirmSignUp(
       returning email
     )
     insert into users (email, name) select email, ${checked.name} from claimed
-    on conflict (email) do update set email = excluded.email
+    on conflict (email) do update set
+      account_state = 'signed_up',
+      name = coalesce(users.name, excluded.name)
     returning id, session_epoch as "sessionEpoch"
   `),
   );

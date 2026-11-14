@@ -14,8 +14,9 @@ import {
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
-// A quest and its conversations, messages and Plan belong to its owner
-// alone (src/accounts/owner-scope.ts). A standalone chat belongs to its user.
+// A quest belongs to its owner and is open to them and its accepted members
+// (quest_members, src/accounts/owner-scope.ts), with its conversation,
+// messages and Plan. A standalone chat belongs to its user.
 // check_in_frequency and last_check_in_at are inert: they held the removed
 // automatic check-ins' schedule (#903) and stay until a held cleanup drops
 // them, once no live build reads them.
