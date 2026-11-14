@@ -12,6 +12,7 @@ import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
+import { questNotes } from "@/db/tables/quest-notes.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { replyUsage } from "@/db/tables/reply-usage.ts";
@@ -73,6 +74,11 @@ function planVersionOpenTo(user: UserId): SQL {
 
 function ideaOpenTo(user: UserId): SQL {
   return inArray(questIdeas.questId, ownedQuestIds(user));
+}
+
+// A `quest_notes` row of a quest of user's.
+function noteOpenTo(user: UserId): SQL {
+  return inArray(questNotes.questId, ownedQuestIds(user));
 }
 
 // True when the quest is owner's, whatever table the query reads: for an
@@ -176,6 +182,7 @@ export {
   imageOpenTo,
   messageOpenTo,
   milestoneOpenTo,
+  noteOpenTo,
   ownPromptOwnedBy,
   ownsQuest,
   planVersionOpenTo,

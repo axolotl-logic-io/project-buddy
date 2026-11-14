@@ -10,7 +10,7 @@ Each spell also owns editable reply lists for casting, saving a message, stoppin
 
 Built-ins remain read-only. The shared editor keeps browser drafts through navigation and offers Save and Cancel. Own spells can be copied or retired. Graveyard supports restoration and permanent deletion.
 
-Use the quest sidebar’s spell picker and Cast spell, or type `cast <spell name>`, such as `cast Alstorm`. Names are matched without regard to case or repeated whitespace. Duplicate names require renaming before casting. `plan` and `brainstorm` cast the built-in spells. Commands ignore case and accept an optional leading slash. Stop beside the composer, or `stop`, ends the spell.
+Use the spell picker and Cast spell in the quest sidebar’s Actions tab, or type `cast <spell name>`, such as `cast Alstorm`. Names are matched without regard to case or repeated whitespace. Duplicate names require renaming before casting. `plan` and `brainstorm` cast the built-in spells. Commands ignore case and accept an optional leading slash. Stop beside the composer, or `stop`, ends the spell.
 
 A cast saves a snapshot of its name, destination and replies. Editing, retiring or deleting the source never changes an active spell. Cast again to use the latest definition. The local engine uses the destination for capture and the saved reply lists for responses. Reply templates replace `{{name}}` with the user’s name. Prose Instructions fields are not offered.
 
