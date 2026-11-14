@@ -1,5 +1,5 @@
-// The text of conversations: the construct picker, the conversation,
-// the construct's tool parts, and chat names.
+// The text of conversations: the conversation, the construct's tool parts,
+// and chat names.
 
 export const CHAT_COPY = {
   stop: "Stop reply",
@@ -11,8 +11,6 @@ export const CHAT_COPY = {
     "Reply stopped at your request. Tool effects already started may remain or finish.",
   replyingElsewhere: (name: string): string =>
     `${name} is still replying. This conversation will update when the reply finishes.`,
-  headerLink: "Chat",
-  loading: "Loading Chat…",
   conversationLabel: "Conversation",
   you: "You",
   thinking: (constructName: string): string => `${constructName} is thinking…`,

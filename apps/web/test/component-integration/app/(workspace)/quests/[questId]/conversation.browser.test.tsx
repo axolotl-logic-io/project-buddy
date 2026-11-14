@@ -30,7 +30,7 @@ import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
-import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -131,7 +131,7 @@ const EXCHANGES = 3;
 // lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
 const ONE_SCREEN_DOWN_BAND = 64;
 
-// The user’s question and the mock construct's Markdown reply, EXCHANGES times.
+// The user’s question and the construct's Markdown reply, EXCHANGES times.
 function longChat(): ChatMessage[] {
   return Array.from({ length: EXCHANGES }, (_, index): ChatMessage[] => [
     {
@@ -535,9 +535,6 @@ describe("use_case_open_quest", () => {
     await expect
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
-    await expect
-      .element(page.getByRole("navigation", { name: QUEST_COPY.navigation }))
-      .not.toBeInTheDocument();
     await Promise.all(
       ["Plan", "Ideas", "Progress", "Quick Notes", "Actions"].map((name) =>
         expect

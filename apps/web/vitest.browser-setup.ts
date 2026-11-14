@@ -4,15 +4,6 @@ import type { TestError } from "vitest";
 import { beforeEach, vi } from "vitest";
 import "./src/app/globals.css";
 
-// Server-only audit context is not available in a browser. The database and
-// authentication boundaries remain mocked by each feature-entrypoint test.
-vi.mock("@/performance/server-spans.ts", () => ({
-  measureServerOperation: <T>(
-    _operation: string,
-    work: () => Promise<T>,
-  ): Promise<T> => work(),
-}));
-
 // Server Actions are RPC boundaries in the site. Keep their server imports
 // out of browser component tests; tests exercising these actions supply
 // their own result-specific mocks. Unexpected mutations fail loudly.

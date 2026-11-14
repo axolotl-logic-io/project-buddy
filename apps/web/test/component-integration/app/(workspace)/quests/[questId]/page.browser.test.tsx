@@ -230,9 +230,6 @@ test("the quest opens directly on the conversation without a portrait bar", asyn
     page.getByRole("heading", { level: 1 }).query(),
     "the quest's name is the trail band's heading, not the frame's",
   ).toBeNull();
-  await expect
-    .element(page.getByRole("navigation", { name: QUEST_COPY.navigation }))
-    .not.toBeInTheDocument();
   const portrait = page.getByRole("button", {
     name: CONSTRUCT_DISCOVERY_COPY.openProfile(FOX_CONVERSATION.construct.name),
   });

@@ -5,7 +5,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 // The Server Actions that change a quest's plan without the construct: from
 // the quest's page, from the Plan panel and plan cards in an adventure, and
-// from the composer's commands. None calls a model or spends batteries. A
+// from the composer's commands. None calls a model. A
 // command saves a plan message to the conversation. Direct controls return
 // the updated plan for local feedback without adding a message.
 import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";

@@ -1,4 +1,4 @@
-// A quest's milestones in the test database with the mock construct: the
+// A quest's milestones in the test database with the local construct engine: the
 // construct's record_milestone through POST /api/chat, the progress timeline on
 // the quest's page, and her edits and deletes from it. How the chat and
 // the timeline look is milestone-part.browser.test.tsx's and

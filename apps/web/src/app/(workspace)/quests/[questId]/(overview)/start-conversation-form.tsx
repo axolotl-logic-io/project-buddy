@@ -13,7 +13,7 @@ import {
 const IDLE: StartConversationState = { kind: "idle" };
 
 // Start the conversation, for a quest that has none yet: the explicit
-// action that writes its opening and spends batteries.
+// action that writes its opening.
 function StartConversationForm({
   questId,
 }: {

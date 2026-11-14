@@ -25,10 +25,8 @@ import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { QUEST_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -153,14 +151,10 @@ interface PhoneMeasures {
   readonly pageHeadings: number;
 }
 
-// The rows of tabs a page may have, besides its tab lists: a quest's
-// sections, an adventure's, the Workshop's kinds and the Retirement filter. The Quests list's status tabs
-// are a grid of two columns on a phone by design, so they aren't one.
-const TAB_ROW_NAVIGATIONS: readonly string[] = [
-  QUEST_COPY.navigation,
-  WORKSPACES_COPY.conversation,
-  WORKSHOP_PAGE_COPY.kindsLabel,
-];
+// The rows of tabs a page may have, besides its tab lists: the Workshop's
+// kinds. The Quests list's status tabs are a grid of two columns on a phone
+// by design, so they aren't one.
+const TAB_ROW_NAVIGATIONS: readonly string[] = [WORKSHOP_PAGE_COPY.kindsLabel];
 
 function tabRows(): Element[] {
   return [

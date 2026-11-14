@@ -1,4 +1,4 @@
-// A quest's plan in the test database with the mock construct: the
+// A quest's plan in the test database with the local construct engine: the
 // construct's change_plan through POST /api/chat, the user's changes from the
 // quest's page and from an adventure, the composer's commands, undo, the plan
 // in the construct's prompt, who may change it, and the next step Today
