@@ -140,5 +140,5 @@ The user stops a reply that is still running.
 
 - **Goal:** Start Dailies again with an empty conversation.
 - **Prerequisites:** The user owns an active Dailies quest.
-- **Steps:** Choose Reset Day above the workspace tabs, optionally select removal of Steps or Ideas, and confirm.
+- **Steps:** Choose Reset Day in the quest sidebar's Actions tab, optionally select removal of Steps or Ideas, and confirm.
 - **Outcome:** The conversation and active spell are cleared. By default Steps are kept and unchecked and Ideas stay. Selected lists are removed. Progress and the construct stay.

@@ -24,6 +24,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
 
+- [Quick Notes](quick-notes.md): saving a short note to a quest from the site menu, and the quest's Quick Notes tab.
+
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
 - [Graveyard](retirement.md): retiring, restoring, and permanently deleting own constructs.
 

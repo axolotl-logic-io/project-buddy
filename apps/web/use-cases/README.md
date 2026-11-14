@@ -53,6 +53,7 @@ Each area's cases are in their own file:
 - [Conversations](chats.md)
 - [Plan](plan.md)
 - [Ideas](ideas.md)
+- [Quick Notes](quick-notes.md)
 - [Constructs](constructs.md)
 - [Workshop](workshop.md): create and edit private constructs and spells.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
