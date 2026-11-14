@@ -22,6 +22,10 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 - [Installed app](notifications.md): installing on a phone's Home Screen.
 
+## Planned product changes
+
+- [Multi-user quests](multi-user-quests.md): shared quest permissions, accounts created by invitations and acceptance through the Pending tab or invitation links.
+
 ## Practices
 
 - [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
