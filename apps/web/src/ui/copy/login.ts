@@ -1,5 +1,6 @@
 // The text of the sign-in page, of the page a sign-in link opens, and of
 // the email that holds the link.
+import { INVITATION_LINK_LIFETIME_DAYS } from "@/quests/membership.ts";
 import { EMAIL_SENDER_COPY, pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
 export const LOGIN_COPY = {
@@ -24,8 +25,7 @@ export const LINK_PAGE_COPY = {
   continue: "Continue",
   signupIntro: "Enter your name to finish creating your account.",
   nameInvalid: "Enter a name of 1–60 characters on one line, without { or }.",
-  expired:
-    "This sign-in link has expired or no longer works. A link works for 30 minutes after it's sent.",
+  expired: `This link has expired or no longer works. A sign-in link works for 30 minutes after it's sent; a quest invitation link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days. Log in to find your pending invitations in Quests.`,
   newLink: "Ask for a new link",
 } as const;
 

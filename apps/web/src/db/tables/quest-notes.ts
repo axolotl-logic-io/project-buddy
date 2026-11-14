@@ -1,7 +1,7 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { quests } from "./quests-and-chats.ts";
 
-// A quest's Quick Notes, short lines its owner saved without opening it;
+// A quest's Quick Notes, short lines saved without opening it;
 // deleted with the quest.
 const questNotes = pgTable(
   "quest_notes",

@@ -1,6 +1,6 @@
 # Quest plan
 
-Each quest has a plan: its ordered steps of remaining work, which the construct and the quest's owner keep together. Plan is the quest’s todo list. The construct changes it with a tool, and the owner changes it directly, without a model call, from the quest's page, from the Plan panel beside a conversation, or with commands in the message box. The [glossary](../GLOSSARY.md#plan) defines the words this page uses.
+Each quest has a plan: its ordered steps of remaining work, which the construct and the people in the quest, its owner and [members](multi-user-quests.md), keep together. Plan is the quest’s todo list. The construct changes it with a tool, and the owner or a member changes it directly, without a model call, from the quest's page, from the Plan panel beside a conversation, or with commands in the message box. The [glossary](../GLOSSARY.md#plan) defines the words this page uses.
 
 ## Steps
 
@@ -31,12 +31,12 @@ Every quest conversation's prompt lists the current Plan, between `<quest_plan>`
 
 The conversation shows each call as a **Plan change** with Undo (`src/components/chat/plan-change-part.tsx`), while the reply streams and after the user reopens the quest. The tool is active only in quest conversations.
 
-## The owner
+## People in the quest
 
-The owner changes the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model:
+The owner and members change the plan through the Server Actions in `src/plan/plan-actions.ts`. None calls a model:
 
 - The quest page's **Plan** section, `/quests/QUEST_ID?section=plan`, where `QUEST_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Plan panel.
-- The **Plan accordion** in the quest side menu, alongside Ideas, Progress, Quick Notes and Actions. Edits and Undo update the Plan and show feedback in the sidebar, without adding conversation messages. A panel icon opens or collapses the sidebar. It docks to the right edge on wide screens and opens as a drawer on phones. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
+- The **Plan accordion** in the quest side menu, alongside Ideas, Progress, Quick Notes, Members and Actions. Edits and Undo update the Plan and show feedback in the sidebar, without adding conversation messages. A panel icon opens or collapses the sidebar. It docks to the right edge on wide screens and opens as a drawer on phones. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/plan/plan-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |

@@ -147,14 +147,14 @@ test("a signup request for an existing account preserves its identity", async ()
   await endRateLimitWindowsFor({ clientKey: user.email });
 });
 
-test("verification returns the same account if it was created before confirmation", async () => {
+test("verification returns the same account if it was created before confirmation, naming it if it had no name", async () => {
   const email = newAddress();
   const token = await request(email);
   const existing = await createTestAccount(email);
   expect((await confirmSignUp(token, new Date(), "Mabel"))?.id).toBe(
     existing.id,
   );
-  expect(await findUserByEmail(email)).toEqual(existing);
+  expect(await findUserByEmail(email)).toEqual({ ...existing, name: "Mabel" });
 });
 
 test("signing out everywhere revokes pending verification for that account", async () => {

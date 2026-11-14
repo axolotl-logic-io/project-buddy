@@ -122,3 +122,24 @@ vi.mock("@/notes/note-actions.ts", () => ({
 vi.mock("@/notes/note-store.ts", () => ({
   listNotes: vi.fn(() => Promise.resolve([])),
 }));
+
+// Quests and a quest's Members tab reach these. Tests of membership flows
+// supply their own results; by default a quest shows no Members tab, the
+// user has no pending invitations, and no emailed link is an invitation's.
+vi.mock("@/quests/membership-actions.ts", () => ({
+  inviteToQuestAction: vi.fn(() => {
+    throw new Error("Mock the quest invitation action in this test");
+  }),
+  removeFromQuestAction: vi.fn(() => {
+    throw new Error("Mock the quest removal action in this test");
+  }),
+  answerInvitationAction: vi.fn(() => {
+    throw new Error("Mock the invitation answer action in this test");
+  }),
+}));
+
+vi.mock("@/quests/membership-store.ts", () => ({
+  listQuestPeople: vi.fn(() => Promise.resolve(undefined)),
+  listPendingQuests: vi.fn(() => Promise.resolve([])),
+  readInvitationLink: vi.fn(() => Promise.resolve(undefined)),
+}));

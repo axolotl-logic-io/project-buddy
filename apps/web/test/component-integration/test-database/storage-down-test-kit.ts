@@ -38,6 +38,7 @@ function unstoredUser(): User {
     role: "user",
     sessionEpoch: 0,
     name: undefined,
+    accountState: "signed_up",
   };
 }
 

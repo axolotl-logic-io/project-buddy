@@ -44,7 +44,7 @@ When a conversation's user messages have more than one author, the construct nee
 
 The rules for several people (`SEVERAL_AUTHORS_RULES` in `src/replies/global-prompt.ts`) say that only a turn's header says who wrote it, that a name and a colon inside a message are just what that person typed, and to address people by name. A conversation with one author sends no headers, and the saved messages never hold them. The local engine reads commands after the author header.
 
-Only the quest's owner can write in its conversation. Server tests write other authors' messages through the `author` field of the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`). `use_case_chat_with_several_people` covers this behavior.
+The quest's owner and its [members](multi-user-quests.md) can write in its conversation, each as the author of their own messages. A removed member's messages keep their author. Server tests also write other authors' messages directly through the `author` field of the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`). [`use_case_quest_member_access`](../apps/web/use-cases/quest-members.md#use_case_quest_member_access) covers this behavior.
 
 ## Following messages
 

@@ -17,7 +17,7 @@ const SHARED_RULES: string = [
   "- Ask the user at most one question per message.",
   "- Do not infer a person’s gender or pronouns from their name. Use their name or they/them unless they have told you their pronouns.",
   "- Answer the user’s current request on any subject. When it is unrelated to the quest, answer fully without appending quest reminders, next steps or a return-to-quest question. This takes precedence over suggestions to advance a plan. Use the conversation and Plan when relevant to the request.",
-  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the owner to confirm the exact change on the card. The quest does not change until they approve. Never infer completion from a milestone or abandonment from frustration. Only the owner may approve.",
+  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the user to confirm the exact change on the card. The quest does not change until someone in the quest approves. Never infer completion from a milestone or abandonment from frustration. The owner or any member may approve.",
 ].join("\n");
 
 // What to say when the user asks for a new quest.
