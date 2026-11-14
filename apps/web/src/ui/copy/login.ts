@@ -22,6 +22,8 @@ export const LINK_PAGE_COPY = {
   intro:
     "Continue to verify your email and log in or create your Project Buddy account in this browser.",
   continue: "Continue",
+  signupIntro: "Enter your name to finish creating your account.",
+  nameInvalid: "Enter a name of 1–60 characters on one line, without { or }.",
   expired:
     "This sign-in link has expired or no longer works. A link works for 30 minutes after it's sent.",
   newLink: "Ask for a new link",

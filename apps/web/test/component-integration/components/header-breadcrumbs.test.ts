@@ -29,6 +29,17 @@ beforeEach(() => {
 });
 
 describe("header navigation hierarchy", () => {
+  test.each([
+    { section: "workshop", label: "Workshop" },
+    { section: "retirement", label: "Graveyard" },
+    { section: "settings", label: "Settings" },
+  ])("$label is a top-level destination", async ({ section, label }) => {
+    const trail = await headerBreadcrumbs(MEMBER, [section]);
+    expect(trail).toHaveLength(1);
+    expect(trail[0]?.label).toBe(label);
+    expect(trail[0]?.href).toBeUndefined();
+  });
+
   test("removed destinations have no breadcrumb", async () => {
     const paths = [
       ["library"],
@@ -75,8 +86,8 @@ describe("header navigation hierarchy", () => {
     stores.getOwnConstruct.mockResolvedValue({ name: "My construct" });
     const trail = await headerBreadcrumbs(MEMBER, ["constructs", "own"]);
     expect(trail).toEqual([
-      { label: "Quests", href: "/quests" },
       { label: "Workshop", href: "/workshop" },
+      { label: "Constructs", href: "/workshop" },
       { label: "My construct" },
     ]);
     expect(stores.getOwnConstruct).toHaveBeenCalledWith(USER, "own");
@@ -89,9 +100,9 @@ describe("header navigation hierarchy", () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["spellbook", "brainstorm"]),
     ).toEqual([
-      { label: "Quests", href: "/quests" },
+      { label: "Workshop", href: "/workshop" },
       {
-        label: "Workshop",
+        label: "Spells",
         href: `/workshop?${new URLSearchParams({ kind: "spell" })}`,
       },
       { label: "Brainstorm" },

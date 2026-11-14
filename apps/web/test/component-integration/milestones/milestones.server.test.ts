@@ -62,7 +62,7 @@ function editForm(milestoneId: string, text: string): FormData {
   return formOf({ milestoneId, text });
 }
 
-describe("use_case_construct_records_milestone", () => {
+describe("milestone tool contract", () => {
   test("the milestone tool records a result linked to its owned conversation", async () => {
     const { user, chat } = await signedInChat();
     const recorded = await Promise.resolve(

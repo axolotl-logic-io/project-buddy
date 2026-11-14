@@ -6,7 +6,7 @@ const HELP = [
   "- `stop` — stop the active spell and return to Chat.",
   "- `help` — show these commands.",
   "- `look` — read the construct's visual description.",
-  "- `cast <spell id>` — cast Plan or Brainstorm until stopped.",
+  "- `cast <spell name>` — cast a built-in or own spell until stopped.",
   "",
   "Commands can also start with `/`. Plan and Brainstorm stay active until stopped. Use the Plan, Ideas and Progress controls to manage your quest.",
 ].join("\n");
@@ -32,7 +32,8 @@ const LOCAL_CONSTRUCT_COPY: LocalConstructCopy = {
     return `Visual description:\n\n${description}\n\n${HELP}`;
   },
   unknownCommand: `Your message is saved. This construct responds to commands.\n\n${HELP}`,
-  castUsage: "Use `cast plan` or `cast brainstorm` in a quest.",
+  castUsage:
+    "Use `cast plan`, `cast brainstorm` or an own spell’s name in a quest.",
   castFailed: "The spell could not be cast. Try the command again.",
   needsQuest: "Open a quest to cast Plan or Brainstorm.",
   cast: (name: string): string =>

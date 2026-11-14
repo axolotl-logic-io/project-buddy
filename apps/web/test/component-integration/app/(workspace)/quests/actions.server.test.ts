@@ -54,7 +54,6 @@ function startForm(
     premadeId: id,
     name: quest.name,
     context: quest.context,
-    constructId: "vellum",
     ...changes,
   });
 }
@@ -111,7 +110,9 @@ describe("use_case_new_quest", () => {
 
       const conversation = await startQuest(user, startForm(id));
 
-      expect(conversation.construct.name).toBe(getConstruct("vellum").name);
+      expect(conversation.construct.name).toBe(
+        getConstruct(premade(id).constructId).name,
+      );
       expect(await currentSpell(user.id, conversation)).toBeUndefined();
       const messages = await listMessages(user.id, conversation.id);
       expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
@@ -178,37 +179,24 @@ describe("use_case_dailies", () => {
 });
 
 describe("use_case_new_quest_with_construct", () => {
-  test("the quest is with their own construct, when they chose it", async () => {
-    const user = await testUser();
-    await signIn(user);
-    const own = await cloneConstruct(user.id, "lumen");
-    if (own === undefined) {
-      throw new Error("Lumen could not be cloned");
-    }
-
-    const conversation = await startQuest(
-      user,
-      startForm("do", { constructId: own.id }),
-    );
-
-    expect(conversation.construct.name).toBe(own.name);
-    expect(conversation.construct.definition).toEqual(own.definition);
-  });
-
-  test("another user's construct cannot start a quest", async () => {
-    const user = await testUser();
-    const other = await testUser();
-    const own = await cloneConstruct(other.id, "lumen");
-    if (own === undefined) {
-      throw new Error("No construct was cloned");
-    }
-    await signIn(user);
-
-    expect(
-      await startQuestAction(IDLE, startForm("do", { constructId: own.id })),
-    ).toMatchObject({ kind: "invalid" });
-    expect(await listQuests(user.id)).toEqual([]);
-  });
+  test.each(["dailies", "learn", "make", "do"] as const)(
+    "%s uses its assigned construct even when a different construct is submitted",
+    async (id) => {
+      const user = await testUser();
+      await signIn(user);
+      const own = await cloneConstruct(user.id, "lumen");
+      if (own === undefined) {
+        throw new Error("Lumen could not be cloned");
+      }
+      const conversation = await startQuest(
+        user,
+        startForm(id, { constructId: own.id }),
+      );
+      const assigned = getConstruct(premade(id).constructId);
+      expect(conversation.construct.name).toBe(assigned.name);
+      expect(conversation.construct.definition).toEqual(assigned.definition);
+    },
+  );
 });
 
 describe("use_case_new_quest_without_name", () => {

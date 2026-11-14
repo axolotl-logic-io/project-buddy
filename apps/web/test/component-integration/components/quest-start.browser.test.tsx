@@ -6,7 +6,6 @@ import { render } from "vitest-browser-react";
 import type { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { QuestStartChoices } from "@/components/quest-start.tsx";
 import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
-import type { QuestCreationChoices } from "@/quests/quest-creation-choices.ts";
 import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 
@@ -14,11 +13,6 @@ const actions = vi.hoisted(() => ({
   startQuestAction: vi.fn<typeof startQuestAction>(),
 }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => actions);
-
-const CHOICES: QuestCreationChoices = {
-  userConstructs: [],
-  preferredConstructId: "vellum",
-};
 
 const DAILIES_ID = questIdFixture("1f2e3d4c-5b6a-4987-8a6b-5c4d3e2f1a0b");
 
@@ -32,7 +26,7 @@ afterEach(() => {
 
 describe("use_case_browse_premade_quests", () => {
   test("the four starting points open a modal, and cancelling restores focus without starting", async () => {
-    await render(<QuestStartChoices choices={CHOICES} />);
+    await render(<QuestStartChoices />);
 
     await Promise.all(
       PREMADE_QUESTS.map((quest) =>
@@ -75,7 +69,7 @@ describe("use_case_browse_premade_quests", () => {
     "starting %s sends its own starting point and no activity, once",
     async (name, premadeId) => {
       actions.startQuestAction.mockResolvedValue({ kind: "idle" });
-      await render(<QuestStartChoices choices={CHOICES} />);
+      await render(<QuestStartChoices />);
       await choose(name).click();
       await page
         .getByRole("textbox", { name: QUESTS_COPY.motivationLabel })
@@ -89,7 +83,7 @@ describe("use_case_browse_premade_quests", () => {
       expect(sent?.get("premadeId")).toBe(premadeId);
       expect(sent?.has("activityId")).toBe(false);
       expect(sent?.get("name")).toBe(name);
-      expect(sent?.get("constructId")).toBe("vellum");
+      expect(sent?.has("constructId")).toBe(false);
       expect(sent?.get("context")).toBe(
         PREMADE_QUESTS.find((quest) => quest.id === premadeId)?.context,
       );
@@ -97,11 +91,12 @@ describe("use_case_browse_premade_quests", () => {
     },
   );
 
-  test("the first Dailies start asks only for a construct, without Why", async () => {
+  test("the first Dailies start needs no construct selection or Why", async () => {
     actions.startQuestAction.mockResolvedValue({ kind: "idle" });
-    await render(<QuestStartChoices choices={CHOICES} />);
+    await render(<QuestStartChoices />);
     await choose("Dailies").click();
     const dialog = page.getByRole("dialog", { name: "Dailies" });
+    await expect.element(dialog.getByRole("combobox")).not.toBeInTheDocument();
     await expect
       .element(
         dialog.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }),
@@ -113,7 +108,7 @@ describe("use_case_browse_premade_quests", () => {
     const sent = actions.startQuestAction.mock.calls[0]?.[1];
     expect(sent?.get("premadeId")).toBe("dailies");
     expect(sent?.get("name")).toBe("Dailies");
-    expect(sent?.get("constructId")).toBe("vellum");
+    expect(sent?.has("constructId")).toBe(false);
     expect(sent?.get("context")).toBe("");
     expect(sent?.has("motivation")).toBe(false);
   });
@@ -123,7 +118,7 @@ describe("use_case_browse_premade_quests", () => {
       kind: "claudeUnavailable",
       message: "Try again later.",
     });
-    await render(<QuestStartChoices choices={CHOICES} />);
+    await render(<QuestStartChoices />);
     await choose("Learn a thing").click();
     const dialog = page.getByRole("dialog", { name: "Learn a thing" });
     const why = dialog.getByRole("textbox", {
@@ -144,9 +139,7 @@ describe("use_case_browse_premade_quests", () => {
   });
 
   test("the user's Dailies opens instead of starting again", async () => {
-    await render(
-      <QuestStartChoices choices={CHOICES} dailiesId={DAILIES_ID} />,
-    );
+    await render(<QuestStartChoices dailiesId={DAILIES_ID} />);
 
     await expect
       .element(page.getByRole("link", { name: "Dailies", exact: true }))
@@ -158,7 +151,6 @@ describe("use_case_browse_premade_quests", () => {
     const summary = "- a balcony herb garden";
     await render(
       <QuestStartChoices
-        choices={CHOICES}
         initialChoice="do"
         presentation="inline"
         preset={{ context: summary }}

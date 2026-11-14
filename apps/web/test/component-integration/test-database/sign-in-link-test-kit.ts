@@ -51,6 +51,7 @@ async function emailedLoginToken(
 async function continueSignIn(token: string): Promise<void> {
   const form = new FormData();
   form.set("token", token);
+  form.set("name", "Mabel");
   await expectRedirect(() => continueSignInAction(form), HOME_PATH);
 }
 

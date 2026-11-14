@@ -10,24 +10,32 @@ import {
   type CastSpellInput,
   type CastSpellOutput,
 } from "@/spells/cast-spell-contract.ts";
-import { getSpell } from "@/spells/spell.ts";
+import { resolveSpellName } from "@/spells/own-spell-store.ts";
 import { setSpell } from "@/spells/spell-store.ts";
 
 async function castSpell(
-  { spellId }: CastSpellInput,
+  { name }: CastSpellInput,
   { context }: { context: ChatToolContext },
 ): Promise<CastSpellOutput> {
-  if (
-    context.questId === undefined ||
-    !(await setSpell(context.actingUser, {
-      chatId: context.chatId,
-      spell: spellId,
-    }))
-  ) {
+  if (context.questId === undefined) {
     return { status: "needsQuest" };
   }
-  return { status: "cast", spellId, name: getSpell(spellId).name };
+  const resolved = await resolveSpellName(context.actingUser, name);
+  if (resolved.kind !== "found") {
+    return { status: "unavailable" };
+  }
+  const { spell } = resolved;
+  if (
+    !(await setSpell(context.actingUser, {
+      chatId: context.chatId,
+      spell: spell.id,
+    }))
+  ) {
+    return { status: "unavailable" };
+  }
+  return { status: "cast", spellId: spell.id, name: spell.name };
 }
+
 const castSpellTool = tool({
   description: CAST_SPELL_DESCRIPTION,
   inputSchema: CAST_SPELL_INPUT,

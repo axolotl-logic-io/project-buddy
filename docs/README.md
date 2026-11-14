@@ -13,7 +13,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
 
-- [Prompts](prompts.md): construct instructions, reset and storage.
+- [Prompts](prompts.md): editable construct and spell fields, snapshots and storage.
 
 - [Quest nomenclature](quest-nomenclature.md): code names, storage changes and release cutover notes.
 
@@ -25,7 +25,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
 
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
-- [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs.
+- [Graveyard](retirement.md): retiring, restoring, and permanently deleting own constructs.
 
 - [Images](images.md): saved images, owner access and deletion.
 - [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.

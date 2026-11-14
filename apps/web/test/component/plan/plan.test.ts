@@ -7,7 +7,6 @@ import {
   applyPlanOperations,
   applyPlanUndo,
   EMPTY_PLAN,
-  MOST_OPEN_STEPS,
   moveAmongOpen,
   moveToPlace,
   nextPlanStep,
@@ -235,48 +234,25 @@ describe("plan operations", () => {
     ]);
   });
 
-  test(`a plan holds at most ${MOST_OPEN_STEPS} open steps`, () => {
-    const full: Plan = {
-      steps: Array.from({ length: MOST_OPEN_STEPS }, (_, index) => ({
+  test("plans can grow and reopen steps without a capacity limit", () => {
+    const ManySteps = 1000;
+    const many: Plan = {
+      steps: Array.from({ length: ManySteps }, (_, index) => ({
         number: index + 1,
         text: `Step ${index + 1}`,
         done: false,
       })),
-      nextNumber: MOST_OPEN_STEPS + 1,
+      nextNumber: ManySteps + 1,
     };
-    expect(
-      applyPlanOperations(full, [{ op: "add", text: "One more" }]),
-    ).toEqual({ kind: "failed", reason: "too-many-steps" });
-    const roomMade = changed(full, [
-      { op: "complete", step: 1 },
-      { op: "add", text: "One more" },
+    const added = changed(many, [{ op: "add", text: "One more" }]);
+    expect(added.plan.steps).toHaveLength(ManySteps + 1);
+    const completed = changed(added.plan, [{ op: "complete", step: 1 }]);
+    const reopened = changed(completed.plan, [
+      { op: "reopen", step: 1 },
+      { op: "add", text: "Another" },
     ]);
-    expect(roomMade.plan.steps).toHaveLength(MOST_OPEN_STEPS + 1);
-  });
-
-  test(`the ${MOST_OPEN_STEPS}-step limit is on the plan a batch leaves, not on each operation`, () => {
-    const full: Plan = {
-      steps: Array.from({ length: MOST_OPEN_STEPS }, (_, index) => ({
-        number: index + 1,
-        text: `Step ${index + 1}`,
-        done: false,
-      })),
-      nextNumber: MOST_OPEN_STEPS + 1,
-    };
-    const swapped = changed(full, [
-      { op: "add", text: "One more" },
-      { op: "remove", step: 3 },
-    ]);
-    expect(swapped.plan.steps.filter((step) => !step.done)).toHaveLength(
-      MOST_OPEN_STEPS,
-    );
-    const done = changed(full, [{ op: "complete", step: 1 }]);
-    expect(
-      applyPlanOperations(done.plan, [
-        { op: "reopen", step: 1 },
-        { op: "add", text: "One more" },
-      ]),
-    ).toEqual({ kind: "failed", reason: "too-many-steps" });
+    expect(reopened.plan.steps).toHaveLength(ManySteps + 2);
+    expect(reopened.plan.steps.every((step) => !step.done)).toBe(true);
   });
 
   test("moves among the open steps step over the done ones", () => {

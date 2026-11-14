@@ -10,12 +10,15 @@ import {
   readSignUpEmail,
   sendSignUpLink,
 } from "@/accounts/sign-up-links.ts";
+import { USER_NAME_MAX_LENGTH } from "@/accounts/user-name.ts";
 import { endEverySession, findUserByEmail } from "@/accounts/users-store.ts";
+import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { getDb } from "@/db/client.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";
 import { goldInMicroUsd, STARTING_GOLD } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
+import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import {
   createTestAccount,
   testUser,
@@ -87,11 +90,12 @@ test("public verification creates one ordinary account only after confirmation",
   await continueSignIn(token);
   const user = await findUserByEmail(email);
   expect(user?.role).toBe("user");
+  expect(user?.name).toBe("Mabel");
   if (user === undefined) {
     throw new Error("No verified account was created");
   }
   expect(await readGoldBalance(user.id)).toBe(goldInMicroUsd(STARTING_GOLD));
-  expect(await confirmSignUp(token, new Date())).toBeUndefined();
+  expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
 });
 
 test("a new request replaces verification, and links expire at thirty minutes", async () => {
@@ -102,7 +106,7 @@ test("a new request replaces verification, and links expire at thirty minutes", 
   const oldToken = await request(email);
   const token = await request(email);
   expect(await readSignUpEmail(oldToken, now)).toBeUndefined();
-  expect(await confirmSignUp(oldToken, now)).toBeUndefined();
+  expect(await confirmSignUp(oldToken, now, "Mabel")).toBeUndefined();
   expect(
     await readSignUpEmail(token, new Date(now.getTime() + LIFETIME_MS - 1)),
   ).toBe(email);
@@ -110,7 +114,7 @@ test("a new request replaces verification, and links expire at thirty minutes", 
     await readSignUpEmail(token, new Date(now.getTime() + LIFETIME_MS)),
   ).toBeUndefined();
   expect(
-    await confirmSignUp(token, new Date(now.getTime() + LIFETIME_MS)),
+    await confirmSignUp(token, new Date(now.getTime() + LIFETIME_MS), "Mabel"),
   ).toBeUndefined();
   expect(await findUserByEmail(email)).toBeUndefined();
 });
@@ -119,7 +123,7 @@ test.each(["", "malformed", "a".repeat(TOKEN_LENGTH)])(
   "invalid or unknown verification %s creates nothing",
   async (token) => {
     expect(await readSignUpEmail(token, new Date())).toBeUndefined();
-    expect(await confirmSignUp(token, new Date())).toBeUndefined();
+    expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
   },
 );
 
@@ -127,8 +131,8 @@ test("concurrent confirmations consume verification once and grant batteries onc
   const email = newAddress();
   const token = await request(email);
   const confirmed = await Promise.all([
-    confirmSignUp(token, new Date()),
-    confirmSignUp(token, new Date()),
+    confirmSignUp(token, new Date(), "Mabel"),
+    confirmSignUp(token, new Date(), "Mabel"),
   ]);
   expect(confirmed.filter((value) => value !== undefined)).toHaveLength(1);
   const rows = await getDb().select().from(users).where(eq(users.email, email));
@@ -157,7 +161,9 @@ test("verification returns the same account if it was created before confirmatio
   const email = newAddress();
   const token = await request(email);
   const existing = await createTestAccount(email);
-  expect((await confirmSignUp(token, new Date()))?.id).toBe(existing.id);
+  expect((await confirmSignUp(token, new Date(), "Mabel"))?.id).toBe(
+    existing.id,
+  );
   expect(await findUserByEmail(email)).toEqual(existing);
 });
 
@@ -166,7 +172,7 @@ test("signing out everywhere revokes pending verification for that account", asy
   await sendSignUpLink(user.email, ORIGIN);
   const token = emailedToken();
   await endEverySession(user.id);
-  expect(await confirmSignUp(token, new Date())).toBeUndefined();
+  expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
 });
 
 test("sign-up requests share the public email request limits", async () => {
@@ -186,3 +192,29 @@ test("sign-up requests share the public email request limits", async () => {
   expect(sent.sendEmail).not.toHaveBeenCalled();
   expect(await findUserByEmail(email)).toBeUndefined();
 });
+
+test.each([
+  "",
+  "   ",
+  "{name}",
+  "two\nlines",
+  "x".repeat(USER_NAME_MAX_LENGTH + 1),
+])(
+  "signup refuses invalid name %j without consuming verification",
+  async (name) => {
+    const email = newAddress();
+    const token = await request(email);
+    const form = new FormData();
+    form.set("token", token);
+    form.set("name", name);
+    expect(await continueSignInAction(form)).toEqual({
+      kind: "invalid",
+      message: LINK_PAGE_COPY.nameInvalid,
+    });
+    expect(await confirmSignUp(token, new Date(), name)).toBeUndefined();
+    expect(await findUserByEmail(email)).toBeUndefined();
+    expect(await readSignUpEmail(token, new Date())).toBe(email);
+    expect(await confirmSignUp(token, new Date(), "  Mabel  ")).toBeDefined();
+    expect((await findUserByEmail(email))?.name).toBe("Mabel");
+  },
+);

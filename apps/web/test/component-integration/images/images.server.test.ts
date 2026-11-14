@@ -55,7 +55,7 @@ function post(chatId: string, parts: unknown[]): Promise<Response> {
   );
 }
 
-describe("use_case_chat_images", () => {
+describe("saved conversation image access", () => {
   test("previous image messages persist without requiring a provider", async () => {
     const { her, herData } = await twoUsers();
     const chat = await herData.chat(await herData.quest());

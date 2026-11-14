@@ -1,3 +1,4 @@
+import { SPELL_DEFINITION } from "@/spells/spell-definition.ts";
 // Stored data for the phone checks (phone-pages-test-kit.tsx), shaped as the
 // stores return it: what each page shows beyond page-fixtures.ts's quests
 // and chats.
@@ -5,6 +6,8 @@
 import type { SessionUser } from "@/auth/session-token.ts";
 import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { OWN_PROMPT_ID } from "@/ids.ts";
+import type { OwnSpell } from "@/spells/own-spell-store.ts";
 import {
   userConstructIdFixture,
   userIdFixture,
@@ -29,4 +32,15 @@ const LINK_USER: SessionUser = {
 // Her gold, in micro-USD: 87 gold.
 const GOLD_BALANCE = 870_000;
 
-export { GOLD_BALANCE, LINK_USER, VELLUM_CLONE };
+const OWN_SPELL: OwnSpell = {
+  id: OWN_PROMPT_ID.parse("e17f52de-1234-4123-8123-123456789abc"),
+  name: "Small experiments",
+  definition: SPELL_DEFINITION.parse({
+    destination: "brainstorm",
+  }),
+  clonedFrom: "brainstorm",
+  createdAt: new Date("2026-11-01T00:00:00Z"),
+  updatedAt: new Date("2026-11-01T00:00:00Z"),
+};
+
+export { GOLD_BALANCE, LINK_USER, OWN_SPELL, VELLUM_CLONE };

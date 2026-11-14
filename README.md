@@ -59,6 +59,15 @@ npm run db:migrate   # apply migrations to the database at DATABASE_URL
 
 The app uses local PostgreSQL through the native `pg` driver, or hosted Neon through its HTTP driver, with [Drizzle ORM](https://orm.drizzle.team). Each feature defines its tables in `src/db/tables/`, which `drizzle.config.ts` names as the schema, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `apps/web/.env.local`, which git ignores, or run `vercel env pull .env.local` in `apps/web/` once the Vercel project is linked with `npm run ops:link`. To look at production, use the `ops:*` scripts in [Reaching Vercel and production](docs/Site-Operations.md#reaching-vercel-and-production) instead. `.env.test`, which the e2e and server tests read, lives in `apps/web/` too: the orchestrator provides it with the database and site port pinned to the lane, or a developer runs `npm run test-env:init` (or copies `.env.test.example` by hand) for a manual run. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
+For a persistent local development database, run these commands from `apps/web/`:
+
+```bash
+docker compose --file compose.dev-db.yml up --detach --wait
+```
+
+Set `DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5434/project_buddy_dev` in `.env.local`, then run `npm run db:migrate`. Restart the development app after changing its database connection. This database starts empty; create a local account to use it. Its Docker volume preserves accounts and quests across container restarts. `docker compose --file compose.dev-db.yml down` stops it while keeping data. It is separate from the disposable test database and the hosted database.
+
+
 ### Branches and deploys
 
 Feature pull requests target `integration`. To release production, merge a release PR from `integration` into `main` after the integration checks and preview pass. Reconcile any changes unique to `main` into `integration` first, preserving both branches' work. Never force-push either branch.
@@ -158,3 +167,5 @@ Notifications have been removed. See [installed app](docs/notifications.md) for 
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the conversation and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
 
 See [image storage and operations](docs/Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
+
+New accounts enter a required Name after opening their verification link from Login. The account and name are saved together only after validation. Existing accounts sign in with Continue without entering a name.

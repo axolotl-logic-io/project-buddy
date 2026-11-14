@@ -81,6 +81,7 @@ export const chats = pgTable(
     }),
     constructId: text("construct_id").notNull(),
     spell: text("spell"),
+    spellSnapshot: jsonb("spell_snapshot"),
     constructName: text("construct_name"),
     constructParts: jsonb("construct_parts"),
     name: text("name"),

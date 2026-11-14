@@ -12,7 +12,7 @@
 // the site's stylesheet comes from vitest.browser-setup.ts.
 // "use_case_send_message": a reply streams in the quest's conversation.
 // "use_case_dailies": Start the day sends its prepared message like any
-// other, keeping the draft. "use_case_start_quest_conversation": a quest
+// other, keeping the draft. "conversation initialization fallback": a quest
 // without a conversation offers to start it, and reading it starts nothing.
 
 import type { UIMessageChunk } from "ai";
@@ -557,7 +557,7 @@ describe("use_case_open_quest", () => {
   });
 });
 
-describe("use_case_start_quest_conversation", () => {
+describe("conversation initialization fallback", () => {
   test("a quest with no conversation yet offers to start it, starting nothing on view", async () => {
     store.readQuestConversation.mockResolvedValue(undefined);
     await render(await chatPage());
@@ -679,3 +679,15 @@ test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
     );
   },
 );
+
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  castSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
+  cloneSpellAction: vi.fn(),
+  saveSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
+}));
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  findSpell: vi.fn().mockResolvedValue(undefined),
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+}));

@@ -42,7 +42,7 @@ test("production streams local help with configured credentials and no model usa
   for await (const chunk of result.textStream) {
     chunks.push(chunk);
   }
-  expect(chunks.join("")).toContain("cast <spell id>");
+  expect(chunks.join("")).toContain("cast <spell name>");
   expect((await result.totalUsage).totalTokens).toBe(0);
   expect(imageProvider()).toBeUndefined();
   expect(avatarFramer()).toBeUndefined();
@@ -61,7 +61,7 @@ test("cast uses the supported spell identity from its tool result", async () => 
     stopWhen: isStepCount(MAX_STEPS),
     tools: {
       [CAST_SPELL_TOOL]: tool({
-        inputSchema: z.object({ spellId: z.string() }),
+        inputSchema: z.object({ name: z.string() }),
         execute: cast,
       }),
     },

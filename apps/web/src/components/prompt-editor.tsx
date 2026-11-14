@@ -14,8 +14,14 @@ import {
 import { z } from "zod";
 import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { TextAreaField, TextField } from "@/components/ui/field.tsx";
+import {
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
+import { TextListField } from "@/components/ui/text-list-field.tsx";
+import { parseTextList } from "@/components/ui/text-list-value.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
@@ -39,6 +45,12 @@ interface PromptEditorText {
   readonly text: string;
   readonly maxLength?: number;
   readonly literal?: boolean;
+  readonly placement?: "under-name";
+  readonly list?: { readonly maxLength: number; readonly maxItems: number };
+  readonly choices?: readonly {
+    readonly value: string;
+    readonly label: string;
+  }[];
   readonly requiredMessage?: string | undefined;
 }
 
@@ -128,7 +140,8 @@ function PromptEditor({
 }): JSX.Element {
   const saveHintId = useId();
   const sectionsId = useId();
-  const [selectedField, setSelectedField] = useState(texts[0]?.name ?? "");
+  const sections = texts.filter((field) => field.placement !== "under-name");
+  const [selectedField, setSelectedField] = useState(sections[0]?.name ?? "");
   const [focusField, setFocusField] = useState<string | undefined>(undefined);
   const formRef = useRef<HTMLFormElement>(null);
   const selectField = useCallback(
@@ -202,8 +215,16 @@ function PromptEditor({
     },
     [change, draft],
   );
+  const changeList = useCallback(
+    (field: string, value: string): void => {
+      setTextErrors({});
+      change({ ...draft, texts: { ...draft.texts, [field]: value } });
+      setNotice("none");
+    },
+    [change, draft],
+  );
   const changeText = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>): void => {
+    (event: ChangeEvent<HTMLTextAreaElement | HTMLSelectElement>): void => {
       const { name: field, value } = event.target;
       setTextErrors({});
       change({ ...draft, texts: { ...draft.texts, [field]: value } });
@@ -269,7 +290,11 @@ function PromptEditor({
       const errors: Record<string, string> = {};
       for (const text of texts) {
         const { [text.name]: value = "" } = draft.texts;
-        if (text.requiredMessage !== undefined && value.trim() === "") {
+        if (
+          text.requiredMessage !== undefined &&
+          (value.trim() === "" ||
+            (text.list !== undefined && parseTextList(value).length === 0))
+        ) {
           errors[text.name] = text.requiredMessage;
         }
       }
@@ -324,10 +349,33 @@ function PromptEditor({
           required={true}
           value={draft.name}
         />
+        {texts
+          .filter((field) => field.placement === "under-name")
+          .map((field) => {
+            const { [field.name]: value = "" } = draft.texts;
+            const { [field.name]: error } = textErrors;
+            return (
+              <SelectField
+                key={field.name}
+                name={field.name}
+                label={field.label}
+                hint={field.help}
+                error={error}
+                value={value}
+                onChange={changeText}
+              >
+                {field.choices?.map((choice) => (
+                  <option key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </option>
+                ))}
+              </SelectField>
+            );
+          })}
       </div>
       <h2 className="section-heading prompt-editor-heading">{heading}</h2>
       <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
-        {texts.map(({ name: field, label }) => {
+        {sections.map(({ name: field, label }) => {
           const { [field]: error } = textErrors;
           return (
             <Button
@@ -346,20 +394,15 @@ function PromptEditor({
           );
         })}
       </nav>
-      {texts.map(({ name: field, label, help, maxLength, literal }) => {
-        const { [field]: text = "" } = draft.texts;
-        const { [field]: error } = textErrors;
-        let hint = PROMPT_COPY.textHint(help, maxLength);
-        if (literal === true) {
-          hint = help;
-        }
-        return (
-          <div
-            className="prompt-editor-field"
-            key={field}
-            id={`${sectionsId}-${field}`}
-            hidden={selectedField !== field}
-          >
+      {sections.map(
+        ({ name: field, label, help, maxLength, literal, choices, list }) => {
+          const { [field]: text = "" } = draft.texts;
+          const { [field]: error } = textErrors;
+          let hint = PROMPT_COPY.textHint(help, maxLength);
+          if (literal === true) {
+            hint = help;
+          }
+          let control = (
             <TextAreaField
               className="min-h-40 font-mono text-sm"
               error={error}
@@ -371,9 +414,51 @@ function PromptEditor({
               onChange={changeText}
               value={text}
             />
-          </div>
-        );
-      })}
+          );
+          if (choices !== undefined) {
+            control = (
+              <SelectField
+                error={error}
+                hint={hint}
+                label={label}
+                name={field}
+                onChange={changeText}
+                value={text}
+              >
+                {choices.map((choice) => (
+                  <option key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </option>
+                ))}
+              </SelectField>
+            );
+          }
+          if (list !== undefined) {
+            control = (
+              <TextListField
+                name={field}
+                label={label}
+                hint={hint}
+                value={text}
+                maxLength={list.maxLength}
+                maxItems={list.maxItems}
+                error={error}
+                onChange={changeList}
+              />
+            );
+          }
+          return (
+            <div
+              className="prompt-editor-field"
+              key={field}
+              id={`${sectionsId}-${field}`}
+              hidden={selectedField !== field}
+            >
+              {control}
+            </div>
+          );
+        },
+      )}
       <div className="prompt-editor-actions">
         {saveHint !== undefined && (
           <p className="prompt-editor-save-hint" id={saveHintId}>

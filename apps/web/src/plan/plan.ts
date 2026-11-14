@@ -9,8 +9,6 @@ import { z } from "zod";
 // The longest text a step may have: one line, about a sentence.
 const PLAN_STEP_TEXT_MAX_LENGTH = 200;
 
-const MOST_OPEN_STEPS = 30;
-
 const LINE_BREAK = /[\r\n]/u;
 
 // A step's text as it is saved: trimmed, not empty, one line and at most
@@ -119,10 +117,8 @@ const PLAN_CHANGE_LINE = z.discriminatedUnion("kind", [
 
 type PlanChangeLine = z.infer<typeof PLAN_CHANGE_LINE>;
 
-// Why operations left the plan as it was: a step they name isn't in it, they
-// would make it hold more than MOST_OPEN_STEPS open steps, or they would
-// change nothing.
-const PLAN_FAILURES = ["missing-step", "too-many-steps", "unchanged"] as const;
+// Operations fail when a named step is missing or nothing would change.
+const PLAN_FAILURES = ["missing-step", "unchanged"] as const;
 
 type PlanFailure = (typeof PLAN_FAILURES)[number];
 
@@ -203,10 +199,6 @@ function insert(
   }
   steps.splice(at, 0, step);
   return true;
-}
-
-function openCount(steps: readonly PlanStep[]): number {
-  return steps.filter((step) => !step.done).length;
 }
 
 function addStep(
@@ -401,13 +393,6 @@ function applyBatch(
   if (lines.length === 0) {
     return { kind: "failed", reason: "unchanged" };
   }
-  // The limit is on the plan the batch leaves, so a batch may add a step
-  // and remove another at the limit; a plan already over it, which only an
-  // older limit could leave, may still lose open steps.
-  const open = openCount(working.steps);
-  if (open > MOST_OPEN_STEPS && open > openCount(plan.steps)) {
-    return { kind: "failed", reason: "too-many-steps" };
-  }
   return {
     kind: "changed",
     plan: { steps: working.steps, nextNumber: working.nextNumber },
@@ -419,8 +404,7 @@ function applyBatch(
 // The plan with operations applied in order, all or none: what each one
 // that changed something did, and the operations that undo them. An
 // operation that would change nothing, such as completing a done step, is
-// skipped. Nothing changes if one names a step that isn't there, if the plan
-// it leaves would hold more than MOST_OPEN_STEPS open steps, or if none
+// skipped. Nothing changes if a named step is missing or no operation
 // changes anything.
 function applyPlanOperations(
   plan: Plan,
@@ -529,7 +513,6 @@ export {
   applyPlanUndo,
   doneSteps,
   EMPTY_PLAN,
-  MOST_OPEN_STEPS,
   moveAmongOpen,
   moveToPlace,
   nextPlanStep,

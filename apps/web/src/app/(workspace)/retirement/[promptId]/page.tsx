@@ -35,6 +35,7 @@ async function RetiredDefinitionPage({
       {definition.texts.map((field) => (
         <PromptText
           editable={false}
+          literal={field.name === "visualDescription"}
           help=""
           key={field.name}
           label={RETIREMENT_COPY.fields[field.name]}

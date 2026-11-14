@@ -18,12 +18,12 @@ function textStep(text: string): ScriptStep {
 }
 
 function castSteps(
-  spellId: string,
+  name: string,
   { toolResults }: ScriptConversation,
 ): ScriptStep[] {
   const cast: ScriptStep = {
     text: "",
-    toolCalls: [{ toolName: CAST_SPELL_TOOL, input: { spellId } }],
+    toolCalls: [{ toolName: CAST_SPELL_TOOL, input: { name } }],
   };
   const [result] = toolResults;
   if (result === undefined) {
@@ -35,6 +35,9 @@ function castSteps(
   }
   if (parsed.data.status === "needsQuest") {
     return [cast, textStep(LOCAL_CONSTRUCT_COPY.needsQuest)];
+  }
+  if (parsed.data.status === "unavailable") {
+    return [cast, textStep(LOCAL_CONSTRUCT_COPY.castFailed)];
   }
   return [cast, textStep(LOCAL_CONSTRUCT_COPY.cast(parsed.data.name))];
 }

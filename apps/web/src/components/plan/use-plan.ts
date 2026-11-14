@@ -32,7 +32,7 @@ interface PlanActions {
 // What the last change from these controls said: a line to show, and the
 // version it saved, which Undo undoes. failed is true when the change
 // could not be saved or the quest is gone, rather than being refused with
-// a reason such as the 30-step limit.
+// a reason such as a missing step.
 interface PlanFeedback {
   readonly text: string;
   readonly undoVersion?: number | undefined;

@@ -1,102 +1,54 @@
-// "use_case_set_name" in use-cases/accounts.md: she sets the name the construct
-// calls her, which fills every {{name}} in her construct's system prompt, and
-// clears it again. The prompt is built as a reply builds it (reply.ts). The
-// field and its status are checked in name-form.test.tsx.
-
 import { expect, test, vi } from "vitest";
-import { readUserName, type User } from "@/accounts/users-store.ts";
-import {
-  type SetNameResult,
-  setNameAction,
-} from "@/app/(workspace)/settings/actions.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
-import { createChat } from "@/chats/new-chat-store.ts";
-import { getChat } from "@/chats/store.ts";
-import {
-  cloneConstruct,
-  updateConstruct,
-} from "@/constructs/construct-store.ts";
-import { getConstruct } from "@/constructs/index.ts";
-import { buildReplyInstructions } from "@/replies/system-prompt.ts";
+import { readUserName } from "@/accounts/users-store.ts";
+import { setNameAction } from "@/app/(workspace)/settings/actions.ts";
+import { createSpell } from "@/spells/own-spell-store.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
+import {
+  constructReply,
+  messageText,
+} from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-// The action refreshes the page, which a server test has none of.
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
-const LUMEN = getConstruct("lumen");
-const VOICE = "Hi {{name}}";
-
-// A chat in a new quest of user's, in a clone of Lumen whose voice is
-// VOICE, made straight in the stores.
-async function chatInNamedClone(user: User): Promise<Chat> {
-  const clone = await cloneConstruct(user.id, "lumen");
-  if (clone === undefined) {
-    throw new Error("Lumen could not be cloned");
-  }
-  const parts = { ...clone.definition, prompt: VOICE };
-  await updateConstruct(user.id, clone.id, { definition: parts });
-  const quest = await testData(user).quest();
-  return createChat(user.id, {
-    quest,
-    construct: { id: LUMEN.id, name: clone.name, definition: parts },
-  });
-}
-
-// The construct's system prompt in owner's chat, as a reply in it builds it.
-async function promptIn(owner: User, { id }: Chat): Promise<string> {
-  const chat = await getChat(owner.id, id);
-  if (chat === undefined) {
-    throw new Error("The chat could not be found");
-  }
-  const instructions = await buildReplyInstructions({
-    actingUser: owner.id,
-    chat,
-    construct: chat.construct,
-  });
-  return instructions.map(({ content }) => content).join("\n");
-}
-
-// Saves name from her account page's name form, as the signed-in user.
-function saveName(name: string, forgedUser?: User): Promise<SetNameResult> {
-  const form = new FormData();
-  form.set("name", name);
-  if (forgedUser !== undefined) {
-    form.set("userId", forgedUser.id);
-    form.set("id", forgedUser.id);
-  }
-  return setNameAction({ kind: "idle" }, form);
-}
-
 test("use_case_set_name", async () => {
-  const [her, other] = await Promise.all([testUser(), testUser()]);
-  const [hers, theirs] = await Promise.all([
-    chatInNamedClone(her),
-    chatInNamedClone(other),
-  ]);
-  await signIn(her);
-
-  expect(await saveName("  Mabel ", other)).toStrictEqual({ kind: "saved" });
-  expect(await readUserName(her.id)).toBe("Mabel");
+  const user = await testUser();
+  const other = await testUser();
+  const data = testData(user);
+  const quest = await data.quest();
+  const chat = await data.chat(quest);
+  const spell = await createSpell(user.id, {
+    name: "Named replies",
+    definition: { destination: "brainstorm", savedReply: "Hi {{name}}" },
+  });
+  await setSpell(user.id, { chatId: chat.id, spell: spell.id });
+  await signIn(user);
+  const form = new FormData();
+  form.set("name", "  Mabel ");
+  form.set("userId", other.id);
+  expect(await setNameAction({ kind: "idle" }, form)).toEqual({
+    kind: "saved",
+  });
+  expect(await readUserName(user.id)).toBe("Mabel");
   expect(await readUserName(other.id)).toBeUndefined();
-  const named = await promptIn(her, hers);
-  expect(named).toContain("Hi Mabel");
-  expect(named).not.toContain("{{name}}");
-
-  const theirPrompt = await promptIn(other, theirs);
-  expect(theirPrompt).toContain("Hi the user");
-  expect(theirPrompt).not.toContain("Mabel");
-
-  expect(await saveName("{x}")).toStrictEqual({
+  expect(messageText(await constructReply(chat.id, "An idea"))).toBe(
+    "Hi Mabel",
+  );
+  form.set("name", "{x}");
+  expect(await setNameAction({ kind: "idle" }, form)).toEqual({
     kind: "invalid",
     message: ACCOUNT_COPY.nameBraces,
   });
-  expect(await readUserName(her.id)).toBe("Mabel");
-
-  expect(await saveName("")).toStrictEqual({ kind: "saved" });
-  const cleared = await promptIn(her, hers);
-  expect(cleared).toContain("Hi the user");
-  expect(cleared).not.toContain("Mabel");
+  expect(await readUserName(user.id)).toBe("Mabel");
+  form.set("name", "");
+  expect(await setNameAction({ kind: "idle" }, form)).toEqual({
+    kind: "invalid",
+    message: ACCOUNT_COPY.nameRequired,
+  });
+  expect(messageText(await constructReply(chat.id, "Another idea"))).toBe(
+    "Hi Mabel",
+  );
 });

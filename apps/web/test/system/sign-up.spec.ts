@@ -2,8 +2,8 @@ import { expect } from "@playwright/test";
 import { findUserByEmail } from "@/accounts/users-store.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { HOME_PATH } from "@/routes.ts";
+import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
-import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { test } from "./fixtures.ts";
 import { signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { fillWhenReady } from "./page-helpers.ts";
@@ -15,8 +15,7 @@ import {
 
 test("use_case_sign_up", async ({ context, newAddress, page }) => {
   await page.goto("/login");
-  await page.getByRole("link", { name: LOGIN_COPY.signUpLink }).click();
-  await expect(page.getByText(SIGNUP_COPY.intro)).toBeVisible();
+
   await fillWhenReady(
     page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
     newAddress,
@@ -34,9 +33,13 @@ test("use_case_sign_up", async ({ context, newAddress, page }) => {
       (cookie) => cookie.name === SESSION_COOKIE_NAME,
     ),
   ).toBeUndefined();
+  await page
+    .getByRole("textbox", { name: ACCOUNT_COPY.nameLabel, exact: true })
+    .fill("Mabel");
   await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
   await expect(page).toHaveURL(HOME_PATH);
   expect((await findUserByEmail(newAddress))?.role).toBe("user");
+  expect((await findUserByEmail(newAddress))?.name).toBe("Mabel");
   await expectSignedInFor30Days(context);
 });
 

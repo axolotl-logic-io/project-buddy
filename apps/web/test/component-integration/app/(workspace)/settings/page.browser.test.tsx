@@ -34,7 +34,7 @@ vi.mock("@/gold/gold-store.ts", () => ({
 
 beforeEach(() => vi.clearAllMocks());
 
-test("Settings keeps profile drafts and feedback visible alongside appearance, construct and security", async () => {
+test("Settings keeps profile drafts and feedback visible alongside appearance and security", async () => {
   actions.setNameAction.mockResolvedValue({
     kind: "invalid",
     message: ACCOUNT_COPY.nameMultiLine,
@@ -59,7 +59,7 @@ test("Settings keeps profile drafts and feedback visible alongside appearance, c
     .element(
       page.getByRole("heading", { name: INTERVIEW_CONSTRUCT_COPY.heading }),
     )
-    .toBeVisible();
+    .not.toBeInTheDocument();
   await expect
     .element(
       page.getByRole("button", { name: ACCOUNT_COPY.signOut, exact: true }),
