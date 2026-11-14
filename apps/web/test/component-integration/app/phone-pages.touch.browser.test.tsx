@@ -166,13 +166,12 @@ interface PhoneMeasures {
 }
 
 // The rows of tabs a page may have, besides its tab lists: a quest's
-// sections, an adventure's, the Workshop's kinds, the Library's books and the Retirement filter. The Quests list's status tabs
+// sections, an adventure's, the Workshop's kinds and the Retirement filter. The Quests list's status tabs
 // are a grid of two columns on a phone by design, so they aren't one.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [
   QUEST_COPY.navigation,
   WORKSPACES_COPY.conversation,
   WORKSHOP_PAGE_COPY.kindsLabel,
-  WORKSPACES_COPY.books,
 ];
 
 function tabRows(): Element[] {

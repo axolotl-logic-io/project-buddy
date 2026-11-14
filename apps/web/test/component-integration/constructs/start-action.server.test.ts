@@ -1,7 +1,5 @@
-// A Construct's start action begins a quest through the one quest start
-// with the construct preset, against the test database with the mock
-// construct. An own construct stands for every construct: the cards only
-// preset the start.
+// A premade quest fixes its construct, including when a caller submits an
+// obsolete construct override through the start action.
 
 import { describe, expect, test } from "vitest";
 import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
@@ -38,7 +36,7 @@ async function startedQuest(
 }
 
 describe("a construct's start action", () => {
-  test("starting with her own construct opens a quest that speaks with it", async () => {
+  test("a premade quest uses its predetermined construct despite a submitted override", async () => {
     const user = await testUser();
     const own = await testData(user).editedConstruct();
     await signIn(user);
@@ -49,7 +47,7 @@ describe("a construct's start action", () => {
     });
 
     const conversation = await readQuestConversation(user.id, quest.id);
-    expect(conversation?.construct.name).toBe(own.name);
+    expect(conversation?.construct.name).toBe("Lumen");
     expect(conversation?.spell).toBeUndefined();
   });
 });

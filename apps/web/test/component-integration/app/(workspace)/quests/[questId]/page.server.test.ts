@@ -22,7 +22,7 @@ async function pageHtml(questId: string): Promise<string> {
   );
 }
 
-describe("use_case_start_quest_conversation", () => {
+describe("conversation initialization fallback", () => {
   test("a quest without a conversation offers to start it, and opening it starts nothing and spends nothing", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest("Own fox");

@@ -5,9 +5,7 @@ const tsvector = customType<{ data: string }>({
   dataType: () => "tsvector",
 });
 
-// One row per heading of the Blender Reference Manual, rebuilt by
-// `npm run manual:reindex`. `search` weights the title above the file path
-// (which names the page, such as "edge bevel") and the path above the text.
+// Retained storage for the removed manual index. No runtime reader or writer.
 export const manualSections = pgTable(
   "manual_sections",
   {

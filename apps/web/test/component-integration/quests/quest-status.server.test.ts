@@ -223,7 +223,7 @@ describe("use_case_change_quest_status", () => {
   });
 });
 
-describe("use_case_construct_changes_quest_status", () => {
+describe("quest status proposal contract", () => {
   test("the registered tool creates a card without changing status; explicit approval executes once", async () => {
     const { user, quest, chat } = await questFixture();
     await signIn(user);

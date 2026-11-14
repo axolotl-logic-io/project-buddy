@@ -40,7 +40,6 @@ import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";
 import {
   type TestData as AccountData,
-  removeTestData,
   testData,
 } from "../support/test-database/data-test-kit.ts";
 import {
@@ -107,7 +106,6 @@ async function useTestData(
   use: (testData: TestData) => Promise<void>,
 ): Promise<void> {
   await use({ account, ...testData(account) });
-  await removeTestData();
 }
 
 // Gives the test's browser its own client address.

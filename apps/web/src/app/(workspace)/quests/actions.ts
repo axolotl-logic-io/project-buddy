@@ -3,10 +3,9 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { chosenConstruct } from "@/constructs/chosen-construct.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
 import { startQuest } from "@/conversations/start-quest.ts";
-import { userMessage } from "@/errors/app-error.ts";
 import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
@@ -16,7 +15,6 @@ const START_DETAILS = z.object({
   premadeId: z.enum(["dailies", "learn", "make", "do"]),
   name: z.string(),
   context: z.string().trim(),
-  constructId: z.string(),
   motivation: z.string().trim().default(""),
 });
 
@@ -25,7 +23,7 @@ const START_DETAILS = z.object({
 type StartQuestState =
   | { readonly kind: "idle" }
   | {
-      readonly kind: "invalid" | "claudeUnavailable" | "outOfGold";
+      readonly kind: "invalid" | "claudeUnavailable";
       readonly message: string;
     };
 
@@ -38,7 +36,7 @@ export async function startQuestAction(
   if (!parsed.success) {
     return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
-  const { premadeId, name, context, constructId, motivation } = parsed.data;
+  const { premadeId, name, context, motivation } = parsed.data;
   const checked = checkQuestName(name);
   if (checked.kind !== "named") {
     let message: string = QUESTS_COPY.needsName;
@@ -48,30 +46,27 @@ export async function startQuestAction(
     return { kind: "invalid", message };
   }
   const premade = PREMADE_QUESTS.find(({ id }) => id === premadeId);
-  const construct = await chosenConstruct(user.id, constructId);
-  if (premade === undefined || construct === undefined) {
+  if (premade === undefined) {
     return { kind: "invalid", message: QUEST_START_COPY.invalid };
   }
+  const construct = getConstruct(premade.constructId);
   const details = {
     name: checked.name,
     context,
     motivation,
-    construct: construct.construct,
+    construct,
   };
   let result: Awaited<ReturnType<typeof startDailies>>;
   if (premadeId === "dailies") {
     result = await startDailies(user.id, details);
   } else {
-    result = await startQuest(user.id, checked.name, construct.construct, {
+    result = await startQuest(user.id, checked.name, construct, {
       context,
       motivation,
     });
   }
   if (result.kind === "claudeUnavailable") {
     return { kind: result.kind, message: OPENING_COPY.claudeUnavailable };
-  }
-  if (result.kind === "outOfGold") {
-    return { kind: result.kind, message: userMessage("out-of-gold") };
   }
   redirect(`/quests/${result.chat.quest.id}`);
 }

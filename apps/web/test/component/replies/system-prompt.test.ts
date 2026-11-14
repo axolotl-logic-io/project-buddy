@@ -71,12 +71,11 @@ test("quest context includes the plan while unrelated requests take precedence",
   expect(prompt).toContain("Assemble the roof.");
 });
 
-test("shared instructions prohibit assumed pronouns and free-reply claims", () => {
+test("shared instructions prohibit assumed pronouns", () => {
   const prompt = contents(CONTEXT).join("\n");
   expect(prompt).toContain(
     "Do not infer a person’s gender or pronouns from their name",
   );
-  expect(prompt).toContain("further replies are not free");
 });
 
 test("plan rules use the saved step numbers", () => {

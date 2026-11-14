@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import { confirmSignUp } from "@/accounts/sign-up-links.ts";
+import { confirmSignUp, readSignUpEmail } from "@/accounts/sign-up-links.ts";
+import { checkUserName } from "@/accounts/user-name.ts";
 import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import {
@@ -13,8 +14,13 @@ import {
   SIGN_IN_DESTINATION_PARAMETER,
   SIGN_IN_LINK_PATH,
 } from "@/routes.ts";
+import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 
 // A missing or non-text token reads as an empty one, which no link holds.
+type ContinueSignInState =
+  | { readonly kind: "idle" }
+  | { readonly kind: "invalid"; readonly message: string };
+
 const TOKEN_FIELD = z.string().catch("");
 
 // Signs the browser in for 30 days as the user whose link holds the form's
@@ -22,12 +28,23 @@ const TOKEN_FIELD = z.string().catch("");
 // Quests. If the link has
 // expired since its page opened, or no longer works, shows that page again,
 // which says so.
-export async function continueSignInAction(formData: FormData): Promise<never> {
+export async function continueSignInAction(
+  formData: FormData,
+): Promise<ContinueSignInState> {
   const token = TOKEN_FIELD.parse(formData.get("token"));
   const destination = localPath(formData.get(SIGN_IN_DESTINATION_PARAMETER));
   const now = new Date();
-  const found =
-    (await readSignInLinkUser(token, now)) ?? (await confirmSignUp(token, now));
+  let found = await readSignInLinkUser(token, now);
+  if (
+    found === undefined &&
+    (await readSignUpEmail(token, now)) !== undefined
+  ) {
+    const name = TOKEN_FIELD.parse(formData.get("name"));
+    if (checkUserName(name).kind !== "valid") {
+      return { kind: "invalid", message: LINK_PAGE_COPY.nameInvalid };
+    }
+    found = await confirmSignUp(token, now, name);
+  }
   if (found === undefined) {
     const linkPage = new URLSearchParams({ token });
     return redirect(`${SIGN_IN_LINK_PATH}?${linkPage.toString()}`);
@@ -35,3 +52,5 @@ export async function continueSignInAction(formData: FormData): Promise<never> {
   (await cookies()).set(await sessionCookie(found, readSessionSecret(), now));
   return redirect(destination ?? HOME_PATH);
 }
+
+export type { ContinueSignInState };

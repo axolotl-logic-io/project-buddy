@@ -1,0 +1,20 @@
+# Persistent development data, separate from the disposable test database.
+name: project-buddy-dev-db
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: project_buddy_dev
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=postgres --dbname=project_buddy_dev"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+volumes:
+  dev-data:

@@ -1,14 +1,6 @@
 // The text of the Constructs page: the built-in constructs and the user's own,
 // each with its actions.
-import type { ConstructDefinition } from "@/constructs/construct.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
-
-// A part of a construct's instructions as its page names it: its label, and
-// what it does.
-interface FieldCopy {
-  readonly label: string;
-  readonly help: string;
-}
 
 export const CONSTRUCTS_COPY = {
   heading: "Constructs",
@@ -16,6 +8,8 @@ export const CONSTRUCTS_COPY = {
   ownHeading: "Your constructs",
   noOwn:
     "No constructs of your own yet. Make a copy of a built-in one, or choose Create construct to make one without copying another.",
+  intro:
+    "Create or copy a construct, then customize its name and Visual description.",
   newConstruct: "Create construct",
   // The name of a crafted construct, until the user renames it.
   newConstructName: "New construct",
@@ -36,15 +30,5 @@ export const CONSTRUCT_COPY = {
   builtInIntro:
     "A built-in construct can't be changed. Choose Make a copy to edit your own version.",
   ownIntro:
-    "Your construct's instructions. A quest keeps the construct as it was when the quest started, so a change applies to new quests only.",
+    "Edit your construct’s name and Visual description. Quests keep the name and appearance saved when they started.",
 } as const;
-
-// Conversational fields exposed by the prompt form. Visual metadata has its own editor.
-export const CONSTRUCT_DEFINITION_COPY: Readonly<
-  Record<keyof Pick<ConstructDefinition, "prompt">, FieldCopy>
-> = {
-  prompt: {
-    label: "Prompt",
-    help: "The name identifies the construct; the Character Sheet contains its instructions. Use voice and habits headings to organize how it talks and works with you.",
-  },
-};

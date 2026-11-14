@@ -2,7 +2,6 @@ import { describe, expect, test, vi } from "vitest";
 import { IDEA_TEXT_MAX_LENGTH } from "@/ideas/idea.ts";
 import { changeIdeaAction } from "@/ideas/idea-actions.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
-import { MOST_OPEN_STEPS } from "@/plan/plan.ts";
 import { changePlan, readPlan } from "@/plan/plan-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -173,14 +172,15 @@ describe("use_case_quest_ideas", () => {
     expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
   });
 
-  test("a full Plan keeps the idea available after a refused move", async () => {
+  test("an idea can move into a Plan beyond the former step limit", async () => {
+    const ManySteps = 40;
     const user = await testUser();
     const quest = await testData(user).quest();
     await signIn(user);
     await changePlan(
       user.id,
       { questId: quest.id, author: "person" },
-      Array.from({ length: MOST_OPEN_STEPS }, (_, index) => ({
+      Array.from({ length: ManySteps }, (_, index) => ({
         op: "add",
         text: `Step ${index}`,
       })),
@@ -189,10 +189,10 @@ describe("use_case_quest_ideas", () => {
     const [idea] = await listIdeas(user.id, quest.id);
     expect(
       await changeIdeaAction({ op: "move", questId: quest.id, id: idea?.id }),
-    ).toMatchObject({ kind: "problem" });
-    expect(await listIdeas(user.id, quest.id)).toEqual([idea]);
+    ).toMatchObject({ kind: "saved" });
+    expect(await listIdeas(user.id, quest.id)).toEqual([]);
     expect((await readPlan(user.id, quest.id))?.steps).toHaveLength(
-      MOST_OPEN_STEPS,
+      ManySteps + 1,
     );
   });
 });

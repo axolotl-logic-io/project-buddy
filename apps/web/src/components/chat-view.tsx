@@ -1,15 +1,13 @@
 "use client";
 
-import { type UseChatHelpers, useChat } from "@ai-sdk/react";
-import {
-  type AssistantRuntime,
-  AssistantRuntimeProvider,
-} from "@assistant-ui/react";
+import { useChat } from "@ai-sdk/react";
+import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
-import { isTextUIPart, type UIMessage } from "ai";
+import type { UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -48,8 +46,6 @@ import {
   chatFailureCase,
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
-import type { ReplyCost } from "@/replies/reply-accounting.ts";
-import { replyGoldAction } from "@/replies/reply-gold-action.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import {
   CHANGE_PLAN_OUTPUT,
@@ -64,56 +60,10 @@ import {
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 
-function pairedReplyCosts(
-  messages: readonly UIMessage[],
-  charged: readonly ReplyCost[] | undefined,
-): Map<string, ReplyCost | undefined> {
-  const costs = new Map<string, ReplyCost | undefined>();
-  const byMessage = new Map(charged?.map((cost) => [cost.messageId, cost]));
-  let answeredId: string | undefined;
-  for (const message of messages) {
-    if (awaitsReply(message)) {
-      answeredId = message.id;
-    }
-    if (message.role === "assistant" && answeredId !== undefined) {
-      costs.set(message.id, byMessage.get(answeredId));
-    }
-  }
-  return costs;
-}
-
 // A chat whose every user message is the viewer's own.
 const CLAIM_REFRESH_MS = 2000;
 
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
-
-// Takes back the message refused because she is out of gold. The server refused it before
-// saving it, so the view drops the message useChat showed at once and gives
-// her its text back in the box, as a reload would show the chat; the
-// refusal's alert stays. Text she typed meanwhile is kept. setMessages is
-// given a function because it calls it at once with the chat's current
-// messages, which the last render's chat.messages may not have caught up to.
-function takeBackRefusedMessage(
-  chat: UseChatHelpers<UIMessage>,
-  runtime: AssistantRuntime,
-): void {
-  let refusedText: string | undefined;
-  chat.setMessages((messages: UIMessage[]): UIMessage[] => {
-    const refused = messages.at(-1);
-    if (refused?.role !== "user") {
-      return messages;
-    }
-    refusedText = refused.parts
-      .filter(isTextUIPart)
-      .map(({ text }) => text)
-      .join("");
-    return messages.slice(0, -1);
-  });
-  const { composer } = runtime.thread;
-  if (refusedText !== undefined && composer.getState().text === "") {
-    composer.setText(refusedText);
-  }
-}
 
 // The built-in plan commands as the composer lists them.
 const PLAN_COMMAND_LISTINGS: readonly CommandListing[] = PLAN_COMMAND_NAMES.map(
@@ -167,25 +117,8 @@ function newestPlanCard(messages: readonly UIMessage[]): string | undefined {
   )?.id;
 }
 
-// A chat with the construct: the saved conversation, then each new message and
-// its streamed reply. A refusal for being out of gold is kept in the view's own
-// state, not as the chat's error: while the chat has an error and no last
-// message, as when an empty chat's first message is taken back, assistant-ui
-// shows an empty reply. The chat calls onError before it records the error,
-// so the error is cleared a microtask later; the refusal's alert stays until
-// she sends again. A message that was answered already, such as one sent
-// again after a lost connection, gets no second reply: the page reloads the
-// saved conversation instead, answer included, while keeping the composer.
-// A failure that names a
-// case this build doesn't know came from a newer build, mid-deploy: the
-// page reloads once to pick that build up, and shows the unknown message if
-// it already did within the last minute (newer-build-reload.ts).
-// authorNames names the authors of the saved user messages someone else
-// wrote, by message id; every other user message is the viewer's own.
-// stoppedReplyId is the saved last message's id when its reply stopped,
-// such as after a failure before a reload: until the user sends or retries, the
-// chat says so and offers to retry the reply.
-export function ChatView({
+// A continuing conversation with streamed replies, commands and workspace sections.
+function ChatView({
   chatId,
   viewer,
   constructName,
@@ -199,9 +132,11 @@ export function ChatView({
   spellName,
   sideSections,
   initialSection,
+  sidebarActions,
 }: {
   spellName?: string | undefined;
   sideSections?: readonly WorkspaceSection[] | undefined;
+  sidebarActions?: ReactNode;
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
@@ -218,18 +153,13 @@ export function ChatView({
   planActions?: PlanActions | undefined;
 }): JSX.Element {
   const router = useRouter();
-  const replyCompletedRef = useRef(false);
-  const [gold, setGold] =
-    useState<Awaited<ReturnType<typeof replyGoldAction>>>();
   const [stopStatus, setStopStatus] = useState("");
   const [stopping, setStopping] = useState(false);
-  const [refusal, setRefusal] = useState<Error | undefined>(undefined);
   const chat = useChat({
     id: chatId,
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
     onFinish: ({ isError }: { isError: boolean }): void => {
-      replyCompletedRef.current = true;
       setStopping(false);
       setStopStatus("");
       // The SDK finishes failed requests too. Keep their error visible; a
@@ -239,18 +169,12 @@ export function ChatView({
       }
     },
     onError: (error: Error): void => {
-      replyCompletedRef.current = true;
       const errorCase = chatFailureCase(error);
       if (errorCase === "already-answered") {
         router.refresh();
       }
       if (isFromNewerBuild(error)) {
         reloadForNewerBuild();
-      }
-      if (errorCase === "out-of-gold") {
-        takeBackRefusedMessage(chat, runtime);
-        setRefusal(error);
-        queueMicrotask(chat.clearError);
       }
     },
   });
@@ -267,83 +191,6 @@ export function ChatView({
       chat.clearError();
     }
   }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
-  useEffect(() => {
-    if (chat.status !== "ready" && chat.status !== "error") {
-      return;
-    }
-    let current = true;
-    replyGoldAction(
-      chatId,
-      chat.messages
-        .filter((message) => message.role === "user")
-        .map((message) => message.id),
-    )
-      .then((next) => {
-        if (current && next?.viewer === viewer) {
-          setGold(next);
-        }
-      })
-      .catch(() => {
-        if (current) {
-          setGold(undefined);
-        }
-      });
-    return (): void => {
-      current = false;
-    };
-  }, [chat.status, chatId, viewer, chat.messages]);
-  const costsPending =
-    gold?.costs.some((cost) => cost.state === "pending") === true;
-  useEffect(() => {
-    if (!costsPending || chat.status !== "ready") {
-      return;
-    }
-    let current = true;
-    let loading = false;
-    const timer = globalThis.setInterval(() => {
-      if (loading) {
-        return;
-      }
-      loading = true;
-      replyGoldAction(
-        chatId,
-        chat.messages
-          .filter((message) => message.role === "user")
-          .map((message) => message.id),
-      )
-        .then((next) => {
-          if (current && next?.viewer === viewer) {
-            setGold(next);
-          }
-        })
-        .catch(() => {
-          if (current) {
-            setGold(undefined);
-          }
-        })
-        .finally(() => {
-          loading = false;
-        });
-    }, CLAIM_REFRESH_MS);
-    return (): void => {
-      current = false;
-      globalThis.clearInterval(timer);
-    };
-  }, [costsPending, chat.status, chatId, chat.messages, viewer]);
-  const headerBalanceRef = useRef<number | undefined>(undefined);
-  useEffect(() => {
-    if (gold !== undefined && headerBalanceRef.current !== gold.balance) {
-      const previous = headerBalanceRef.current;
-      headerBalanceRef.current = gold.balance;
-      // An idle first read seeds the baseline. A reply may finish before
-      // that read arrives, in which case its accounting still needs a refresh.
-      if (previous !== undefined || replyCompletedRef.current) {
-        router.refresh();
-      }
-      replyCompletedRef.current = false;
-    }
-  }, [gold, router]);
-  const replyCosts = pairedReplyCosts(chat.messages, gold?.costs);
   const runtime = useAISDKRuntime(chat);
   useComposerDraft(runtime, { viewer, chatId });
   const replying = chat.status === "streaming" || chat.status === "submitted";
@@ -353,13 +200,13 @@ export function ChatView({
     awaitsReply(lastSaved) &&
     stoppedReplyId === undefined &&
     chat.status === "ready";
-  const shownError = refusal ?? chat.error;
+  const shownError = chat.error;
   const replyStopped =
     stoppedReplyId !== undefined &&
     shownError === undefined &&
     chat.status === "ready" &&
     chat.messages.at(-1)?.id === stoppedReplyId;
-  const replyFailed = chat.status === "error" && refusal === undefined;
+  const replyFailed = chat.status === "error";
   // Plan controls wait while the newest message awaits a reply, keeping
   // the plan stable for the reply and any retry. The server checks too.
   let planDisabledNote: string | undefined;
@@ -447,9 +294,6 @@ export function ChatView({
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
-  if (refusal !== undefined && chat.status === "submitted") {
-    setRefusal(undefined);
-  }
   useEffect(() => {
     if (!replyingElsewhere) {
       return;
@@ -506,8 +350,6 @@ export function ChatView({
         </Notice>
       )}
       <ChatThread
-        goldBalance={gold?.balance}
-        replyCosts={replyCosts}
         chatId={chatId}
         error={shownError}
         replyStopped={replyStopped}
@@ -530,6 +372,7 @@ export function ChatView({
           {plan === undefined && conversation}
           {plan !== undefined && (
             <PlanPanel
+              sidebarActions={sidebarActions}
               initialSection={initialSection}
               sideSections={sideSections}
             >
@@ -541,3 +384,5 @@ export function ChatView({
     </AssistantRuntimeProvider>
   );
 }
+
+export { ChatView };

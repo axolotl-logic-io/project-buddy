@@ -1,33 +1,4 @@
-// The tools the construct may call while it replies, the context they get, and
-// the model calls that send them. Every chat has the same tools, though a
-// standalone chat has no quest, so change_plan,
-// record_milestone and request_quest_status are not active there. The
-// only module that knows the tool set. To add a tool:
-// 1. Put its name and the zod schema of its output in a contract file,
-//    `<tool>-contract.ts`, such as `search-tool-contract.ts` holding
-//    `SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual"`. The contract
-//    imports nothing from the server, because the tool's part component in
-//    the browser imports it too, to look the part up and to parse the
-//    tool's output.
-// 2. Build the tool with `tool()` in `<tool>.ts`, with its description in
-//    the contract. Add it to ChatTools with one line keyed by the contract's
-//    constant, `[SEARCH_BLENDER_MANUAL_TOOL]: typeof
-//    searchBlenderManualTool`, which keeps the tool's own types for the AI
-//    SDK, and to chatTools with one line. The provider gets the tools in
-//    chatTools's order, and the last active tool carries the cache
-//    breakpoint.
-// 3. A tool that needs to know its chat or quest declares
-//    `contextSchema: CHAT_TOOL_CONTEXT`. TypeScript then requires its entry
-//    in streamChatToolCalls's toolsContext below, `[UPDATE_MEMORY_TOOL]:
-//    context`, and the tool reads it as `context` in its execute options.
-// 4. Register its part in TOOL_PARTS, in
-//    `src/components/chat/tool-parts.tsx`: its `render`; its `failure`
-//    line, a `TOOL_FAILURES_COPY` entry the chat shows when a call fails; and
-//    its `placement`, "inline" where the call arrived or "under" the
-//    message, and, if inline, its `textBefore`: "working-note" for a tool
-//    that looks something up, "prose" otherwise. A test fails while a tool
-//    has no part.
-
+// The tools available to a conversation and their per-reply context.
 import type {
   LanguageModelV4,
   SharedV4ProviderOptions,
@@ -40,10 +11,6 @@ import {
   streamText,
   type Tool,
 } from "ai";
-import { citeBlenderManualTool } from "@/blender-manual/cite-tool.ts";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
-import { searchBlenderManualTool } from "@/blender-manual/search-tool.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { MessageId, QuestId, UserId } from "@/ids.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
@@ -61,8 +28,6 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 // The tools in every chat. A type alias, not an interface, as the AI SDK's
 // tool set must be a plain record.
 type ChatTools = Readonly<{
-  [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
-  [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
   [CAST_SPELL_TOOL]: typeof castSpellTool;
   [CREATE_QUEST_TOOL]: typeof createQuestTool;
   [CHANGE_PLAN_TOOL]: typeof changePlanTool;
@@ -95,11 +60,7 @@ function withSettings<ChatTool extends Tool>(
 // request_quest_status only in a quest, and create_quest only in Chat,
 // the one conversation that can be turned into a quest.
 function activeChatTools(questId: QuestId | undefined): ChatToolName[] {
-  const tools: ChatToolName[] = [
-    SEARCH_BLENDER_MANUAL_TOOL,
-    CITE_BLENDER_MANUAL_TOOL,
-    CAST_SPELL_TOOL,
-  ];
+  const tools: ChatToolName[] = [CAST_SPELL_TOOL];
   if (questId === undefined) {
     tools.push(CREATE_QUEST_TOOL);
   } else {
@@ -126,14 +87,6 @@ function breakpointOn(
 function chatTools(questId: QuestId | undefined): ChatTools {
   const active = activeChatTools(questId);
   return {
-    [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(
-      searchBlenderManualTool,
-      breakpointOn(SEARCH_BLENDER_MANUAL_TOOL, active),
-    ),
-    [CITE_BLENDER_MANUAL_TOOL]: withSettings(
-      citeBlenderManualTool,
-      breakpointOn(CITE_BLENDER_MANUAL_TOOL, active),
-    ),
     [CAST_SPELL_TOOL]: withSettings(
       castSpellTool,
       breakpointOn(CAST_SPELL_TOOL, active),

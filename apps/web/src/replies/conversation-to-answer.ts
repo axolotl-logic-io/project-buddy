@@ -6,7 +6,7 @@
 // request still replies to it is not answered again: each reply is made
 // under a claim on its message (claimReply in src/chats/store.ts), which
 // the request that answers releases if its reply fails. Nothing is answered
-// once the acting user is out of gold (src/quota/quota.ts). A conversation
+// A conversation
 // continues for as long as its quest does, so a reply reads only its newest
 // CONVERSATION_WINDOW messages: the quest's Plan and Progress, in
 // every reply's instructions, carry what matters from before them.
@@ -25,11 +25,7 @@ import {
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
-import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
-import {
-  type ChatRequest,
-  outOfGoldResponse,
-} from "@/replies/chat-protocol.ts";
+import type { ChatRequest } from "@/replies/chat-protocol.ts";
 
 // How many of a conversation's newest messages a reply reads, the message
 // it answers included: about a long working session's worth, which keeps a
@@ -43,7 +39,6 @@ type ConversationToAnswer =
   | {
       readonly kind: "reply";
       readonly conversation: ChatMessage[];
-      readonly grant: QuotaGrant;
     }
   | { readonly kind: "refused"; readonly response: Response };
 
@@ -68,12 +63,6 @@ function idTaken(): ConversationToAnswer {
   };
 }
 
-// A message that would be answered once the acting user is out of gold is
-// refused, unsaved, as too many requests.
-function outOfGold(): ConversationToAnswer {
-  return { kind: "refused", response: outOfGoldResponse() };
-}
-
 // The conversation a reply in the acting user's chat answers, with message saved
 // as its last message, written by the acting user, and claimed for this request's
 // reply. A message the
@@ -82,30 +71,25 @@ function outOfGold(): ConversationToAnswer {
 // it; one another request still replies to is refused as already answered,
 // as is one with anything after it, and one missing from the history but
 // saved by another request by the time this one saves it, since that
-// request answers it. Either is refused, and a new one isn't saved, once the
-// acting user is out of gold. The caller releases the claim if its reply fails.
+// request answers it. The caller releases the claim if its reply fails.
 async function conversationToAnswer(
   actingUser: UserId,
   chat: Chat,
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
-  const [saved, gold, author] = await Promise.all([
+  const [saved, author] = await Promise.all([
     listMessagesForModel(actingUser, chat.id, CONVERSATION_WINDOW),
-    checkGold(actingUser),
     readMessageAuthor(actingUser),
   ]);
   const held = saved.findIndex(({ id }) => id === message.id);
   if (held !== -1 && held < saved.length - 1) {
     return alreadyAnswered();
   }
-  if (gold.kind === "outOfGold") {
-    return outOfGold();
-  }
   if (held !== -1) {
     if (!(await claimReply(actingUser, chat.id, message.id))) {
       return alreadyAnswered();
     }
-    return { kind: "reply", conversation: saved, grant: gold.grant };
+    return { kind: "reply", conversation: saved };
   }
   const saving = await saveMessage(actingUser, chat.id, message);
   switch (saving) {
@@ -115,7 +99,6 @@ async function conversationToAnswer(
         conversation: [...saved, authored(message, author)].slice(
           -CONVERSATION_WINDOW,
         ),
-        grant: gold.grant,
       };
     case "already-saved":
       return alreadyAnswered();

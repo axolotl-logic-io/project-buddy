@@ -1,10 +1,8 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
-import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { QuestFromChat } from "@/components/quest-from-chat.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { userMessage } from "@/errors/app-error.ts";
 import {
   CREATE_QUEST_OUTPUT,
   offeredContext,
@@ -60,15 +58,7 @@ export function CreateQuestPart({
       );
     case "outOfGold":
     case "quotaUsedUp":
-      return (
-        <p className="icon-line text-muted text-sm">
-          <Icon name="alert" />
-          <span>
-            <span>{userMessage("out-of-gold")}</span>
-            <EarnGoldLink />
-          </span>
-        </p>
-      );
+      return null;
     default: {
       const unknownResult: never = result;
       return unknownResult;

@@ -252,14 +252,14 @@ describe("use_case_change_plan", () => {
 
     actions.changePlanAction.mockResolvedValueOnce({
       kind: "failed",
-      reason: "too-many-steps",
+      reason: "missing-step",
       state: PLAN,
     });
     await page.getByRole("button", { name: PLAN_COPY.actions(SCULPT) }).click();
     await userEvent.click(moveUp);
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent(PLAN_COPY.failed["too-many-steps"]);
+      .toHaveTextContent(PLAN_COPY.failed["missing-step"]);
     await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
   });
 });

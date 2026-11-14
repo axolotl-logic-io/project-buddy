@@ -1,4 +1,4 @@
-// "use_case_keep_data_through_update" in use-cases/: a release whose
+// Regression coverage for construct data migration.
 // migration renames tables and columns keeps every row's data. The test
 // migrates a scratch database of its own up to the last migration before
 // the buddies rename, seeds it with the old names, migrates it to the
@@ -145,7 +145,7 @@ async function readNames(pool: Pool): Promise<Names> {
   };
 }
 
-test("use_case_keep_data_through_update", async () => {
+test("construct data migration", async () => {
   const database = scratchDatabase(SCRATCH_SUFFIX);
   const [oldMigrations, beforeRemoval] = await Promise.all([
     copyMigrationsUpTo(LAST_INDEX_BEFORE_RENAME),

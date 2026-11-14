@@ -1,5 +1,4 @@
 import type { SystemModelMessage } from "ai";
-import { withUserName } from "@/accounts/user-name.ts";
 import { readUserName } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
@@ -25,7 +24,9 @@ import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 import { startingContextSection } from "@/replies/starting-context.ts";
 import { visualDescriptionSection } from "@/replies/visual-description.ts";
 import { getSpell, listSpells, type SpellId } from "@/spells/spell.ts";
-import { currentSpell } from "@/spells/spell-store.ts";
+import type { SpellSnapshot } from "@/spells/spell-definition.ts";
+import { spellDestinationLabel } from "@/spells/spell-destination.ts";
+import { readActiveSpell } from "@/spells/spell-store.ts";
 
 // The chat turn a prompt is for, in the acting user's chat, and whether more than
 // one person has written in the chat (src/replies/author-names.ts).
@@ -40,6 +41,7 @@ interface ReplyPromptContext {
   readonly quest: PromptQuest | undefined;
   readonly construct: ConstructSnapshot;
   readonly spell?: SpellId | undefined;
+  readonly activeSpell?: SpellSnapshot | undefined;
   readonly userName: string | undefined;
   readonly severalAuthors?: boolean | undefined;
 }
@@ -96,7 +98,10 @@ function severalAuthorsSection({ severalAuthors }: ReplyPromptContext): string {
   return "";
 }
 
-function spellSection({ spell }: ReplyPromptContext): string {
+function spellSection({ spell, activeSpell }: ReplyPromptContext): string {
+  if (activeSpell !== undefined) {
+    return `Active spell: ${activeSpell.name}\nMessage destination: ${spellDestinationLabel(activeSpell.definition.destination)}`;
+  }
   if (spell === undefined) {
     return "No spell is active.";
   }
@@ -124,7 +129,6 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   milestonesPromptSection,
   spellSection,
   visualDescriptionSection,
-  ({ construct }: ReplyPromptContext): string => construct.definition.prompt,
 ];
 
 // The texts of sections, without the empty ones, as one system message's
@@ -144,24 +148,13 @@ function rendered(
 function renderReplyInstructions(
   context: ReplyPromptContext,
 ): SystemModelMessage[] {
-  const { construct, userName } = context;
-  const named: ReplyPromptContext = {
-    ...context,
-    construct: {
-      ...construct,
-      definition: {
-        ...construct.definition,
-        prompt: withUserName(construct.definition.prompt, userName),
-      },
-    },
-  };
   return [
     {
       role: "system",
-      content: rendered(SHARED_SECTIONS, named),
+      content: rendered(SHARED_SECTIONS, context),
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     },
-    { role: "system", content: rendered(CHAT_SECTIONS, named) },
+    { role: "system", content: rendered(CHAT_SECTIONS, context) },
   ];
 }
 
@@ -210,15 +203,15 @@ async function buildReplyInstructions({
   construct,
   severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
-  const [quest, spell, userName] = await Promise.all([
+  const [quest, activeSpell, userName] = await Promise.all([
     promptQuest(actingUser, chat),
-    currentSpell(actingUser, chat),
+    readActiveSpell(actingUser, chat),
     readUserName(actingUser),
   ]);
   return renderReplyInstructions({
     quest,
     construct,
-    spell,
+    activeSpell,
     userName,
     severalAuthors,
   });

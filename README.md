@@ -1,6 +1,6 @@
 # project-buddy
 
-project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs can use tools to search and cite the Blender manual. The [glossary](GLOSSARY.md) defines the site's words.
+project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs use local commands to keep quest Plans and Ideas. The [glossary](GLOSSARY.md) defines the site's words.
 
 Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [project practices](docs/project-practices.md). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
@@ -51,7 +51,6 @@ npm run check        # fast default: Biome, typecheck, test:scripts, repository 
 npm run build        # production build
 npm run db:generate  # generate SQL migrations in drizzle/ from src/db/tables/
 npm run db:migrate   # apply migrations to the database at DATABASE_URL
-npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 ```
 
 [Biome](https://biomejs.dev) lints and formats the code; its settings are split across two files: the root `biome.jsonc` holds the policy for the whole repo, and `apps/web/biome.jsonc` extends it with the site's scoped overrides, whose globs are relative to `apps/web/`. `npx biome check` gives the same result at the root or in `apps/web/`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
@@ -59,6 +58,15 @@ npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 ### Database
 
 The app uses local PostgreSQL through the native `pg` driver, or hosted Neon through its HTTP driver, with [Drizzle ORM](https://orm.drizzle.team). Each feature defines its tables in `src/db/tables/`, which `drizzle.config.ts` names as the schema, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `apps/web/.env.local`, which git ignores, or run `vercel env pull .env.local` in `apps/web/` once the Vercel project is linked with `npm run ops:link`. To look at production, use the `ops:*` scripts in [Reaching Vercel and production](docs/Site-Operations.md#reaching-vercel-and-production) instead. `.env.test`, which the e2e and server tests read, lives in `apps/web/` too: the orchestrator provides it with the database and site port pinned to the lane, or a developer runs `npm run test-env:init` (or copies `.env.test.example` by hand) for a manual run. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
+
+For a persistent local development database, run these commands from `apps/web/`:
+
+```bash
+docker compose --file compose.dev-db.yml up --detach --wait
+```
+
+Set `DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5434/project_buddy_dev` in `.env.local`, then run `npm run db:migrate`. Restart the development app after changing its database connection. This database starts empty; create a local account to use it. Its Docker volume preserves accounts and quests across container restarts. `docker compose --file compose.dev-db.yml down` stops it while keeping data. It is separate from the disposable test database and the hosted database.
+
 
 ### Branches and deploys
 
@@ -74,37 +82,29 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Local construct engine
 
-The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look`, `search <query>` and `cast <spell id>`. The conversation UI, streamed replies, tool parts, storage and access checks use the existing harness. See [local construct behavior and limits](docs/local-constructs.md).
+The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look` and `cast <spell id>`. The conversation UI, streamed replies, tool parts, storage and access checks use the existing harness. See [local construct behavior and limits](docs/local-constructs.md).
 
 ### Quests and conversations
 
 Quests at `/quests` is the signed-in landing page. Start Quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each personal quest has one continuing conversation, a Plan and a Progress timeline. Dailies continues the same quest each day. Private Chat at `/chat` works without a quest; Turn Chat into a quest lets the user confirm an edited summary for a new quest without sharing or moving their private Chat history. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
 
-A construct is chosen when a conversation starts. Activities guide its replies and can change through the construct's activity tool (`src/activities/`). Workshop at `/workshop` is the single collection for built-in and private constructs, activities and spells. Settings at `/settings` holds profile, appearance, batteries and security. Old conversation, collection, Home and Account addresses have access-checked redirects where their replacement exists.
+A construct is chosen when a conversation starts. Activities guide its replies and can change through the construct's activity tool (`src/activities/`). Workshop at `/workshop` is the single collection for built-in and private constructs, activities and spells. Settings at `/settings` holds profile, appearance and security. Old conversation, collection, Home and Account addresses have access-checked redirects where their replacement exists.
 
 Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, current activity and construct, and the quest's Plan and recent milestones. Constructs always run the local command engine; there is no model mode setting. Tests exercise local commands and tool handlers directly.
 
 ### Errors
 
-`src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores, the rate limits and `searchManual` run their queries through `withAppErrors`. The conversation route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
+`src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores, the rate limits run their queries through `withAppErrors`. The conversation route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
 
 ### Sign-up and login
 
-Anyone can sign up from `/login` or `/signup` by requesting an emailed link. For an address without an account, the site stores a hashed verification token in `signup_links`, without making an account. The link expires after 30 minutes; another request replaces it. Opening `/login/link` is read-only. Choosing Continue atomically consumes the verification link, creates an ordinary account and grants its starting batteries. Confirmation signs the browser in for 30 days. Concurrent confirmations cannot create duplicate accounts. A storage failure preserves verification for retry.
+Anyone can sign up from `/login` or `/signup` by requesting an emailed link. For an address without an account, the site stores a hashed verification token in `signup_links`, without making an account. The link expires after 30 minutes; another request replaces it. Opening `/login/link` is read-only. Choosing Continue atomically consumes the verification link, creates an ordinary account. Confirmation signs the browser in for 30 days. Concurrent confirmations cannot create duplicate accounts. A storage failure preserves verification for retry.
 
 Existing accounts receive reusable 30-minute sign-in links (`src/accounts/sign-in-links.ts`), including when they use Sign up. Confirmation sets an HTTP-only `session` cookie signed with `SESSION_SECRET`. The proxy admits `/login`, `/signup`, `/login/link`, `/credits` without a session. Other pages redirect to `/login`, and protected API routes answer 401. Authorization also checks the stored session epoch. Signing out everywhere revokes both login and pending verification links for the account.
 
 Account invitation administration, emails and setup routes have been removed. Migration 0063 adds `signup_links` and drops the account invitation tables. It is a destructive migration and does not support the previous build during deployment or rollback; coordinate the release accordingly.
 
 `src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Vellum's name) in `.env.local` and in the Vercel project; see `.env.example`. Sign-up and login need `DATABASE_URL` too.
-
-### Manual index
-
-The construct's Blender manual lookup tools (`src/blender-manual/`) search the Blender Reference Manual through the `manual_sections` table. `npm run manual:reindex` makes a shallow `git clone` of the manual's latest stable release branch into a temporary directory, splits every RST file under `manual/` into one section per heading, and replaces the table's contents in one transaction. It reads `DATABASE_URL` from the environment or `.env.local`, and the table must already exist (`npm run db:migrate`). Each section links to `https://docs.blender.org/manual/en/latest/<path>.html#<anchor>`, with the anchor Sphinx gives the heading. `searchManual()` in `src/blender-manual/search-manual.ts` queries the index.
-
-When a new stable Blender release ships, set `MANUAL_BRANCH` in `src/blender-manual/manual-source.ts` to its release branch, such as `blender-v5.4-release`, and run `npm run manual:reindex`.
-
-The script runs under Node's built-in TypeScript support, so modules it imports use relative imports with a `.ts` extension instead of the `@/` alias.
 
 ### Tests
 
@@ -167,3 +167,5 @@ Notifications have been removed. See [installed app](docs/notifications.md) for 
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the conversation and remain available to the construct for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
 
 See [image storage and operations](docs/Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
+
+New accounts enter a required Name after opening their verification link from Login. The account and name are saved together only after validation. Existing accounts sign in with Continue without entering a name.

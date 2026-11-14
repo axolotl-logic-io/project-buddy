@@ -8,4 +8,10 @@ export const QUEST_CONVERSATION_COPY = {
   starting: "Starting…",
   resetDay: "Reset Day",
   reset: "Reset",
+  cancel: "Cancel",
+  confirmReset:
+    "Reset this conversation? Its messages and active spell will be cleared. This cannot be undone.",
+  clearSteps: "Remove all Steps",
+  keepSteps: "By default, Steps are kept and unchecked.",
+  clearIdeas: "Remove all Ideas",
 } as const;

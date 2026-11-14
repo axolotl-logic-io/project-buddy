@@ -1,4 +1,3 @@
-import { BATTERIES_COPY } from "@/ui/copy/batteries.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 const GENERATION_COPY = {
@@ -16,14 +15,11 @@ const GENERATION_COPY = {
   working: "Generating your image… This can take up to two minutes.",
   pending:
     "Generation was started. If it was interrupted, it will not restart automatically. Check its conversation before asking again.",
-  reservationRefused: (required: number, available: number): string =>
-    `Images reserve ${BATTERIES_COPY.amount(required)}; ${BATTERIES_COPY.amount(available)} available for this request. Replies still spend batteries.`,
-  outOfGold: "You don't have enough batteries left to generate an image.",
-  quotaUsedUp: "You don't have enough batteries left to generate an image.",
+  outOfGold: "Image generation is unavailable.",
+  quotaUsedUp: "Image generation is unavailable.",
   unavailable:
     "Image generation is unavailable. The site owner needs to configure the image provider.",
-  failed:
-    "The image could not be generated or saved. Please try again later. A possibly billed request keeps the batteries it set aside.",
+  failed: "The image could not be generated or saved. Please try again later.",
 } as const;
 
 export { GENERATION_COPY };

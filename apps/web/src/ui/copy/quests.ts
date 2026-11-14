@@ -6,7 +6,6 @@ export const QUESTS_COPY = {
   title: pageTitle("Quests"),
   headerLink: "Quests",
   heading: "Quests",
-  intro: "Pick up where you left off, or start something new.",
   loading: "Loading quests…",
   none: "No quests yet. Choose a way to start one above.",
   listHeading: "All quests",

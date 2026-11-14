@@ -40,9 +40,11 @@ function PlanPanel({
   children,
   sideSections,
   initialSection,
+  sidebarActions,
 }: {
   readonly children?: ReactNode;
   readonly sideSections?: readonly WorkspaceSection[] | undefined;
+  readonly sidebarActions?: ReactNode;
   readonly initialSection?: string | undefined;
 }): JSX.Element {
   const plan = usePlan();
@@ -114,6 +116,7 @@ function PlanPanel({
         aria-label={QUEST_SIDEBAR_COPY.label}
       >
         <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
+          {sidebarActions}
           <WorkspaceTabs
             label={QUEST_SIDEBAR_COPY.label}
             sections={sections}

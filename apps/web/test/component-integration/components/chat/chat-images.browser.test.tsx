@@ -13,7 +13,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("use_case_chat_images", () => {
+describe("saved conversation image access", () => {
   test("the composer has no uploads and pasting or dropping images sends no request", async () => {
     const fetcher = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", fetcher);

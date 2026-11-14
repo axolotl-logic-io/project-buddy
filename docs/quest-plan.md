@@ -4,7 +4,7 @@ Each quest has a plan: its ordered steps of remaining work, which the construct 
 
 ## Steps
 
-A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan holds at most 30 open steps, counted on the plan a change leaves. Done steps keep their places, and the site shows them folded away under **Done**.
+A step is one line of at most 200 characters (`PLAN_STEP_TEXT` in `src/plan/plan.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. A plan has no limit on the number of steps. Done steps keep their places, and the site shows them folded away under **Done**.
 
 The next step is the plan's first open step. Plan shows the remaining work as compact todo rows, with no separate duplicate next-step card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a step opens a new editor above the list and saves the new step first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable step number. A new quest starts with an empty Plan.
 
@@ -21,7 +21,7 @@ The next step is the plan's first open step. Plan shows the remaining work as co
 | `move` | step, optional `before` step | Moves the step before another, or to the end. |
 | `remove` | step | Deletes the step. |
 
-A batch applies all or none. It saves nothing if a step it names isn't there, if the plan it leaves would hold more than 30 open steps, or if no operation changes anything; an operation that changes nothing, such as completing a done step, is skipped. So a batch may add a step and remove another at the limit. Each change records what each operation did, in words, and the operations that undo it.
+A batch applies all or none. It saves nothing if a step it names isn't there or if no operation changes anything; an operation that changes nothing, such as completing a done step, is skipped. Each change records what each operation did, in words, and the operations that undo it.
 
 An undo (`applyPlanUndo`) keeps the changes made since. It skips an operation on a step removed since, and reverts a text only while the step still has the text the change set, so a newer edit stays. A removal or a move whose old neighbour was removed since goes back at the end. An undo with nothing left to do saves nothing and says so (`nothing-to-undo`).
 

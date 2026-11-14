@@ -389,11 +389,25 @@ async function reopenPlan(
   owner: UserId,
   questId: QuestId,
   database: Database = getDb(),
+  clear = false,
 ): Promise<void> {
   const result = await saveChange(
     owner,
     { questId, author: "person" },
     (state): Promise<Attempt> => {
+      if (clear) {
+        const outcome = applyPlanOperations(
+          state.plan,
+          state.plan.steps.map((step) => ({ op: "remove", step: step.number })),
+        );
+        if (outcome.kind === "failed") {
+          return Promise.resolve(outcome);
+        }
+        return Promise.resolve({
+          kind: "save",
+          next: { basedOn: state.version, ...outcome },
+        });
+      }
       const completed = state.plan.steps.filter((step) => step.done);
       if (completed.length === 0) {
         return Promise.resolve({ kind: "failed", reason: "unchanged" });

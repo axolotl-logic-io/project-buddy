@@ -7,7 +7,6 @@ import { z } from "zod";
 import {
   checkUserName,
   USER_NAME_MAX_LENGTH,
-  type UserNameCheck,
   type UserNameProblem,
 } from "@/accounts/user-name.ts";
 import { endEverySession, saveUserName } from "@/accounts/users-store.ts";
@@ -18,7 +17,7 @@ import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
 const SET_NAME_FORM = z.object({ name: z.string() });
 
-// What saving her name did: saved it (or cleared it), or refused it, saying
+// What saving her name did: saved it, or refused it, saying
 // why. A storage failure throws, for the error boundary.
 type SetNameResult =
   | { readonly kind: "saved" }
@@ -43,14 +42,6 @@ function refusal(problem: UserNameProblem): string {
   }
 }
 
-// The name to save for a name that isn't refused: undefined once cleared.
-function savedName(check: UserNameCheck): string | undefined {
-  if (check.kind === "valid") {
-    return check.name;
-  }
-  return undefined;
-}
-
 export type { SetNameResult, SetNameState };
 
 // Signs this browser out, keeping other sessions and sign-in links valid.
@@ -70,8 +61,7 @@ export async function signOutEverywhereAction(): Promise<never> {
   return redirect(SIGN_IN_PATH);
 }
 
-// Saves her name, trimmed, for the construct to call her by, or clears it when
-// the field is empty, or says why the name won't do. It saves only the
+// Saves her name, trimmed, for the construct to call her by, or says why the name won't do. It saves only the
 // signed-in user's own name: the form names no user.
 export async function setNameAction(
   _state: SetNameState,
@@ -83,10 +73,14 @@ export async function setNameAction(
     notFound();
   }
   const check = checkUserName(form.data.name);
-  if (check.kind === "refused") {
-    return { kind: "invalid", message: refusal(check.problem) };
+  if (check.kind !== "valid") {
+    let message: string = ACCOUNT_COPY.nameRequired;
+    if (check.kind === "refused") {
+      message = refusal(check.problem);
+    }
+    return { kind: "invalid", message };
   }
-  await saveUserName(user.id, savedName(check));
+  await saveUserName(user.id, check.name);
   refresh();
   return { kind: "saved" };
 }

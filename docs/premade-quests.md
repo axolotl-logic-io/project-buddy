@@ -1,6 +1,6 @@
 # Premade quests
 
-Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name and activity. The user chooses a construct before starting. Learn a thing, Make a thing and Do a thing also offer an optional Why field. Dailies starts without asking for Why. No quest is created and no batteries are spent while browsing or cancelling.
+Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name and activity. Each starting point assigns its construct: Vellum for Dailies and Learn a thing, Lumen for Make a thing and Do a thing. The start form has no construct picker, and submitted construct overrides are ignored. Learn a thing, Make a thing and Do a thing also offer an optional Why field. Dailies starts without asking for Why. No quest is created and no batteries are spent while browsing or cancelling.
 
 | Starting point | Activity |
 | --- | --- |
@@ -9,7 +9,7 @@ Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each
 | Make a thing | Find something to make |
 | Do a thing | Break Down a Project |
 
-The tiles open the same start form on Quests and in Chat. The form sends starting context, not a Journal. A supplied Why or approved Chat summary becomes the first user message in the new conversation, followed by the construct’s opening. The opening acknowledges that context. The original Chat’s messages remain in Chat. No Goal, Preferences or Journal is created.
+The tiles open the start form on Quests. The form sends starting context, not a Journal. A supplied Why or approved Chat summary becomes the first user message in the new conversation, followed by the construct’s opening. The opening acknowledges that context. The original Chat’s messages remain in Chat. No Goal, Preferences or Journal is created.
 
 Without supplied context, an unchanged built-in construct and activity use their prepared opening. Other starts generate their opening before saving the quest. A failed opening, invalid details or insufficient batteries create nothing.
 

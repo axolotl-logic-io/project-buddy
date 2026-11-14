@@ -50,7 +50,7 @@ Every classification is a proposal. **Exposed** means proposed for the first rel
 | Retire, restore or delete forever own constructs, activities and spells | Deferred | Undecided | D. Preserve saved snapshots and bought-copy rights; design confirmation and retry behavior before destructive operations. |
 | Workshop drafts and test conversations | Deferred | Undecided | M for test replies; no saved adventure. Separate draft and accounting contract needed. |
 | Read construct profile/artwork; generate or restore construct visuals | Deferred | Undecided | Reads/restore are D, generation is M. Asset rights and payer/private-generation metadata need a dedicated contract. |
-| Cast spells; search and cite the Blender manual during a reply | Exposed through reply only | `adventures:reply` | M for reply; tool effects remain restricted below. Cast instructions are model-only, not automatically API-readable. Direct spell execution/manual search endpoints are deferred. |
+| Cast spells during a reply | Exposed through reply only | `adventures:reply` | M for reply; tool effects remain restricted below. Cast instructions are model-only, not automatically API-readable. Direct spell execution endpoints are deferred. |
 | Read team membership; invite, revoke invitation, join, decline, remove member or leave | Removed | None | Team quests were removed in #907; every quest is its owner's alone. |
 | Upload image attachments and include them in user messages | Deferred | Undecided | Upload is D; requesting a reply about an image is M. The site allows up to four JPEG, PNG, GIF or WebP attachments per message, each at most 2 MiB (`src/images/image-contract.ts`, `src/replies/chat-protocol.ts`; [image attachment use case](../apps/web/use-cases/chats.md#use_case_chat_images)). API upload permission, private storage/delivery, retention/cleanup and limits need a contract. This deferral does not remove existing safe image references from readable messages. |
 | Read image gallery, view/download/delete an adventure image; request image generation | Deferred | Undecided | Read/delete are D, generation is M. Existing messages can retain safe image references; no grant to private generation inputs, payer costs or separate generation operations. |
@@ -69,7 +69,6 @@ API support needs a shared authorization boundary that supplies the intersection
 
 | Existing tool compatibility name | Proposed API reply behavior |
 | --- | --- |
-| `search_blender_manual`, `cite_blender_manual` | Allow with reply permission; expose only existing safe results/citations. |
 | `cast_spell` | Allow with reply permission for acting user's available spells; keep cast instructions private and restrict any resulting effects independently. |
 | `update_memory` | Require `journal:write` and quest access; absent for standalone adventures. |
 | `record_milestone` | Require `milestones:write` and quest access; absent for standalone adventures. |

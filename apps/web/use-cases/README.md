@@ -22,25 +22,25 @@ A case written before its test is listed in `test/component-integration/use-case
 
 - The site is open to anyone with an email address they can verify.
 - **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
-- **Signing in** is by a link the site emails her. There are no passwords.
-- **Private data:** each user's quests, adventures, Plan and milestones are hers alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or adventure that isn't hers looks exactly like one that doesn't exist, even to someone who was once its member.
-- **Batteries:** each user has one balance of batteries, which model calls spend, including image generation. Every account starts with 100 batteries, once; batteries never reset.
+- **Signing in** is by a link the site emails them. There are no passwords.
+- **Private data:** each user's quests, conversations, Plan and milestones are theirs alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or conversation that isn't theirs looks exactly like one that doesn't exist.
+- **Local constructs:** replies use deterministic commands without requests to model companies.
 
 ## Conventions
 
 - Each use case has a slug of the form `use_case_<name>`. Refer to a case by its slug. Cases are not numbered.
-- A case describes what the user wants, what she does and what she sees. It says nothing about how the system is built: "send the message", not "press the submit button".
-- "The user" is any person using the site, and "she" means the user.
+- A case describes what the user wants, what the user does and what the user sees. It says nothing about how the system is built: "send the message", not "press the submit button".
+- "The user" is any person using the site, and "their" refers to the user.
 - **Prerequisites** lists the cases that must have happened first. Every listed case is required.
 - **Steps** is the interaction, in order, from the user's point of view.
-- **Outcome** is what is true when the case ends. It names things she can see or do on the site, so that a test can check each one.
-- **Next** lists cases the user might go on to, each with a hint about why she would.
-- The use cases describe the current product contract. Mark preserved legacy behavior explicitly; keep planned features separate until their behavior is agreed and distinguish them from available features. The completeness assessment is recorded in `docs/use-case-assessment.md` at the repository root.
+- **Outcome** is what is true when the case ends. It names things the user can see or do on the site, so that a test can check each one.
+- **Next** lists cases the user might go on to, each with a hint about why the user would.
+- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory. The completeness assessment is recorded in `docs/use-case-assessment.md` at the repository root.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 
 ## Local construct tests
 
-Every environment uses deterministic local commands. Tests exercise those commands directly; there is no mock model mode or separate provider smoke list. Browser tests use fixed saved messages to cover rich content from older conversations. Server tests call tool handlers and stores directly when checking their contracts, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Historical accounting and private artwork storage remain covered without provider requests.
+Every environment uses deterministic local commands. Tests exercise those commands directly. Browser tests cover visible behavior. Server tests check data access and persistence, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Internal contracts can have regression tests without a corresponding user workflow.
 
 ## Areas
 
@@ -50,13 +50,11 @@ Each area's cases are in their own file:
 - [Accounts](accounts.md)
 - [Quests](quests.md)
 - [Quest status](quest-status.md)
-- [Adventures](chats.md)
-- [Saved images](images.md)
+- [Conversations](chats.md)
 - [Plan](plan.md)
 - [Ideas](ideas.md)
 - [Constructs](constructs.md)
-- [Library](library.md)
-- [Workshop](workshop.md): edit constructs and inspect Plan and Brainstorm.
+- [Workshop](workshop.md): create and edit private constructs and spells.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
 - [Spells](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)

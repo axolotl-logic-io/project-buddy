@@ -6,12 +6,7 @@ import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { wholeGold } from "@/gold/gold.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { HEADER_BALANCE_COPY } from "@/ui/copy/header-balance.ts";
-import { LIBRARY_COPY } from "@/ui/copy/library.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -44,7 +39,7 @@ function TrailBand({
         <nav aria-label={SITE_COPY.breadcrumbs} className="trail-parents">
           <ol>
             {parents.map((parent) => (
-              <li key={parent.href}>
+              <li key={`${parent.href}/${parent.label}`}>
                 <Link href={parent.href} title={parent.label}>
                   {parent.label}
                 </Link>
@@ -60,27 +55,6 @@ function TrailBand({
       <h1 className="trail-heading">{current.label}</h1>
       {current.action}
     </div>
-  );
-}
-
-// A HUD counter: a battery and the number, on one line. "Batteries:" is
-// there for assistive technology, which skips the icon. Uses Account's
-// rounding; absence means unavailable, never an empty account.
-function HeaderBalance({
-  microUsd,
-}: {
-  readonly microUsd: number | undefined;
-}): JSX.Element {
-  let amount: string = HEADER_BALANCE_COPY.unavailable;
-  if (microUsd !== undefined) {
-    amount = String(wholeGold(microUsd));
-  }
-  return (
-    <p className="header-balance" role="status">
-      <Icon name="battery" />
-      <span className="sr-only">{HEADER_BALANCE_COPY.label} </span>
-      <span>{amount}</span>
-    </p>
   );
 }
 
@@ -100,13 +74,7 @@ function AccountLinks(): JSX.Element {
         <li>
           <MenuLink href="/quests">{QUESTS_COPY.headerLink}</MenuLink>
         </li>
-        <li>
-          <MenuLink href="/chat">{CHAT_COPY.headerLink}</MenuLink>
-        </li>
 
-        <li>
-          <MenuLink href="/library">{LIBRARY_COPY.heading}</MenuLink>
-        </li>
         <li>
           <MenuLink href="/workshop">{WORKSHOP_COPY.heading}</MenuLink>
         </li>
@@ -138,10 +106,8 @@ async function SignedInLinks({
   if (user === undefined) {
     return <SiteMenu links={null} />;
   }
-  const balance = await readGoldBalance(user.id).catch(() => undefined);
   return (
     <>
-      <HeaderBalance microUsd={balance} />
       <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <TrailBand items={breadcrumbs} />}
     </>
@@ -175,4 +141,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, HeaderBalance, SignedInLinks, SiteHeader, TrailBand };
+export { AccountLinks, SignedInLinks, SiteHeader, TrailBand };

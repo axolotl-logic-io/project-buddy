@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
-import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import {
   GENERATE_IMAGE_OUTPUT,
   generatedImageUrl,
@@ -29,27 +28,8 @@ function GeneratedImagePart({
   }
   const result = output.data;
   if (result.status !== "generated") {
-    let status: string = GENERATION_COPY[result.status];
-    if (
-      result.status === "outOfGold" &&
-      result.requiredGold !== undefined &&
-      result.availableGold !== undefined
-    ) {
-      status = GENERATION_COPY.reservationRefused(
-        result.requiredGold,
-        result.availableGold,
-      );
-    }
-    return (
-      <>
-        <p role="status">{status}</p>
-        {result.status === "outOfGold" && (
-          <p>
-            <EarnGoldLink />
-          </p>
-        )}
-      </>
-    );
+    const status: string = GENERATION_COPY[result.status];
+    return <p role="status">{status}</p>;
   }
   let linkClass = "generated-image-link";
   let imageClass = "chat-image";

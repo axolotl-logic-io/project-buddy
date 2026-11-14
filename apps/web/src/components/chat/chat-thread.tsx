@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
-import type { ReplyCost } from "@/replies/reply-accounting.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure or a reply that stopped before it was
@@ -26,8 +25,6 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // viewer's own.
 export function ChatThread({
   construct,
-  goldBalance,
-  replyCosts,
   chatId,
   openingMessageId,
   authorNames,
@@ -38,8 +35,6 @@ export function ChatThread({
   stopStatus = "",
   spellStop,
 }: {
-  goldBalance?: number | undefined;
-  replyCosts?: ReadonlyMap<string, ReplyCost | undefined>;
   construct: ConstructSnapshot;
   chatId: ChatId;
   openingMessageId?: string | undefined;
@@ -78,7 +73,6 @@ export function ChatThread({
             chatId={chatId}
             openingMessageId={openingMessageId}
             authorNames={authorNames}
-            replyCosts={replyCosts}
             progressAllowed={error === undefined && replyStopped !== true}
           />
         </ol>
@@ -92,10 +86,6 @@ export function ChatThread({
           />
         )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
-          <p className="text-muted text-xs">
-            {goldBalance === undefined && CHAT_COPY.balanceUnknown}
-            {goldBalance !== undefined && CHAT_COPY.balance(goldBalance)}
-          </p>
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
           <div className="flex flex-wrap gap-2">
             {spellStop !== undefined && (
