@@ -67,4 +67,3 @@ test("Settings keeps profile drafts and feedback visible alongside appearance, c
     .toBeVisible();
   await expect.element(page.getByRole("tab")).not.toBeInTheDocument();
 });
-

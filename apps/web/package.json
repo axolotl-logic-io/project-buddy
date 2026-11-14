@@ -52,7 +52,6 @@
     "sharp": "^0.35.5",
     "shiki": "4.5.0",
     "streamdown": "2.7.0",
-    "stripe": "^23.1.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
