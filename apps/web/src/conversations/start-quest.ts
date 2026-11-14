@@ -173,7 +173,6 @@ async function startQuestConversation(
   return { kind: "started", conversation: found.conversation };
 }
 
-export type { StartConversationResult, StartQuestResult };
 export {
   defaultStart,
   readQuestConversation,

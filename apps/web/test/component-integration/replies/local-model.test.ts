@@ -1,14 +1,12 @@
 import { generateText, isStepCount, streamText, tool } from "ai";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { z } from "zod";
-import { avatarFramer } from "@/constructs/avatar-frame.ts";
 import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
   listConstructs,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { imageProvider } from "@/images/image-provider.ts";
 import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
@@ -44,8 +42,6 @@ test("production streams local help with configured credentials and no model usa
   }
   expect(chunks.join("")).toContain("cast <spell name>");
   expect((await result.totalUsage).totalTokens).toBe(0);
-  expect(imageProvider()).toBeUndefined();
-  expect(avatarFramer()).toBeUndefined();
   expect(fetch).not.toHaveBeenCalled();
 });
 

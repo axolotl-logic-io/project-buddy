@@ -4,62 +4,32 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
-- [Local constructs](local-constructs.md): MUD-inspired commands, the no-model-request policy and retained harness.
-
+- [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share.
+- [Local constructs](local-constructs.md): MUD-inspired commands, the no-model-request policy and the retained harness.
 - [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
-
-
 - [Premade quests](premade-quests.md): the four starting points, Dailies, and the one quest start.
-
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
-
-- [Prompts](prompts.md): editable construct and spell fields, snapshots and storage.
-
-- [Quest nomenclature](quest-nomenclature.md): code names, storage changes and release cutover notes.
-
-- [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Adventures](chats.md): Quests landing navigation, quest conversations and reply behavior.
+- [Conversations](chats.md): the Quests landing page, quest conversations and reply behavior.
+- [Prompts](prompts.md): editable construct and spell fields, and their storage.
 - [Spells](spellbook.md): Plan and Brainstorm modes, casts, stopping and message capture.
-- [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
-
-- [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
-
-- [Quick Notes](quick-notes.md): saving a short note to a quest from the site menu, and the quest's Quick Notes tab.
-
 - [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
-- [Graveyard](retirement.md): retiring, restoring, and permanently deleting own constructs.
-
-- [Images](images.md): saved images, owner access and deletion.
+- [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
+- [Progress timeline](progress-timeline.md): the milestones the construct records in a quest's conversation, and how the user edits them.
+- [Quick Notes](quick-notes.md): saving a short note to a quest from the site menu, and the quest's Quick Notes tab.
+- [Graveyard](retirement.md): retiring, restoring, and permanently deleting own constructs and spells.
+- [Saved images](images.md): conversation images, owner access and deletion.
+- [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and asset ownership.
+- [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 - [Installed app](notifications.md): installing on a phone's Home Screen and retiring older service workers.
 
-- [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
-
-- [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and generated-asset ownership.
-
-## Plans
-
-- [Quest plan design](design/quest-plan.md): the three ways into the plan, the earlier design phases and decisions.
-- [API access proposal](api-access-plan.md): operation inventory, candidate permissions, unresolved decisions and future test evidence for command utilities and external agents; no API implementation or approved release contract.
-
 ## Practices
-
-- [Authenticated performance audits](performance-audits.md): opt-in local capture protocol, artifact privacy and field attribution proposal.
-- [Shared server paths](performance/794/README.md): local operation spans, owner-scoped summaries and controlled production-build comparisons.
-
-- [Signed-in performance assessment](performance-assessment.md): exploratory production-build evidence, validation limits and systemic follow-ups.
-
-- [Adventure and editor client work](performance/796/README.md): matched renderer experiments, cold editor gains, rejected startup designs and remaining responsiveness limits.
-
-- [Use case completeness assessment](use-case-assessment.md): the current inventory, reconciled gaps and validation limits.
 
 - [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
 - [Docs style guide](docs-style-guide.md): how to write these docs.
 
 ## Operations
 
-- [Site operations](Site-Operations.md): production boundaries, the signed-out smoke checks and troubleshooting notes that supplement the README, and the production validation gap.
-
-- [Retired storage cleanup](storage/retired-storage.md): held migration sequence, retained data, generated SQL audit and rollback floor.
+- [Site operations](Site-Operations.md): production boundaries, the signed-out smoke checks, saved image storage and troubleshooting notes that supplement the README.
 
 ## Issue pipeline
 

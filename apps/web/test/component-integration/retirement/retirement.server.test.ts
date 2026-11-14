@@ -5,21 +5,16 @@ import {
   restoreDefinitionAction,
 } from "@/app/(workspace)/retirement/actions.ts";
 import { getChat } from "@/chats/store.ts";
-import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import {
   cloneConstruct,
   getOwnConstruct,
   listConstructs,
   updateConstruct,
 } from "@/constructs/construct-store.ts";
-import {
-  interviewConstruct,
-  saveInterviewConstruct,
-} from "@/constructs/interview-construct.ts";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { startQuest } from "@/conversations/start-quest.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
 import type { OwnPrompt } from "@/prompts/own-prompt-store.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
@@ -51,7 +46,6 @@ interface KindCase {
     id: string,
   ) => Promise<OwnPrompt<unknown> | undefined>;
   readonly list: (owner: UserId) => Promise<OwnPrompt<unknown>[]>;
-  readonly select: (owner: UserId, id: string) => Promise<unknown>;
   readonly update: typeof updateConstruct;
 }
 const KINDS: readonly KindCase[] = [
@@ -62,7 +56,6 @@ const KINDS: readonly KindCase[] = [
     read: getOwnConstruct,
     list: listConstructs,
     update: updateConstruct,
-    select: chosenConstruct,
   },
 ];
 function form(fields: Record<string, string>): FormData {
@@ -92,7 +85,6 @@ describe("use_case_retire_definitions", () => {
       });
       expect(retired?.texts.length).toBeGreaterThan(0);
       expect(await kind.read(owner.id, copy.id)).toBeUndefined();
-      expect(await kind.select(owner.id, copy.id)).toBeUndefined();
       expect(await kind.list(owner.id)).toEqual([]);
       expect(
         await kind.update(owner.id, copy.id, { name: "stale edit" }),
@@ -104,23 +96,18 @@ describe("use_case_retire_definitions", () => {
       ).toEqual(retired?.retiredAt);
     },
   );
-  test("new quests reject a retired construct while existing conversations retain it", async () => {
+  test("existing conversations retain a retired construct", async () => {
     const owner = await testUser();
     const copy = await cloneConstruct(owner.id, "lumen");
     if (copy === undefined) {
       throw new Error("No copy");
     }
-    await saveInterviewConstruct(owner.id, copy.id);
     await signIn(owner);
-    const chosen = await chosenConstruct(owner.id, copy.id);
-    if (chosen === undefined) {
-      throw new Error("Her copy is not hers");
-    }
-    const started = await startQuest(
-      owner.id,
-      QUEST_NAME.parse("Fox"),
-      chosen.construct,
-    );
+    const started = await startQuest(owner.id, QUEST_NAME.parse("Fox"), {
+      id: DEFAULT_CONSTRUCT_ID,
+      name: copy.name,
+      definition: copy.definition,
+    });
     if (started.kind !== "started") {
       throw new Error(`The quest didn't start: ${started.kind}`);
     }
@@ -128,14 +115,10 @@ describe("use_case_retire_definitions", () => {
       () => retireConstructAction(form({ constructId: copy.id })),
       "/workshop?retired=1",
     );
-    expect(await chosenConstruct(owner.id, copy.id)).toBeUndefined();
-    expect((await interviewConstruct(owner.id)).id).toBe("vellum");
     expect((await getChat(owner.id, started.chat.id))?.construct).toEqual({
       name: copy.name,
       definition: copy.definition,
     });
-    await restoreDefinition(owner.id, copy.id);
-    expect((await interviewConstruct(owner.id)).id).toBe(copy.id);
   });
   test("a former quest membership gives no access to originals or Retirement changes", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
@@ -176,7 +159,6 @@ describe("use_case_restore_retired_definition", () => {
         "/retirement?restored=1",
       );
       expect(await kind.read(owner.id, copy.id)).toEqual(copy);
-      expect(await kind.select(owner.id, copy.id)).toBeDefined();
       expect(await listRetiredDefinitions(owner.id)).toEqual([]);
       expect(await restoreDefinition(owner.id, copy.id)).toBe(false);
     },
@@ -196,7 +178,6 @@ describe("use_case_restore_retired_definition", () => {
     if (row === undefined) {
       throw new Error("No bought copy");
     }
-    const gold = await readGoldBalance(buyer.id);
     const before = await getOwnConstruct(buyer.id, row.id);
     expect(before?.name).toBe("Bought guide");
     expect(await getOwnConstruct(stranger.id, row.id)).toBeUndefined();
@@ -212,7 +193,6 @@ describe("use_case_restore_retired_definition", () => {
     expect(edited?.definition.prompt).toBe("Now made my own.");
     const clone = await cloneConstruct(buyer.id, row.id);
     expect(clone?.definition.prompt).toBe("Now made my own.");
-    expect(await readGoldBalance(buyer.id)).toEqual(gold);
   });
 });
 

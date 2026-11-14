@@ -57,4 +57,4 @@ function reloadForNewerBuild(
   return true;
 }
 
-export { RELOAD_WINDOW_MS, reloadForNewerBuild };
+export { reloadForNewerBuild };

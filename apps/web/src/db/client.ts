@@ -8,7 +8,6 @@ import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import { Pool, type PoolClient } from "pg";
 import { readDatabaseUrl } from "../env.ts";
 import { logAppError } from "../errors/error-log.ts";
-import { countServerQuery } from "../performance/query-counter.ts";
 
 const LOCAL_HOSTS: ReadonlySet<string> = new Set([
   "localhost",
@@ -49,16 +48,12 @@ function isOnThisMachine(host: string): boolean {
 function getDb(): Database {
   if (database === undefined) {
     const url = readDatabaseUrl();
-    const logger = { logQuery: countServerQuery };
     if (isOnThisMachine(new URL(url).hostname)) {
       localPool = new Pool({ connectionString: url, allowExitOnIdle: true });
       localPool.on("error", logIdleConnectionError);
-      database = drizzleOverPool({
-        client: localPool,
-        logger,
-      });
+      database = drizzleOverPool({ client: localPool });
     } else {
-      database = drizzle({ client: neon(url), logger });
+      database = drizzle({ client: neon(url) });
     }
   }
   return database;
@@ -91,12 +86,10 @@ function openPool(databaseUrl: string): DatabasePool {
 // Builds the matching adapter for a caller-owned pool.
 function pooledDatabase(pool: DatabasePool): Database {
   if (pool instanceof Pool) {
-    return drizzleOverPool(pool, { logger: { logQuery: countServerQuery } });
+    return drizzleOverPool(pool);
   }
   if (pool instanceof NeonPool) {
-    return drizzleOverNeonPool(pool, {
-      logger: { logQuery: countServerQuery },
-    });
+    return drizzleOverNeonPool(pool);
   }
   throw new Error("Unknown database pool driver.");
 }
@@ -114,11 +107,4 @@ async function inTransaction<T>(
 }
 
 export type { Database, Transaction };
-export {
-  closeDb,
-  getDb,
-  inTransaction,
-  isOnThisMachine,
-  openPool,
-  pooledDatabase,
-};
+export { closeDb, getDb, inTransaction, openPool, pooledDatabase };

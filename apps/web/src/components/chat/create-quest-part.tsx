@@ -1,18 +1,13 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
-import { QuestFromChat } from "@/components/quest-from-chat.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import {
-  CREATE_QUEST_OUTPUT,
-  offeredContext,
-} from "@/replies/tools/create-quest-contract.ts";
+import { CREATE_QUEST_OUTPUT } from "@/replies/tools/create-quest-contract.ts";
 import { CREATE_QUEST_COPY } from "@/ui/copy/chat.ts";
 
-// The quest the construct offers in Chat, with Turn Chat into a quest filled
-// in from it, so the user creates it only by confirming the same form as the
-// Chat's own button. A result saved before offers shows the quest it created,
-// or why it created none. Nothing shows until the call has answered.
+// The quest the construct offered in Chat. A result saved before offers
+// shows the quest it created, or why it created none. Nothing shows until
+// the call has answered.
 export function CreateQuestPart({
   part,
 }: {
@@ -31,7 +26,6 @@ export function CreateQuestPart({
             <Icon name="plus" />
             {CREATE_QUEST_COPY.offered(result.name)}
           </p>
-          <QuestFromChat context={offeredContext(result)} name={result.name} />
         </div>
       );
     case "created":

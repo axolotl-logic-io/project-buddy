@@ -8,7 +8,7 @@ Begin by stating the product's intended tone and audience from the available pro
 
 Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md`, `GLOSSARY.md` and the product documents linked from `docs/README.md`. Distinguish current behavior from plans and historical design records.
 
-The "Site UI" section of the practices defines the theme rules: one parchment theme with Light, Dark and System modes, and semantic tokens for every color, font, radius, shadow, border width, page decoration and spacing step. Read `apps/web/src/themes/contract.css`, `apps/web/src/themes/parchment.css`, `apps/web/src/app/page-roles.css` and `apps/web/src/components/chat/chat.css`. Read `docs/construct-visuals.md` for construct artwork and framing, and the design records under `docs/design/` and `docs/mockups/`.
+The "Site UI" section of the practices defines the theme rules: one parchment theme with Light, Dark and System modes, and semantic tokens for every color, font, radius, shadow, border width, page decoration and spacing step. Read `apps/web/src/themes/contract.css`, `apps/web/src/themes/parchment.css`, `apps/web/src/app/page-roles.css` and `apps/web/src/components/chat/chat.css`. Read `docs/construct-visuals.md` for construct artwork and framing.
 
 The token files tell you what the design intends. The rendered site tells you what users see. Base findings on the rendered site, and use the files to explain causes and to aim recommendations.
 
@@ -21,7 +21,7 @@ View every screen in both Light and Dark mode. View each at widths of 360 px (ph
 - Empty, with no saved work.
 - Typical, with realistic amounts of content.
 - Crowded, with long names, long messages, many items and wrapped text.
-- Loading, waiting on a model reply or image, and failed.
+- Loading, waiting on a construct reply or saved image, and failed.
 - Notices: `Notice`, `FormStatus` and `Alert`.
 - Construct artwork present, and missing so initials show.
 
@@ -30,9 +30,9 @@ View every screen in both Light and Dark mode. View each at widths of 360 px (ph
 ### Areas the usability review leaves out
 
 - **Visual identity:** Whether the parchment theme reads as one intentional design language. Whether it fits the product's tone, and whether any screen looks borrowed from another product or left at framework defaults.
-- **Typography:** Typeface choice and pairing, the heading roles and type scale, weight, line height, line length and letter spacing. Check rendered Markdown in construct replies, numbers, battery balances and long words.
+- **Typography:** Typeface choice and pairing, the heading roles and type scale, weight, line height, line length and letter spacing. Check rendered Markdown in construct replies, numbers and long words.
 - **Color:** Palette harmony, how accent color earns attention, and how state colors read. Judge Dark mode as its own design, not an inversion of Light. Automated tests check WCAG AA contrast, so judge whether contrast feels comfortable and deliberate rather than merely passing.
-- **Imagery and iconography:** Icon style, stroke weight, size and alignment with text. Check construct artwork for quality, crop, framing within its square, and consistency between built-in and generated art. Check that the initials fallback looks designed, not broken.
+- **Imagery and iconography:** Icon style, stroke weight, size and alignment with text. Check construct artwork for quality, crop, framing within its square, and consistency between built-in art and previously generated art. Check that the initials fallback looks designed, not broken.
 - **Surfaces and depth:** Borders, radii, shadows and page decorations. Check whether elevation is used consistently and whether decorations support content or compete with it.
 - **States as design:** Whether loading, empty, error and success states look as finished as the typical state.
 - **Motion:** Any transitions or animated feedback, and whether they feel consistent and restrained. Note where an abrupt change looks unfinished.
@@ -58,11 +58,11 @@ Capture screenshots as evidence, citing the screen, mode, width and state of eac
 
 Aim recommendations at the token contract where possible. Say whether a fix belongs in a component, in a shared role in `page-roles.css` or `chat.css`, or in the theme itself in `parchment.css` or `contract.css`. A finding that recurs across screens usually points to a shared role or token.
 
-## Test data and paid use
+## Test data
 
-Real model use and spending batteries are authorized for this review, including replies, generated quest openings and image generation. Generate construct artwork where needed to judge it in each of its frames. Record paid operations and battery balance changes where observable.
+Constructs run the local command engine and make no requests to AI model companies. Constructs don't generate artwork; judge the built-in artwork and any existing artwork in each of its frames.
 
-Use isolated review accounts and disposable data in a local environment with an isolated local database and separate provider-only credentials. Production, Preview and Development share one database; do not use those deployments for test writes or paid checks. Create the content needed to show empty, typical and crowded states, and clean it up afterward. Do not alter unrelated user data or send account invitations or sign-in emails to uninvolved people. Use the file outbox for review email. Follow `docs/Site-Operations.md` for production boundaries; authorization to spend batteries does not authorize production test writes. If an account, service or device is unavailable, report the affected screens as coverage gaps.
+Use isolated review accounts and disposable data in a local environment with an isolated local database. Production, Preview and Development share one database; do not use those deployments for test writes. Create the content needed to show empty, typical and crowded states, and clean it up afterward. Do not alter unrelated user data or send sign-in emails to uninvolved people. Use the file outbox for review email. Follow `docs/Site-Operations.md` for production boundaries. If an account, service or device is unavailable, report the affected screens as coverage gaps.
 
 ## Report
 
@@ -81,4 +81,4 @@ For each finding, provide:
 
 Lead with the most consequential findings, and group findings that share one cause. Include a coverage table with every screen, its use case slug or route, verdict, the modes and widths viewed, and unassessed states. Use No issue observed, Issue found, Partially assessed, Not assessed or No visual surface. Explain each partial assessment and each missing one. Give totals by verdict.
 
-Finish with the main visual strengths, open questions about the intended tone, coverage gaps, paid operations and cleanup status. Do not make changes to the app, tests or documentation.
+Finish with the main visual strengths, open questions about the intended tone, coverage gaps and cleanup status. Do not make changes to the app, tests or documentation.

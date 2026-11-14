@@ -5,7 +5,6 @@ import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { startDailies } from "@/conversations/dailies.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { resetConversation } from "@/conversations/reset-conversation.ts";
 import { getDb } from "@/db/client.ts";
 import {
@@ -25,6 +24,7 @@ import { currentSpell, setSpell } from "@/spells/spell-store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import { privateChat } from "../../support/test-database/private-chat-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 async function writeMessage(

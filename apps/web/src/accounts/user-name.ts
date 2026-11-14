@@ -10,9 +10,6 @@
 // check refuses longer ones.
 const USER_NAME_MAX_LENGTH = 60;
 
-// The text a construct's part says where the construct should use her name.
-const NAME_PLACEHOLDER = "{{name}}";
-
 // Any line break, including Unicode's line and paragraph separators.
 const LINE_BREAK = /[\r\n\u2028\u2029]/u;
 
@@ -49,16 +46,5 @@ function checkUserName(value: string): UserNameCheck {
   return { kind: "valid", name };
 }
 
-// What {{name}} becomes for a user who has given no name.
-const NO_NAME = "the user";
-
-// The text with every literal {{name}} replaced by the user's name, or by
-// "the user" when she has none. Other braces stay as written. The name comes
-// from a function, not a replacement string, so a "$&" in it stays as typed.
-function withUserName(text: string, userName: string | undefined): string {
-  const name = userName ?? NO_NAME;
-  return text.replaceAll(NAME_PLACEHOLDER, () => name);
-}
-
-export type { UserNameCheck, UserNameProblem };
-export { checkUserName, NAME_PLACEHOLDER, USER_NAME_MAX_LENGTH, withUserName };
+export type { UserNameProblem };
+export { checkUserName, USER_NAME_MAX_LENGTH };

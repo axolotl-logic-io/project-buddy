@@ -14,7 +14,7 @@ type Cookie = Parameters<BrowserContext["addCookies"]>[0][number];
 // on http://localhost. Tests about anything but signing in sign in with a
 // session they make themselves, which skips the email and its link; the
 // tests of signing in go through the pages (test/system/sign-in-pages.ts).
-export async function testSessionCookie(
+async function testSessionCookie(
   account: SessionUser,
   baseUrl: string,
 ): Promise<Cookie> {

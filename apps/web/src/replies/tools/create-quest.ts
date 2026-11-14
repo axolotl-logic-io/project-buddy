@@ -1,8 +1,6 @@
 // The construct's tool, in Chat only, for offering to turn the Chat into a
-// quest. It creates nothing and spends nothing: its result holds the
-// suggested name and starting context, which the conversation shows as Turn Chat into
-// a quest, the same form the Chat's own button opens, for the user to edit
-// and confirm (src/components/quest-from-chat.tsx).
+// quest. It creates nothing: its result holds the suggested name and
+// starting context, which the conversation shows as the offer.
 
 import { tool } from "ai";
 import {

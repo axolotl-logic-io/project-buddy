@@ -121,14 +121,6 @@
     @apply w-full min-w-0 font-heading text-section-heading sm:text-page-heading;
   }
 
-  .construct-generation-spinner {
-    @apply inline-block size-5 shrink-0 rounded-full border border-line;
-    border-block-start-color: var(--primary);
-    @media (prefers-reduced-motion: no-preference) {
-      animation: construct-generation-spin 1s linear infinite;
-    }
-  }
-
   @keyframes construct-generation-spin {
     to {
       transform: rotate(360deg);
@@ -159,11 +151,6 @@
 
   .page-frame-editor {
     @apply max-w-6xl;
-  }
-
-  .page-title-row {
-    min-block-size: var(--target-size);
-    @apply flex flex-wrap items-center justify-between gap-4;
   }
 
   .page-slot {
@@ -283,14 +270,6 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  /* The link above a page's heading, back to where the page sits: a
-     target's height, with its words in the middle. */
-  .back-link {
-    overflow-wrap: anywhere;
-    min-inline-size: 0;
-    @apply inline-flex min-h-(--target-size) items-center gap-1.5 self-start rounded-control text-muted text-sm hover:text-foreground hover:underline hover:underline-offset-4;
-  }
-
   /* Buttons, and links that look like one. Every button is at least a
      target's height and keeps one border, so buttons of different weights
      line up in a row. */
@@ -315,17 +294,6 @@
      colour. */
   .button-danger {
     @apply border-transparent bg-danger text-on-danger;
-  }
-
-  /* A balance shown as a figure, such as Account's batteries: a small label
-     over the number, which is the focal point. */
-  .balance-label {
-    @apply font-semibold text-muted text-sm;
-  }
-
-  .balance-amount {
-    @apply font-heading font-semibold text-5xl leading-none;
-    font-variant-numeric: tabular-nums;
   }
 
   /* A small action inside a list or a form, such as restoring a version:
@@ -448,8 +416,8 @@
   }
 
   /* A list whose items are rows divided by rules rather than cards, as the
-     Quests index lists its quests: a quest's adventures, milestones, Quick
-     Journal versions, and every other list of adventures. Inside
+     Quests index lists its quests: a quest's milestones, its Quick Notes,
+     and every other list of adventures. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
   .divided-rows {
@@ -464,70 +432,6 @@
      a height, so their action rows line up. */
   .card-actions {
     @apply mt-auto flex flex-wrap items-center gap-x-3 gap-y-1;
-  }
-
-  /* The quest an activity's card offers, set off below the card's own
-     actions. Its list keeps each card's own height, so the offer doesn't
-     stretch the card beside it into an empty box. */
-  .activity-quest-entry {
-    @apply flex flex-col items-start gap-3 border-line border-t pt-3;
-  }
-
-  ul:has(> .card > .activity-quest-entry) {
-    @apply items-start;
-  }
-
-  /* A row that is one link, such as an adventure in a list: the row's one
-     link stretches over the whole row, so a click anywhere on it follows
-     the link, while the link's own words stay its accessible name. */
-  .link-row {
-    @apply relative;
-  }
-
-  .link-row a {
-    @apply after:absolute after:inset-0 hover:text-primary;
-  }
-
-  /* The chosen construct's card between bars to the previous and next
-     construct. The card holds three lines of description. */
-  .construct-picker {
-    @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
-  }
-
-  .construct-picker-face {
-    @apply flex min-w-0;
-  }
-
-  /* A bar is a target wide and the card's height. The picker's corners clip
-     what lies outside them, so the focus ring is drawn inside the bar. */
-  .construct-picker-bar {
-    @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
-  }
-
-  .construct-picker-bar:focus-visible {
-    outline-offset: calc(-1 * var(--focus-offset) - 2px);
-  }
-
-  .construct-picker-card {
-    @apply flex min-w-0 flex-1 items-start gap-3 p-3;
-  }
-
-  .construct-picker-description {
-    @apply mt-1 line-clamp-3 h-[3lh] text-sm;
-  }
-
-  /* A construct's initials, in a circle. On the narrowest screens the card
-     leaves them out, to keep room for the description. */
-  .construct-monogram {
-    @apply flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold font-heading text-on-primary text-sm;
-  }
-
-  .construct-picker-card .construct-monogram {
-    @apply max-[24rem]:hidden;
-  }
-
-  .construct-monogram-own {
-    @apply bg-accent text-on-accent;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
@@ -637,7 +541,7 @@
      theme dresses it through the menu tokens (src/themes/themes.ts). */
   /* The header is a game's HUD in every theme, with an independent ink and
      gold palette: one row of the brand, a compass medallion and the site's
-     name, then the balance and the buttons as ink tiles with a gold rim.
+     name, then the buttons as ink tiles with a gold rim.
      The menu's panel inside it keeps the theme's own look, so only the
      header's own children are dressed. */
   .site-header {
@@ -653,7 +557,7 @@
     --focus-outline: 3px solid var(--hud-gold);
   }
 
-  /* The brand pushes the balance and the buttons to the right edge. */
+  /* The brand pushes the buttons to the right edge. */
   .hud-title {
     @apply mr-auto inline-flex min-h-(--target-size) min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
@@ -692,19 +596,6 @@
     background: var(--hud-gold);
     color: var(--hud-ink);
     border-color: var(--hud-paper);
-  }
-
-  /* The battery balance, as a HUD counter: a gold battery and the number
-     beside it. */
-  .header-balance {
-    @apply flex shrink-0 items-center gap-1.5 font-semibold;
-    font-variant-numeric: tabular-nums;
-    overflow-wrap: anywhere;
-    max-inline-size: 7rem;
-  }
-
-  .header-balance > .icon {
-    color: var(--hud-gold);
   }
 
   /* A page with a trail: the bar and its rim scroll away, and the trail
@@ -811,25 +702,14 @@
     text-transform: var(--menu-label-case);
   }
 
-  /* A link in the menu, and a theme's choice: a row a target's height,
-     highlighted when pointed at or focused. */
-  .menu-link,
-  .menu-choice {
+  /* A link in the menu: a row a target's height, highlighted when pointed
+     at or focused. */
+  .menu-link {
     @apply flex min-h-(--target-size) items-center gap-2 rounded-control px-2 hover:bg-accent hover:text-on-accent;
-  }
-
-  .menu-choice {
-    @apply cursor-pointer has-focus-visible:bg-accent has-focus-visible:text-on-accent;
   }
 
   .menu-link:focus-visible {
     @apply bg-accent text-on-accent;
-  }
-
-  /* A theme's radio button: a ring, filled in when chosen, in the row's
-     text colour. */
-  .menu-radio {
-    @apply size-4 shrink-0 appearance-none rounded-full border-(length:--line-width) border-current checked:bg-[radial-gradient(circle,currentColor_40%,transparent_45%)];
   }
 
   /* The modes, side by side, the chosen one filled. */
@@ -942,8 +822,7 @@
      inside itself rather than wrapping. Where tabs lie past an edge, that
      edge fades (scroll-driven, where the browser supports it), so the row
      shows there is more of it. A focused tab scrolls clear of the fade. */
-  .workspace-tablist,
-  .quest-workspace-nav {
+  .workspace-tablist {
     --tablist-fade: --spacing(8);
     scroll-padding-inline: var(--tablist-fade);
     overscroll-behavior-inline: contain;
@@ -951,21 +830,18 @@
   }
 
   @supports (scrollbar-width: none) {
-    .workspace-tablist,
-    .quest-workspace-nav {
+    .workspace-tablist {
       scrollbar-width: none;
     }
   }
 
-  .workspace-tablist > *,
-  .quest-workspace-nav > * {
+  .workspace-tablist > * {
     @apply shrink-0;
   }
 
   /* The scrolling row would clip a ring drawn outside a tab, so a tab's
      ring sits just inside its own edge. */
-  .workspace-tablist :focus-visible,
-  .quest-workspace-nav :focus-visible {
+  .workspace-tablist :focus-visible {
     outline-offset: calc(-1 * var(--focus-offset));
   }
 
@@ -973,8 +849,7 @@
      both edges in between and the start edge at the end. A row with
      nothing to scroll has no timeline, so it never fades. */
   @supports (animation-timeline: scroll()) and (mask-image: none) {
-    .workspace-tablist,
-    .quest-workspace-nav {
+    .workspace-tablist {
       animation: tablist-fade linear both;
       animation-timeline: scroll(self inline);
     }
@@ -1042,12 +917,6 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
-  /* Parts of one tab that would each be a panel elsewhere, such as
-     Account's balance and purchases, flattened and divided by a rule. */
-  .workspace-content > .workspace-part + .workspace-part {
-    @apply border-line border-t pt-4;
-  }
-
   /* Built-in or own constructs, activities or spells: two columns from sm
      up, or one column of rows inside a tabbed page (workspace-rows). */
   .definition-grid {
@@ -1071,17 +940,6 @@
 
   .workspace-rows > ul > .card {
     @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
-  }
-
-  .workspace-reader {
-    @apply grid min-w-0 gap-6 p-4 sm:p-6;
-    @media (width >= 48rem) {
-      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
-    }
-  }
-
-  .workspace-chapters {
-    @apply flex min-w-0 flex-col gap-2;
   }
 
   .appearance-settings .menu-modes {
@@ -1293,11 +1151,6 @@
     @apply wrap-anywhere;
   }
 
-  /* The plan as a card in the conversation, and on the Journal page. */
-  .plan-card {
-    @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
-  }
-
   /* A person's plan message, inside their message's own frame: the command
      they typed, ruled off from the change or card it made, which need no
      frame of their own there. */
@@ -1305,8 +1158,7 @@
     @apply flex min-w-0 flex-col gap-2;
   }
 
-  .plan-message .plan-change,
-  .plan-message .plan-card {
+  .plan-message .plan-change {
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 

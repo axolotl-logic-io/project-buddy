@@ -15,9 +15,6 @@ function workshopPath(kind: "construct" | "spell"): Route {
   return `/workshop?kind=${kind}`;
 }
 
-// The Settings page.
-const SETTINGS_PATH = "/settings";
-
 // The page a sign-in link opens, and its parameter naming where continuing
 // leads, when not home.
 const SIGN_IN_LINK_PATH = "/login/link";
@@ -40,7 +37,6 @@ function localPath(value: unknown): string | undefined {
 export {
   HOME_PATH,
   localPath,
-  SETTINGS_PATH,
   SIGN_IN_DESTINATION_PARAMETER,
   SIGN_IN_LINK_PATH,
   SIGN_IN_PATH,

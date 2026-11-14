@@ -80,5 +80,4 @@ async function choose(group: string, name: string): Promise<void> {
   });
 }
 
-export type { AppliedChoice };
 export { appliedChoice, choice, choose, closeMenu, menuButton, openMenu };

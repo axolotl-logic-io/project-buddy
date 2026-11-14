@@ -14,10 +14,5 @@ interface NamedDefinition<Definition> {
   readonly definition: Definition;
 }
 
-interface ResetPrompt {
-  readonly source: string | undefined;
-  readonly prompt: string;
-}
-
-export type { NamedDefinition, PromptKind, ResetPrompt };
+export type { NamedDefinition, PromptKind };
 export { PROMPT_KINDS, STORED_PROMPT_KIND, STORED_PROMPT_KIND_LIST };

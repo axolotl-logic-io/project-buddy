@@ -1,5 +1,5 @@
 // Regression coverage for saved working note rendering.
-// the parts the mock construct's `/mock-working-note zibble` streams, a note, a
+// the parts the construct's `/mock-working-note zibble` streams, a note, a
 // search of the manual for "zibble", then the answer. The note shows quiet
 // (smaller, in another colour) and labelled before the search, and the answer
 // as prose after it, as the reply streams and once it is saved. That the

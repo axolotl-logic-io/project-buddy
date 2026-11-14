@@ -157,5 +157,4 @@ function useComposerCommands(): ComposerCommands {
   };
 }
 
-export type { ComposerCommands };
 export { useComposerCommands };

@@ -7,7 +7,6 @@ import {
   getConstruct,
   isConstructId,
 } from "@/constructs/index.ts";
-import type { ConstructVisual } from "@/constructs/visual.ts";
 import type { UserId } from "@/ids.ts";
 import {
   cloneOwnPrompt,
@@ -18,16 +17,11 @@ import {
   getOwnPrompt,
   listOwnPrompts,
   type OwnPrompt,
-  type OwnPromptChoice,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { NamedDefinition } from "@/prompts/prompt.ts";
 
 type OwnConstruct = OwnPrompt<ConstructDefinition>;
-
-type OwnConstructChoice = OwnPromptChoice & {
-  readonly visual?: ConstructVisual | undefined;
-};
 
 type ConstructEdit = DefinitionEdit<ConstructDefinition>;
 
@@ -87,4 +81,4 @@ export function deleteConstruct(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(CONSTRUCT_STORE, owner, id);
 }
 
-export type { ConstructEdit, OwnConstruct, OwnConstructChoice };
+export type { OwnConstruct };

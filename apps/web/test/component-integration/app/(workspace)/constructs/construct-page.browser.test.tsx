@@ -116,18 +116,4 @@ test("built-in visuals stay read-only beside Make a copy and all four role previ
   expect(page.getByRole("img", { name: "Lumen" }).elements()).toHaveLength(
     VISUAL_ROLE_COUNT,
   );
-  await expect
-    .element(
-      page.getByRole("region", { name: PROMPT_COPY.constructFieldsHeading }),
-    )
-    .not.toBeInTheDocument();
-  await expect
-    .element(
-      page.getByRole("heading", {
-        level: 2,
-        name: PROMPT_COPY.constructFieldsHeading,
-        exact: true,
-      }),
-    )
-    .not.toBeInTheDocument();
 });

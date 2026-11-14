@@ -30,7 +30,6 @@ import {
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
@@ -56,12 +55,7 @@ import {
   FOX_MILESTONES,
   FOX_QUEST,
 } from "./(workspace)/page-fixtures.ts";
-import {
-  GOLD_BALANCE,
-  LINK_USER,
-  OWN_SPELL,
-  VELLUM_CLONE,
-} from "./phone-pages-fixtures.ts";
+import { LINK_USER, OWN_SPELL, VELLUM_CLONE } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
 // One page as the phone checks render it.
@@ -319,7 +313,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([]);
-        vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
       },
       async () => SettingsLayout({ children: await SettingsPage() }),
     ),

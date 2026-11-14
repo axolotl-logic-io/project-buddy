@@ -1,6 +1,7 @@
-// The user's private Chat: one continuing conversation for talking without
-// a goal, open to that user alone. It has no quest, so the construct has no
-// Plan or Progress to read or write in it.
+// A user's private Chat, as the site made it before quests held every
+// conversation: one continuing conversation in no quest, open to that user
+// alone. The site still opens and answers the ones it made; tests make them
+// here.
 import {
   type Conversation,
   findOrCreateConversation,
@@ -8,10 +9,8 @@ import {
 import { defaultStart } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
 
-// The user's private Chat, made empty, in the default construct and the open
-// chat, the first time it is asked for: of concurrent calls, exactly one
-// makes it. It has no opening, so reading it calls no model and spends no
-// batteries. A user who no longer exists is not found, which throws.
+// The user's private Chat, made empty in the default construct the first
+// time it is asked for: of concurrent calls, exactly one makes it.
 async function privateChat(user: UserId): Promise<Conversation> {
   const found = await findOrCreateConversation(user, undefined, defaultStart());
   if (found === undefined) {

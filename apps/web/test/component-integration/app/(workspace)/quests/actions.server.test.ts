@@ -1,6 +1,6 @@
 import { currentSpell } from "@/spells/spell-store.ts";
 import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
-// Starting quests, in the test database with the mock construct: what the
+// Starting quests, in the test database with the local construct engine: what the
 // one start action makes from each of the four starting points, as the
 // stores give it to the pages. Concurrent Dailies starts and their
 // isolation are conversations.server.test.ts's.

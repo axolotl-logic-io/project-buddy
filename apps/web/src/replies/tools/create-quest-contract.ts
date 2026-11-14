@@ -65,25 +65,10 @@ const CREATE_QUEST_OUTPUT = z.discriminatedUnion("status", [
 type CreateQuestInput = z.infer<typeof CREATE_QUEST_INPUT>;
 type CreateQuestOutput = z.infer<typeof CREATE_QUEST_OUTPUT>;
 
-// The starting context an offer suggests: its summary, then the motivation, if any,
-// under its own heading.
-function offeredContext({
-  summary,
-  motivation,
-}: Pick<CreateQuestInput, "summary" | "motivation">): string {
-  if (motivation === "") {
-    return summary;
-  }
-  return `${summary}\n\n## Motivation\n${motivation}`;
-}
-
 export type { CreateQuestInput, CreateQuestOutput };
 export {
   CREATE_QUEST_DESCRIPTION,
   CREATE_QUEST_INPUT,
   CREATE_QUEST_OUTPUT,
   CREATE_QUEST_TOOL,
-  offeredContext,
-  TRANSFER_MOTIVATION_MAX,
-  TRANSFER_SUMMARY_MAX,
 };

@@ -93,7 +93,6 @@ function appErrorResponse(errorCase: AppErrorCase, status: number): Response {
 
 export type { AppErrorCase };
 export {
-  APP_ERROR_CASES,
   appErrorResponse,
   isUnrecognisedCaseName,
   readAppErrorCase,

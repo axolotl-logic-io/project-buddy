@@ -255,5 +255,5 @@ function textAt(mapping: YamlMapping, ...path: readonly string[]): string {
   return "";
 }
 
-export type { YamlMapping, YamlValue };
+export type { YamlMapping };
 export { at, isMapping, parseWorkflow, stepOf, stepsOf, textAt };

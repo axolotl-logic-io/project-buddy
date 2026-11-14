@@ -35,10 +35,8 @@ function checkNoteText(
 
 // A Quick Note to save, before its text is checked.
 const SAVE_NOTE_REQUEST = z.object({ questId: QUEST_ID, text: z.string() });
-type SaveNoteRequest = z.infer<typeof SAVE_NOTE_REQUEST>;
 
 const DELETE_NOTE_REQUEST = z.object({ questId: QUEST_ID, id: NOTE_ID });
-type DeleteNoteRequest = z.infer<typeof DELETE_NOTE_REQUEST>;
 
 // What a save or delete did: done, or a reason for the user.
 type NoteResult =
@@ -51,15 +49,7 @@ interface NoteQuest {
   readonly name: string;
 }
 
-export type {
-  DeleteNoteRequest,
-  Note,
-  NoteId,
-  NoteQuest,
-  NoteResult,
-  NoteTextProblem,
-  SaveNoteRequest,
-};
+export type { Note, NoteId, NoteQuest, NoteResult, NoteTextProblem };
 export {
   checkNoteText,
   DELETE_NOTE_REQUEST,

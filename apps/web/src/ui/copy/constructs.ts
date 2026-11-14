@@ -1,9 +1,4 @@
-// The text of the Constructs page: the built-in constructs and the user's own,
-// each with its actions.
-import { pageTitle } from "@/ui/copy/site.ts";
-
 export const CONSTRUCTS_COPY = {
-  heading: "Constructs",
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
@@ -24,8 +19,6 @@ export const CONSTRUCTS_COPY = {
 // The text of a construct's page: its instructions as named parts, editable
 // for a construct of the user's own, read-only for a built-in one.
 export const CONSTRUCT_COPY = {
-  title: pageTitle("Construct"),
-  constructsLink: "Constructs",
   loading: "Loading construct…",
   builtInIntro:
     "A built-in construct can't be changed. Choose Make a copy to edit your own version.",

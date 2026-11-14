@@ -35,7 +35,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things the user can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why the user would.
-- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory. The completeness assessment is recorded in `docs/use-case-assessment.md` at the repository root.
+- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 
 ## Local construct tests
