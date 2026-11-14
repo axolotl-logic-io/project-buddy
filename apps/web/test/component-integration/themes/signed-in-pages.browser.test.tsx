@@ -94,7 +94,7 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";
 const QUEST_PATH = ["quests", FOX_QUEST.id] as const;
 
-// Her question and the mock construct's Markdown reply.
+// Her question and the construct's Markdown reply.
 function markdownExchange(): ChatMessage[] {
   return [
     {
@@ -127,7 +127,7 @@ async function renderQuest(name: string): Promise<void> {
   );
 }
 
-// Renders a quest whose conversation's reply is the mock construct's
+// Renders a quest whose conversation's reply is the construct's
 // Markdown.
 async function renderMarkdownChat(): Promise<void> {
   stores.quests.getQuest.mockResolvedValue(FOX_QUEST);

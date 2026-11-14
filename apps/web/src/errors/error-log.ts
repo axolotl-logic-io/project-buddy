@@ -5,7 +5,6 @@
 import type { ContentPart, StepResult, ToolSet } from "ai";
 import type { EmailProblem } from "@/email/email-failure.ts";
 import type { AppErrorCase } from "@/errors/app-error.ts";
-import type { ServerSpan } from "@/performance/server-span.ts";
 import { anthropicErrorDetails } from "./anthropic-errors.ts";
 import { databaseErrorDetails, describeDatabaseQuery } from "./neon-errors.ts";
 
@@ -189,10 +188,4 @@ export function logEmailFailure(
     `[email-error] ${problem} in ${operation}`,
     JSON.stringify(describeError(error, 0)),
   );
-}
-
-// Only the local opt-in recorder calls this. Never include operation input,
-// results, errors, SQL, session data or request identifiers in audit output.
-export function logServerSpan(span: ServerSpan): void {
-  console.info("[server-span]", JSON.stringify(span));
 }

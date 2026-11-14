@@ -5,7 +5,6 @@ const QUEST_STATUS_COPY = {
     completed: "Quest completed.",
     abandoned: "Quest abandoned.",
   },
-  option: (name: string, status: string): string => `${name} (${status})`,
   tabs: "Quest status",
   noQuest: "This command needs a quest. Open a quest and try again.",
   commands: [
@@ -30,7 +29,6 @@ const QUEST_STATUS_COPY = {
   empty: "No quests with this status.",
   effects:
     "Your conversation, Plan and progress stay available. You can restore the quest whenever you want.",
-  pending: "Awaiting your approval",
   approvalHeading: "Confirm quest status change",
   confirm: {
     active: "Confirm restore",

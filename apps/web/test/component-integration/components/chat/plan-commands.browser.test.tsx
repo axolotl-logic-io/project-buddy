@@ -1,5 +1,5 @@
 // The quest's plan in an adventure, in Chromium and WebKit: "/" in the
-// composer lists the built-in commands, and the mock model's while it runs; a
+// composer lists the built-in commands, and the construct's while it runs; a
 // plan command runs without the construct and shows its change in the
 // conversation; the Plan panel changes the plan from beside it; and the
 // construct's change shows with Undo. What the actions save is

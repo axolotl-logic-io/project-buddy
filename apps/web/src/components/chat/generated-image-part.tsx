@@ -11,7 +11,7 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 // there, or the image with its prompt and download link. In the chat the
 // image is 18rem tall and as wide as its shape; fillWidth fills the
 // container's width instead, at the image's own shape, on a sunken slot that
-// frames it while it loads, as the gallery's cards do.
+// frames it while it loads.
 function GeneratedImagePart({
   part,
   fillWidth = false,

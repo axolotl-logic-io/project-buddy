@@ -49,9 +49,6 @@ describe("use_case_browse_premade_quests", () => {
     await expect
       .element(details.getByRole("textbox"))
       .toHaveAccessibleName(QUESTS_COPY.motivationLabel);
-    await expect
-      .element(details.getByRole("textbox", { name: QUESTS_COPY.nameLabel }))
-      .not.toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
 

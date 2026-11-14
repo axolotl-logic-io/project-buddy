@@ -1,5 +1,5 @@
 // Quests' and Chat's continuing conversations, in the test database with
-// the mock construct: one per quest and one private Chat per user, found or
+// the local construct engine: one per quest and one private Chat per user, found or
 // made atomically, never made by reading, open to the quest's people or to
 // the Chat's user alone, and the user's one Dailies quest, reused by its
 // mark whatever its name.

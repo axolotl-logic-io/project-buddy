@@ -37,7 +37,7 @@ function keyedLines(
 
 // One saved plan change, as a notice set apart from the words around it:
 // what each operation did, and Undo while the change can still be undone.
-// A person's change says it spent no batteries; an undo can't be undone.
+// An undo can't be undone.
 function PlanChangeCard({
   version,
   lines,
