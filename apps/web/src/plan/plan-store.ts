@@ -1,8 +1,9 @@
 // Each quest's plan, stored in Postgres as numbered versions: every change
 // saves the whole plan after it, what it did and how to undo it, so the
 // newest version is the plan and the versions are its history. A plan is
-// its quest owner's alone: every function takes the acting user first, so
-// another user's quest has no plan, and nothing is written to it. A change lands on the newest version, so two
+// open to its quest's owner and members: every function takes the acting
+// user first, so a quest not open to them has no plan, and nothing is
+// written to it. A change lands on the newest version, so two
 // changes made at once are both kept, one after the other.
 
 import {
@@ -17,7 +18,7 @@ import {
 } from "drizzle-orm";
 import { alias, QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { planVersionOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import { planVersionOpenTo, questOpenTo } from "@/accounts/owner-scope.ts";
 import { chatAwaitsReply, noReplyAwaited } from "@/chats/store.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
@@ -133,7 +134,7 @@ async function questIsOpen(
     database
       .select({ id: quests.id })
       .from(quests)
-      .where(and(eq(quests.id, questId), questOwnedBy(owner))),
+      .where(and(eq(quests.id, questId), questOpenTo(owner))),
   );
   return rows.length > 0;
 }
@@ -229,7 +230,7 @@ async function saveVersion(
   if (author === "person") {
     userId = owner;
   }
-  const where: SQL[] = [eq(quests.id, questId), questOwnedBy(owner)];
+  const where: SQL[] = [eq(quests.id, questId), questOpenTo(owner)];
   if (chatId !== undefined) {
     where.push(chatInQuest(questId, chatId));
     if (author === "person") {
@@ -350,7 +351,7 @@ async function chatIsInQuest(
         and(
           eq(chats.id, chatId),
           eq(chats.questId, questId),
-          questOwnedBy(owner),
+          questOpenTo(owner),
         ),
       ),
   );

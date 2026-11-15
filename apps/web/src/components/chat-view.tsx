@@ -7,7 +7,6 @@ import type { UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
-  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -86,7 +85,6 @@ const SPELL_COMMANDS: readonly CommandListing[] = [
     description: "Stop the active spell and return to Chat",
   },
 ];
-const NO_COMMANDS: readonly CommandListing[] = [];
 
 // The newest plan the construct's change_plan calls in the messages saved,
 // or undefined if none did.
@@ -132,11 +130,9 @@ function ChatView({
   spellName,
   sideSections,
   initialSection,
-  sidebarActions,
 }: {
   spellName?: string | undefined;
   sideSections?: readonly WorkspaceSection[] | undefined;
-  sidebarActions?: ReactNode;
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
@@ -145,9 +141,8 @@ function ChatView({
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
-  // The chat's quest and its plan as the page read it; undefined in a
-  // standalone chat.
-  questId?: QuestId | undefined;
+  // The chat's quest and its plan as the page read it.
+  questId: QuestId;
   initialPlan?: PlanState | undefined;
   // The plan's Server Actions, which the page hands over in a quest chat.
   planActions?: PlanActions | undefined;
@@ -212,6 +207,13 @@ function ChatView({
   let planDisabledNote: string | undefined;
   if (replying || replyingElsewhere) {
     planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
+  } else if (
+    replyFailed &&
+    shownError !== undefined &&
+    chatFailureCase(shownError) === "not-found"
+  ) {
+    // Retrying can't work for a quest that isn't open to the viewer.
+    planDisabledNote = PLAN_PANEL_COPY.notFound;
   } else if (replyFailed || replyStopped) {
     planDisabledNote = PLAN_PANEL_COPY.unanswered;
   }
@@ -273,20 +275,15 @@ function ChatView({
     if (planActions === undefined) {
       return undefined;
     }
-    let listings: readonly CommandListing[] = NO_COMMANDS;
-    if (questId !== undefined) {
-      listings = [
+    return {
+      listings: [
         ...PLAN_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
         ...SPELL_COMMANDS,
-      ];
-    }
-    return {
-      listings,
-      inQuest: questId !== undefined,
+      ],
       run: runCommand,
     };
-  }, [planActions, questId, runCommand]);
+  }, [planActions, runCommand]);
   const { sendMessage } = chat;
   const stopSpell = useCallback((): void => {
     sendMessage({ text: "/stop" }).catch(() => undefined);
@@ -372,7 +369,6 @@ function ChatView({
           {plan === undefined && conversation}
           {plan !== undefined && (
             <PlanPanel
-              sidebarActions={sidebarActions}
               initialSection={initialSection}
               sideSections={sideSections}
             >

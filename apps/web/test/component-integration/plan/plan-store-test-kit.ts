@@ -29,4 +29,4 @@ const readPlanState = vi.fn<typeof store.readPlanState>(() =>
 );
 const readPlan = vi.fn<typeof store.readPlan>(() => Promise.resolve(FOX_PLAN));
 
-export { FOX_PLAN, FOX_PLAN_STATE, LONG_STEP, readPlan, readPlanState };
+export { readPlan, readPlanState };

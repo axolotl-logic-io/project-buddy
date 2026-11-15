@@ -35,7 +35,7 @@ Built-in spells show read-only explanations and Make a copy. Own spells use the 
 
 - **Goal:** Customize a spell’s name, instructions and message destination.
 - **Prerequisites:** The user is signed in.
-- **Steps:** In Workshop’s Spells tab, create a spell or copy a built-in or own spell. Edit its name and reply texts, choose Plan or Ideas as its message destination, and save. Select it in a quest’s sidebar or type cast followed by its name.
+- **Steps:** In Workshop’s Spells tab, create a spell or copy a built-in or own spell. Edit its name and reply texts, choose Plan or Ideas as its message destination, and save. Select it in a quest sidebar’s Actions tab or type cast followed by its name.
 - **Outcome:** The own spell is private to its owner. Drafts survive navigation until saved or cancelled. Subsequent ordinary messages go to the chosen destination until stopped. Reply templates replace {{name}} with the user’s name. The local engine uses the destination and reply lists; no prose Instructions field is offered. A cast keeps a snapshot: editing or retiring the definition changes future casts, while the active spell keeps its name, destination and replies. The saved-message reply is chosen randomly from that snapshot’s alternatives after capture succeeds. Reply lists support adding, editing, removing and reordering; at least one reply must remain. The selected reply persists through a retry. Retired spells can be restored or deleted from Graveyard.
 
 Construct and spell editor breadcrumbs read Workshop → Constructs → name and Workshop → Spells → name. The collection breadcrumb opens the corresponding Workshop tab.

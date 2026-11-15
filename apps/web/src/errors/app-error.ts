@@ -37,7 +37,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "request-too-large":
     "This message is too long for Claude to read in one go. Shorten it, or send fewer images, and try again.",
   "invalid-image":
-    "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
+    "An image saved in this conversation is no longer available.",
   "invalid-request":
     "The construct could not answer this request. Try again, or try again later if it keeps failing.",
   "model-server-error":
@@ -49,7 +49,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "Your changes could not be saved. Please try again later.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That quest or conversation can't be found. The link may be wrong, or it may have been deleted.",
+    "That quest or conversation can't be found. The link may be wrong, or the quest isn't open to you.",
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
@@ -93,7 +93,6 @@ function appErrorResponse(errorCase: AppErrorCase, status: number): Response {
 
 export type { AppErrorCase };
 export {
-  APP_ERROR_CASES,
   appErrorResponse,
   isUnrecognisedCaseName,
   readAppErrorCase,

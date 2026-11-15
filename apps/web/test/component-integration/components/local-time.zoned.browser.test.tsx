@@ -176,6 +176,7 @@ describe("use_case_view_quests", () => {
             status: "active",
             statusRevision: 0,
             dailies: false,
+            sharing: { kind: "personal" },
           },
         ]}
       />,

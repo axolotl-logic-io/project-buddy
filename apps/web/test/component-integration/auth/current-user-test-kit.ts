@@ -17,6 +17,7 @@ const SIGNED_IN_USER: User = {
   role: "user",
   sessionEpoch: 0,
   name: undefined,
+  accountState: "signed_up",
 };
 
 // What requireUser throws for a signed-out request, as redirect() would.

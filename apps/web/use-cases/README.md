@@ -23,7 +23,8 @@ A case written before its test is listed in `test/component-integration/use-case
 - The site is open to anyone with an email address they can verify.
 - **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
 - **Signing in** is by a link the site emails them. There are no passwords.
-- **Private data:** each user's quests, conversations, Plan and milestones are theirs alone ([`use_case_private_data`](accounts.md#use_case_private_data)). A quest or conversation that isn't theirs looks exactly like one that doesn't exist.
+- **Invitations:** anyone in a quest can invite an address; one with no account gets an invited account at once, which completes sign-up the first time its user continues from an emailed link with a name ([Quest members](quest-members.md)).
+- **Private data:** each user's quests, conversations, Plan and milestones are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest or conversation not open to them looks exactly like one that doesn't exist.
 - **Local constructs:** replies use deterministic commands without requests to model companies.
 
 ## Conventions
@@ -35,7 +36,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things the user can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why the user would.
-- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory. The completeness assessment is recorded in `docs/use-case-assessment.md` at the repository root.
+- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 
 ## Local construct tests
@@ -50,9 +51,11 @@ Each area's cases are in their own file:
 - [Accounts](accounts.md)
 - [Quests](quests.md)
 - [Quest status](quest-status.md)
+- [Quest members](quest-members.md): invite people, join by link or from Pending, and remove members.
 - [Conversations](chats.md)
 - [Plan](plan.md)
 - [Ideas](ideas.md)
+- [Quick Notes](quick-notes.md)
 - [Constructs](constructs.md)
 - [Workshop](workshop.md): create and edit private constructs and spells.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.

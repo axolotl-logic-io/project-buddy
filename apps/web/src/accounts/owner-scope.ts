@@ -1,42 +1,91 @@
+// The only access predicates: every query on user data builds its where
+// from these, so a row that the acting user may not reach is never read or
+// written, and a foreign id reads as not found, exactly as an unknown id
+// does.
+//
+// A quest belongs to its owner, the user who made it, and is open to its
+// owner and its accepted members (quest_members). Everything reached
+// through a quest is open to everyone the quest is open to: its
+// conversation, the conversation's messages, images, spell results and
+// reply runs, its Plan, Ideas, milestones and Quick Notes, and the quest's
+// members and pending invitations, which any of them may see, add to or
+// remove. The owner is never a member row, so no one can remove them. The
+// one action left to the owner alone is finding a quest as their Dailies.
+//
+// A pending quest invitation is not membership: it opens nothing of the
+// quest to its invitee but the quest's name, the inviter's name and the
+// invitation itself, which the invitee alone may accept or decline.
+//
+// Own prompts (constructs and spells) and image generation claims belong to
+// their user alone. A conversation keeps a snapshot of its construct and
+// its active spell, so a member sees the snapshot of an own construct or
+// spell used in the quest, never the definition itself.
+//
+// Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { batteryPurchases } from "@/db/tables/battery-purchases.ts";
-import {
-  constructAssetGrants,
-  constructGenerations,
-} from "@/db/tables/construct-visuals.ts";
-import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
+import { constructGenerations } from "@/db/tables/construct-visuals.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { planVersions } from "@/db/tables/plan-versions.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
+import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
+import { questNotes } from "@/db/tables/quest-notes.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
-import { replyUsage } from "@/db/tables/reply-usage.ts";
 import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
-import { users } from "@/db/tables/users.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
-// A `quests` row of owner's: one owner made, which only they may read or
-// change.
+// A `quests` row of owner's: one owner made, which only they may use as
+// their Dailies.
 function questOwnedBy(owner: UserId): SQL {
   return eq(quests.userId, owner);
 }
 
-// The ids of owner's quests, as a subquery, which drizzle parenthesizes.
-function ownedQuestIds(owner: UserId): SQL {
+// A `quests` row open to user: their own, or one they accepted an
+// invitation to.
+function questOpenTo(user: UserId): SQL {
+  return sql`(${questOwnedBy(user)} or ${exists(
+    new QueryBuilder()
+      .select({ questId: questMembers.questId })
+      .from(questMembers)
+      .where(
+        and(eq(questMembers.questId, quests.id), eq(questMembers.userId, user)),
+      ),
+  )})`;
+}
+
+// The ids of the quests open to user, as a subquery, which drizzle
+// parenthesizes.
+function openQuestIds(user: UserId): SQL {
   return sql`${new QueryBuilder()
     .select({ id: quests.id })
     .from(quests)
-    .where(questOwnedBy(owner))}`;
+    .where(questOpenTo(user))}`;
 }
 
-// A `chats` row open to user: a standalone chat of theirs, or a chat in a
-// quest of theirs.
+// A `quests` row that invitee has a pending invitation to: open to them
+// for its name alone, in Pending, until they accept it.
+function questPendingFor(invitee: UserId): SQL {
+  return exists(
+    new QueryBuilder()
+      .select({ id: questInvitations.id })
+      .from(questInvitations)
+      .where(
+        and(
+          eq(questInvitations.questId, quests.id),
+          eq(questInvitations.inviteeId, invitee),
+        ),
+      ),
+  );
+}
+
+// A `chats` row open to user: a chat in a quest open to them. A standalone
+// chat that an older build made is open to no one.
 function chatOpenTo(user: UserId): SQL {
-  return sql`(${eq(chats.userId, user)} or ${inArray(chats.questId, ownedQuestIds(user))})`;
+  return inArray(chats.questId, openQuestIds(user));
 }
 
 // The ids of the chats open to user, as a subquery.
@@ -61,44 +110,57 @@ function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
 }
 
-// A `milestones` row of a quest of user's.
+// A `milestones` row of a quest open to user.
 function milestoneOpenTo(user: UserId): SQL {
-  return inArray(milestones.questId, ownedQuestIds(user));
+  return inArray(milestones.questId, openQuestIds(user));
 }
 
-// A `plan_versions` row of a quest of user's.
+// A `plan_versions` row of a quest open to user.
 function planVersionOpenTo(user: UserId): SQL {
-  return inArray(planVersions.questId, ownedQuestIds(user));
+  return inArray(planVersions.questId, openQuestIds(user));
 }
 
+// A `quest_ideas` row of a quest open to user.
 function ideaOpenTo(user: UserId): SQL {
-  return inArray(questIdeas.questId, ownedQuestIds(user));
+  return inArray(questIdeas.questId, openQuestIds(user));
 }
 
-// True when the quest is owner's, whatever table the query reads: for an
-// insert … select, which writes a row only into a quest of theirs.
-function ownsQuest(owner: UserId, questId: QuestId): SQL {
+// A `quest_notes` row of a quest open to user.
+function noteOpenTo(user: UserId): SQL {
+  return inArray(questNotes.questId, openQuestIds(user));
+}
+
+// True when the quest is open to user, whatever table the query reads: for
+// an insert … select, which writes a row only into a quest open to them.
+function opensQuest(user: UserId, questId: QuestId): SQL {
   return exists(
     new QueryBuilder()
       .select({ id: quests.id })
       .from(quests)
-      .where(and(eq(quests.id, questId), questOwnedBy(owner))),
+      .where(and(eq(quests.id, questId), questOpenTo(user))),
   );
+}
+
+// A `quest_members` row of a quest open to user, who may see the member
+// and remove them, themselves included.
+function questMemberOpenTo(user: UserId): SQL {
+  return inArray(questMembers.questId, openQuestIds(user));
+}
+
+// A `quest_invitations` row of a quest open to user, who may see it, send
+// it again or withdraw it.
+function questInvitationOpenTo(user: UserId): SQL {
+  return inArray(questInvitations.questId, openQuestIds(user));
+}
+
+// A `quest_invitations` row to invitee, which invitee alone may accept or
+// decline.
+function questInvitationTo(invitee: UserId): SQL {
+  return eq(questInvitations.inviteeId, invitee);
 }
 
 function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
-}
-
-// A `gold_balances` row of owner's: the gold owner's model calls spend.
-function goldBalanceOwnedBy(owner: UserId): SQL {
-  return eq(goldBalances.userId, owner);
-}
-
-// A `gold_ledger` row of owner's: a grant or historical transfer that
-// changed owner's gold.
-function goldLedgerOwnedBy(owner: UserId): SQL {
-  return eq(goldLedger.userId, owner);
 }
 
 // An `image_generations` row that owner claimed, whose cost is owner's.
@@ -106,38 +168,10 @@ function constructGenerationOwnedBy(owner: UserId): SQL {
   return eq(constructGenerations.userId, owner);
 }
 
-function generationOwnedBy(owner: UserId): SQL {
-  return eq(imageGenerations.userId, owner);
-}
-
 // An `image_generations` row of a chat open to user, whose image they may
 // see, whoever claimed it.
 function generationOpenTo(user: UserId): SQL {
   return inArray(imageGenerations.chatId, openChatIds(user));
-}
-
-// An owned destination grants access to the image identity metadata, but
-// never another payer's costs.
-function constructGenerationVisualOpenTo(user: UserId): SQL {
-  return exists(
-    new QueryBuilder()
-      .select({ id: constructAssetGrants.id })
-      .from(constructAssetGrants)
-      .innerJoin(
-        ownPrompts,
-        eq(ownPrompts.id, constructAssetGrants.constructId),
-      )
-      .where(
-        and(
-          ownPromptOwnedBy(user),
-          sql`${constructGenerations.visual}->'canonical'->>'assetId' = ${constructAssetGrants.assetId}::text`,
-        ),
-      ),
-  );
-}
-
-function replyUsageOwnedBy(user: UserId): SQL {
-  return eq(replyUsage.userId, user);
 }
 
 function replyRunOpenTo(user: UserId): SQL {
@@ -154,34 +188,25 @@ function replyRunOwnedBy(user: UserId): SQL {
   return and(replyRunOpenTo(user), eq(replyRuns.userId, user)) ?? sql`false`;
 }
 
-function accountOwnedBy(owner: UserId): SQL {
-  return eq(users.id, owner);
-}
-
-function batteryPurchasesOwnedBy(owner: UserId): SQL {
-  return eq(batteryPurchases.userId, owner);
-}
-
 export {
-  accountOwnedBy,
-  batteryPurchasesOwnedBy,
   chatOpenTo,
   constructGenerationOwnedBy,
-  constructGenerationVisualOpenTo,
   generationOpenTo,
-  generationOwnedBy,
-  goldBalanceOwnedBy,
-  goldLedgerOwnedBy,
   ideaOpenTo,
   imageOpenTo,
   messageOpenTo,
   milestoneOpenTo,
+  noteOpenTo,
+  opensQuest,
   ownPromptOwnedBy,
-  ownsQuest,
   planVersionOpenTo,
+  questInvitationOpenTo,
+  questInvitationTo,
+  questMemberOpenTo,
+  questOpenTo,
   questOwnedBy,
+  questPendingFor,
   replyRunOpenTo,
   replyRunOwnedBy,
-  replyUsageOwnedBy,
   spellResultOpenTo,
 };

@@ -2,93 +2,18 @@
 // fetch an image URL from the network, including URLs supplied by a client.
 
 import type { UIMessage } from "ai";
-import { and, eq, sql } from "drizzle-orm";
-import { QueryBuilder } from "drizzle-orm/pg-core";
-import { chatOpenTo, imageOpenTo } from "@/accounts/owner-scope.ts";
+import { and, eq } from "drizzle-orm";
+import { imageOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { images } from "@/db/tables/images.ts";
-import { chats } from "@/db/tables/quests-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ChatId, parseImageId, type UserId } from "@/ids.ts";
-import {
-  IMAGE_MEDIA_TYPE,
-  imageId,
-  imageUrl,
-  MAX_IMAGE_BYTES,
-} from "@/images/image-contract.ts";
+import { IMAGE_MEDIA_TYPE, imageId } from "@/images/image-contract.ts";
 
 interface ImageContent {
   readonly mediaType: string;
   readonly data: string;
-}
-
-// Checks the signature as well as the declared format. SVG and arbitrary
-// executable content never become an image response.
-const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
-const JPEG_SIGNATURE = Buffer.from("ffd8ff", "hex");
-const GIF_SIGNATURES = [Buffer.from("GIF87a"), Buffer.from("GIF89a")];
-const WEBP_CONTAINER = Buffer.from("RIFF");
-const WEBP_FORMAT = Buffer.from("WEBP");
-const WEBP_FORMAT_OFFSET = 8;
-function startsWith(bytes: Uint8Array, signature: Buffer, offset = 0): boolean {
-  return Buffer.from(bytes.subarray(offset, offset + signature.length)).equals(
-    signature,
-  );
-}
-function validImage(bytes: Uint8Array, mediaType: string): boolean {
-  if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) {
-    return false;
-  }
-  switch (mediaType) {
-    case "image/png":
-      return startsWith(bytes, PNG_SIGNATURE);
-    case "image/jpeg":
-      return startsWith(bytes, JPEG_SIGNATURE);
-    case "image/gif":
-      return GIF_SIGNATURES.some((signature) => startsWith(bytes, signature));
-    case "image/webp":
-      return (
-        startsWith(bytes, WEBP_CONTAINER) &&
-        startsWith(bytes, WEBP_FORMAT, WEBP_FORMAT_OFFSET)
-      );
-    default:
-      return false;
-  }
-}
-
-async function saveImage(
-  owner: UserId,
-  chatId: ChatId,
-  bytes: Uint8Array,
-  mediaType: string,
-): Promise<string | undefined> {
-  if (!validImage(bytes, mediaType)) {
-    throw new AppError("invalid-image", undefined);
-  }
-  const [saved] = await withAppErrors("save image", () =>
-    getDb()
-      .insert(images)
-      .select(
-        new QueryBuilder()
-          .select({
-            id: sql`gen_random_uuid()`.as("id"),
-            chatId: chats.id,
-            mediaType: sql`${mediaType}::text`.as("media_type"),
-            data: sql`${Buffer.from(bytes).toString("base64")}::text`.as(
-              "data",
-            ),
-            createdAt: sql`now()`.as("created_at"),
-          })
-          .from(chats)
-          .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
-      )
-      .returning({ id: images.id }),
-  );
-  if (saved === undefined) {
-    return undefined;
-  }
-  return imageUrl(saved.id);
 }
 
 async function getImage(
@@ -112,8 +37,8 @@ async function getImage(
   return image;
 }
 
-// Validates message references before saving, and supplies bytes for all
-// history images on every reply, so follow-up questions retain vision.
+// Supplies the bytes of every image saved in the history on each reply. A
+// reference to an image that is gone or not the chat's is invalid.
 async function hydrateImages(
   owner: UserId,
   chatId: ChatId,
@@ -153,4 +78,4 @@ async function hydrateImages(
   );
 }
 
-export { getImage, hydrateImages, saveImage };
+export { getImage, hydrateImages };

@@ -96,11 +96,5 @@ function otherAuthorNames(
   );
 }
 
-export type { ChatMessage, ChatMessageMetadata, MessageAuthor };
-export {
-  authorDisplayName,
-  hasSeveralAuthors,
-  otherAuthorNames,
-  toMessageAuthor,
-  withAuthor,
-};
+export type { ChatMessage, MessageAuthor };
+export { hasSeveralAuthors, otherAuthorNames, toMessageAuthor, withAuthor };

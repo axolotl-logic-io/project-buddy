@@ -1,7 +1,5 @@
-// Each page that isn't found says what can't be found: any page, or, for a
-// quest, its Journal or an adventure, the quest or adventure. A page whose
-// notFound() runs while rendering, such as Invitations for an
-// ordinary user, reaches the browser without <head>'s pre-paint scripts,
+// Each page that isn't found says what can't be found: any page, or a
+// quest. A page whose notFound() runs while rendering reaches the browser without <head>'s pre-paint scripts,
 // and React renders <html> with the default theme attributes. The
 // not-found page applies the saved mode itself, so it looks like every
 // other page.
@@ -9,7 +7,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import AdventureNotFound from "@/app/(workspace)/chats/[chatId]/not-found.tsx";
 import QuestNotFound from "@/app/(workspace)/quests/[questId]/(overview)/not-found.tsx";
 import NotFound from "@/app/not-found.tsx";
 import { userMessage } from "@/errors/app-error.ts";
@@ -40,18 +37,12 @@ describe("use_case_open_missing_page", () => {
       .toHaveAttribute("href", "/quests");
   });
 
-  test.each([
-    { missing: "quest", view: <QuestNotFound /> },
-    { missing: "adventure", view: <AdventureNotFound /> },
-  ])(
-    "a missing $missing says the quest or adventure can't be found",
-    async ({ view }) => {
-      await render(view);
-      await expect
-        .element(page.getByText(userMessage("not-found")))
-        .toBeVisible();
-    },
-  );
+  test("a missing quest says the quest can't be found", async () => {
+    await render(<QuestNotFound />);
+    await expect
+      .element(page.getByText(userMessage("not-found")))
+      .toBeVisible();
+  });
 });
 
 describe("use_case_choose_theme", () => {

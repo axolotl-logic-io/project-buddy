@@ -11,7 +11,11 @@ import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { VISUAL_WIDTH } from "@/constructs/visual-delivery.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  questIdFixture,
+  userIdFixture,
+} from "../../../support/id-fixtures.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -57,6 +61,7 @@ function view(
 ): React.JSX.Element {
   return (
     <ChatView
+      questId={questIdFixture()}
       viewer={VIEWER}
       chatId={ADVENTURE_ID}
       constructName={construct.name}

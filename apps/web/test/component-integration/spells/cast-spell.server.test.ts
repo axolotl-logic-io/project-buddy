@@ -1,11 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { listMessages } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { CAST_SPELL_INPUT } from "@/spells/cast-spell-contract.ts";
 import { getSpell } from "@/spells/spell.ts";
 import { spellResponse } from "@/spells/spell-response.ts";
 import { currentSpell } from "@/spells/spell-store.ts";
-import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 import {
   constructPrompt,
   constructReply,
@@ -50,14 +48,5 @@ describe("use_case_construct_casts_spell", () => {
     );
     await constructReply(chat.id, "cast brainstorm");
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
-  });
-
-  test("Chat requires a quest before entering a spell", async () => {
-    const { user } = await signedInChat();
-    const chat = await privateChat(user.id);
-    expect(messageText(await constructReply(chat.id, "cast plan"))).toBe(
-      SPELL_MODE_COPY.noQuest,
-    );
-    expect(await currentSpell(user.id, chat)).toBeUndefined();
   });
 });

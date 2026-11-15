@@ -21,15 +21,7 @@ async function changeChatPlan(
   { operations }: ChangePlanInput,
   { context }: { context: ChatToolContext },
 ): Promise<ChangePlanOutput> {
-  // A standalone chat has no quest and so no plan: tools/index.ts never
-  // offers it this tool.
   const { questId } = context;
-  if (questId === undefined) {
-    throw new AppError(
-      "not-found",
-      new Error("No quest whose plan to change from a standalone chat"),
-    );
-  }
   const outcome = await changePlan(
     context.actingUser,
     { questId, chatId: context.chatId, author: "construct" },

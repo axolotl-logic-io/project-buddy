@@ -23,14 +23,13 @@ const VELLUM_CLONE: OwnConstruct = {
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
 
-// The user a sign-in link that works signs in.
-const LINK_USER: SessionUser = {
+// The user a sign-in link that works signs in: a signed-up account, so
+// continuing needs no name.
+const LINK_USER: SessionUser & { readonly needsName: boolean } = {
   id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
   sessionEpoch: 0,
+  needsName: false,
 };
-
-// Her gold, in micro-USD: 87 gold.
-const GOLD_BALANCE = 870_000;
 
 const OWN_SPELL: OwnSpell = {
   id: OWN_PROMPT_ID.parse("e17f52de-1234-4123-8123-123456789abc"),
@@ -43,4 +42,4 @@ const OWN_SPELL: OwnSpell = {
   updatedAt: new Date("2026-11-01T00:00:00Z"),
 };
 
-export { GOLD_BALANCE, LINK_USER, OWN_SPELL, VELLUM_CLONE };
+export { LINK_USER, OWN_SPELL, VELLUM_CLONE };

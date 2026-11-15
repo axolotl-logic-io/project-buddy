@@ -1,36 +1,44 @@
-// The ownership predicates against the test database: two users side by
-// side, each with a quest, a chat in it, a standalone chat, their messages,
-// a memory version, a gold balance and its ledger, and a construct. Each predicate, for her,
-// selects exactly her rows of the two users', through her quest or, for a
-// standalone chat, through the chat's own user. owner-scope-coverage.test.ts
-// checks every store builds its queries from these predicates.
+// The access predicates against the test database: two users side by
+// side, each with a quest, a chat in it and its messages, a standalone chat
+// an older build made, and a construct. Each predicate, for her, selects
+// exactly her rows of the two users', through her quest; a standalone chat
+// is no one's. Then one quest with an owner, an accepted member, a pending
+// invitee, a removed member and a stranger: it opens to the first two.
 
 import { and, eq, inArray } from "drizzle-orm";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   chatOpenTo,
-  goldBalanceOwnedBy,
-  goldLedgerOwnedBy,
   messageOpenTo,
+  opensQuest,
   ownPromptOwnedBy,
-  ownsQuest,
+  questOpenTo,
   questOwnedBy,
+  questPendingFor,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
-import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
-import type { ChatId, OwnPromptId, QuestId } from "@/ids.ts";
+import { CHAT_ID, type ChatId, type OwnPromptId, type QuestId } from "@/ids.ts";
 import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
+import { testUser } from "../../support/test-database/user-test-kit.ts";
+import {
+  addInvitee,
+  addMember,
+  addRemovedMember,
+} from "../quests/quest-members-test-kit.ts";
+import type { SendEmail } from "../test-database/sign-in-link-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
+
+const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
+vi.mock("@/email/send-email.ts", () => sent);
 
 const EXCHANGE: Exchange = {
   message: "Hello",
@@ -45,16 +53,17 @@ interface OwnedRows {
   readonly constructId: OwnPromptId;
 }
 
-// Saves a row of each kind for user: a quest with a chat and its memory,
-// a standalone chat, an exchange in each chat and a construct. Gold comes with
-// the account.
+// Saves a row of each kind for user: a quest with a chat and an exchange in
+// it, a standalone chat as an older build saved it, and a construct.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const quest = await data.quest();
   const projectChat = await data.chat(quest);
-  const standaloneChat = await privateChat(user.id);
+  const [standaloneChat] = await getDb()
+    .insert(chats)
+    .values({ userId: user.id, continuing: true, constructId: "vellum" })
+    .returning({ id: chats.id });
   await data.exchanges(projectChat, [EXCHANGE]);
-  await data.exchanges(standaloneChat, [EXCHANGE]);
   const construct = await cloneConstruct(user.id, DEFAULT_CONSTRUCT_ID);
   if (construct === undefined) {
     throw new Error("The default construct could not be cloned");
@@ -62,7 +71,7 @@ async function ownedRows(user: User): Promise<OwnedRows> {
   return {
     questId: quest.id,
     projectChatId: projectChat.id,
-    standaloneChatId: standaloneChat.id,
+    standaloneChatId: CHAT_ID.parse(standaloneChat?.id),
     constructId: construct.id,
   };
 }
@@ -118,87 +127,125 @@ async function ownQuestsAndChats(
   };
 }
 
-// Her rows among both users' memory versions, gold balances, gold ledgers
-// and constructs.
-async function ownGoldAndConstructs(
+// Her rows among both users' constructs.
+async function ownConstructs(
   her: User,
-  other: User,
   hers: OwnedRows,
   theirs: OwnedRows,
 ): Promise<readonly unknown[]> {
-  const db = getDb();
-  return [
-    await db
-      .select({ userId: goldBalances.userId })
-      .from(goldBalances)
-      .where(
-        and(
-          inArray(goldBalances.userId, [her.id, other.id]),
-          goldBalanceOwnedBy(her.id),
-        ),
+  return await getDb()
+    .select({ id: ownPrompts.id })
+    .from(ownPrompts)
+    .where(
+      and(
+        inArray(ownPrompts.id, [hers.constructId, theirs.constructId]),
+        ownPromptOwnedBy(her.id),
       ),
-    await db
-      .selectDistinct({ userId: goldLedger.userId })
-      .from(goldLedger)
-      .where(
-        and(
-          inArray(goldLedger.userId, [her.id, other.id]),
-          goldLedgerOwnedBy(her.id),
-        ),
-      ),
-    await db
-      .select({ id: ownPrompts.id })
-      .from(ownPrompts)
-      .where(
-        and(
-          inArray(ownPrompts.id, [hers.constructId, theirs.constructId]),
-          ownPromptOwnedBy(her.id),
-        ),
-      ),
-  ];
+    );
 }
 
-// Whether ownsProject holds for her and the quest, on her user row.
+// Whether opensQuest holds for her and the quest, on her user row.
 async function holds(her: User, questId: QuestId): Promise<boolean> {
   const rows = await getDb()
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.id, her.id), ownsQuest(her.id, questId)));
+    .where(and(eq(users.id, her.id), opensQuest(her.id, questId)));
   return rows.length > 0;
 }
 
 describe("ownership predicates select only the owner's rows", () => {
-  test("projects, project chats, standalone chats and their messages", async () => {
+  test("quests, their chats and messages, and no standalone chat", async () => {
     const { her, hers, theirs } = await bothUsersRows();
-    const herChats = [hers.projectChatId, hers.standaloneChatId];
 
     expect(
       await ownQuestsAndChats(
         her,
         [hers.questId, theirs.questId],
-        [...herChats, theirs.projectChatId, theirs.standaloneChatId],
+        [
+          hers.projectChatId,
+          hers.standaloneChatId,
+          theirs.projectChatId,
+          theirs.standaloneChatId,
+        ],
       ),
     ).toEqual({
       questIds: [hers.questId],
-      chatIds: sorted(herChats),
-      messageChatIds: sorted(herChats),
+      chatIds: [hers.projectChatId],
+      messageChatIds: [hers.projectChatId],
     });
   });
 
-  test("gold and constructs", async () => {
-    const { her, other, hers, theirs } = await bothUsersRows();
+  test("constructs", async () => {
+    const { her, hers, theirs } = await bothUsersRows();
 
-    expect(await ownGoldAndConstructs(her, other, hers, theirs)).toEqual([
-      [{ userId: her.id }],
-      [{ userId: her.id }],
-      [{ id: hers.constructId }],
+    expect(await ownConstructs(her, hers, theirs)).toEqual([
+      { id: hers.constructId },
     ]);
   });
 
-  test("owning a project holds for her project only", async () => {
+  test("opening a quest holds for her quest only", async () => {
     const { her, hers, theirs } = await bothUsersRows();
 
     expect(await holds(her, hers.questId)).toBe(true);
     expect(await holds(her, theirs.questId)).toBe(false);
+  });
+});
+
+// What each access predicate holds of the quest for user.
+async function access(
+  user: User,
+  questId: QuestId,
+): Promise<Record<string, boolean>> {
+  const db = getDb();
+  const [open, owned, pending, opens] = await Promise.all([
+    db
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questOpenTo(user.id))),
+    db
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questOwnedBy(user.id))),
+    db
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questPendingFor(user.id))),
+    holds(user, questId),
+  ]);
+  return {
+    open: open.length > 0,
+    owned: owned.length > 0,
+    pending: pending.length > 0,
+    opens,
+  };
+}
+
+describe("a quest opens to its owner and accepted members alone", () => {
+  test("owner, member, pending invitee, removed member and stranger", async () => {
+    const [owner, member, invitee, removed, stranger] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const quest = await testData(owner).quest();
+    await addMember(owner, quest.id, member);
+    await addInvitee(owner, quest.id, invitee);
+    await addRemovedMember(owner, quest.id, removed);
+
+    expect(
+      await Promise.all(
+        [owner, member, invitee, removed, stranger].map((user) =>
+          access(user, quest.id),
+        ),
+      ),
+    ).toEqual([
+      { open: true, owned: true, pending: false, opens: true },
+      { open: true, owned: false, pending: false, opens: true },
+      { open: false, owned: false, pending: true, opens: false },
+      { open: false, owned: false, pending: false, opens: false },
+      { open: false, owned: false, pending: false, opens: false },
+    ]);
   });
 });

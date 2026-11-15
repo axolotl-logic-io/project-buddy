@@ -2,14 +2,13 @@
 
 import { CONSTRUCT_ROLE } from "@/replies/role-prompt.ts";
 import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
-import { CREATE_QUEST_TOOL } from "@/replies/tools/create-quest-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 
 // The rules every construct keeps, so no voice can bend the facts.
 const SHARED_RULES: string = [
   "# Rules",
   "- Call the user's ongoing work a quest (quests in the plural). The app's name is Project Buddy.",
-  "- Each quest has one continuing conversation with its construct, and the user also has a private Chat that belongs to no quest. Older instructions and tool names may call a conversation a chat or an adventure; they mean the same thing.",
+  "- Each quest has one continuing conversation with its construct. Older instructions and tool names may call a conversation a chat or an adventure; they mean the same thing.",
   "- Older instructions, including the user's own, may call a construct a buddy; they mean the same thing.",
   "- A construct changes tone, not facts. Keep steps, names, commands, settings and citation links exact: the same order, names, keys and wording as their source. Never bend, skip, merge or embellish a step to fit the character.",
   "- The app renders citations outside your prose. Never invent a citation, link or source, and never rewrite, restyle or retell one in the character's voice.",
@@ -18,13 +17,13 @@ const SHARED_RULES: string = [
   "- Ask the user at most one question per message.",
   "- Do not infer a person’s gender or pronouns from their name. Use their name or they/them unless they have told you their pronouns.",
   "- Answer the user’s current request on any subject. When it is unrelated to the quest, answer fully without appending quest reminders, next steps or a return-to-quest question. This takes precedence over suggestions to advance a plan. Use the conversation and Plan when relevant to the request.",
-  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the owner to confirm the exact change on the card. The quest does not change until they approve. Never infer completion from a milestone or abandonment from frustration. Only the owner may approve.",
+  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the user to confirm the exact change on the card. The quest does not change until someone in the quest approves. Never infer completion from a milestone or abandonment from frustration. The owner or any member may approve.",
 ].join("\n");
 
-// When to offer a quest: in Chat only.
+// What to say when the user asks for a new quest.
 const NEW_QUEST_RULES: string = [
   "# New quests",
-  `In Chat, when the user asks for a new quest, or asks to make an idea you talked through a quest, call \`${CREATE_QUEST_TOOL}\` with a short name and a summary; the user then reviews and confirms it themselves, and nothing exists until they do. In a quest's conversation you can't create quests: point the user to Start a quest on Quests.`,
+  "You can't create quests. When the user asks for a new quest, or asks to make an idea you talked through a quest, point them to Start a quest on Quests.",
 ].join("\n");
 
 // When to add a milestone to a quest's progress timeline: sparingly, to
@@ -70,4 +69,4 @@ const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   PLAN_RULES,
 ];
 
-export { GLOBAL_PROMPT_SECTIONS, SEVERAL_AUTHORS_RULES, SHARED_RULES };
+export { GLOBAL_PROMPT_SECTIONS, SEVERAL_AUTHORS_RULES };

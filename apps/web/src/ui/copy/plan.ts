@@ -54,18 +54,10 @@ const PLAN_COMMAND_DESCRIPTIONS: Readonly<Record<PlanCommandName, string>> = {
 
 export const PLAN_COPY = {
   heading: "Plan",
-  intro:
-    "The remaining work for this quest, in order. Your construct keeps it with you in the conversation, and you can change it here at any time.",
-  nextStep: "Next step",
-  allDone: "Every step is done. Add the next one when you're ready.",
-  none: "No steps yet. Add one, or plan the next stretch with your construct in the conversation.",
   stepsLabel: "Open steps",
   stepNumber: (number: number): string => `#${number}`,
   checkOff: (text: string): string => `Check off ${quoted(text)}`,
   reopen: (text: string): string => `Reopen ${quoted(text)}`,
-  completeNext: "Done",
-  completeNextLabel: (text: string): string =>
-    `Check off the next step, ${quoted(text)}`,
   moveUp: (text: string): string => `Move ${quoted(text)} up`,
   moveDown: (text: string): string => `Move ${quoted(text)} down`,
   edit: (text: string): string => `Edit ${quoted(text)}`,
@@ -85,7 +77,6 @@ export const PLAN_COPY = {
   tooLong: (maxLength: number): string =>
     `Keep a step to one line of at most ${maxLength} characters.`,
   undo: "Undo",
-  undone: "Undone.",
   failed: {
     "missing-step":
       "That step isn't in the plan any more. The plan now shows the latest steps.",
@@ -109,20 +100,16 @@ export const PLAN_CHANGE_COPY = {
   undone: "Undone",
   noModel: "Plan change",
   notChanged: "The plan didn't change.",
-  cardLabel: "Plan card",
   sideMenu: "The Plan controls are in the quest side menu.",
-  staleCard: "Plan card. The plan is shown again further down.",
 } as const;
 
 export const PLAN_PANEL_COPY = {
-  label: "Plan",
-  toggle: "Plan",
-  next: (text: string): string => `Next: ${text}`,
   busy: (constructName: string): string =>
     `${constructName} is replying. You can change the plan once the reply ends.`,
   unanswered:
     "Your last message has no reply yet. Retry it or send another message, then change the plan here. You can change it on the quest's page now.",
-  questPage: "Open the quest's plan",
+  notFound:
+    "The plan can't be changed here, because this quest can't be found or isn't open to you.",
 } as const;
 
 export const CHAT_COMMANDS_COPY = {
@@ -130,7 +117,6 @@ export const CHAT_COMMANDS_COPY = {
   hint: "Commands run at once. Steps are named by their numbers, such as #3.",
   description: (name: PlanCommandName): string =>
     PLAN_COMMAND_DESCRIPTIONS[name],
-  noPlan: "Plan commands work in a quest's conversation. Chat has no quest.",
   problem: (found: CommandProblem): string => {
     switch (found.kind) {
       case "unknown":

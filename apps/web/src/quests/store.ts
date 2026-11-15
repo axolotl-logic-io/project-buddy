@@ -1,16 +1,22 @@
-// Quests, stored in Postgres. A quest is its owner's alone
-// (src/accounts/owner-scope.ts): every function takes the acting user first
-// and reads only their own quests. An id from outside the code, such as a
+// Quests, stored in Postgres. A quest is open to its owner and its
+// accepted members (src/accounts/owner-scope.ts): every function takes the
+// acting user first and reads only quests open to them. An id from outside the code, such as a
 // route parameter, is looked up as a string; anything malformed, unknown or
 // another user's is not found.
 
 import { and, desc, eq } from "drizzle-orm";
-import { questOwnedBy } from "@/accounts/owner-scope.ts";
+import { questOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
+import type { QuestSharing } from "@/quests/membership.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
+import {
+  SHARING_COLUMNS,
+  type SharingRow,
+  sharingOf,
+} from "@/quests/quest-sharing.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
 
 interface Quest {
@@ -21,6 +27,8 @@ interface Quest {
   statusRevision: number;
   // Whether it is the user's Dailies quest (src/conversations/dailies.ts).
   dailies: boolean;
+  // How it is shared, as the user reading it sees it.
+  sharing: QuestSharing;
 }
 
 interface QuestRow {
@@ -51,46 +59,50 @@ const QUEST_COLUMNS: {
   dailies: quests.dailies,
 };
 
-// Rows as quests. A row whose id is not a UUID is skipped, though the uuid
-// column never holds one.
-function toQuests(rows: readonly QuestRow[]): Quest[] {
-  return rows.flatMap(
-    ({ id, name, createdAt, status, statusRevision, dailies }) => {
-      const questId = parseQuestId(id);
-      if (questId === undefined) {
-        return [];
-      }
-      return [
-        {
-          id: questId,
-          name,
-          createdAt,
-          status: QUEST_STATUS.parse(status),
-          statusRevision,
-          dailies,
-        },
-      ];
-    },
-  );
+// Rows as quests, as viewer reads them. A row whose id is not a UUID is
+// skipped, though the uuid column never holds one.
+function toQuests(
+  viewer: UserId,
+  rows: readonly (QuestRow & SharingRow)[],
+): Quest[] {
+  return rows.flatMap((row) => {
+    const questId = parseQuestId(row.id);
+    if (questId === undefined) {
+      return [];
+    }
+    return [
+      {
+        id: questId,
+        name: row.name,
+        createdAt: row.createdAt,
+        status: QUEST_STATUS.parse(row.status),
+        statusRevision: row.statusRevision,
+        dailies: row.dailies,
+        sharing: sharingOf(viewer, row),
+      },
+    ];
+  });
 }
 
 export type { Quest };
 
-// The user's quests, newest first.
+// The quests open to the user, their own and those they are a member of,
+// newest first.
 export function listQuests(user: UserId): Promise<Quest[]> {
   return withAppErrors("listQuests", async () =>
     toQuests(
+      user,
       await getDb()
-        .select(QUEST_COLUMNS)
+        .select({ ...QUEST_COLUMNS, ...SHARING_COLUMNS })
         .from(quests)
-        .where(questOwnedBy(user))
+        .where(questOpenTo(user))
         .orderBy(desc(quests.createdAt)),
     ),
   );
 }
 
-// The user's quest with this id, or undefined if the id is malformed,
-// unknown or another user's.
+// The quest with this id, or undefined if the id is malformed, unknown or
+// not open to the user.
 export async function getQuest(
   user: UserId,
   id: string,
@@ -101,10 +113,11 @@ export async function getQuest(
   }
   const [quest] = await withAppErrors("getQuest", async () =>
     toQuests(
+      user,
       await getDb()
-        .select(QUEST_COLUMNS)
+        .select({ ...QUEST_COLUMNS, ...SHARING_COLUMNS })
         .from(quests)
-        .where(and(eq(quests.id, questId), questOwnedBy(user))),
+        .where(and(eq(quests.id, questId), questOpenTo(user))),
     ),
   );
   return quest;
@@ -115,15 +128,26 @@ export async function getQuest(
 // empty ones.
 export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
   return withAppErrors("createQuest", async () => {
-    const [quest] = toQuests(
-      await getDb().insert(quests).values({ userId: owner, name }).returning({
+    const inserted = await getDb()
+      .insert(quests)
+      .values({ userId: owner, name })
+      .returning({
         status: quests.status,
         statusRevision: quests.statusRevision,
         id: quests.id,
         name: quests.name,
         createdAt: quests.createdAt,
         dailies: quests.dailies,
-      }),
+      });
+    // A new quest is its owner's own, with no members yet.
+    const [quest] = toQuests(
+      owner,
+      inserted.map((row) => ({
+        ...row,
+        ownerId: owner,
+        ownerName: null,
+        hasMembers: false,
+      })),
     );
     if (quest === undefined) {
       throw new Error("Inserting a quest returned no quest");
@@ -132,7 +156,8 @@ export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
   });
 }
 
-// Only the owner can rename a quest. Unknown or inaccessible ids change nothing.
+// The owner or a member can rename a quest. Unknown or inaccessible ids
+// change nothing.
 export function renameQuest(
   owner: UserId,
   id: QuestId,
@@ -142,7 +167,7 @@ export function renameQuest(
     const changed = await getDb()
       .update(quests)
       .set({ name })
-      .where(and(eq(quests.id, id), questOwnedBy(owner)))
+      .where(and(eq(quests.id, id), questOpenTo(owner)))
       .returning({ id: quests.id });
     return changed.length > 0;
   });

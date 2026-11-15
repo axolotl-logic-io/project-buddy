@@ -30,7 +30,7 @@ import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
-import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -70,9 +70,6 @@ vi.mock(
   "@/plan/plan-store.ts",
   () => import("../../../../plan/plan-store-test-kit.ts"),
 );
-vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn().mockResolvedValue(0),
-}));
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -134,7 +131,7 @@ const EXCHANGES = 3;
 // lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
 const ONE_SCREEN_DOWN_BAND = 64;
 
-// The user’s question and the mock construct's Markdown reply, EXCHANGES times.
+// The user’s question and the construct's Markdown reply, EXCHANGES times.
 function longChat(): ChatMessage[] {
   return Array.from({ length: EXCHANGES }, (_, index): ChatMessage[] => [
     {
@@ -538,11 +535,8 @@ describe("use_case_open_quest", () => {
     await expect
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
-    await expect
-      .element(page.getByRole("navigation", { name: QUEST_COPY.navigation }))
-      .not.toBeInTheDocument();
     await Promise.all(
-      ["Plan", "Ideas", "Progress"].map((name) =>
+      ["Plan", "Ideas", "Progress", "Quick Notes", "Actions"].map((name) =>
         expect
           .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),
@@ -575,7 +569,7 @@ describe("conversation initialization fallback", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("Reset Day is offered above the workspace tabs and confirms reset options", async () => {
+  test("Reset Day is in the sidebar's Actions tab and confirms reset options", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
@@ -583,11 +577,19 @@ describe("use_case_dailies", () => {
     const reset = page.getByRole("button", {
       name: QUEST_CONVERSATION_COPY.resetDay,
     });
-    await expect.element(reset).toBeVisible();
-    const tabs = page.getByRole("tablist");
-    expect(reset.element().getBoundingClientRect().bottom).toBeLessThanOrEqual(
-      tabs.element().getBoundingClientRect().top,
-    );
+    await expect.element(reset).not.toBeInTheDocument();
+    await page.getByRole("tab", { name: "Actions", exact: true }).click();
+    const actions = page.getByRole("tabpanel", { name: "Actions" });
+    await expect
+      .element(
+        actions.getByRole("button", {
+          name: QUEST_CONVERSATION_COPY.resetDay,
+        }),
+      )
+      .toBeVisible();
+    await expect
+      .element(actions.getByRole("button", { name: "Cast spell" }))
+      .toBeVisible();
     await reset.click();
     const dialog = page.getByRole("dialog", {
       name: QUEST_CONVERSATION_COPY.resetDay,

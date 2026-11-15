@@ -112,7 +112,7 @@ test("use_case_sign_in_link_reused", async ({
 test("use_case_sign_in_link_expired", async ({ account, page }) => {
   const link = await newSignInLink(page, account.email);
 
-  await test.step("a late link says it has expired, with the sign-in page's link", async () => {
+  await test.step("a late link says it has expired, with a way to log in", async () => {
     await expireSignInLinksOf(account.id);
     await page.goto(link);
 
@@ -139,7 +139,7 @@ test("use_case_sign_in_link_expired", async ({ account, page }) => {
   });
 
   await test.step("a new link from the sign-in page signs her in", async () => {
-    await page.getByRole("link", { name: LINK_PAGE_COPY.newLink }).click();
+    await page.getByRole("link", { name: LINK_PAGE_COPY.logIn }).click();
     await expect(page).toHaveURL("/login");
 
     await signInByLink(page, account.email);

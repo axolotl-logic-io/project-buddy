@@ -1,7 +1,7 @@
 // Rows of the chats and messages tables, as the chat stores read and write
-// them. Reads check what the columns cannot: a chat's construct. A chat
-// is in a quest, a quest chat, or in none, a standalone chat; both are
-// one type, Chat, whose quest is undefined in a standalone chat.
+// them. Reads check what the columns cannot: a chat's construct. Every
+// chat the site reads is a quest's conversation; a standalone chat that an
+// older build made reads as not found.
 
 import type { UIMessage } from "ai";
 import {
@@ -49,15 +49,12 @@ interface Chat {
   readonly id: ChatId;
   readonly spell?: SpellId | undefined;
   readonly activeSpell?: SpellSnapshot | undefined;
-  // The chat's quest, or undefined in a standalone chat.
-  readonly quest: ChatQuest | undefined;
+  // The quest the chat is the conversation of.
+  readonly quest: ChatQuest;
   // The construct as it was when the chat started.
   readonly construct: ConstructSnapshot;
   readonly createdAt: Date;
 }
-
-// A chat known to be in a quest, such as one of a quest's chats.
-type QuestChat = Chat & { readonly quest: ChatQuest };
 
 type ChatRow = typeof chats.$inferSelect;
 
@@ -96,36 +93,20 @@ function toConstruct({
   return snapshotOf(getConstruct(toConstructId(constructId)));
 }
 
-// A chat's construct as a new chat would keep it: its snapshot (toConstruct) and
-// the id saved beside it.
-function toConstructWithId(
-  row: Pick<ChatRow, ConstructColumns>,
-): ConstructSnapshot & { readonly id: ConstructId } {
-  return { ...toConstruct(row), id: toConstructId(row.constructId) };
-}
-
-// A chat's quest: { quest: undefined } for a standalone chat, or
-// undefined for a row that is neither, which the chats_one_owner check and
-// the foreign key forbid: a quest id that is not a UUID or has no
-// quest's name, or a row with neither a quest nor a user.
+// A chat's quest, or undefined for a standalone chat, or for a quest id
+// that is not a UUID or has no quest's name, which the foreign key forbids.
 function toQuest({
   questId,
   questName,
-  userId,
-}: Pick<ChatRowWithQuest, "questId" | "questName" | "userId">):
-  | { readonly quest: ChatQuest | undefined }
-  | undefined {
-  if (questId === null) {
-    if (userId === null) {
-      return undefined;
-    }
-    return { quest: undefined };
-  }
-  const id = parseQuestId(questId);
-  if (id === undefined || questName === null) {
+}: Pick<ChatRowWithQuest, "questId" | "questName">): ChatQuest | undefined {
+  if (questId === null || questName === null) {
     return undefined;
   }
-  return { quest: { id, name: questName } };
+  const id = parseQuestId(questId);
+  if (id === undefined) {
+    return undefined;
+  }
+  return { id, name: questName };
 }
 
 // Rows, with their quests' columns, as chats. A row that is not a chat
@@ -134,8 +115,8 @@ function toQuest({
 function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
   return rows.flatMap((row) => {
     const id = parseChatId(row.id);
-    const place = toQuest(row);
-    if (id === undefined || place === undefined) {
+    const quest = toQuest(row);
+    if (id === undefined || quest === undefined) {
       return [];
     }
     return [
@@ -143,7 +124,7 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
         id,
         spell: SPELL_ID.optional().parse(row.spell ?? undefined),
         activeSpell: SPELL_SNAPSHOT.safeParse(row.spellSnapshot).data,
-        quest: place.quest,
+        quest,
         construct: toConstruct(row),
         createdAt: row.createdAt,
       },
@@ -151,19 +132,14 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
   });
 }
 
-// The columns a chat is read from  and its
-// quest's name, which a left join of quests on chats.quest_id gives,
-// null in a standalone chat. The join only reads the quest's columns;
+// The columns a chat is read from and its quest's name, which a left join
+// of quests on chats.quest_id gives, null in a standalone chat. The join
+// only reads the quest's columns;
 // chatOpenTo is what keeps a chat open to its reader.
 function chatWithQuestColumns(): {
   readonly questName: typeof quests.name;
 } & ReturnType<typeof getTableColumns<typeof chats>> {
   return { ...getTableColumns(chats), questName: quests.name };
-}
-
-// Whether the chat is in a quest.
-function isQuestChat(chat: Chat): chat is QuestChat {
-  return chat.quest !== undefined;
 }
 
 // A `chats` row: the owner's chat with this id.
@@ -234,22 +210,13 @@ function messageColumns(
   };
 }
 
-export type {
-  Chat,
-  ChatQuest,
-  ChatRow,
-  ChatRowWithQuest,
-  NewMessage,
-  QuestChat,
-};
+export type { Chat, ChatQuest, ChatRow, NewMessage };
 export {
   chatWithQuestColumns,
-  isQuestChat,
   messageColumns,
   openChat,
   openMessage,
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
   toChats,
-  toConstructWithId,
 };

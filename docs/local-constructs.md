@@ -13,34 +13,32 @@ Project Buddy makes no requests to AI model companies. Constructs run a local co
 | `look` | Show the Visual description from the conversation's saved construct, or explain that it has none. |
 | `cast <spell id>` | Use the existing owner-scoped spell tool and save the cast. |
 
-Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Plan edit commands and controls keep their existing path. `/plan` now enters the Plan spell instead of showing an inline form card.
+Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Plan edit commands and controls keep their own path; `/plan` enters the Plan spell.
 
-## Retained architecture
+## Architecture
 
-`src/replies/model.ts` uses local rules in every environment. `src/replies/local-model.ts` owns command behavior. `src/replies/scripted-model.ts` adapts rule outputs to the existing SDK stream protocol. The SDK does not contact a provider by itself.
+`src/replies/model.ts` uses local rules in every environment. `src/replies/local-model.ts` owns command behavior. `src/replies/scripted-model.ts` adapts rule outputs to the AI SDK stream protocol. The SDK doesn't contact a provider.
 
-Replies keep the existing context assembly, streaming, tool execution, ownership checks and persistence. Casts use their existing tool contract; the engine never dispatches arbitrary tool names or JSON from chat text. No schema migration is needed.
+Replies keep the shared context assembly, streaming, tool execution, ownership checks and persistence. Casts use their tool contract; the engine never dispatches arbitrary tool names or JSON from chat text. Local replies report zero tokens.
 
-Local replies report zero tokens and bypass provider spend metering. Replies and quest openings have no balance gate. Historical accounting tests record costs directly, while local reply tests assert zero spending.
+## Limits
 
-## Initial limits
+The engine does not infer intent, interpret prose instructions, understand images, infer plans or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Plan or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. Plan, Ideas, Progress, Quick Notes and Actions are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help and cast keep their command behavior. New quest openings use the shared greeting request.
 
-The engine does not infer intent, interpret prose instructions, understand attached images, infer plans or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Plan or Brainstorm activates its deterministic routing; the engine does not interpret prose instructions. The saved active spell controls deterministic message capture. Stop [Spell] appears above the composer. Plan, Ideas and Progress are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help and cast keep their command behavior. New quest openings use the shared greeting request.
-
-Image generation, its Workshop controls and the Image gallery have been removed. Saving a Visual description changes text without replacing artwork. Existing artwork and saved conversation images remain available; the composer accepts text only. No remote image generation or avatar framing call is made.
+The composer accepts text only. Saving a Visual description changes text without replacing artwork. Existing artwork and saved conversation images remain readable.
 
 ## Configuration
 
-No model selector or API key is required. The local engine runs in every environment. The former mock engine and its command catalog have been removed. Tests use local commands and call tool handlers directly.
+No model selector or API key is required. The local engine runs in every environment. Tests use local commands and call tool handlers directly.
 
 ## Message capture
 
-`src/spells/spell-reply.ts` applies explicit spell commands and routes ordinary messages before the local reply streams. The spell transition or bucket write and its result commit together. `spell_message_results` keeps one result per source message, so a retry reuses the result without adding a duplicate item. Only the conversation's owner can read or write it. Migration 0062 adds direct spell state and result storage while retaining legacy activity tables for the previous build during rollout.
+`src/spells/spell-reply.ts` applies explicit spell commands and routes ordinary messages before the local reply streams. The spell transition or bucket write and its result commit together. `spell_message_results` keeps one result per source message, so a retry reuses the result without adding a duplicate item. Only the conversation's owner can read or write it.
 
-The Activities catalog is removed. Workshop offers built-in Plan and Brainstorm and customizable own spells. See [Spells](spellbook.md) for creation, instructions, destinations and active snapshots.
+Workshop offers built-in Plan and Brainstorm and customizable own spells. See [Spells](spellbook.md) for creation, destinations and active snapshots.
 
-## Test audit
+## Tests
 
-The retired mock command catalog, prompt echo, recall, delayed replies and simulated token charges are removed. The tests use real local commands for spell transitions and message persistence. Prompt context and conversation-window tests inspect the real assembly directly. Tool contract tests call the registered handlers without a model simulator. Rich Markdown tests use fixed saved content. Cancellation and execution-failure tests retain small, explicit stream doubles; duplicate reply claims use event barriers instead of delays.
+The tests use real local commands for spell transitions and message persistence. Prompt context and conversation-window tests inspect the real assembly directly. Tool contract tests call the registered handlers without a model simulator. Rich Markdown tests use fixed saved content. Cancellation and execution-failure tests use small, explicit stream doubles; duplicate reply claims use event barriers instead of delays.
 
-Local reply tests cover command guidance and replies without a balance requirement. Historical accounting, image delivery, retained artwork and owner isolation still have real database coverage. Reset tests cover fresh conversations, reopened Plan steps, retained Ideas and Progress, and the ownership of retained artwork.
+Local reply tests cover command guidance and replies. Image delivery, retained artwork and owner isolation have real database coverage. Reset tests cover fresh conversations, reopened Plan steps, retained Ideas and Progress, and the ownership of retained artwork.

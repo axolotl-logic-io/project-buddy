@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
-import { isQuestChat, type QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
 import {
   startNewQuest,
@@ -17,7 +17,7 @@ import type { QuestName } from "@/quests/quest-name.ts";
 type StartDailiesResult =
   | {
       readonly kind: "started" | "resumed";
-      readonly chat: QuestChat;
+      readonly chat: Chat;
     }
   | { readonly kind: "claudeUnavailable" };
 
@@ -52,11 +52,7 @@ async function resume(
   if (started.kind !== "started") {
     return started;
   }
-  const { conversation } = started;
-  if (!isQuestChat(conversation)) {
-    throw new Error("A Dailies conversation has no quest");
-  }
-  return { kind: "resumed", chat: conversation };
+  return { kind: "resumed", chat: started.conversation };
 }
 
 // The user's Dailies: resumed as it is when they have one, which changes
@@ -85,5 +81,4 @@ async function startDailies(
   return await resume(user, made);
 }
 
-export type { DailiesStart, StartDailiesResult };
 export { startDailies };

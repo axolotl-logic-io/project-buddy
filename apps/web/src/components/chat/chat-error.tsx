@@ -10,7 +10,9 @@ import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // Why the last request or reply failed, in the user's terms, with a link to
-// sign in again when the failure is that she was signed out.
+// sign in again when the failure is that they were signed out, or to
+// Quests when the quest can't be found or isn't open to them. Neither offers
+// Retry, which can't help.
 export function ChatError({
   error,
   onRetry,
@@ -35,6 +37,14 @@ export function ChatError({
           {" "}
           <Link className="text-link" href="/login">
             {PROBLEMS_COPY.signInLink}
+          </Link>
+        </>
+      )}
+      {errorCase === "not-found" && (
+        <>
+          {" "}
+          <Link className="text-link" href="/quests">
+            {PROBLEMS_COPY.questsLink}
           </Link>
         </>
       )}

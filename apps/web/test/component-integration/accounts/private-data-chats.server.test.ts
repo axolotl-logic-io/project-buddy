@@ -8,7 +8,6 @@ import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { ChatId } from "@/ids.ts";
@@ -50,10 +49,11 @@ function readChats(chats: readonly OwnedChat[]): Promise<ReadChat[]> {
 }
 
 describe("use_case_private_data", () => {
-  // The other user reads and writes into her private Chat.
-  test("another user's standalone chat and its messages are not found, and take no writes", async () => {
-    const { her, other } = await twoUsers();
-    const hers = await privateChat(her.id);
+  // The other user reads and writes into her quest's conversation.
+  test("another user's conversation and its messages are not found, and take no writes", async () => {
+    const { her, herData, other } = await twoUsers();
+    const hers = await herData.chat(await herData.quest());
+    const before = await listMessages(her.id, hers.id);
 
     expect(await getChat(other.id, hers.id)).toBeUndefined();
     expect(await listMessages(other.id, hers.id)).toEqual([]);
@@ -61,18 +61,14 @@ describe("use_case_private_data", () => {
       "id-taken",
     );
 
-    expect(await listMessages(her.id, hers.id)).toEqual([]);
+    expect(await listMessages(her.id, hers.id)).toEqual(before);
     expect((await getChat(her.id, hers.id))?.id).toBe(hers.id);
   });
 
   test("the chat API answers another user's chat as not found", async () => {
     const { her, herData, other } = await twoUsers();
     const projectChat = await herData.chat(await herData.quest());
-    const { id: standaloneId } = await privateChat(her.id);
-    const herChats: OwnedChat[] = [
-      [her, projectChat.id],
-      [her, standaloneId],
-    ];
+    const herChats: OwnedChat[] = [[her, projectChat.id]];
     const before = await readChats(herChats);
     await signIn(other);
     const unknown = await sendChatMessage(chatIdFixture(), QUESTION);
@@ -80,7 +76,6 @@ describe("use_case_private_data", () => {
     expect(unknown.status).toBe(HTTP_STATUS.notFound);
     expect(readAppErrorCase(unknown.body)).toBe("not-found");
     expect(await sendChatMessage(projectChat.id, QUESTION)).toEqual(unknown);
-    expect(await sendChatMessage(standaloneId, QUESTION)).toEqual(unknown);
     expect(await readChats(herChats)).toEqual(before);
   });
 });

@@ -1,56 +1,35 @@
-// use_case_private_data for a user's private Chat, which is in no quest, on
-// real rows of two users, read through the stores directly: it is hers
-// alone, never a quest's conversation, and deleted with her account.
-// conversations.server.test.ts checks that it is the same Chat each time.
+// use_case_private_data for a standalone chat, a conversation in no quest
+// that an older build made: it stays in storage, but is not found for
+// anyone, its owner included, through the stores or the chat route.
 
 import { describe, expect, test } from "vitest";
-import { getChat } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
-import { readQuestConversation } from "@/conversations/start-quest.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
+import { getChat, listMessages } from "@/chats/store.ts";
+import { getDb } from "@/db/client.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
+import { CHAT_ID, type ChatId, type UserId } from "@/ids.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import {
-  deleteAccount,
-  reopenAccount,
-  twoUsers,
-} from "../test-database/two-users-test-kit.ts";
+import { sendChatMessage } from "../test-database/chat-test-kit.ts";
+import { signIn } from "../test-database/session-test-kit.ts";
+
+// A standalone chat of owner's, as an older build saved it.
+async function standaloneChat(owner: UserId): Promise<ChatId> {
+  const [row] = await getDb()
+    .insert(chats)
+    .values({ userId: owner, continuing: true, constructId: "vellum" })
+    .returning({ id: chats.id });
+  return CHAT_ID.parse(row?.id);
+}
 
 describe("use_case_private_data", () => {
-  test("two users fetching their private Chats at once each get their own", async () => {
-    const { her, other } = await twoUsers();
-    const [hers, theirs] = await Promise.all([
-      privateChat(her.id),
-      privateChat(other.id),
-    ]);
-
-    expect(hers.id).not.toBe(theirs.id);
-    expect((await getChat(her.id, hers.id))?.id).toBe(hers.id);
-    expect(await getChat(her.id, theirs.id)).toBeUndefined();
-    expect(await getChat(other.id, hers.id)).toBeUndefined();
-  });
-
-  test("her private Chat is not her quest's conversation", async () => {
+  test("a standalone chat is not found, even for its owner", async () => {
     const her = await testUser();
-    const herData = testData(her);
-    const quest = await herData.quest();
-    const projectChat = await herData.chat(quest);
-    const chat = await privateChat(her.id);
+    const id = await standaloneChat(her.id);
+    await signIn(her);
 
-    expect(chat.id).not.toBe(projectChat.id);
-    expect((await readQuestConversation(her.id, quest.id))?.id).toBe(
-      projectChat.id,
-    );
-  });
-
-  // A new account at the same address then starts with a new, empty Chat.
-  test("deleting an account deletes its private Chat", async () => {
-    const her = await testUser();
-    const hers = await privateChat(her.id);
-
-    await deleteAccount(her);
-
-    expect(await getChat(her.id, hers.id)).toBeUndefined();
-    const again = await reopenAccount(her);
-    expect((await privateChat(again.id)).id).not.toBe(hers.id);
+    expect(await getChat(her.id, id)).toBeUndefined();
+    expect(await listMessages(her.id, id)).toEqual([]);
+    const sent = await sendChatMessage(id, "Hello");
+    expect(sent.status).toBe(HTTP_STATUS.notFound);
   });
 });

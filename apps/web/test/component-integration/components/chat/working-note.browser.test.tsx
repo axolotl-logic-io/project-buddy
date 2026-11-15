@@ -1,5 +1,5 @@
 // Regression coverage for saved working note rendering.
-// the parts the mock construct's `/mock-working-note zibble` streams, a note, a
+// the parts the construct's `/mock-working-note zibble` streams, a note, a
 // search of the manual for "zibble", then the answer. The note shows quiet
 // (smaller, in another colour) and labelled before the search, and the answer
 // as prose after it, as the reply streams and once it is saved. That the
@@ -23,7 +23,11 @@ import { getConstruct } from "@/constructs/index.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CAST_SPELL_COPY, CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  questIdFixture,
+  userIdFixture,
+} from "../../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -105,6 +109,7 @@ function follows(earlier: Element, later: Element): boolean {
 async function renderChat(initialMessages: UIMessage[]): Promise<void> {
   await render(
     <ChatView
+      questId={questIdFixture()}
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={initialMessages}

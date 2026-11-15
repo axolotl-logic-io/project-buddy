@@ -14,7 +14,7 @@ Workshop’s Constructs tab lists built-ins and private constructs. An introduct
 - **Steps:**
   - The user goes to Workshop, by the menu's Workshop link on any signed-in page.
   - Workshop lists the built-in constructs, then their private constructs.
-- **Outcome:** The two built-in constructs are listed by name: Vellum and Lumen. Under them, their own constructs are listed by name, oldest first. With none of their own, the page says the user has none yet. Each built-in construct offers to make a copy of it, and each of their own offers to edit it or make a copy. Their own constructs also offer Create construct to make one without copying another. Each construct name opens its instructions for inspection or editing. Choose a construct when starting a quest from Quests. Another user's constructs are never listed.
+- **Outcome:** The two built-in constructs are listed by name: Vellum and Lumen. Under them, their own constructs are listed by name, oldest first. With none of their own, the page says the user has none yet. Each built-in construct offers to make a copy of it, and each of their own offers to edit it or make a copy. Their own constructs also offer Create construct to make one without copying another. Each construct name opens its instructions for inspection or editing. Another user's constructs are never listed.
 - **Next:**
   - `use_case_customize_construct`: make a construct of their own from one of them.
   - `use_case_new_construct`: create a construct of their own.
@@ -41,7 +41,7 @@ The user makes a construct of their own from one the user can see: the user choo
 - **Goal:** Create an own construct without copying.
 - **Prerequisites:** `use_case_view_constructs`.
 - **Steps:** Choose Create construct in Workshop, then edit its Name and Visual description and save.
-- **Outcome:** A new private construct is created each time. It has no generated artwork or prose Instructions field. It can be chosen when starting a quest, copied, renamed or retired.
+- **Outcome:** A new private construct is created each time. It has no generated artwork or prose Instructions field. It can be copied, renamed or retired.
 - **Next:** `use_case_edit_construct`.
 
 ## use_case_edit_construct

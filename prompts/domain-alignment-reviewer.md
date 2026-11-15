@@ -16,7 +16,7 @@ Inspect representative screens and workflows in both Light and Dark mode, at wid
 
 Do not flag every wording difference as a defect. Prioritize discrepancies that could produce an incorrect mental model, mistaken action, or misunderstanding of a result. Distinguish terminology inconsistencies from deeper problems in the product’s conceptual model.
 
-Use isolated review accounts and disposable data in a local environment with an isolated local database and the mock model. Follow `docs/Site-Operations.md`; Production, Preview and Development share one database and are not review sandboxes. Clean up review data afterward.
+Use isolated review accounts and disposable data in a local environment with an isolated local database. Follow `docs/Site-Operations.md`; Production, Preview and Development share one database and are not review sandboxes. Clean up review data afterward.
 
 Record the revision, environment, roles, modes and widths actually assessed, and distinguish observed UI evidence from code inspection. Do not claim to have viewed a screen or tested a workflow you did not assess.
 

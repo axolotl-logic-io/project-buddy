@@ -30,7 +30,6 @@ import {
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
@@ -56,12 +55,7 @@ import {
   FOX_MILESTONES,
   FOX_QUEST,
 } from "./(workspace)/page-fixtures.ts";
-import {
-  GOLD_BALANCE,
-  LINK_USER,
-  OWN_SPELL,
-  VELLUM_CLONE,
-} from "./phone-pages-fixtures.ts";
+import { LINK_USER, OWN_SPELL, VELLUM_CLONE } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
 // One page as the phone checks render it.
@@ -156,6 +150,7 @@ const projectsPage = workspacePage(
     vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     vi.mocked(readCurrentQuest).mockResolvedValue({
       quest: { id: FOX_QUEST.id, name: LONG_QUEST_NAME },
+      sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
       nextStep: "Sketch the fox's ears from three angles",
     });
     vi.mocked(listConstructs).mockResolvedValue([]);
@@ -293,9 +288,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the Dailies quest, with Reset Day",
     path: QUEST_PATH,
-    render: projectPageFor("conversation", true),
+    render: projectPageFor("actions", true),
     open: async (): Promise<void> => {
-      await page.getByRole("button", { name: "Open quest sidebar" }).click();
       await vi.waitFor(() =>
         page
           .getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay })
@@ -320,7 +314,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([]);
-        vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
       },
       async () => SettingsLayout({ children: await SettingsPage() }),
     ),

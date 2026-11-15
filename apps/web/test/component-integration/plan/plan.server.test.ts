@@ -1,4 +1,4 @@
-// A quest's plan in the test database with the mock construct: the
+// A quest's plan in the test database with the local construct engine: the
 // construct's change_plan through POST /api/chat, the user's changes from the
 // quest's page and from an adventure, the composer's commands, undo, the plan
 // in the construct's prompt, who may change it, and the next step Today
@@ -13,7 +13,6 @@ import {
   releaseReply,
   saveMessage,
 } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   changePlanAction,
@@ -147,15 +146,11 @@ describe("Plan tool contract", () => {
     ]);
   });
 
-  test("the quest's conversation gets the plan, with step numbers, in its prompt; the private Chat doesn't", async () => {
+  test("the quest's conversation gets the plan, with step numbers, in its prompt", async () => {
     const user = await testUser();
     await signIn(user);
     const data = testData(user);
-    const quest = await data.quest();
-    const [chat, standalone] = await Promise.all([
-      data.chat(quest),
-      privateChat(user.id),
-    ]);
+    const chat = await data.chat(await data.quest());
     await laidOut(chat.quest.id);
     await changePlanAction({
       questId: chat.quest.id,
@@ -166,7 +161,6 @@ describe("Plan tool contract", () => {
     expect(prompt).toContain("<quest_plan>");
     expect(prompt).toContain(`#1 [done] ${BLOCK_OUT}`);
     expect(prompt).toContain(`#2 ${SCULPT}`);
-    expect(await constructPrompt(standalone.id)).not.toContain("<quest_plan>");
   });
 });
 
@@ -281,7 +275,6 @@ describe("a quest's plan, changed without the construct", () => {
   test("a command with a problem changes nothing and says why", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
-    const standalone = await privateChat(user.id);
 
     expect(await command(chat.id, "/frobnicate")).toEqual({
       kind: "problem",
@@ -293,9 +286,6 @@ describe("a quest's plan, changed without the construct", () => {
     expect(await command(chat.id, "/undo")).toMatchObject({
       kind: "failed",
       reason: "no-such-change",
-    });
-    expect(await command(standalone.id, "/plan")).toMatchObject({
-      kind: "problem",
     });
     expect(await listMessages(user.id, chat.id)).toEqual([]);
   });

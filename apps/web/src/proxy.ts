@@ -86,12 +86,12 @@ export async function proxy(request: NextRequest): Promise<Response> {
 }
 
 // Files the proxy never sees, which anyone may fetch: Next's assets, the
-// favicon, and the installed app assets and retirement worker, which
-// browsers fetch without the session cookie: the manifest, the service
-// worker and the icons. Paper textures are public too, including on sign-in.
+// favicon, and the installed app assets, which browsers fetch without the
+// session cookie: the manifest and the icons. Paper textures are public too,
+// including on sign-in.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest\\.webmanifest$|sw\\.js$|icons/|textures/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest\\.webmanifest$|icons/|textures/).*)",
   ],
 };
 

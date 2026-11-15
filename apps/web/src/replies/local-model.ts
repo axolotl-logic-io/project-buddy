@@ -33,9 +33,6 @@ function castSteps(
   if (result.failed || !parsed.success) {
     return [cast, textStep(LOCAL_CONSTRUCT_COPY.castFailed)];
   }
-  if (parsed.data.status === "needsQuest") {
-    return [cast, textStep(LOCAL_CONSTRUCT_COPY.needsQuest)];
-  }
   if (parsed.data.status === "unavailable") {
     return [cast, textStep(LOCAL_CONSTRUCT_COPY.castFailed)];
   }

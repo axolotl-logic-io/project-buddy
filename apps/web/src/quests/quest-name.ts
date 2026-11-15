@@ -49,5 +49,5 @@ function checkQuestName(text: string): QuestNameCheck {
   return { kind: "missing" };
 }
 
-export type { QuestName, QuestNameCheck };
+export type { QuestName };
 export { checkQuestName, QUEST_NAME, QUEST_NAME_MAX_LENGTH };

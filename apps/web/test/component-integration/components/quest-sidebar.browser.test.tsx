@@ -117,3 +117,51 @@ test("sidebar tabs switch with arrow keys and show one section at a time", async
     .toHaveTextContent("Recorded milestones");
   await expect.element(page.getByLabelText(DRAFT_LABEL)).not.toBeVisible();
 });
+
+// The quest page's six sidebar sections, by label.
+const SIX_SECTIONS = [
+  "Plan",
+  "Ideas",
+  "Progress",
+  "Quick Notes",
+  "Members",
+  "Actions",
+];
+
+describe("the sidebar's six tabs", () => {
+  test.each([
+    { width: 360, height: 780 },
+    { width: 768, height: 1024 },
+    { width: 1920, height: 1080 },
+  ])(
+    "all show, unclipped, the selected one included, at $width px",
+    async (viewport) => {
+      await setViewport(viewport);
+      await render(
+        <PlanPanel
+          initialSection="members"
+          sideSections={SIX_SECTIONS.map((label) => ({
+            id: label.toLowerCase(),
+            label,
+            content: <p>{label}</p>,
+          }))}
+        />,
+      );
+      const tablist = page.getByRole("tablist").element();
+      const strip = tablist.getBoundingClientRect();
+      expect(tablist.scrollWidth).toBeLessThanOrEqual(tablist.clientWidth);
+      for (const label of SIX_SECTIONS) {
+        const tab = page.getByRole("tab", { name: label, exact: true });
+        const box = tab.element().getBoundingClientRect();
+        expect(box.left, label).toBeGreaterThanOrEqual(strip.left);
+        expect(box.right, label).toBeLessThanOrEqual(strip.right);
+        expect(tab.element().scrollWidth, label).toBeLessThanOrEqual(
+          tab.element().clientWidth,
+        );
+      }
+      await expect
+        .element(page.getByRole("tab", { name: "Members" }))
+        .toHaveAttribute("aria-selected", "true");
+    },
+  );
+});

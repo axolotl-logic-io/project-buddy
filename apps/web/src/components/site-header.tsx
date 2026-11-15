@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
+import { QuickNote } from "@/components/quick-note.tsx";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -63,10 +64,12 @@ function TrailBand({
 const PLACES_LABEL_ID = "site-menu-places";
 const YOU_LABEL_ID = "site-menu-you";
 
-// Signed-in destinations, grouped into Places and You.
+// Quick Note, then signed-in destinations, grouped into Places and You.
 function AccountLinks(): JSX.Element {
   return (
     <nav aria-label={SITE_MENU_COPY.title} className="flex flex-col">
+      <QuickNote />
+      <hr className="menu-rule" />
       <p className="menu-label" id={PLACES_LABEL_ID}>
         {SITE_MENU_COPY.placesLabel}
       </p>

@@ -320,11 +320,8 @@ async function moveConversationAssets(
 }
 
 export {
-  destinationGrant,
   getVisualAsset,
   grantVisualAssets,
   latestDraftVisual,
   moveConversationAssets,
-  previousVisualAvailable,
-  visualAssetIds,
 };

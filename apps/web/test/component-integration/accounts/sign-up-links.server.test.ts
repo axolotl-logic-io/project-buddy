@@ -16,8 +16,6 @@ import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { getDb } from "@/db/client.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";
-import { goldInMicroUsd, STARTING_GOLD } from "@/gold/gold.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import {
   createTestAccount,
@@ -94,7 +92,6 @@ test("public verification creates one ordinary account only after confirmation",
   if (user === undefined) {
     throw new Error("No verified account was created");
   }
-  expect(await readGoldBalance(user.id)).toBe(goldInMicroUsd(STARTING_GOLD));
   expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
 });
 
@@ -127,7 +124,7 @@ test.each(["", "malformed", "a".repeat(TOKEN_LENGTH)])(
   },
 );
 
-test("concurrent confirmations consume verification once and grant batteries once", async () => {
+test("concurrent confirmations consume verification once", async () => {
   const email = newAddress();
   const token = await request(email);
   const confirmed = await Promise.all([
@@ -137,34 +134,27 @@ test("concurrent confirmations consume verification once and grant batteries onc
   expect(confirmed.filter((value) => value !== undefined)).toHaveLength(1);
   const rows = await getDb().select().from(users).where(eq(users.email, email));
   expect(rows).toHaveLength(1);
-  const user = await findUserByEmail(email);
-  if (user === undefined) {
-    throw new Error("No verified account was created");
-  }
-  expect(await readGoldBalance(user.id)).toBe(goldInMicroUsd(STARTING_GOLD));
 });
 
-test("a signup request for an existing account preserves its identity and balance", async () => {
+test("a signup request for an existing account preserves its identity", async () => {
   const user = await testUser();
-  const before = await readGoldBalance(user.id);
   const token = await request(user.email);
   expect((await readSignInLinkUser(token, new Date()))?.id).toBe(user.id);
   expect(await readSignUpEmail(token, new Date())).toBeUndefined();
   await continueSignIn(token);
   expect(await findUserByEmail(user.email)).toEqual(user);
-  expect(await readGoldBalance(user.id)).toBe(before);
   await endRateLimitWindowsFor({ address: user.email });
   await endRateLimitWindowsFor({ clientKey: user.email });
 });
 
-test("verification returns the same account if it was created before confirmation", async () => {
+test("verification returns the same account if it was created before confirmation, naming it if it had no name", async () => {
   const email = newAddress();
   const token = await request(email);
   const existing = await createTestAccount(email);
   expect((await confirmSignUp(token, new Date(), "Mabel"))?.id).toBe(
     existing.id,
   );
-  expect(await findUserByEmail(email)).toEqual(existing);
+  expect(await findUserByEmail(email)).toEqual({ ...existing, name: "Mabel" });
 });
 
 test("signing out everywhere revokes pending verification for that account", async () => {

@@ -37,6 +37,7 @@ async function renderSavedChat(
 ): Promise<void> {
   await render(
     <ChatView
+      questId={questIdFixture()}
       viewer={userIdFixture()}
       constructName={getConstruct("vellum").name}
       chatId={chatIdFixture()}

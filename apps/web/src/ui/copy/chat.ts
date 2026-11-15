@@ -1,14 +1,5 @@
-// The text of conversations: the construct picker, the conversation,
-// the construct's tool parts, and chat names.
-
-export const NEW_CHAT_COPY = {
-  constructLabel: "Construct",
-  previousConstruct: "Previous construct",
-  nextConstruct: "Next construct",
-  constructPosition: (position: number, count: number): string =>
-    `${position} of ${count}`,
-  ownConstructDescription: "One of your own constructs.",
-} as const;
+// The text of conversations: the conversation, the construct's tool parts,
+// and chat names.
 
 export const CHAT_COPY = {
   stop: "Stop reply",
@@ -20,8 +11,6 @@ export const CHAT_COPY = {
     "Reply stopped at your request. Tool effects already started may remain or finish.",
   replyingElsewhere: (name: string): string =>
     `${name} is still replying. This conversation will update when the reply finishes.`,
-  headerLink: "Chat",
-  loading: "Loading Chat…",
   conversationLabel: "Conversation",
   you: "You",
   thinking: (constructName: string): string => `${constructName} is thinking…`,
@@ -38,7 +27,6 @@ export const CHAT_COPY = {
 
 export const TOOL_FAILURES_COPY = {
   questStatus: "Your construct couldn’t request the quest status change.",
-  createQuest: "Your construct couldn't create the quest.",
   castSpell: "Your construct couldn't cast the spell.",
   recordMilestone: "Your construct couldn't add the milestone to the timeline.",
   changePlan: "Your construct couldn't change the quest's plan.",
@@ -47,16 +35,6 @@ export const TOOL_FAILURES_COPY = {
 // The spell cast shown in the construct's reply.
 export const CAST_SPELL_COPY = {
   cast: (name: string): string => `Cast ${name}`,
-} as const;
-
-// The quest the construct offers in Chat, or, in a result saved before
-// offers, the quest it created or why it created none.
-export const CREATE_QUEST_COPY = {
-  offered: (name: string): string => `Suggested quest: ${name}`,
-  created: (name: string): string => `Created the quest “${name}”`,
-  openQuest: "Open the quest",
-  claudeUnavailable:
-    "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
 } as const;
 
 // What the new-quest and new-chat forms say when Claude can't write the new

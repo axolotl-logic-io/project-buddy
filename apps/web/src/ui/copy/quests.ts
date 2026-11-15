@@ -8,11 +8,7 @@ export const QUESTS_COPY = {
   heading: "Quests",
   loading: "Loading quests…",
   none: "No quests yet. Choose a way to start one above.",
-  listHeading: "All quests",
   created: (createdAt: string): string => `started ${createdAt}`,
-  nameLabel: "Quest name",
-  defaultName: "New quest",
-  cancel: "Cancel",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
@@ -22,7 +18,6 @@ export const QUESTS_COPY = {
 } as const;
 
 export const QUEST_COPY = {
-  navigation: "Quest workspace",
   rename: "Rename",
   titleLabel: "Quest title",
   saveTitle: "Save title",

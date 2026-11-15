@@ -239,7 +239,7 @@ async function streamAndSaveReply(
     const messages = await convertToModelMessages(
       await hydrateImages(actingUser, chat.id, named.messages),
       {
-        tools: chatTools(chat.quest?.id),
+        tools: chatTools(),
         convertDataPart: planPartForModel,
       },
     );
@@ -372,7 +372,6 @@ async function replyToChat(
     if (chat === undefined) {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
-    await hydrateImages(actingUser, chat.id, [message]);
     const { construct } = chat;
     const answer = await conversationToAnswer(actingUser, chat, message);
     if (answer.kind === "refused") {
