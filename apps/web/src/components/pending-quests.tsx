@@ -7,9 +7,11 @@ import { TIME_SLOT } from "@/components/time-format.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import type { QuestId } from "@/ids.ts";
 import type { AnswerInvitation } from "@/quests/membership.ts";
 import type { PendingQuest } from "@/quests/membership-store.ts";
 import { PENDING_COPY } from "@/ui/copy/quest-members.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 // What came of the last answer: who joined, with a link to the quest, or
 // which invitation was declined.
@@ -53,7 +55,7 @@ function PendingRow({
           />
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="quests-index-answer">
         <Button
           aria-label={PENDING_COPY.acceptLabel(quest.name)}
           disabled={busy}
@@ -77,13 +79,18 @@ function PendingRow({
 // The quests the user is invited to and hasn't accepted, each with Accept
 // and Decline. Answering one leaves the others pending. Its row goes with
 // the answer, so focus moves to the list's heading, and the status line
-// says what happened, with a link to a joined quest.
+// says what happened, with a link to a joined quest. An invitation found
+// to be gone, withdrawn or answered elsewhere, goes too. onSettled names
+// each invitation that is no longer pending, so the caller stops listing
+// and counting it.
 function PendingQuests({
   quests,
   answer,
+  onSettled,
 }: {
   readonly quests: readonly PendingQuest[];
   readonly answer: AnswerInvitation;
+  readonly onSettled: (questId: QuestId) => void;
 }): JSX.Element {
   const [busy, setBusy] = useState(false);
   const [answered, setAnswered] = useState<Answered | undefined>();
@@ -96,6 +103,7 @@ function PendingQuests({
       setFailure(undefined);
       answer({ questId: quest.questId, accept })
         .then((result) => {
+          onSettled(quest.questId);
           if (result.kind === "failed") {
             setFailure(PENDING_COPY.failed);
             return;
@@ -105,15 +113,15 @@ function PendingQuests({
             kind = "accepted";
           }
           setAnswered({ kind, quest });
-          headingRef.current?.focus();
         })
         .catch(() => setFailure(PENDING_COPY.failed))
-        .finally(() => setBusy(false));
+        .finally(() => {
+          setBusy(false);
+          // The answered row is gone, or its buttons were disabled.
+          headingRef.current?.focus();
+        });
     },
-    [answer],
-  );
-  const shown = quests.filter(
-    (quest) => quest.questId !== answered?.quest.questId,
+    [answer, onSettled],
   );
   return (
     <div className="flex flex-col gap-3">
@@ -123,12 +131,15 @@ function PendingQuests({
       <FormStatus>
         {answered?.kind === "accepted" && (
           <>
-            {PENDING_COPY.accepted(answered.quest.name)}{" "}
+            {PENDING_COPY.accepted(
+              answered.quest.name,
+              QUEST_STATUS_COPY.labels[answered.quest.status],
+            )}{" "}
             <Link
               className="text-link"
               href={`/quests/${answered.quest.questId}`}
             >
-              {PENDING_COPY.open(answered.quest.name)}
+              {PENDING_COPY.open}
             </Link>
           </>
         )}
@@ -136,10 +147,10 @@ function PendingQuests({
           PENDING_COPY.declined(answered.quest.name)}
       </FormStatus>
       {failure !== undefined && <Alert>{failure}</Alert>}
-      {shown.length === 0 && <p className="text-muted">{PENDING_COPY.none}</p>}
-      {shown.length > 0 && (
+      {quests.length === 0 && <p className="text-muted">{PENDING_COPY.none}</p>}
+      {quests.length > 0 && (
         <ul aria-label={PENDING_COPY.label} className="quests-index-list">
-          {shown.map((quest) => (
+          {quests.map((quest) => (
             <PendingRow
               busy={busy}
               key={quest.questId}

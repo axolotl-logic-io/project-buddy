@@ -25,8 +25,10 @@ export const LINK_PAGE_COPY = {
   continue: "Continue",
   signupIntro: "Enter your name to finish creating your account.",
   nameInvalid: "Enter a name of 1–60 characters on one line, without { or }.",
-  expired: `This link has expired or no longer works. A sign-in link works for 30 minutes after it's sent; a quest invitation link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days. Log in to find your pending invitations in Quests.`,
-  newLink: "Ask for a new link",
+  expired: "This link has expired or no longer works.",
+  expiredNext: `A sign-in link works for 30 minutes, and a quest invitation link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days. If your invitation is still pending, it's under Pending in Quests.`,
+  logIn: "Log in",
+  openQuests: "Open Quests",
 } as const;
 
 // The email is Vellum's (EMAIL_SENDER_COPY), for signing in and signing

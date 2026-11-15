@@ -12,9 +12,13 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import { EMPTY_PLAN, nextPlanStep } from "@/plan/plan.ts";
 import { readPlan } from "@/plan/plan-store.ts";
+import type { QuestSharing } from "@/quests/membership.ts";
+import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
 
 interface CurrentQuest {
   readonly quest: ChatQuest;
+  // How it is shared, as its reader sees it.
+  readonly sharing: QuestSharing;
   // The next step its plan records, or undefined if none.
   readonly nextStep: string | undefined;
 }
@@ -42,7 +46,7 @@ async function readNextStep(
 function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
   return withAppErrors("readCurrentQuest", async () => {
     const [latest] = await getDb()
-      .select({ id: quests.id, name: quests.name })
+      .select({ id: quests.id, name: quests.name, ...SHARING_COLUMNS })
       .from(chats)
       .innerJoin(quests, eq(chats.questId, quests.id))
       .where(
@@ -61,6 +65,7 @@ function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
     }
     return {
       quest: { id, name: latest.name },
+      sharing: sharingOf(owner, latest),
       nextStep: await readNextStep(owner, id),
     };
   });

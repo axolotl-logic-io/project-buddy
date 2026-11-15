@@ -10,7 +10,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { readInvitationLink } from "@/quests/membership-store.ts";
-import { localPath } from "@/routes.ts";
+import { HOME_PATH, localPath, SIGN_IN_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { INVITATION_LINK_COPY } from "@/ui/copy/quest-members.ts";
 
@@ -33,8 +33,10 @@ export const metadata: Metadata = {
 // for a link that works, it asks them to continue, with their name when
 // continuing creates or completes their account. An acceptance link names
 // the quest and who invited them, and warns when the browser is signed in
-// to another account. For a link that has expired or no longer works, it
-// says so, with a link to the sign-in page to ask for a new one.
+// to another account. For a link that has expired or no longer works,
+// whatever kind it was, it says so, and where a pending invitation is
+// found, with a way to log in, or to Quests when the browser is signed in.
+// It says nothing of whose link it was.
 export default async function SignInLinkPage({
   searchParams,
 }: PageProps<"/login/link">): Promise<JSX.Element> {
@@ -76,11 +78,20 @@ export default async function SignInLinkPage({
     );
   }
   if (user === undefined && signupEmail === undefined) {
+    const viewer = await currentUser();
     return (
       <SignInPanel intro={LINK_PAGE_COPY.expired}>
-        <Button asChild={true}>
-          <Link href="/login">{LINK_PAGE_COPY.newLink}</Link>
-        </Button>
+        <p className="text-balance text-center">{LINK_PAGE_COPY.expiredNext}</p>
+        {viewer === undefined && (
+          <Button asChild={true}>
+            <Link href={SIGN_IN_PATH}>{LINK_PAGE_COPY.logIn}</Link>
+          </Button>
+        )}
+        {viewer !== undefined && (
+          <Button asChild={true}>
+            <Link href={HOME_PATH}>{LINK_PAGE_COPY.openQuests}</Link>
+          </Button>
+        )}
       </SignInPanel>
     );
   }

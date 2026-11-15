@@ -3,24 +3,35 @@
 // from Pending, one quest at a time; what accepted members may do; and
 // removing or leaving.
 
+import { refresh } from "next/cache";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { endEverySession, findUserByEmail } from "@/accounts/users-store.ts";
+import {
+  endEverySession,
+  findUserByEmail,
+  saveUserName,
+} from "@/accounts/users-store.ts";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
+import SignInLinkPage from "@/app/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
+import { readCurrentQuest } from "@/quests/current-quest-store.ts";
+import { INVITATIONS_PER_HOUR } from "@/quests/membership.ts";
 import {
   answerInvitationAction,
   inviteToQuestAction,
   removeFromQuestAction,
 } from "@/quests/membership-actions.ts";
 import {
+  answerInvitation,
   listPendingQuests,
   listQuestPeople,
   readInvitationLink,
+  removeFromQuest,
 } from "@/quests/membership-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import {
@@ -29,12 +40,19 @@ import {
   readStatusApproval,
   requestQuestStatus,
 } from "@/quests/quest-status-store.ts";
-import { getQuest, listQuests, renameQuest } from "@/quests/store.ts";
+import {
+  getQuest,
+  listQuests,
+  type Quest,
+  renameQuest,
+} from "@/quests/store.ts";
 import {
   beginReplyRun,
   cancellationRequested,
   stopReply,
 } from "@/replies/reply-runs.ts";
+import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
+import { QUEST_INVITATION_EMAIL_COPY } from "@/ui/copy/quest-members.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   testAddress,
@@ -46,7 +64,7 @@ import {
   expectNotFound,
   expectRedirect,
 } from "../test-database/navigation-test-kit.ts";
-import { signIn } from "../test-database/session-test-kit.ts";
+import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import {
   emailedLoginToken,
   type SendEmail,
@@ -93,6 +111,32 @@ function continueForm(token: string, name?: string): FormData {
     form.set("name", name);
   }
   return form;
+}
+
+// The page an emailed link opens, as the browser's session sees it.
+async function linkPageHtml(token: string): Promise<string> {
+  return renderToStaticMarkup(
+    await SignInLinkPage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({ token }),
+    }),
+  );
+}
+
+// The last email sent to the address.
+function lastEmailTo(email: string): { subject: string; text: string } {
+  const message = sent.sendEmail.mock.calls
+    .map(([one]) => one)
+    .findLast((one) => one.to === email);
+  if (message === undefined) {
+    throw new Error(`Nothing was emailed to ${email}`);
+  }
+  return message;
+}
+
+// How the quest with the id is shared, in a list of quests.
+function sharingOf(quests: readonly Quest[], id: string): unknown {
+  return quests.find((quest) => quest.id === id)?.sharing;
 }
 
 // A user who owns two quests, each with its conversation.
@@ -216,6 +260,94 @@ describe("use_case_invite_to_quest", () => {
       ),
     ).toEqual([{ kind: "not-found" }, { kind: "not-found" }]);
   });
+
+  test("a pending invitation shows its address, never the account's name, until it is accepted", async () => {
+    const [{ owner, first }, named] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+    ]);
+    await saveUserName(named.id, "Pat Pending");
+    await addInvitee(owner, first.id, named);
+
+    const people = await listQuestPeople(owner.id, first.id);
+    expect(people?.invited).toEqual([
+      { id: named.id, displayName: named.email, invitedAt: expect.any(Date) },
+    ]);
+    expect(JSON.stringify(people)).not.toContain("Pat Pending");
+
+    expect(await answerInvitation(named.id, first.id, true)).toBe(true);
+    expect((await listQuestPeople(owner.id, first.id))?.members).toEqual([
+      { id: named.id, displayName: "Pat Pending", joinedAt: expect.any(Date) },
+    ]);
+  });
+
+  test("only invitations that go out count against the hourly limit", async () => {
+    const [{ owner, first, second }, member] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+    ]);
+    await addMember(owner, first.id, member);
+
+    expect(await invite(member, second.id, testAddress())).toEqual({
+      kind: "not-found",
+    });
+    expect(await invite(member, first.id, owner.email)).toEqual({
+      kind: "in-quest",
+    });
+    const addresses = Array.from({ length: INVITATIONS_PER_HOUR }, () =>
+      testAddress(),
+    );
+    expect(
+      await Promise.all(
+        addresses.map((address) => invite(member, first.id, address)),
+      ),
+    ).toEqual(addresses.map(() => ({ kind: "invited" })));
+
+    const late = testAddress();
+    expect(await invite(member, first.id, late)).toEqual({ kind: "limited" });
+    expect(await findUserByEmail(late)).toBeUndefined();
+  });
+
+  test("the email names the quest and, from a member, its owner, lists what is shared and says when an account was set aside", async () => {
+    const [{ owner, first }, member, existing] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+      testUser(),
+    ]);
+    await Promise.all([
+      saveUserName(owner.id, "Rowan Owner"),
+      saveUserName(member.id, "Mika Member"),
+    ]);
+    await addMember(owner, first.id, member);
+    const address = testAddress();
+
+    await invite(member, first.id, address);
+    const fromMember = lastEmailTo(address);
+    expect(fromMember.subject).toBe(
+      QUEST_INVITATION_EMAIL_COPY.subject(first.name),
+    );
+    expect(fromMember.text).toContain(
+      `Mika Member invited you to join Rowan Owner's quest "${first.name}"`,
+    );
+    expect(fromMember.text).toContain(
+      "conversation, Plan, Ideas, Progress and Quick Notes",
+    );
+    expect(fromMember.text).toContain(QUEST_INVITATION_EMAIL_COPY.notExpected);
+    expect(fromMember.text).not.toContain("their quest");
+    expect(fromMember.text).not.toContain("Nothing changes");
+
+    await invite(owner, first.id, existing.email);
+    const fromOwner = lastEmailTo(existing.email);
+    expect(fromOwner.text).toContain(
+      `Rowan Owner invited you to join the quest "${first.name}"`,
+    );
+    expect(fromOwner.text).toContain(
+      QUEST_INVITATION_EMAIL_COPY.notExpectedMember,
+    );
+    expect(fromOwner.text).not.toContain(
+      QUEST_INVITATION_EMAIL_COPY.notExpected,
+    );
+  });
 });
 
 describe("use_case_join_quest_by_link", () => {
@@ -328,6 +460,37 @@ describe("use_case_join_quest_by_link", () => {
     expect(await getQuest(user.id, second.id)).toBeUndefined();
   });
 
+  test("a link reopened after joining says it no longer works, points to Pending only if pending, and names nothing", async () => {
+    const [{ owner, first }, user] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+    ]);
+    await invite(owner, first.id, user.email);
+    const token = emailedInvitationToken(sent.sendEmail, user.email);
+    await expectRedirect(
+      () => continueSignInAction(continueForm(token)),
+      `/quests/${first.id}`,
+    );
+
+    const signedIn = await linkPageHtml(token);
+    expect(signedIn).toContain(LINK_PAGE_COPY.expired);
+    expect(signedIn).toContain(
+      "If your invitation is still pending, it&#x27;s under Pending in Quests.",
+    );
+    expect(signedIn).toContain(
+      `href="/quests">${LINK_PAGE_COPY.openQuests}</a>`,
+    );
+    expect(signedIn).not.toContain(first.name);
+    expect(signedIn).not.toContain("Ask for a new link");
+
+    signOut();
+    const signedOut = await linkPageHtml(token);
+    expect(signedOut).toContain(LINK_PAGE_COPY.expired);
+    expect(signedOut).toContain(`href="/login">${LINK_PAGE_COPY.logIn}</a>`);
+    expect(signedOut).not.toContain(LINK_PAGE_COPY.openQuests);
+    expect(signedOut).not.toContain(first.name);
+  });
+
   test("an invited account completes sign-up from an ordinary sign-in link too", async () => {
     const { owner, first } = await ownerWithTwoQuests();
     const email = testAddress();
@@ -389,6 +552,26 @@ describe("use_case_accept_pending_quest", () => {
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });
 
+  test("answering an invitation withdrawn meanwhile fails and refreshes Pending", async () => {
+    const [{ owner, first }, user] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+    ]);
+    await addInvitee(owner, first.id, user);
+    expect(
+      await removeFromQuest(owner.id, { questId: first.id, person: user.id }),
+    ).toBe(true);
+    await signIn(user);
+    vi.mocked(refresh).mockClear();
+
+    expect(
+      await answerInvitationAction({ questId: first.id, accept: true }),
+    ).toEqual({ kind: "failed" });
+    expect(refresh).toHaveBeenCalled();
+    expect(await listPendingQuests(user.id)).toEqual([]);
+    expect(await getQuest(user.id, first.id)).toBeUndefined();
+  });
+
   test("Pending shows only the quest's name and inviter, and opens nothing", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
@@ -400,6 +583,7 @@ describe("use_case_accept_pending_quest", () => {
       {
         questId: first.id,
         name: first.name,
+        status: "active",
         invitedBy: owner.email,
         invitedAt: expect.any(Date),
       },
@@ -491,7 +675,7 @@ describe("use_case_quest_member_powers", () => {
 });
 
 describe("use_case_remove_quest_member", () => {
-  test("a member who leaves loses access and lands on Quests", async () => {
+  test("a member who leaves loses access, and the page opens Quests itself", async () => {
     const [{ owner, first }, member] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -499,10 +683,9 @@ describe("use_case_remove_quest_member", () => {
     await addMember(owner, first.id, member);
     await signIn(member);
 
-    await expectRedirect(
-      () => removeFromQuestAction({ questId: first.id, person: member.id }),
-      "/quests",
-    );
+    expect(
+      await removeFromQuestAction({ questId: first.id, person: member.id }),
+    ).toEqual({ kind: "done" });
     expect(await getQuest(member.id, first.id)).toBeUndefined();
     expect((await listQuestPeople(owner.id, first.id))?.members).toEqual([]);
   });
@@ -543,6 +726,35 @@ describe("use_case_remove_quest_member", () => {
     });
     expect(await listQuestPeople(member.id, first.id)).toEqual(people);
     expect((await getChat(member.id, chat.id))?.id).toBe(chat.id);
+  });
+});
+
+describe("how a quest is shared, wherever quests are listed", () => {
+  test("the owner's quest with members is shared, a member sees its owner, and personal quests stay unmarked", async () => {
+    const [{ owner, first, second }, member] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+    ]);
+    await saveUserName(owner.id, "Rowan Owner");
+    await addMember(owner, first.id, member);
+    const own = await testData(member).quest();
+
+    const [ownerQuests, memberQuests, continued] = await Promise.all([
+      listQuests(owner.id),
+      listQuests(member.id),
+      readCurrentQuest(member.id),
+    ]);
+    expect(sharingOf(ownerQuests, first.id)).toEqual({ kind: "shared" });
+    expect(sharingOf(ownerQuests, second.id)).toEqual({ kind: "personal" });
+    expect(sharingOf(memberQuests, first.id)).toEqual({
+      kind: "joined",
+      owner: "Rowan Owner",
+    });
+    expect(sharingOf(memberQuests, own.id)).toEqual({ kind: "personal" });
+    expect(continued).toMatchObject({
+      quest: { id: first.id },
+      sharing: { kind: "joined", owner: "Rowan Owner" },
+    });
   });
 });
 
