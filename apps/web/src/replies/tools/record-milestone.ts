@@ -20,15 +20,7 @@ async function recordChatMilestone(
   { text }: RecordMilestoneInput,
   { context }: { context: ChatToolContext },
 ): Promise<RecordMilestoneOutput> {
-  // A standalone chat has no quest and so no timeline: tools/index.ts
-  // never offers it this tool.
   const { questId } = context;
-  if (questId === undefined) {
-    throw new AppError(
-      "not-found",
-      new Error("No quest to record a milestone in from a standalone chat"),
-    );
-  }
   const milestone = await recordMilestone(
     context.actingUser,
     { questId, chatId: context.chatId },

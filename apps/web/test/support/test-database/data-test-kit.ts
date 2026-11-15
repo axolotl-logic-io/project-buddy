@@ -9,7 +9,7 @@ import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import type { QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import {
@@ -47,10 +47,7 @@ interface TestData {
   // Supply createdAt when a test needs a fixed chronological order.
   readonly quest: (name?: string, createdAt?: Date) => Promise<Quest>;
   // A new chat in quest, in the voice of constructId or the default construct.
-  readonly chat: (
-    quest: Quest,
-    constructId?: ConstructId,
-  ) => Promise<QuestChat>;
+  readonly chat: (quest: Quest, constructId?: ConstructId) => Promise<Chat>;
   // A new construct of the user's own, cloned from the default construct with its
   // voice edited, so it has no prepared opening and writes its own.
   readonly editedConstruct: () => Promise<OwnConstruct>;
@@ -155,7 +152,7 @@ function testData(user: User): TestData {
     chat: (
       quest: Quest,
       constructId: ConstructId = DEFAULT_CONSTRUCT_ID,
-    ): Promise<QuestChat> =>
+    ): Promise<Chat> =>
       createChat(user.id, { quest, construct: getConstruct(constructId) }),
     editedConstruct: (): Promise<OwnConstruct> => testEditedConstruct(user.id),
     exchanges: (

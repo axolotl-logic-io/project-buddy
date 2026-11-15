@@ -12,13 +12,12 @@ import { convertToModelMessages } from "ai";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
-import type { QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import {
   type MessageAuthor,
   otherAuthorNames,
 } from "@/chats/message-author.ts";
 import { listMessages } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
@@ -77,7 +76,7 @@ async function forgetAuthors(chat: { readonly id: ChatId }): Promise<void> {
 async function samAndAlex(): Promise<{
   sam: User;
   alex: User;
-  chat: QuestChat;
+  chat: Chat;
 }> {
   const [sam, alex] = await Promise.all([testUser(), testUser()]);
   await saveUserName(sam.id, "Sam");
@@ -109,29 +108,17 @@ describe("saved message authors", () => {
   });
 
   test("a message saved with no author is the chat owner's", async () => {
-    const [sam, solo] = await Promise.all([testUser(), testUser()]);
+    const sam = await testUser();
     await saveUserName(sam.id, "Sam");
     const data = testData(sam);
     const projectChat = await data.chat(await data.quest());
-    const standaloneChat = await privateChat(solo.id);
     const hello: Exchange = { message: "Hello", reply: REPLY };
-    await Promise.all([
-      data.exchanges(projectChat, [hello]),
-      testData(solo).exchanges(standaloneChat, [hello]),
-    ]);
-    await Promise.all([
-      forgetAuthors(projectChat),
-      forgetAuthors(standaloneChat),
-    ]);
+    await data.exchanges(projectChat, [hello]);
+    await forgetAuthors(projectChat);
 
-    const [inQuest, standalone] = await Promise.all([
-      authorsIn(sam, projectChat),
-      authorsIn(solo, standaloneChat),
-    ]);
-    expect(inQuest).toStrictEqual([{ id: sam.id, name: "Sam" }, undefined]);
-    // The standalone chat's opening is the construct's.
-    expect(standalone.filter((author) => author !== undefined)).toStrictEqual([
-      { id: solo.id, name: undefined, email: solo.email },
+    expect(await authorsIn(sam, projectChat)).toStrictEqual([
+      { id: sam.id, name: "Sam" },
+      undefined,
     ]);
   });
 

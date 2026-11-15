@@ -1,9 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { replyRunOpenTo, replyRunOwnedBy } from "@/accounts/owner-scope.ts";
-import { getDb } from "@/db/client.ts";
+import { type Database, getDb } from "@/db/client.ts";
+import { chats } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
-import type { ChatId, MessageId, UserId } from "@/ids.ts";
+import type { ChatId, MessageId, QuestId, UserId } from "@/ids.ts";
 
 const RUN_STATUS = z.enum(["active", "completed", "cancelled", "failed"]);
 type RunStatus = z.infer<typeof RUN_STATUS>;
@@ -22,15 +23,48 @@ async function beginReplyRun(
   return z.uuid().parse(run?.id);
 }
 
+// Whether the run should stop: someone asked it to, or its user is no
+// longer in the quest, so the run isn't theirs to read (endRepliesOf).
 async function cancellationRequested(
   owner: UserId,
   id: string,
 ): Promise<boolean> {
   const [run] = await getDb()
-    .select({ requested: replyRuns.cancelRequested })
+    .select({
+      requested: replyRuns.cancelRequested,
+      status: replyRuns.status,
+    })
     .from(replyRuns)
     .where(and(replyRunOwnedBy(owner), eq(replyRuns.id, id)));
-  return run?.requested === true;
+  return run === undefined || run.requested || run.status === "cancelled";
+}
+
+// Ends, in db (the removal's transaction), the active reply runs that
+// person started in the quest's conversation, as actor, who removes them
+// from the quest: each is marked cancelled, and its worker, which can no
+// longer save into the quest, stops at its next check.
+async function endRepliesOf(
+  db: Database,
+  actor: UserId,
+  removal: { readonly questId: QuestId; readonly person: UserId },
+): Promise<void> {
+  await db
+    .update(replyRuns)
+    .set({ cancelRequested: true, status: "cancelled" })
+    .where(
+      and(
+        replyRunOpenTo(actor),
+        eq(replyRuns.userId, removal.person),
+        eq(replyRuns.status, "active"),
+        inArray(
+          replyRuns.chatId,
+          db
+            .select({ id: chats.id })
+            .from(chats)
+            .where(eq(chats.questId, removal.questId)),
+        ),
+      ),
+    );
 }
 
 // The response only acknowledges the request; cancelled is reported only
@@ -119,6 +153,7 @@ function watchReplyCancellation(
 export {
   beginReplyRun,
   cancellationRequested,
+  endRepliesOf,
   finishReplyRun,
   stopReply,
   watchReplyCancellation,

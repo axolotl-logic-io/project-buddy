@@ -1,8 +1,7 @@
-// Quests' and Chat's continuing conversations, in the test database with
-// the mock construct: one per quest and one private Chat per user, found or
-// made atomically, never made by reading, open to the quest's people or to
-// the Chat's user alone, and the user's one Dailies quest, reused by its
-// mark whatever its name.
+// Quests' continuing conversations, in the test database with the local
+// construct engine: one per quest, found or made atomically, never made by
+// reading, open to the quest's owner alone, and the user's one Dailies
+// quest, reused by its mark whatever its name.
 
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -10,8 +9,6 @@ import type { User } from "@/accounts/users-store.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
-import { resolveConversation } from "@/conversations/resolve.ts";
 import {
   readQuestConversation,
   startQuest,
@@ -34,7 +31,6 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
-import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   messageText,
@@ -64,13 +60,12 @@ async function dailiesOf(user: User): Promise<string[]> {
 }
 
 describe("a quest's conversation", () => {
-  test("reading a quest without one starts none and spends nothing", async () => {
+  test("reading a quest without one starts none", async () => {
     const user = await testUser();
     const quest = await testData(user).quest();
 
     expect(await readQuestConversation(user.id, quest.id)).toBeUndefined();
     expect(await readQuestConversation(user.id, quest.id)).toBeUndefined();
-    expect(await goldSpent(user)).toBe(0);
   });
 
   test("concurrent starts reach one conversation with one opening", async () => {
@@ -132,7 +127,7 @@ describe("a quest's conversation", () => {
     expect(await readQuestConversation(her.id, quest.id)).toBeUndefined();
   });
 
-  test("a former member can't send to, open or resolve the owner's conversation", async () => {
+  test("a former member can't send to or open the owner's conversation", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
     const quest = await data.quest();
@@ -144,14 +139,8 @@ describe("a quest's conversation", () => {
 
     expect(sent.status).toBe(HTTP_STATUS.notFound);
     expect(await listMessages(owner.id, chat.id)).toEqual(before);
-    expect(await goldSpent(member)).toBe(0);
     expect(await readQuestConversation(member.id, quest.id)).toBeUndefined();
     expect(await getChat(member.id, chat.id)).toBeUndefined();
-    expect(await resolveConversation(member.id, chat.id)).toBeUndefined();
-    expect(await resolveConversation(owner.id, chat.id)).toEqual({
-      kind: "quest",
-      questId: quest.id,
-    });
   });
 });
 
@@ -206,29 +195,6 @@ describe("a long conversation", () => {
   });
 });
 
-describe("the private Chat", () => {
-  test("its user returns to the same conversation, which no one else can reach", async () => {
-    const { her, other } = await twoUsers();
-
-    const [first, second] = await Promise.all([
-      privateChat(her.id),
-      privateChat(her.id),
-    ]);
-    const later = await privateChat(her.id);
-    const theirs = await privateChat(other.id);
-
-    expect(second.id).toBe(first.id);
-    expect(later.id).toBe(first.id);
-    expect(first.quest).toBeUndefined();
-    expect(await listMessages(her.id, first.id)).toEqual([]);
-    expect(await goldSpent(her)).toBe(0);
-    expect(theirs.id).not.toBe(first.id);
-    expect(await getChat(other.id, first.id)).toBeUndefined();
-    expect(await resolveConversation(other.id, first.id)).toBeUndefined();
-    expect(await resolveConversation(her.id, first.id)).toBeUndefined();
-  });
-});
-
 describe("Dailies", () => {
   test("concurrent starts make one Dailies quest, and each start after resumes it", async () => {
     const user = await testUser();
@@ -252,7 +218,7 @@ describe("Dailies", () => {
     expect(results.filter(({ kind }) => kind === "started")).toHaveLength(1);
   });
 
-  test("resuming keeps its conversation and name without spending batteries", async () => {
+  test("resuming keeps its conversation and name", async () => {
     const user = await testUser();
     const first = await startDailies(user.id, dailiesStart());
     if (first.kind !== "started") {
@@ -262,7 +228,6 @@ describe("Dailies", () => {
     await signIn(user);
     await sendChatMessage(chat.id, "Let's start the day.");
     const before = await listMessages(user.id, chat.id);
-    const balance = await goldSpent(user);
     await renameQuest(user.id, chat.quest.id, QUEST_NAME.parse("My mornings"));
     const resumed = await startDailies(user.id, dailiesStart());
     if (resumed.kind !== "resumed") {
@@ -271,7 +236,6 @@ describe("Dailies", () => {
     expect(resumed.chat.id).toBe(chat.id);
     expect(resumed.chat.quest.name).toBe("My mornings");
     expect(await listMessages(user.id, chat.id)).toEqual(before);
-    expect(await goldSpent(user)).toBe(balance);
   });
 
   test("each user has their own Dailies, and a former member's start makes theirs", async () => {

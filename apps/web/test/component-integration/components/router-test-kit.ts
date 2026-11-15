@@ -1,17 +1,21 @@
 // For tests that render ChatView, which refreshes the page through the App
 // Router: a stand-in for next/navigation, which a test file mounts with
 //   vi.mock("next/navigation", () => import("./router-test-kit.ts"));
-// and whose refresh records each refresh.
+// and whose refresh and replace record each call.
 import { vi } from "vitest";
 
 const refresh = vi.fn<() => void>();
+const replace = vi.fn<(href: string) => void>();
 
-function useRouter(): { refresh: () => void } {
-  return { refresh };
+function useRouter(): {
+  refresh: () => void;
+  replace: (href: string) => void;
+} {
+  return { refresh, replace };
 }
 
 function usePathname(): string {
   return "/";
 }
 
-export { refresh, usePathname, useRouter };
+export { refresh, replace, usePathname, useRouter };

@@ -28,7 +28,6 @@ import {
 import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -212,9 +211,6 @@ test.each(SCREENS)(
     expect(
       header.getByRole("link", { name: QUESTS_COPY.headerLink }).query(),
     ).toBeNull();
-    expect(
-      header.getByRole("link", { name: CHAT_COPY.headerLink }).query(),
-    ).toBeNull();
     await openMenu();
     await expect
       .element(
@@ -223,13 +219,6 @@ test.each(SCREENS)(
           .getByRole("link", { name: QUESTS_COPY.headerLink }),
       )
       .toHaveAttribute("href", "/quests");
-    await expect
-      .element(
-        page
-          .getByRole("dialog")
-          .getByRole("link", { name: CHAT_COPY.headerLink }),
-      )
-      .not.toBeInTheDocument();
     await closeMenu();
   },
 );

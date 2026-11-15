@@ -1,4 +1,4 @@
-// Installed app assets and the temporary retirement worker remain public.
+// Installed app assets remain public.
 
 import { unstable_doesMiddlewareMatch as doesProxyMatch } from "next/experimental/testing/server";
 import { expect, test } from "vitest";
@@ -7,7 +7,6 @@ import { APP_ICONS } from "@/ui/web-app.ts";
 
 const PUBLIC_FILES: readonly string[] = [
   "/manifest.webmanifest",
-  "/sw.js",
   "/textures/parchment.svg",
   APP_ICONS.small.src,
   APP_ICONS.large.src,
@@ -27,7 +26,7 @@ test("the pages around them still need a session", () => {
   for (const path of [
     "/",
     "/settings",
-    "/sw.json",
+    "/sw.js",
     "/iconsettings",
     "/texturesettings",
     "/api/images/private",

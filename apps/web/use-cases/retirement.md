@@ -8,7 +8,7 @@ The user puts aside an own construct or spell.
 
 - **Prerequisites:** the user is signed in and has an own definition.
 - **Steps:** on its collection card or editing page, the user chooses Retire.
-- **Outcome:** the definition disappears from active lists, choices, future spell casts, and new quest choices. Stale edits, clones, and starts cannot use it. The central Graveyard page preserves its name, instructions, source, identity, and retirement date. Existing conversations keep their snapshots and past casts. A retired preferred new quest construct falls back to Vellum. Built-in and foreign definitions cannot be retired.
+- **Outcome:** the definition disappears from active lists, choices, and future spell casts. Stale edits, clones, and starts cannot use it. The central Graveyard page preserves its name, instructions, source, identity, and retirement date. Existing conversations keep their snapshots and past casts. Built-in and foreign definitions cannot be retired.
 
 ## use_case_view_retirement
 
@@ -24,7 +24,7 @@ The user makes a retired definition available again.
 
 - **Prerequisites:** the user owns a retired definition.
 - **Steps:** choose Restore from the Graveyard list or its read-only view.
-- **Outcome:** the same definition is active again, with its id, instructions and source intact. Restoration costs nothing. A restored preferred new quest construct is available as the saved preference again. Another user cannot restore the original.
+- **Outcome:** the same definition is active again, with its id, instructions and source intact. Restoration costs nothing. Another user cannot restore the original.
 
 ## use_case_delete_retired_definition
 

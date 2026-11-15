@@ -22,7 +22,6 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../../auth/current-user-test-kit.ts"),
 );
-vi.mock("@/gold/gold-store.ts", () => ({ readGoldBalance: vi.fn() }));
 
 // The browser's cookies when Dark is saved, beside a stale cookie from the
 // removed Extras switches, which must hide nothing.

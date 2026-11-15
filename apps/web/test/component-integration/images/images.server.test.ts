@@ -1,47 +1,37 @@
+// Images saved in a conversation before uploads were removed: the site
+// serves each to its owner alone, deletes it with its chat, and a new
+// message holds text only.
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { listMessages } from "@/chats/store.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import {
-  imageId,
-  MAX_IMAGE_BYTES,
-  MAX_MESSAGE_IMAGES,
-} from "@/images/image-contract.ts";
-import { deliverImage, uploadImage } from "@/images/image-http.ts";
-import { getImage, saveImage } from "@/images/store.ts";
+import { deliverImage } from "@/images/image-http.ts";
+import { getImage } from "@/images/store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
-import { PNG_BASE64, pngBytes } from "../../support/images/image-fixtures.ts";
+import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
+import { seedImage } from "../../support/test-database/artwork-test-kit.ts";
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
-function upload(
-  chatId: string,
-  body: Uint8Array = pngBytes(),
-  mediaType = "image/png",
-): Promise<Response> {
-  return uploadImage(
-    new Request(`http://localhost/api/images?chat=${chatId}`, {
-      method: "POST",
-      headers: { "content-type": mediaType },
-      body: Buffer.from(body),
-    }),
-  );
-}
-function imageMessage(url: string): {
+function imagePart(id: string): {
   type: "file";
   mediaType: "image/png";
   filename: string;
   url: string;
 } {
-  return { type: "file", mediaType: "image/png", filename: "pixel.png", url };
+  return {
+    type: "file",
+    mediaType: "image/png",
+    filename: "pixel.png",
+    url: `/api/images/${id}`,
+  };
 }
+
 function post(chatId: string, parts: unknown[]): Promise<Response> {
   return POST(
     new Request("http://localhost/api/chat", {
@@ -56,30 +46,12 @@ function post(chatId: string, parts: unknown[]): Promise<Response> {
 }
 
 describe("saved conversation image access", () => {
-  test("previous image messages persist without requiring a provider", async () => {
-    const { her, herData } = await twoUsers();
+  test("a saved image is delivered only to its owner and goes with its chat", async () => {
+    const { her, herData, other } = await twoUsers();
     const chat = await herData.chat(await herData.quest());
-    const url = await saveImage(her.id, chat.id, pngBytes(), "image/png");
-    if (url === undefined) {
-      throw new Error("Image was not saved");
-    }
-    const response = await post(chat.id, [imageMessage(url)]);
-    expect(response.status).toBe(HTTP_STATUS.ok);
-    await response.text();
-    await afterTasksDone();
-    const saved = await listMessages(her.id, chat.id);
-    expect(saved[0]?.parts).toEqual([imageMessage(url)]);
-  });
-  test("private delivery and chat deletion apply to uploads, and foreign references cannot be sent", async () => {
-    const { her, other } = await twoUsers();
-    const chat = await privateChat(her.id);
-    const uploaded = await upload(chat.id);
-    expect(uploaded.status).toBe(HTTP_STATUS.ok);
-    const { url } = z.object({ url: z.string() }).parse(await uploaded.json());
-    const id = imageId(url);
-    if (id === undefined) {
-      throw new Error("No private image reference");
-    }
+    const id = await seedImage(chat.id);
+
+    await signIn(her);
     const delivered = await deliverImage(id);
     expect(delivered.headers.get("cache-control")).toBe("private, no-store");
     expect(Buffer.from(await delivered.arrayBuffer()).toString("base64")).toBe(
@@ -88,33 +60,27 @@ describe("saved conversation image access", () => {
     await signIn(other);
     expect((await deliverImage(id)).status).toBe(HTTP_STATUS.notFound);
     expect(await getImage(other.id, id)).toBeUndefined();
-    expect((await upload(chat.id)).status).toBe(HTTP_STATUS.notFound);
-    const theirs = await privateChat(other.id);
-    const forged = await post(theirs.id, [imageMessage(url)]);
-    expect(forged.status).toBe(HTTP_STATUS.badRequest);
-    expect(await listMessages(other.id, theirs.id)).toEqual([]);
-    await signIn(her);
+
     await getDb()
       .delete(chats)
       .where(and(eq(chats.id, chat.id), chatOpenTo(her.id)));
+    await signIn(her);
     expect((await deliverImage(id)).status).toBe(HTTP_STATUS.notFound);
   });
-  test("upload and message boundaries reject oversized, unsupported, forged and too many attachments", async () => {
-    const { her } = await twoUsers();
-    const chat = await privateChat(her.id);
-    const invalid = await Promise.all([
-      upload(chat.id, pngBytes(), "image/svg+xml"),
-      upload(chat.id, new Uint8Array(MAX_IMAGE_BYTES + 1)),
-      upload(chat.id, new TextEncoder().encode("not an image")),
-      post(chat.id, [imageMessage("https://example.com/image.png")]),
-      post(
-        chat.id,
-        Array.from({ length: MAX_MESSAGE_IMAGES + 1 }, () =>
-          imageMessage("/api/images/00000000-0000-4000-8000-000000000001"),
-        ),
-      ),
-    ]);
-    expect(invalid.every((response) => !response.ok)).toBe(true);
+
+  test("a new message holds text only", async () => {
+    const { her, herData } = await twoUsers();
+    const chat = await herData.chat(await herData.quest());
+    const id = await seedImage(chat.id);
+    await signIn(her);
+
+    const withImage = await post(chat.id, [imagePart(id)]);
+
+    expect(withImage.status).toBe(HTTP_STATUS.badRequest);
     expect(await listMessages(her.id, chat.id)).toEqual([]);
+    const text = await post(chat.id, [{ type: "text", text: "Hello" }]);
+    expect(text.status).toBe(HTTP_STATUS.ok);
+    await text.text();
+    await afterTasksDone();
   });
 });

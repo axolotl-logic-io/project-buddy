@@ -6,9 +6,9 @@ Each quest has a progress timeline: a dated list of what the user got done, on t
 
 A milestone is one short line, in the past tense, of something the user finished, such as "Blocked out the shell and body". The construct records it with the `record_milestone` tool when the user says they finished something meaningful in a quest's conversation. The global prompt (`src/replies/global-prompt.ts`) tells every construct to record milestones sparingly: a real achievement, not every step, question or plan, and never twice for the same thing.
 
-To avoid a second record of the same thing, each reply in a quest's conversation has a system prompt that lists the quest's 10 newest milestones, with their days, beside the Journal (`src/replies/milestones-prompt.ts`). The construct reads them as already recorded.
+To avoid a second record of the same thing, each reply in a quest's conversation has a system prompt that lists the quest's 10 newest milestones, with their days, beside the Plan (`src/replies/milestones-prompt.ts`). The construct reads them as already recorded.
 
-The tool is active only in a quest's conversation. Chat has no quest, so it has no timeline. If a construct calls the tool there anyway, the call fails and records nothing.
+The tool is active only in a quest's conversation. A call without a quest fails and records nothing.
 
 The conversation shows each recorded milestone as a notice, apart from the construct's words, with a link to the quest's page. The notice comes from the tool's saved result, so it looks the same while the reply streams and after the user reopens the quest.
 
@@ -22,4 +22,4 @@ The timeline celebrates and doesn't nag. Its copy (`src/ui/copy/milestones.ts`) 
 
 ## Storage
 
-The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its quest, the conversation it was recorded in, if that still exists, its text and when it was recorded. A milestone is open to its quest's owner alone, through `milestoneOpenTo` in `src/accounts/owner-scope.ts`, and is deleted with its quest; it outlives the conversation it was recorded in. `src/milestones/milestone-store.ts` is the only module that reads or writes the table. Migration 0024 adds the table; it is an additive migration, which the live build can run beside.
+The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its quest, the conversation it was recorded in, if that still exists, its text and when it was recorded. A milestone is open to its quest's owner and members, through `milestoneOpenTo` in `src/accounts/owner-scope.ts`, and is deleted with its quest; it outlives the conversation it was recorded in. `src/milestones/milestone-store.ts` is the only module that reads or writes the table.

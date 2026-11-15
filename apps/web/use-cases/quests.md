@@ -9,7 +9,7 @@ The user looks over their quests and the ways to start one.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - They go to Quests.
-- **Outcome:** the page opens with its heading and a line inviting them to pick up where they left off or start something new. Below it, Continue offers their current quest (`use_case_continue_quest`), when they have an Active one. Start a quest then offers four starting points as a strip of tiles, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Last, Active, Completed and Abandoned tabs, each with its count, list their quests as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). Each row links to the quest, which opens on its conversation. With no quests, the page says there are none yet and points to the starting points above. Nothing sits in a frame of its own, and on a phone the tiles are two by two. Merely opening the page creates nothing and makes no model call.
+- **Outcome:** the page opens with its heading and a line inviting them to pick up where they left off or start something new. Below it, Continue offers their current quest (`use_case_continue_quest`), when they have an Active one. Start a quest then offers four starting points as a strip of tiles, Dailies, Learn a thing, Make a thing and Do a thing (`use_case_browse_premade_quests`). Last, Active, Completed and Abandoned tabs, each with its count, list the quests open to them, their own and those they are a member of, as compact rows, newest first, Active by default, as described in [quest status](quest-status.md). A Pending tab, also with its count, lists their unaccepted quest invitations ([`use_case_accept_pending_quest`](quest-members.md#use_case_accept_pending_quest)). Each row links to the quest, which opens on its conversation. With no quests, the page says there are none yet and points to the starting points above. Nothing sits in a frame of its own, and on a phone the tiles are two by two. Merely opening the page creates nothing and makes no model call.
 - **Next:**
   - `use_case_continue_quest`: pick up the quest they were last working on.
   - `use_case_open_quest`: work on one of them.
@@ -23,7 +23,7 @@ The user picks up the quest they were last working on.
 - **Prerequisites:** `use_case_new_quest`, with at least one Active quest.
 - **Steps:**
   - They go to Quests and choose Continue.
-- **Outcome:** above Start a quest, Continue names their current quest: their own Active quest whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next step when it has one: the first open step of its plan. Continue opens the quest on its conversation. Completed and Abandoned quests, Chat and other users' quests are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
+- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next step when it has one: the first open step of its plan. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
 
@@ -81,7 +81,7 @@ The user opens one of their quests, from Quests.
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Plan, Ideas and Progress. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Plan; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. Plan, Ideas and Progress are tabs at the top of the sidebar; switching tabs retains drafts. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Plan, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Plan; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. Plan, Ideas, Progress, Quick Notes and Actions are tabs at the top of the sidebar, with nothing above them; switching tabs retains drafts. Actions holds the spell picker, and Reset Day for Dailies. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
 - **Variations:**
   - The Dailies quest: `use_case_dailies`.
   - Another user's quest is not found ([`use_case_private_data`](accounts.md#use_case_private_data)).
@@ -98,7 +98,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Steps:**
   - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
-  - They choose Reset Day above the workspace tabs and confirm in a modal. They can choose to remove Steps and Ideas separately; both options are off by default.
+  - They choose Reset Day in the sidebar's Actions tab and confirm in a modal. They can choose to remove Steps and Ideas separately; both options are off by default.
 - **Outcome:** Dailies is a quest like any other, with its name, Plan and conversation theirs to change. It opens with local command guidance. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without a model request. Plan and Ideas endure; completed Plan steps become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
   - A quest the user named Dailies by hand has no Reset Day: only a quest started as Dailies offers it.
@@ -136,8 +136,8 @@ The user looks at the ways to start a quest without starting one.
 
 ## use_case_rename_quest
 
-The owner changes the quest title inline on its overview.
+Anyone in the quest, its owner or an accepted member, changes the quest title inline on its overview.
 
-- **Prerequisites:** signed in as the quest owner.
+- **Prerequisites:** signed in as the quest's owner or one of its members.
 - **Steps:** choose the pencil beside the quest name, enter the name, then choose Save title or press Enter.
-- **Outcome:** the trimmed title is saved and appears as the quest's heading, in its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to Rename. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Other users cannot rename the quest.
+- **Outcome:** the trimmed title is saved and appears as the quest's heading, in its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to Rename. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Everyone in the quest sees the new name. Other users, a pending invitee or removed member included, cannot rename the quest.

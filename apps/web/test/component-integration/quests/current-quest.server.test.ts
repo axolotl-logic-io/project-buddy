@@ -7,7 +7,6 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { privateChat } from "@/conversations/private-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -41,17 +40,10 @@ async function setStartedAt(
 }
 
 describe("use_case_continue_quest", () => {
-  test("a new user, or one with only Chat, has nothing to continue", async () => {
-    const [fresh, chatter] = await Promise.all([testUser(), testUser()]);
-    await privateChat(chatter.id);
+  test("a new user has nothing to continue", async () => {
+    const fresh = await testUser();
 
-    const [none, chatOnly] = await Promise.all([
-      readCurrentQuest(fresh.id),
-      readCurrentQuest(chatter.id),
-    ]);
-
-    expect(none).toBeUndefined();
-    expect(chatOnly).toBeUndefined();
+    expect(await readCurrentQuest(fresh.id)).toBeUndefined();
   });
 
   test("continues the quest whose conversation was most recently active, with its next step", async () => {
@@ -80,6 +72,7 @@ describe("use_case_continue_quest", () => {
     ]);
     expect(await readCurrentQuest(user.id)).toEqual({
       quest: { id: garden.id, name: "Garden planner" },
+      sharing: { kind: "personal" },
       nextStep: undefined,
     });
 
@@ -88,6 +81,7 @@ describe("use_case_continue_quest", () => {
 
     expect(await readCurrentQuest(user.id)).toEqual({
       quest: { id: turtle.id, name: "Sea turtle model" },
+      sharing: { kind: "personal" },
       nextStep: "retopo the flipper",
     });
   });

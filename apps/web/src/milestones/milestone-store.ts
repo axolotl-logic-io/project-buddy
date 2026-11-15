@@ -1,13 +1,13 @@
 // Each quest's milestones, its progress timeline, stored in Postgres. A
-// milestone is its quest owner's alone: every function takes the acting
-// user first, so another user's quest has no milestones, its milestones read as not found, and nothing is
-// written to either. Callers
+// milestone is open to its quest's owner and members: every function takes
+// the acting user first, so a quest not open to them has no milestones,
+// its milestones read as not found, and nothing is written to either. Callers
 // pass text that MILESTONE_TEXT accepts.
 
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { milestoneOpenTo, ownsQuest } from "@/accounts/owner-scope.ts";
+import { milestoneOpenTo, opensQuest } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
@@ -86,7 +86,7 @@ async function recordMilestone(
               and(
                 eq(chats.id, chatId),
                 eq(chats.questId, questId),
-                ownsQuest(owner, questId),
+                opensQuest(owner, questId),
               ),
             ),
         )
@@ -146,5 +146,4 @@ async function deleteMilestone(owner: UserId, id: MilestoneId): Promise<void> {
   );
 }
 
-export type { MilestoneSource };
 export { deleteMilestone, editMilestone, listMilestones, recordMilestone };

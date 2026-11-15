@@ -30,8 +30,6 @@ interface OwnPrompt<Definition> extends NamedDefinition<Definition> {
   readonly updatedAt: Date;
 }
 
-type OwnPromptChoice = Pick<OwnPrompt<unknown>, "id" | "name">;
-
 interface DefinitionEdit<Definition> {
   readonly name?: string;
   readonly definition?: Definition;
@@ -322,13 +320,7 @@ async function deleteOwnPrompt<Definition>(
   return deleted.length > 0;
 }
 
-export type {
-  DefinitionEdit,
-  DefinitionLimits,
-  DefinitionStore,
-  OwnPrompt,
-  OwnPromptChoice,
-};
+export type { DefinitionEdit, DefinitionStore, OwnPrompt };
 export {
   cloneOwnPrompt,
   createOwnPrompt,

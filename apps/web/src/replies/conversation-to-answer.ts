@@ -121,5 +121,4 @@ function authored(
   return withAuthor(message, author);
 }
 
-export type { ConversationToAnswer };
 export { CONVERSATION_WINDOW, conversationToAnswer };

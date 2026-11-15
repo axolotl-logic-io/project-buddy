@@ -1,6 +1,6 @@
 const QUEST_SIDEBAR_COPY = {
   label: "Quest side menu",
-  heading: "Quest",
+  actions: "Actions",
   expand: "Open quest sidebar",
   collapse: "Collapse quest sidebar",
 };

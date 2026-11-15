@@ -1,5 +1,5 @@
 import { readUserName } from "@/accounts/users-store.ts";
-import type { ChatQuest, QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat, ChatQuest } from "@/chats/chat-rows.ts";
 import {
   createQuestWithChat,
   type NewChatConstruct,
@@ -29,7 +29,7 @@ const NOT_FOUND = { kind: "notFound" } as const;
 // A new quest, saved with its conversation and opening, or why nothing was
 // saved: the opening is unavailable.
 type StartQuestResult =
-  | { readonly kind: "started"; readonly chat: QuestChat }
+  | { readonly kind: "started"; readonly chat: Chat }
   | typeof CLAUDE_UNAVAILABLE;
 
 // A quest's conversation, found or started, or why it wasn't: the quest
@@ -51,7 +51,7 @@ function defaultStart(): {
 
 function openingFor(
   owner: UserId,
-  readQuest: () => Promise<PromptQuest | undefined>,
+  readQuest: () => Promise<PromptQuest>,
   {
     construct,
   }: {
@@ -173,9 +173,7 @@ async function startQuestConversation(
   return { kind: "started", conversation: found.conversation };
 }
 
-export type { StartConversationResult, StartQuestResult };
 export {
-  defaultStart,
   readQuestConversation,
   startNewQuest,
   startQuest,

@@ -32,7 +32,7 @@ The user reads a reply laid out with headings, lists and code, the way a written
 - **Next:**
   - `use_case_send_message`: ask about one of the steps.
 
-- **Drafts:** unsent message text stays in this browser per viewer and conversation across visits until sent or cleared; unsent image attachments do not survive leaving.
+- **Drafts:** unsent message text stays in this browser per viewer and conversation across visits until sent or cleared.
 
 ## use_case_leave_during_reply
 
@@ -133,12 +133,12 @@ The user stops a reply that is still running.
 
 - **Prerequisites:** signed in, with current access to the conversation.
 - **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
-- **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests cancellation and prevents further reply and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish. Local replies have no battery charge.
-- **Variations:** only the conversation's owner can stop its reply; other users cannot. Repeating Stop does not repeat effects. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
+- **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests cancellation and prevents further reply and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish.
+- **Variations:** anyone the quest is open to, its owner or an accepted member, can stop its reply, whoever's message it answers; other users cannot. Repeating Stop does not repeat effects. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
 
 ## use_case_reset_chat
 
 - **Goal:** Start Dailies again with an empty conversation.
 - **Prerequisites:** The user owns an active Dailies quest.
-- **Steps:** Choose Reset Day above the workspace tabs, optionally select removal of Steps or Ideas, and confirm.
+- **Steps:** Choose Reset Day in the quest sidebar's Actions tab, optionally select removal of Steps or Ideas, and confirm.
 - **Outcome:** The conversation and active spell are cleared. By default Steps are kept and unchecked and Ideas stay. Selected lists are removed. Progress and the construct stay.

@@ -19,18 +19,15 @@ import type {
   getOwnConstruct,
   listConstructs,
 } from "@/constructs/construct-store.ts";
-import type { privateChat } from "@/conversations/private-chat.ts";
-import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { QUEST_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -50,7 +47,6 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
-import { GOLD_BALANCE } from "./phone-pages-fixtures.ts";
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 import { siteHeaderAt } from "./site-header-test-kit.tsx";
@@ -89,9 +85,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
   readQuestConversation: vi.fn(),
   startQuestConversation: vi.fn(),
 }));
-vi.mock("@/conversations/private-chat.ts", () => ({
-  privateChat: vi.fn<typeof privateChat>(),
-}));
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
@@ -99,9 +92,6 @@ vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
   listConstructs: vi.fn<typeof listConstructs>(),
-}));
-vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn<typeof readGoldBalance>(),
 }));
 vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
@@ -123,9 +113,6 @@ vi.mock("@/app/login/link/actions.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
@@ -165,13 +152,16 @@ interface PhoneMeasures {
   readonly pageHeadings: number;
 }
 
-// The rows of tabs a page may have, besides its tab lists: a quest's
-// sections, an adventure's, the Workshop's kinds and the Retirement filter. The Quests list's status tabs
-// are a grid of two columns on a phone by design, so they aren't one.
-const TAB_ROW_NAVIGATIONS: readonly string[] = [
-  QUEST_COPY.navigation,
-  WORKSPACES_COPY.conversation,
-  WORKSHOP_PAGE_COPY.kindsLabel,
+// The rows of tabs a page may have, besides its tab lists: the Workshop's
+// kinds.
+const TAB_ROW_NAVIGATIONS: readonly string[] = [WORKSHOP_PAGE_COPY.kindsLabel];
+
+// The tab lists that aren't one row by design: the Quests list's tabs, a
+// grid of two columns on a phone, and the quest sidebar's six tabs, which
+// wrap so that every one shows in its narrow width.
+const WRAPPING_TAB_LISTS: readonly string[] = [
+  QUEST_STATUS_COPY.tabs,
+  QUEST_SIDEBAR_COPY.label,
 ];
 
 function tabRows(): Element[] {
@@ -180,7 +170,8 @@ function tabRows(): Element[] {
       .getByRole("tablist")
       .elements()
       .filter(
-        (row) => row.getAttribute("aria-label") !== QUEST_STATUS_COPY.tabs,
+        (row) =>
+          !WRAPPING_TAB_LISTS.includes(row.getAttribute("aria-label") ?? ""),
       ),
     ...TAB_ROW_NAVIGATIONS.flatMap((name) =>
       page.getByRole("navigation", { name, exact: true }).elements(),
@@ -263,7 +254,6 @@ beforeAll(async () => {
 
 beforeEach(() => {
   vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
-  vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
 });
@@ -315,13 +305,6 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
-
-vi.mock("@/constructs/interview-construct.ts", () => ({
-  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
-}));
-vi.mock("@/app/(workspace)/settings/interview-construct-action.ts", () => ({
-  setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
-}));
 
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),

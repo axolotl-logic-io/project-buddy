@@ -2,10 +2,9 @@
 // needs the server: a page for something that doesn't exist, or a garbled
 // link, ends in Next's notFound(), which shows src/app/not-found.tsx. Next
 // shows the same page for an address the site has no route for; the page's
-// link back to her quests is not-found.test.tsx's.
+// link back to the user's quests is not-found.test.tsx's.
 
 import { expect, test } from "vitest";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { listQuests } from "@/quests/store.ts";
@@ -33,7 +32,6 @@ test("use_case_open_missing_page", async () => {
   await expectNotFound(() =>
     QuestPage(pageProps({ questId: crypto.randomUUID() })),
   );
-  await expectNotFound(() => ChatPage(pageProps({ chatId: "not-a-chat-id" })));
   await expectNotFound(() =>
     ConstructPage(pageProps({ constructId: "no-such-construct" })),
   );

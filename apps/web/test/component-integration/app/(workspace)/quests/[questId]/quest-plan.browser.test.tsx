@@ -1,12 +1,10 @@
-// A quest's plan on its page, in Chromium and WebKit: the next step on its
-// own, the open steps with their controls, adding, editing and moving a step
-// without the construct, and Undo for the last change. What the actions save
-// is plan.server.test.ts's.
+// A quest's plan steps, in Chromium and WebKit: the open steps with their
+// controls, editing and moving a step without the construct, and Undo for
+// the last change. What the actions save is plan.server.test.ts's.
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { QuestPlan } from "@/app/(workspace)/quests/[questId]/(overview)/quest-plan.tsx";
 import type { PlanActions } from "@/components/plan/use-plan.ts";
 import type { PlanState } from "@/plan/plan.ts";
 import type {
@@ -16,6 +14,7 @@ import type {
 } from "@/plan/plan-actions.ts";
 import { PLAN_COPY } from "@/ui/copy/plan.ts";
 import { questIdFixture } from "../../../../../support/id-fixtures.ts";
+import { QuestPlan } from "./plan-steps-test-kit.tsx";
 
 const actions = {
   changePlanAction: vi.fn<typeof changePlanAction>(),

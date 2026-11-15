@@ -64,9 +64,6 @@ async function respond(
       }
       return responseText(owner, active, active.definition.stopReply, text);
     }
-    if (chat.quest === undefined) {
-      return { text: SPELL_MODE_COPY.noQuest };
-    }
     let selected: SpellSnapshot;
     if (casting) {
       const name = text.replace(LEADING_SLASH, "").slice("cast ".length).trim();
@@ -86,7 +83,7 @@ async function respond(
     }
     return responseText(owner, selected, selected.definition.castReply, text);
   }
-  if (OTHER_COMMAND.test(text) || chat.quest === undefined) {
+  if (OTHER_COMMAND.test(text)) {
     return { text: null };
   }
   const spell = await readActiveSpell(owner, chat, tx);

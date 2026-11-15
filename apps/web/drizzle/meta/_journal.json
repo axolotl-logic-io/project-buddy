@@ -463,6 +463,20 @@
       "when": 1794636737589,
       "tag": "0065_careless_omega_red",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1794691193204,
+      "tag": "0066_calm_terrax",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1794695856849,
+      "tag": "0067_multi_user_quests",
+      "breakpoints": true
     }
   ]
 }

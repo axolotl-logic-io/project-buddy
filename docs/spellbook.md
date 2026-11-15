@@ -10,14 +10,14 @@ Each spell also owns editable reply lists for casting, saving a message, stoppin
 
 Built-ins remain read-only. The shared editor keeps browser drafts through navigation and offers Save and Cancel. Own spells can be copied or retired. Graveyard supports restoration and permanent deletion.
 
-Use the quest sidebar’s spell picker and Cast spell, or type `cast <spell name>`, such as `cast Alstorm`. Names are matched without regard to case or repeated whitespace. Duplicate names require renaming before casting. `plan` and `brainstorm` cast the built-in spells. Commands ignore case and accept an optional leading slash. Stop beside the composer, or `stop`, ends the spell.
+Use the spell picker and Cast spell in the quest sidebar’s Actions tab, or type `cast <spell name>`, such as `cast Alstorm`. Names are matched without regard to case or repeated whitespace. Duplicate names require renaming before casting. `plan` and `brainstorm` cast the built-in spells. Commands ignore case and accept an optional leading slash. Stop beside the composer, or `stop`, ends the spell.
 
 A cast saves a snapshot of its name, destination and replies. Editing, retiring or deleting the source never changes an active spell. Cast again to use the latest definition. The local engine uses the destination for capture and the saved reply lists for responses. Reply templates replace `{{name}}` with the user’s name. Prose Instructions fields are not offered.
 
 Each ordinary message becomes one item of at most 200 characters. Commands bypass capture. Validation failures keep the conversation message and show feedback. Capture and its saved result commit together, so retries add no duplicate item. Plan and Ideas have no limit on the number of entries.
 
-## Storage and migration
+## Storage
 
-Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` retains the destination. Migration 0065 adds that column and preserves the definition and listing kind constraints, including historical activity records. It adds no destructive change; the previous build can read the existing destination column during deployment. Built-in spells already active before migration continue using their definitions.
+Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` holds the destination.
 
 Destination identifiers and display labels are shared by the editor, spell cards, retirement details, reply placeholders and active-spell context. Capture selects a destination handler that validates and saves with the destination’s own rules inside the message transaction.

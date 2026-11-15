@@ -30,9 +30,7 @@
     "test-env:init": "bash scripts/test-env/init-worktree.sh",
     "test-db:up": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml up --detach --wait",
     "test-db:down": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml down",
-    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
-    "audit:performance": "bash scripts/performance/run.sh",
-    "audit:validate": "node --import tsx scripts/performance/validate.mts"
+    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts"
   },
   "dependencies": {
     "@ai-sdk/provider": "4.0.26",
@@ -69,12 +67,8 @@
     "@vitest/browser-playwright": "5.0.3",
     "culori": "^4.0.2",
     "drizzle-kit": "^0.31.11",
-    "isomorphic-git": "^1.43.3",
-    "lighthouse": "13.6.0",
     "memfs": "^4.80.0",
-    "puppeteer-core": "24.12.1",
     "tailwindcss": "^4",
-    "tsx": "4.23.15",
     "typescript": "^5",
     "vercel": "64.5.0",
     "vite": "8.3.4",

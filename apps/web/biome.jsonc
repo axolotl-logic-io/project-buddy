@@ -10,125 +10,6 @@
     "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
   },
   "overrides": [
-    // TypeScript globalThis augmentation requires ambient var declarations inside
-    // declare global. They emit no runtime declarations to hoist.
-    {
-      "includes": ["scripts/performance/observe.mts"],
-      "linter": { "rules": { "nursery": { "useVarsOnTop": "off" } } }
-    },
-    // The capture uses Puppeteer ElementHandles; Playwright's locator API is different.
-    {
-      "includes": ["scripts/performance/capture.mts"],
-      "linter": {
-        "rules": { "nursery": { "noPlaywrightElementHandle": "off" } }
-      }
-    },
-
-    // The opt-in audit owns local child processes, browser traces and artifacts.
-    // These command boundaries use Node filesystem/process APIs and print only progress.
-    {
-      "includes": [
-        "scripts/performance/run.mts",
-        "scripts/performance/seed-command.mts",
-        "scripts/performance/capture.mts",
-        "scripts/performance/lighthouse.mts",
-        "scripts/performance/validate.mts",
-        "scripts/performance/validate-output.mts",
-        "test/component-integration/scripts/performance/compressed.test.mts",
-        "test/component-integration/scripts/performance/audit-directory.test.ts"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": { "noNodejsModules": "off" },
-          "suspicious": { "noConsole": "off" }
-        }
-      }
-    },
-    // Screenshot arguments use the DevTools trace wire field names.
-    {
-      "includes": ["scripts/performance/capture.mts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "expected_display_time|frame_sequence|source_id|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-
-    // DevTools screenshot metadata uses these wire names in archived traces.
-    {
-      "includes": ["scripts/performance/artifacts.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "expected_display_time|frame_sequence|source_id|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    // Server audit attribution needs Node's async context across parallel
-    // database work. This is the only platform boundary for that context.
-    {
-      "includes": ["src/performance/query-counter.ts"],
-      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
-    },
-    // The deterministic Stripe gateway runs one loopback HTTP server per file.
-    {
-      "includes": [
-        "test/component-integration/batteries/checkout.server.test.ts"
-      ],
-      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
-    },
-
-    // Stripe's wire fields are snake_case. Keep the documented names at
-    // the provider boundary and in its payment fixtures.
-    {
-      "includes": [
-        "src/batteries/purchases.ts",
-        "src/batteries/cash-events.ts",
-        "test/component-integration/batteries/purchases.server.test.ts",
-        "test/component-integration/batteries/checkout.server.test.ts"
-      ],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "has_more|unit_amount|adaptive_pricing|automatic_tax|payment_status|amount_total|client_reference_id|payment_intent|allowed_payment_method_types|line_items|success_url|cancel_url|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-
     // The overrides below are the only exceptions to the policy. Each covers a
     // pattern that the framework or tool documents as the way to use it, and
     // names the exact files that need it.
@@ -188,14 +69,18 @@
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
     // check only the root layout, the frame it renders (header, the site
-    // menu and its appearance choices) and the global CSS files whose
-    // classes pages use.
+    // menu, its appearance choices and the Quick Note dialog, with the form
+    // fields and notices it shows) and the global CSS files whose classes
+    // pages use.
     {
       "includes": [
         "src/app/layout.tsx",
         "src/components/site-header.tsx",
         "src/components/site-menu.tsx",
         "src/components/appearance-choices.tsx",
+        "src/components/quick-note.tsx",
+        "src/components/ui/field.tsx",
+        "src/components/ui/form-message.tsx",
         "src/app/page-roles.css",
         "src/components/chat/chat.css",
         "src/components/constructs/construct-discovery.css"
@@ -247,29 +132,6 @@
                   {
                     "selector": { "kind": "objectLiteralProperty" },
                     "match": "short_name|start_url|background_color|theme_color|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-
-    // Anthropic's usage fields, as its API names them
-    // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts.
-    {
-      "includes": ["src/quota/anthropic-usage.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "input_tokens|cache_read_input_tokens|cache_creation_input_tokens|cache_creation|ephemeral_5m_input_tokens|ephemeral_1h_input_tokens|(.+)"
                   }
                 ]
               }
@@ -334,30 +196,10 @@
       }
     },
 
-    // The reindex command's entry point prints its progress to the terminal.
-    {
-      "includes": [
-        "scripts/reindex-manual.ts",
-        "scripts/migrate-next-steps.ts"
-      ],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": "off"
-          }
-        }
-      }
-    },
-
-    {
-      "includes": ["scripts/migrate-next-steps.ts"],
-      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
-    },
-
     // The test database commands' entry points print their progress to the
     // terminal.
     {
-      "includes": ["scripts/test-db/reindex.ts", "scripts/test-db/reset.ts"],
+      "includes": ["scripts/test-db/reset.ts"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -415,9 +257,7 @@
     // which only node:child_process can start.
     {
       "includes": [
-        "test/component-integration/scripts/test-db/reset-refusals.test.ts",
-        "test/component-integration/scripts/performance/archives.test.ts",
-        "test/component-integration/scripts/performance/fixture-command.test.ts"
+        "test/component-integration/scripts/test-db/reset-refusals.test.ts"
       ],
       "linter": {
         "rules": {
@@ -466,11 +306,10 @@
     // node:fs/promises and node:path. Only src/email/send-email.ts imports
     // the first.
     {
-      // The visual reference loader and derivative tests read committed artwork.
+      // The derivative tests read committed artwork.
       "includes": [
         "src/email/outbox.ts",
         "test/support/email/outbox-files.ts",
-        "src/constructs/visual-reference.ts",
         "test/component-integration/constructs/visual-delivery.test.ts"
       ],
       "linter": {

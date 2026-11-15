@@ -14,17 +14,15 @@ import {
 } from "@/plan/plan-actions.ts";
 import { getSpell } from "@/spells/spell.ts";
 
-// The plan's Server Actions, which also run the composer's commands, in a
-// quest's conversation and in Chat alike.
+// The plan's Server Actions, which also run the composer's commands.
 const PLAN_ACTIONS: PlanActions = {
   change: changePlanAction,
   undo: undoPlanChangeAction,
   command: runChatCommandAction,
 };
 
-// A continuing conversation, a quest's or the private Chat, as viewer sees
-// it: a pinned header with its construct, who was chosen when it started,
-// and actions, such as Chat's Turn Chat into a quest; then its messages
+// A quest's continuing conversation, as viewer sees it: a pinned header
+// with its construct, who was chosen when it started; then its messages
 // and the composer. Their own messages are the viewer's; every other user
 // message shows its author's name. stoppedReplyId is the last message's id
 // when its reply stopped (readStoppedReply). plan is given in a quest's
@@ -41,7 +39,6 @@ function ChatScreen({
   header,
   sideSections,
   initialSection,
-  sidebarActions,
 }: {
   readonly conversation: Chat;
   readonly messages: ChatMessage[];
@@ -50,7 +47,6 @@ function ChatScreen({
   readonly plan?: PlanState | undefined;
   readonly actions?: ReactNode;
   readonly sideSections?: readonly WorkspaceSection[] | undefined;
-  readonly sidebarActions?: ReactNode;
   readonly initialSection?: string | undefined;
   readonly header?: ReactNode;
 }): JSX.Element {
@@ -80,7 +76,6 @@ function ChatScreen({
       <ChatView
         spellName={spellName}
         sideSections={sideSections}
-        sidebarActions={sidebarActions}
         initialSection={initialSection}
         viewer={viewer}
         chatId={conversation.id}
@@ -90,7 +85,7 @@ function ChatScreen({
         constructName={construct.name}
         construct={construct}
         authorNames={otherAuthorNames(messages, viewer)}
-        questId={conversation.quest?.id}
+        questId={conversation.quest.id}
         initialPlan={plan}
         planActions={PLAN_ACTIONS}
       />

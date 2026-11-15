@@ -13,11 +13,14 @@ import {
 // lower-cased; see src/accounts/users-store.ts), so each address has one
 // account however it was typed. A session carries the epoch it was signed
 // in at, and only sessions at the current epoch are signed in, so raising
-// it signs the user out everywhere. hidden_extras is inert: it held the
-// removed Extras switches (docs/design/simplification-904.md) and stays only
-// while a live build may still read it, until a later migration drops it.
-// The name is what she asked the construct to call her, stored
-// trimmed (src/accounts/user-name.ts); null when she has none.
+// it signs the user out everywhere. hidden_extras is inert retained storage
+// that nothing reads or writes.
+// The name is what the user asked the construct to call them, stored
+// trimmed (src/accounts/user-name.ts); null when they have none.
+// account_state is "invited" for an account a quest invitation created,
+// until its user completes sign-up, and "signed_up" otherwise. It says
+// nothing about which quest invitations the user has accepted
+// (quest_invitations, quest_members).
 export const users = pgTable(
   "users",
   {
@@ -31,9 +34,14 @@ export const users = pgTable(
       .notNull()
       .defaultNow(),
     role: text("role").notNull().default("user"),
+    accountState: text("account_state").notNull().default("signed_up"),
   },
   (table) => [
     check("users_role_valid", sql`${table.role} in ('user', 'admin')`),
+    check(
+      "users_account_state_valid",
+      sql`${table.accountState} in ('invited', 'signed_up')`,
+    ),
     check(
       "users_email_normalized",
       sql`${table.email} = lower(btrim(${table.email})) and ${table.email} <> ''`,

@@ -1,17 +1,17 @@
 # Premade quests
 
-Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name and activity. Each starting point assigns its construct: Vellum for Dailies and Learn a thing, Lumen for Make a thing and Do a thing. The start form has no construct picker, and submitted construct overrides are ignored. Learn a thing, Make a thing and Do a thing also offer an optional Why field. Dailies starts without asking for Why. No quest is created and no batteries are spent while browsing or cancelling.
+Every quest starts from Dailies, Learn a thing, Make a thing or Do a thing. Each starting point supplies its name, a one-line tagline, a description and starting context, and assigns its construct: Vellum for Dailies and Learn a thing, Lumen for Make a thing and Do a thing. The start form has no construct picker, and submitted construct overrides are ignored. Learn a thing, Make a thing and Do a thing also offer an optional Why field. Dailies starts without asking for Why. No quest is created while browsing or cancelling.
 
-| Starting point | Activity |
-| --- | --- |
-| Dailies | Dailies |
-| Learn a thing | Learn a thing |
-| Make a thing | Find something to make |
-| Do a thing | Break Down a Project |
+| Starting point | Tagline | Construct |
+| --- | --- | --- |
+| Dailies | Start your day | Vellum |
+| Learn a thing | Practise a skill | Vellum |
+| Make a thing | Build a first version | Lumen |
+| Do a thing | Reach an outcome | Lumen |
 
-The tiles open the start form on Quests. The form sends starting context, not a Journal. A supplied Why or approved Chat summary becomes the first user message in the new conversation, followed by the construct’s opening. The opening acknowledges that context. The original Chat’s messages remain in Chat. No Goal, Preferences or Journal is created.
+The tiles open the start form on Quests. The form sends starting context. A supplied Why becomes the first user message in the new conversation, followed by the construct’s opening. The opening acknowledges that context. No Goal, Preferences or Journal is created.
 
-Without supplied context, an unchanged built-in construct and activity use their prepared opening. Other starts generate their opening before saving the quest. A failed opening, invalid details or insufficient batteries create nothing.
+The construct's opening is written before the quest is saved. A failed opening or invalid details create nothing.
 
 Each new quest has an empty Plan. The user and construct add tasks when they agree on them. The first open step is the next step. Dailies resumes the user’s existing quest, conversation and Plan, regardless of its name, without generating another opening or resetting its work.
 

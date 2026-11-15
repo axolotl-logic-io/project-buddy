@@ -4,15 +4,6 @@ import type { TestError } from "vitest";
 import { beforeEach, vi } from "vitest";
 import "./src/app/globals.css";
 
-// Server-only audit context is not available in a browser. The database and
-// authentication boundaries remain mocked by each feature-entrypoint test.
-vi.mock("@/performance/server-spans.ts", () => ({
-  measureServerOperation: <T>(
-    _operation: string,
-    work: () => Promise<T>,
-  ): Promise<T> => work(),
-}));
-
 // Server Actions are RPC boundaries in the site. Keep their server imports
 // out of browser component tests; tests exercising these actions supply
 // their own result-specific mocks. Unexpected mutations fail loudly.
@@ -93,49 +84,8 @@ beforeEach(({ onTestFailed }) => {
   });
 });
 
-vi.mock("@/constructs/restore-visual-action.ts", () => ({
-  restoreVisualAction: vi.fn(),
-}));
 vi.mock("@/replies/stop-reply-action.ts", () => ({
   stopReplyAction: vi.fn(),
-}));
-vi.mock("@/replies/reply-gold-action.ts", () => ({
-  replyGoldAction: vi.fn(() => Promise.resolve(undefined)),
-}));
-vi.mock("@/chats/quest-transfer-action.ts", () => ({
-  confirmQuestTransferAction: vi.fn(),
-  readQuestTransferAction: vi.fn(() => Promise.resolve(undefined)),
-}));
-
-vi.mock("@/accounts/refresh-preferences-action.ts", () => ({
-  refreshPreferencesAction: vi.fn(() => Promise.resolve(undefined)),
-}));
-
-// The header reads its balance on the server. Keep component fixtures out of
-// Postgres and server logging/payment imports; tests needing a balance set it.
-vi.mock("@/gold/gold-store.ts", () => ({
-  readGoldBalance: vi.fn(() =>
-    Promise.reject(new Error("Mock the balance reader in this test")),
-  ),
-}));
-
-// Read-only collection fixtures still import their creation controls. Their
-// Server Actions stay RPC boundaries; action tests provide result-specific mocks.
-vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn(() => {
-    throw new Error("Mock the adventure creation action in this test");
-  }),
-}));
-vi.mock("@/app/(workspace)/quests/premade-actions.ts", () => ({
-  startPremadeQuestAction: vi.fn(() => {
-    throw new Error("Mock the premade quest action in this test");
-  }),
-}));
-
-// Direct workspace-layout fixtures use the same unavailable purchase catalog
-// as the workspace kit, without importing server configuration or logging.
-vi.mock("@/batteries/catalog.ts", () => ({
-  availableBatteryCatalog: vi.fn(() => []),
 }));
 
 vi.mock("@/retirement/retirement-store.ts", () => ({
@@ -155,4 +105,41 @@ vi.mock("@/spells/own-spell-store.ts", () => ({
   findSpell: vi.fn(),
   listOwnSpells: vi.fn().mockResolvedValue([]),
   getOwnSpell: vi.fn(),
+}));
+
+// The site menu's Quick Note dialog and a quest's Quick Notes tab reach these
+// from every signed-in page. Tests of those flows supply their own results.
+vi.mock("@/notes/note-actions.ts", () => ({
+  listNoteQuestsAction: vi.fn(() => Promise.resolve([])),
+  saveNoteAction: vi.fn(() => {
+    throw new Error("Mock the Quick Note save action in this test");
+  }),
+  deleteNoteAction: vi.fn(() => {
+    throw new Error("Mock the Quick Note delete action in this test");
+  }),
+}));
+
+vi.mock("@/notes/note-store.ts", () => ({
+  listNotes: vi.fn(() => Promise.resolve([])),
+}));
+
+// Quests and a quest's Members tab reach these. Tests of membership flows
+// supply their own results; by default a quest shows no Members tab, the
+// user has no pending invitations, and no emailed link is an invitation's.
+vi.mock("@/quests/membership-actions.ts", () => ({
+  inviteToQuestAction: vi.fn(() => {
+    throw new Error("Mock the quest invitation action in this test");
+  }),
+  removeFromQuestAction: vi.fn(() => {
+    throw new Error("Mock the quest removal action in this test");
+  }),
+  answerInvitationAction: vi.fn(() => {
+    throw new Error("Mock the invitation answer action in this test");
+  }),
+}));
+
+vi.mock("@/quests/membership-store.ts", () => ({
+  listQuestPeople: vi.fn(() => Promise.resolve(undefined)),
+  listPendingQuests: vi.fn(() => Promise.resolve([])),
+  readInvitationLink: vi.fn(() => Promise.resolve(undefined)),
 }));

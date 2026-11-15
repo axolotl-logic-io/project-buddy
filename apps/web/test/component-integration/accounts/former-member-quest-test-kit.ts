@@ -4,7 +4,7 @@
 // no membership rows, as after cleanup, and every store must still deny them.
 
 import type { User } from "@/accounts/users-store.ts";
-import type { QuestChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import {
   readQuestConversation,
@@ -12,13 +12,8 @@ import {
 } from "@/conversations/start-quest.ts";
 import type { MilestoneId } from "@/ids.ts";
 import type { GenerationId } from "@/images/generation-contract.ts";
-import {
-  claimGeneration,
-  completeGeneration,
-  getGeneratedImage,
-} from "@/images/generation-store.ts";
-import { imageId } from "@/images/image-contract.ts";
-import { getImage, saveImage } from "@/images/store.ts";
+import { getGeneratedImage } from "@/images/generation-store.ts";
+import { getImage } from "@/images/store.ts";
 import {
   deleteMilestone,
   editMilestone,
@@ -27,14 +22,16 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
-import { pngBytes } from "../../support/images/image-fixtures.ts";
+import {
+  seedGeneratedImage,
+  seedImage,
+} from "../../support/test-database/artwork-test-kit.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 
-// A second Journal version with historical text.
+// The milestone the owner records in the quest.
 const MILESTONE = "Modelled the shell";
-const PNG = pngBytes();
 
 // A quest, its owner and a former member, with one of each kind of data the
 // owner saved in it.
@@ -42,45 +39,11 @@ interface FormerMemberQuest {
   readonly owner: User;
   readonly member: User;
   readonly quest: Quest;
-  readonly chat: QuestChat;
+  readonly chat: Chat;
   // The id of an image in the chat.
   readonly imageId: string;
   readonly generationId: GenerationId;
   readonly milestoneId: MilestoneId;
-}
-
-// The image id the url names, which saveImage returned.
-function savedImageId(url: string | undefined): string {
-  const id = imageId(url ?? "");
-  if (id === undefined) {
-    throw new Error("The image was not saved");
-  }
-  return id;
-}
-
-// The owner's generated image in the chat, claimed and completed.
-async function generatedImage(
-  owner: User,
-  chat: QuestChat,
-): Promise<GenerationId> {
-  const claim = await claimGeneration({
-    owner: owner.id,
-    chatId: chat.id,
-    requestId: crypto.randomUUID(),
-    prompt: "A sea turtle",
-  });
-  if (claim.status !== "claimed") {
-    throw new Error(`The generation was not claimed: ${claim.status}`);
-  }
-  const completed = await completeGeneration(owner.id, claim.id, {
-    bytes: PNG,
-    mediaType: "image/png",
-    costMicroUsd: 1000,
-  });
-  if (!completed) {
-    throw new Error("The generation was not completed");
-  }
-  return claim.id;
 }
 
 // A new quest of a new owner's, with a chat holding a message and an image,
@@ -95,9 +58,7 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
   ]);
-  const image = savedImageId(
-    await saveImage(owner.id, chat.id, PNG, "image/png"),
-  );
+  const image = await seedImage(chat.id);
   const milestone = await recordMilestone(
     owner.id,
     { questId: quest.id, chatId: chat.id },
@@ -106,7 +67,7 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   if (milestone === undefined) {
     throw new Error("The milestone was not recorded");
   }
-  const generationId = await generatedImage(owner, chat);
+  const generationId = await seedGeneratedImage(owner.id, chat.id);
   return {
     owner,
     member,
@@ -188,7 +149,6 @@ async function writesBy(
     ...question("Mine"),
     id: newMessageId(),
   });
-  const image = await saveImage(user.id, chat.id, PNG, "image/png");
   const spell = await setSpell(user.id, {
     chatId: chat.id,
     spell: "brainstorm",
@@ -202,21 +162,12 @@ async function writesBy(
   const started = await startQuestConversation(user.id, quest.id);
   const conversation =
     started.kind === "started" && started.conversation.id === chat.id;
-  const generation = await claimGeneration({
-    owner: user.id,
-    chatId: chat.id,
-    requestId: crypto.randomUUID(),
-    prompt: "A turtle",
-  });
   return {
     message,
-    image: image !== undefined,
     spell,
-
     milestone: milestone !== undefined,
     edited,
     conversation,
-    generation: generation.status,
   };
 }
 
@@ -224,25 +175,19 @@ async function writesBy(
 // taken.
 const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
-  image: false,
   spell: false,
-
   milestone: false,
   edited: false,
   conversation: false,
-  generation: "failed",
 };
 
 // What every write answers for the owner: each one taken.
 const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
-  image: true,
   spell: true,
-
   milestone: true,
   edited: true,
   conversation: true,
-  generation: "claimed",
 };
 
 // Deletes the milestone as user, which answers nothing of its own.
@@ -253,7 +198,6 @@ async function deletesBy(
   await deleteMilestone(user.id, fixture.milestoneId);
 }
 
-export type { FormerMemberQuest };
 export {
   ALL_TAKEN,
   deletesBy,

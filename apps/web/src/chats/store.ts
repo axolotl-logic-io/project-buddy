@@ -1,6 +1,6 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A quest chat is open to its quest's owner
-// alone; a standalone chat only to the user it names (src/accounts/owner-scope.ts). Every function takes the acting user
+// saved by new-chat-store.ts. A chat is open to its quest's owner and
+// members (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's construct and name, and each message's role and
@@ -8,7 +8,16 @@
 // up as a string; anything malformed is not found.
 
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, desc, eq, not, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  not,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import {
@@ -27,7 +36,7 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import { getDb } from "@/db/client.ts";
+import { type Database, getDb } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -37,6 +46,7 @@ import {
   type MessageId,
   parseChatId,
   parseUserId,
+  type QuestId,
   type UserId,
 } from "@/ids.ts";
 import {
@@ -116,8 +126,6 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
 // forged client sends.
 type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 
-export type { MessageSaveResult };
-
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(
@@ -144,7 +152,7 @@ export async function getChat(
 // with the instructions of every spell the construct cast in them, which the
 // construct follows in later replies. Each user message has its author: the
 // user who sent it or, for a message saved with no author, the chat's
-// owner, who is its quest's user or the standalone chat's user. None if
+// owner, who is its quest's user. None if
 // the chat is another user's. A stored message whose role or parts are
 // invalid is left out and logged. With newest, only that many of the newest
 // messages, still oldest first. Only a reply reads these; people read
@@ -406,6 +414,34 @@ export async function claimReply(
       .returning({ id: messages.id }),
   );
   return claimed.length > 0;
+}
+
+// Releases, in db (a removal's transaction), the claims to reply to the
+// messages author wrote in the quest's conversation, as actor sees it, so
+// anyone left in the quest can ask for those replies again at once. The
+// messages stay, with their author.
+export async function releaseRepliesOf(
+  db: Database,
+  actor: UserId,
+  removal: { readonly questId: QuestId; readonly author: UserId },
+): Promise<void> {
+  await db
+    .update(messages)
+    .set({ replyStartedAt: null })
+    .where(
+      and(
+        messageOpenTo(actor),
+        eq(messages.userId, removal.author),
+        isNotNull(messages.replyStartedAt),
+        inArray(
+          messages.chatId,
+          db
+            .select({ id: chats.id })
+            .from(chats)
+            .where(eq(chats.questId, removal.questId)),
+        ),
+      ),
+    );
 }
 
 // Releases the claim to reply to the owner's message, so the browser can

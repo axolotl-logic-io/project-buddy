@@ -38,5 +38,5 @@ function listSpells(): Spell[] {
   return SPELL_ID.options.map(getSpell);
 }
 
-export type { Spell, SpellId };
+export type { SpellId };
 export { getSpell, listSpells, SPELL_ID };

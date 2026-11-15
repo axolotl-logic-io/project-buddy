@@ -1,7 +1,7 @@
 // The one module that reads environment variables. Each accessor reads and
 // validates its variable when called, never at import, so `next build` and
 // pages that skip the database work without DATABASE_URL. Variables come from
-// `process.env`, as Next.js and Vercel provide them. The reindex script and the
+// `process.env`, as Next.js and Vercel provide them. The scripts and the
 // tool configs import this file outside Next, so it uses no Next-only or
 // path-aliased imports.
 //
@@ -14,32 +14,6 @@ const SET_VALUE = z.string().trim().min(1);
 // The highest valid port.
 const HIGHEST_PORT = 65_535;
 const PORT_NUMBER = z.coerce.number().int().positive().max(HIGHEST_PORT);
-const WORKTREE_DATABASE = /^\/pb_wt_[a-z0-9_]+$/u;
-
-// Local audit spans are off unless explicitly selected. Refuse hosted runs
-// and shared databases, even when somebody copies the opt-in setting there.
-function readServerSpans(): boolean {
-  const mode = readIfSet("PERF_SERVER_SPANS");
-  if (mode === undefined) {
-    return false;
-  }
-  if (mode !== "local") {
-    throw new Error('PERF_SERVER_SPANS must be unset or "local".');
-  }
-  const database = new URL(readDatabaseUrl());
-  if (
-    readIfSet("VERCEL_ENV") !== undefined ||
-    readIfSet("VERCEL") !== undefined ||
-    (database.hostname !== "localhost" && database.hostname !== "127.0.0.1") ||
-    !WORKTREE_DATABASE.test(database.pathname)
-  ) {
-    throw new Error(
-      "Server spans require an isolated local worktree database.",
-    );
-  }
-  return true;
-}
-
 // The variable's trimmed value, or undefined when it is unset or blank.
 function readIfSet(name: string): string | undefined {
   return SET_VALUE.safeParse(process.env[name]).data;
@@ -186,7 +160,6 @@ export {
   readEndToEndPort,
   readProductionOrigin,
   readResendApiKey,
-  readServerSpans,
   readSessionSecret,
   readTestDatabaseUrl,
   readVercelBypassSecretIfSet,

@@ -13,7 +13,6 @@ const CAST_SPELL_OUTPUT = z.discriminatedUnion("status", [
     spellId: SPELL_REFERENCE,
     name: z.string(),
   }),
-  z.object({ status: z.literal("needsQuest") }),
   z.object({ status: z.literal("unavailable") }),
 ]);
 type CastSpellInput = z.infer<typeof CAST_SPELL_INPUT>;

@@ -14,8 +14,9 @@ import {
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
-// A quest and its conversations, messages and Plan belong to its owner
-// alone (src/accounts/owner-scope.ts). A standalone chat belongs to its user.
+// A quest belongs to its owner and is open to them and its accepted members
+// (quest_members, src/accounts/owner-scope.ts), with its conversation,
+// messages and Plan. A standalone chat belongs to its user.
 // check_in_frequency and last_check_in_at are inert: they held the removed
 // automatic check-ins' schedule (#903) and stay until a held cleanup drops
 // them, once no live build reads them.
@@ -53,12 +54,12 @@ export const quests = pgTable(
   ],
 );
 
-// A chat is a conversation, in a quest or belonging directly to a user,
-// with no quest: exactly one of quest_id and user_id is set. A
-// continuing chat is the one conversation of its place: a quest's
-// conversation or a user's private Chat (src/conversations/). The partial
-// unique indexes allow at most one continuing chat per quest and per user,
-// so starting one is an atomic get-or-create. A chat that isn't continuing is
+// A chat is a conversation: exactly one of quest_id and user_id is set.
+// The site makes and reads only quests' chats; a chat with user_id, a
+// standalone chat an older build made, is inert. A continuing chat is its
+// quest's one conversation (src/conversations/). The partial unique indexes
+// allow at most one continuing chat per quest and per user, so starting one
+// is an atomic get-or-create. A chat that isn't continuing is
 // a legacy adventure, which the site no longer reads: they stay until a
 // later release, after this one is live, deletes them (#898).
 // construct_name and construct_parts are the construct's snapshot, and
