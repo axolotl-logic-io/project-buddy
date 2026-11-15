@@ -14,8 +14,8 @@ import {
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { MessageId, UserId } from "@/ids.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
-import { changePlanTool } from "@/replies/tools/change-plan.ts";
-import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
+import { changeTasksTool } from "@/replies/tools/change-tasks.ts";
+import { CHANGE_TASKS_TOOL } from "@/replies/tools/change-tasks-contract.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
@@ -27,7 +27,7 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 // tool set must be a plain record.
 type ChatTools = Readonly<{
   [CAST_SPELL_TOOL]: typeof castSpellTool;
-  [CHANGE_PLAN_TOOL]: typeof changePlanTool;
+  [CHANGE_TASKS_TOOL]: typeof changeTasksTool;
   [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
   [QUEST_STATUS_TOOL]: typeof questStatusTool;
 }>;
@@ -55,7 +55,7 @@ function withSettings<ChatTool extends Tool>(
 function chatTools(): ChatTools {
   return {
     [CAST_SPELL_TOOL]: castSpellTool,
-    [CHANGE_PLAN_TOOL]: changePlanTool,
+    [CHANGE_TASKS_TOOL]: changeTasksTool,
     [RECORD_MILESTONE_TOOL]: recordMilestoneTool,
     [QUEST_STATUS_TOOL]: withSettings(questStatusTool, {
       providerOptions: PROMPT_CACHE_BREAKPOINT,
@@ -116,7 +116,7 @@ function streamChatToolCalls(
     tools: chatTools(),
     toolsContext: {
       [CAST_SPELL_TOOL]: context,
-      [CHANGE_PLAN_TOOL]: context,
+      [CHANGE_TASKS_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,
       [QUEST_STATUS_TOOL]: context,
     },

@@ -12,7 +12,7 @@ test("response placeholders expand once without interpreting inserted message co
     ),
   ).toBe("Brainstorm saved Try {{spell}} in Ideas for Sam.");
   expect(
-    spellResponse("For {{name}}: {{unknown}}", getSpell("plan"), "hello"),
+    spellResponse("For {{name}}: {{unknown}}", getSpell("tasks"), "hello"),
   ).toBe("For the user: {{unknown}}");
 });
 
@@ -20,11 +20,11 @@ test("random reply selection can choose every alternative before expanding place
   const LastChoiceRandom = 0.999;
   const replies = ["First: {{message}}", "Last: {{bucket}}"];
   expect(
-    spellResponse(replies, getSpell("plan"), "Sketch", { random: () => 0 }),
+    spellResponse(replies, getSpell("tasks"), "Sketch", { random: () => 0 }),
   ).toBe("First: Sketch");
   expect(
-    spellResponse(replies, getSpell("plan"), "Sketch", {
+    spellResponse(replies, getSpell("tasks"), "Sketch", {
       random: () => LastChoiceRandom,
     }),
-  ).toBe("Last: Plan");
+  ).toBe("Last: Tasks");
 });

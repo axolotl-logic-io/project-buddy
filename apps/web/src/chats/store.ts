@@ -51,9 +51,9 @@ import {
 } from "@/ids.ts";
 import {
   awaitsReply,
-  PLAN_CARD_PART,
-  PLAN_CHANGE_PART,
-} from "@/plan/plan-message.ts";
+  TASKS_CARD_PART,
+  TASKS_CHANGE_PART,
+} from "@/tasks/tasks-message.ts";
 
 interface MessageRow {
   id: string;
@@ -211,7 +211,7 @@ export async function listMessages(
 // or a request that stopped; the browser may send it again to be answered
 // (src/replies/conversation-to-answer.ts). Undefined while a reply to it is
 // being made, when the last message is the construct's, for an empty chat, and
-// for another user's chat. A plan message, which no reply answers, is never
+// for another user's chat. A tasks message, which no reply answers, is never
 // a stopped reply's.
 export async function readStoppedReply(
   owner: UserId,
@@ -241,7 +241,7 @@ export async function readStoppedReply(
 }
 
 // True unless the chat's newest message awaits a reply: a user message that
-// isn't a plan message (src/plan/plan-message.ts, awaitsReply), whether its
+// isn't a task message (src/tasks/tasks-message.ts, awaitsReply), whether its
 // reply is being made, here or elsewhere, failed or stopped. Nothing may
 // come after such a message but its reply, which a retry or "send again"
 // asks for with the conversation that ends in it.
@@ -253,7 +253,7 @@ export function noReplyAwaited(chatId: ChatId): SQL {
     .orderBy(desc(messages.createdAt), desc(messages.id))
     .limit(1)
     .as("newest");
-  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${PLAN_CHANGE_PART}, ${PLAN_CARD_PART}))))`;
+  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${TASKS_CHANGE_PART}, ${TASKS_CARD_PART}))))`;
 }
 
 // Whether the owner's chat's newest message awaits a reply (noReplyAwaited);
@@ -271,17 +271,17 @@ export async function chatAwaitsReply(
   return rows.length > 0;
 }
 
-// Saves a plan message (src/plan/plan-message.ts) in the owner's chat,
+// Saves a task message (src/tasks/tasks-message.ts) in the owner's chat,
 // written by the owner, after every message saved so far, with no reply
 // claimed or to be made to it, and says whether it did. Nothing is saved in
 // a chat that isn't open to the owner, or whose newest message awaits a
 // reply (noReplyAwaited).
-export async function savePlanMessage(
+export async function saveTasksMessage(
   owner: UserId,
   chatId: ChatId,
   message: UIMessage,
 ): Promise<boolean> {
-  const saved = await withAppErrors("savePlanMessage", () =>
+  const saved = await withAppErrors("saveTasksMessage", () =>
     getDb()
       .insert(messages)
       .select(

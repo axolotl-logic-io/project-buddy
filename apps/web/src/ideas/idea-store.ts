@@ -12,7 +12,7 @@ import {
   type IdeaResult,
 } from "@/ideas/idea.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import { changePlan } from "@/plan/plan-store.ts";
+import { changeTasks } from "@/tasks/tasks-store.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 
 const NOT_FOUND: IdeaResult = { kind: "problem", text: IDEAS_COPY.notFound };
@@ -34,7 +34,7 @@ function listIdeas(owner: UserId, questId: QuestId): Promise<Idea[]> {
 }
 
 // Every write checks ownership in SQL. Moving locks the idea until both the
-// Plan change and removal commit, so concurrent moves cannot duplicate a step.
+// Tasks change and removal commit, so concurrent moves cannot duplicate a step.
 function changeIdea(
   owner: UserId,
   request: IdeaRequest,
@@ -44,7 +44,7 @@ function changeIdea(
     const { questId } = request;
     if (request.op === "reorder") {
       // Serialize ordering without blocking foreign-key checks when an idea
-      // moves into Plan at the same time.
+      // moves into Tasks at the same time.
       return inTransaction(async (tx): Promise<IdeaResult> => {
         const [quest] = await tx
           .select({ id: quests.id })
@@ -146,14 +146,14 @@ function changeIdea(
           return NOT_FOUND;
         }
         const idea = IDEA.parse(row);
-        const changed = await changePlan(
+        const changed = await changeTasks(
           owner,
           { questId, author: "person" },
           [{ op: "add", text: idea.text }],
           tx,
         );
         if (changed?.kind !== "changed") {
-          return { kind: "problem", text: IDEAS_COPY.planFull };
+          return { kind: "problem", text: IDEAS_COPY.tasksFull };
         }
         await tx.delete(questIdeas).where(scope);
         return { kind: "saved" };

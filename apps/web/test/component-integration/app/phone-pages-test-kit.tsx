@@ -352,8 +352,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a built-in spell's page",
-    path: ["spellbook", "plan"],
-    render: workspacePage(noData, () => spellPage("plan")),
+    path: ["spellbook", "tasks"],
+    render: workspacePage(noData, () => spellPage("tasks")),
   },
   {
     name: "an own spell editor",
@@ -376,7 +376,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
     path: QUEST_PATH,
     render: projectPageFor("ideas"),
   },
-  { name: "a quest's Plan", path: QUEST_PATH, render: projectPageFor("plan") },
+  {
+    name: "a quest's Tasks",
+    path: QUEST_PATH,
+    render: projectPageFor("tasks"),
+  },
   {
     name: "a quest's Progress",
     path: QUEST_PATH,

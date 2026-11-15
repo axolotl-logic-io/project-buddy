@@ -82,7 +82,7 @@ async function ownPage(): Promise<void> {
 test("the spell collection offers built-ins, own spells and creation", async () => {
   await render(inWorkspace(await SpellLists()));
   await expect
-    .element(page.getByRole("link", { name: "Plan", exact: true }))
+    .element(page.getByRole("link", { name: "Tasks", exact: true }))
     .toBeVisible();
   await expect
     .element(page.getByRole("link", { name: OWN.name, exact: true }))
@@ -97,7 +97,7 @@ test("a built-in spell can be copied and remains read-only", async () => {
   await render(
     inWorkspace(
       await SpellPage({
-        params: Promise.resolve({ spellId: "plan" }),
+        params: Promise.resolve({ spellId: "tasks" }),
         searchParams: Promise.resolve({}),
       }),
     ),
@@ -144,7 +144,7 @@ test("name, replies and destination survive navigation and submit together", asy
     .fill("Sketch steps");
   await page
     .getByRole("combobox", { name: SPELLBOOK_COPY.destination, exact: true })
-    .selectOptions("plan");
+    .selectOptions("tasks");
   await page
     .getByRole("button", {
       name: SPELLBOOK_COPY.responses.savedReply,
@@ -183,7 +183,7 @@ test("name, replies and destination survive navigation and submit together", asy
         exact: true,
       }),
     )
-    .toHaveValue("plan");
+    .toHaveValue("tasks");
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
     .click();
@@ -191,7 +191,7 @@ test("name, replies and destination survive navigation and submit together", asy
   const [form] = vi.mocked(saveSpellAction).mock.calls[0] ?? [];
   expect(form?.get("name")).toBe("Sketch steps");
   expect(form?.has("prompt")).toBe(false);
-  expect(form?.get("destination")).toBe("plan");
+  expect(form?.get("destination")).toBe("tasks");
   expect(form?.get("savedReply")).toBe(
     JSON.stringify([
       "Another reply: {{message}}",

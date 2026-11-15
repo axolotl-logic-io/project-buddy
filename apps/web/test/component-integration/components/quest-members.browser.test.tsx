@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { PlanPanel } from "@/components/plan/plan-panel.tsx";
+import { ChatPanel } from "@/components/chat-panel.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { InviteState, MembershipResult } from "@/quests/membership.ts";
@@ -98,14 +98,14 @@ function members(viewer = OWNER.id, dailies = false): JSX.Element {
 // for viewer, opened on Members: a drawer below 1024 px.
 function sidebarMembers(viewer = OWNER.id): JSX.Element {
   return (
-    <PlanPanel
+    <ChatPanel
       initialSection="members"
       sideSections={[
         { id: "members", label: "Members", content: members(viewer) },
       ]}
     >
       <p>{CONVERSATION}</p>
-    </PlanPanel>
+    </ChatPanel>
   );
 }
 

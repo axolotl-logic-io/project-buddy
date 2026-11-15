@@ -14,7 +14,7 @@ const SPELLBOOK_COPY = {
     invalidReply: "Reply when a message is invalid",
   },
   responsesHelp:
-    "Add one or more replies. One is chosen randomly each time. Use {{spell}} for the spell’s name, {{bucket}} for Plan or Ideas, {{message}} for the sent message, and {{name}} for your name.",
+    "Add one or more replies. One is chosen randomly each time. Use {{spell}} for the spell’s name, {{bucket}} for Tasks or Ideas, {{message}} for the sent message, and {{name}} for your name.",
   responseRequired: "Write a reply for this spell.",
   destination: "Message destination",
   destinationLabel: (destination: string): string =>
@@ -22,7 +22,7 @@ const SPELLBOOK_COPY = {
   destinationHelp:
     "Choose where subsequent messages are saved while this spell is active.",
   destinations: {
-    plan: "Plan",
+    tasks: "Tasks",
     brainstorm: "Ideas",
   },
   cast: "Cast spell",
@@ -37,7 +37,7 @@ const SPELLBOOK_COPY = {
 };
 const SPELL_MODE_COPY = {
   castUsage:
-    "Use cast followed by the spell’s name, such as cast Plan or cast Brainstorm.",
+    "Use cast followed by the spell’s name, such as cast Tasks or cast Brainstorm.",
   ambiguous:
     "Several spells share that name. Rename one in Workshop before casting it.",
   stop: (name: string): string => `Stop ${name}`,

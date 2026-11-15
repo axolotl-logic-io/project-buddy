@@ -92,7 +92,7 @@ function UndoControl({
   );
 }
 
-// Quest cards retain a direct restore action.
+// Active quests offer completion and abandonment; closed quests offer restore.
 function StatusControls({
   quest,
 }: {
@@ -104,19 +104,42 @@ function StatusControls({
     IDLE,
   );
   return (
-    <form action={action}>
+    <form action={action} className="flex flex-wrap gap-3">
       <input type="hidden" name="questId" value={quest.id} />
       <input type="hidden" name="fromStatus" value={quest.status} />
       <input type="hidden" name="revision" value={quest.statusRevision} />
-      <Button
-        type="submit"
-        name="toStatus"
-        value="active"
-        variant="secondary"
-        disabled={pending}
-      >
-        {QUEST_STATUS_COPY.restore}
-      </Button>
+      {quest.status === "active" && (
+        <>
+          <Button
+            type="submit"
+            name="toStatus"
+            value="completed"
+            disabled={pending}
+          >
+            {QUEST_STATUS_COPY.complete}
+          </Button>
+          <Button
+            type="submit"
+            name="toStatus"
+            value="abandoned"
+            variant="secondary"
+            disabled={pending}
+          >
+            {QUEST_STATUS_COPY.abandon}
+          </Button>
+        </>
+      )}
+      {quest.status !== "active" && (
+        <Button
+          type="submit"
+          name="toStatus"
+          value="active"
+          variant="secondary"
+          disabled={pending}
+        >
+          {QUEST_STATUS_COPY.restore}
+        </Button>
+      )}
     </form>
   );
 }

@@ -63,12 +63,12 @@ vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
 }));
 
 vi.mock(
-  "@/plan/plan-actions.ts",
-  () => import("../../../../plan/plan-actions-test-kit.ts"),
+  "@/tasks/tasks-actions.ts",
+  () => import("../../../../tasks/tasks-actions-test-kit.ts"),
 );
 vi.mock(
-  "@/plan/plan-store.ts",
-  () => import("../../../../plan/plan-store-test-kit.ts"),
+  "@/tasks/tasks-store.ts",
+  () => import("../../../../tasks/tasks-store-test-kit.ts"),
 );
 
 vi.mock(
@@ -536,7 +536,7 @@ describe("use_case_open_quest", () => {
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
     await Promise.all(
-      ["Plan", "Ideas", "Progress", "Quick Notes", "Actions"].map((name) =>
+      ["Tasks", "Ideas", "Progress", "Quick Notes", "Actions"].map((name) =>
         expect
           .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),

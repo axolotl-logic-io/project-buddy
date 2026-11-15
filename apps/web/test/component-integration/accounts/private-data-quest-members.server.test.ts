@@ -42,7 +42,7 @@ describe("use_case_quest_member_access", () => {
       messages: EXCHANGE_MESSAGES,
       image: "image/png",
       generation: quest.generationId,
-      spell: "plan",
+      spell: "tasks",
     });
     expect(await writesBy(quest.member, quest)).toEqual(ALL_TAKEN);
     expect(await seenBy(quest.owner, quest)).toMatchObject({

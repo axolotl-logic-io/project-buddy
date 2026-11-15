@@ -1,6 +1,6 @@
 # Quest status
 
-A quest starts Active. Its owner or any [member](multi-user-quests.md) can mark it Completed or Abandoned by typing `/complete` or `/abandon` in its conversation. Both commands keep the conversation, Plan and progress available. No one outside the quest can change its status.
+A quest starts Active. Its owner or any [member](multi-user-quests.md) can mark it Completed or Abandoned with Complete or Abandon in the Actions tab, or by typing `/complete` or `/abandon` in its conversation. Both commands keep the conversation, Tasks and progress available. No one outside the quest can change its status.
 
 Quests has an underlined tab rail for Active, Completed and Abandoned quests, then Pending for the user's unaccepted [quest invitations](multi-user-quests.md#pending-tab), below the four starting points, with Active selected by default. A user with no quests and a pending invitation sees Pending first. The selected status is kept in the URL. Completed and abandoned cards have Restore quest for the owner and members; the conversation offers `/restore`. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
@@ -18,8 +18,8 @@ Quests store their status and a status revision; proposals live in a separate ap
 
 ## Quest workspace
 
-The quest’s conversation starts below the site header’s trail band, whose heading is the quest’s title. Plan, Ideas, Progress, Quick Notes, [Members](multi-user-quests.md#members-tab) and Actions share the conversation’s tabbed sidebar. Type `/` in the composer to find `/complete`, `/abandon` and `/restore`. These commands change the whole quest without a construct reply. They take no arguments. Conversation, the default, follows the trail band with its composer and no separate portrait bar. The sidebar sits flush with the right page edge on wide screens. A panel icon opens or collapses it. On phones it starts collapsed and opens as a drawer; closing it keeps drafts and returns focus to the toggle.
+The quest’s conversation starts below the site header’s trail band, whose heading is the quest’s title. Tasks, Ideas, Progress, Quick Notes, [Members](multi-user-quests.md#members-tab) and Actions share the conversation’s tabbed sidebar. Type `/` in the composer to find `/complete`, `/abandon` and `/restore`. These commands change the whole quest without a construct reply. They take no arguments. Conversation, the default, follows the trail band with its composer and no separate portrait bar. The sidebar sits flush with the right page edge on wide screens. A panel icon opens or collapses it. On phones it starts collapsed and opens as a drawer; closing it keeps drafts and returns focus to the toggle.
 
 The owner or a member can choose the pencil beside the quest name in the trail band to open the title editor in a dialog. Save title or Enter saves a trimmed name of up to 80 characters, and the band's heading and parent link show it. Cancel title edit or Escape discards the draft, and focus returns to Rename. Invalid names and storage failures keep the draft open for correction.
 
-The overview keeps the conversation, Plan and progress timeline. Navigation and title edits start nothing and make no model call.
+The overview keeps the conversation, Tasks and progress timeline. Navigation and title edits start nothing and make no model call.
