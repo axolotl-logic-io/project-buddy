@@ -108,6 +108,8 @@ export const PLAN_PANEL_COPY = {
     `${constructName} is replying. You can change the plan once the reply ends.`,
   unanswered:
     "Your last message has no reply yet. Retry it or send another message, then change the plan here. You can change it on the quest's page now.",
+  notFound:
+    "The plan can't be changed here, because this quest can't be found or isn't open to you.",
 } as const;
 
 export const CHAT_COMMANDS_COPY = {
