@@ -5,7 +5,7 @@ const QUEST_STATUS_COPY = {
     completed: "Quest completed.",
     abandoned: "Quest abandoned.",
   },
-  tabs: "Quest status",
+  tabs: "Quests",
   noQuest: "This command needs a quest. Open a quest and try again.",
   commands: [
     {
@@ -28,7 +28,7 @@ const QUEST_STATUS_COPY = {
   undo: "Undo",
   empty: "No quests with this status.",
   effects:
-    "Your conversation, Plan and progress stay available. You can restore the quest whenever you want.",
+    "The conversation, Plan and progress stay available. You can restore the quest whenever you want.",
   approvalHeading: "Confirm quest status change",
   confirm: {
     active: "Confirm restore",
@@ -40,7 +40,7 @@ const QUEST_STATUS_COPY = {
     pending: "Awaiting approval",
     approved: "Approved",
     declined: "Declined. Quest status kept.",
-    outdated: "This request is outdated. Ask your construct for a new one.",
+    outdated: "This request is outdated. Ask the construct for a new one.",
   },
   loading: "Checking this request…",
   unavailable:
