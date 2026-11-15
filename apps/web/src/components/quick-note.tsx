@@ -20,6 +20,7 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { checkNoteText, type NoteQuest } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
+import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 
 const QUEST_PATH = /^\/quests\/(?<questId>[^/]+)$/u;
 
@@ -176,7 +177,7 @@ function QuickNote(): JSX.Element {
               >
                 {quests.map((quest) => (
                   <option key={quest.id} value={quest.id}>
-                    {quest.name}
+                    {QUEST_SHARING_COPY.option(quest.name, quest.sharing)}
                   </option>
                 ))}
               </SelectField>

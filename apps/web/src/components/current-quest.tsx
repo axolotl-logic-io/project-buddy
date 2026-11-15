@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { JSX } from "react";
+import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { CurrentQuest } from "@/quests/current-quest-store.ts";
@@ -7,8 +8,8 @@ import { CURRENT_QUEST_COPY } from "@/ui/copy/quests.ts";
 
 const HEADING_ID = "current-quest-heading";
 
-// The quest to pick up again, at the top of Quests: its name, its next step
-// when it has one, and Continue, which opens its conversation. It shows
+// The quest to pick up again, at the top of Quests: its name, with a
+// marker if it is multi-user, its next step when it has one, and Continue, which opens its conversation. It shows
 // nothing when there is no quest to continue.
 function CurrentQuestCard({
   quest,
@@ -26,6 +27,9 @@ function CurrentQuestCard({
           {CURRENT_QUEST_COPY.label}
         </h2>
         <p className="card-title wrap-anywhere">{current.name}</p>
+        <span>
+          <QuestSharingMark sharing={quest.sharing} />
+        </span>
         {nextStep !== undefined && (
           <p className="wrap-anywhere text-muted text-sm">
             {CURRENT_QUEST_COPY.nextStep(nextStep)}

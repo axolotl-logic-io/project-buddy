@@ -53,6 +53,7 @@ function membersSection(
       content: (
         <QuestMembers
           questId={quest.id}
+          questName={quest.name}
           viewer={viewer}
           people={people}
           dailies={quest.dailies}

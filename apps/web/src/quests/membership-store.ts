@@ -43,6 +43,7 @@ import { logEmailFailure } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, parseUserId, type QuestId, type UserId } from "@/ids.ts";
 import { INVITATION_LINK_LIFETIME_DAYS } from "@/quests/membership.ts";
+import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
 import { endRepliesOf } from "@/replies/reply-runs.ts";
 import { SIGN_IN_LINK_PATH } from "@/routes.ts";
 
@@ -50,7 +51,9 @@ const MS_PER_DAY = 86_400_000;
 
 // A person as others in a quest see them: their name, or their email
 // address when they have given no name, as message authors are shown
-// (src/chats/message-author.ts).
+// (src/chats/message-author.ts). A pending invitee is shown only by the
+// address they were invited at, so inviting reveals nothing of an
+// existing account, not even whether there is one.
 interface QuestPerson {
   readonly id: UserId;
   readonly displayName: string;
@@ -71,6 +74,8 @@ interface QuestPeople {
 interface PendingQuest {
   readonly questId: QuestId;
   readonly name: string;
+  // Its status, the Quests tab it moves to once accepted.
+  readonly status: QuestStatus;
   // The inviter's display name, or undefined if their account is gone.
   readonly invitedBy: string | undefined;
   readonly invitedAt: Date;
@@ -82,7 +87,8 @@ interface PendingQuest {
 // - unsent: the invitation is pending but its email failed; inviting again
 //   resends it.
 // - in-quest: the address is the owner's or a member's; nothing changed.
-// - limited: the inviter has sent too many invitations lately.
+// - limited: the inviter has sent too many invitations lately; nothing
+//   changed. Only invitations that go out count, not refused requests.
 // - not-found: the quest isn't open to the inviter, or is a Dailies quest,
 //   which has no members.
 type InviteResult =
@@ -120,10 +126,14 @@ type SavedInvitation =
       readonly kind: "pending";
       readonly questName: string;
       readonly invitedBy: string;
+      // The owner's display name when someone else invites.
+      readonly owner: string | undefined;
+      // Whether the invitee's account is an invited one, not signed up.
+      readonly invitedAccount: boolean;
       readonly token: string;
       readonly tokenHash: string;
     }
-  | { readonly kind: "in-quest" | "not-found" };
+  | { readonly kind: "in-quest" | "not-found" | "limited" };
 
 // The inviter, joined beside the invitee when a query reads both.
 const inviters = alias(users, "inviters");
@@ -161,32 +171,62 @@ async function lockedSharableQuest(
   return quest;
 }
 
-// Whether user is a member of the quest, as viewer, whom it is open to,
-// sees its members.
-async function isMember(
+// Whether the normalized address is the account of the quest's owner or
+// of one of its members, as viewer, whom the quest is open to, sees them.
+// Looks the address up without creating an account for it.
+async function isInQuest(
   tx: Transaction,
   viewer: UserId,
-  { questId, user }: { readonly questId: QuestId; readonly user: UserId },
+  {
+    questId,
+    ownerId,
+    email,
+  }: {
+    readonly questId: QuestId;
+    readonly ownerId: string;
+    readonly email: string;
+  },
 ): Promise<boolean> {
+  const [account] = await tx
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email));
+  if (account === undefined) {
+    return false;
+  }
+  if (account.id === ownerId) {
+    return true;
+  }
   const [row] = await tx
     .select({ userId: questMembers.userId })
     .from(questMembers)
     .where(
       and(
         eq(questMembers.questId, questId),
-        eq(questMembers.userId, user),
+        eq(questMembers.userId, account.id),
         questMemberOpenTo(viewer),
       ),
     );
   return row !== undefined;
 }
 
-async function inviterName(tx: Transaction, inviter: UserId): Promise<string> {
+// The account's display name and whether it is an invited account.
+async function accountOf(
+  tx: Transaction,
+  id: string,
+): Promise<{ readonly name: string; readonly invited: boolean }> {
   const [row] = await tx
-    .select({ name: users.name, email: users.email })
+    .select({
+      name: users.name,
+      email: users.email,
+      accountState: users.accountState,
+    })
     .from(users)
-    .where(eq(users.id, inviter));
-  return displayName(row?.name ?? null, row?.email ?? "");
+    .where(eq(users.id, id));
+  return {
+    name: displayName(row?.name ?? null, row?.email ?? ""),
+    invited: row?.accountState === "invited",
+  };
 }
 
 // A new acceptance link's token, saved on the pending invitation of
@@ -238,31 +278,42 @@ async function inviteToQuest(
 ): Promise<InviteResult> {
   const { questId, origin } = request;
   const email = normalizeEmail(request.email);
-  if (!(await countQuestInvitation(inviter, now))) {
-    return { kind: "limited" };
-  }
   const saved = await withAppErrors("invite to quest", () =>
     inTransaction(async (tx): Promise<SavedInvitation> => {
       const quest = await lockedSharableQuest(tx, inviter, questId);
       if (quest === undefined) {
         return { kind: "not-found" };
       }
-      const inviteeId = await findOrInviteAccount(tx, email);
       if (
-        inviteeId === quest.ownerId ||
-        (await isMember(tx, inviter, { questId, user: inviteeId }))
+        await isInQuest(tx, inviter, { questId, ownerId: quest.ownerId, email })
       ) {
         return { kind: "in-quest" };
       }
+      // Only an invitation that would go out counts against the limit.
+      if (!(await countQuestInvitation(tx, inviter, now))) {
+        return { kind: "limited" };
+      }
+      const inviteeId = await findOrInviteAccount(tx, email);
       const link = await savePendingInvitation(
         tx,
         { questId, inviteeId, inviterId: inviter },
         now,
       );
+      const [inviterAccount, owner, invitee] = await Promise.all([
+        accountOf(tx, inviter),
+        accountOf(tx, quest.ownerId),
+        accountOf(tx, inviteeId),
+      ]);
+      let ownerName: string | undefined;
+      if (quest.ownerId !== inviter) {
+        ownerName = owner.name;
+      }
       return {
         kind: "pending",
         questName: quest.name,
-        invitedBy: await inviterName(tx, inviter),
+        invitedBy: inviterAccount.name,
+        owner: ownerName,
+        invitedAccount: invitee.invited,
         ...link,
       };
     }),
@@ -279,6 +330,8 @@ async function inviteToQuest(
         url: url.href,
         questName: saved.questName,
         invitedBy: saved.invitedBy,
+        owner: saved.owner,
+        invitedAccount: saved.invitedAccount,
         idempotencyKey: `quest-invitation/${saved.tokenHash}`,
       }),
     );
@@ -317,7 +370,6 @@ function listQuestPeople(
       db
         .select({
           id: users.id,
-          name: users.name,
           email: users.email,
           invitedAt: questInvitations.createdAt,
         })
@@ -348,11 +400,11 @@ function listQuestPeople(
         return [{ ...found, joinedAt: row.joinedAt }];
       }),
       invited: invited.flatMap((row) => {
-        const found = person(row);
-        if (found === undefined) {
+        const id = parseUserId(row.id);
+        if (id === undefined) {
           return [];
         }
-        return [{ ...found, invitedAt: row.invitedAt }];
+        return [{ id, displayName: row.email, invitedAt: row.invitedAt }];
       }),
     };
   });
@@ -427,6 +479,7 @@ function listPendingQuests(user: UserId): Promise<PendingQuest[]> {
       .select({
         questId: quests.id,
         name: quests.name,
+        status: quests.status,
         invitedAt: questInvitations.createdAt,
         inviterName: inviters.name,
         inviterEmail: inviters.email,
@@ -445,7 +498,15 @@ function listPendingQuests(user: UserId): Promise<PendingQuest[]> {
       if (row.inviterEmail !== null) {
         invitedBy = displayName(row.inviterName, row.inviterEmail);
       }
-      return [{ questId, name: row.name, invitedBy, invitedAt: row.invitedAt }];
+      return [
+        {
+          questId,
+          name: row.name,
+          status: QUEST_STATUS.parse(row.status),
+          invitedBy,
+          invitedAt: row.invitedAt,
+        },
+      ];
     });
   });
 }

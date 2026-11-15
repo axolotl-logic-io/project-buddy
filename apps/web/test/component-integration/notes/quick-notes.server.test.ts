@@ -22,7 +22,7 @@ describe("use_case_quick_note", () => {
     await signIn(user);
 
     expect(await listNoteQuestsAction()).toEqual([
-      { id: quest.id, name: "Pottery" },
+      { id: quest.id, name: "Pottery", sharing: { kind: "personal" } },
     ]);
     expect(
       await saveNoteAction({

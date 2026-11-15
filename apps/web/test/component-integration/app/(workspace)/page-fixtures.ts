@@ -19,6 +19,7 @@ const FOX_QUEST: Quest = {
   status: "active",
   statusRevision: 0,
   dailies: false,
+  sharing: { kind: "personal" },
 };
 
 // A chat in the fox quest.

@@ -122,6 +122,7 @@ async function linkCardFocus(): Promise<
             status: "active",
             statusRevision: 0,
             dailies: false,
+            sharing: { kind: "personal" },
           },
         ]}
       />

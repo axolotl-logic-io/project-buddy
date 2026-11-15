@@ -23,6 +23,11 @@
     @apply flex min-w-0 flex-col gap-0.5;
   }
 
+  /* The marker of a multi-user quest beside its name, as a small tag. */
+  .quest-sharing-mark {
+    @apply inline-flex max-w-full items-center rounded-control border border-line px-1.5 text-muted text-xs wrap-anywhere;
+  }
+
   .current-quest-label {
     @apply font-body font-semibold text-muted text-xs uppercase tracking-wide;
   }
@@ -66,6 +71,13 @@
 
   .quests-index-restore {
     @apply relative z-10 col-start-2 col-end-4 justify-self-start;
+  }
+
+  /* A Pending row's Accept and Decline: beneath the quest's name on a
+     phone, as Restore is, so the name keeps its width; at its end from
+     the sm breakpoint. */
+  .quests-index-answer {
+    @apply col-start-2 col-end-4 flex flex-wrap gap-2 justify-self-start sm:col-start-3 sm:col-end-4 sm:justify-self-end;
   }
 
   .quests-index-mark {
@@ -426,6 +438,13 @@
 
   .divided-rows > li {
     @apply flex min-w-0 flex-col gap-2 border-line border-b py-4 first:pt-0 last:border-b-0 last:pb-0;
+  }
+
+  /* A divided row with a control at its end: the text starts at the
+     list's edge and the control sits beside it, wrapping beneath it only
+     when the row runs out of room. */
+  .divided-rows > .divided-row-action {
+    @apply flex-row flex-wrap items-center justify-between gap-x-3;
   }
 
   /* A card's actions, in a row along its foot: cards in a grid row share
@@ -821,7 +840,8 @@
      adventure's. It stays one row, and on a narrow screen scrolls sideways
      inside itself rather than wrapping. Where tabs lie past an edge, that
      edge fades (scroll-driven, where the browser supports it), so the row
-     shows there is more of it. A focused tab scrolls clear of the fade. */
+     shows there is more of it. A focused tab scrolls clear of the fade. The
+     quest sidebar is the exception: its tabs wrap (see .quest-sidebar). */
   .workspace-tablist {
     --tablist-fade: --spacing(8);
     scroll-padding-inline: var(--tablist-fade);
@@ -1199,11 +1219,17 @@
   }
 
   .quest-sidebar .workspace-rail {
-    @apply sticky top-0 z-10 flex-nowrap gap-x-2 border-t-0 bg-surface px-0;
+    @apply sticky top-0 z-10 flex-nowrap items-start gap-x-2 border-t-0 bg-surface px-0;
   }
 
+  /* The sidebar is too narrow for all its tabs in one row, so they wrap
+     onto further rows instead of scrolling: every label stays in view,
+     the selected one included. */
   .quest-sidebar .workspace-tablist {
-    @apply gap-x-3;
+    flex-wrap: wrap;
+    overflow-x: visible;
+    animation: none;
+    @apply flex-1 gap-x-3;
   }
 
   .quest-sidebar .workspace-content {

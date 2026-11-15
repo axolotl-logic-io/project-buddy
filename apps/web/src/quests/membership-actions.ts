@@ -2,7 +2,6 @@
 
 import { refresh } from "next/cache";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { linkOrigin } from "@/accounts/emailed-link.ts";
 import { EMAIL_FIELD } from "@/app/login/link-request.ts";
@@ -14,7 +13,6 @@ import {
   inviteToQuest,
   removeFromQuest,
 } from "@/quests/membership-store.ts";
-import { HOME_PATH } from "@/routes.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 
 const INVITE_FORM = z.object({ questId: QUEST_ID, email: z.unknown() });
@@ -28,13 +26,26 @@ async function inviteToQuestAction(
   formData: FormData,
 ): Promise<InviteState> {
   const user = await requireUser();
+  const submitted = formData.get("email");
+  let typed = "";
+  if (typeof submitted === "string") {
+    typed = submitted;
+  }
   const form = INVITE_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
-    return { kind: "problem", message: QUEST_MEMBERS_COPY.notFound };
+    return {
+      kind: "problem",
+      message: QUEST_MEMBERS_COPY.notFound,
+      email: typed,
+    };
   }
   const email = EMAIL_FIELD.safeParse(form.data.email);
   if (!email.success) {
-    return { kind: "invalid", message: QUEST_MEMBERS_COPY.needsEmail };
+    return {
+      kind: "invalid",
+      message: QUEST_MEMBERS_COPY.needsEmail,
+      email: typed,
+    };
   }
   const result = await inviteToQuest(
     user.id,
@@ -57,21 +68,34 @@ async function inviteToQuestAction(
       return {
         kind: "problem",
         message: QUEST_MEMBERS_COPY.unsent(email.data),
+        email: typed,
       };
     case "in-quest":
-      return { kind: "done", message: QUEST_MEMBERS_COPY.inQuest(email.data) };
+      return {
+        kind: "refused",
+        message: QUEST_MEMBERS_COPY.inQuest(email.data),
+        email: typed,
+      };
     case "limited":
-      return { kind: "problem", message: QUEST_MEMBERS_COPY.limited };
+      return {
+        kind: "problem",
+        message: QUEST_MEMBERS_COPY.limited,
+        email: typed,
+      };
     case "not-found":
-      return { kind: "problem", message: QUEST_MEMBERS_COPY.notFound };
+      return {
+        kind: "problem",
+        message: QUEST_MEMBERS_COPY.notFound,
+        email: typed,
+      };
     default:
       return result satisfies never;
   }
 }
 
 // Removes a member, or withdraws a pending invitation, from a quest open to
-// the signed-in user. Removing themselves leaves the quest, and opens
-// Quests, since the quest is no longer theirs to see.
+// the signed-in user. Removing themselves leaves the quest; the page then
+// opens Quests itself, since the quest is no longer theirs to see.
 async function removeFromQuestAction(
   request: unknown,
 ): Promise<MembershipResult> {
@@ -84,10 +108,9 @@ async function removeFromQuestAction(
   if (!removed) {
     return { kind: "failed" };
   }
-  if (parsed.data.person === user.id) {
-    redirect(HOME_PATH);
+  if (parsed.data.person !== user.id) {
+    refresh();
   }
-  refresh();
   return { kind: "done" };
 }
 
@@ -106,10 +129,12 @@ async function answerInvitationAction(
     parsed.data.questId,
     parsed.data.accept,
   );
+  // Either way Pending is out of date: refreshing drops an invitation
+  // that was withdrawn or answered elsewhere, and updates its count.
+  refresh();
   if (!answered) {
     return { kind: "failed" };
   }
-  refresh();
   return { kind: "done" };
 }
 

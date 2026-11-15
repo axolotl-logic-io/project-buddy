@@ -10,7 +10,13 @@ import { getDb } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
+import type { QuestSharing } from "@/quests/membership.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
+import {
+  SHARING_COLUMNS,
+  type SharingRow,
+  sharingOf,
+} from "@/quests/quest-sharing.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
 
 interface Quest {
@@ -21,6 +27,8 @@ interface Quest {
   statusRevision: number;
   // Whether it is the user's Dailies quest (src/conversations/dailies.ts).
   dailies: boolean;
+  // How it is shared, as the user reading it sees it.
+  sharing: QuestSharing;
 }
 
 interface QuestRow {
@@ -51,27 +59,29 @@ const QUEST_COLUMNS: {
   dailies: quests.dailies,
 };
 
-// Rows as quests. A row whose id is not a UUID is skipped, though the uuid
-// column never holds one.
-function toQuests(rows: readonly QuestRow[]): Quest[] {
-  return rows.flatMap(
-    ({ id, name, createdAt, status, statusRevision, dailies }) => {
-      const questId = parseQuestId(id);
-      if (questId === undefined) {
-        return [];
-      }
-      return [
-        {
-          id: questId,
-          name,
-          createdAt,
-          status: QUEST_STATUS.parse(status),
-          statusRevision,
-          dailies,
-        },
-      ];
-    },
-  );
+// Rows as quests, as viewer reads them. A row whose id is not a UUID is
+// skipped, though the uuid column never holds one.
+function toQuests(
+  viewer: UserId,
+  rows: readonly (QuestRow & SharingRow)[],
+): Quest[] {
+  return rows.flatMap((row) => {
+    const questId = parseQuestId(row.id);
+    if (questId === undefined) {
+      return [];
+    }
+    return [
+      {
+        id: questId,
+        name: row.name,
+        createdAt: row.createdAt,
+        status: QUEST_STATUS.parse(row.status),
+        statusRevision: row.statusRevision,
+        dailies: row.dailies,
+        sharing: sharingOf(viewer, row),
+      },
+    ];
+  });
 }
 
 export type { Quest };
@@ -81,8 +91,9 @@ export type { Quest };
 export function listQuests(user: UserId): Promise<Quest[]> {
   return withAppErrors("listQuests", async () =>
     toQuests(
+      user,
       await getDb()
-        .select(QUEST_COLUMNS)
+        .select({ ...QUEST_COLUMNS, ...SHARING_COLUMNS })
         .from(quests)
         .where(questOpenTo(user))
         .orderBy(desc(quests.createdAt)),
@@ -102,8 +113,9 @@ export async function getQuest(
   }
   const [quest] = await withAppErrors("getQuest", async () =>
     toQuests(
+      user,
       await getDb()
-        .select(QUEST_COLUMNS)
+        .select({ ...QUEST_COLUMNS, ...SHARING_COLUMNS })
         .from(quests)
         .where(and(eq(quests.id, questId), questOpenTo(user))),
     ),
@@ -116,15 +128,26 @@ export async function getQuest(
 // empty ones.
 export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
   return withAppErrors("createQuest", async () => {
-    const [quest] = toQuests(
-      await getDb().insert(quests).values({ userId: owner, name }).returning({
+    const inserted = await getDb()
+      .insert(quests)
+      .values({ userId: owner, name })
+      .returning({
         status: quests.status,
         statusRevision: quests.statusRevision,
         id: quests.id,
         name: quests.name,
         createdAt: quests.createdAt,
         dailies: quests.dailies,
-      }),
+      });
+    // A new quest is its owner's own, with no members yet.
+    const [quest] = toQuests(
+      owner,
+      inserted.map((row) => ({
+        ...row,
+        ownerId: owner,
+        ownerName: null,
+        hasMembers: false,
+      })),
     );
     if (quest === undefined) {
       throw new Error("Inserting a quest returned no quest");

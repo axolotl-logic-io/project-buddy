@@ -1,6 +1,15 @@
 "use client";
 
-import { type JSX, useActionState, useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  type JSX,
+  useActionState,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { noteLeftQuest } from "@/components/left-quest.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { TextField } from "@/components/ui/field.tsx";
@@ -8,6 +17,7 @@ import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
 import type { QuestId, UserId } from "@/ids.ts";
 import type { InviteState, RemoveFromQuest } from "@/quests/membership.ts";
 import type { QuestPeople, QuestPerson } from "@/quests/membership-store.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 
 type InviteAction = (
@@ -135,7 +145,7 @@ function PersonRow({
     name = QUEST_MEMBERS_COPY.you(name);
   }
   return (
-    <li className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+    <li className="divided-row-action">
       <div className="flex min-w-0 flex-col">
         <span className="wrap-anywhere">{name}</span>
         <span className="text-muted text-sm">{ROLE_LABELS[role]}</span>
@@ -151,6 +161,15 @@ function PersonRow({
   );
 }
 
+// The address the form shows: the one just submitted when no invitation
+// went out, so it can be corrected or sent again; otherwise none.
+function keptEmail(state: InviteState): string {
+  if (state.kind === "idle" || state.kind === "done") {
+    return "";
+  }
+  return state.email;
+}
+
 function InviteForm({
   questId,
   action,
@@ -159,12 +178,20 @@ function InviteForm({
   readonly action: InviteAction;
 }): JSX.Element {
   const [state, submit, pending] = useActionState(action, IDLE);
+  const emailRef = useRef<HTMLInputElement>(null);
+  // The Invite button is disabled while the invitation goes out, which
+  // would drop its focus, so each answer returns focus to the address.
+  useEffect(() => {
+    if (state.kind !== "idle") {
+      emailRef.current?.focus();
+    }
+  }, [state]);
   let error: string | undefined;
   if (state.kind === "invalid") {
     error = state.message;
   }
   let done: string | undefined;
-  if (state.kind === "done") {
+  if (state.kind === "done" || state.kind === "refused") {
     done = state.message;
   }
   let label: string = QUEST_MEMBERS_COPY.invite;
@@ -175,12 +202,14 @@ function InviteForm({
     <form action={submit} className="flex flex-col gap-3">
       <input type="hidden" name="questId" value={questId} />
       <TextField
+        ref={emailRef}
         label={QUEST_MEMBERS_COPY.emailLabel}
         hint={QUEST_MEMBERS_COPY.emailHint}
         name="email"
         type="email"
         autoComplete="off"
         required={true}
+        defaultValue={keptEmail(state)}
         error={error}
       />
       <Button className="self-start" disabled={pending} type="submit">
@@ -195,10 +224,11 @@ function InviteForm({
 // A quest's Members tab: the owner, its members and pending invitations,
 // then a form to invite someone by email. Anyone in the quest may remove a
 // member or withdraw an invitation; a member may leave, which opens
-// Quests. No one can remove the owner. A Dailies quest is its owner's
-// alone and offers no invitations.
+// Quests, where the quest they left is named. No one can remove the owner.
+// A Dailies quest is its owner's alone, so its tab says only that.
 function QuestMembers({
   questId,
+  questName,
   viewer,
   people,
   dailies,
@@ -206,12 +236,14 @@ function QuestMembers({
   remove,
 }: {
   readonly questId: QuestId;
+  readonly questName: string;
   readonly viewer: UserId;
   readonly people: QuestPeople;
   readonly dailies: boolean;
   readonly invite: InviteAction;
   readonly remove: RemoveFromQuest;
 }): JSX.Element {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | undefined>();
   const [failure, setFailure] = useState<string | undefined>();
@@ -227,14 +259,29 @@ function QuestMembers({
             setFailure(QUEST_MEMBERS_COPY.failed);
             return;
           }
+          if (person.id === viewer) {
+            noteLeftQuest(questName);
+            router.replace(HOME_PATH);
+            return;
+          }
           setStatus(removedMessage(role, person.displayName));
-          headingRef.current?.focus();
         })
         .catch(() => setFailure(QUEST_MEMBERS_COPY.failed))
-        .finally(() => setBusy(false));
+        .finally(() => {
+          setBusy(false);
+          // The control that was used is gone or was disabled meanwhile.
+          headingRef.current?.focus();
+        });
     },
-    [questId, remove],
+    [questId, questName, remove, router, viewer],
   );
+  if (dailies) {
+    return (
+      <section className="page-slot flex flex-col gap-4">
+        <Notice>{QUEST_MEMBERS_COPY.dailies}</Notice>
+      </section>
+    );
+  }
   const rows: PersonWithRole[] = [
     { person: people.owner, role: "owner" },
     ...people.members.map((person) => withRole(person, "member")),
@@ -260,8 +307,7 @@ function QuestMembers({
           />
         ))}
       </ul>
-      {dailies === true && <Notice>{QUEST_MEMBERS_COPY.dailies}</Notice>}
-      {dailies !== true && <InviteForm action={invite} questId={questId} />}
+      <InviteForm action={invite} questId={questId} />
     </section>
   );
 }

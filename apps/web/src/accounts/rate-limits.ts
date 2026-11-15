@@ -19,6 +19,7 @@ import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { readSessionSecret } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { UserId } from "@/ids.ts";
+import { INVITATIONS_PER_HOUR } from "@/quests/membership.ts";
 
 const MS_PER_MINUTE = 60_000;
 const HEXADECIMAL = 16;
@@ -40,7 +41,10 @@ const ADDRESS_AND_CLIENT_LIMIT: RateLimit = { requests: 3, windowMinutes: 15 };
 const ADDRESS_LIMIT: RateLimit = { requests: 10, windowMinutes: 15 };
 const CLIENT_LIMIT: RateLimit = { requests: 20, windowMinutes: 60 };
 // Sending quest invitations, counted per inviter across every quest.
-const INVITATION_LIMIT: RateLimit = { requests: 20, windowMinutes: 60 };
+const INVITATION_LIMIT: RateLimit = {
+  requests: INVITATIONS_PER_HOUR,
+  windowMinutes: 60,
+};
 // After the longest window, a row counts nothing, so it can be deleted.
 const LONGEST_WINDOW_MINUTES: number = Math.max(
   ADDRESS_AND_CLIENT_LIMIT.windowMinutes,
@@ -196,26 +200,22 @@ async function countSignInLinkRequest(
   );
 }
 
-// Counts a quest invitation the inviter sends, and answers whether it is
-// within the inviter's limit.
+// Counts a quest invitation the inviter sends, inside tx, the transaction
+// that saves it, and answers whether it is within the inviter's limit.
 async function countQuestInvitation(
+  tx: Database,
   inviter: UserId,
   now: Date,
 ): Promise<boolean> {
   const byInviter = counting(`${INVITER_PREFIX}${inviter}`, INVITATION_LIMIT, {
     now,
   });
-  const [counted] = await withAppErrors("countQuestInvitation", () =>
-    inTransaction(async (tx) => {
-      const rows = await tx
-        .insert(rateLimits)
-        .values(byInviter.values)
-        .onConflictDoUpdate({ target: rateLimits.key, set: byInviter.set })
-        .returning({ count: rateLimits.count });
-      await tx.delete(rateLimits).where(expiredRows(tx, now));
-      return rows;
-    }),
-  );
+  const [counted] = await tx
+    .insert(rateLimits)
+    .values(byInviter.values)
+    .onConflictDoUpdate({ target: rateLimits.key, set: byInviter.set })
+    .returning({ count: rateLimits.count });
+  await tx.delete(rateLimits).where(expiredRows(tx, now));
   return (counted?.count ?? 0) <= INVITATION_LIMIT.requests;
 }
 

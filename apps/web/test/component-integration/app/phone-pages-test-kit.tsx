@@ -150,6 +150,7 @@ const projectsPage = workspacePage(
     vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     vi.mocked(readCurrentQuest).mockResolvedValue({
       quest: { id: FOX_QUEST.id, name: LONG_QUEST_NAME },
+      sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
       nextStep: "Sketch the fox's ears from three angles",
     });
     vi.mocked(listConstructs).mockResolvedValue([]);
