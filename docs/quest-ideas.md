@@ -1,6 +1,6 @@
 # Quest ideas
 
-Each quest's **Ideas** section holds possibilities the user has not committed to. It sits beside Plan at `/quests/QUEST_ID?section=ideas`, where `QUEST_ID` is the quest's id. Only the quest's owner can read or change its ideas.
+Each quest's **Ideas** section holds possibilities the user has not committed to. It sits beside Plan at `/quests/QUEST_ID?section=ideas`, where `QUEST_ID` is the quest's id. The quest's owner and [members](multi-user-quests.md) can read and change its ideas; no one else can.
 
 Ideas share Plan’s compact editable-list component. Click an idea’s text to open the inline editor, then use Enter, **Save idea**, or click outside to save and close it. Clicking another idea also opens that editor. Escape or **Cancel idea edit** cancels. **Add idea** opens a new editor above the list and saves the new idea first. The row menu offers **Move to Plan** and **Remove idea**. Drag a row’s handle to reorder it, or focus the handle and use the arrow keys. Saved order survives reopening the quest. Each idea holds up to 200 characters. Ideas have no done state and stay separate from agreed Plan steps.
 

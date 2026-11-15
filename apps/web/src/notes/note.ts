@@ -3,6 +3,7 @@
 // server, so forms and tests can use it.
 import { z } from "zod";
 import { QUEST_ID } from "@/ids.ts";
+import type { QuestSharing } from "@/quests/membership.ts";
 
 // The longest Quick Note, in characters, once trimmed.
 const NOTE_MAX_LENGTH = 1000;
@@ -43,10 +44,11 @@ type NoteResult =
   | { readonly kind: "saved" | "deleted" }
   | { readonly kind: "problem"; readonly text: string };
 
-// An Active quest a Quick Note can go to.
+// An Active quest a Quick Note can go to, and how it is shared.
 interface NoteQuest {
   readonly id: string;
   readonly name: string;
+  readonly sharing: QuestSharing;
 }
 
 export type { Note, NoteId, NoteQuest, NoteResult, NoteTextProblem };

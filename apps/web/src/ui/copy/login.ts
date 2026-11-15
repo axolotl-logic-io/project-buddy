@@ -1,5 +1,6 @@
 // The text of the sign-in page, of the page a sign-in link opens, and of
 // the email that holds the link.
+import { INVITATION_LINK_LIFETIME_DAYS } from "@/quests/membership.ts";
 import { EMAIL_SENDER_COPY, pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
 export const LOGIN_COPY = {
@@ -24,9 +25,10 @@ export const LINK_PAGE_COPY = {
   continue: "Continue",
   signupIntro: "Enter your name to finish creating your account.",
   nameInvalid: "Enter a name of 1–60 characters on one line, without { or }.",
-  expired:
-    "This sign-in link has expired or no longer works. A link works for 30 minutes after it's sent.",
-  newLink: "Ask for a new link",
+  expired: "This link has expired or no longer works.",
+  expiredNext: `A sign-in link works for 30 minutes, and a quest invitation link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days. If your invitation is still pending, it's under Pending in Quests.`,
+  logIn: "Log in",
+  openQuests: "Open Quests",
 } as const;
 
 // The email is Vellum's (EMAIL_SENDER_COPY), for signing in and signing

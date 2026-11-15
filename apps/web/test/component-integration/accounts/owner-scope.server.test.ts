@@ -1,18 +1,20 @@
-// The ownership predicates against the test database: two users side by
+// The access predicates against the test database: two users side by
 // side, each with a quest, a chat in it and its messages, a standalone chat
 // an older build made, and a construct. Each predicate, for her, selects
 // exactly her rows of the two users', through her quest; a standalone chat
-// is no one's. owner-scope-coverage.test.ts checks every store builds its
-// queries from these predicates.
+// is no one's. Then one quest with an owner, an accepted member, a pending
+// invitee, a removed member and a stranger: it opens to the first two.
 
 import { and, eq, inArray } from "drizzle-orm";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   chatOpenTo,
   messageOpenTo,
+  opensQuest,
   ownPromptOwnedBy,
-  ownsQuest,
+  questOpenTo,
   questOwnedBy,
+  questPendingFor,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
@@ -26,7 +28,17 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
+import { testUser } from "../../support/test-database/user-test-kit.ts";
+import {
+  addInvitee,
+  addMember,
+  addRemovedMember,
+} from "../quests/quest-members-test-kit.ts";
+import type { SendEmail } from "../test-database/sign-in-link-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
+
+const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
+vi.mock("@/email/send-email.ts", () => sent);
 
 const EXCHANGE: Exchange = {
   message: "Hello",
@@ -132,12 +144,12 @@ async function ownConstructs(
     );
 }
 
-// Whether ownsProject holds for her and the quest, on her user row.
+// Whether opensQuest holds for her and the quest, on her user row.
 async function holds(her: User, questId: QuestId): Promise<boolean> {
   const rows = await getDb()
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.id, her.id), ownsQuest(her.id, questId)));
+    .where(and(eq(users.id, her.id), opensQuest(her.id, questId)));
   return rows.length > 0;
 }
 
@@ -171,10 +183,69 @@ describe("ownership predicates select only the owner's rows", () => {
     ]);
   });
 
-  test("owning a project holds for her project only", async () => {
+  test("opening a quest holds for her quest only", async () => {
     const { her, hers, theirs } = await bothUsersRows();
 
     expect(await holds(her, hers.questId)).toBe(true);
     expect(await holds(her, theirs.questId)).toBe(false);
+  });
+});
+
+// What each access predicate holds of the quest for user.
+async function access(
+  user: User,
+  questId: QuestId,
+): Promise<Record<string, boolean>> {
+  const db = getDb();
+  const [open, owned, pending, opens] = await Promise.all([
+    db
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questOpenTo(user.id))),
+    db
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questOwnedBy(user.id))),
+    db
+      .select({ id: quests.id })
+      .from(quests)
+      .where(and(eq(quests.id, questId), questPendingFor(user.id))),
+    holds(user, questId),
+  ]);
+  return {
+    open: open.length > 0,
+    owned: owned.length > 0,
+    pending: pending.length > 0,
+    opens,
+  };
+}
+
+describe("a quest opens to its owner and accepted members alone", () => {
+  test("owner, member, pending invitee, removed member and stranger", async () => {
+    const [owner, member, invitee, removed, stranger] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const quest = await testData(owner).quest();
+    await addMember(owner, quest.id, member);
+    await addInvitee(owner, quest.id, invitee);
+    await addRemovedMember(owner, quest.id, removed);
+
+    expect(
+      await Promise.all(
+        [owner, member, invitee, removed, stranger].map((user) =>
+          access(user, quest.id),
+        ),
+      ),
+    ).toEqual([
+      { open: true, owned: true, pending: false, opens: true },
+      { open: true, owned: false, pending: false, opens: true },
+      { open: false, owned: false, pending: true, opens: false },
+      { open: false, owned: false, pending: false, opens: false },
+      { open: false, owned: false, pending: false, opens: false },
+    ]);
   });
 });

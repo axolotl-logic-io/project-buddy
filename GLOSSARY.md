@@ -14,7 +14,7 @@ A conversation is a [quest](#quest)'s one conversation, with its plan, ideas and
 
 ### Project Buddy
 
-The product: a personal site where constructs help each user with their own quests and ideas, on any subject.
+The product: a site where constructs help each user with their quests and ideas, on any subject, alone or with the members they invite.
 
 ### Workshop
 
@@ -131,7 +131,7 @@ Habits describe the construct’s personal style across conversations.
 
 ### Spell
 
-A persistent mode in an owned quest conversation. **Plan** saves subsequent ordinary messages as open Plan steps; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Plan or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
+A persistent mode in a quest's conversation. **Plan** saves subsequent ordinary messages as open Plan steps; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Plan or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
 Workshop’s Spells tab offers creation and copying. Own spells can be edited, retired and restored like constructs. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
 
@@ -149,14 +149,14 @@ Clear the active spell and return to ordinary conversation commands. Choose **St
 
 ### Conversation
 
-The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner alone. Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
+The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner and [members](#member). Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
 
 - **UI:** the quest's own page; no list of conversations and no conversation names.
 - **Avoid:** "adventure", "thread", "session", and any second conversation in a quest.
 
 ### Quest status
 
-A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents. The owner can restore either to Active.
+A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents. The owner or any member can change the status and restore either to Active.
 
 - **UI:** "Active", "Completed", "Abandoned", "/complete", "/abandon", "/restore", "Restore quest".
 
@@ -166,19 +166,19 @@ The construct’s first message in a new quest conversation, generated from the 
 
 ### Current quest
 
-The quest Quests offers to pick up again, in its Continue card above Start a quest: the user's own Active quest whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next step](#next-step). Continue opens its conversation. With no Active quest there is none. Showing it makes no model call.
+The quest Quests offers to pick up again, in its Continue card above Start a quest: the Active quest open to the user, their own or one they are a member of, whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next step](#next-step). Continue opens its conversation. With no Active quest there is none. Showing it makes no model call.
 
 - **UI:** "Current quest", "Continue".
 
 ### Conversation image
 
-An image saved in a message of a conversation. It belongs to that conversation and is open to the quest's owner alone. The composer accepts text only, so the user adds no new images.
+An image saved in a message of a conversation. It belongs to that conversation and is open to the quest's owner and members. The composer accepts text only, so the user adds no new images.
 
 - **UI:** "Image".
 
 ### Author
 
-The user who wrote a user message. Authorship belongs to the message and does not change with the person viewing or continuing the conversation. For planned API access, a message submitted through a [connection](#connection) still has that connection’s user as its author; the backend separately records the submitting connection without changing the conversation UI.
+The user who wrote a user message. Authorship belongs to the message and does not change with the person viewing or continuing the conversation, or when its author leaves or is removed from the quest. For planned API access, a message submitted through a [connection](#connection) still has that connection’s user as its author; the backend separately records the submitting connection without changing the conversation UI.
 
 - **UI:** the author's name, or "You" on the viewer's own messages.
 - **Avoid:** "sender" and "writer" as names for this concept.
@@ -225,9 +225,7 @@ The product name remains Project Buddy. Software build projects, hosting project
 
 ### Personal quest
 
-Every quest is its [owner](#owner)'s alone: no one else can open, read or change its conversation, Plan and progress timeline. A message another person wrote keeps its [author](#author), but authorship grants no access.
-
-- **Avoid:** "team quest", "shared quest", "member", "quest invitation".
+A quest with no [members](#member): open to its [owner](#owner) alone. Every quest starts personal, and [Dailies](#dailies) always stays personal. Inviting someone does not change the quest's kind; it becomes a [multi-user quest](#multi-user-quest) once someone accepts.
 
 ### Goal
 
@@ -264,13 +262,13 @@ The conversation’s saved mode: Plan, Brainstorm or no spell. `cast plan` and `
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Plan. The owner can add, edit or remove an idea, or move it into Plan as an open step. Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Plan. The owner or a member can add, edit or remove an idea, or move it into Plan as an open step. Ideas have no done state.
 
 - **UI:** "Ideas", "Add idea", "Move to Plan".
 
 ### Quick Note
 
-A short, dated line the user saves to one of their Active quests from the site menu, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site menu, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for the menu item, the dialog and a single item; "Quick Notes" for the tab and the collection.
 - **Avoid:** "note" alone, "memo", "jot", "inbox" or "quick capture".
@@ -360,29 +358,75 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 ### Owner
 
-The user something belongs to. A quest's owner is the user who made it, and the only user who can reach it ([personal quest](#personal-quest)).
+The user something belongs to. A quest's owner is the user who made it. The quest is open to its owner and its [members](#member), and no one can remove the owner from it. The site can't delete a quest yet; when it can, only the owner will.
 
-Ownership and access are distinct: own constructs and quests belong to individual users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own constructs and spells belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
 
 ### Sign-up link
 
-An emailed link that verifies an email address before creating an account. Anyone can request one. It expires after 30 minutes, is replaced by a fresh request and can be confirmed once. Opening it creates nothing; choosing Continue creates the account and signs the browser in. An existing account receives a normal sign-in link instead.
+An emailed link that verifies an email address before creating an account. Anyone can request one. It expires after 30 minutes, is replaced by a fresh request and can be confirmed once. Opening it creates nothing; choosing Continue creates the account and signs the browser in. An existing account, including an [invited account](#invited-account), receives a normal sign-in link instead.
 
 - **UI:** "Sign up", "Continue".
 
 ### Sign-in link
 
-An emailed link that signs in an existing user.
+An emailed link that signs in an existing user. Continuing from it completes sign-up for an [invited account](#invited-account), with the name the user gives.
 
 - **UI:** "sign-in link".
 - **Avoid:** "login link" in UI copy and docs.
 
 ### Session, sign out everywhere
 
-A **session** keeps a user signed in. **Sign out everywhere** ends their existing sessions and invalidates their sign-in links.
+A **session** keeps a user signed in. **Sign out everywhere** ends their existing sessions and invalidates their sign-in links and [acceptance links](#acceptance-link). Their quest invitations stay pending.
+
+## Multi-user quests
+
+These terms describe [multi-user quests](docs/multi-user-quests.md).
+
+### Multi-user quest
+
+A quest with one owner and one or more [members](#member), who share its one conversation, Plan, Ideas, Progress and Quick Notes. Members have the owner's powers except removing the owner and, once the site has it, deleting the quest. The quest keeps one construct; messages keep their individual [authors](#author).
+
+Wherever quests are listed or chosen, a multi-user quest carries a short marker, so it can't be mistaken for a personal quest of the same name.
+
+- **UI:** "Shared" on the user's own quest with members; "Shared by" and the owner's name on a quest they joined.
+- **Avoid:** "team quest", "shared quest" as names for this concept.
+
+### Member
+
+A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own constructs, spells or other quests. A removed member loses access; what they wrote stays.
+
+- **UI:** "Member", "Members", "Remove", "Leave quest".
+
+### Quest invitation
+
+An invitation for one user to join one quest, sent by email by anyone in the quest. Inviting an address with no account creates an [invited account](#invited-account) at once. Until it is accepted, the quest's people see the invitee only by the address it was sent to. It stays pending until its invitee accepts or declines it, or someone in the quest withdraws it. Accepting it never accepts another.
+
+- **UI:** "Invite by email", "Invite", "Withdraw", "Accept", "Decline".
+
+### Acceptance link
+
+The link in a quest invitation's email. Opening it accepts nothing. Continuing signs the browser in as the invitee, completes an invited account's sign-up with their name, and accepts that one quest invitation. It works once, for 7 days, and a fresh invitation replaces it.
+
+- **UI:** "Join the quest" in the email; "Continue" on its page.
+- **Avoid:** "invite code", "magic link".
+
+### Pending quest
+
+A quest the user has been invited to but has not accepted. The Quests page lists these quests in its Pending tab, with each quest's name and inviter, Accept and Decline. Pending describes the user's invitation, not the quest's Active, Completed or Abandoned status, and opens nothing else of the quest.
+
+- **UI:** "Pending"; its tab's accessible name adds the count, such as "Pending, 2 invitations".
+
+### Invited account
+
+An account a quest invitation created, before its user completes sign-up. Its user completes sign-up by continuing from any emailed link, an acceptance link or a sign-in link, and giving a name. Account state is separate from acceptance of each quest invitation.
+
+### Signed-up account
+
+An account whose user has completed sign-up: every account made through Sign up, and every invited account once its user has given a name. Completing sign-up keeps the account and its pending invitations.
 
 ## API access (planned)
 
@@ -435,7 +479,7 @@ Some code and storage names outlast the features or words they were made for. Us
 
 ### Generated image
 
-An image a construct once saved as a tool result in a conversation. Constructs don't generate images now; the `image_generations` table and `/api/generated-images/GENERATION_ID` deliver the saved ones to the conversation's owner.
+An image a construct once saved as a tool result in a conversation. Constructs don't generate images now; the `image_generations` table and `/api/generated-images/GENERATION_ID` deliver the saved ones to the quest's owner and members.
 
 ### Gold, batteries, listings and purchases
 

@@ -8,7 +8,7 @@ const HELP = [
   "- `look` — read the construct's visual description.",
   "- `cast <spell name>` — cast a built-in or own spell until stopped.",
   "",
-  "Commands can also start with `/`. Plan and Brainstorm stay active until stopped. Use the Plan, Ideas and Progress controls to manage your quest.",
+  "Commands can also start with `/`. Plan and Brainstorm stay active until stopped. Use the Plan, Ideas and Progress controls to manage this quest.",
 ].join("\n");
 
 interface LocalConstructCopy {

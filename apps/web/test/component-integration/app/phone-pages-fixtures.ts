@@ -23,10 +23,12 @@ const VELLUM_CLONE: OwnConstruct = {
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
 
-// The user a sign-in link that works signs in.
-const LINK_USER: SessionUser = {
+// The user a sign-in link that works signs in: a signed-up account, so
+// continuing needs no name.
+const LINK_USER: SessionUser & { readonly needsName: boolean } = {
   id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
   sessionEpoch: 0,
+  needsName: false,
 };
 
 const OWN_SPELL: OwnSpell = {

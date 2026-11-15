@@ -72,6 +72,7 @@ describe("use_case_continue_quest", () => {
     ]);
     expect(await readCurrentQuest(user.id)).toEqual({
       quest: { id: garden.id, name: "Garden planner" },
+      sharing: { kind: "personal" },
       nextStep: undefined,
     });
 
@@ -80,6 +81,7 @@ describe("use_case_continue_quest", () => {
 
     expect(await readCurrentQuest(user.id)).toEqual({
       quest: { id: turtle.id, name: "Sea turtle model" },
+      sharing: { kind: "personal" },
       nextStep: "retopo the flipper",
     });
   });

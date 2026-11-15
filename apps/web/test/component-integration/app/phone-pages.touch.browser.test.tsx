@@ -24,6 +24,7 @@ import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
@@ -152,9 +153,16 @@ interface PhoneMeasures {
 }
 
 // The rows of tabs a page may have, besides its tab lists: the Workshop's
-// kinds. The Quests list's status tabs are a grid of two columns on a phone
-// by design, so they aren't one.
+// kinds.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [WORKSHOP_PAGE_COPY.kindsLabel];
+
+// The tab lists that aren't one row by design: the Quests list's tabs, a
+// grid of two columns on a phone, and the quest sidebar's six tabs, which
+// wrap so that every one shows in its narrow width.
+const WRAPPING_TAB_LISTS: readonly string[] = [
+  QUEST_STATUS_COPY.tabs,
+  QUEST_SIDEBAR_COPY.label,
+];
 
 function tabRows(): Element[] {
   return [
@@ -162,7 +170,8 @@ function tabRows(): Element[] {
       .getByRole("tablist")
       .elements()
       .filter(
-        (row) => row.getAttribute("aria-label") !== QUEST_STATUS_COPY.tabs,
+        (row) =>
+          !WRAPPING_TAB_LISTS.includes(row.getAttribute("aria-label") ?? ""),
       ),
     ...TAB_ROW_NAVIGATIONS.flatMap((name) =>
       page.getByRole("navigation", { name, exact: true }).elements(),

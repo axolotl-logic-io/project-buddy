@@ -49,7 +49,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "Your changes could not be saved. Please try again later.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That quest or conversation can't be found. The link may be wrong, or it may have been deleted.",
+    "That quest or conversation can't be found. The link may be wrong, or the quest isn't open to you.",
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",

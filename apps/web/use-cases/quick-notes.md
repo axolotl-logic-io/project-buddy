@@ -3,7 +3,7 @@
 ## use_case_quick_note
 
 - **Intent:** Save a short thought to a quest without opening it.
-- **Prerequisites:** [`use_case_dailies`](quests.md#use_case_dailies) or another Active quest owned by the signed-in user.
+- **Prerequisites:** [`use_case_dailies`](quests.md#use_case_dailies) or another Active quest open to the signed-in user, their own or one they are a member of.
 - **Steps:**
   - They open the site menu and choose Quick Note. The menu closes and the Quick Note dialog opens.
   - They choose the quest, write the Quick Note and choose Save Quick Note.
