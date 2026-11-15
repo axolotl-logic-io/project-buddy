@@ -3,7 +3,7 @@ import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { SIGN_IN_PATH } from "@/routes.ts";
+import { SIGN_IN_DESTINATION_PARAMETER, SIGN_IN_PATH } from "@/routes.ts";
 import {
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
@@ -12,6 +12,7 @@ import {
   THEME_TYPEFACES,
   TYPEFACE_FONT_URLS,
 } from "@/themes/theme-font-urls.ts";
+import { isTimerPath } from "@/timer/schedule.ts";
 
 // The pages anyone may open: signing in, signing up, and the link a
 // sign-in email holds, plus Credits. Their Server Actions post to the same
@@ -36,6 +37,18 @@ function themeFontPreloadLinks(cookieValue: string | undefined): string {
       return [`<${url}>; rel=preload; as=font; type="font/woff2"; crossorigin`];
     })
     .join(", ");
+}
+
+// The sign-in page, for a signed-out request. A timer link, which people
+// share with others who may not be signed in, names itself as where
+// signing in leads back to; every other page leads home as before.
+function signInUrl(request: NextRequest): URL {
+  const url = new URL(SIGN_IN_PATH, request.url);
+  const { pathname } = request.nextUrl;
+  if (isTimerPath(pathname)) {
+    url.searchParams.set(SIGN_IN_DESTINATION_PARAMETER, pathname);
+  }
+  return url;
 }
 
 // Lets a page request through with its theme's font preload hints, after
@@ -82,7 +95,7 @@ export async function proxy(request: NextRequest): Promise<Response> {
   if (isApi) {
     return appErrorResponse("signed-out", HTTP_STATUS.unauthorized);
   }
-  return NextResponse.redirect(new URL(SIGN_IN_PATH, request.url));
+  return NextResponse.redirect(signInUrl(request));
 }
 
 // Files the proxy never sees, which anyone may fetch: Next's assets, the

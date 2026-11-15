@@ -30,9 +30,17 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => ({
 const PAGES: readonly {
   name: string;
   signedIn: boolean;
-  content: () => JSX.Element;
+  content: () => JSX.Element | Promise<JSX.Element>;
 }[] = [
-  { name: "the sign-in page", signedIn: false, content: () => <LoginPage /> },
+  {
+    name: "the sign-in page",
+    signedIn: false,
+    content: () =>
+      LoginPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+  },
   { name: "the not-found page", signedIn: false, content: () => <NotFound /> },
   { name: "the Credits page", signedIn: true, content: () => <CreditsPage /> },
 ];
@@ -49,7 +57,7 @@ describe("use_case_see_icon_credit", () => {
       if (signedIn) {
         signInAs(SIGNED_IN_USER);
       }
-      await render(await inSiteFrame(content()));
+      await render(await inSiteFrame(await content()));
       expect(page.getByRole("contentinfo").query()).toBeNull();
       await openMenu();
       const credits = page

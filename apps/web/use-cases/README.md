@@ -56,6 +56,7 @@ Each area's cases are in their own file:
 - [Tasks](tasks.md)
 - [Ideas](ideas.md)
 - [Quick Notes](quick-notes.md)
+- [Timer](timer.md): a repeating work and break timer, shared by its link.
 - [Constructs](constructs.md)
 - [Workshop](workshop.md): create and edit private constructs and spells.
 - [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
