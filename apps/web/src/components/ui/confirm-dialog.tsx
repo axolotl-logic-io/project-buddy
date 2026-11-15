@@ -1,15 +1,35 @@
 "use client";
 
 import { AlertDialog } from "radix-ui";
-import { type JSX, type ReactElement, useCallback, useRef } from "react";
+import {
+  type JSX,
+  type ReactElement,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button.tsx";
+
+// The modal <dialog> the element is in, if any. A modal dialog sits in the
+// browser's top layer, above anything portalled to the body.
+function modalDialogAround(
+  element: HTMLElement | null,
+): HTMLElement | undefined {
+  const dialog = element?.closest("dialog");
+  if (dialog === null || dialog === undefined || !dialog.matches(":modal")) {
+    return undefined;
+  }
+  return dialog;
+}
 
 // Asks the user to confirm an action that replaces or removes something
 // before it runs. trigger (a Button) opens the dialog. The dialog says what
 // will happen, focuses the cancel button first, and calls onConfirm only when
 // the user confirms; Escape, the cancel button or a click outside cancels.
 // The confirm button is primary, or danger for a removal, such as deleting
-// or revoking something.
+// or revoking something. Opened from inside a modal <dialog>, such as the
+// quest sidebar drawer, it opens inside that dialog, so it shows above it
+// and the drawer's controls stay out of reach until it closes.
 export function ConfirmDialog({
   trigger,
   title,
@@ -32,6 +52,15 @@ export function ConfirmDialog({
   readonly variant?: "primary" | "danger";
 }): JSX.Element {
   const confirmedRef = useRef<boolean>(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [container, setContainer] = useState<HTMLElement | undefined>();
+  const changeOpen = useCallback((next: boolean): void => {
+    if (next) {
+      setContainer(modalDialogAround(triggerRef.current));
+    }
+    setOpen(next);
+  }, []);
   const confirm = useCallback((): void => {
     confirmedRef.current = true;
     onConfirm();
@@ -54,9 +83,11 @@ export function ConfirmDialog({
     [confirmFocusId, focusHandledOnConfirm],
   );
   return (
-    <AlertDialog.Root>
-      <AlertDialog.Trigger asChild={true}>{trigger}</AlertDialog.Trigger>
-      <AlertDialog.Portal>
+    <AlertDialog.Root open={open} onOpenChange={changeOpen}>
+      <AlertDialog.Trigger asChild={true} ref={triggerRef}>
+        {trigger}
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal container={container}>
         <AlertDialog.Overlay className="dialog-overlay" />
         <AlertDialog.Content
           className="dialog-panel"
