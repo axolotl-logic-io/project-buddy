@@ -6,9 +6,9 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Constructs run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Conversations keep their construct snapshots; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
 
-Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Plan saves subsequent messages as agreed steps; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and spells.
+Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed steps; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and spells.
 
-A conversation is a [quest](#quest)'s one conversation, with its plan, ideas and progress timeline.
+A conversation is a [quest](#quest)'s one conversation, with its tasks, ideas and progress timeline.
 
 ## Product
 
@@ -18,7 +18,7 @@ The product: a site where constructs help each user with their quests and ideas,
 
 ### Workshop
 
-The shared page for editing constructs and inspecting Plan and Brainstorm. It has no test drawer: a saved definition is tried in a quest.
+The shared page for editing constructs and inspecting Tasks and Brainstorm. It has no test drawer: a saved definition is tried in a quest.
 
 ## Prompts and context
 
@@ -61,7 +61,7 @@ One contribution to the conversation or to the model's input. A message has cont
 
 ### Context
 
-Everything made available to the model for a call: instructions, the conversation's newest messages, tool definitions and results, images, and relevant information such as the current Plan. Prompts contribute instructions to context; the Plan contributes information. Context can change between calls without changing the saved prompts.
+Everything made available to the model for a call: instructions, the conversation's newest messages, tool definitions and results, images, and relevant information such as the current Tasks. Prompts contribute instructions to context; the tasks contribute information. Context can change between calls without changing the saved prompts.
 
 Application state, such as the acting user's identity and access rights, is not automatically model context. Only information actually supplied to the model is part of its context.
 
@@ -79,7 +79,7 @@ The application machinery around the model: it assembles context, makes model ca
 
 ### Global prompt
 
-Shared instructions every conversation receives, including the role and rules for quests, Plan and milestones. Users cannot edit these rules.
+Shared instructions every conversation receives, including the role and rules for quests, Tasks and milestones. Users cannot edit these rules.
 
 ## Constructs
 
@@ -131,19 +131,19 @@ Habits describe the construct’s personal style across conversations.
 
 ### Spell
 
-A persistent mode in a quest's conversation. **Plan** saves subsequent ordinary messages as open Plan steps; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Plan or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
+A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open Tasks steps; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
 Workshop’s Spells tab offers creation and copying. Own spells can be edited, retired and restored like constructs. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
 
 ### Cast
 
-Set the conversation’s active spell. `cast plan` and `cast brainstorm` work with or without a leading slash. The shorter `plan` and `brainstorm` commands work too. Casting the other spell replaces the current one without moving earlier items.
+Set the conversation’s active spell. `cast tasks` and `cast brainstorm` work with or without a leading slash. The shorter `tasks` and `brainstorm` commands work too. Casting the other spell replaces the current one without moving earlier items.
 
-- **UI:** "Cast Plan", "Cast Brainstorm".
+- **UI:** "Cast Tasks", "Cast Brainstorm".
 
 ### Stop spell
 
-Clear the active spell and return to ordinary conversation commands. Choose **Stop Plan** or **Stop Brainstorm** beside the composer, or type `stop`.
+Clear the active spell and return to ordinary conversation commands. Choose **Stop Tasks** or **Stop Brainstorm** beside the composer, or type `stop`.
 
 ## Conversations
 
@@ -185,13 +185,13 @@ The user who wrote a user message. Authorship belongs to the message and does no
 
 ### Reply
 
-The construct's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the conversation's snapshots, the Plan, and the conversation's newest messages: a bounded window, so a long-running quest never sends its whole history.
+The construct's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the conversation's snapshots, the Tasks, and the conversation's newest messages: a bounded window, so a long-running quest never sends its whole history.
 
-## Quests and Plan
+## Quests and Tasks
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its plan, progress timeline and [Quick Notes](#quick-note). A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
+Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its tasks, progress timeline and [Quick Notes](#quick-note). A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
@@ -212,7 +212,7 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Plan, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, in the quest sidebar's Actions tab, asks for confirmation before clearing its conversation and active spell. By default, it keeps Plan, Ideas and Progress and reopens completed Plan steps. The user can also choose to remove Steps and Ideas. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, in the quest sidebar's Actions tab, asks for confirmation before clearing its conversation and active spell. By default, it keeps Tasks, Ideas and Progress and reopens completed Tasks steps. The user can also choose to remove Steps and Ideas. Dailies keeps no streaks, deadlines or daily resets.
 
 - **UI:** “Dailies”, “Reset Day”.
 - **Avoid:** "daily quest" for a new quest per day, "streak".
@@ -229,11 +229,11 @@ A quest with no [members](#member): open to its [owner](#owner) alone. Every que
 
 ### Goal
 
-The outcome the user wants to achieve through a quest. It is discussed in the conversation; agreed work becomes steps in the Plan. There is no separate Goal field.
+The outcome the user wants to achieve through a quest. It is discussed in the conversation; agreed work becomes steps in the Tasks. There is no separate Goal field.
 
 ### Milestone
 
-A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
+A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. A [recorded milestone](#milestone-recorded) captures a result already reached; a task list alone must not be recorded as completed progress.
 
 ### Milestone (recorded)
 
@@ -251,20 +251,20 @@ A quest's collection of recorded milestones. It celebrates what the user has don
 
 ### Next step
 
-The one small thing the user means to do next in a quest: the first open [step](#step) of its [plan](#plan). It is the first action toward a planned milestone. A quest with no open steps has no next step.
+The one small thing the user means to do next in a quest: the first open [step](#step) of its [tasks](#tasks). It is the first action toward a planned milestone. A quest with no open steps has no next step.
 
 - **UI:** "Next step".
 - **Avoid:** "todo", "task", "action item" as names for this concept.
 
 ### Active spell
 
-The conversation’s saved mode: Plan, Brainstorm or no spell. `cast plan` and `cast brainstorm` set it; `plan` and `brainstorm` are shorter forms. Commands accept an optional `/`. **Stop [Spell]**, or `stop`, returns to Chat. Switching spells never moves earlier messages between buckets.
+The conversation’s saved mode: Tasks, Brainstorm or no spell. `cast tasks` and `cast brainstorm` set it; `tasks` and `brainstorm` are shorter forms. Commands accept an optional `/`. **Stop [Spell]**, or `stop`, returns to Chat. Switching spells never moves earlier messages between buckets.
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Plan. The owner or a member can add, edit or remove an idea, or move it into Plan as an open step. Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit or remove an idea, or move it into Tasks as an open step. Ideas have no done state.
 
-- **UI:** "Ideas", "Add idea", "Move to Plan".
+- **UI:** "Ideas", "Add idea", "Move to Tasks".
 
 ### Quick Note
 
@@ -279,39 +279,39 @@ The quest sidebar's **Actions** tab holds what the user does to the quest's conv
 
 - **UI:** "Actions".
 
-### Plan
+### Tasks
 
-A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Plan section, in the Plan panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The plan has no deadlines and never counts open steps or days.
+A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines and never counts open steps or days.
 
-- **UI:** "Plan", "Plan panel".
+- **UI:** "Tasks", "Tasks panel".
 - **Avoid:** "todo list", "task list", "backlog", "roadmap".
 
 ### Step
 
-One piece of remaining work in a [plan](#plan): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done step isn't a [recorded milestone](#milestone-recorded).
+One piece of remaining work in a [tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done step isn't a [recorded milestone](#milestone-recorded).
 
 - **UI:** "Step", "#3", "Done".
 - **Avoid:** "todo", "task", "item", "action item".
 
-### Plan change
+### Tasks change
 
-A note in a quest's conversation that the construct or a person changed the quest's [plan](#plan): what each operation did, with Undo. A person's plan change, made with the Plan panel or a command, the construct reads it on its next reply.
+A note in a quest's conversation that the construct or a person changed the quest's [tasks](#tasks): what each operation did, with Undo. A person's tasks change, made with the Tasks panel or a command, the construct reads it on its next reply.
 
-- **UI:** "Plan change", "Undid a plan change".
-- **Avoid:** "Plan change card", "plan update".
+- **UI:** "Tasks change", "Undid a task change".
+- **Avoid:** "Tasks change card", "tasks update".
 
 ### Command
 
-A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The plan commands keep the plan without a model call.
+A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The tasks commands keep the tasks without a model call.
 
-- **UI:** "Commands", "/plan", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
+- **UI:** "Commands", "/tasks", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
 - **Avoid:** "slash command" in UI copy.
 
 ## Tools
 
 ### Tool
 
-A function the model can call during a reply. Tools are subject to their requirements: changing the plan and recording a milestone require a quest. A spell controls message capture without granting tools.
+A function the model can call during a reply. Tools are subject to their requirements: changing the tasks and recording a milestone require a quest. A spell controls message capture without granting tools.
 
 ### Tool part
 
@@ -388,7 +388,7 @@ These terms describe [multi-user quests](docs/multi-user-quests.md).
 
 ### Multi-user quest
 
-A quest with one owner and one or more [members](#member), who share its one conversation, Plan, Ideas, Progress and Quick Notes. Members have the owner's powers except removing the owner and, once the site has it, deleting the quest. The quest keeps one construct; messages keep their individual [authors](#author).
+A quest with one owner and one or more [members](#member), who share its one conversation, Tasks, Ideas, Progress and Quick Notes. Members have the owner's powers except removing the owner and, once the site has it, deleting the quest. The quest keeps one construct; messages keep their individual [authors](#author).
 
 Wherever quests are listed or chosen, a multi-user quest carries a short marker, so it can't be mistaken for a personal quest of the same name.
 

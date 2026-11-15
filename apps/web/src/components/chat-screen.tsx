@@ -3,21 +3,21 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
-import type { PlanActions } from "@/components/plan/use-plan.ts";
+import type { TasksActions } from "@/components/tasks/use-tasks.ts";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { UserId } from "@/ids.ts";
-import type { PlanState } from "@/plan/plan.ts";
-import {
-  changePlanAction,
-  runChatCommandAction,
-  undoPlanChangeAction,
-} from "@/plan/plan-actions.ts";
 import { getSpell } from "@/spells/spell.ts";
+import type { TasksState } from "@/tasks/tasks.ts";
+import {
+  changeTasksAction,
+  runChatCommandAction,
+  undoTasksChangeAction,
+} from "@/tasks/tasks-actions.ts";
 
-// The plan's Server Actions, which also run the composer's commands.
-const PLAN_ACTIONS: PlanActions = {
-  change: changePlanAction,
-  undo: undoPlanChangeAction,
+// The task list's Server Actions, which also run the composer's commands.
+const TASKS_ACTIONS: TasksActions = {
+  change: changeTasksAction,
+  undo: undoTasksChangeAction,
   command: runChatCommandAction,
 };
 
@@ -25,8 +25,8 @@ const PLAN_ACTIONS: PlanActions = {
 // with its construct, who was chosen when it started; then its messages
 // and the composer. Their own messages are the viewer's; every other user
 // message shows its author's name. stoppedReplyId is the last message's id
-// when its reply stopped (readStoppedReply). plan is given in a quest's
-// conversation alone, which shows the quest's plan beside it.
+// when its reply stopped (readStoppedReply). tasks is given in a quest's
+// conversation alone, which shows the quest's tasks beside it.
 // header replaces the default construct header; null omits it when the
 // construct is already available in the surrounding navigation.
 function ChatScreen({
@@ -34,7 +34,7 @@ function ChatScreen({
   messages,
   stoppedReplyId,
   viewer,
-  plan,
+  tasks,
   actions,
   header,
   sideSections,
@@ -44,7 +44,7 @@ function ChatScreen({
   readonly messages: ChatMessage[];
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
-  readonly plan?: PlanState | undefined;
+  readonly tasks?: TasksState | undefined;
   readonly actions?: ReactNode;
   readonly sideSections?: readonly WorkspaceSection[] | undefined;
   readonly initialSection?: string | undefined;
@@ -86,8 +86,8 @@ function ChatScreen({
         construct={construct}
         authorNames={otherAuthorNames(messages, viewer)}
         questId={conversation.quest.id}
-        initialPlan={plan}
-        planActions={PLAN_ACTIONS}
+        initialTasks={tasks}
+        tasksActions={TASKS_ACTIONS}
       />
     </>
   );

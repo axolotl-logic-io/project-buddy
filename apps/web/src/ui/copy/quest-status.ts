@@ -24,11 +24,13 @@ const QUEST_STATUS_COPY = {
       description: "Restore this quest",
     },
   ],
+  complete: "Complete",
+  abandon: "Abandon",
   restore: "Restore quest",
   undo: "Undo",
   empty: "No quests with this status.",
   effects:
-    "The conversation, Plan and progress stay available. You can restore the quest whenever you want.",
+    "The conversation, Tasks and progress stay available. You can restore the quest whenever you want.",
   approvalHeading: "Confirm quest status change",
   confirm: {
     active: "Confirm restore",

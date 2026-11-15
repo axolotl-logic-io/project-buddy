@@ -24,7 +24,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
 - **Signing in** is by a link the site emails them. There are no passwords.
 - **Invitations:** anyone in a quest can invite an address; one with no account gets an invited account at once, which completes sign-up the first time its user continues from an emailed link with a name ([Quest members](quest-members.md)).
-- **Private data:** each user's quests, conversations, Plan and milestones are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest or conversation not open to them looks exactly like one that doesn't exist.
+- **Private data:** each user's quests, conversations, Tasks and milestones are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest or conversation not open to them looks exactly like one that doesn't exist.
 - **Local constructs:** replies use deterministic commands without requests to model companies.
 
 ## Conventions
@@ -53,7 +53,7 @@ Each area's cases are in their own file:
 - [Quest status](quest-status.md)
 - [Quest members](quest-members.md): invite people, join by link or from Pending, and remove members.
 - [Conversations](chats.md)
-- [Plan](plan.md)
+- [Tasks](tasks.md)
 - [Ideas](ideas.md)
 - [Quick Notes](quick-notes.md)
 - [Constructs](constructs.md)

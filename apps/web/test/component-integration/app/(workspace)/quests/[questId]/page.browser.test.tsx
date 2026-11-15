@@ -9,6 +9,7 @@ import QuestError from "@/app/(workspace)/quests/[questId]/(overview)/error.tsx"
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestLoading from "@/app/(workspace)/quests/[questId]/(overview)/loading.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getQuest } from "@/quests/store.ts";
@@ -42,8 +43,8 @@ vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
 }));
 
 vi.mock(
-  "@/plan/plan-actions.ts",
-  () => import("../../../../plan/plan-actions-test-kit.ts"),
+  "@/tasks/tasks-actions.ts",
+  () => import("../../../../tasks/tasks-actions-test-kit.ts"),
 );
 vi.mock(
   "@/auth/current-user.ts",
@@ -75,8 +76,8 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: () => Promise.resolve([]),
 }));
 vi.mock(
-  "@/plan/plan-store.ts",
-  () => import("../../../../plan/plan-store-test-kit.ts"),
+  "@/tasks/tasks-store.ts",
+  () => import("../../../../tasks/tasks-store-test-kit.ts"),
 );
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
@@ -85,7 +86,7 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
 }));
 
 // The widest the page's column grows: from the xl breakpoint, the quest's
-// conversation and its plan sit side by side.
+// conversation and its tasks sit side by side.
 const REMOVED_CONTEXT_LINK = /Journal|Versions/u;
 
 const PARAMS = Promise.resolve({ questId: FOX_QUEST.id });
@@ -117,13 +118,13 @@ afterEach(() => {
 });
 
 test.each(["completed", "abandoned"] as const)(
-  "a %s quest page keeps its Plan and conversation after its status changes",
+  "a %s quest page keeps its Tasks and conversation after its status changes",
   async (status) => {
     stores.getQuest.mockResolvedValue({ ...FOX_QUEST, status });
     await renderQuest();
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
-      .element(page.getByRole("tab", { name: "Plan", exact: true }))
+      .element(page.getByRole("tab", { name: "Tasks", exact: true }))
       .toHaveAttribute("aria-selected", "true");
     await expect.element(composer()).toBeVisible();
   },
@@ -247,10 +248,10 @@ test("the quest opens directly on the conversation without a portrait bar", asyn
   );
 });
 
-test("the Plan section shows the todo list without Goal, Preferences or Journal", async () => {
-  await renderQuest("plan");
+test("the Tasks section shows the todo list without Goal, Preferences or Journal", async () => {
+  await renderQuest("tasks");
   await expect
-    .element(page.getByRole("tabpanel", { name: "Plan", exact: true }))
+    .element(page.getByRole("tabpanel", { name: "Tasks", exact: true }))
     .toBeVisible();
   await page.getByRole("button", { name: "Add a step", exact: true }).click();
   await expect.element(page.getByPlaceholder("Add a step")).toBeVisible();
@@ -264,7 +265,7 @@ test("the Plan section shows the todo list without Goal, Preferences or Journal"
   ).toHaveLength(0);
 });
 
-test("Ideas opens as a separate quest section beside Plan", async () => {
+test("Ideas opens as a separate quest section beside Tasks", async () => {
   await renderQuest("ideas");
   await expect
     .element(page.getByRole("tab", { name: "Ideas", exact: true }))
@@ -275,4 +276,33 @@ test("Ideas opens as a separate quest section beside Plan", async () => {
   await expect
     .element(page.getByRole("button", { name: "Add idea" }))
     .toBeVisible();
+});
+
+test("Actions offers Complete and Abandon for the active quest", async () => {
+  await renderQuest("actions");
+  const actions = page.getByRole("tabpanel", { name: "Actions", exact: true });
+  await expect
+    .element(actions.getByRole("button", { name: "Complete", exact: true }))
+    .toBeVisible();
+  await expect
+    .element(actions.getByRole("button", { name: "Abandon", exact: true }))
+    .toBeVisible();
+});
+
+test("status failures stay visible and focused inside the phone Actions drawer", async () => {
+  await setViewport(PHONE_VIEWPORT);
+  vi.mocked(changeQuestStatusAction).mockResolvedValue({
+    kind: "invalid",
+    message: "Refresh and try again.",
+  });
+  await renderQuest("actions");
+  const actions = page.getByRole("tabpanel", { name: "Actions", exact: true });
+  await actions.getByRole("button", { name: "Complete", exact: true }).click();
+  await expect
+    .element(actions.getByRole("status"))
+    .toHaveTextContent("Refresh and try again.");
+  await expect.element(actions.getByRole("status")).toHaveFocus();
+  await expect
+    .element(actions.getByRole("button", { name: "Complete", exact: true }))
+    .toBeEnabled();
 });

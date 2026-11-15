@@ -20,7 +20,7 @@ import { spellResponse } from "@/spells/spell-response.ts";
 import { readActiveSpell, setSpell } from "@/spells/spell-store.ts";
 import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 
-const COMMAND = z.enum(["brainstorm", "plan", "stop"]);
+const COMMAND = z.enum(["brainstorm", "tasks", "stop"]);
 const LEADING_SLASH = /^\//u;
 const OTHER_COMMAND = /^\s*(?:\/|help\b|look\b|cast\b)/iu;
 

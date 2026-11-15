@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 
-const SPELL_DESTINATION = z.enum(["plan", "brainstorm"]);
+const SPELL_DESTINATION = z.enum(["tasks", "brainstorm"]);
 type SpellDestination = z.infer<typeof SPELL_DESTINATION>;
 const SPELL_DESTINATION_CHOICES = SPELL_DESTINATION.options.map((value) => ({
   value,

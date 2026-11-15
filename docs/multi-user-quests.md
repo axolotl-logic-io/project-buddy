@@ -1,6 +1,6 @@
 # Multi-user quests
 
-Multi-user quests let people work in one quest together. Its owner, or anyone already in it, invites people by email. Everyone who accepts shares the quest's one conversation, Plan, Ideas, Progress and Quick Notes, with one construct. Each user message keeps its author.
+Multi-user quests let people work in one quest together. Its owner, or anyone already in it, invites people by email. Everyone who accepts shares the quest's one conversation, Tasks, Ideas, Progress and Quick Notes, with one construct. Each user message keeps its author.
 
 The [glossary](../GLOSSARY.md#multi-user-quests) defines the terms this page uses.
 
@@ -27,7 +27,7 @@ Members have every power the owner has, except removing the owner and, once the 
 | Action | Owner | Member | Pending invitee |
 | --- | --- | --- | --- |
 | Read and contribute to the conversation | Yes | Yes | No |
-| Change Plan, Ideas, Progress and Quick Notes | Yes | Yes | No |
+| Change Tasks, Ideas, Progress and Quick Notes | Yes | Yes | No |
 | Cast and stop spells, stop a reply | Yes | Yes | No |
 | Rename the quest | Yes | Yes | No |
 | Mark it Completed, Abandoned or Active, or answer a status card | Yes | Yes | No |
@@ -107,15 +107,15 @@ A pending invitation is listed by the address it was sent to, never by the accou
 
 Invitations are limited to 20 per inviter per hour, because each one emails an address the inviter chose. Only invitations that go out count: a request for a quest that isn't open to the inviter, or for someone already in the quest, doesn't. When no invitation goes out, the form keeps the address, and focus returns to it after every answer. If an email fails, the invitation stays pending and the form says to invite again to resend it.
 
-The invitation email says "the quest", and names its owner when someone else invites. It lists what members share: the conversation, Plan, Ideas, Progress and Quick Notes. When the invitation created the address's account, it says an account was set aside and stays unused unless they join.
+The invitation email says "the quest", and names its owner when someone else invites. It lists what members share: the conversation, Tasks, Ideas, Progress and Quick Notes. When the invitation created the address's account, it says an account was set aside and stays unused unless they join.
 
 ## Earlier contents and authors
 
-Accepting opens the whole quest as it is: the full conversation, saved images, Plan with its history, Ideas, Progress and Quick Notes. Earlier messages keep their authors. The conversation shows "You" on the viewer's own messages and the author's name, or email without a name, on everyone else's.
+Accepting opens the whole quest as it is: the full conversation, saved images, Tasks with its history, Ideas, Progress and Quick Notes. Earlier messages keep their authors. The conversation shows "You" on the viewer's own messages and the author's name, or email without a name, on everyone else's.
 
 ## Removal and departure
 
-Removing a member, or a member leaving, deletes only their membership. Their messages, Plan changes, milestones and other contributions stay, with them as the author. A removed member sees the quest as not found, and anyone in the quest can invite them again.
+Removing a member, or a member leaving, deletes only their membership. Their messages, Tasks changes, milestones and other contributions stay, with them as the author. A removed member sees the quest as not found, and anyone in the quest can invite them again.
 
 If a reply to the removed member's message is still running, removal stops it and releases its claim. The message stays, and anyone left in the quest can ask for its reply again at once. Invitations the removed member sent stay pending, because they belong to the quest.
 
@@ -124,7 +124,7 @@ If a reply to the removed member's message is still running, removal stops it an
 Members use the mechanisms that already keep one user's tabs consistent:
 
 - **Messages and replies:** the conversation takes one reply at a time. While a reply runs, other members see that the construct is replying and can Stop it.
-- **Plan:** every change saves a numbered version, so two changes made at once are both kept, one after the other. Undo undoes a specific plan change, whoever made it.
+- **Tasks:** every change saves a numbered version, so two changes made at once are both kept, one after the other. Undo undoes a specific tasks change, whoever made it.
 - **Status:** status changes check the revision shown on screen, so a stale control or card fails instead of overwriting a newer change.
 - **Spells:** the active spell is the conversation's, so a member's cast or Stop applies to everyone.
 

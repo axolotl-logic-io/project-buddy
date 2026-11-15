@@ -13,6 +13,6 @@ The tiles open the start form on Quests. The form sends starting context. A supp
 
 The construct's opening is written before the quest is saved. A failed opening or invalid details create nothing.
 
-Each new quest has an empty Plan. The user and construct add tasks when they agree on them. The first open step is the next step. Dailies resumes the user’s existing quest, conversation and Plan, regardless of its name, without generating another opening or resetting its work.
+Each new quest has an empty Tasks. The user and construct add tasks when they agree on them. The first open step is the next step. Dailies resumes the user’s existing quest, conversation and Tasks, regardless of its name, without generating another opening or resetting its work.
 
-Definitions live in `apps/web/src/quests/premade-quests.ts`; the start action is `apps/web/src/app/(workspace)/quests/actions.ts`. See [Plan](quest-plan.md).
+Definitions live in `apps/web/src/quests/premade-quests.ts`; the start action is `apps/web/src/app/(workspace)/quests/actions.ts`. See [Tasks](quest-tasks.md).

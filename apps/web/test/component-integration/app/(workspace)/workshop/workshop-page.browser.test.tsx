@@ -36,7 +36,7 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
 }));
 
 const QUEST_START = /Start a quest/u;
-const BUILT_IN_SPELL_NAMES = /^(?:Plan|Brainstorm)$/u;
+const BUILT_IN_SPELL_NAMES = /^(?:Tasks|Brainstorm)$/u;
 const COPY_ACTION = /^Make a copy of /u;
 const OLD_ACTION = /^(?:Craft|Customize|Clone|Tweak|Start a quest)/u;
 
@@ -184,7 +184,7 @@ describe("use_case_workshop_page", () => {
       .element(page.getByRole("link", { name: "Activities", exact: true }))
       .not.toBeInTheDocument();
     await Promise.all(
-      ["Plan", "Brainstorm"].map((name) =>
+      ["Tasks", "Brainstorm"].map((name) =>
         expect
           .element(page.getByRole("link", { name, exact: true }))
           .toBeVisible(),
@@ -207,8 +207,8 @@ describe("use_case_workshop_page", () => {
       page.getByRole("link", { name: BUILT_IN_SPELL_NAMES }).all(),
     ).toHaveLength(2);
     await expect
-      .element(page.getByRole("link", { name: "Plan", exact: true }))
-      .toHaveAttribute("href", "/spellbook/plan");
+      .element(page.getByRole("link", { name: "Tasks", exact: true }))
+      .toHaveAttribute("href", "/spellbook/tasks");
     await expect
       .element(page.getByRole("link", { name: "Brainstorm", exact: true }))
       .toHaveAttribute("href", "/spellbook/brainstorm");
