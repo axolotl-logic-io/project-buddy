@@ -299,11 +299,10 @@ async function inviteToQuest(
         { questId, inviteeId, inviterId: inviter },
         now,
       );
-      const [inviterAccount, owner, invitee] = await Promise.all([
-        accountOf(tx, inviter),
-        accountOf(tx, quest.ownerId),
-        accountOf(tx, inviteeId),
-      ]);
+      // One after another: a transaction's client runs one query at a time.
+      const inviterAccount = await accountOf(tx, inviter);
+      const owner = await accountOf(tx, quest.ownerId);
+      const invitee = await accountOf(tx, inviteeId);
       let ownerName: string | undefined;
       if (quest.ownerId !== inviter) {
         ownerName = owner.name;
