@@ -8,7 +8,7 @@ import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 const actions = vi.hoisted(() => ({ continueSignInAction: vi.fn() }));
 vi.mock("@/app/login/link/actions.ts", () => actions);
 
-test("signup requires a name and keeps the typed name when the server refuses it", async () => {
+test("signup requires a name, and a refused name keeps its text and takes focus with its error", async () => {
   actions.continueSignInAction.mockResolvedValue({
     kind: "invalid",
     message: LINK_PAGE_COPY.nameInvalid,
@@ -28,6 +28,10 @@ test("signup requires a name and keeps the typed name when the server refuses it
   await expect
     .element(page.getByText(LINK_PAGE_COPY.nameInvalid))
     .toBeVisible();
+  await expect.element(name).toHaveFocus();
+  await expect
+    .element(name)
+    .toHaveAccessibleDescription(LINK_PAGE_COPY.nameInvalid);
   const form = actions.continueSignInAction.mock.lastCall?.[0];
   expect(form?.get("name")).toBe("{Mabel}");
   expect(form?.get("token")).toBe("verification");
