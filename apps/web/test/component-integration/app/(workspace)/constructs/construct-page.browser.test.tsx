@@ -44,7 +44,7 @@ function ownConstruct(source: Pick<OwnConstruct, "clonedFrom">): OwnConstruct {
   return {
     id: userConstructIdFixture("7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d"),
     name: "Garden planner",
-    definition: { prompt: "Help plan a garden." },
+    definition: { prompt: "Help tasks a garden." },
     createdAt: new Date("2026-10-12T09:00:00Z"),
     updatedAt: new Date("2026-10-12T09:00:00Z"),
     ...source,

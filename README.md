@@ -1,6 +1,6 @@
 # project-buddy
 
-project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs use local commands to keep quest Plans and Ideas. The [glossary](GLOSSARY.md) defines the site's words.
+project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs use local commands to keep quest Tasks and Ideas. The [glossary](GLOSSARY.md) defines the site's words.
 
 Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [project practices](docs/project-practices.md). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
@@ -86,11 +86,11 @@ The app makes no requests to AI model companies. Constructs use deterministic co
 
 ### Quests and conversations
 
-Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Plan, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/multi-user-quests.md). Dailies continues the same quest each day. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
+Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Tasks, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/multi-user-quests.md). Dailies continues the same quest each day. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
 
 Each starting point assigns the construct for its quest's conversation. Workshop at `/workshop` is the single collection for built-in and private constructs and spells. Settings at `/settings` holds profile, appearance and security.
 
-Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, the construct, and the quest's Plan and recent milestones. Constructs always run the local command engine; there is no model mode setting. Tests exercise local commands and tool handlers directly.
+Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, the construct, and the quest's Tasks and recent milestones. Constructs always run the local command engine; there is no model mode setting. Tests exercise local commands and tool handlers directly.
 
 ### Errors
 
@@ -148,7 +148,7 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Plan link.
+The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Tasks link.
 
 ## Installed app
 

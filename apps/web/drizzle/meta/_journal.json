@@ -477,6 +477,13 @@
       "when": 1794695856849,
       "tag": "0067_multi_user_quests",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1794759255340,
+      "tag": "0068_exotic_william_stryker",
+      "breakpoints": true
     }
   ]
 }

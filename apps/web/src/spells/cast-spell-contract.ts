@@ -3,7 +3,7 @@ import { SPELL_NAME_MAX, SPELL_REFERENCE } from "@/spells/spell-definition.ts";
 
 const CAST_SPELL_TOOL = "cast_spell";
 const CAST_SPELL_DESCRIPTION =
-  "Cast an available spell by its name to route subsequent messages into its Plan or Ideas destination until stopped.";
+  "Cast an available spell by its name to route subsequent messages into its Tasks or Ideas destination until stopped.";
 const CAST_SPELL_INPUT = z.object({
   name: z.string().trim().min(1).max(SPELL_NAME_MAX),
 });

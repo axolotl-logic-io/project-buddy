@@ -47,6 +47,45 @@ beforeEach(() => {
 });
 
 describe("quest status actions", () => {
+  test.each([
+    ["Complete", "completed"],
+    ["Abandon", "abandoned"],
+  ] as const)(
+    "%s changes the active quest and offers Undo",
+    async (label, status) => {
+      const saved = Promise.withResolvers<StatusActionState>();
+      vi.mocked(changeQuestStatusAction).mockReturnValue(saved.promise);
+      await render(<QuestStatusControls quest={FOX_QUEST} />);
+      await page.getByRole("button", { name: label, exact: true }).click();
+      await expect
+        .element(page.getByRole("button", { name: "Complete", exact: true }))
+        .toBeDisabled();
+      await expect
+        .element(page.getByRole("button", { name: "Abandon", exact: true }))
+        .toBeDisabled();
+      const [, sent] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
+      expect(sent?.get("questId")).toBe(FOX_QUEST.id);
+      expect(sent?.get("fromStatus")).toBe("active");
+      expect(sent?.get("toStatus")).toBe(status);
+      expect(sent?.get("revision")).toBe("0");
+      saved.resolve({
+        kind: "saved",
+        message: QUEST_STATUS_COPY.saved[status],
+        change: {
+          questId: FOX_QUEST.id,
+          fromStatus: "active",
+          toStatus: status,
+          revision: 1,
+        },
+      });
+      await expect
+        .element(page.getByRole("status"))
+        .toHaveTextContent(QUEST_STATUS_COPY.saved[status]);
+      await expect
+        .element(page.getByRole("button", { name: "Undo" }))
+        .toBeVisible();
+    },
+  );
   test("submits with the keyboard, disables pending actions and offers Undo", async () => {
     const saved = Promise.withResolvers<StatusActionState>();
     vi.mocked(changeQuestStatusAction).mockReturnValue(saved.promise);

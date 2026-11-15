@@ -1,8 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { getChat, saveMessage } from "@/chats/store.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
-import { PLAN_STEP_TEXT_MAX_LENGTH } from "@/plan/plan.ts";
-import { changePlan, readPlan } from "@/plan/plan-store.ts";
 import {
   deleteRetiredDefinition,
   getRetiredDefinition,
@@ -22,6 +20,8 @@ import {
   readActiveSpell,
   setSpell,
 } from "@/spells/spell-store.ts";
+import { TASKS_STEP_TEXT_MAX_LENGTH } from "@/tasks/tasks.ts";
+import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -41,23 +41,23 @@ test("use_case_customize_spell", async () => {
   const edited = await updateSpell(user.id, copy.id, {
     name: "Small steps",
     definition: {
-      destination: "plan",
+      destination: "tasks",
       castReply: "Ready: {{spell}} in {{bucket}}.",
       savedReply: "Kept {{message}}.",
       stopReply: "Until next time.",
       invalidReply: "Try a shorter message.",
     },
   });
-  expect(edited?.definition.destination).toBe("plan");
+  expect(edited?.definition.destination).toBe("tasks");
   expect(messageText(await constructReply(chat.id, "cast Small steps"))).toBe(
-    "Ready: Small steps in Plan.",
+    "Ready: Small steps in Tasks.",
   );
   expect(await currentSpell(user.id, chat)).toBe(copy.id);
   expect(await constructPrompt(chat.id)).toContain("Active spell: Small steps");
   expect(messageText(await constructReply(chat.id, "Sketch a fox"))).toBe(
     "Kept Sketch a fox.",
   );
-  expect((await readPlan(user.id, chat.quest.id))?.steps).toMatchObject([
+  expect((await readTasks(user.id, chat.quest.id))?.steps).toMatchObject([
     { text: "Sketch a fox", done: false },
   ]);
   expect(await listIdeas(user.id, chat.quest.id)).toEqual([]);
@@ -73,10 +73,10 @@ test("use_case_customize_spell", async () => {
   );
   expect(
     messageText(
-      await constructReply(chat.id, "x".repeat(PLAN_STEP_TEXT_MAX_LENGTH + 1)),
+      await constructReply(chat.id, "x".repeat(TASKS_STEP_TEXT_MAX_LENGTH + 1)),
     ),
   ).toBe("Try a shorter message.");
-  expect((await readPlan(user.id, chat.quest.id))?.steps).toHaveLength(2);
+  expect((await readTasks(user.id, chat.quest.id))?.steps).toHaveLength(2);
   expect(messageText(await constructReply(chat.id, "/stop"))).toBe(
     "Until next time.",
   );
@@ -152,12 +152,12 @@ test("spells keep capturing messages beyond the former step limit", async () => 
   const spell = await createSpell(user.id, {
     name: "Keep steps",
     definition: {
-      destination: "plan",
+      destination: "tasks",
       savedReply: "Kept {{message}}.",
     },
   });
   await setSpell(user.id, { chatId: chat.id, spell: spell.id });
-  await changePlan(
+  await changeTasks(
     user.id,
     { questId: chat.quest.id, author: "person" },
     Array.from({ length: ManySteps }, (_, index) => ({
@@ -168,7 +168,7 @@ test("spells keep capturing messages beyond the former step limit", async () => 
   expect(messageText(await constructReply(chat.id, "Buy paint"))).toBe(
     "Kept Buy paint.",
   );
-  expect((await readPlan(user.id, chat.quest.id))?.steps).toHaveLength(
+  expect((await readTasks(user.id, chat.quest.id))?.steps).toHaveLength(
     ManySteps + 1,
   );
 });
@@ -213,20 +213,20 @@ test("casting uses case-insensitive owner-scoped names and refuses ids and ambig
   });
   await createSpell(other.id, {
     name: "Alstorm",
-    definition: { destination: "plan" },
+    definition: { destination: "tasks" },
   });
   await constructReply(chat.id, "cast aLsToRm");
   expect(await currentSpell(user.id, chat)).toBe(own.id);
-  await constructReply(chat.id, "cast Plan");
+  await constructReply(chat.id, "cast Tasks");
   await constructReply(chat.id, `cast ${own.id}`);
-  expect(await currentSpell(user.id, chat)).toBe("plan");
+  expect(await currentSpell(user.id, chat)).toBe("tasks");
   await createSpell(user.id, {
     name: "Alstorm",
-    definition: { destination: "plan" },
+    definition: { destination: "tasks" },
   });
   const refused = messageText(await constructReply(chat.id, "cast alstorm"));
   expect(refused).toContain("Several spells share that name");
-  expect(await currentSpell(user.id, chat)).toBe("plan");
+  expect(await currentSpell(user.id, chat)).toBe("tasks");
   const multiword = await createSpell(user.id, {
     name: "Small experiments",
     definition: { destination: "brainstorm" },

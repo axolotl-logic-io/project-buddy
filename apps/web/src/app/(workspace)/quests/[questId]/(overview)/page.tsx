@@ -13,7 +13,7 @@ import { questConversation } from "./quest-conversation.tsx";
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // A quest's page. Its first section is the quest's one conversation, with
-// its composer; the others are its Plan, Ideas, progress timeline, Quick
+// its composer; the others are its Tasks, Ideas, progress timeline, Quick
 // Notes, members and actions. It is open to the quest's owner and members;
 // to anyone else, a pending invitee included, it is not found.
 export default async function QuestPage({
@@ -24,14 +24,14 @@ export default async function QuestPage({
   const { section } = await searchParams;
   let current:
     | "conversation"
-    | "plan"
+    | "tasks"
     | "ideas"
     | "progress"
     | "notes"
     | "members"
     | "actions" = "conversation";
   if (
-    section === "plan" ||
+    section === "tasks" ||
     section === "ideas" ||
     section === "progress" ||
     section === "notes" ||

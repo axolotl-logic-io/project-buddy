@@ -5,7 +5,7 @@ import {
   type CommandListing,
   optionId,
 } from "@/components/chat/chat-commands.ts";
-import { CHAT_COMMANDS_COPY } from "@/ui/copy/plan.ts";
+import { CHAT_COMMANDS_COPY } from "@/ui/copy/tasks.ts";
 
 function CommandOption({
   listing,

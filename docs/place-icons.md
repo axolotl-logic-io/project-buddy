@@ -1,6 +1,6 @@
 # Place icons
 
-The shared `Icon` component uses named imports from `lucide-react` for Plan
+The shared `Icon` component uses named imports from `lucide-react` for Tasks
 and editing controls. Other interface symbols keep their own drawings.
 
 Shared navigation and editing controls use the icon component. Icons inherit

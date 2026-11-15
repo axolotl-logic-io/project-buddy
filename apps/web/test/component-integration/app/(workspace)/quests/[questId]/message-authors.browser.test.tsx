@@ -30,12 +30,12 @@ import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT } from "../../page-fixtures.ts";
 
 vi.mock(
-  "@/plan/plan-actions.ts",
-  () => import("../../../../plan/plan-actions-test-kit.ts"),
+  "@/tasks/tasks-actions.ts",
+  () => import("../../../../tasks/tasks-actions-test-kit.ts"),
 );
 vi.mock(
-  "@/plan/plan-store.ts",
-  () => import("../../../../plan/plan-store-test-kit.ts"),
+  "@/tasks/tasks-store.ts",
+  () => import("../../../../tasks/tasks-store-test-kit.ts"),
 );
 vi.mock(
   "@/auth/current-user.ts",

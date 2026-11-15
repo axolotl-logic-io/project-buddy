@@ -19,7 +19,7 @@ const ICON_PATHS = {
   },
   // A checkmark for confirming an edit.
   check: { stroke: "M3 8l3 3 7-7" },
-  // Arrows for moving an item up or down a list, such as a plan's steps.
+  // Arrows for moving an item up or down a list, such as a task list's steps.
   "arrow-up": { stroke: "M8 13V3M4 7l4-4 4 4" },
   "arrow-down": { stroke: "M8 3v10M4 9l4 4 4-4" },
   // A left-pointing arrow, back to where a page sits.
@@ -62,7 +62,7 @@ const ICON_PATHS = {
   },
 } as const;
 
-// Shared symbols for Plan and editing controls.
+// Shared symbols for Tasks and editing controls.
 const PLACE_ICONS = {
   checklist: ListChecks,
   pencil: Pencil,

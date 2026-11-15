@@ -7,7 +7,6 @@ import {
 import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
-import { runChatCommandAction } from "@/plan/plan-actions.ts";
 import {
   STATUS_APPROVAL_ID,
   type StatusApproval,
@@ -24,6 +23,7 @@ import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
+import { runChatCommandAction } from "@/tasks/tasks-actions.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {

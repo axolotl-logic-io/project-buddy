@@ -23,7 +23,7 @@ The user picks up the quest they were last working on.
 - **Prerequisites:** `use_case_new_quest`, with at least one Active quest.
 - **Steps:**
   - They go to Quests and choose Continue.
-- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next step when it has one: the first open step of its plan. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
+- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next step when it has one: the first open step of its tasks. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
 
@@ -35,7 +35,7 @@ The user starts a quest to learn, make or do something.
 - **Steps:**
   - Under Start a quest, they choose Learn a thing, Make a thing or Do a thing. A modal opens with an optional Why field. The name and starting context come from the starting point automatically.
   - They optionally fill in Why, and choose Start quest.
-- **Outcome:** the quest opens straight on its one conversation, with no further step, and already holds the construct's local command greeting. Any starting context or Why appears as a user message before the opening. Plan starts empty and no spell is active. Each starting point can be used again for another quest. The quest is first in their quests list.
+- **Outcome:** the quest opens straight on its one conversation, with no further step, and already holds the construct's local command greeting. Any starting context or Why appears as a user message before the opening. Tasks starts empty and no spell is active. Each starting point can be used again for another quest. The quest is first in their quests list.
 - **Variations:**
   - Closing the details instead creates nothing and spends nothing.
   - Storage is unavailable: the details retain their edits and explain why nothing was saved ([`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable)).
@@ -81,13 +81,13 @@ The user opens one of their quests, from Quests.
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Plan, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Plan; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. Plan, Ideas, Progress, Quick Notes and Actions are tabs at the top of the sidebar, with nothing above them; switching tabs retains drafts. Actions holds the spell picker, and Reset Day for Dailies. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Tasks, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Tasks; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. Tasks, Ideas, Progress, Quick Notes and Actions are tabs at the top of the sidebar, with nothing above them; switching tabs retains drafts. Actions holds the spell picker, and Reset Day for Dailies. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
 - **Variations:**
   - The Dailies quest: `use_case_dailies`.
   - Another user's quest is not found ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
-  - [`use_case_change_plan`](plan.md#use_case_change_plan): see where the quest stands.
+  - [`use_case_change_tasks`](tasks.md#use_case_change_tasks): see where the quest stands.
   - `use_case_view_progress_timeline`: see how far they have come.
 
 ## use_case_dailies
@@ -99,7 +99,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
   - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
   - They choose Reset Day in the sidebar's Actions tab and confirm in a modal. They can choose to remove Steps and Ideas separately; both options are off by default.
-- **Outcome:** Dailies is a quest like any other, with its name, Plan and conversation theirs to change. It opens with local command guidance. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without a model request. Plan and Ideas endure; completed Plan steps become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
+- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without a model request. Tasks and Ideas endure; completed Tasks steps become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
   - A quest the user named Dailies by hand has no Reset Day: only a quest started as Dailies offers it.
 
