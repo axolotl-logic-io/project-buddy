@@ -81,7 +81,7 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own quests, conversations, Plan, Ideas, Progress and private definitions.
+Two users each see only the quests open to them, their own and those they are an accepted member of, with their conversations, Plan, Ideas and Progress, and only their own private definitions.
 
 - **Prerequisites:** two signed-in accounts, each with a quest.
 - **Steps:** the second user tries to open and change the first user's quest, conversation, Plan, Ideas, milestones, construct and spell, including by using their addresses directly.

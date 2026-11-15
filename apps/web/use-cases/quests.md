@@ -136,8 +136,8 @@ The user looks at the ways to start a quest without starting one.
 
 ## use_case_rename_quest
 
-The owner changes the quest title inline on its overview.
+Anyone in the quest, its owner or an accepted member, changes the quest title inline on its overview.
 
-- **Prerequisites:** signed in as the quest owner.
+- **Prerequisites:** signed in as the quest's owner or one of its members.
 - **Steps:** choose the pencil beside the quest name, enter the name, then choose Save title or press Enter.
-- **Outcome:** the trimmed title is saved and appears as the quest's heading, in its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to Rename. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Other users cannot rename the quest.
+- **Outcome:** the trimmed title is saved and appears as the quest's heading, in its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to Rename. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Everyone in the quest sees the new name. Other users, a pending invitee or removed member included, cannot rename the quest.

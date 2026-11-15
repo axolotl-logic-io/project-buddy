@@ -22,7 +22,7 @@ A **quest invitation** belongs to one user and one quest. It stays pending until
 
 ## Permissions
 
-Members have every power the owner has, except two:
+Members have every power the owner has, except removing the owner and, once the site has it, deleting the quest:
 
 | Action | Owner | Member | Pending invitee |
 | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ Members have every power the owner has, except two:
 | Remove another member | Yes | Yes | No |
 | Leave the quest | — | Yes | — |
 | Remove the owner | No | No | No |
-| Delete the quest | Owner only | No | No |
+| Delete the quest (not in the site yet) | Owner only, once it exists | No | No |
 | See the quest's name and inviter in Pending | — | — | Yes |
 
 The same rules hold for commands such as `/complete`, direct controls, construct tools and saved images. The site enforces them on the server, in one access policy (`apps/web/src/accounts/owner-scope.ts`). A quest that is not open to the acting user reads as not found, exactly as an unknown quest does.
@@ -64,7 +64,9 @@ For example, Morgan invites `sam@example.com`, who has no account. The site crea
 
 The Quests page lists pending invitations in a **Pending** tab after Active, Completed and Abandoned. Each row shows the quest's name, who invited the user and when. Nothing else of the quest is visible before acceptance.
 
-Each row offers **Accept** and **Decline**. Accepting joins only that quest; the status line says so and links to the quest, which now appears under its status. Declining deletes the invitation without opening the quest. Other invitations stay in Pending either way.
+Each row offers **Accept** and **Decline**. On a phone they sit on their own line beneath the quest's name, so the name keeps its width. Accepting joins only that quest; the status line names the tab it now appears in, such as Active, and links to it. Declining deletes the invitation without opening the quest. Other invitations stay in Pending either way.
+
+An invitation withdrawn, or answered in another tab, meanwhile fails with a short alert. Its row leaves the list, and the tab's count drops, without a reload. The Pending tab's accessible name includes the count, such as "Pending, 2 invitations". The tab list is named "Quests", since Pending is not a status.
 
 Pending belongs to the invitee. It is not a quest status, so it changes nothing for the owner or members. A user with no quests and at least one invitation sees Pending first.
 
@@ -89,18 +91,23 @@ The emailed token proves control of the invited address, in the same way a sign-
 - **Withdrawal:** withdrawing or declining an invitation stops its link.
 - **Sign out everywhere:** the user's pending invitation links stop working, but the invitations stay in Pending.
 - **Another account in the browser:** the page says which address the invitation is for, and continuing signs the browser in as that account instead.
-- **Expired or used links:** the page says the link no longer works and points to Log in, where Pending still lists the invitation.
+- **Expired or used links:** the page says the link no longer works, on one line, and on the next says that a still-pending invitation is under Pending in Quests. It can't tell which kind of link it was, so it names no quest and no account. A signed-out browser gets **Log in**; a signed-in one gets **Open Quests**. Log in never sends a new invitation.
 
 ## Members tab
 
 A quest's sidebar has a **Members** tab. It lists the owner, members and pending invitations, then an **Invite by email** form. The tab works the same for the owner and for members.
 
+A pending invitation is listed by the address it was sent to, never by the account's name, so inviting reveals nothing of an existing account. A member's name shows once they accept.
+
 - **Remove** asks for confirmation, then ends that member's access.
-- **Leave quest** asks for confirmation, then removes the acting member and opens Quests.
+- **Leave quest** asks for confirmation, then removes the acting member and opens Quests, whose status line names the quest they left and takes focus.
 - **Withdraw** deletes a pending invitation at once.
 - The owner has no Remove control, and the server refuses a request to remove them.
+- In the sidebar's drawer, below 1024 px, the Remove and Leave questions open above the drawer and hold focus until answered.
 
-Invitations are limited to 20 per inviter per hour, because each one emails an address the inviter chose. If an email fails, the invitation stays pending and the form says to invite again to resend it.
+Invitations are limited to 20 per inviter per hour, because each one emails an address the inviter chose. Only invitations that go out count: a request for a quest that isn't open to the inviter, or for someone already in the quest, doesn't. When no invitation goes out, the form keeps the address, and focus returns to it after every answer. If an email fails, the invitation stays pending and the form says to invite again to resend it.
+
+The invitation email says "the quest", and names its owner when someone else invites. It lists what members share: the conversation, Plan, Ideas, Progress and Quick Notes. When the invitation created the address's account, it says an account was set aside and stays unused unless they join.
 
 ## Earlier contents and authors
 
@@ -123,7 +130,8 @@ Members use the mechanisms that already keep one user's tabs consistent:
 
 ## Personal features
 
-- **Dailies:** Dailies stays its owner's alone and can't have members. Its Members tab says so and offers no invitations.
+- **Dailies:** Dailies stays its owner's alone and can't have members. Its Members tab says only that.
+- **Shared marker:** wherever quests are listed or chosen, a multi-user quest carries a marker: **Shared** on the user's own quest with members, and **Shared by** its owner's name on a quest they joined. Active, Completed and Abandoned rows and the Continue card show it as a small tag; the Quick Note choice adds it in brackets. Personal quests carry none.
 - **Current quest:** Quests offers the most recently active Active quest open to the user, whether they own it or are a member.
 - **Quick Notes:** the Quick Note dialog offers every Active quest open to the user.
 - **Status approval cards:** a card saves who asked for it, and anyone in the quest can confirm or decline it.
@@ -140,4 +148,4 @@ The previous build neither reads nor writes these, and every account it creates 
 
 ## Tests
 
-Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, both acceptance paths, member powers, removal and the migration. Browser tests cover the Members tab and Pending, including keyboard use and phone widths of 320 and 390 px in both appearance modes.
+Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, how pending invitees are shown, the invitation limit, the email's text, both acceptance paths, a reopened link, member powers, removal, the shared marker's data and the migration. Browser tests cover the Members tab and Pending, including keyboard use, the Remove and Leave questions inside the sidebar's drawer at 320 to 768 px, and phone widths of 320 and 390 px in both appearance modes.
