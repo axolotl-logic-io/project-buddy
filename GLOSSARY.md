@@ -358,7 +358,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 ### Owner
 
-The user something belongs to. A quest's owner is the user who made it. The quest is open to its owner and its [members](#member); only the owner can delete it, and no one can remove the owner from it.
+The user something belongs to. A quest's owner is the user who made it. The quest is open to its owner and its [members](#member), and no one can remove the owner from it. The site can't delete a quest yet; when it can, only the owner will.
 
 Ownership and access are distinct: own constructs and spells belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
 
@@ -388,8 +388,11 @@ These terms describe [multi-user quests](docs/multi-user-quests.md).
 
 ### Multi-user quest
 
-A quest with one owner and one or more [members](#member), who share its one conversation, Plan, Ideas, Progress and Quick Notes. Members have the owner's powers except deleting the quest and removing the owner. The quest keeps one construct; messages keep their individual [authors](#author).
+A quest with one owner and one or more [members](#member), who share its one conversation, Plan, Ideas, Progress and Quick Notes. Members have the owner's powers except removing the owner and, once the site has it, deleting the quest. The quest keeps one construct; messages keep their individual [authors](#author).
 
+Wherever quests are listed or chosen, a multi-user quest carries a short marker, so it can't be mistaken for a personal quest of the same name.
+
+- **UI:** "Shared" on the user's own quest with members; "Shared by" and the owner's name on a quest they joined.
 - **Avoid:** "team quest", "shared quest" as names for this concept.
 
 ### Member
@@ -400,7 +403,7 @@ A user who has accepted a [quest invitation](#quest-invitation). Members can cha
 
 ### Quest invitation
 
-An invitation for one user to join one quest, sent by email by anyone in the quest. Inviting an address with no account creates an [invited account](#invited-account) at once. It stays pending until its invitee accepts or declines it, or someone in the quest withdraws it. Accepting it never accepts another.
+An invitation for one user to join one quest, sent by email by anyone in the quest. Inviting an address with no account creates an [invited account](#invited-account) at once. Until it is accepted, the quest's people see the invitee only by the address it was sent to. It stays pending until its invitee accepts or declines it, or someone in the quest withdraws it. Accepting it never accepts another.
 
 - **UI:** "Invite by email", "Invite", "Withdraw", "Accept", "Decline".
 
@@ -415,7 +418,7 @@ The link in a quest invitation's email. Opening it accepts nothing. Continuing s
 
 A quest the user has been invited to but has not accepted. The Quests page lists these quests in its Pending tab, with each quest's name and inviter, Accept and Decline. Pending describes the user's invitation, not the quest's Active, Completed or Abandoned status, and opens nothing else of the quest.
 
-- **UI:** "Pending".
+- **UI:** "Pending"; its tab's accessible name adds the count, such as "Pending, 2 invitations".
 
 ### Invited account
 

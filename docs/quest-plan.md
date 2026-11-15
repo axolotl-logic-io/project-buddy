@@ -54,7 +54,7 @@ The owner and members change the plan through the Server Actions in `src/plan/pl
 
 A change made by a command is saved to the conversation as a plan message (`src/plan/plan-message.ts`): a user message whose one part is a `data-plan-change` or `data-plan-card` part. No reply answers one, so it never counts as a stopped reply. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Plan change]` (`src/replies/plan-message-prompt.ts`), and the plan in its prompt is current anyway. Direct changes and Undo from the sidebar, quest page or a saved card add no message. Their saved Plan versions remain available, and the construct reads the current Plan on its next reply.
 
-Only the quest's owner can change its plan. Each change records its author.
+Only the quest's owner and its accepted [members](multi-user-quests.md) can change its plan. Each change records its author.
 
 ## Shared list controls
 
@@ -64,7 +64,7 @@ Plan and Ideas use `src/components/ui/editable-list.tsx` for rows, inline editin
 
 The `plan_versions` table (`src/db/tables/plan-versions.ts`) holds one row per change: the whole plan after it, what it did, the operations that undo it, the version it undid if it is an undo, its author, the person who made it and the conversation it was made in. The newest version is the plan. A change is saved on top of the newest version in one `insert … select`, and tried again from the newest plan when another change saved that version first; a unique index on the quest and version, and another on the quest and the version undone, keep two changes, or two undos of one change, from both landing. Versions go with their quest; a deleted conversation or account leaves them, without the link.
 
-`src/plan/plan-store.ts` is the only module that reads or writes the table. A version is open to its quest's owner through `planVersionOpenTo` in `src/accounts/owner-scope.ts`.
+`src/plan/plan-store.ts` is the only module that reads or writes the table. A version is open to its quest's owner and members through `planVersionOpenTo` in `src/accounts/owner-scope.ts`.
 
 ## Quest context
 
