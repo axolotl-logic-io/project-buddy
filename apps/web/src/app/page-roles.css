@@ -993,8 +993,8 @@
     box-shadow: none;
   }
 
-  /* Shared compact editors for Plan and Ideas. */
-  .plan,
+  /* Shared compact editors for Tasks and Ideas. */
+  .tasks,
   .editable-list {
     @apply flex min-w-0 flex-col gap-0 font-body text-sm;
   }
@@ -1126,65 +1126,65 @@
     @apply basis-full pb-2 text-sm;
   }
 
-  .plan-done > summary {
+  .tasks-done > summary {
     min-block-size: var(--target-size);
     list-style: none;
     @apply flex cursor-pointer items-center gap-2 self-start text-muted text-sm hover:text-foreground;
   }
 
-  .plan-done > summary::-webkit-details-marker {
+  .tasks-done > summary::-webkit-details-marker {
     display: none;
   }
 
   /* Without its list-item display, a summary loses its marker: draw it, as
      the Workshop's test settings do. */
-  .plan-done > summary::before {
+  .tasks-done > summary::before {
     content: "▸";
   }
 
-  .plan-done[open] > summary::before {
+  .tasks-done[open] > summary::before {
     content: "▾";
   }
 
-  /* A plan change in an adventure (src/components/chat/plan-change-part.tsx):
+  /* A tasks change in an adventure (src/components/chat/tasks-change-part.tsx):
      what the construct or a person changed, set apart from the words around
      it as the adventure's other notes are (.card), with Undo. */
-  .plan-change {
+  .tasks-change {
     @apply flex flex-col gap-2 rounded-box border border-line bg-surface px-4 py-3 text-sm shadow-control;
   }
 
-  .plan-change-heading {
+  .tasks-change-heading {
     @apply flex flex-wrap items-center justify-between gap-x-3;
   }
 
   /* Undo keeps its 44 px target without making the title's row taller than
      a line. */
-  .plan-change-heading .button-quiet {
+  .tasks-change-heading .button-quiet {
     margin-block: calc((1lh - var(--target-size)) / 2);
   }
 
-  .plan-change-lines {
+  .tasks-change-lines {
     @apply flex flex-col gap-1;
   }
 
-  .plan-change-lines > li {
+  .tasks-change-lines > li {
     @apply wrap-anywhere;
   }
 
-  /* A person's plan message, inside their message's own frame: the command
+  /* A person's tasks message, inside their message's own frame: the command
      they typed, ruled off from the change or card it made, which need no
      frame of their own there. */
-  .plan-message {
+  .tasks-message {
     @apply flex min-w-0 flex-col gap-2;
   }
 
-  .plan-message .plan-change {
+  .tasks-message .tasks-change {
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
   /* The command a person typed, ruled off from the change or card it
      made. */
-  .plan-command {
+  .tasks-command {
     @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
   }
 

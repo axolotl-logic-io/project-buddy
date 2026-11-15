@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { quests } from "./quests-and-chats.ts";
 
-// Possibilities kept separately from agreed Plan steps; deleted with the quest.
+// Possibilities kept separately from agreed Tasks steps; deleted with the quest.
 const questIdeas = pgTable(
   "quest_ideas",
   {

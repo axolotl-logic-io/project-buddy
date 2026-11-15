@@ -18,10 +18,10 @@ import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
-import { changePlan, readPlan } from "@/plan/plan-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
+import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -66,7 +66,7 @@ describe("conversation resets", () => {
     }
     const before = started.chat;
     const questId = before.quest.id;
-    await changePlan(user.id, { questId, author: "person" }, [
+    await changeTasks(user.id, { questId, author: "person" }, [
       { op: "add", text: "Make tea" },
       { op: "add", text: "Draw a fox" },
       { op: "complete", step: 1 },
@@ -85,7 +85,7 @@ describe("conversation resets", () => {
     const next = await getChat(user.id, nextId ?? "");
     expect(next?.quest.id).toBe(questId);
     expect(await getQuest(user.id, questId)).toBeDefined();
-    expect((await readPlan(user.id, questId))?.steps).toEqual([
+    expect((await readTasks(user.id, questId))?.steps).toEqual([
       { number: 1, text: "Make tea", done: false },
       { number: 2, text: "Draw a fox", done: false },
     ]);
@@ -112,7 +112,7 @@ describe("conversation resets", () => {
       throw new Error("Dailies did not start");
     }
     const questId = started.chat.quest.id;
-    await changePlan(user.id, { questId, author: "person" }, [
+    await changeTasks(user.id, { questId, author: "person" }, [
       { op: "add", text: "Make tea" },
     ]);
     await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
@@ -122,7 +122,7 @@ describe("conversation resets", () => {
         clearIdeas: true,
       }),
     ).toBeDefined();
-    expect((await readPlan(user.id, questId))?.steps).toEqual([]);
+    expect((await readTasks(user.id, questId))?.steps).toEqual([]);
     expect(await listIdeas(user.id, questId)).toEqual([]);
   });
 

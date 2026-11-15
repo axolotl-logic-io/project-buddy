@@ -41,8 +41,8 @@ vi.mock("@/ideas/idea-store.ts", () => ({
 }));
 vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock(
-  "@/plan/plan-actions.ts",
-  () => import("../plan/plan-actions-test-kit.ts"),
+  "@/tasks/tasks-actions.ts",
+  () => import("../tasks/tasks-actions-test-kit.ts"),
 );
 vi.mock(
   "@/auth/current-user.ts",
@@ -78,7 +78,10 @@ vi.mock("@/quests/store.ts", () => stores.quests);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
-vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
+vi.mock(
+  "@/tasks/tasks-store.ts",
+  () => import("../tasks/tasks-store-test-kit.ts"),
+);
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
@@ -152,7 +155,7 @@ async function journalBelowLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("tab", { name: "Plan", exact: true });
+  const link = page.getByRole("tab", { name: "Tasks", exact: true });
   return (
     link.element().getBoundingClientRect().top >=
     heading.element().getBoundingClientRect().bottom
@@ -203,7 +206,7 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a long quest title keeps Plan navigation below it at 1280 px", async () => {
+      test("a long quest title keeps Tasks navigation below it at 1280 px", async () => {
         expect(await journalBelowLongName()).toBe(true);
       });
 

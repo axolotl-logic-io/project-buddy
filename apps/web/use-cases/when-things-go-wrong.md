@@ -23,7 +23,7 @@ The site cannot load or save the user's quests and conversations.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - The user opens their quests, a conversation or Plan, or tries to save something.
+  - The user opens their quests, a conversation or Tasks, or tries to save something.
   - The site shows a short, plain message saying it cannot reach its storage right now.
 - **Outcome:** the page shows that message in place of its content. Anything the user tried to save is not there once the storage is back, not even in part. The site's log records the problem.
 - **Next:**

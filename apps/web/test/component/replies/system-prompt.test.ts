@@ -10,15 +10,15 @@ import {
   getConstruct,
   snapshotOf,
 } from "@/constructs/index.ts";
-import { EMPTY_PLAN } from "@/plan/plan.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type ReplyPromptContext,
   renderReplyInstructions,
 } from "@/replies/system-prompt.ts";
+import { EMPTY_TASKS } from "@/tasks/tasks.ts";
 
 const CONTEXT: ReplyPromptContext = {
-  quest: { name: "Birdhouse", plan: EMPTY_PLAN, milestones: [] },
+  quest: { name: "Birdhouse", tasks: EMPTY_TASKS, milestones: [] },
   construct: snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
   userName: "Sam",
 };
@@ -46,20 +46,20 @@ describe("the rules for several people", () => {
 
 test("the prompt offers only the two spells and names the active one", () => {
   const [shared, own] = contents({ ...CONTEXT, spell: "brainstorm" });
-  expect(shared).toContain("`plan`: Plan");
+  expect(shared).toContain("`tasks`: Tasks");
   expect(shared).toContain("`brainstorm`: Brainstorm");
   expect(shared).not.toContain("# Activities");
   expect(own).toContain("Active spell: Brainstorm");
   expect(contents(CONTEXT)[1]).toContain("No spell is active.");
 });
 
-test("quest context includes the plan while unrelated requests take precedence", () => {
+test("quest context includes the tasks while unrelated requests take precedence", () => {
   const prompt = contents({
     ...CONTEXT,
     spell: "brainstorm",
     quest: {
       name: "Birdhouse",
-      plan: {
+      tasks: {
         steps: [{ number: 1, text: "Assemble the roof.", done: false }],
         nextNumber: 2,
       },
@@ -79,10 +79,12 @@ test("shared instructions prohibit assumed pronouns", () => {
   );
 });
 
-test("plan rules use the saved step numbers", () => {
+test("tasks rules use the saved step numbers", () => {
   const prompt = contents(CONTEXT).join("\n");
-  expect(prompt).toContain("Name a step by its number in the plan, such as #3");
   expect(prompt).toContain(
-    "Never number the plan's steps yourself or restate the plan as a list",
+    "Name a step by its number in the tasks, such as #3",
+  );
+  expect(prompt).toContain(
+    "Never number the task list's steps yourself or restate the tasks as a list",
   );
 });

@@ -1,6 +1,6 @@
 # Quest members
 
-The conventions for these cases are in [the index](README.md#conventions). A quest's owner, or any member, invites people by email; everyone who accepts shares its conversation, Plan, Ideas, Progress and Quick Notes. The repository's `docs/multi-user-quests.md` describes the rules in full.
+The conventions for these cases are in [the index](README.md#conventions). A quest's owner, or any member, invites people by email; everyone who accepts shares its conversation, Tasks, Ideas, Progress and Quick Notes. The repository's `docs/multi-user-quests.md` describes the rules in full.
 
 ## use_case_invite_to_quest
 
@@ -46,7 +46,7 @@ The user accepts or declines a quest invitation from Quests.
 - **Steps:**
   - On Quests, the user chooses the Pending tab, which lists each quest they are invited to with its name, who invited them and when.
   - They choose Accept, or Decline, on one quest.
-- **Outcome:** after Accept, the status line says they joined and names the tab the quest now appears in, such as Active, with a link to open it; the quest opens with its whole conversation, Plan, Ideas, Progress and Quick Notes. After Decline, the invitation is gone and the quest stays closed to them. Either way, every other invitation stays in Pending. Before acceptance, Pending shows only the quest's name and inviter, and the quest's page can't be found. A user with no quests and an invitation sees Pending first. The Pending tab's name includes its count for screen readers, and the count drops as soon as an invitation is answered. Accept and Decline work with the keyboard and fit a 320 px phone screen, beneath the quest's name.
+- **Outcome:** after Accept, the status line says they joined and names the tab the quest now appears in, such as Active, with a link to open it; the quest opens with its whole conversation, Tasks, Ideas, Progress and Quick Notes. After Decline, the invitation is gone and the quest stays closed to them. Either way, every other invitation stays in Pending. Before acceptance, Pending shows only the quest's name and inviter, and the quest's page can't be found. A user with no quests and an invitation sees Pending first. The Pending tab's name includes its count for screen readers, and the count drops as soon as an invitation is answered. Accept and Decline work with the keyboard and fit a 320 px phone screen, beneath the quest's name.
 - **Variations:**
   - The invitation was withdrawn or answered elsewhere: the page says it is no longer available, and its row leaves Pending without a reload.
 - **Next:**
@@ -57,7 +57,7 @@ The user accepts or declines a quest invitation from Quests.
 Everyone in a quest shares it; no one else sees it.
 
 - **Prerequisites:** `use_case_accept_pending_quest` or `use_case_join_quest_by_link`.
-- **Steps:** the owner, a member, a pending invitee, a removed member and another user each try to open the quest, read and send messages, see its images, change its Plan, Ideas, milestones and spell, and continue its conversation, including through direct addresses.
+- **Steps:** the owner, a member, a pending invitee, a removed member and another user each try to open the quest, read and send messages, see its images, change its Tasks, Ideas, milestones and spell, and continue its conversation, including through direct addresses.
 - **Outcome:** the owner and members read and change all of it, and see each user message with its author: "You" on their own messages and the author's name on everyone else's. A pending invitee, a removed member and another user see nothing, exactly as of a quest that doesn't exist, and change nothing. Membership never opens a member's own constructs, spells or other quests.
 - **Next:**
   - `use_case_quest_member_powers`: manage the quest together.

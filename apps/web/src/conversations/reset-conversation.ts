@@ -11,7 +11,7 @@ import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { CHAT_ID, type ChatId, type UserId } from "@/ids.ts";
-import { reopenPlan } from "@/plan/plan-store.ts";
+import { reopenTasks } from "@/tasks/tasks-store.ts";
 
 // Replaces an active Dailies conversation with an empty one.
 // The construct stays the same; quest lists and progress endure. Replacing the
@@ -55,7 +55,7 @@ async function resetConversation(
       if (previous === undefined) {
         return;
       }
-      await reopenPlan(owner, conversation.quest.id, db, options.clearSteps);
+      await reopenTasks(owner, conversation.quest.id, db, options.clearSteps);
       if (options.clearIdeas) {
         await db
           .delete(questIdeas)

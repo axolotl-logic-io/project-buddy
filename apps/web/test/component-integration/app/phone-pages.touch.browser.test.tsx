@@ -56,8 +56,8 @@ vi.mock("@/ideas/idea-store.ts", () => ({
 }));
 vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock(
-  "@/plan/plan-actions.ts",
-  () => import("../plan/plan-actions-test-kit.ts"),
+  "@/tasks/tasks-actions.ts",
+  () => import("../tasks/tasks-actions-test-kit.ts"),
 );
 vi.mock(
   "@/auth/current-user.ts",
@@ -88,7 +88,10 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
-vi.mock("@/plan/plan-store.ts", () => import("../plan/plan-store-test-kit.ts"));
+vi.mock(
+  "@/tasks/tasks-store.ts",
+  () => import("../tasks/tasks-store-test-kit.ts"),
+);
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
   listConstructs: vi.fn<typeof listConstructs>(),

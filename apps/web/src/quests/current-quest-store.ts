@@ -1,6 +1,6 @@
 // Reads the quest Quests offers to Continue: the owner's Active quest whose
 // conversation was most recently active, with its next step. Reading makes
-// no model call: the next step is whatever the quest's plan
+// no model call: the next step is whatever the quest's tasks
 // records (nextStepOfQuest).
 
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
@@ -10,16 +10,16 @@ import { getDb } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
-import { EMPTY_PLAN, nextPlanStep } from "@/plan/plan.ts";
-import { readPlan } from "@/plan/plan-store.ts";
 import type { QuestSharing } from "@/quests/membership.ts";
 import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
+import { EMPTY_TASKS, nextTasksStep } from "@/tasks/tasks.ts";
+import { readTasks } from "@/tasks/tasks-store.ts";
 
 interface CurrentQuest {
   readonly quest: ChatQuest;
   // How it is shared, as its reader sees it.
   readonly sharing: QuestSharing;
-  // The next step its plan records, or undefined if none.
+  // The next step its tasks records, or undefined if none.
   readonly nextStep: string | undefined;
 }
 
@@ -31,13 +31,13 @@ function lastActiveAt(): SQL<Date> {
   );
 }
 
-// The quest's next step, from its plan.
+// The quest's next step, from its tasks.
 async function readNextStep(
   owner: UserId,
   questId: QuestId,
 ): Promise<string | undefined> {
-  const plan = await readPlan(owner, questId);
-  return nextPlanStep(plan ?? EMPTY_PLAN)?.text;
+  const tasks = await readTasks(owner, questId);
+  return nextTasksStep(tasks ?? EMPTY_TASKS)?.text;
 }
 
 // The owner's Active quest whose conversation was most recently active,

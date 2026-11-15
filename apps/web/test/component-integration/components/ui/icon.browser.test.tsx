@@ -9,7 +9,7 @@ const ORDINARY_ICON_SIZE_PX = 16;
 const NEXT_CONTROL = "Next";
 
 const SYMBOLS = [
-  { name: "checklist", label: "Plan" },
+  { name: "checklist", label: "Tasks" },
   { name: "pencil", label: "Edit" },
 ] as const;
 
@@ -28,7 +28,7 @@ test.each(["light", "dark"] as const)(
         <button type="button">{NEXT_CONTROL}</button>
       </div>,
     );
-    page.getByRole("button", { name: "Plan", exact: true }).element().focus();
+    page.getByRole("button", { name: "Tasks", exact: true }).element().focus();
     await SYMBOLS.reduce(async (previous, { label }) => {
       await previous;
       const button = page.getByRole("button", { name: label, exact: true });

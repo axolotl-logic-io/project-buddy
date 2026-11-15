@@ -4,11 +4,11 @@
 
 A quest has one continuing conversation (`src/conversations/`), stored as a `chats` row marked `continuing`. A partial unique index allows one per quest, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one.
 
-A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Plan and newest milestones in its instructions, so a long-running quest never sends its whole history.
+A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Tasks and newest milestones in its instructions, so a long-running quest never sends its whole history.
 
 ## Start a quest
 
-On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. Edit the name and starting context, and optionally fill in Why. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Plan and Ideas start empty, with no active spell.
+On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. Edit the name and starting context, and optionally fill in Why. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell.
 
 Failed openings save nothing and keep the form's edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one. See [Premade quests](premade-quests.md).
 
@@ -20,7 +20,7 @@ Quests is laid out flush on the page, as Workshop is: its heading and introducti
 
 ## Spells and constructs
 
-A quest conversation can have Plan or Brainstorm active, or neither. Cast one to save subsequent ordinary messages into Plan or Ideas, and stop it with the button beside the composer or the stop command. Reopening preserves the active spell. New conversations start with no active spell. See [Spells](spellbook.md).
+A quest conversation can have Tasks or Brainstorm active, or neither. Cast one to save subsequent ordinary messages into Tasks or Ideas, and stop it with the button beside the composer or the stop command. Reopening preserves the active spell. New conversations start with no active spell. See [Spells](spellbook.md).
 
 Workshop edits constructs and spells and explains the built-in spells.
 

@@ -7,13 +7,13 @@ Project Buddy makes no requests to AI model companies. Constructs run a local co
 | Command | Result |
 | --- | --- |
 | `brainstorm` | Enter Brainstorm; save subsequent messages to Ideas. |
-| `plan` | Enter Plan; save subsequent messages as open steps. |
+| `tasks` | Enter Tasks; save subsequent messages as open steps. |
 | `stop` | Return to Chat without changing existing bucket contents. |
 | `help` | List supported commands. |
 | `look` | Show the Visual description from the conversation's saved construct, or explain that it has none. |
 | `cast <spell id>` | Use the existing owner-scoped spell tool and save the cast. |
 
-Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Plan edit commands and controls keep their own path; `/plan` enters the Plan spell.
+Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Tasks edit commands and controls keep their own path; `/tasks` enters the Tasks spell.
 
 ## Architecture
 
@@ -23,7 +23,7 @@ Replies keep the shared context assembly, streaming, tool execution, ownership c
 
 ## Limits
 
-The engine does not infer intent, interpret prose instructions, understand images, infer plans or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Plan or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. Plan, Ideas, Progress, Quick Notes and Actions are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help and cast keep their command behavior. New quest openings use the shared greeting request.
+The engine does not infer intent, interpret prose instructions, understand images, infer tasks or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Tasks or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. Tasks, Ideas, Progress, Quick Notes and Actions are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help and cast keep their command behavior. New quest openings use the shared greeting request.
 
 The composer accepts text only. Saving a Visual description changes text without replacing artwork. Existing artwork and saved conversation images remain readable.
 
@@ -35,10 +35,10 @@ No model selector or API key is required. The local engine runs in every environ
 
 `src/spells/spell-reply.ts` applies explicit spell commands and routes ordinary messages before the local reply streams. The spell transition or bucket write and its result commit together. `spell_message_results` keeps one result per source message, so a retry reuses the result without adding a duplicate item. Only the conversation's owner can read or write it.
 
-Workshop offers built-in Plan and Brainstorm and customizable own spells. See [Spells](spellbook.md) for creation, destinations and active snapshots.
+Workshop offers built-in Tasks and Brainstorm and customizable own spells. See [Spells](spellbook.md) for creation, destinations and active snapshots.
 
 ## Tests
 
 The tests use real local commands for spell transitions and message persistence. Prompt context and conversation-window tests inspect the real assembly directly. Tool contract tests call the registered handlers without a model simulator. Rich Markdown tests use fixed saved content. Cancellation and execution-failure tests use small, explicit stream doubles; duplicate reply claims use event barriers instead of delays.
 
-Local reply tests cover command guidance and replies. Image delivery, retained artwork and owner isolation have real database coverage. Reset tests cover fresh conversations, reopened Plan steps, retained Ideas and Progress, and the ownership of retained artwork.
+Local reply tests cover command guidance and replies. Image delivery, retained artwork and owner isolation have real database coverage. Reset tests cover fresh conversations, reopened Tasks steps, retained Ideas and Progress, and the ownership of retained artwork.

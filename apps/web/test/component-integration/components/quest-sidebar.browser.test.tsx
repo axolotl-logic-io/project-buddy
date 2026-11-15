@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { PlanPanel } from "@/components/plan/plan-panel.tsx";
+import { ChatPanel } from "@/components/chat-panel.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   measureTargets,
@@ -15,17 +15,17 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
-const PLAN_CONTENT = "Plan steps";
+const TASKS_CONTENT = "Tasks steps";
 const PROGRESS_CONTENT = "Recorded milestones";
 const MESSAGE_LABEL = "Message";
 const DRAFT_LABEL = "Idea draft";
 
 async function sidebar(initialSection?: string): Promise<void> {
   await render(
-    <PlanPanel
+    <ChatPanel
       initialSection={initialSection}
       sideSections={[
-        { id: "plan", label: "Plan", content: <p>{PLAN_CONTENT}</p> },
+        { id: "tasks", label: "Tasks", content: <p>{TASKS_CONTENT}</p> },
         {
           id: "ideas",
           label: "Ideas",
@@ -47,7 +47,7 @@ async function sidebar(initialSection?: string): Promise<void> {
         {MESSAGE_LABEL}
         <input className="input-field" />
       </label>
-    </PlanPanel>,
+    </ChatPanel>,
   );
 }
 
@@ -60,7 +60,7 @@ describe.each(["light", "dark"])("sidebar in %s", (mode) => {
       await sidebar("ideas");
       const draft = page.getByLabelText(DRAFT_LABEL);
       await draft.fill("Try clay");
-      await page.getByRole("tab", { name: "Plan", exact: true }).click();
+      await page.getByRole("tab", { name: "Tasks", exact: true }).click();
       await expect.element(draft).not.toBeVisible();
       await page.getByRole("tab", { name: "Ideas", exact: true }).click();
       await expect.element(draft).toHaveValue("Try clay");
@@ -101,13 +101,13 @@ test("a phone starts with the conversation and Escape closes its drawer", async 
 
 test("sidebar tabs switch with arrow keys and show one section at a time", async () => {
   await setViewport(LAPTOP_VIEWPORT);
-  await sidebar("plan");
-  const plan = page.getByRole("tab", { name: "Plan", exact: true });
-  await expect.element(plan).toHaveAttribute("aria-selected", "true");
+  await sidebar("tasks");
+  const tasks = page.getByRole("tab", { name: "Tasks", exact: true });
+  await expect.element(tasks).toHaveAttribute("aria-selected", "true");
   await expect
     .element(page.getByRole("tabpanel"))
-    .toHaveTextContent("Plan steps");
-  await plan.click();
+    .toHaveTextContent("Tasks steps");
+  await tasks.click();
   await userEvent.keyboard("{ArrowRight}");
   await expect.element(page.getByRole("tab", { name: "Ideas" })).toHaveFocus();
   await expect.element(page.getByLabelText(DRAFT_LABEL)).toBeVisible();
@@ -120,7 +120,7 @@ test("sidebar tabs switch with arrow keys and show one section at a time", async
 
 // The quest page's six sidebar sections, by label.
 const SIX_SECTIONS = [
-  "Plan",
+  "Tasks",
   "Ideas",
   "Progress",
   "Quick Notes",
@@ -138,7 +138,7 @@ describe("the sidebar's six tabs", () => {
     async (viewport) => {
       await setViewport(viewport);
       await render(
-        <PlanPanel
+        <ChatPanel
           initialSection="members"
           sideSections={SIX_SECTIONS.map((label) => ({
             id: label.toLowerCase(),

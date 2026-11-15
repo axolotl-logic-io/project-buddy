@@ -5,10 +5,10 @@ import type { JSX } from "react";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
-import { PlanChangeToolPart } from "@/components/chat/plan-change-part.tsx";
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
+import { TasksChangeToolPart } from "@/components/chat/tasks-change-part.tsx";
 import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
-import { CHANGE_PLAN_TOOL } from "@/replies/tools/change-plan-contract.ts";
+import { CHANGE_TASKS_TOOL } from "@/replies/tools/change-tasks-contract.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
@@ -79,12 +79,12 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
     },
   ],
   [
-    CHANGE_PLAN_TOOL,
+    CHANGE_TASKS_TOOL,
     {
       render: (part: ToolCallPart): JSX.Element | null => (
-        <PlanChangeToolPart part={part} />
+        <TasksChangeToolPart part={part} />
       ),
-      failure: TOOL_FAILURES_COPY.changePlan,
+      failure: TOOL_FAILURES_COPY.changeTasks,
       placement: "inline",
       textBefore: "prose",
     },

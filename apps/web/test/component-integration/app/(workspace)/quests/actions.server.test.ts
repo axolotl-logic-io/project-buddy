@@ -92,11 +92,11 @@ describe("use_case_view_quests", () => {
   });
 });
 
-// A Journal's next step, which the plan keeps instead.
+// A Journal's next step, which the tasks keeps instead.
 const NEXT_STEP = /next step/iu;
 
 describe("use_case_new_quest", () => {
-  test("no starting Journal holds a next step, which the plan keeps", () => {
+  test("no starting Journal holds a next step, which the tasks keeps", () => {
     for (const quest of PREMADE_QUESTS) {
       expect(quest.context).not.toMatch(NEXT_STEP);
     }

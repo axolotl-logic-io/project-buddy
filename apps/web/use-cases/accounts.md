@@ -81,10 +81,10 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only the quests open to them, their own and those they are an accepted member of, with their conversations, Plan, Ideas and Progress, and only their own private definitions.
+Two users each see only the quests open to them, their own and those they are an accepted member of, with their conversations, Tasks, Ideas and Progress, and only their own private definitions.
 
 - **Prerequisites:** two signed-in accounts, each with a quest.
-- **Steps:** the second user tries to open and change the first user's quest, conversation, Plan, Ideas, milestones, construct and spell, including by using their addresses directly.
+- **Steps:** the second user tries to open and change the first user's quest, conversation, Tasks, Ideas, milestones, construct and spell, including by using their addresses directly.
 - **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only accessible definitions and the quests open to the user: their own and those they are a member of ([`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)).
 - **Next:** [`use_case_view_quests`](quests.md#use_case_view_quests).
 

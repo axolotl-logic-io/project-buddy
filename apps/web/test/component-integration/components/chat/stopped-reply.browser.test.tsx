@@ -25,8 +25,8 @@ import { SIGNED_IN_USER } from "../../auth/current-user-test-kit.ts";
 import { refresh } from "../router-test-kit.ts";
 
 vi.mock(
-  "@/plan/plan-actions.ts",
-  () => import("../../plan/plan-actions-test-kit.ts"),
+  "@/tasks/tasks-actions.ts",
+  () => import("../../tasks/tasks-actions-test-kit.ts"),
 );
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
