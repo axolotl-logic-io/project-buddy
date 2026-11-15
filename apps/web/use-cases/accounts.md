@@ -16,7 +16,7 @@ An existing user enters their address on Sign up.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:** Enter the same email, optionally with different casing or surrounding whitespace, and request a link. Open it and continue.
-- **Outcome:** The address receives a normal reusable sign-in link. The user reaches the same account with its role and data unchanged. No duplicate account is created. The form gives the same confirmation as for a new address.
+- **Outcome:** The address receives a normal reusable sign-in link. The user reaches the same account with its role and data unchanged. No duplicate account is created. The form gives the same confirmation as for a new address. An account a quest invitation created gets a sign-in link too; continuing from it asks for a name and completes sign-up ([`use_case_join_quest_by_link`](quest-members.md#use_case_join_quest_by_link)).
 
 ## use_case_sign_in_by_link
 
@@ -81,11 +81,11 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own quests, conversations, Plan, Ideas, Progress and private definitions.
+Two users each see only the quests open to them, their own and those they are an accepted member of, with their conversations, Plan, Ideas and Progress, and only their own private definitions.
 
 - **Prerequisites:** two signed-in accounts, each with a quest.
 - **Steps:** the second user tries to open and change the first user's quest, conversation, Plan, Ideas, milestones, construct and spell, including by using their addresses directly.
-- **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only accessible definitions and the user's own quests.
+- **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only accessible definitions and the quests open to the user: their own and those they are a member of ([`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)).
 - **Next:** [`use_case_view_quests`](quests.md#use_case_view_quests).
 
 ## use_case_set_name

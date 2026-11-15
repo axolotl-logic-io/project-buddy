@@ -140,13 +140,15 @@ async function requestSignInLink(request: SignInLinkRequest): Promise<void> {
   after(() => emailSignInLink(request, origin));
 }
 
-// The user the token's link signs in, or undefined
-// if the token is not one the site made, or its link has expired or been
-// deleted. Reads nothing for a token of the wrong form.
+// The user the token's link signs in, with whether continuing needs their
+// name, as it does for an invited account, which continuing completes the
+// sign-up of; or undefined if the token is not one the site made, or its
+// link has expired or been deleted. Reads nothing for a token of the wrong
+// form.
 async function readSignInLinkUser(
   token: string,
   now: Date,
-): Promise<SessionUser | undefined> {
+): Promise<(SessionUser & { readonly needsName: boolean }) | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
   }
@@ -156,6 +158,7 @@ async function readSignInLinkUser(
       .select({
         id: users.id,
         sessionEpoch: users.sessionEpoch,
+        accountState: users.accountState,
       })
       .from(signInLinks)
       .innerJoin(users, eq(users.id, signInLinks.userId))
@@ -170,7 +173,11 @@ async function readSignInLinkUser(
   if (row === undefined || id === undefined) {
     return undefined;
   }
-  return { id, sessionEpoch: row.sessionEpoch };
+  return {
+    id,
+    sessionEpoch: row.sessionEpoch,
+    needsName: row.accountState === "invited",
+  };
 }
 
 export type { SignInLinkRequest };

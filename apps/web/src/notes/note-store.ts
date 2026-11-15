@@ -1,9 +1,9 @@
-// A quest's Quick Notes, open to the quest's owner alone. Every function
-// takes the acting user first; a quest not theirs has no notes and takes
-// none. No model is called.
+// A quest's Quick Notes, open to the quest's owner and members. Every
+// function takes the acting user first; a quest not open to them has no
+// notes and takes none. No model is called.
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { noteOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import { noteOpenTo, questOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { questNotes } from "@/db/tables/quest-notes.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
@@ -48,7 +48,7 @@ function saveNote(
           .where(
             and(
               eq(quests.id, questId),
-              questOwnedBy(owner),
+              questOpenTo(owner),
               eq(quests.status, "active"),
             ),
           ),

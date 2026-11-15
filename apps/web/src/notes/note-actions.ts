@@ -20,7 +20,7 @@ async function listNoteQuestsAction(): Promise<NoteQuest[]> {
   const quests = await listQuests(user.id);
   return quests
     .filter((quest) => quest.status === "active")
-    .map(({ id, name }) => ({ id, name }));
+    .map(({ id, name, sharing }) => ({ id, name, sharing }));
 }
 
 // Saves a Quick Note to one of the user's Active quests, or says why not.

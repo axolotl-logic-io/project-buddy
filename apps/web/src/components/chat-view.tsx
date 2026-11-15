@@ -207,6 +207,13 @@ function ChatView({
   let planDisabledNote: string | undefined;
   if (replying || replyingElsewhere) {
     planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
+  } else if (
+    replyFailed &&
+    shownError !== undefined &&
+    chatFailureCase(shownError) === "not-found"
+  ) {
+    // Retrying can't work for a quest that isn't open to the viewer.
+    planDisabledNote = PLAN_PANEL_COPY.notFound;
   } else if (replyFailed || replyStopped) {
     planDisabledNote = PLAN_PANEL_COPY.unanswered;
   }

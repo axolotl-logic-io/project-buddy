@@ -5,6 +5,8 @@ import {
   type JSX,
   useActionState,
   useCallback,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import { USER_NAME_MAX_LENGTH } from "@/accounts/user-name.ts";
@@ -42,6 +44,14 @@ function ContinueForm({
     [],
   );
   const [state, action, pending] = useActionState(continueSignIn, IDLE);
+  const nameRef = useRef<HTMLInputElement>(null);
+  // Continue is disabled while it runs, which drops its focus; a refused
+  // name takes focus, so its error, which describes the field, is read.
+  useEffect(() => {
+    if (state.kind === "invalid") {
+      nameRef.current?.focus();
+    }
+  }, [state]);
   let error: string | undefined;
   if (state.kind === "invalid") {
     error = state.message;
@@ -58,6 +68,7 @@ function ContinueForm({
       )}
       {signup === true && (
         <TextField
+          ref={nameRef}
           label={ACCOUNT_COPY.nameLabel}
           name="name"
           value={name}

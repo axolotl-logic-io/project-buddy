@@ -10,7 +10,7 @@ Saving calls no model and spends nothing. A saved Quick Note clears the text and
 
 ## Storage
 
-Quick Notes live in the `quest_notes` table: an id, the quest, the text and when it was saved. They are deleted with their quest. Every query is scoped to the quest's owner through `src/accounts/owner-scope.ts`; another user's quest has no Quick Notes and takes none. `src/notes/note.ts` holds the rules for a note's text, `src/notes/note-store.ts` the storage and `src/notes/note-actions.ts` the Server Actions. Constructs don't read Quick Notes.
+Quick Notes live in the `quest_notes` table: an id, the quest, the text and when it was saved. They are deleted with their quest. Every query is scoped to the quest's owner and members through `src/accounts/owner-scope.ts`; a quest not open to the user has no Quick Notes and takes none. `src/notes/note.ts` holds the rules for a note's text, `src/notes/note-store.ts` the storage and `src/notes/note-actions.ts` the Server Actions. Constructs don't read Quick Notes.
 
 ## A quest's Quick Notes
 

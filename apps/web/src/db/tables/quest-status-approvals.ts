@@ -10,8 +10,9 @@ import {
 import { chats, quests } from "./quests-and-chats.ts";
 import { users } from "./users.ts";
 
-// An immutable proposal. Only its requesting owner can answer it; its quest
-// revision makes an old card unusable after any later status change.
+// An immutable proposal, saved with the user whose reply asked for it.
+// Anyone the quest is open to can answer it; its quest revision makes an
+// old card unusable after any later status change.
 const questStatusApprovals = pgTable(
   "quest_status_approvals",
   {

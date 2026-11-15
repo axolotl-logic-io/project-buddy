@@ -1,6 +1,6 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { ideaOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import { ideaOpenTo, questOpenTo } from "@/accounts/owner-scope.ts";
 import { type Database, getDb, inTransaction } from "@/db/client.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
@@ -49,7 +49,7 @@ function changeIdea(
         const [quest] = await tx
           .select({ id: quests.id })
           .from(quests)
-          .where(and(eq(quests.id, questId), questOwnedBy(owner)))
+          .where(and(eq(quests.id, questId), questOpenTo(owner)))
           .for("no key update");
         if (quest === undefined) {
           return NOT_FOUND;
@@ -101,7 +101,7 @@ function changeIdea(
         const [quest] = await tx
           .select({ id: quests.id })
           .from(quests)
-          .where(and(eq(quests.id, questId), questOwnedBy(owner)))
+          .where(and(eq(quests.id, questId), questOpenTo(owner)))
           .for("no key update");
         if (quest === undefined) {
           return NOT_FOUND;
@@ -121,7 +121,7 @@ function changeIdea(
                 createdAt: sql`now()`.as("created_at"),
               })
               .from(quests)
-              .where(and(eq(quests.id, questId), questOwnedBy(owner))),
+              .where(and(eq(quests.id, questId), questOpenTo(owner))),
           )
           .returning({ id: questIdeas.id });
         if (rows.length === 0) {

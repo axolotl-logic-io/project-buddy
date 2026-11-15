@@ -1,5 +1,5 @@
 import { and, desc, eq, exists, sql } from "drizzle-orm";
-import { questOwnedBy } from "@/accounts/owner-scope.ts";
+import { questOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { questStatusApprovals } from "@/db/tables/quest-status-approvals.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
@@ -30,7 +30,7 @@ async function lockedQuest(
       name: quests.name,
     })
     .from(quests)
-    .where(and(eq(quests.id, id), questOwnedBy(user)))
+    .where(and(eq(quests.id, id), questOpenTo(user)))
     .for("update");
   return quest;
 }
@@ -45,11 +45,12 @@ async function saveStatus(
       status: change.toStatus,
       statusRevision: sql`${quests.statusRevision} + 1`,
     })
-    .where(and(eq(quests.id, change.questId), questOwnedBy(user)));
+    .where(and(eq(quests.id, change.questId), questOpenTo(user)));
 }
 
-// An owner-requested change. The revision is the one shown in the UI, never
-// a blind overwrite. Undefined includes stale, foreign and already-set.
+// A change the owner or a member asked for. The revision is the one shown
+// in the UI, never a blind overwrite. Undefined includes stale, foreign and
+// already-set.
 function changeQuestStatus(
   user: UserId,
   change: StatusChange,
@@ -71,8 +72,8 @@ function changeQuestStatus(
   );
 }
 
-// The tool creates only a proposal for its own quest adventure. It cannot
-// approve one or change status.
+// The tool creates only a proposal in its own quest's conversation, saved
+// with the acting user who asked. It cannot approve one or change status.
 function requestQuestStatus(
   user: UserId,
   chatId: ChatId,
@@ -90,7 +91,7 @@ function requestQuestStatus(
         .from(chats)
         .innerJoin(quests, eq(chats.questId, quests.id))
         .where(
-          and(eq(chats.id, chatId), eq(quests.id, questId), questOwnedBy(user)),
+          and(eq(chats.id, chatId), eq(quests.id, questId), questOpenTo(user)),
         );
       if (chat === undefined) {
         return;
@@ -126,13 +127,7 @@ async function readStatusApproval(
       })
       .from(questStatusApprovals)
       .innerJoin(quests, eq(questStatusApprovals.questId, quests.id))
-      .where(
-        and(
-          eq(questStatusApprovals.id, id),
-          eq(questStatusApprovals.userId, user),
-          questOwnedBy(user),
-        ),
-      ),
+      .where(and(eq(questStatusApprovals.id, id), questOpenTo(user))),
   );
   if (row === undefined) {
     return undefined;
@@ -144,8 +139,8 @@ async function readStatusApproval(
   return STATUS_APPROVAL.parse({ ...row.approval, name: row.name, decision });
 }
 
-// The requesting owner's latest card in this adventure, with its live decision.
-// Other users cannot read proposal context through this path.
+// The latest card in this conversation, with its live decision, for
+// anyone the quest is open to. Users it isn't open to read nothing.
 async function readLatestStatusApproval(
   user: UserId,
   chatId: ChatId,
@@ -155,13 +150,7 @@ async function readLatestStatusApproval(
       .select({ id: questStatusApprovals.id })
       .from(questStatusApprovals)
       .innerJoin(quests, eq(questStatusApprovals.questId, quests.id))
-      .where(
-        and(
-          questOwnedBy(user),
-          eq(questStatusApprovals.userId, user),
-          eq(questStatusApprovals.chatId, chatId),
-        ),
-      )
+      .where(and(questOpenTo(user), eq(questStatusApprovals.chatId, chatId)))
       .orderBy(
         desc(questStatusApprovals.createdAt),
         desc(questStatusApprovals.id),
@@ -175,7 +164,9 @@ async function readLatestStatusApproval(
 }
 
 // Approval is a separate authenticated user action, with no model-supplied
-// status or consent flag. It consumes the exact saved proposal once.
+// status or consent flag. Anyone the quest is open to may answer, since
+// each of them may change its status. It consumes the exact saved proposal
+// once.
 function answerStatusApproval(
   user: UserId,
   id: StatusApprovalId,
@@ -187,13 +178,7 @@ function answerStatusApproval(
         .select()
         .from(questStatusApprovals)
         .innerJoin(quests, eq(questStatusApprovals.questId, quests.id))
-        .where(
-          and(
-            eq(questStatusApprovals.id, id),
-            eq(questStatusApprovals.userId, user),
-            questOwnedBy(user),
-          ),
-        );
+        .where(and(eq(questStatusApprovals.id, id), questOpenTo(user)));
       if (request === undefined) {
         return;
       }
@@ -219,7 +204,6 @@ function answerStatusApproval(
         .where(
           and(
             eq(questStatusApprovals.id, id),
-            eq(questStatusApprovals.userId, user),
             eq(questStatusApprovals.decision, "pending"),
             exists(
               tx
@@ -228,7 +212,7 @@ function answerStatusApproval(
                 .where(
                   and(
                     eq(quests.id, questStatusApprovals.questId),
-                    questOwnedBy(user),
+                    questOpenTo(user),
                   ),
                 ),
             ),

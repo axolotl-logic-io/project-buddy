@@ -134,7 +134,7 @@ The user stops a reply that is still running.
 - **Prerequisites:** signed in, with current access to the conversation.
 - **Steps:** while the reply runs, Stop reply takes Send's place beside the message box, so it stays in view while the user follows the reply. They choose Stop reply and wait for the server to confirm it.
 - **Outcome:** what came of Stop shows above the message box. When the reply ends, Send comes back, and focus that was on Stop moves to the message box. The server requests cancellation and prevents further reply and tool steps. It saves available partial text and completed tool results, releases the reply claim, and records the cancellation for reload. Effects of tools already started may remain or finish.
-- **Variations:** only the conversation's owner can stop its reply; other users cannot. Repeating Stop does not repeat effects. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
+- **Variations:** anyone the quest is open to, its owner or an accepted member, can stop its reply, whoever's message it answers; other users cannot. Repeating Stop does not repeat effects. A reply that completed first stays completed. A failed or blocked request says cancellation could not be confirmed. Closing the tab or losing its connection alone leaves background completion running.
 
 ## use_case_reset_chat
 

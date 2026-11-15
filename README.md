@@ -86,7 +86,7 @@ The app makes no requests to AI model companies. Constructs use deterministic co
 
 ### Quests and conversations
 
-Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each personal quest has one continuing conversation, a Plan, Ideas, Quick Notes and a Progress timeline. Dailies continues the same quest each day. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
+Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Plan, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/multi-user-quests.md). Dailies continues the same quest each day. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
 
 Each starting point assigns the construct for its quest's conversation. Workshop at `/workshop` is the single collection for built-in and private constructs and spells. Settings at `/settings` holds profile, appearance and security.
 

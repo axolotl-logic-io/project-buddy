@@ -1,23 +1,8 @@
 // The email that holds a sign-in link, in Vellum's voice, as plain text and
 // as simple HTML.
 import type { EmailMessage } from "@/email/email-message.ts";
+import { linkEmail } from "@/email/link-email.ts";
 import { LOGIN_EMAIL_COPY } from "@/ui/copy/login.ts";
-
-const HTML_ESCAPES: Readonly<Record<string, string>> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-const HTML_SPECIAL_CHARACTERS = /[&<>"']/gu;
-
-function escapeHtml(text: string): string {
-  return text.replaceAll(
-    HTML_SPECIAL_CHARACTERS,
-    (character) => HTML_ESCAPES[character] ?? character,
-  );
-}
 
 // The email to `to` holding the link at url, sent once per idempotencyKey.
 export function signInLinkEmail({
@@ -39,25 +24,15 @@ export function signInLinkEmail({
     signOff,
     signature,
   } = LOGIN_EMAIL_COPY;
-  return {
+  return linkEmail({
     to,
     subject,
-    text: [
-      greeting,
-      intro,
-      url,
-      expiry,
-      notRequested,
-      `${signOff}\n${signature}\n`,
-    ].join("\n\n"),
-    html: [
-      `<p>${escapeHtml(greeting)}</p>`,
-      `<p>${escapeHtml(intro)}</p>`,
-      `<p><a href="${escapeHtml(url)}">${escapeHtml(linkText)}</a></p>`,
-      `<p>${escapeHtml(expiry)}</p>`,
-      `<p>${escapeHtml(notRequested)}</p>`,
-      `<p>${escapeHtml(signOff)}<br>${escapeHtml(signature)}</p>`,
-    ].join("\n"),
+    before: [greeting, intro],
+    url,
+    linkText,
+    after: [expiry, notRequested],
+    signOff,
+    signature,
     idempotencyKey,
-  };
+  });
 }

@@ -8,6 +8,7 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { ChatQuest } from "@/chats/chat-rows.ts";
 import { CurrentQuestCard } from "@/components/current-quest.tsx";
+import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { CURRENT_QUEST_COPY } from "@/ui/copy/quests.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 
@@ -17,7 +18,11 @@ describe("use_case_continue_quest", () => {
   test("names the quest and its next step, and Continue opens its conversation", async () => {
     await render(
       <CurrentQuestCard
-        quest={{ quest: QUEST, nextStep: "Sketch the ears" }}
+        quest={{
+          quest: QUEST,
+          sharing: { kind: "personal" },
+          nextStep: "Sketch the ears",
+        }}
       />,
     );
 
@@ -37,7 +42,13 @@ describe("use_case_continue_quest", () => {
 
   test("a quest with no next step shows none", async () => {
     await render(
-      <CurrentQuestCard quest={{ quest: QUEST, nextStep: undefined }} />,
+      <CurrentQuestCard
+        quest={{
+          quest: QUEST,
+          sharing: { kind: "personal" },
+          nextStep: undefined,
+        }}
+      />,
     );
 
     const card = page.getByRole("region", { name: CURRENT_QUEST_COPY.label });
@@ -45,6 +56,33 @@ describe("use_case_continue_quest", () => {
     await expect
       .element(card.getByText(CURRENT_QUEST_COPY.nextStep("")))
       .not.toBeInTheDocument();
+  });
+
+  test("a quest someone else owns is marked as shared by them; a personal one isn't", async () => {
+    const view = await render(
+      <CurrentQuestCard
+        quest={{
+          quest: QUEST,
+          sharing: { kind: "joined", owner: "Rowan" },
+          nextStep: undefined,
+        }}
+      />,
+    );
+    const card = page.getByRole("region", { name: CURRENT_QUEST_COPY.label });
+    const joined = QUEST_SHARING_COPY.mark({ kind: "joined", owner: "Rowan" });
+    await expect.element(card.getByText(joined ?? "")).toBeVisible();
+
+    await view.rerender(
+      <CurrentQuestCard
+        quest={{
+          quest: QUEST,
+          sharing: { kind: "personal" },
+          nextStep: undefined,
+        }}
+      />,
+    );
+    await expect.element(card.getByText(QUEST.name)).toBeVisible();
+    await expect.element(card.getByText(joined ?? "")).not.toBeInTheDocument();
   });
 
   test("with no Active quest, there is no card", async () => {

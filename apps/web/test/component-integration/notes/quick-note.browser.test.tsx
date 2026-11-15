@@ -7,14 +7,21 @@ import { render } from "vitest-browser-react";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { AccountLinks } from "@/components/site-header.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
-import { NOTE_ID, type NoteResult } from "@/notes/note.ts";
+import { NOTE_ID, type NoteQuest, type NoteResult } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
+import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { PHONE_VIEWPORT, setViewport } from "../viewports-test-kit.ts";
 
-const OTHER_QUEST = {
+const OTHER_QUEST: NoteQuest = {
   id: "22222222-2222-4222-8222-222222222222",
   name: "Kiln",
+  sharing: { kind: "personal" },
+};
+const JOINED_QUEST: NoteQuest = {
+  id: "33333333-3333-4333-8333-333333333333",
+  name: "Kiln",
+  sharing: { kind: "joined", owner: "Rowan" },
 };
 
 // site-header.tsx reads the session for SignedInLinks, server code.
@@ -39,7 +46,7 @@ beforeEach(() => {
   route.pathname = "/";
   vi.mocked(listNoteQuestsAction).mockResolvedValue([
     OTHER_QUEST,
-    { id: FOX_QUEST.id, name: FOX_QUEST.name },
+    { id: FOX_QUEST.id, name: FOX_QUEST.name, sharing: FOX_QUEST.sharing },
   ]);
 });
 
@@ -107,6 +114,27 @@ describe("use_case_quick_note", () => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       PHONE_VIEWPORT.width,
     );
+  });
+
+  test("a quest shared with others is marked with its owner, beside a personal one of the same name", async () => {
+    vi.mocked(listNoteQuestsAction).mockResolvedValue([
+      OTHER_QUEST,
+      JOINED_QUEST,
+    ]);
+    await openQuickNote();
+
+    const quest = page
+      .getByRole("dialog", { name: "Quick Note" })
+      .getByRole("combobox", { name: "Quick Note for" });
+    await expect.element(quest).toBeVisible();
+    const options = [...quest.element().querySelectorAll("option")].map(
+      (option) => option.textContent,
+    );
+    expect(options).toEqual([
+      "Kiln",
+      QUEST_SHARING_COPY.option("Kiln", JOINED_QUEST.sharing),
+    ]);
+    expect(options[1]).toContain("Rowan");
   });
 
   test("with no Active quest the dialog points to Quests", async () => {
