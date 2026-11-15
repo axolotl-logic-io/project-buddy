@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { IDEA_TEXT_MAX_LENGTH } from "@/ideas/idea.ts";
 import { changeIdeaAction } from "@/ideas/idea-actions.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
-import { changePlan, readPlan } from "@/plan/plan-store.ts";
+import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -10,7 +10,7 @@ import { signIn } from "../test-database/session-test-kit.ts";
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 describe("use_case_quest_ideas", () => {
-  test("ideas persist, can be edited and removed, and move into Plan once", async () => {
+  test("ideas persist, can be edited and removed, and move into Tasks once", async () => {
     const user = await testUser();
     const quest = await testData(user).quest();
     await signIn(user);
@@ -23,7 +23,7 @@ describe("use_case_quest_ideas", () => {
     ).toEqual({ kind: "saved" });
     const [idea] = await listIdeas(user.id, quest.id);
     expect(idea?.text).toBe("Try watercolours");
-    expect(await readPlan(user.id, quest.id)).toMatchObject({ steps: [] });
+    expect(await readTasks(user.id, quest.id)).toMatchObject({ steps: [] });
     expect(
       await changeIdeaAction({
         op: "edit",
@@ -40,7 +40,7 @@ describe("use_case_quest_ideas", () => {
       1,
     );
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
-    expect((await readPlan(user.id, quest.id))?.steps).toMatchObject([
+    expect((await readTasks(user.id, quest.id))?.steps).toMatchObject([
       { text: "Try ink", done: false },
     ]);
     await changeIdeaAction({
@@ -172,12 +172,12 @@ describe("use_case_quest_ideas", () => {
     expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
   });
 
-  test("an idea can move into a Plan beyond the former step limit", async () => {
+  test("an idea can move into a Tasks beyond the former step limit", async () => {
     const ManySteps = 40;
     const user = await testUser();
     const quest = await testData(user).quest();
     await signIn(user);
-    await changePlan(
+    await changeTasks(
       user.id,
       { questId: quest.id, author: "person" },
       Array.from({ length: ManySteps }, (_, index) => ({
@@ -191,7 +191,7 @@ describe("use_case_quest_ideas", () => {
       await changeIdeaAction({ op: "move", questId: quest.id, id: idea?.id }),
     ).toMatchObject({ kind: "saved" });
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
-    expect((await readPlan(user.id, quest.id))?.steps).toHaveLength(
+    expect((await readTasks(user.id, quest.id))?.steps).toHaveLength(
       ManySteps + 1,
     );
   });

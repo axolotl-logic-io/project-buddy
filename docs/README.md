@@ -11,9 +11,9 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
 - [Conversations](chats.md): the Quests landing page, quest conversations and reply behavior.
 - [Prompts](prompts.md): editable construct and spell fields, and their storage.
-- [Spells](spellbook.md): Plan and Brainstorm modes, casts, stopping and message capture.
-- [Quest plan](quest-plan.md): a quest's steps of remaining work, the construct's `change_plan` tool, the Plan section and panel, and the composer's commands.
-- [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Plan.
+- [Spells](spellbook.md): Tasks and Brainstorm modes, casts, stopping and message capture.
+- [Quest tasks](quest-tasks.md): a quest's steps of remaining work, the construct's `change_tasks` tool, the Tasks section and panel, and the composer's commands.
+- [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Tasks.
 - [Progress timeline](progress-timeline.md): the milestones the construct records in a quest's conversation, and how the user edits them.
 - [Quick Notes](quick-notes.md): saving a short note to a quest from the site menu, and the quest's Quick Notes tab.
 - [Graveyard](retirement.md): retiring, restoring, and permanently deleting own constructs and spells.

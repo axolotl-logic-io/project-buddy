@@ -17,11 +17,11 @@ import {
 } from "@/conversations/conversation-store.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import { EMPTY_PLAN } from "@/plan/plan.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
 import { type PromptQuest, readPromptQuest } from "@/replies/system-prompt.ts";
+import { EMPTY_TASKS } from "@/tasks/tasks.ts";
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
 const NOT_FOUND = { kind: "notFound" } as const;
@@ -95,7 +95,7 @@ async function startNewQuest(
       Promise.resolve({
         name,
         startingContext: initialContext,
-        plan: EMPTY_PLAN,
+        tasks: EMPTY_TASKS,
         milestones: [],
       }),
     { construct },

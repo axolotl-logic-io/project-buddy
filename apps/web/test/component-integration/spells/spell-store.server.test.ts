@@ -7,15 +7,15 @@ test("an owned conversation has one spell, and another user cannot read or chang
   const { user, chat } = await signedInChat();
   const other = await testUser();
   expect(await currentSpell(user.id, chat)).toBeUndefined();
-  expect(await setSpell(user.id, { chatId: chat.id, spell: "plan" })).toBe(
+  expect(await setSpell(user.id, { chatId: chat.id, spell: "tasks" })).toBe(
     true,
   );
-  expect(await currentSpell(user.id, chat)).toBe("plan");
+  expect(await currentSpell(user.id, chat)).toBe("tasks");
   expect(await currentSpell(other.id, chat)).toBeUndefined();
   expect(
     await setSpell(other.id, { chatId: chat.id, spell: "brainstorm" }),
   ).toBe(false);
-  expect(await currentSpell(user.id, chat)).toBe("plan");
+  expect(await currentSpell(user.id, chat)).toBe("tasks");
   expect(await setSpell(user.id, { chatId: chat.id, spell: undefined })).toBe(
     true,
   );

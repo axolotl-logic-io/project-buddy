@@ -42,7 +42,6 @@ import type { ChatRequest } from "@/replies/chat-protocol.ts";
 import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
 import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
-import { planPartForModel } from "@/replies/plan-message-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { endReply, releaseClaim } from "@/replies/reply-end.ts";
 import {
@@ -52,6 +51,7 @@ import {
   watchReplyCancellation,
 } from "@/replies/reply-runs.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
+import { tasksPartForModel } from "@/replies/tasks-message-prompt.ts";
 import {
   type ChatToolCalls,
   type ChatToolStep,
@@ -240,7 +240,7 @@ async function streamAndSaveReply(
       await hydrateImages(actingUser, chat.id, named.messages),
       {
         tools: chatTools(),
-        convertDataPart: planPartForModel,
+        convertDataPart: tasksPartForModel,
       },
     );
     const stream = createUIMessageStream({

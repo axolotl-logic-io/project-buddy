@@ -330,7 +330,7 @@ describe("use_case_invite_to_quest", () => {
       `Mika Member invited you to join Rowan Owner's quest "${first.name}"`,
     );
     expect(fromMember.text).toContain(
-      "conversation, Plan, Ideas, Progress and Quick Notes",
+      "conversation, Tasks, Ideas, Progress and Quick Notes",
     );
     expect(fromMember.text).toContain(QUEST_INVITATION_EMAIL_COPY.notExpected);
     expect(fromMember.text).not.toContain("their quest");

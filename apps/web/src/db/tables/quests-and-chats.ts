@@ -16,7 +16,7 @@ import { users } from "./users.ts";
 
 // A quest belongs to its owner and is open to them and its accepted members
 // (quest_members, src/accounts/owner-scope.ts), with its conversation,
-// messages and Plan. A standalone chat belongs to its user.
+// messages and Tasks. A standalone chat belongs to its user.
 // check_in_frequency and last_check_in_at are inert: they held the removed
 // automatic check-ins' schedule (#903) and stay until a held cleanup drops
 // them, once no live build reads them.
@@ -96,7 +96,7 @@ export const chats = pgTable(
     continuing: boolean("continuing").notNull().default(false),
   },
   (table) => [
-    check("chats_spell_valid", sql`${table.spell} in ('plan', 'brainstorm')`),
+    check("chats_spell_valid", sql`${table.spell} in ('tasks', 'brainstorm')`),
     check(
       "chats_spell_needs_quest",
       sql`${table.spell} is null or ${table.questId} is not null`,

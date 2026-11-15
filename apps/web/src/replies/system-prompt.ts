@@ -5,8 +5,6 @@ import type { ConstructSnapshot } from "@/constructs/index.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { EMPTY_PLAN, type Plan } from "@/plan/plan.ts";
-import { readPlan } from "@/plan/plan-store.ts";
 import type { QuestStatus, StatusApproval } from "@/quests/quest-status.ts";
 import { readLatestStatusApproval } from "@/quests/quest-status-store.ts";
 import { getQuest } from "@/quests/store.ts";
@@ -18,14 +16,16 @@ import {
   MILESTONES_IN_PROMPT,
   milestonesPromptSection,
 } from "@/replies/milestones-prompt.ts";
-import { planPromptSection } from "@/replies/plan-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { startingContextSection } from "@/replies/starting-context.ts";
+import { tasksPromptSection } from "@/replies/tasks-prompt.ts";
 import { visualDescriptionSection } from "@/replies/visual-description.ts";
 import { getSpell, listSpells, type SpellId } from "@/spells/spell.ts";
 import type { SpellSnapshot } from "@/spells/spell-definition.ts";
 import { spellDestinationLabel } from "@/spells/spell-destination.ts";
 import { readActiveSpell } from "@/spells/spell-store.ts";
+import { EMPTY_TASKS, type Tasks } from "@/tasks/tasks.ts";
+import { readTasks } from "@/tasks/tasks-store.ts";
 
 // The chat turn a prompt is for, in the acting user's chat, and whether more than
 // one person has written in the chat (src/replies/author-names.ts).
@@ -45,7 +45,7 @@ interface ReplyPromptContext {
   readonly severalAuthors?: boolean | undefined;
 }
 
-// A chat's quest as its prompt reads it: its name, its memory, its plan
+// A chat's quest as its prompt reads it: its name, its memory, its tasks
 // and its newest milestones, newest first, as they were read once for the
 // whole prompt, so every section sees the same version.
 interface PromptQuest {
@@ -53,7 +53,7 @@ interface PromptQuest {
   readonly latestApproval?: StatusApproval | undefined;
   readonly name: string;
   readonly startingContext?: string | undefined;
-  readonly plan: Plan;
+  readonly tasks: Tasks;
   readonly milestones: readonly Milestone[];
 }
 
@@ -121,7 +121,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   },
   severalAuthorsSection,
   startingContextSection,
-  planPromptSection,
+  tasksPromptSection,
   milestonesPromptSection,
   spellSection,
   visualDescriptionSection,
@@ -155,19 +155,19 @@ function renderReplyInstructions(
 }
 
 // The acting user's quest as a chat's prompt reads it, with its memory,
-// plan and newest milestones as they are now.
+// tasks and newest milestones as they are now.
 async function readPromptQuest(
   actingUser: UserId,
   quest: { readonly id: QuestId; readonly name: string },
 ): Promise<PromptQuest> {
-  const [storedQuest, plan, milestones] = await Promise.all([
+  const [storedQuest, tasks, milestones] = await Promise.all([
     getQuest(actingUser, quest.id),
-    readPlan(actingUser, quest.id),
+    readTasks(actingUser, quest.id),
     listMilestones(actingUser, quest.id, MILESTONES_IN_PROMPT),
   ]);
   return {
     name: quest.name,
-    plan: plan ?? EMPTY_PLAN,
+    tasks: tasks ?? EMPTY_TASKS,
     milestones,
     status: storedQuest?.status,
   };

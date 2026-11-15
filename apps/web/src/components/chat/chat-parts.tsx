@@ -6,7 +6,7 @@ import type {
 } from "@assistant-ui/react";
 import Image from "next/image";
 import type { JSX } from "react";
-import { PlanDataPart } from "@/components/chat/plan-change-part.tsx";
+import { TasksDataPart } from "@/components/chat/tasks-change-part.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -31,7 +31,7 @@ function ChatText({
 
 // One part of a message from role: text, tool calls through their entries
 // in TOOL_PARTS, or the entry's failure line when the call failed, and the
-// plan parts of a plan message (src/plan/plan-message.ts). Calls of tools
+// tasks parts of a task message (src/tasks/tasks-message.ts). Calls of tools
 // without an entry, other data parts, and the construct's reasoning, sources
 // and files are not shown.
 export function ChatPart({
@@ -73,7 +73,7 @@ export function ChatPart({
         </a>
       );
     case "data":
-      return <PlanDataPart name={part.name} data={part.data} />;
+      return <TasksDataPart name={part.name} data={part.data} />;
     case "reasoning":
     case "source":
     case "file":

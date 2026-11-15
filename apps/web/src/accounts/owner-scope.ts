@@ -7,7 +7,7 @@
 // owner and its accepted members (quest_members). Everything reached
 // through a quest is open to everyone the quest is open to: its
 // conversation, the conversation's messages, images, spell results and
-// reply runs, its Plan, Ideas, milestones and Quick Notes, and the quest's
+// reply runs, its Tasks, Ideas, milestones and Quick Notes, and the quest's
 // members and pending invitations, which any of them may see, add to or
 // remove. The owner is never a member row, so no one can remove them. The
 // one action left to the owner alone is finding a quest as their Dailies.
@@ -29,13 +29,13 @@ import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { planVersions } from "@/db/tables/plan-versions.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { questNotes } from "@/db/tables/quest-notes.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
+import { tasksVersions } from "@/db/tables/tasks-versions.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
 // A `quests` row of owner's: one owner made, which only they may use as
@@ -115,9 +115,9 @@ function milestoneOpenTo(user: UserId): SQL {
   return inArray(milestones.questId, openQuestIds(user));
 }
 
-// A `plan_versions` row of a quest open to user.
-function planVersionOpenTo(user: UserId): SQL {
-  return inArray(planVersions.questId, openQuestIds(user));
+// A `tasks_versions` row of a quest open to user.
+function tasksVersionOpenTo(user: UserId): SQL {
+  return inArray(tasksVersions.questId, openQuestIds(user));
 }
 
 // A `quest_ideas` row of a quest open to user.
@@ -199,7 +199,6 @@ export {
   noteOpenTo,
   opensQuest,
   ownPromptOwnedBy,
-  planVersionOpenTo,
   questInvitationOpenTo,
   questInvitationTo,
   questMemberOpenTo,
@@ -209,4 +208,5 @@ export {
   replyRunOpenTo,
   replyRunOwnedBy,
   spellResultOpenTo,
+  tasksVersionOpenTo,
 };

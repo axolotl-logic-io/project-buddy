@@ -15,7 +15,7 @@ describe("use_case_construct_casts_spell", () => {
   test("built-in and own spell names are accepted", async () => {
     const { chat } = await signedInChat();
     const prompt = await constructPrompt(chat.id);
-    expect(prompt).toContain("`plan`: Plan");
+    expect(prompt).toContain("`tasks`: Tasks");
     expect(prompt).toContain("`brainstorm`: Brainstorm");
     expect(prompt).not.toContain("# Activities");
     expect(CAST_SPELL_INPUT.safeParse({ name: "custom" }).success).toBe(true);
@@ -23,16 +23,16 @@ describe("use_case_construct_casts_spell", () => {
 
   test("casting switches the persistent spell and saves its identity", async () => {
     const { user, chat } = await signedInChat();
-    const reply = await constructReply(chat.id, "cast plan");
+    const reply = await constructReply(chat.id, "cast tasks");
     expect(messageText(reply)).toBe(
       spellResponse(
-        getSpell("plan").definition.castReply,
-        getSpell("plan"),
-        "cast plan",
+        getSpell("tasks").definition.castReply,
+        getSpell("tasks"),
+        "cast tasks",
       ),
     );
-    expect(await currentSpell(user.id, chat)).toBe("plan");
-    expect(await constructPrompt(chat.id)).toContain("Active spell: Plan");
+    expect(await currentSpell(user.id, chat)).toBe("tasks");
+    expect(await constructPrompt(chat.id)).toContain("Active spell: Tasks");
     const saved = (await listMessages(user.id, chat.id)).find(
       (entry) => entry.id === reply.id,
     );
@@ -41,9 +41,9 @@ describe("use_case_construct_casts_spell", () => {
     }
     expect(messageText(saved)).toBe(
       spellResponse(
-        getSpell("plan").definition.castReply,
-        getSpell("plan"),
-        "cast plan",
+        getSpell("tasks").definition.castReply,
+        getSpell("tasks"),
+        "cast tasks",
       ),
     );
     await constructReply(chat.id, "cast brainstorm");

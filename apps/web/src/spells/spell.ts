@@ -4,7 +4,7 @@ import {
   type SpellDefinition,
 } from "@/spells/spell-definition.ts";
 
-const SPELL_ID = z.enum(["plan", "brainstorm"]);
+const SPELL_ID = z.enum(["tasks", "brainstorm"]);
 type SpellId = z.infer<typeof SPELL_ID>;
 interface Spell {
   readonly id: SpellId;
@@ -13,14 +13,14 @@ interface Spell {
   readonly definition: SpellDefinition;
 }
 const SPELLS: Readonly<Record<SpellId, Spell>> = {
-  plan: {
+  tasks: {
     definition: SPELL_DEFINITION.parse({
-      destination: "plan",
+      destination: "tasks",
     }),
-    id: "plan",
-    name: "Plan",
+    id: "tasks",
+    name: "Tasks",
     description:
-      "Save subsequent messages as open Plan steps until you stop the spell.",
+      "Save subsequent messages as open Tasks steps until you stop the spell.",
   },
   brainstorm: {
     definition: SPELL_DEFINITION.parse({

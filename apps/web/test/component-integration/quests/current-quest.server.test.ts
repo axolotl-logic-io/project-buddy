@@ -1,8 +1,8 @@
 // What Quests reads to offer Continue, against the test database
 // ("use_case_continue_quest"): the user's own Active quest whose
 // conversation was most recently active, with its next step. How the next
-// step is chosen between the plan and the Journal is
-// plan/plan.server.test.ts's.
+// step is chosen between the tasks and the Journal is
+// tasks/tasks.server.test.ts's.
 
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -10,9 +10,9 @@ import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import { changePlan } from "@/plan/plan-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
+import { changeTasks } from "@/tasks/tasks-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
@@ -66,7 +66,7 @@ describe("use_case_continue_quest", () => {
       setStartedAt(user.id, idleChat.id, STARTED_AT[0]),
       setStartedAt(user.id, turtleChat.id, STARTED_AT[1]),
       setStartedAt(user.id, gardenChat.id, STARTED_AT[2]),
-      changePlan(user.id, { questId: turtle.id, author: "person" }, [
+      changeTasks(user.id, { questId: turtle.id, author: "person" }, [
         { op: "add", text: "retopo the flipper" },
       ]),
     ]);
