@@ -2,13 +2,13 @@ const HELP = [
   "Available commands:",
   "",
   "- `brainstorm` — cast Brainstorm and save subsequent messages to Ideas.",
-  "- `plan` — cast Plan and save subsequent messages as Plan steps.",
+  "- `tasks` — cast Tasks and save subsequent messages as Tasks steps.",
   "- `stop` — stop the active spell and return to Chat.",
   "- `help` — show these commands.",
   "- `look` — read the construct's visual description.",
   "- `cast <spell name>` — cast a built-in or own spell until stopped.",
   "",
-  "Commands can also start with `/`. Plan and Brainstorm stay active until stopped. Use the Plan, Ideas and Progress controls to manage this quest.",
+  "Commands can also start with `/`. Tasks and Brainstorm stay active until stopped. Use the Tasks, Ideas and Progress controls to manage this quest.",
 ].join("\n");
 
 interface LocalConstructCopy {
@@ -31,7 +31,7 @@ const LOCAL_CONSTRUCT_COPY: LocalConstructCopy = {
     return `Visual description:\n\n${description}\n\n${HELP}`;
   },
   unknownCommand: `Your message is saved. This construct responds to commands.\n\n${HELP}`,
-  castUsage: "Use `cast plan`, `cast brainstorm` or an own spell’s name.",
+  castUsage: "Use `cast tasks`, `cast brainstorm` or an own spell’s name.",
   castFailed: "The spell could not be cast. Try the command again.",
   cast: (name: string): string =>
     `Cast **${name}**. Use stop when you’re finished.`,

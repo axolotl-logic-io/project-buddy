@@ -36,7 +36,7 @@ test("an idea can be edited and moved, with feedback and retained focus", async 
     .element(page.getByRole("status"))
     .toHaveTextContent("Idea saved.");
   await page.getByRole("button", { name: ACTIONS_NAME }).click();
-  await page.getByRole("menuitem", { name: "Move to Plan" }).click();
+  await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
   expect(action).toHaveBeenLastCalledWith({
     op: "move",
     questId: FOX_QUEST.id,
@@ -44,7 +44,7 @@ test("an idea can be edited and moved, with feedback and retained focus", async 
   });
   await expect
     .element(page.getByRole("status"))
-    .toHaveTextContent("Idea moved to Plan.");
+    .toHaveTextContent("Idea moved to Tasks.");
   await expect
     .element(page.getByRole("heading", { name: "Ideas" }))
     .toHaveFocus();
@@ -73,7 +73,7 @@ test("a failed add keeps the draft and a failed move keeps the idea", async () =
     .toHaveTextContent("Please try again.");
   await expect.element(input).toHaveValue("Try charcoal");
   await page.getByRole("button", { name: ACTIONS_NAME }).click();
-  await page.getByRole("menuitem", { name: "Move to Plan" }).click();
+  await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
   await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
 });
 

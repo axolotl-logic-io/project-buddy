@@ -54,7 +54,7 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const data = testData(owner);
   const quest = await data.quest();
   const chat = await data.chat(quest);
-  await setSpell(owner.id, { chatId: chat.id, spell: "plan" });
+  await setSpell(owner.id, { chatId: chat.id, spell: "tasks" });
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
   ]);

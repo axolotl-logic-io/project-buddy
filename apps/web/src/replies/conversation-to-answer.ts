@@ -8,7 +8,7 @@
 // the request that answers releases if its reply fails. Nothing is answered
 // A conversation
 // continues for as long as its quest does, so a reply reads only its newest
-// CONVERSATION_WINDOW messages: the quest's Plan and Progress, in
+// CONVERSATION_WINDOW messages: the quest's Tasks and Progress, in
 // every reply's instructions, carry what matters from before them.
 import type { Chat } from "@/chats/chat-rows.ts";
 import {

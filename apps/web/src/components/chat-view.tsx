@@ -22,24 +22,18 @@ import {
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import type { ReplyStop } from "@/components/chat/reply-stop.ts";
-import { PlanPanel } from "@/components/plan/plan-panel.tsx";
-import {
-  type PlanActions,
-  PlanContext,
-  usePlanController,
-} from "@/components/plan/use-plan.ts";
+import { ChatPanel } from "@/components/chat-panel.tsx";
 import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
+import {
+  type TasksActions,
+  TasksContext,
+  useTasksController,
+} from "@/components/tasks/use-tasks.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import type { PlanState } from "@/plan/plan.ts";
-import {
-  PLAN_COMMAND_NAMES,
-  PLAN_COMMAND_USAGE,
-} from "@/plan/plan-commands.ts";
-import { awaitsReply, PLAN_CARD_PART } from "@/plan/plan-message.ts";
 import {
   CHAT_TRANSPORT,
   chatFailureCase,
@@ -47,31 +41,36 @@ import {
 } from "@/replies/chat-protocol.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import {
-  CHANGE_PLAN_OUTPUT,
-  CHANGE_PLAN_TOOL,
-} from "@/replies/tools/change-plan-contract.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
+  CHANGE_TASKS_OUTPUT,
+  CHANGE_TASKS_TOOL,
+} from "@/replies/tools/change-tasks-contract.ts";
+import type { TasksState } from "@/tasks/tasks.ts";
 import {
-  CHAT_COMMANDS_COPY,
-  PLAN_COPY,
-  PLAN_PANEL_COPY,
-} from "@/ui/copy/plan.ts";
+  TASKS_COMMAND_NAMES,
+  TASKS_COMMAND_USAGE,
+} from "@/tasks/tasks-commands.ts";
+import { awaitsReply, TASKS_CARD_PART } from "@/tasks/tasks-message.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
+import {
+  CHAT_COMMANDS_COPY,
+  TASKS_COPY,
+  TASKS_PANEL_COPY,
+} from "@/ui/copy/tasks.ts";
 
 // A chat whose every user message is the viewer's own.
 const CLAIM_REFRESH_MS = 2000;
 
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
 
-// The built-in plan commands as the composer lists them.
-const PLAN_COMMAND_LISTINGS: readonly CommandListing[] = PLAN_COMMAND_NAMES.map(
-  (name) => ({
+// The built-in tasks commands as the composer lists them.
+const TASKS_COMMAND_LISTINGS: readonly CommandListing[] =
+  TASKS_COMMAND_NAMES.map((name) => ({
     command: `/${name}`,
-    usage: PLAN_COMMAND_USAGE[name],
+    usage: TASKS_COMMAND_USAGE[name],
     description: CHAT_COMMANDS_COPY.description(name),
-  }),
-);
+  }));
 
 const SPELL_COMMANDS: readonly CommandListing[] = [
   {
@@ -86,21 +85,21 @@ const SPELL_COMMANDS: readonly CommandListing[] = [
   },
 ];
 
-// The newest plan the construct's change_plan calls in the messages saved,
+// The newest tasks the construct's change_tasks calls in the messages saved,
 // or undefined if none did.
-function planFromConstruct(
+function tasksFromConstruct(
   messages: readonly UIMessage[],
-): Pick<PlanState, "version" | "plan"> | undefined {
-  let newest: Pick<PlanState, "version" | "plan"> | undefined;
+): Pick<TasksState, "version" | "tasks"> | undefined {
+  let newest: Pick<TasksState, "version" | "tasks"> | undefined;
   for (const message of messages) {
     for (const part of message.parts) {
-      if (part.type === `tool-${CHANGE_PLAN_TOOL}` && "output" in part) {
-        const output = CHANGE_PLAN_OUTPUT.safeParse(part.output).data;
+      if (part.type === `tool-${CHANGE_TASKS_TOOL}` && "output" in part) {
+        const output = CHANGE_TASKS_OUTPUT.safeParse(part.output).data;
         if (
           output?.status === "changed" &&
           output.version > (newest?.version ?? 0)
         ) {
-          newest = { version: output.version, plan: output.plan };
+          newest = { version: output.version, tasks: output.tasks };
         }
       }
     }
@@ -108,10 +107,10 @@ function planFromConstruct(
   return newest;
 }
 
-// The id of the newest message holding a plan card, if any.
-function newestPlanCard(messages: readonly UIMessage[]): string | undefined {
+// The id of the newest message holding a Tasks card, if any.
+function newestTasksCard(messages: readonly UIMessage[]): string | undefined {
   return messages.findLast((message) =>
-    message.parts.some((part) => part.type === PLAN_CARD_PART),
+    message.parts.some((part) => part.type === TASKS_CARD_PART),
   )?.id;
 }
 
@@ -125,8 +124,8 @@ function ChatView({
   stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
   questId,
-  initialPlan,
-  planActions,
+  initialTasks,
+  tasksActions,
   spellName,
   sideSections,
   initialSection,
@@ -141,11 +140,11 @@ function ChatView({
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
-  // The chat's quest and its plan as the page read it.
+  // The chat's quest and its tasks as the page read it.
   questId: QuestId;
-  initialPlan?: PlanState | undefined;
-  // The plan's Server Actions, which the page hands over in a quest chat.
-  planActions?: PlanActions | undefined;
+  initialTasks?: TasksState | undefined;
+  // The task list's Server Actions, which the page hands over in a quest chat.
+  tasksActions?: TasksActions | undefined;
 }): JSX.Element {
   const router = useRouter();
   const [stopStatus, setStopStatus] = useState("");
@@ -202,20 +201,20 @@ function ChatView({
     chat.status === "ready" &&
     chat.messages.at(-1)?.id === stoppedReplyId;
   const replyFailed = chat.status === "error";
-  // Plan controls wait while the newest message awaits a reply, keeping
-  // the plan stable for the reply and any retry. The server checks too.
-  let planDisabledNote: string | undefined;
+  // Tasks controls wait while the newest message awaits a reply, keeping
+  // the tasks stable for the reply and any retry. The server checks too.
+  let tasksDisabledNote: string | undefined;
   if (replying || replyingElsewhere) {
-    planDisabledNote = PLAN_PANEL_COPY.busy(constructName);
+    tasksDisabledNote = TASKS_PANEL_COPY.busy(constructName);
   } else if (
     replyFailed &&
     shownError !== undefined &&
     chatFailureCase(shownError) === "not-found"
   ) {
     // Retrying can't work for a quest that isn't open to the viewer.
-    planDisabledNote = PLAN_PANEL_COPY.notFound;
+    tasksDisabledNote = TASKS_PANEL_COPY.notFound;
   } else if (replyFailed || replyStopped) {
-    planDisabledNote = PLAN_PANEL_COPY.unanswered;
+    tasksDisabledNote = TASKS_PANEL_COPY.unanswered;
   }
   const { setMessages } = chat;
   const addMessage = useCallback(
@@ -225,23 +224,23 @@ function ChatView({
     [setMessages],
   );
   const observed = useMemo(
-    () => planFromConstruct(chat.messages),
+    () => tasksFromConstruct(chat.messages),
     [chat.messages],
   );
-  const plan = usePlanController({
+  const tasks = useTasksController({
     questId,
-    actions: planActions,
+    actions: tasksActions,
     chatId,
-    initialState: initialPlan,
-    disabledNote: planDisabledNote,
-    newestCardId: newestPlanCard(chat.messages),
+    initialState: initialTasks,
+    disabledNote: tasksDisabledNote,
+    newestCardId: newestTasksCard(chat.messages),
     observed,
   });
-  const receivePlan = plan?.receive;
+  const receiveTasks = tasks?.receive;
   const publishStatus = useContext(StatusFeedbackContext);
   const runCommand = useCallback(
     async (text: string): Promise<string | undefined> => {
-      const result = await planActions?.command({ chatId, text });
+      const result = await tasksActions?.command({ chatId, text });
       if (result === undefined) {
         return CHAT_COMMANDS_COPY.failed;
       }
@@ -252,13 +251,13 @@ function ChatView({
         case "problem":
           return result.text;
         case "not-found":
-          return PLAN_COPY.failed["not-found"];
+          return TASKS_COPY.failed["not-found"];
         case "failed":
-          receivePlan?.(result.state);
-          return PLAN_COPY.failed[result.reason];
+          receiveTasks?.(result.state);
+          return TASKS_COPY.failed[result.reason];
         case "changed":
         case "shown":
-          receivePlan?.(result.state);
+          receiveTasks?.(result.state);
           if (result.message !== undefined) {
             addMessage(result.message);
           }
@@ -267,23 +266,23 @@ function ChatView({
           return result satisfies never;
       }
     },
-    [addMessage, chatId, planActions, receivePlan, publishStatus],
+    [addMessage, chatId, tasksActions, receiveTasks, publishStatus],
   );
-  // Without the plan's actions, as in a test of the conversation alone, the
+  // Without the task list's actions, as in a test of the conversation alone, the
   // composer runs no commands and sends every message.
   const commands = useMemo((): ChatCommands | undefined => {
-    if (planActions === undefined) {
+    if (tasksActions === undefined) {
       return undefined;
     }
     return {
       listings: [
-        ...PLAN_COMMAND_LISTINGS,
+        ...TASKS_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
         ...SPELL_COMMANDS,
       ],
       run: runCommand,
     };
-  }, [planActions, runCommand]);
+  }, [tasksActions, runCommand]);
   const { sendMessage } = chat;
   const stopSpell = useCallback((): void => {
     sendMessage({ text: "/stop" }).catch(() => undefined);
@@ -364,19 +363,19 @@ function ChatView({
   );
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <PlanContext.Provider value={plan}>
+      <TasksContext.Provider value={tasks}>
         <ChatCommandsContext.Provider value={commands}>
-          {plan === undefined && conversation}
-          {plan !== undefined && (
-            <PlanPanel
+          {tasks === undefined && conversation}
+          {tasks !== undefined && (
+            <ChatPanel
               initialSection={initialSection}
               sideSections={sideSections}
             >
               {conversation}
-            </PlanPanel>
+            </ChatPanel>
           )}
         </ChatCommandsContext.Provider>
-      </PlanContext.Provider>
+      </TasksContext.Provider>
     </AssistantRuntimeProvider>
   );
 }

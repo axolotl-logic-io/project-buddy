@@ -2,9 +2,9 @@ import type { Transaction } from "@/db/client.ts";
 import { IDEA_REQUEST } from "@/ideas/idea.ts";
 import { changeIdea } from "@/ideas/idea-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import { PLAN_STEP_TEXT } from "@/plan/plan.ts";
-import { changePlan } from "@/plan/plan-store.ts";
 import type { SpellDestination } from "@/spells/spell-destination.ts";
+import { TASKS_STEP_TEXT } from "@/tasks/tasks.ts";
+import { changeTasks } from "@/tasks/tasks-store.ts";
 
 interface SpellMessage {
   readonly destination: SpellDestination;
@@ -18,23 +18,23 @@ type SaveMessage = (
 ) => Promise<boolean>;
 
 const DESTINATION_HANDLERS: Readonly<Record<SpellDestination, SaveMessage>> = {
-  async plan(
+  async tasks(
     owner: UserId,
     { questId, text }: SpellMessage,
     tx: Transaction,
   ): Promise<boolean> {
-    const parsed = PLAN_STEP_TEXT.safeParse(text);
+    const parsed = TASKS_STEP_TEXT.safeParse(text);
     if (!parsed.success) {
       return false;
     }
-    const result = await changePlan(
+    const result = await changeTasks(
       owner,
       { questId, author: "person" },
       [{ op: "add", text: parsed.data }],
       tx,
     );
     if (result?.kind !== "changed") {
-      throw new Error("Could not save the spell’s Plan step");
+      throw new Error("Could not save the spell’s Tasks step");
     }
     return true;
   },

@@ -4,9 +4,9 @@ Each quest has a progress timeline: a dated list of what the user got done, on t
 
 ## Milestones
 
-A milestone is one short line, in the past tense, of something the user finished, such as "Blocked out the shell and body". The construct records it with the `record_milestone` tool when the user says they finished something meaningful in a quest's conversation. The global prompt (`src/replies/global-prompt.ts`) tells every construct to record milestones sparingly: a real achievement, not every step, question or plan, and never twice for the same thing.
+A milestone is one short line, in the past tense, of something the user finished, such as "Blocked out the shell and body". The construct records it with the `record_milestone` tool when the user says they finished something meaningful in a quest's conversation. The global prompt (`src/replies/global-prompt.ts`) tells every construct to record milestones sparingly: a real achievement, not every step, question or tasks, and never twice for the same thing.
 
-To avoid a second record of the same thing, each reply in a quest's conversation has a system prompt that lists the quest's 10 newest milestones, with their days, beside the Plan (`src/replies/milestones-prompt.ts`). The construct reads them as already recorded.
+To avoid a second record of the same thing, each reply in a quest's conversation has a system prompt that lists the quest's 10 newest milestones, with their days, beside the Tasks (`src/replies/milestones-prompt.ts`). The construct reads them as already recorded.
 
 The tool is active only in a quest's conversation. A call without a quest fails and records nothing.
 

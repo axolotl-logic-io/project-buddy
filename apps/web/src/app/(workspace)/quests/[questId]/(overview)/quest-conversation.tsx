@@ -5,6 +5,10 @@ import { AdventureCharacterHeader } from "@/components/constructs/adventure-char
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestNotes } from "@/components/quest-notes.tsx";
+import {
+  QuestStatusControls,
+  QuestStatusFeedback,
+} from "@/components/quest-status-controls.tsx";
 import { ResetConversation } from "@/components/reset-conversation.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
@@ -16,7 +20,6 @@ import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { deleteNoteAction } from "@/notes/note-actions.ts";
 import { listNotes } from "@/notes/note-store.ts";
-import { readPlanState } from "@/plan/plan-store.ts";
 import {
   inviteToQuestAction,
   removeFromQuestAction,
@@ -28,6 +31,7 @@ import {
 import type { Quest } from "@/quests/store.ts";
 import { listOwnSpells } from "@/spells/own-spell-store.ts";
 import { listSpells } from "@/spells/spell.ts";
+import { readTasksState } from "@/tasks/tasks-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
@@ -66,15 +70,15 @@ function membersSection(
 }
 
 // A quest's one conversation, as viewer sees it, with the quest's sidebar
-// beside it: Plan, Ideas, Progress, Quick Notes, Members, and Actions,
+// beside it: Tasks, Ideas, Progress, Quick Notes, Members, and Actions,
 // which holds the spell picker. Opening it marks it read for viewer alone. Reading it spends
 // nothing: a quest whose conversation hasn't started, as after the move
 // from adventures, offers to start it instead. The Dailies quest offers
-// Reset Day, which clears the conversation and reopens Plan steps.
+// Reset Day, which clears the conversation and reopens Tasks steps.
 async function questConversation(
   quest: Quest,
   viewer: UserId,
-  section = "plan",
+  section = "tasks",
 ): Promise<JSX.Element> {
   const conversation = await readQuestConversation(viewer, quest.id);
   if (conversation === undefined) {
@@ -88,7 +92,7 @@ async function questConversation(
   const [
     messages,
     stoppedReplyId,
-    plan,
+    tasks,
     ideas,
     milestones,
     notes,
@@ -97,7 +101,7 @@ async function questConversation(
   ] = await Promise.all([
     listMessages(viewer, conversation.id),
     readStoppedReply(viewer, conversation.id),
-    readPlanState(viewer, quest.id),
+    readTasksState(viewer, quest.id),
     listIdeas(viewer, quest.id),
     listMilestones(viewer, quest.id),
     listNotes(viewer, quest.id),
@@ -160,6 +164,9 @@ async function questConversation(
           label: QUEST_SIDEBAR_COPY.actions,
           content: (
             <div className="flex flex-col gap-3">
+              <QuestStatusFeedback>
+                <QuestStatusControls quest={quest} />
+              </QuestStatusFeedback>
               {quest.dailies && quest.status === "active" && (
                 <ResetConversation
                   chatId={conversation.id}
@@ -179,7 +186,7 @@ async function questConversation(
       messages={messages}
       stoppedReplyId={stoppedReplyId}
       viewer={viewer}
-      plan={plan}
+      tasks={tasks}
     />
   );
 }

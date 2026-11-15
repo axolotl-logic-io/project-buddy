@@ -92,7 +92,7 @@ test("spell rollout preserves old-build storage while adding direct spell state"
         sessions: "activity_sessions",
       },
     ]);
-    await pool.query("update chats set spell='plan' where id=$1", [CHAT]);
+    await pool.query("update chats set spell='tasks' where id=$1", [CHAT]);
     await expect(
       pool.query("update chats set spell='custom' where id=$1", [CHAT]),
     ).rejects.toMatchObject({ code: "23514" });

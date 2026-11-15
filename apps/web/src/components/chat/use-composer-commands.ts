@@ -17,15 +17,15 @@ import {
   ChatCommandsContext,
   type CommandListing,
 } from "@/components/chat/chat-commands.ts";
-import { isChatCommand } from "@/plan/plan-commands.ts";
-import { CHAT_COMMANDS_COPY } from "@/ui/copy/plan.ts";
+import { isChatCommand } from "@/tasks/tasks-commands.ts";
+import { CHAT_COMMANDS_COPY } from "@/ui/copy/tasks.ts";
 
 const WHITE_SPACE = /\s/u;
 
 // A command whose name alone is a whole command, which Enter runs rather
 // than completes.
 const WHOLE_COMMANDS: ReadonlySet<string> = new Set([
-  "/plan",
+  "/tasks",
   "/brainstorm",
   "/stop",
   "/undo",

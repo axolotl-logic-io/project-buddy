@@ -2,9 +2,9 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import { MESSAGE_ID } from "@/ids.ts";
-import { readPlan } from "@/plan/plan-store.ts";
 import { spellReply } from "@/spells/spell-reply.ts";
 import { currentSpell } from "@/spells/spell-store.ts";
+import { readTasks } from "@/tasks/tasks-store.ts";
 import {
   constructReply,
   question,
@@ -22,18 +22,18 @@ describe("use_case_spell_buckets", () => {
     expect(
       (await listIdeas(user.id, chat.quest.id)).map((idea) => idea.text),
     ).toEqual(["Make a clay fox"]);
-    expect((await readPlan(user.id, chat.quest.id))?.steps).toEqual([]);
-    await constructReply(chat.id, "/cast plan");
-    expect(await currentSpell(user.id, chat)).toBe("plan");
+    expect((await readTasks(user.id, chat.quest.id))?.steps).toEqual([]);
+    await constructReply(chat.id, "/cast tasks");
+    expect(await currentSpell(user.id, chat)).toBe("tasks");
     await constructReply(chat.id, "Buy clay");
-    expect((await readPlan(user.id, chat.quest.id))?.steps).toMatchObject([
+    expect((await readTasks(user.id, chat.quest.id))?.steps).toMatchObject([
       { text: "Buy clay", done: false },
     ]);
     await constructReply(chat.id, "/stop");
     expect(await currentSpell(user.id, chat)).toBeUndefined();
     await constructReply(chat.id, "This stays in the conversation");
     expect(await listIdeas(user.id, chat.quest.id)).toHaveLength(1);
-    expect((await readPlan(user.id, chat.quest.id))?.steps).toHaveLength(1);
+    expect((await readTasks(user.id, chat.quest.id))?.steps).toHaveLength(1);
   });
 
   test("replaying a saved message adds no second item and foreign access writes nothing", async () => {
