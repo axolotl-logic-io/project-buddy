@@ -10,6 +10,7 @@ import { isLocalCommandName } from "@/replies/local-command-contract.ts";
 import {
   moveToPlace,
   nextTask,
+  openTasks,
   TASK_TEXT,
   type Tasks,
   type TasksOperation,
@@ -35,6 +36,8 @@ const TASKS_COMMAND_NAMES = [
   "edit",
   "move",
   "drop",
+  "recur",
+  "once",
   "undo",
 ] as const;
 
@@ -49,6 +52,8 @@ const TASKS_COMMAND_USAGE: Readonly<Record<TasksCommandName, string>> = {
   edit: "/edit TASK TEXT",
   move: "/move TASK PLACE",
   drop: "/drop TASK",
+  recur: "/recur TASK",
+  once: "/once TASK",
   undo: "/undo",
 };
 
@@ -71,10 +76,21 @@ type TasksCommand =
 
 const TASKS_COMMAND_NAME = z.enum(TASKS_COMMAND_NAMES);
 
+// A command's name and its argument, empty without one; undefined if text
+// is no command.
+function readCommandLine(
+  text: string,
+): { readonly name: string; readonly argument: string } | undefined {
+  const { name, argument = "" } = COMMAND_LINE.exec(text.trim())?.groups ?? {};
+  if (name === undefined) {
+    return undefined;
+  }
+  return { name, argument: argument.trim() };
+}
+
 // The name of the command text is, or undefined if it is no command.
 function commandNameOf(text: string): string | undefined {
-  const { name } = COMMAND_LINE.exec(text.trim())?.groups ?? {};
-  return name;
+  return readCommandLine(text)?.name;
 }
 
 // Whether the site runs text as a command rather than sending it to the
@@ -141,6 +157,19 @@ function onTask(
     return problem({ kind: "no-task", task: argument.trim() || undefined });
   }
   return { kind: "change", operations: [{ op, task }] };
+}
+
+// Makes the task argument names recurring, or a one-off task again.
+function recurCommand(
+  tasks: Tasks,
+  argument: string,
+  recurring: boolean,
+): TasksCommand {
+  const task = taskNumber(tasks, argument.trim());
+  if (task === undefined) {
+    return problem({ kind: "no-task", task: argument.trim() || undefined });
+  }
+  return { kind: "change", operations: [{ op: "recur", task, recurring }] };
 }
 
 function addCommand(argument: string): TasksCommand {
@@ -217,8 +246,52 @@ function parseTasksCommand(text: string, tasks: Tasks): TasksCommand {
       return editCommand(tasks, argument);
     case "move":
       return moveCommand(tasks, argument);
+    case "recur":
+      return recurCommand(tasks, argument, true);
+    case "once":
+      return recurCommand(tasks, argument, false);
     default:
       return known satisfies never;
+  }
+}
+
+// The command a Tasks panel control sends for operation, on the tasks as
+// the panel shows them; undefined for an operation no command makes.
+function tasksOperationCommand(
+  tasks: Tasks,
+  operation: TasksOperation,
+): string | undefined {
+  switch (operation.op) {
+    case "add":
+      return `/add ${operation.text}`;
+    case "complete":
+      return `/done ${operation.task}`;
+    case "reopen":
+      return `/reopen ${operation.task}`;
+    case "change":
+      return `/edit ${operation.task} ${operation.text}`;
+    case "remove":
+      return `/drop ${operation.task}`;
+    case "recur":
+      if (operation.recurring === true) {
+        return `/recur ${operation.task}`;
+      }
+      return `/once ${operation.task}`;
+    case "move": {
+      const others = openTasks(tasks).filter(
+        (task) => task.number !== operation.task,
+      );
+      if (operation.before === undefined) {
+        return `/move ${operation.task} ${others.length + 1}`;
+      }
+      const at = others.findIndex((task) => task.number === operation.before);
+      if (at < 0) {
+        return undefined;
+      }
+      return `/move ${operation.task} ${at + 1}`;
+    }
+    default:
+      return operation satisfies never;
   }
 }
 
@@ -226,6 +299,8 @@ export type { CommandProblem, TasksCommandName };
 export {
   isChatCommand,
   parseTasksCommand,
+  readCommandLine,
   TASKS_COMMAND_NAMES,
   TASKS_COMMAND_USAGE,
+  tasksOperationCommand,
 };

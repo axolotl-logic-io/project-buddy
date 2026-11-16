@@ -3,54 +3,49 @@
 import {
   type ChangeEvent,
   type JSX,
-  useActionState,
+  type SubmitEvent,
   useCallback,
   useEffect,
   useId,
   useRef,
   useState,
 } from "react";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
+import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { MilestoneId } from "@/ids.ts";
 import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import {
-  deleteMilestoneAction,
-  type EditMilestoneState,
-  editMilestoneAction,
-} from "./actions.ts";
 
-const IDLE: EditMilestoneState = { kind: "idle" };
-
-// The editor keeps refused text on screen. Cancel discards the draft.
+// The editor keeps refused text on screen. Cancel discards the draft. Save
+// sends /edit-milestone to the quest's conversation.
 function MilestoneEditor({
-  milestoneId,
+  place,
   text,
   onClose,
 }: {
-  readonly milestoneId: MilestoneId;
+  readonly place: number;
   readonly text: string;
   readonly onClose: () => void;
 }): JSX.Element {
   const errorId = useId();
   const [draft, setDraft] = useState(text);
+  const { send, busy, problem } = usePanelSend();
   const save = useCallback(
-    async (
-      previous: EditMilestoneState,
-      form: FormData,
-    ): Promise<EditMilestoneState> => {
-      const result = await editMilestoneAction(previous, form);
-      if (result.kind === "saved") {
-        onClose();
-      }
-      return result;
+    (event: SubmitEvent<HTMLFormElement>): void => {
+      event.preventDefault();
+      send(PANEL_COMMAND.editMilestone(place, draft))
+        .then((result) => {
+          if (result.sent) {
+            onClose();
+          }
+        })
+        .catch(() => undefined);
     },
-    [onClose],
+    [send, place, draft, onClose],
   );
-  const [state, formAction, pending] = useActionState(save, IDLE);
   const updateDraft = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
       setDraft(event.target.value);
@@ -60,16 +55,11 @@ function MilestoneEditor({
   const focusInput = useCallback((input: HTMLInputElement | null): void => {
     input?.focus();
   }, []);
-  let error: string | undefined;
-  if (state.kind === "invalid") {
-    error = state.message;
-  }
   return (
-    <form action={formAction} className="flex flex-col gap-2" noValidate={true}>
-      <input name="milestoneId" type="hidden" value={milestoneId} />
+    <form className="flex flex-col gap-2" noValidate={true} onSubmit={save}>
       <input
         aria-describedby={errorId}
-        aria-invalid={state.kind === "invalid"}
+        aria-invalid={problem !== undefined}
         aria-label={PROGRESS_TIMELINE_COPY.textLabel}
         className="input-field min-h-(--target-size)"
         maxLength={MILESTONE_TEXT_MAX_LENGTH}
@@ -79,12 +69,12 @@ function MilestoneEditor({
         type="text"
         value={draft}
       />
-      {error !== undefined && <Alert id={errorId}>{error}</Alert>}
+      {problem !== undefined && <Alert id={errorId}>{problem}</Alert>}
       <div className="flex flex-wrap gap-2">
-        <Button disabled={pending} type="submit">
+        <Button disabled={busy} type="submit">
           {PROGRESS_TIMELINE_COPY.save}
         </Button>
-        <Button disabled={pending} onClick={onClose} variant="secondary">
+        <Button disabled={busy} onClick={onClose} variant="secondary">
           {PROGRESS_TIMELINE_COPY.cancel}
         </Button>
       </div>
@@ -92,21 +82,20 @@ function MilestoneEditor({
   );
 }
 
-// Deletes the milestone once she confirms.
-function DeleteMilestoneForm({
-  milestoneId,
+// Sends /drop-milestone once she confirms.
+function DeleteMilestone({
+  place,
   text,
 }: {
-  readonly milestoneId: MilestoneId;
+  readonly place: number;
   readonly text: string;
 }): JSX.Element {
-  const formRef = useRef<HTMLFormElement>(null);
+  const { send, problem } = usePanelSend();
   const confirm = useCallback((): void => {
-    formRef.current?.requestSubmit();
-  }, []);
+    send(PANEL_COMMAND.dropMilestone(place)).catch(() => undefined);
+  }, [send, place]);
   return (
-    <form action={deleteMilestoneAction} ref={formRef}>
-      <input name="milestoneId" type="hidden" value={milestoneId} />
+    <>
       <ConfirmDialog
         cancelLabel={PROGRESS_TIMELINE_COPY.deleteCancel}
         confirmLabel={PROGRESS_TIMELINE_COPY.deleteConfirm}
@@ -124,18 +113,21 @@ function DeleteMilestoneForm({
           </Button>
         }
       />
-    </form>
+      {problem !== undefined && <Alert>{problem}</Alert>}
+    </>
   );
 }
 
 // A milestone's text, with the buttons that edit or
 // delete it, or, while she edits it, the form that changes its text. When
 // the form closes, keyboard focus goes back to the Edit button.
+// place is the milestone's place in Progress, newest first, as the
+// commands name it.
 export function MilestoneControls({
-  milestoneId,
+  place,
   text,
 }: {
-  readonly milestoneId: MilestoneId;
+  readonly place: number;
   readonly text: string;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
@@ -155,9 +147,7 @@ export function MilestoneControls({
     setEditing(false);
   }, []);
   if (editing === true) {
-    return (
-      <MilestoneEditor milestoneId={milestoneId} onClose={close} text={text} />
-    );
+    return <MilestoneEditor onClose={close} place={place} text={text} />;
   }
   return (
     <>
@@ -172,7 +162,7 @@ export function MilestoneControls({
           <Icon name="pencil" />
           {PROGRESS_TIMELINE_COPY.edit}
         </Button>
-        <DeleteMilestoneForm milestoneId={milestoneId} text={text} />
+        <DeleteMilestone place={place} text={text} />
       </div>
     </>
   );

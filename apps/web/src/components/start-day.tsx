@@ -4,16 +4,16 @@ import { Dialog } from "radix-ui";
 import {
   type JSX,
   type MouseEvent,
+  type SubmitEvent,
   useCallback,
   useState,
   useSyncExternalStore,
 } from "react";
-import { useFormStatus } from "react-dom";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
+import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { todayHere } from "@/dailies/dailies.ts";
-import { startDayAction, undoStartDayAction } from "@/dailies/day-actions.ts";
-import type { ChatId } from "@/ids.ts";
+import { Alert } from "@/components/ui/form-message.tsx";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 
 const MINUTE_MS = 60_000;
@@ -37,28 +37,6 @@ function currentMinute(): number {
 
 function noMinute(): number {
   return NOT_HYDRATED;
-}
-
-function SubmitButton({
-  label,
-  variant,
-}: {
-  readonly label: string;
-  readonly variant: "secondary" | "quiet";
-}): JSX.Element {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" variant={variant} disabled={pending}>
-      {label}
-    </Button>
-  );
-}
-
-// Starts a new day with the browser's own date, taken when the form is sent,
-// so a page left open overnight still dates the day right.
-async function startWithToday(formData: FormData): Promise<void> {
-  formData.set("localDate", todayHere(new Date()));
-  await startDayAction(formData);
 }
 
 // How long ago the newest day started, once the page is hydrated: the server
@@ -97,22 +75,38 @@ function LastStarted({
 // The Dailies quest's Start Day: a button and its confirming dialog, which
 // may also remove every task or every Idea; under it, how long ago the last
 // day started; and, until someone sends a message in the new day's
-// conversation, Undo.
+// conversation, Undo. Each sends its command to the conversation
+// (src/commands/panel-commands.ts), which then opens the day it leaves on.
 function StartDay({
-  chatId,
   lastStartedAt,
   undoable,
 }: {
-  readonly chatId: ChatId;
   readonly lastStartedAt: Date | undefined;
   readonly undoable: boolean;
 }): JSX.Element {
   const [portalContainer, setPortalContainer] = useState<
     HTMLElement | undefined
   >();
+  const { send, busy, problem } = usePanelSend();
   const open = useCallback((event: MouseEvent<HTMLButtonElement>): void => {
     setPortalContainer(event.currentTarget.closest("dialog") ?? undefined);
   }, []);
+  const start = useCallback(
+    (event: SubmitEvent<HTMLFormElement>): void => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      send(
+        PANEL_COMMAND.startDay({
+          clearTasks: form.get("clearTasks") === "on",
+          clearIdeas: form.get("clearIdeas") === "on",
+        }),
+      ).catch(() => undefined);
+    },
+    [send],
+  );
+  const undo = useCallback((): void => {
+    send(PANEL_COMMAND.undoStartDay).catch(() => undefined);
+  }, [send]);
   const label = QUEST_CONVERSATION_COPY.startDay;
   return (
     <div className="flex flex-col items-start gap-1">
@@ -126,7 +120,7 @@ function StartDay({
           </Button>
         }
       >
-        <form action={startWithToday} className="flex flex-col gap-3">
+        <form onSubmit={start} className="flex flex-col gap-3">
           <p>{QUEST_CONVERSATION_COPY.confirmStartDay}</p>
           <label>
             <input type="checkbox" name="clearTasks" />{" "}
@@ -142,23 +136,24 @@ function StartDay({
               {QUEST_CONVERSATION_COPY.cancel}
             </Button>
           </Dialog.Close>
-          <input type="hidden" name="chatId" value={chatId} />
-          <SubmitButton label={label} variant="secondary" />
+          <Button type="submit" variant="secondary" disabled={busy}>
+            {label}
+          </Button>
+          {problem !== undefined && <Alert>{problem}</Alert>}
         </form>
       </FormDialog>
       <LastStarted startedAt={lastStartedAt} />
       {undoable === true && (
-        <form action={undoStartDayAction} className="flex flex-col gap-1">
-          <input type="hidden" name="chatId" value={chatId} />
-          <SubmitButton
-            label={QUEST_CONVERSATION_COPY.undoStartDay}
-            variant="quiet"
-          />
+        <div className="flex flex-col gap-1">
+          <Button variant="quiet" disabled={busy} onClick={undo}>
+            {QUEST_CONVERSATION_COPY.undoStartDay}
+          </Button>
           <p className="text-muted text-sm">
             {QUEST_CONVERSATION_COPY.undoNote}
           </p>
-        </form>
+        </div>
       )}
+      {problem !== undefined && <Alert>{problem}</Alert>}
     </div>
   );
 }

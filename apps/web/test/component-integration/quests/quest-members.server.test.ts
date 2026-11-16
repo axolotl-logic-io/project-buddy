@@ -17,15 +17,12 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, readStoppedReply, saveMessage } from "@/chats/store.ts";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { INVITATIONS_PER_HOUR } from "@/quests/membership.ts";
-import {
-  answerInvitationAction,
-  inviteToQuestAction,
-  removeFromQuestAction,
-} from "@/quests/membership-actions.ts";
+import { answerInvitationAction } from "@/quests/membership-actions.ts";
 import {
   answerInvitation,
   listPendingQuests,
@@ -51,13 +48,19 @@ import {
   cancellationRequested,
   stopReply,
 } from "@/replies/reply-runs.ts";
+import { HOME_PATH } from "@/routes.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-import { QUEST_INVITATION_EMAIL_COPY } from "@/ui/copy/quest-members.ts";
+import {
+  QUEST_INVITATION_EMAIL_COPY,
+  QUEST_MEMBERS_COPY,
+} from "@/ui/copy/quest-members.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   testAddress,
   testUser,
 } from "../../support/test-database/user-test-kit.ts";
+import { commandNotes, runCommand } from "../commands/command-test-kit.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
 import {
@@ -93,14 +96,6 @@ vi.mock("next/headers", async () => {
 
 function byText(one: string, other: string): number {
   return one.localeCompare(other);
-}
-
-// The invite form's fields for the address and quest.
-function inviteForm(questId: string, email: string): FormData {
-  const form = new FormData();
-  form.set("questId", questId);
-  form.set("email", email);
-  return form;
 }
 
 // The acceptance link's continue form, with a name when given.
@@ -139,39 +134,54 @@ function sharingOf(quests: readonly Quest[], id: string): unknown {
   return quests.find((quest) => quest.id === id)?.sharing;
 }
 
-// A user who owns two quests, each with its conversation.
+// A user who owns two quests, each with its conversation: chat is the
+// first's, secondChat the second's.
 async function ownerWithTwoQuests(): Promise<{
   readonly owner: Awaited<ReturnType<typeof testUser>>;
   readonly first: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
   readonly second: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
   readonly chat: Chat;
+  readonly secondChat: Chat;
 }> {
   const owner = await testUser();
   const data = testData(owner);
   const [first, second] = await Promise.all([data.quest(), data.quest()]);
-  const [chat] = await Promise.all([data.chat(first), data.chat(second)]);
-  return { owner, first, second, chat };
+  const [chat, secondChat] = await Promise.all([
+    data.chat(first),
+    data.chat(second),
+  ]);
+  return { owner, first, second, chat, secondChat };
 }
 
 describe("use_case_invite_to_quest", () => {
-  test("inviting a new address creates an invited account before any link is followed", async () => {
-    const { owner, first, second } = await ownerWithTwoQuests();
+  test("/invite with a new address creates an invited account before any link is followed, and notes it in the conversation", async () => {
+    const { owner, first, second, chat, secondChat } =
+      await ownerWithTwoQuests();
     const email = testAddress();
     await signIn(owner);
 
     expect(
-      await inviteToQuestAction({ kind: "idle" }, inviteForm(first.id, email)),
-    ).toMatchObject({ kind: "done" });
+      await runCommand(chat.id, PANEL_COMMAND.invite(email)),
+    ).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.invited(email),
+    });
     const invited = await accountOf(email);
     expect(invited.accountState).toBe("invited");
     expect(emailedInvitationToken(sent.sendEmail, email)).not.toBe("");
+    expect(await commandNotes(owner.id, chat.id)).toEqual([
+      {
+        command: PANEL_COMMAND.invite(email),
+        note: PANEL_COMMANDS_COPY.notes.invited(email),
+      },
+    ]);
 
     expect(
-      await inviteToQuestAction(
-        { kind: "idle" },
-        inviteForm(second.id, email.toUpperCase()),
+      await runCommand(
+        secondChat.id,
+        PANEL_COMMAND.invite(email.toUpperCase()),
       ),
-    ).toMatchObject({ kind: "done" });
+    ).toMatchObject({ kind: "noted" });
     expect((await accountOf(email)).id).toBe(invited.id);
     expect(
       (await listPendingQuests(invited.id))
@@ -193,6 +203,60 @@ describe("use_case_invite_to_quest", () => {
     expect(await listPendingQuests(existing.id)).toMatchObject([
       { questId: first.id, name: first.name },
     ]);
+  });
+
+  test("/invite refuses an address that isn't one, the owner or a member, and Dailies, saying why", async () => {
+    const [{ owner, first, chat }, member] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+    ]);
+    await addMember(owner, first.id, member);
+    const dailies = await startDailies(owner.id, {
+      name: QUEST_NAME.parse("My day"),
+      context: "Make room for creativity",
+      construct: getConstruct("vellum"),
+    });
+    if (dailies.kind === "claudeUnavailable") {
+      throw new Error("Dailies did not start");
+    }
+    await signIn(owner);
+    const people = await listQuestPeople(owner.id, first.id);
+
+    expect(await runCommand(chat.id, "/invite not-an-address")).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.noEmail,
+    });
+    expect(await runCommand(chat.id, "/invite")).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.noEmail,
+    });
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.invite(member.email)),
+    ).toEqual({
+      kind: "problem",
+      text: QUEST_MEMBERS_COPY.inQuest(member.email),
+    });
+    expect(
+      await runCommand(dailies.chat.id, PANEL_COMMAND.invite(testAddress())),
+    ).toEqual({ kind: "problem", text: PANEL_COMMANDS_COPY.problems.dailies });
+
+    expect(await listQuestPeople(owner.id, first.id)).toEqual(people);
+    expect(await commandNotes(owner.id, chat.id)).toEqual([]);
+  });
+
+  test("an /invite whose email fails is noted as unsent", async () => {
+    const { owner, chat } = await ownerWithTwoQuests();
+    const email = testAddress();
+    spyOnErrorLog();
+    sent.sendEmail.mockRejectedValueOnce(new Error("Mail is down"));
+    await signIn(owner);
+
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.invite(email)),
+    ).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.unsent(email),
+    });
   });
 
   test("inviting the owner, a member, or into a Dailies quest changes nothing", async () => {
@@ -439,8 +503,7 @@ describe("use_case_join_quest_by_link", () => {
     const replaced = emailedInvitationToken(sent.sendEmail, user.email);
     await invite(owner, second.id, user.email);
     const fresh = emailedInvitationToken(sent.sendEmail, user.email);
-    await signIn(owner);
-    await removeFromQuestAction({ questId: second.id, person: user.id });
+    await removeFromQuest(owner.id, { questId: second.id, person: user.id });
 
     const tokens = [used, replaced, fresh];
     expect(
@@ -595,11 +658,12 @@ describe("use_case_accept_pending_quest", () => {
 
 describe("use_case_quest_member_powers", () => {
   test("a member renames, changes status, invites and removes another member", async () => {
-    const [{ owner, first }, member, other] = await Promise.all([
+    const [{ owner, first, chat }, member, other] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
       testUser(),
     ]);
+    await saveUserName(other.id, "Otto Other");
     await addMember(owner, first.id, member);
     await addMember(owner, first.id, other);
     const renamed = QUEST_NAME.parse("Shared voyage");
@@ -618,8 +682,11 @@ describe("use_case_quest_member_powers", () => {
     });
     await signIn(member);
     expect(
-      await removeFromQuestAction({ questId: first.id, person: other.id }),
-    ).toEqual({ kind: "done" });
+      await runCommand(chat.id, PANEL_COMMAND.remove("Otto Other")),
+    ).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.removed("Otto Other"),
+    });
     expect(await getQuest(owner.id, first.id)).toMatchObject({
       name: renamed,
       status: "completed",
@@ -657,16 +724,28 @@ describe("use_case_quest_member_powers", () => {
   });
 
   test("no one can remove the owner", async () => {
-    const [{ owner, first }, member] = await Promise.all([
+    const [{ owner, first, chat }, member] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
     ]);
+    await saveUserName(owner.id, "Rowan Owner");
     await addMember(owner, first.id, member);
     await signIn(member);
 
     expect(
-      await removeFromQuestAction({ questId: first.id, person: owner.id }),
-    ).toEqual({ kind: "failed" });
+      await runCommand(chat.id, PANEL_COMMAND.remove("Rowan Owner")),
+    ).toEqual({ kind: "problem", text: PANEL_COMMANDS_COPY.problems.owner });
+    expect(
+      await removeFromQuest(member.id, {
+        questId: first.id,
+        person: owner.id,
+      }),
+    ).toBe(false);
+    await signIn(owner);
+    expect(await runCommand(chat.id, PANEL_COMMAND.leave)).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.owner,
+    });
     expect(await getQuest(owner.id, first.id)).toBeDefined();
     expect((await listQuestPeople(member.id, first.id))?.owner.id).toBe(
       owner.id,
@@ -675,19 +754,72 @@ describe("use_case_quest_member_powers", () => {
 });
 
 describe("use_case_remove_quest_member", () => {
-  test("a member who leaves loses access, and the page opens Quests itself", async () => {
-    const [{ owner, first }, member] = await Promise.all([
+  test("a member who sends /leave loses access, and the page opens Quests, naming the quest", async () => {
+    const [{ owner, first, chat }, member] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
     ]);
     await addMember(owner, first.id, member);
     await signIn(member);
 
-    expect(
-      await removeFromQuestAction({ questId: first.id, person: member.id }),
-    ).toEqual({ kind: "done" });
+    expect(await runCommand(chat.id, PANEL_COMMAND.leave)).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.left,
+      navigate: HOME_PATH,
+      leftQuest: first.name,
+    });
     expect(await getQuest(member.id, first.id)).toBeUndefined();
     expect((await listQuestPeople(owner.id, first.id))?.members).toEqual([]);
+    expect(await runCommand(chat.id, PANEL_COMMAND.leave)).toEqual({
+      kind: "not-found",
+    });
+    expect(await commandNotes(owner.id, chat.id)).toEqual([
+      { command: PANEL_COMMAND.leave, note: PANEL_COMMANDS_COPY.notes.left },
+    ]);
+  });
+
+  test("/remove and /withdraw take out a member and an invitation by name, and say why when no one matches", async () => {
+    const [{ owner, first, chat }, member, invitee] = await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+      testUser(),
+    ]);
+    await saveUserName(member.id, "Mika Member");
+    await addMember(owner, first.id, member);
+    await addInvitee(owner, first.id, invitee);
+    await signIn(owner);
+
+    expect(await runCommand(chat.id, PANEL_COMMAND.remove("Nobody"))).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.noMember("Nobody"),
+    });
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.withdraw(testAddress())),
+    ).toMatchObject({ kind: "problem" });
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.remove("mika member")),
+    ).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.removed("Mika Member"),
+    });
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.withdraw(invitee.email)),
+    ).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.withdrawn(invitee.email),
+    });
+
+    expect(await listQuestPeople(owner.id, first.id)).toMatchObject({
+      members: [],
+      invited: [],
+    });
+    expect(await listPendingQuests(invitee.id)).toEqual([]);
+    expect(
+      (await commandNotes(owner.id, chat.id)).map(({ note }) => note),
+    ).toEqual([
+      PANEL_COMMANDS_COPY.notes.removed("Mika Member"),
+      PANEL_COMMANDS_COPY.notes.withdrawn(invitee.email),
+    ]);
   });
 
   test("a removed member's quest page can't be found", async () => {
@@ -696,8 +828,7 @@ describe("use_case_remove_quest_member", () => {
       testUser(),
     ]);
     await addMember(owner, first.id, member);
-    await signIn(owner);
-    await removeFromQuestAction({ questId: first.id, person: member.id });
+    await removeFromQuest(owner.id, { questId: first.id, person: member.id });
     await signIn(member);
 
     expect(await getQuest(member.id, first.id)).toBeUndefined();
@@ -774,9 +905,8 @@ describe("removal and sign-out leave no stuck state", () => {
     ).toBe("inserted");
     const runId = await beginReplyRun(member.id, chat.id, messageId);
     expect(await readStoppedReply(owner.id, chat.id)).toBeUndefined();
-    await signIn(owner);
 
-    await removeFromQuestAction({ questId: first.id, person: member.id });
+    await removeFromQuest(owner.id, { questId: first.id, person: member.id });
 
     expect(await readStoppedReply(owner.id, chat.id)).toBe(messageId);
     expect(await cancellationRequested(member.id, runId)).toBe(true);

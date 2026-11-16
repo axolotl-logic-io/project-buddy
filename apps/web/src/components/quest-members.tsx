@@ -1,31 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import {
-  type JSX,
-  useActionState,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { noteLeftQuest } from "@/components/left-quest.ts";
+import { type JSX, type SubmitEvent, useCallback, useRef } from "react";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
+import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
-import type { QuestId, UserId } from "@/ids.ts";
-import type { InviteState, RemoveFromQuest } from "@/quests/membership.ts";
+import type { UserId } from "@/ids.ts";
 import type { QuestPeople, QuestPerson } from "@/quests/membership-store.ts";
-import { HOME_PATH } from "@/routes.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
-
-type InviteAction = (
-  state: InviteState,
-  formData: FormData,
-) => Promise<InviteState>;
-
-const IDLE: InviteState = { kind: "idle" };
 
 type Role = "owner" | "member" | "invited";
 
@@ -42,14 +26,6 @@ interface PersonWithRole {
 
 function withRole(person: QuestPerson, role: Role): PersonWithRole {
   return { person, role };
-}
-
-// What removing the person says once done.
-function removedMessage(role: Role, name: string): string {
-  if (role === "invited") {
-    return QUEST_MEMBERS_COPY.withdrawn(name);
-  }
-  return QUEST_MEMBERS_COPY.removed(name);
 }
 
 // The control that takes a person out of the quest: Leave for the viewer's
@@ -161,46 +137,36 @@ function PersonRow({
   );
 }
 
-// The address the form shows: the one just submitted when no invitation
-// went out, so it can be corrected or sent again; otherwise none.
-function keptEmail(state: InviteState): string {
-  if (state.kind === "idle" || state.kind === "done") {
-    return "";
-  }
-  return state.email;
-}
-
-function InviteForm({
-  questId,
-  action,
-}: {
-  readonly questId: QuestId;
-  readonly action: InviteAction;
-}): JSX.Element {
-  const [state, submit, pending] = useActionState(action, IDLE);
+// Sends /invite with the address the form holds. When no invitation went
+// out, the address stays, so it can be corrected or sent again.
+function InviteForm(): JSX.Element {
+  const { send, busy, status, problem } = usePanelSend();
   const emailRef = useRef<HTMLInputElement>(null);
-  // The Invite button is disabled while the invitation goes out, which
-  // would drop its focus, so each answer returns focus to the address.
-  useEffect(() => {
-    if (state.kind !== "idle") {
-      emailRef.current?.focus();
-    }
-  }, [state]);
-  let error: string | undefined;
-  if (state.kind === "invalid") {
-    error = state.message;
-  }
-  let done: string | undefined;
-  if (state.kind === "done" || state.kind === "refused") {
-    done = state.message;
-  }
+  const submit = useCallback(
+    (event: SubmitEvent<HTMLFormElement>): void => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const email = emailRef.current?.value.trim() ?? "";
+      send(PANEL_COMMAND.invite(email))
+        .then((result) => {
+          if (result.sent) {
+            form.reset();
+          }
+        })
+        .catch(() => undefined)
+        // The Invite button is disabled while the invitation goes out,
+        // which would drop its focus, so each answer returns focus to the
+        // address.
+        .finally(() => emailRef.current?.focus());
+    },
+    [send],
+  );
   let label: string = QUEST_MEMBERS_COPY.invite;
-  if (pending) {
+  if (busy) {
     label = QUEST_MEMBERS_COPY.inviting;
   }
   return (
-    <form action={submit} className="flex flex-col gap-3">
-      <input type="hidden" name="questId" value={questId} />
+    <form className="flex flex-col gap-3" noValidate={true} onSubmit={submit}>
       <TextField
         ref={emailRef}
         label={QUEST_MEMBERS_COPY.emailLabel}
@@ -209,71 +175,57 @@ function InviteForm({
         type="email"
         autoComplete="off"
         required={true}
-        defaultValue={keptEmail(state)}
-        error={error}
+        error={problem}
       />
-      <Button className="self-start" disabled={pending} type="submit">
+      <Button className="self-start" disabled={busy} type="submit">
         {label}
       </Button>
-      <FormStatus>{done}</FormStatus>
-      {state.kind === "problem" && <Alert>{state.message}</Alert>}
+      <FormStatus>{status}</FormStatus>
     </form>
   );
 }
 
+// The command that takes person out of the quest.
+function removeCommand(
+  person: QuestPerson,
+  role: Role,
+  viewer: UserId,
+): string {
+  if (role === "invited") {
+    return PANEL_COMMAND.withdraw(person.displayName);
+  }
+  if (person.id === viewer) {
+    return PANEL_COMMAND.leave;
+  }
+  return PANEL_COMMAND.remove(person.displayName);
+}
+
 // A quest's Members tab: the owner, its members and pending invitations,
-// then a form to invite someone by email. Anyone in the quest may remove a
-// member or withdraw an invitation; a member may leave, which opens
-// Quests, where the quest they left is named. No one can remove the owner.
-// A Dailies quest is its owner's alone, so its tab says only that.
+// then a form to invite someone by email. Each control sends its command to
+// the quest's conversation (src/commands/panel-commands.ts). Anyone in the
+// quest may remove a member or withdraw an invitation; a member may leave,
+// which opens Quests, where the quest they left is named. No one can remove
+// the owner. A Dailies quest is its owner's alone, so its tab says only
+// that.
 function QuestMembers({
-  questId,
-  questName,
   viewer,
   people,
   dailies,
-  invite,
-  remove,
 }: {
-  readonly questId: QuestId;
-  readonly questName: string;
   readonly viewer: UserId;
   readonly people: QuestPeople;
   readonly dailies: boolean;
-  readonly invite: InviteAction;
-  readonly remove: RemoveFromQuest;
 }): JSX.Element {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | undefined>();
-  const [failure, setFailure] = useState<string | undefined>();
+  const { send, busy, status, problem } = usePanelSend();
   const headingRef = useRef<HTMLParagraphElement>(null);
   const removePerson = useCallback(
     (person: QuestPerson, role: Role): void => {
-      setBusy(true);
-      setStatus(undefined);
-      setFailure(undefined);
-      remove({ questId, person: person.id })
-        .then((result) => {
-          if (result.kind === "failed") {
-            setFailure(QUEST_MEMBERS_COPY.failed);
-            return;
-          }
-          if (person.id === viewer) {
-            noteLeftQuest(questName);
-            router.replace(HOME_PATH);
-            return;
-          }
-          setStatus(removedMessage(role, person.displayName));
-        })
-        .catch(() => setFailure(QUEST_MEMBERS_COPY.failed))
-        .finally(() => {
-          setBusy(false);
-          // The control that was used is gone or was disabled meanwhile.
-          headingRef.current?.focus();
-        });
+      send(removeCommand(person, role, viewer))
+        .catch(() => undefined)
+        // The control that was used is gone or was disabled meanwhile.
+        .finally(() => headingRef.current?.focus());
     },
-    [questId, questName, remove, router, viewer],
+    [send, viewer],
   );
   if (dailies) {
     return (
@@ -294,7 +246,7 @@ function QuestMembers({
       </p>
       <p className="text-muted">{QUEST_MEMBERS_COPY.intro}</p>
       <FormStatus>{status}</FormStatus>
-      {failure !== undefined && <Alert>{failure}</Alert>}
+      {problem !== undefined && <Alert>{problem}</Alert>}
       <ul aria-label={QUEST_MEMBERS_COPY.listLabel} className="divided-rows">
         {rows.map(({ person, role }) => (
           <PersonRow
@@ -307,7 +259,7 @@ function QuestMembers({
           />
         ))}
       </ul>
-      <InviteForm action={invite} questId={questId} />
+      <InviteForm />
     </section>
   );
 }

@@ -4,7 +4,6 @@ import {
   changeQuestStatusAction,
   readQuestStatusApprovalAction,
 } from "@/app/(workspace)/quests/status-actions.ts";
-import { listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
 import {
@@ -24,6 +23,7 @@ import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
 import { runChatCommandAction } from "@/tasks/tasks-actions.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -31,6 +31,7 @@ import {
   NOTHING,
   seenBy,
 } from "../accounts/former-member-quest-test-kit.ts";
+import { commandNotes } from "../commands/command-test-kit.ts";
 import { newMessageId } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
@@ -86,7 +87,10 @@ describe("quest status commands", () => {
       expect(await getQuest(user.id, quest.id)).toMatchObject({
         status: "active",
       });
-      expect(await listMessages(user.id, chat.id)).toEqual([]);
+      expect(await commandNotes(user.id, chat.id)).toEqual([
+        { command: text, note: PANEL_COMMANDS_COPY.notes.status[status] },
+        { command: "/restore", note: PANEL_COMMANDS_COPY.notes.status.active },
+      ]);
       const stranger = await testUser();
       await signIn(stranger);
       expect(await runChatCommandAction({ chatId: chat.id, text })).toEqual({
@@ -106,6 +110,7 @@ describe("quest status commands", () => {
     expect(await getQuest(user.id, quest.id)).toMatchObject({
       status: "active",
     });
+    expect(await commandNotes(user.id, chat.id)).toEqual([]);
   });
 });
 

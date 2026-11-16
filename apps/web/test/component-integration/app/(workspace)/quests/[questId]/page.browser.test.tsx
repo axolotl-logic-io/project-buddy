@@ -22,6 +22,7 @@ import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
+import { runChatCommandAction } from "../../../../tasks/tasks-actions-test-kit.ts";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
@@ -35,7 +36,6 @@ import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
 }));
-vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: (): never => {
     throw new Error("Quest creation is not available in a quest conversation");
@@ -84,8 +84,6 @@ vi.mock(
   () => import("../../../../dailies/day-store-test-kit.ts"),
 );
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
-  editMilestoneAction: vi.fn(),
-  deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
 
@@ -295,13 +293,17 @@ test("Actions offers Complete and Abandon for the active quest", async () => {
 
 test("status failures stay visible and focused inside the phone Actions drawer", async () => {
   await setViewport(PHONE_VIEWPORT);
-  vi.mocked(changeQuestStatusAction).mockResolvedValue({
-    kind: "invalid",
-    message: "Refresh and try again.",
+  runChatCommandAction.mockResolvedValue({
+    kind: "quest-status",
+    feedback: { kind: "invalid", message: "Refresh and try again." },
   });
   await renderQuest("actions");
   const actions = page.getByRole("tabpanel", { name: "Actions", exact: true });
   await actions.getByRole("button", { name: "Complete", exact: true }).click();
+  expect(runChatCommandAction).toHaveBeenCalledWith(
+    expect.objectContaining({ chatId: FOX_CONVERSATION.id, text: "/complete" }),
+  );
+  expect(changeQuestStatusAction).not.toHaveBeenCalled();
   await expect
     .element(actions.getByRole("status"))
     .toHaveTextContent("Refresh and try again.");
