@@ -43,6 +43,13 @@ const ICON_PATHS = {
   "site-panel": { stroke: "M2 2.5h12v11H2zM6 2.5v11M3.5 5h1M3.5 7h1" },
   // Three dots, for additional actions.
   more: { stroke: "M3 8h.01M8 8h.01M13 8h.01" },
+  // A four-pointed star, for an idea.
+  sparkle: {
+    stroke:
+      "M8 2c.5 3 1.5 4.5 5 6-3.5 1.5-4.5 3-5 6-.5-3-1.5-4.5-5-6 3.5-1.5 4.5-3 5-6z",
+  },
+  // A page with a folded corner and two lines, for a Quick Note.
+  note: { stroke: "M3.5 2h6l3 3v9h-9zM9.5 2v3h3M5.5 8.5h5M5.5 11h3.5" },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
   // A bin, for deleting something.

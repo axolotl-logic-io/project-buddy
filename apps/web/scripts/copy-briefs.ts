@@ -208,39 +208,75 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "EXPERIENCE_COPY.circle",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the person's circle and the title it gives them.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the person's circle and the title it gives them.",
   ],
   [
     "EXPERIENCE_COPY.standing",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. State the person's experience and how much more they need to reach their next circle.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. State the person's experience and how much more they need to reach their next circle.",
   ],
   [
     "EXPERIENCE_COPY.progress",
-    "In the site header on every page, as the accessible name of a small ring that fills as the person nears their next circle and links to the Experience section of Profile. Name their circle and its title, say how much more experience the next circle needs, and say the link opens their experience.",
+    "In the site header on every page, as the accessible name of a small ring that fills as the person nears their next circle and links to the Experience card on Profile. Name their circle and its title, say how much more experience the next circle needs, and say the link opens their experience.",
   ],
   [
     "EXPERIENCE_COPY.points",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. State how many points the person has in one ability.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. State how many points the person has in one ability.",
+  ],
+  [
+    "EXPERIENCE_COPY.toNext",
+    "On Profile's Experience card, which shows the person's circle in a ring, their name, title and a bar filling toward the next circle. Beside their experience, state how much more experience the next circle needs.",
+  ],
+  [
+    "EXPERIENCE_COPY.progressLabel",
+    "On Profile's Experience card, which shows the person's circle in a ring, their name, title and a bar filling toward the next circle. As the accessible name of the bar, say it shows progress toward the next circle.",
+  ],
+  [
+    "EXPERIENCE_COPY.nextTitle",
+    "On Profile's Experience card, which shows the person's circle in a ring, their name, title and a bar filling toward the next circle. Name the next title the person can reach and the circle that gives it, as something to look forward to.",
+  ],
+  [
+    "EXPERIENCE_COPY.firstSteps.adding-tasks",
+    "On Profile, under Abilities, where each ability is a tile with its points and the experience they're worth. For an ability with no points yet, invite the person to add their first task.",
+  ],
+  [
+    "EXPERIENCE_COPY.firstSteps.ideating",
+    "On Profile, under Abilities, where each ability is a tile with its points and the experience they're worth. For an ability with no points yet, invite the person to add their first idea.",
+  ],
+  [
+    "EXPERIENCE_COPY.firstSteps.noting",
+    "On Profile, under Abilities, where each ability is a tile with its points and the experience they're worth. For an ability with no points yet, invite the person to save their first Quick Note.",
+  ],
+  [
+    "EXPERIENCE_COPY.firstSteps.completing-tasks",
+    "On Profile, under Abilities, where each ability is a tile with its points and the experience they're worth. For an ability with no points yet, invite the person to complete their first task.",
+  ],
+  [
+    "EXPERIENCE_COPY.firstSteps.completing-quests",
+    "On Profile, under Abilities, where each ability is a tile with its points and the experience they're worth. For an ability with no points yet, invite the person to complete their first quest.",
+  ],
+  [
+    "EXPERIENCE_COPY.untried",
+    "On Profile, under Abilities, where each ability is a tile with its points and the experience they're worth. For an ability with no points yet, say it hasn't been tried, give its first step and say how much experience that first point is worth.",
   ],
   [
     "EXPERIENCE_COPY.abilities.adding-tasks",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each task the person adds.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each task the person adds.",
   ],
   [
     "EXPERIENCE_COPY.abilities.ideating",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each idea the person adds.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each idea the person adds.",
   ],
   [
     "EXPERIENCE_COPY.abilities.noting",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each Quick Note the person saves.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each Quick Note the person saves.",
   ],
   [
     "EXPERIENCE_COPY.abilities.completing-tasks",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each task the person completes.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each task the person completes.",
   ],
   [
     "EXPERIENCE_COPY.abilities.completing-quests",
-    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each quest the person completes.",
+    "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each quest the person completes.",
   ],
   [
     "IDEAS_COPY.empty",
@@ -887,10 +923,6 @@ const COPY_BRIEFS = new Map<string, string>([
     "In Workshop, beside the box describing a construct’s appearance. When a construct cannot be saved without a description of its appearance, ask for one.",
   ],
   [
-    "PROFILE_COPY.intro",
-    "On the Profile page. Introduce Profile as the place for the person's name and their experience.",
-  ],
-  [
     "PROFILE_COPY.loading",
     "On the Profile page, while it loads. Say the person's name and experience are loading.",
   ],
@@ -965,6 +997,11 @@ const COPY_BRIEFS = new Map<string, string>([
 ]);
 
 const MARKER_HELP = new Map<string, string>([
+  [
+    "firstStep",
+    "the first thing to do in the ability, such as adding a first task",
+  ],
+  ["worth", "the experience the ability's first point is worth"],
   ["HELP", "the command help text"],
   ["help", "the help text supplied for this box"],
   [

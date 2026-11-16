@@ -324,7 +324,7 @@ A message that starts with "/" and a name, such as `/done 3`, which the site run
 
 ### Experience
 
-What a user has done across their quests, as one number: the sum of their [abilities'](#ability) points, each weighted by what the ability is worth. Experience counts only things done, never open work, days or streaks. It sets the user's [circle](#circle). Profile shows it in its Experience section, the construct answers the `exp` command with it in the conversation, and a ring in the site header fills as it nears the next circle.
+What a user has done across their quests, as one number: the sum of their [abilities'](#ability) points, each weighted by what the ability is worth. Experience counts only things done, never open work, days or streaks. It sets the user's [circle](#circle). Profile shows it on its Experience card, the construct answers the `exp` command with it in the conversation, and a ring in the site header fills as it nears the next circle.
 
 - **UI:** "Experience", "120 experience", `exp`.
 

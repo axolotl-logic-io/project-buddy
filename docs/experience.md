@@ -30,11 +30,11 @@ The release that added experience gave each quest's owner the points for what th
 
 ## Profile
 
-The **Experience** section of Profile (`/profile`) (`src/components/experience/experience-panel.tsx`) shows the user's circle and title, their experience, how much more the next circle needs, and their points in each ability. The section's id is `experience`. Reading it makes no model call.
+Profile (`/profile`) opens on the **Experience** card (`src/components/experience/experience-card.tsx`): the user's circle in a ring, their name with Rename, their title, a bar toward the next circle, their experience, how much more the next circle needs and the next title to reach. The card's id is `experience`. Below it, **Abilities** (`src/components/experience/ability-tiles.tsx`) shows each ability's points and the experience they're worth, the most experience first; an ability with no points says what its first point is worth. Reading Profile makes no model call.
 
 ## The header's ring
 
-For a signed-in user, the site header shows their circle's number inside a ring, at the right end of the bar (`src/components/experience/circle-progress.tsx`). The ring fills, like the timer's, from the circle's start to the next circle's, and links to Profile's Experience section; its accessible name gives the circle, its title and the experience still needed. `SignedInHeader` in `src/components/signed-in-header.tsx` reads the experience with the session, so every page's header reads it once. Actions that gain or lose points refresh the page, and so the ring, and a finished reply in the conversation refreshes it too.
+For a signed-in user, the site header shows their circle's number inside a ring, at the right end of the bar (`src/components/experience/circle-progress.tsx`). The ring fills, like the timer's, from the circle's start to the next circle's, and links to Profile's Experience card; its accessible name gives the circle, its title and the experience still needed. `SignedInHeader` in `src/components/signed-in-header.tsx` reads the experience with the session, so every page's header reads it once. Actions that gain or lose points refresh the page, and so the ring, and a finished reply in the conversation refreshes it too.
 
 ## The exp command
 
