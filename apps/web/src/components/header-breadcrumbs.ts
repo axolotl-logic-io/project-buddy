@@ -8,7 +8,12 @@ import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import { findSpell } from "@/spells/own-spell-store.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
-import { parseTimerSchedule, TIMER_PATH } from "@/timer/schedule.ts";
+import {
+  parseTimerSchedule,
+  TIMER_PATH,
+  type TimerSchedule,
+  timerPhaseAt,
+} from "@/timer/schedule.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -17,6 +22,8 @@ import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
   readonly quest?: Pick<Quest, "id" | "name">;
+  // A running timer's schedule, whose tools the band shows at its right.
+  readonly timer?: TimerSchedule;
 }
 
 const DETAIL_DEPTH = 2;
@@ -48,7 +55,9 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["timer", { label: TIMER_COPY.heading, href: TIMER_PATH }],
   ]);
 
-// A timer link's trail: the Timer, then the schedule it names.
+// A timer link's trail: the Timer, then the schedule it names. Once the
+// schedule has started, its crumb carries it for the band's timer tools; a
+// link whose start is still ahead shows no countdown, so it gets none.
 function timerLinkBreadcrumbs(
   root: Breadcrumb,
   path: readonly string[],
@@ -61,15 +70,14 @@ function timerLinkBreadcrumbs(
   if (schedule === undefined) {
     return [root, { label: TIMER_COPY.unknownTrail }];
   }
-  return [
-    root,
-    {
-      label: TIMER_COPY.scheduleName(
-        schedule.workMinutes,
-        schedule.breakMinutes,
-      ),
-    },
-  ];
+  const label = TIMER_COPY.scheduleName(
+    schedule.workMinutes,
+    schedule.breakMinutes,
+  );
+  if (timerPhaseAt(schedule, Date.now()).kind === "not-started") {
+    return [root, { label }];
+  }
+  return [root, { label, timer: schedule }];
 }
 
 // Resolve names only through the same acting-user stores as the page. Unknown

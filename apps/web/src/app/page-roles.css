@@ -947,8 +947,20 @@
     @apply font-heading font-semibold text-site-title tabular-nums tracking-tight sm:text-site-title-wide;
   }
 
-  .timer-details {
-    @apply flex w-full max-w-xl flex-col gap-3;
+  /* A running timer's count of others and Copy link, at the right end of
+     the trail band. The count gives up its room before the button does. */
+  .timer-trail-tools {
+    @apply ml-auto flex min-w-0 items-center gap-3 self-center;
+  }
+
+  .timer-others {
+    @apply min-w-0 truncate text-muted text-sm;
+  }
+
+  /* A whole target without making the band taller. */
+  .timer-trail-tools .button-secondary {
+    @apply shrink-0;
+    margin-block: calc((1lh - var(--target-size)) / 2);
   }
 
   .quest-workspace > .workspace-content {
