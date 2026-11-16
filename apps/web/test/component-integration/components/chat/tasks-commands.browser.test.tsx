@@ -6,13 +6,14 @@
 // tasks.server.test.ts's.
 
 import type { UIMessage } from "ai";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { z } from "zod";
 import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
+import { SiteHeader } from "@/components/site-header.tsx";
 import type { TasksActions } from "@/components/tasks/use-tasks.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { todayHere } from "@/dailies/dailies.ts";
@@ -36,6 +37,7 @@ import {
   questIdFixture,
   userIdFixture,
 } from "../../../support/id-fixtures.ts";
+import { applyTheme } from "../../themes/theme-test-kit.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
@@ -59,6 +61,7 @@ const COMMAND_TEXT = z.object({ text: z.string() });
 const CHAT_ID = chatIdFixture();
 const PHONE_WIDTH = 390;
 const PHONE_HEIGHT = 844;
+const DROP_TARGET_INSET_PX = 8;
 const QUEST_ID = questIdFixture();
 const BLOCK_OUT = "Block out the body and wings";
 const SCULPT = "Sculpt the feather plates";
@@ -92,17 +95,20 @@ const DONE_TASKS: TasksState = {
 
 async function openChat(initialMessages: UIMessage[] = []): Promise<void> {
   await render(
-    <QuestStatusFeedback>
-      <ChatView
-        chatId={CHAT_ID}
-        viewer={userIdFixture()}
-        constructName={getConstruct("vellum").name}
-        initialMessages={initialMessages}
-        questId={QUEST_ID}
-        initialTasks={TASKS}
-        tasksActions={TASKS_ACTIONS}
-      />
-    </QuestStatusFeedback>,
+    <>
+      <SiteHeader />
+      <QuestStatusFeedback>
+        <ChatView
+          chatId={CHAT_ID}
+          viewer={userIdFixture()}
+          constructName={getConstruct("vellum").name}
+          initialMessages={initialMessages}
+          questId={QUEST_ID}
+          initialTasks={TASKS}
+          tasksActions={TASKS_ACTIONS}
+        />
+      </QuestStatusFeedback>
+    </>,
   );
 }
 
@@ -112,22 +118,25 @@ async function openChat(initialMessages: UIMessage[] = []): Promise<void> {
 async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
   await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
   await render(
-    <ChatView
-      chatId={CHAT_ID}
-      viewer={userIdFixture()}
-      constructName={getConstruct("vellum").name}
-      initialMessages={[
-        {
-          id: "m1",
-          role: "user",
-          parts: [{ type: "text", text: "Help me tasks the wings" }],
-        },
-      ]}
-      stoppedReplyId={stoppedReplyId}
-      questId={QUEST_ID}
-      initialTasks={TASKS}
-      tasksActions={TASKS_ACTIONS}
-    />,
+    <>
+      <SiteHeader />
+      <ChatView
+        chatId={CHAT_ID}
+        viewer={userIdFixture()}
+        constructName={getConstruct("vellum").name}
+        initialMessages={[
+          {
+            id: "m1",
+            role: "user",
+            parts: [{ type: "text", text: "Help me tasks the wings" }],
+          },
+        ]}
+        stoppedReplyId={stoppedReplyId}
+        questId={QUEST_ID}
+        initialTasks={TASKS}
+        tasksActions={TASKS_ACTIONS}
+      />
+    </>,
   );
 }
 
@@ -145,6 +154,10 @@ function messageBox(): ReturnType<typeof page.getByRole> {
 function commandList(): ReturnType<typeof page.getByRole> {
   return page.getByRole("listbox", { name: CHAT_COMMANDS_COPY.listLabel });
 }
+
+beforeEach(() => {
+  applyTheme("parchment");
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -485,7 +498,8 @@ describe("use_case_tasks_panel", () => {
     await userEvent.dragAndDrop(
       panel.getByRole("button", { name: `Reorder “${SCULPT}”` }),
       panel.getByRole("button", { name: TASKS_COPY.edit(BLOCK_OUT) }),
-      { targetPosition: { x: 1, y: 1 } },
+      // Aim inside the rounded control, not its transparent corner.
+      { targetPosition: { x: DROP_TARGET_INSET_PX, y: DROP_TARGET_INSET_PX } },
     );
     await expect
       .element(

@@ -9,7 +9,9 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
+import { createPortal } from "react-dom";
 import { TaskRows } from "@/components/tasks/task-rows.tsx";
 import { useTasks } from "@/components/tasks/use-tasks.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -20,6 +22,22 @@ import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 
+// The parallel header slot can be replaced during navigation. Subscribe
+// to its DOM presence so the control follows the current header.
+function subscribeHeaderControl(notify: () => void): () => void {
+  const observer = new MutationObserver(notify);
+  observer.observe(document.body, { childList: true, subtree: true });
+  return (): void => observer.disconnect();
+}
+
+function headerControlElement(): HTMLElement | null {
+  return document.querySelector<HTMLElement>(".header-panel-control");
+}
+
+function serverHeaderControl(): null {
+  return null;
+}
+
 function ChatPanel({
   children,
   sideSections,
@@ -29,6 +47,11 @@ function ChatPanel({
   readonly sideSections?: readonly WorkspaceSection[] | undefined;
   readonly initialSection?: string | undefined;
 }): JSX.Element {
+  const headerControl = useSyncExternalStore(
+    subscribeHeaderControl,
+    headerControlElement,
+    serverHeaderControl,
+  );
   const tasks = useTasks();
   const wide = useWideScreen();
   const [expanded, setExpanded] = useState<boolean | undefined>();
@@ -74,22 +97,29 @@ function ChatPanel({
     });
   }
   sections.push(...(sideSections ?? []));
+  const expandButton = (
+    <Button
+      ref={toggleRef}
+      variant="quiet"
+      className="panel-toggle panel-edge-tab quest-sidebar-expand"
+      aria-label={QUEST_SIDEBAR_COPY.expand}
+      title={QUEST_SIDEBAR_COPY.expand}
+      aria-expanded={open}
+      aria-controls={panelId}
+      hidden={open}
+      onClick={expand}
+    >
+      <Icon name="sidebar" />
+    </Button>
+  );
+  let expandControl = expandButton;
+  if (headerControl !== null) {
+    expandControl = createPortal(expandButton, headerControl);
+  }
   return (
     <div className="adventure-layout" data-sidebar-open={open}>
       <div className="adventure-main">{children}</div>
-      <Button
-        ref={toggleRef}
-        variant="quiet"
-        className="panel-toggle quest-sidebar-expand"
-        aria-label={QUEST_SIDEBAR_COPY.expand}
-        title={QUEST_SIDEBAR_COPY.expand}
-        aria-expanded={open}
-        aria-controls={panelId}
-        hidden={open}
-        onClick={expand}
-      >
-        <Icon name="sidebar" />
-      </Button>
+      {expandControl}
       <dialog
         id={panelId}
         ref={dialogRef}
@@ -105,7 +135,7 @@ function ChatPanel({
             navigation={
               <Button
                 variant="quiet"
-                className="panel-toggle"
+                className="panel-toggle panel-edge-tab quest-sidebar-collapse"
                 aria-label={QUEST_SIDEBAR_COPY.collapse}
                 title={QUEST_SIDEBAR_COPY.collapse}
                 aria-expanded={open}
