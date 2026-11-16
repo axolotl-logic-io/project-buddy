@@ -33,11 +33,22 @@ describe("header navigation hierarchy", () => {
     { section: "workshop", label: "Workshop" },
     { section: "retirement", label: "Graveyard" },
     { section: "settings", label: "Settings" },
+    { section: "timer", label: "Timer" },
   ])("$label is a top-level destination", async ({ section, label }) => {
     const trail = await headerBreadcrumbs(MEMBER, [section]);
     expect(trail).toHaveLength(1);
     expect(trail[0]?.label).toBe(label);
     expect(trail[0]?.href).toBeUndefined();
+  });
+
+  test("a timer link sits under Timer, named by its durations", async () => {
+    expect(await headerBreadcrumbs(MEMBER, ["timer", "25", "15", "0"])).toEqual(
+      [{ label: "Timer", href: "/timer" }, { label: "Work 25 · Break 15" }],
+    );
+    expect(await headerBreadcrumbs(MEMBER, ["timer", "25", "16", "0"])).toEqual(
+      [{ label: "Timer", href: "/timer" }, { label: "Unknown timer" }],
+    );
+    expect(await headerBreadcrumbs(MEMBER, ["timer", "25"])).toEqual([]);
   });
 
   test("removed destinations have no breadcrumb", async () => {

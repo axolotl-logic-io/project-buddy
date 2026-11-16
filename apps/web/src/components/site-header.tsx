@@ -12,6 +12,7 @@ import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 // A breadcrumb that leads somewhere: every one but the current page.
@@ -80,6 +81,9 @@ function AccountLinks(): JSX.Element {
 
         <li>
           <MenuLink href="/workshop">{WORKSHOP_COPY.heading}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/timer">{TIMER_COPY.menuLink}</MenuLink>
         </li>
         <li>
           <MenuLink href="/retirement">{RETIREMENT_COPY.heading}</MenuLink>
