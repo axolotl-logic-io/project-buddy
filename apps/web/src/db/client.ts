@@ -38,7 +38,7 @@ type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 let database: Database | undefined;
 let localPool: Pool | undefined;
 
-// Local addresses use the PostgreSQL wire protocol, without a proxy.
+// Local addresses use the PostgreSQL wire protocol.
 function isOnThisMachine(host: string): boolean {
   return LOCAL_HOSTS.has(host);
 }

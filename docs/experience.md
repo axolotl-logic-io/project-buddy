@@ -21,7 +21,7 @@ Circle n starts at `CIRCLE_STEP` · n(n − 1) / 2 experience, with `CIRCLE_STEP
 Points live in the `ability_points` table, one row per point: the user, the ability, the quest and the source, such as a task's number or an idea's id. A point stays when its quest is deleted and goes with its user. Each store saves the points with what gave them, in the same transaction (`src/experience/experience-store.ts`):
 
 - **Tasks** (`src/tasks/tasks-store.ts`): every saved change compares the tasks before and after it (`src/experience/task-points.ts`). The acting user gains a point for each task it added and each open task it completed, whether they made the change or the construct did in their conversation. A task it reopened loses the newest point its completion gave, whoever gained it. A removed task keeps its points, and a restored one gains none again. Undo is a change like any other: undoing a completion reopens the task, and so takes the point back.
-- **Reset Day** reopens a Dailies quest's tasks without taking points back, so completing them again the next day gains more.
+- **Start Day** reopens a Dailies quest's recurring tasks without taking points back, so completing them again the next day gains more. Undo Start Day gains none.
 - **Ideas** (`src/ideas/idea-store.ts`): adding an idea gains a point. Moving an idea into Tasks adds a task, which gains its own point.
 - **Quick Notes** (`src/notes/note-store.ts`): saving one gains a point.
 - **Quest status** (`src/quests/quest-status-store.ts`): completing a quest gains the user who completed it, or approved the construct's request, a point. Changing a Completed quest to Active or Abandoned takes it back.

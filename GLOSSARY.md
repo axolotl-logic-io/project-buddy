@@ -208,9 +208,35 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, in the quest sidebar's Actions tab, asks for confirmation before clearing its conversation and active spell. By default, it keeps Tasks, Ideas and Progress and reopens completed tasks. The user can also choose to remove tasks and Ideas. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. The user begins each day with [Start Day](#start-day). Its tasks can be [recurring](#recurring-task), and each recurring task keeps a [streak](#streak). Dailies has no automatic daily reset: a day begins only when the user starts it.
 
-- **UI:** “Dailies”, “Reset Day”.
+- **UI:** “Dailies”, “Start Day”.
+
+### Start Day
+
+The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas.
+
+Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
+
+- **UI:** “Start Day”, “Undo Start Day”, “Last day started 5 hours ago”.
+
+### Recurring task
+
+A [task](#task) in the Dailies quest that the user means to do every day. The task's menu in Tasks offers Make recurring and Make one-off. Start Day records whether each recurring task was done that day, then reopens the done ones. A recurring task shows a repeat icon with its [streak](#streak).
+
+- **UI:** “Make recurring”, “Make one-off”.
+
+### Streak
+
+The number of days in a row, up to the current day, on which the user did a [recurring task](#recurring-task). The current day counts once the task is done, and an open task doesn't end the streak until the next Start Day. A day the task wasn't done ends the streak, and so does a [gap](#gap). Two days started on one date count as one date, done if the task was done in either.
+
+- **UI:** “3-day streak”.
+
+### Gap
+
+A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Progress section's day grid, a dashed square marks it.
+
+- **UI:** “no day started”.
 
 ### Quest code names
 
@@ -238,7 +264,7 @@ Something the user got done in a quest: one short line, in the past tense, that 
 
 ### Progress timeline
 
-A quest's collection of recorded milestones. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
+A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, a day grid sits above it: each [recurring task](#recurring-task)'s last seven dates, with each date marked done, not done or a [gap](#gap).
 
 - **UI:** "Progress".
 
@@ -266,19 +292,19 @@ A short, dated line the user saves to an Active quest open to them from the site
 
 ### Quest sidebar actions
 
-The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and Reset Day for an Active Dailies quest.
+The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest.
 
 - **UI:** "Actions".
 
 ### Tasks
 
-A quest's ordered list of [tasks](#task): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. Tasks has no deadlines and never counts open tasks or days.
+A quest's ordered list of [tasks](#task): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines.
 
 - **UI:** "Tasks", "Tasks panel".
 
 ### Task
 
-One piece of remaining work in a quest's [Tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done task isn't a [recorded milestone](#milestone-recorded).
+One piece of remaining work in a quest's [Tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done task isn't a [recorded milestone](#milestone-recorded). In the Dailies quest, a task can be [recurring](#recurring-task); any other task is one-off.
 
 - **UI:** "Task", "#3", "Done".
 
@@ -304,7 +330,7 @@ What a user has done across their quests, as one number: the sum of their [abili
 
 ### Ability
 
-One kind of thing a user does, which gains them one point each time: **Adding tasks**, **Ideating** (adding an idea), **Quick Notes** (saving one), **Completing tasks** and **Completing quests**. Adding a task, an idea or a Quick Note is worth 1 experience; completing a task is worth 3, one of each; completing a quest is worth 9, three completed tasks. Reopening a completed task or quest takes its completion point back, except when Reset Day reopens a Dailies quest's tasks. Removing a task or idea keeps its points.
+One kind of thing a user does, which gains them one point each time: **Adding tasks**, **Ideating** (adding an idea), **Quick Notes** (saving one), **Completing tasks** and **Completing quests**. Adding a task, an idea or a Quick Note is worth 1 experience; completing a task is worth 3, one of each; completing a quest is worth 9, three completed tasks. Reopening a completed task or quest takes its completion point back, except when Start Day reopens a Dailies quest's recurring tasks. Removing a task or idea keeps its points.
 
 - **UI:** "Abilities", the ability names above, "12 points".
 

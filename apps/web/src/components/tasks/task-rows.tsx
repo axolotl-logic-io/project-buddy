@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useCallback } from "react";
+import { type JSX, type ReactNode, useCallback, useMemo } from "react";
 import {
   type TasksController,
   useTasks,
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
+import { streaks } from "@/dailies/dailies.ts";
 import {
   doneTasks,
   moveAmongOpen,
@@ -49,18 +51,49 @@ const ADD_EDITOR: EditorOptions = {
   save: TASKS_COPY.add,
 };
 
+const NO_STREAKS: ReadonlyMap<number, number> = new Map();
+
+// A recurring task's badge in the Dailies quest: the repeat icon and its
+// streak, or the icon alone with no streak; nothing for a one-off task.
+function streakBadge(task: Task, streak: number | undefined): ReactNode {
+  if (task.recurring !== true) {
+    return null;
+  }
+  if (streak === undefined) {
+    return (
+      <span className="editable-badge" title={TASKS_COPY.recurringNoStreak}>
+        <Icon name="repeat" />
+        <span className="sr-only">{TASKS_COPY.recurringNoStreak}</span>
+      </span>
+    );
+  }
+  return (
+    <span className="editable-badge" title={TASKS_COPY.streak(streak)}>
+      <Icon name="repeat" />
+      <span aria-hidden="true">{streak}</span>
+      <span className="sr-only">{TASKS_COPY.streak(streak)}</span>
+    </span>
+  );
+}
+
+// One task's row. In the Dailies quest (dailies), its menu makes it
+// recurring or one-off, and a recurring task shows its streak.
 function TaskRow({
   tasks,
   task,
   first,
   last,
   disabled,
+  dailies,
+  streak,
 }: {
   readonly tasks: TasksController;
   readonly task: Task;
   readonly first: boolean;
   readonly last: boolean;
   readonly disabled: boolean;
+  readonly dailies: boolean;
+  readonly streak: number | undefined;
 }): JSX.Element {
   const { change } = tasks;
   const toggle = useCallback(async (): Promise<void> => {
@@ -93,6 +126,16 @@ function TaskRow({
   const remove = useCallback(async (): Promise<void> => {
     await change([{ op: "remove", task: task.number }]);
   }, [change, task.number]);
+  const recurring = task.recurring === true;
+  const recur = useCallback(async (): Promise<void> => {
+    await change([{ op: "recur", task: task.number, recurring: !recurring }]);
+  }, [change, task.number, recurring]);
+  let recurLabel = TASKS_COPY.makeRecurring(task.text);
+  let recurText: string = TASKS_COPY.makeRecurringLabel;
+  if (recurring) {
+    recurLabel = TASKS_COPY.makeOneOff(task.text);
+    recurText = TASKS_COPY.makeOneOffLabel;
+  }
   let checkLabel = TASKS_COPY.checkOff(task.text);
   if (task.done) {
     checkLabel = TASKS_COPY.reopen(task.text);
@@ -110,6 +153,7 @@ function TaskRow({
       toggleLabel={checkLabel}
       onToggle={toggle}
       onSave={save}
+      badge={dailies && streakBadge(task, streak)}
     >
       {!task.done && (
         <>
@@ -130,6 +174,11 @@ function TaskRow({
             {TASKS_COPY.moveDownLabel}
           </EditableListAction>
         </>
+      )}
+      {dailies === true && (
+        <EditableListAction icon="repeat" onSelect={recur} label={recurLabel}>
+          {recurText}
+        </EditableListAction>
       )}
       <EditableListAction
         icon="trash"
@@ -184,6 +233,14 @@ function Feedback({ tasks }: { readonly tasks: TasksController }): JSX.Element {
 
 function TaskRows(): JSX.Element | null {
   const tasks = useTasks();
+  const days = tasks?.days;
+  const current = tasks?.state.tasks;
+  const streakOf = useMemo(() => {
+    if (days === undefined || current === undefined) {
+      return NO_STREAKS;
+    }
+    return streaks(days, current);
+  }, [days, current]);
   const add = useCallback(
     async (text: string): Promise<boolean> => {
       if (tasks === undefined) {
@@ -242,6 +299,8 @@ function TaskRows(): JSX.Element | null {
             first={index === 0}
             last={index === open.length - 1}
             disabled={disabled}
+            dailies={days !== undefined}
+            streak={streakOf.get(task.number)}
           />
         ))}
       </EditableList>
@@ -257,6 +316,8 @@ function TaskRows(): JSX.Element | null {
                 first={true}
                 last={true}
                 disabled={disabled}
+                dailies={days !== undefined}
+                streak={streakOf.get(task.number)}
               />
             ))}
           </EditableList>

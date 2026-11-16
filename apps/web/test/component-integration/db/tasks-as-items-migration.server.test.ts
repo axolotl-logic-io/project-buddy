@@ -12,7 +12,7 @@ import {
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
 // The last migration that saved a quest's Tasks as steps.
-const BEFORE_TASK_ITEMS = 69;
+const BEFORE_TASK_ITEMS = 70;
 const OWNER = "00000000-0000-4000-8000-000000000991";
 const QUEST = "00000000-0000-4000-8000-000000000992";
 const CHAT = "00000000-0000-4000-8000-000000000993";

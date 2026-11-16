@@ -5,6 +5,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import type { TasksActions } from "@/components/tasks/use-tasks.ts";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
+import type { DailiesDay } from "@/dailies/dailies.ts";
 import type { UserId } from "@/ids.ts";
 import { getSpell } from "@/spells/spell.ts";
 import type { TasksState } from "@/tasks/tasks.ts";
@@ -39,6 +40,7 @@ function ChatScreen({
   header,
   sideSections,
   initialSection,
+  dailiesDays,
 }: {
   readonly conversation: Chat;
   readonly messages: ChatMessage[];
@@ -49,6 +51,8 @@ function ChatScreen({
   readonly sideSections?: readonly WorkspaceSection[] | undefined;
   readonly initialSection?: string | undefined;
   readonly header?: ReactNode;
+  // The Dailies quest's days, for its recurring tasks' streaks.
+  readonly dailiesDays?: readonly DailiesDay[] | undefined;
 }): JSX.Element {
   const { construct } = conversation;
   let spellName: string | undefined;
@@ -88,6 +92,7 @@ function ChatScreen({
         questId={conversation.quest.id}
         initialTasks={tasks}
         tasksActions={TASKS_ACTIONS}
+        dailiesDays={dailiesDays}
       />
     </>
   );

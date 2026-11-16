@@ -1,4 +1,4 @@
-import { ListChecks, Pencil } from "lucide-react";
+import { ListChecks, Pencil, Repeat } from "lucide-react";
 import type { JSX } from "react";
 
 // What each icon draws on a 16 by 16 grid: an outline, in strokes, and
@@ -67,6 +67,7 @@ const ICON_PATHS = {
 const PLACE_ICONS = {
   checklist: ListChecks,
   pencil: Pencil,
+  repeat: Repeat,
 } as const;
 
 type PlaceIconName = keyof typeof PLACE_ICONS;
