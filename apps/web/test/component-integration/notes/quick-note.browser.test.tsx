@@ -1,14 +1,19 @@
 // The site panel's Quick Note dialog and a quest's Quick Notes tab, in
 // Chromium and WebKit. The Server Actions and the conversation's send are
 // mocked; the server test (quick-notes.server.test.ts) checks what they
-// store, and what /drop-note deletes.
+// store, edit and delete.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { AccountLinks } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
-import { NOTE_ID, type NoteQuest, type NoteResult } from "@/notes/note.ts";
+import {
+  NOTE_ID,
+  NOTE_MAX_LENGTH,
+  type NoteQuest,
+  type NoteResult,
+} from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
@@ -202,7 +207,12 @@ describe("use_case_quick_note", () => {
       .element(list.getByRole("listitem").first().getByText("Buy more clay"))
       .toBeVisible();
     await page
-      .getByRole("button", { name: 'Delete the Quick Note "Buy more clay"' })
+      .getByRole("button", {
+        name: 'Actions for the Quick Note "Buy more clay"',
+      })
+      .click();
+    await page
+      .getByRole("menuitem", { name: 'Delete the Quick Note "Buy more clay"' })
       .click();
     expect(sentTexts(send)).toEqual(["/drop-note 1"]);
     await expect
@@ -212,6 +222,95 @@ describe("use_case_quick_note", () => {
       .element(page.getByText("Buy more clay"))
       .not.toBeInTheDocument();
     await expect.element(page.getByText("Try a slower wheel")).toBeVisible();
+  });
+
+  test("a note has a multiline editor, saves line breaks and cancels changes", async () => {
+    const send = chatSendMock().mockResolvedValue({ sent: true });
+    await render(
+      inConversation(
+        send,
+        <QuestNotes
+          notes={[
+            {
+              id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
+              text: "Buy more clay",
+              savedAt: new Date("2026-11-14T12:00:00Z"),
+            },
+          ]}
+        />,
+      ),
+    );
+    const edit = page.getByRole("button", { name: "Edit Quick Note" });
+    await edit.click();
+    const field = page.getByRole("textbox", {
+      name: "Quick Note",
+      exact: true,
+    });
+    expect(field.element().tagName).toBe("TEXTAREA");
+    await field.fill("Clay");
+    await userEvent.keyboard("{End}");
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard("Glaze");
+    await expect.element(field).toHaveValue("Clay\nGlaze");
+    expect(send).not.toHaveBeenCalled();
+    await page
+      .getByRole("button", { name: "Save Quick Note", exact: true })
+      .click();
+    expect(sentTexts(send)).toEqual(["/edit-note 1 Clay\nGlaze"]);
+    await expect
+      .element(page.getByText("Clay\nGlaze", { exact: true }))
+      .toBeVisible();
+    await edit.click();
+    await field.fill("Discard this");
+    await page
+      .getByRole("button", { name: "Cancel editing Quick Note" })
+      .click();
+    await expect.element(edit).toHaveTextContent("Clay Glaze");
+    await expect.element(edit).toHaveFocus();
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  test("invalid and refused edits keep the draft", async () => {
+    const send = chatSendMock().mockResolvedValue({
+      sent: false,
+      problem: "Wait for the reply.",
+    });
+    await render(
+      inConversation(
+        send,
+        <QuestNotes
+          notes={[
+            {
+              id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
+              text: "Buy more clay",
+              savedAt: new Date("2026-11-14T12:00:00Z"),
+            },
+          ]}
+        />,
+      ),
+    );
+    await page.getByRole("button", { name: "Edit Quick Note" }).click();
+    const field = page.getByRole("textbox", {
+      name: "Quick Note",
+      exact: true,
+    });
+    const save = page.getByRole("button", {
+      name: "Save Quick Note",
+      exact: true,
+    });
+    await field.fill("   ");
+    await save.click();
+    await expect.element(field).toHaveAttribute("aria-invalid", "true");
+    await field.fill("a".repeat(NOTE_MAX_LENGTH + 1));
+    await save.click();
+    await expect.element(field).toHaveAttribute("aria-invalid", "true");
+    expect(send).not.toHaveBeenCalled();
+    await field.fill("Clay\nGlaze");
+    await save.click();
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent("Wait for the reply.");
+    await expect.element(field).toHaveValue("Clay\nGlaze");
   });
 
   test("a refused Quick Note deletion keeps the note and says why", async () => {
@@ -233,7 +332,12 @@ describe("use_case_quick_note", () => {
     );
 
     await page
-      .getByRole("button", { name: 'Delete the Quick Note "Buy more clay"' })
+      .getByRole("button", {
+        name: 'Actions for the Quick Note "Buy more clay"',
+      })
+      .click();
+    await page
+      .getByRole("menuitem", { name: 'Delete the Quick Note "Buy more clay"' })
       .click();
 
     await expect.element(page.getByRole("alert")).toHaveTextContent(problem);

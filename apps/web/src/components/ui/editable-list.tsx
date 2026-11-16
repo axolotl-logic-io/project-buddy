@@ -187,7 +187,7 @@ function TextEditor({
   readonly onDismiss: () => void;
 }): JSX.Element {
   const formRef = useRef<HTMLFieldSetElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const savingRef = useRef<Promise<boolean> | undefined>(undefined);
   const resubmittingRef = useRef<boolean>(false);
   const clickedAwayRef = useRef<boolean>(false);
@@ -196,15 +196,21 @@ function TextEditor({
   const problemId = useId();
   const [text, setText] = useState(initial);
   const [problem, setProblem] = useState<string | undefined>();
-  const focus = useCallback((input: HTMLInputElement | null): void => {
-    inputRef.current = input;
-    input?.focus();
-    input?.select();
-  }, []);
-  const change = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    setText(event.currentTarget.value);
-    setProblem(undefined);
-  }, []);
+  const focus = useCallback(
+    (input: HTMLInputElement | HTMLTextAreaElement | null): void => {
+      inputRef.current = input;
+      input?.focus();
+      input?.select();
+    },
+    [],
+  );
+  const change = useCallback(
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+      setText(event.currentTarget.value);
+      setProblem(undefined);
+    },
+    [],
+  );
   const save = useCallback(
     (dismiss: boolean): Promise<boolean> => {
       if (savingRef.current !== undefined) {
@@ -288,18 +294,20 @@ function TextEditor({
     await save(false);
   }, [save]);
   const keyDown = useCallback(
-    async (event: KeyboardEvent<HTMLInputElement>): Promise<void> => {
+    async (
+      event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ): Promise<void> => {
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
         onCancel();
-      } else if (event.key === "Enter") {
+      } else if (event.key === "Enter" && editor.multiline !== true) {
         event.preventDefault();
         event.stopPropagation();
         await save(false);
       }
     },
-    [onCancel, save],
+    [editor.multiline, onCancel, save],
   );
   const dismissOnClick = useEffectEvent((): void => {
     clickedAwayRef.current = true;
@@ -346,12 +354,16 @@ function TextEditor({
   if (problem !== undefined) {
     describedBy = problemId;
   }
+  let Field: "input" | "textarea" = "input";
+  if (editor.multiline === true) {
+    Field = "textarea";
+  }
   return (
     <fieldset ref={formRef} className="editable-form" aria-label={editor.label}>
       <label className="sr-only" htmlFor={inputId}>
         {editor.label}
       </label>
-      <input
+      <Field
         ref={focus}
         id={inputId}
         className="input-field"
