@@ -469,7 +469,7 @@ The Timer is a destination of its own in the site panel's Places. It belongs to 
 
 ### Timer
 
-A repeating work and break timer: a large ring that fills over the current period, the period's name and the time left. It needs the normal signed-in session.
+A repeating work and break timer: a large ring that fills over the current period, the period's name and the time left. Anyone may open it, signed in or not.
 
 - **Avoid:** "Pomodoro" as the feature's name, "stopwatch", "focus session".
 
@@ -479,7 +479,7 @@ A work length, a break length and a start instant. Work and break repeat from th
 
 ### Timer link
 
-The address of a timer schedule: `/timer/WORK/BREAK/START`, where `WORK` and `BREAK` are preset minutes and `START` is milliseconds since the Unix epoch. It holds nothing else, so sharing it reaches no quest or account. Signing in from a timer link leads back to it.
+The address of a timer schedule: `/timer/WORK/BREAK/START`, where `WORK` and `BREAK` are preset minutes and `START` is milliseconds since the Unix epoch. It holds nothing else, so sharing it reaches no quest or account, and anyone may open it without signing in.
 
 ### Global timer
 

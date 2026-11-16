@@ -66,18 +66,35 @@ function CopyLink(): JSX.Element {
   );
 }
 
-// A running timer's tools at the right of the trail band: how many others
-// follow its schedule and a button that copies its link. The count reports
-// the schedule as the page's presence.
-function TimerTrailTools({
+// How many others follow schedule, which reports the schedule as the
+// page's presence.
+function OthersFollowing({
   schedule,
 }: {
   readonly schedule: TimerSchedule;
 }): JSX.Element {
   const presence = useTimerPresence(schedule);
+  return <p className="timer-others">{othersText(presence)}</p>;
+}
+
+// A running timer's tools at the right of the trail band: how many others
+// follow its schedule and a button that copies its link. Presence belongs
+// to accounts, so a signed-out visitor neither reports nor sees the count,
+// only Copy link.
+function TimerTrailTools({
+  schedule,
+  signedIn,
+}: {
+  readonly schedule: TimerSchedule;
+  readonly signedIn: boolean;
+}): JSX.Element {
+  let others: JSX.Element | undefined;
+  if (signedIn) {
+    others = <OthersFollowing schedule={schedule} />;
+  }
   return (
     <div className="timer-trail-tools">
-      <p className="timer-others">{othersText(presence)}</p>
+      {others}
       <CopyLink />
     </div>
   );
