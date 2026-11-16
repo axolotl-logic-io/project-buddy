@@ -1,260 +1,266 @@
-import { expect, test, vi } from "vitest";
+// A quest's Ideas in Chromium and WebKit. Each control sends its command
+// to the quest's conversation, here a mock; ideas.server.test.ts checks
+// what the commands change.
+import type { JSX } from "react";
+import { describe, expect, type Mock, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { ChatSend, ChatSendResult } from "@/components/chat/chat-send.ts";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
-import { IDEA, type IdeaAction } from "@/ideas/idea.ts";
-import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
+import { IDEA, type Idea } from "@/ideas/idea.ts";
+import {
+  chatSendMock,
+  inConversation,
+  sentTexts,
+} from "../components/chat/chat-send-test-kit.tsx";
 
 const ACTIONS_NAME = /Actions for/u;
+const OUTSIDE_LIST = "Outside the list";
 const IDEA_FIXTURE = IDEA.parse({
   id: "11111111-1111-4111-8111-111111111111",
   text: "Try watercolours",
 });
-
-test("an idea can be edited and moved, with feedback and retained focus", async () => {
-  const action = vi.fn<IdeaAction>().mockResolvedValue({ kind: "saved" });
-  await render(
-    <QuestIdeas
-      questId={FOX_QUEST.id}
-      ideas={[IDEA_FIXTURE]}
-      action={action}
-    />,
-  );
-  await page.getByRole("button", { name: "Edit idea" }).click();
-  await page
-    .getByRole("textbox", { name: "Idea", exact: true })
-    .first()
-    .fill("Try ink");
-  await page.getByRole("button", { name: "Save idea" }).click();
-  expect(action).toHaveBeenLastCalledWith({
-    op: "edit",
-    questId: FOX_QUEST.id,
-    id: IDEA_FIXTURE.id,
-    text: "Try ink",
-  });
-  await expect
-    .element(page.getByRole("status"))
-    .toHaveTextContent("Idea saved.");
-  await page.getByRole("button", { name: ACTIONS_NAME }).click();
-  await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
-  expect(action).toHaveBeenLastCalledWith({
-    op: "move",
-    questId: FOX_QUEST.id,
-    id: IDEA_FIXTURE.id,
-  });
-  await expect
-    .element(page.getByRole("status"))
-    .toHaveTextContent("Idea moved to Tasks.");
-  await expect
-    .element(page.getByRole("heading", { name: "Ideas" }))
-    .toHaveFocus();
-  await expect
-    .element(page.getByText("No ideas yet.", { exact: false }))
-    .toBeVisible();
-});
-
-test("a failed add keeps the draft and a failed move keeps the idea", async () => {
-  const action = vi.fn<IdeaAction>().mockResolvedValue({
-    kind: "problem",
-    reason: "not-found",
-    text: "Please try again.",
-  });
-  await render(
-    <QuestIdeas
-      questId={FOX_QUEST.id}
-      ideas={[IDEA_FIXTURE]}
-      action={action}
-    />,
-  );
-  await page.getByRole("button", { name: "Add idea", exact: true }).click();
-  const input = page.getByRole("textbox", { name: "Idea", exact: true }).last();
-  await input.fill("Try charcoal");
-  await page.getByRole("button", { name: "Add idea" }).click();
-  await expect
-    .element(page.getByRole("alert"))
-    .toHaveTextContent("Please try again.");
-  await expect.element(input).toHaveValue("Try charcoal");
-  await page.getByRole("button", { name: ACTIONS_NAME }).click();
-  await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
-  await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
-});
-
-test("an all-space idea shows validation feedback without saving", async () => {
-  const action = vi.fn<IdeaAction>();
-  await render(
-    <QuestIdeas questId={FOX_QUEST.id} ideas={[]} action={action} />,
-  );
-  await page.getByRole("button", { name: "Add idea", exact: true }).click();
-  await page.getByRole("textbox", { name: "Idea", exact: true }).fill("   ");
-  await page.getByRole("button", { name: "Add idea" }).click();
-  await expect
-    .element(page.getByRole("alert"))
-    .toHaveTextContent("Enter an idea of 1 to 200 characters.");
-  expect(action).not.toHaveBeenCalled();
-});
-
-test("saved ideas stay readable until edited and cancelling keeps their text", async () => {
-  const action = vi.fn<IdeaAction>();
-  await render(
-    <QuestIdeas
-      embedded={true}
-      questId={FOX_QUEST.id}
-      ideas={[IDEA_FIXTURE]}
-      action={action}
-    />,
-  );
-  await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
-  expect(page.getByRole("textbox").all()).toHaveLength(0);
-  await page.getByRole("button", { name: "Edit idea" }).click();
-  const edit = page.getByRole("textbox", { name: "Idea", exact: true }).first();
-  await expect.element(edit).toHaveFocus();
-  await edit.fill("Discard this edit");
-  await page.getByRole("button", { name: "Cancel idea edit" }).click();
-  await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
-  await expect
-    .element(page.getByRole("button", { name: "Edit idea" }))
-    .toHaveFocus();
-  expect(action).not.toHaveBeenCalled();
-});
-
-test.each(["pointer", "keyboard"])(
-  "reorders ideas with the shared %s handle",
-  async (method) => {
-    const second = IDEA.parse({
-      id: "22222222-2222-4222-8222-222222222222",
-      text: "Try charcoal",
-    });
-    const action = vi.fn<IdeaAction>().mockResolvedValue({ kind: "saved" });
-    await render(
-      <QuestIdeas
-        questId={FOX_QUEST.id}
-        ideas={[IDEA_FIXTURE, second]}
-        action={action}
-      />,
-    );
-    const handle = page.getByRole("button", {
-      name: `Reorder “${second.text}”`,
-    });
-    if (method === "pointer") {
-      await userEvent.dragAndDrop(
-        handle,
-        page.getByRole("button", { name: "Edit idea", exact: true }).first(),
-        { targetPosition: { x: 1, y: 1 } },
-      );
-    } else {
-      handle.element().focus();
-      await userEvent.keyboard("{ArrowUp}");
-    }
-    expect(action).toHaveBeenCalledWith({
-      op: "reorder",
-      questId: FOX_QUEST.id,
-      id: second.id,
-      before: IDEA_FIXTURE.id,
-    });
-    await expect
-      .element(
-        page.getByRole("list", { name: "Ideas" }).getByRole("listitem").first(),
-      )
-      .toMatchTextContent(second.text);
-    await expect.element(handle).toHaveFocus();
-  },
-);
-
-const OUTSIDE_LIST = "Outside the list";
 const SECOND_IDEA = IDEA.parse({
   id: "22222222-2222-4222-8222-222222222222",
   text: "Try charcoal",
 });
 
-test("clicking another idea saves the old edit and hands off focus; clicking outside saves and closes the new edit", async () => {
-  const saved = Promise.withResolvers<Awaited<ReturnType<IdeaAction>>>();
-  const action = vi.fn<IdeaAction>().mockResolvedValue({ kind: "saved" });
-  action.mockReturnValueOnce(saved.promise);
-  await render(
-    <>
-      <QuestIdeas
-        questId={FOX_QUEST.id}
-        ideas={[IDEA_FIXTURE, SECOND_IDEA]}
-        action={action}
-      />
-      <input aria-label={OUTSIDE_LIST} />
-    </>,
-  );
-  await page
-    .getByRole("button", { name: "Edit idea", exact: true })
-    .first()
-    .click();
-  await page
-    .getByRole("textbox", { name: "Idea", exact: true })
-    .fill("Try ink");
-  await page.getByRole("button", { name: "Edit idea", exact: true }).click();
-  expect(action).toHaveBeenCalledExactlyOnceWith({
-    op: "edit",
-    questId: FOX_QUEST.id,
-    id: IDEA_FIXTURE.id,
-    text: "Try ink",
-  });
-  saved.resolve({ kind: "saved" });
-  const editor = page.getByRole("textbox", { name: "Idea", exact: true });
-  await expect.element(editor).toHaveValue(SECOND_IDEA.text);
-  await expect.element(editor).toHaveFocus();
-  await editor.fill("Try pastels");
-  const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
-  await outside.click();
-  await expect.element(editor).not.toBeInTheDocument();
-  expect(action).toHaveBeenLastCalledWith({
-    op: "edit",
-    questId: FOX_QUEST.id,
-    id: SECOND_IDEA.id,
-    text: "Try pastels",
-  });
-  await expect.element(outside).toHaveFocus();
-});
+function noted(note: string): ChatSendResult {
+  return { sent: true, note };
+}
 
-test("clicking outside an unchanged idea closes it without a redundant save", async () => {
-  const action = vi.fn<IdeaAction>();
-  await render(
+function ideasPanel({
+  send,
+  ideas,
+  embedded,
+  outside,
+}: {
+  readonly send: Mock<ChatSend>;
+  readonly ideas: readonly Idea[];
+  readonly embedded?: boolean;
+  readonly outside?: boolean;
+}): JSX.Element {
+  return inConversation(
+    send,
     <>
-      <QuestIdeas
-        questId={FOX_QUEST.id}
-        ideas={[IDEA_FIXTURE]}
-        action={action}
-      />
-      <input aria-label={OUTSIDE_LIST} />
+      <QuestIdeas embedded={embedded === true} ideas={ideas} />
+      {outside === true && <input aria-label={OUTSIDE_LIST} />}
     </>,
   );
-  await page.getByRole("button", { name: "Edit idea", exact: true }).click();
-  await page.getByRole("textbox", { name: OUTSIDE_LIST }).click();
-  await expect
-    .element(page.getByRole("textbox", { name: "Idea", exact: true }))
-    .not.toBeInTheDocument();
-  expect(action).not.toHaveBeenCalled();
-});
+}
 
-test("a save already in progress does not reclaim focus after clicking outside", async () => {
-  const saved = Promise.withResolvers<Awaited<ReturnType<IdeaAction>>>();
-  const action = vi.fn<IdeaAction>().mockReturnValue(saved.promise);
-  await render(
-    <>
-      <QuestIdeas
-        questId={FOX_QUEST.id}
-        ideas={[IDEA_FIXTURE]}
-        action={action}
-      />
-      <input aria-label={OUTSIDE_LIST} />
-    </>,
+describe("use_case_quest_ideas", () => {
+  test("Add idea sends /idea with the text", async () => {
+    const send = chatSendMock().mockResolvedValue(
+      noted("Added the idea “Try charcoal” to Ideas."),
+    );
+    await render(ideasPanel({ send, ideas: [] }));
+    await page.getByRole("button", { name: "Add idea", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "Idea", exact: true })
+      .fill("Try charcoal");
+    await page.getByRole("button", { name: "Add idea" }).click();
+
+    expect(sentTexts(send)).toEqual(["/idea Try charcoal"]);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Added the idea “Try charcoal” to Ideas.");
+  });
+
+  test("an idea can be edited and moved, with feedback and retained focus", async () => {
+    const send = chatSendMock()
+      .mockResolvedValueOnce(noted("Changed idea 1 to “Try ink”."))
+      .mockResolvedValueOnce(noted("Moved the idea “Try ink” to the Tasks."));
+    await render(ideasPanel({ send, ideas: [IDEA_FIXTURE] }));
+    await page.getByRole("button", { name: "Edit idea" }).click();
+    await page
+      .getByRole("textbox", { name: "Idea", exact: true })
+      .first()
+      .fill("Try ink");
+    await page.getByRole("button", { name: "Save idea" }).click();
+    expect(sentTexts(send)).toEqual(["/edit-idea 1 Try ink"]);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Changed idea 1 to “Try ink”.");
+    await page.getByRole("button", { name: ACTIONS_NAME }).click();
+    await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
+    expect(sentTexts(send)).toEqual([
+      "/edit-idea 1 Try ink",
+      "/idea-to-tasks 1",
+    ]);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Moved the idea “Try ink” to the Tasks.");
+    await expect
+      .element(page.getByRole("heading", { name: "Ideas" }))
+      .toHaveFocus();
+    await expect
+      .element(page.getByText("No ideas yet.", { exact: false }))
+      .toBeVisible();
+  });
+
+  test("Remove idea sends /drop-idea with its place", async () => {
+    const send = chatSendMock();
+    await render(ideasPanel({ send, ideas: [IDEA_FIXTURE, SECOND_IDEA] }));
+    await page.getByRole("button", { name: ACTIONS_NAME }).nth(1).click();
+    await page.getByRole("menuitem", { name: "Remove idea" }).click();
+
+    expect(sentTexts(send)).toEqual(["/drop-idea 2"]);
+    await expect
+      .element(page.getByText(SECOND_IDEA.text))
+      .not.toBeInTheDocument();
+    await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
+  });
+
+  test("a refused add keeps the draft and a refused move keeps the idea, each saying why", async () => {
+    const send = chatSendMock().mockResolvedValue({
+      sent: false,
+      problem: "Please try again.",
+    });
+    await render(ideasPanel({ send, ideas: [IDEA_FIXTURE] }));
+    await page.getByRole("button", { name: "Add idea", exact: true }).click();
+    const input = page
+      .getByRole("textbox", { name: "Idea", exact: true })
+      .last();
+    await input.fill("Try charcoal");
+    await page.getByRole("button", { name: "Add idea" }).click();
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent("Please try again.");
+    await expect.element(input).toHaveValue("Try charcoal");
+    // Clicking elsewhere would save the draft again, so it is discarded first.
+    await userEvent.keyboard("{Escape}");
+    await page.getByRole("button", { name: ACTIONS_NAME }).click();
+    await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
+    await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
+    expect(sentTexts(send)).toEqual(["/idea Try charcoal", "/idea-to-tasks 1"]);
+  });
+
+  test("an all-space idea shows validation feedback without sending", async () => {
+    const send = chatSendMock();
+    await render(ideasPanel({ send, ideas: [] }));
+    await page.getByRole("button", { name: "Add idea", exact: true }).click();
+    await page.getByRole("textbox", { name: "Idea", exact: true }).fill("   ");
+    await page.getByRole("button", { name: "Add idea" }).click();
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent("Enter an idea of 1 to 200 characters.");
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test("saved ideas stay readable until edited and cancelling keeps their text", async () => {
+    const send = chatSendMock();
+    await render(ideasPanel({ embedded: true, send, ideas: [IDEA_FIXTURE] }));
+    await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
+    expect(page.getByRole("textbox").all()).toHaveLength(0);
+    await page.getByRole("button", { name: "Edit idea" }).click();
+    const edit = page
+      .getByRole("textbox", { name: "Idea", exact: true })
+      .first();
+    await expect.element(edit).toHaveFocus();
+    await edit.fill("Discard this edit");
+    await page.getByRole("button", { name: "Cancel idea edit" }).click();
+    await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: "Edit idea" }))
+      .toHaveFocus();
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test.each(["pointer", "keyboard"])(
+    "reorders ideas with the shared %s handle, sending /move-idea",
+    async (method) => {
+      const send = chatSendMock();
+      const screen = await render(
+        ideasPanel({ send, ideas: [IDEA_FIXTURE, SECOND_IDEA] }),
+      );
+      const handle = page.getByRole("button", {
+        name: `Reorder “${SECOND_IDEA.text}”`,
+      });
+      if (method === "pointer") {
+        await userEvent.dragAndDrop(
+          handle,
+          page.getByRole("button", { name: "Edit idea", exact: true }).first(),
+          { targetPosition: { x: 1, y: 1 } },
+        );
+      } else {
+        handle.element().focus();
+        await userEvent.keyboard("{ArrowUp}");
+      }
+      expect(sentTexts(send)).toEqual(["/move-idea 2 1"]);
+      // The route refresh that comes with the command brings the new order.
+      await screen.rerender(
+        ideasPanel({ send, ideas: [SECOND_IDEA, IDEA_FIXTURE] }),
+      );
+      await expect
+        .element(
+          page
+            .getByRole("list", { name: "Ideas" })
+            .getByRole("listitem")
+            .first(),
+        )
+        .toMatchTextContent(SECOND_IDEA.text);
+      await expect.element(handle).toHaveFocus();
+    },
   );
-  await page.getByRole("button", { name: "Edit idea", exact: true }).click();
-  await page
-    .getByRole("textbox", { name: "Idea", exact: true })
-    .fill("Try ink");
-  await userEvent.keyboard("{Enter}");
-  const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
-  await outside.click();
-  saved.resolve({ kind: "saved" });
-  await expect
-    .element(page.getByRole("textbox", { name: "Idea", exact: true }))
-    .not.toBeInTheDocument();
-  await expect.element(outside).toHaveFocus();
-  expect(action).toHaveBeenCalledTimes(1);
+
+  test("clicking another idea saves the old edit and hands off focus; clicking outside saves and closes the new edit", async () => {
+    const saved = Promise.withResolvers<ChatSendResult>();
+    const send = chatSendMock().mockReturnValueOnce(saved.promise);
+    await render(
+      ideasPanel({ outside: true, send, ideas: [IDEA_FIXTURE, SECOND_IDEA] }),
+    );
+    await page
+      .getByRole("button", { name: "Edit idea", exact: true })
+      .first()
+      .click();
+    await page
+      .getByRole("textbox", { name: "Idea", exact: true })
+      .fill("Try ink");
+    await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+    expect(sentTexts(send)).toEqual(["/edit-idea 1 Try ink"]);
+    saved.resolve({ sent: true });
+    const editor = page.getByRole("textbox", { name: "Idea", exact: true });
+    await expect.element(editor).toHaveValue(SECOND_IDEA.text);
+    await expect.element(editor).toHaveFocus();
+    await editor.fill("Try pastels");
+    const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
+    await outside.click();
+    await expect.element(editor).not.toBeInTheDocument();
+    expect(sentTexts(send)).toEqual([
+      "/edit-idea 1 Try ink",
+      "/edit-idea 2 Try pastels",
+    ]);
+    await expect.element(outside).toHaveFocus();
+  });
+
+  test("clicking outside an unchanged idea closes it without a redundant send", async () => {
+    const send = chatSendMock();
+    await render(ideasPanel({ outside: true, send, ideas: [IDEA_FIXTURE] }));
+    await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+    await page.getByRole("textbox", { name: OUTSIDE_LIST }).click();
+    await expect
+      .element(page.getByRole("textbox", { name: "Idea", exact: true }))
+      .not.toBeInTheDocument();
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test("a send already in progress does not reclaim focus after clicking outside", async () => {
+    const saved = Promise.withResolvers<ChatSendResult>();
+    const send = chatSendMock().mockReturnValue(saved.promise);
+    await render(ideasPanel({ outside: true, send, ideas: [IDEA_FIXTURE] }));
+    await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "Idea", exact: true })
+      .fill("Try ink");
+    await userEvent.keyboard("{Enter}");
+    const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
+    await outside.click();
+    saved.resolve({ sent: true });
+    await expect
+      .element(page.getByRole("textbox", { name: "Idea", exact: true }))
+      .not.toBeInTheDocument();
+    await expect.element(outside).toHaveFocus();
+    expect(send).toHaveBeenCalledTimes(1);
+  });
 });

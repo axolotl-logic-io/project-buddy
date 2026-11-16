@@ -173,7 +173,6 @@ describe("saved message authors", () => {
 });
 
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  castSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   cloneSpellAction: vi.fn(),
   saveSpellAction: vi.fn(),

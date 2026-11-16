@@ -292,7 +292,6 @@ test("Workshop keeps private constructs in the store’s oldest-first order", as
 });
 
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  castSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   cloneSpellAction: vi.fn(),
   saveSpellAction: vi.fn(),
