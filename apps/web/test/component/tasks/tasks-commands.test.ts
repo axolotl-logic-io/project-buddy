@@ -1,13 +1,13 @@
 // The chat's built-in commands: which messages the composer runs as commands
 // rather than sending to the construct, and what each tasks command asks of
-// the tasks, naming steps by their numbers.
+// the tasks, naming tasks by their numbers.
 
 import { describe, expect, test } from "vitest";
-import { TASKS_STEP_TEXT_MAX_LENGTH, type Tasks } from "@/tasks/tasks.ts";
+import { TASK_TEXT_MAX_LENGTH, type Tasks } from "@/tasks/tasks.ts";
 import { isChatCommand, parseTasksCommand } from "@/tasks/tasks-commands.ts";
 
 const TASKS: Tasks = {
-  steps: [
+  items: [
     { number: 1, text: "Gather reference photos", done: true },
     { number: 2, text: "Block out the body", done: false },
     { number: 3, text: "Sculpt the feathers", done: false },
@@ -35,23 +35,23 @@ describe("chat commands", () => {
         operations: [{ op: "add", text: "Retopologize the head" }],
       },
     ],
-    ["/done", { kind: "change", operations: [{ op: "complete", step: 2 }] }],
-    ["/done #3", { kind: "change", operations: [{ op: "complete", step: 3 }] }],
-    ["/reopen 1", { kind: "change", operations: [{ op: "reopen", step: 1 }] }],
+    ["/done", { kind: "change", operations: [{ op: "complete", task: 2 }] }],
+    ["/done #3", { kind: "change", operations: [{ op: "complete", task: 3 }] }],
+    ["/reopen 1", { kind: "change", operations: [{ op: "reopen", task: 1 }] }],
     [
       "/edit 3 Sculpt the brass plates",
       {
         kind: "change",
         operations: [
-          { op: "change", step: 3, text: "Sculpt the brass plates" },
+          { op: "change", task: 3, text: "Sculpt the brass plates" },
         ],
       },
     ],
     [
       "/move 3 1",
-      { kind: "change", operations: [{ op: "move", step: 3, before: 2 }] },
+      { kind: "change", operations: [{ op: "move", task: 3, before: 2 }] },
     ],
-    ["/drop 2", { kind: "change", operations: [{ op: "remove", step: 2 }] }],
+    ["/drop 2", { kind: "change", operations: [{ op: "remove", task: 2 }] }],
   ])("%s", (text, command) => {
     expect(parseTasksCommand(text, TASKS)).toEqual(command);
   });
@@ -60,12 +60,9 @@ describe("chat commands", () => {
     ["/frobnicate", { kind: "unknown", name: "frobnicate" }],
     ["/add", { kind: "no-text", name: "add" }],
     ["/edit 3", { kind: "no-text", name: "edit" }],
-    [
-      `/add ${"x".repeat(TASKS_STEP_TEXT_MAX_LENGTH + 1)}`,
-      { kind: "too-long" },
-    ],
-    ["/done 9", { kind: "no-step", step: "9" }],
-    ["/drop", { kind: "no-step", step: undefined }],
+    [`/add ${"x".repeat(TASK_TEXT_MAX_LENGTH + 1)}`, { kind: "too-long" }],
+    ["/done 9", { kind: "no-task", task: "9" }],
+    ["/drop", { kind: "no-task", task: undefined }],
     ["/move 3", { kind: "no-place", most: 2 }],
     ["/move 3 5", { kind: "no-place", most: 2 }],
   ])("%s does nothing and says why", (text, problem) => {
@@ -75,14 +72,14 @@ describe("chat commands", () => {
     });
   });
 
-  test("/done with no step and nothing open says there's no step", () => {
+  test("/done with no task and nothing open says there's no task", () => {
     const allDone: Tasks = {
-      steps: [{ number: 1, text: "Gather reference photos", done: true }],
+      items: [{ number: 1, text: "Gather reference photos", done: true }],
       nextNumber: 2,
     };
     expect(parseTasksCommand("/done", allDone)).toEqual({
       kind: "problem",
-      problem: { kind: "no-step", step: undefined },
+      problem: { kind: "no-task", task: undefined },
     });
   });
 });

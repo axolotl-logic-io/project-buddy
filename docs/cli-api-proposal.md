@@ -25,7 +25,7 @@ project-buddy note add --quest QUEST_ID --text-file ./handoff.txt
 project-buddy conversation send --quest QUEST_ID --text "help"
 ```
 
-`QUEST_ID` means an exact quest identifier returned by the API. A quest's ID selects its one conversation. Commands never pick a quest by an ambiguous name or a hidden current-quest setting. Task steps use their stable numbers within the selected quest; other records use their domain identifiers.
+`QUEST_ID` means an exact quest identifier returned by the API. A quest's ID selects its one conversation. Commands never pick a quest by an ambiguous name or a hidden current-quest setting. Tasks use their stable numbers within the selected quest; other records use their domain identifiers.
 
 Accept flags before or after subcommands. Shared options are `--profile NAME`, `--timeout SECONDS` and `--request-id ID` for mutations. Profiles select a saved API origin and connection. `--text`, `--text-file PATH` and `--stdin` are mutually exclusive; stdin contains one UTF-8 text value, not a batch of commands. Missing input fails without prompting. No mutation asks an interactive question. No-argument invocation shows help and performs no operation.
 
@@ -41,8 +41,8 @@ Accept flags before or after subcommands. Shared options are `--profile NAME`, `
 | `quest start --from dailies\|learn\|make\|do` | Use the same starting point and optional Why as the site; preserve Dailies reuse and assigned construct. | `data:read`, `data:write`, `replies:create` |
 | `quest rename QUEST_ID --name TEXT` | Apply the site's quest-name validation. | `data:write` |
 | `quest complete`, `quest abandon`, `quest restore` | Take a quest ID and `--revision`; apply the existing status transition. | `data:write` |
-| `task list --quest QUEST_ID` | Return steps in saved order and the Tasks version. | `data:read` |
-| `task add`, `task edit`, `task complete`, `task reopen`, `task move`, `task remove`, `task undo` | Take `--quest`; changes to existing steps also take `--version` and a stable step number. Undo takes a change version and expected current version. Preserve Tasks history and undo rules. | `data:write` |
+| `task list --quest QUEST_ID` | Return tasks in saved order and the Tasks version. | `data:read` |
+| `task add`, `task edit`, `task complete`, `task reopen`, `task move`, `task remove`, `task undo` | Take `--quest`; changes to existing tasks also take `--version` and a stable task number. Undo takes a change version and expected current version. Preserve Tasks history and undo rules. | `data:write` |
 | `idea list`, `idea add`, `idea edit`, `idea move`, `idea remove`, `idea to-tasks` | Take `--quest`; changes to existing entries use a revision. Moving to Tasks is atomic across both collections. | `data:read` for list; `data:write` otherwise |
 | `note list`, `note add`, `note remove` | Take `--quest`; add enforces the site's Active-quest and Quick Note text rules. | `data:read` for list; `data:write` otherwise |
 | `milestone list`, `milestone edit`, `milestone remove` | Take `--quest`; edits use a revision. New milestones continue through the construct's existing tool. | `data:read` for list; `data:write` otherwise |
@@ -153,7 +153,7 @@ Deletes remain idempotent and do not distinguish missing from inaccessible recor
 
 Persist reply execution under the site's supported server lifecycle; acceptance must schedule execution before it answers. A process failure must leave a discoverable failed or interrupted operation, never an indefinitely running record. Define recovery of abandoned claims in the reply slice. A client timeout or closed pipe stops local waiting, without implicitly cancelling server work. `reply cancel` requests cancellation using the existing cancellation machinery; effects already committed remain visible. An interrupted CLI invocation exits 130.
 
-Use the same local engine, snapshots, command rules and spell capture as the website. Direct `task add` saves a step regardless of active spell; `conversation send` follows that spell's routing. Current replies and openings make no provider requests and add no charges. Preserve the site's one-running-reply constraints and report a conflict rather than interleave incompatible writes.
+Use the same local engine, snapshots, command rules and spell capture as the website. Direct `task add` saves a task regardless of active spell; `conversation send` follows that spell's routing. Current replies and openings make no provider requests and add no charges. Preserve the site's one-running-reply constraints and report a conflict rather than interleave incompatible writes.
 
 For example, an external workflow can save a handoff directly:
 

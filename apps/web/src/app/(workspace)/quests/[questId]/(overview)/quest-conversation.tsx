@@ -78,7 +78,7 @@ function membersSection(
 // nothing: a quest whose conversation hasn't started, as after the move
 // from adventures, offers to start it instead. The active Dailies quest
 // offers Start Day, which begins a new day with an empty conversation and
-// reopens its done recurring steps, and shows their streaks and day grid.
+// reopens its done recurring tasks, and shows their streaks and day grid.
 // The Dailies quest's days while it is active; undefined in any other quest.
 function readRecord(
   quest: Quest,

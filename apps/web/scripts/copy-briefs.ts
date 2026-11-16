@@ -4,47 +4,47 @@ import type { CopyField, CopySheetField } from "./copy-sheet.ts";
 const COPY_BRIEFS = new Map<string, string>([
   [
     "ACCOUNT_COPY.nameBraces",
-    "In Settings, where a person changes their name or signs out. Explain why the name cannot be saved: the name saved in Settings cannot contain the { or } symbols.",
+    "On Profile, where a person changes their name. Explain why the name cannot be saved: the name saved in Profile cannot contain the { or } symbols.",
   ],
   [
     "ACCOUNT_COPY.nameHint",
-    "In Settings, where a person changes their name or signs out. Explain where the name saved in Settings appears: spell replies, shared quest messages and Members.",
+    "On Profile, where a person changes their name. Explain where the name saved in Profile appears: spell replies, shared quest messages and Members.",
   ],
   [
     "ACCOUNT_COPY.nameMultiLine",
-    "In Settings, where a person changes their name or signs out. Explain why the name cannot be saved: the name saved in Settings must fit on one line.",
+    "On Profile, where a person changes their name. Explain why the name cannot be saved: the name saved in Profile must fit on one line.",
   ],
   [
     "ACCOUNT_COPY.nameTooLong",
-    "In Settings, where a person changes their name or signs out. When a name is too long to save in Settings, state the largest allowed number of characters.",
+    "On Profile, where a person changes their name. When a name is too long to save in Profile, state the largest allowed number of characters.",
   ],
   [
     "ACCOUNT_COPY.signOutEverywhereDescription",
-    "In Settings, where a person changes their name or signs out. Before the person signs out on every browser and device, explain that they will also leave this browser and that previously emailed sign-in and invitation links will stop working. Invitations remain pending. A new sign-in link lets them return.",
+    "In Settings, where a person changes their appearance or signs out. Before the person signs out on every browser and device, explain that they will also leave this browser and that previously emailed sign-in and invitation links will stop working. Invitations remain pending. A new sign-in link lets them return.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant1",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for starting Tasks and saving messages sent afterward as steps.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for starting Tasks and saving messages sent afterward as tasks.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant2",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for adding a step at the end.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for adding a task at the end.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant3",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for completing a named step or the next step.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for completing a named task or the next task.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant4",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for reopening a completed step.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for reopening a completed task.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant5",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for changing a step's text.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for changing a task's text.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant6",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for moving an open step to a numbered position, starting at one.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for moving an open task to a numbered position, starting at one.",
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant8",
@@ -56,7 +56,7 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "CHAT_COMMANDS_COPY.hint",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. Explain that commands run as soon as they are sent and a step is chosen by its number.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. Explain that commands run as soon as they are sent and a task is chosen by its number.",
   ],
   [
     "CHAT_COMMANDS_COPY.problem.variant1",
@@ -64,23 +64,23 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "CHAT_COMMANDS_COPY.problem.variant2",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, ask for step text after the command name.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, ask for task text after the command name.",
   ],
   [
     "CHAT_COMMANDS_COPY.problem.variant3",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, state the largest allowed number of characters and that the step must fit on one line.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, state the largest allowed number of characters and that the task must fit on one line.",
   ],
   [
     "CHAT_COMMANDS_COPY.problem.variant4",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, explain how to supply a step number, with a done-command example.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, explain how to supply a task number, with a done-command example.",
   ],
   [
     "CHAT_COMMANDS_COPY.problem.variant5",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, the numbered step does not exist; suggest listing Tasks.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, the numbered task does not exist; suggest listing Tasks.",
   ],
   [
     "CHAT_COMMANDS_COPY.problem.variant6",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, explain the move command's step number and lowest and highest positions the step can move to.",
+    "Beside the message box in a quest conversation, where typed commands change Tasks. When someone types an incomplete or incorrect command in the message box, explain the move command's task number and lowest and highest positions the task can move to.",
   ],
   [
     "CHAT_COPY.cancelledReply",
@@ -207,6 +207,42 @@ const COPY_BRIEFS = new Map<string, string>([
     "In image messages kept from an older version of the site. The site no longer creates images. Image-generation progress message with an approximate two-minute wait; message kept from an older version of the site.",
   ],
   [
+    "EXPERIENCE_COPY.circle",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the person's circle and the title it gives them.",
+  ],
+  [
+    "EXPERIENCE_COPY.standing",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. State the person's experience and how much more they need to reach their next circle.",
+  ],
+  [
+    "EXPERIENCE_COPY.progress",
+    "In the site header on every page, as the accessible name of a small ring that fills as the person nears their next circle and links to the Experience section of Profile. Name their circle and its title, say how much more experience the next circle needs, and say the link opens their experience.",
+  ],
+  [
+    "EXPERIENCE_COPY.points",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. State how many points the person has in one ability.",
+  ],
+  [
+    "EXPERIENCE_COPY.abilities.adding-tasks",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each task the person adds.",
+  ],
+  [
+    "EXPERIENCE_COPY.abilities.ideating",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each idea the person adds.",
+  ],
+  [
+    "EXPERIENCE_COPY.abilities.noting",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each Quick Note the person saves.",
+  ],
+  [
+    "EXPERIENCE_COPY.abilities.completing-tasks",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each task the person completes.",
+  ],
+  [
+    "EXPERIENCE_COPY.abilities.completing-quests",
+    "On Profile, in the Experience section, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each quest the person completes.",
+  ],
+  [
     "IDEAS_COPY.empty",
     "In the Ideas section of a quest, for possibilities the person may want to pursue later. When the Ideas list has nothing in it, write a message inviting the user to add a possibility to explore.",
   ],
@@ -292,7 +328,7 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "LOCAL_CONSTRUCT_COPY.help",
-    "In the construct’s replies to typed commands in a quest conversation. Write help for the commands brainstorm, tasks, stop, help, look and cast. Explain what each does, that a / at the beginning is optional, and that Tasks and Brainstorm remain on until stopped. Explain where to manage Tasks, Ideas and Progress.",
+    "In the construct’s replies to typed commands in a quest conversation. Write help for the commands brainstorm, tasks, stop, help, look, exp and cast. Explain what each does, that a / at the beginning is optional, and that Tasks and Brainstorm remain on until stopped. Explain where to manage Tasks, Ideas and Progress.",
   ],
   [
     "LOCAL_CONSTRUCT_COPY.look.variant1",
@@ -420,7 +456,7 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "PROMPT_COPY.namePlaceholderHint",
-    "Beside a box for changing a construct’s name and appearance or writing a spell’s replies. Explain that the marker for the person’s name is replaced by the name in Settings, or a general reference to the person when no name is saved. Show the marker exactly as supplied.",
+    "Beside a box for changing a construct’s name and appearance or writing a spell’s replies. Explain that the marker for the person’s name is replaced by the name in Profile, or a general reference to the person when no name is saved. Show the marker exactly as supplied.",
   ],
   [
     "PROMPT_COPY.needsName",
@@ -435,8 +471,8 @@ const COPY_BRIEFS = new Map<string, string>([
     "On a quest’s conversation page, beside the controls for starting or resetting it. Confirm permanent conversation reset: clear messages and the spell currently turned on.",
   ],
   [
-    "QUEST_CONVERSATION_COPY.keepSteps",
-    "On a quest’s conversation page, beside the controls for starting or resetting it. Explain that conversation reset keeps existing steps but unchecks them by default.",
+    "QUEST_CONVERSATION_COPY.keepTasks",
+    "On a quest’s conversation page, beside the controls for starting or resetting it. Explain that conversation reset keeps existing tasks but unchecks them by default.",
   ],
   [
     "QUEST_CONVERSATION_COPY.notStarted",
@@ -776,39 +812,39 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "TASKS_COPY.failed.already-undone",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Explain that this change to Tasks has already been undone.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that this change to Tasks has already been undone.",
   ],
   [
     "TASKS_COPY.failed.awaiting-reply",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Explain that Tasks editing is blocked while a message awaits a reply; offer waiting or editing from the quest page.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that Tasks editing is blocked while a message awaits a reply; offer waiting or editing from the quest page.",
   ],
   [
-    "TASKS_COPY.failed.missing-step",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Explain that a step is no longer in Tasks and the latest list is now displayed.",
+    "TASKS_COPY.failed.missing-task",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that a task is no longer in Tasks and the latest list is now displayed.",
   ],
   [
     "TASKS_COPY.failed.no-such-change",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Explain that the requested change cannot be found for undo.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that the requested change cannot be found for undo.",
   ],
   [
     "TASKS_COPY.failed.not-found",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Explain that the quest is no longer available to this person.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that the quest is no longer available to this person.",
   ],
   [
     "TASKS_COPY.failed.not-saved",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Report that Tasks could not be saved and suggest retrying.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Report that Tasks could not be saved and suggest retrying.",
   ],
   [
     "TASKS_COPY.failed.nothing-to-undo",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. Explain that changes made afterward have already replaced or removed everything this change did, so there is nothing left for Undo to reverse.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that changes made afterward have already replaced or removed everything this change did, so there is nothing left for Undo to reverse.",
   ],
   [
     "TASKS_COPY.needsText",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. When someone tries to save a blank Tasks step, ask them to write what needs doing.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. When someone tries to save a blank Tasks task, ask them to write what needs doing.",
   ],
   [
     "TASKS_COPY.tooLong",
-    "In the Tasks section of a quest, where the person adds, changes and checks off steps. When a Tasks step cannot be saved, explain that it needs a line without a line break within the supplied character limit.",
+    "In the Tasks section of a quest, where the person adds, changes and checks off tasks. When a Tasks task cannot be saved, explain that it needs a line without a line break within the supplied character limit.",
   ],
   [
     "TASKS_PANEL_COPY.busy",
@@ -851,8 +887,16 @@ const COPY_BRIEFS = new Map<string, string>([
     "In Workshop, beside the box describing a construct’s appearance. When a construct cannot be saved without a description of its appearance, ask for one.",
   ],
   [
+    "PROFILE_COPY.intro",
+    "On the Profile page. Introduce Profile as the place for the person's name and their experience.",
+  ],
+  [
+    "PROFILE_COPY.loading",
+    "On the Profile page, while it loads. Say the person's name and experience are loading.",
+  ],
+  [
     "WORKSPACES_COPY.settingsIntro",
-    "On the Settings page. Introduce Settings as the place for profile, appearance and security preferences.",
+    "On the Settings page. Introduce Settings as the place for appearance and security preferences.",
   ],
   [
     "TIMER_COPY.runningTitle",
@@ -938,16 +982,16 @@ const MARKER_HELP = new Map<string, string>([
   ["SITE_COPY.name", "the site name"],
   ["SITE_NAME", "the site name"],
   [
-    "TASKS_STEP_TEXT_MAX_LENGTH",
-    "the largest number of characters allowed in a step",
+    "TASK_TEXT_MAX_LENGTH",
+    "the largest number of characters allowed in a task",
   ],
   ["bucket", "Tasks or Ideas, where messages are saved"],
   ["constructName", "the construct’s name"],
   ["description", "the construct’s saved appearance description"],
   ["email", "the invited person’s email address"],
-  ["found.most", "the highest position a step can move to"],
+  ["found.most", "the highest position a task can move to"],
   ["found.name", "the command name"],
-  ["found.step", "the step number"],
+  ["found.task", "the task number"],
   ["invitedBy", "the name of the person who sent the invitation"],
   ["kind", "whether this is a construct or a spell"],
   ["libraryLink", "a link to the source of the small pictures used on buttons"],
@@ -965,6 +1009,15 @@ const MARKER_HELP = new Map<string, string>([
   ],
   ["quest", "the quest name, possibly including its owner’s name"],
   ["questName", "the quest’s name"],
+  ["circle", "the person's circle number"],
+  ["title", "the title of the person's circle, such as Apprentice"],
+  ["experience", "the person's total experience"],
+  ["needed", "how much more experience the person needs for their next circle"],
+  ["next", "the number of the person's next circle"],
+  [
+    "points",
+    "the number of points, with the appropriate singular or plural wording",
+  ],
   ["sharing.owner", "the name of the person who owns the quest"],
   ["spell", "the spell’s name"],
   [

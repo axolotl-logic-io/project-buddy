@@ -1,6 +1,6 @@
-// A quest's tasks steps, in Chromium and WebKit: the open steps with their
-// controls, editing and moving a step without the construct, and Undo for
-// the last change. "use_case_recurring_steps": in Dailies, a step's menu makes
+// A quest's tasks, in Chromium and WebKit: the open tasks with their
+// controls, editing and moving a task without the construct, and Undo for
+// the last change. "use_case_recurring_tasks": in Dailies, a task's menu makes
 // it recurring. What the actions save is tasks.server.test.ts's.
 
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -15,7 +15,7 @@ import type {
 } from "@/tasks/tasks-actions.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import { questIdFixture } from "../../../../../support/id-fixtures.ts";
-import { QuestTasks } from "./tasks-steps-test-kit.tsx";
+import { QuestTasks } from "./task-rows-test-kit.tsx";
 
 const actions = {
   changeTasksAction: vi.fn<typeof changeTasksAction>(),
@@ -39,7 +39,7 @@ const BRASS = "Sculpt the brass plates";
 const TASKS: TasksState = {
   version: 2,
   tasks: {
-    steps: [
+    items: [
       { number: 1, text: BLOCK_OUT, done: false },
       { number: 2, text: SCULPT, done: false },
     ],
@@ -51,7 +51,7 @@ const TASKS: TasksState = {
 const MOVED: TasksState = {
   version: 3,
   tasks: {
-    steps: [
+    items: [
       { number: 2, text: SCULPT, done: false },
       { number: 1, text: BLOCK_OUT, done: false },
     ],
@@ -63,7 +63,7 @@ const MOVED: TasksState = {
 const RECURRING: TasksState = {
   version: 3,
   tasks: {
-    steps: [
+    items: [
       { number: 1, text: BLOCK_OUT, done: false },
       { number: 2, text: SCULPT, done: false, recurring: true },
     ],
@@ -72,8 +72,8 @@ const RECURRING: TasksState = {
   undone: [],
 };
 
-function openSteps(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("list", { name: TASKS_COPY.stepsLabel });
+function openTasks(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("list", { name: TASKS_COPY.tasksLabel });
 }
 
 afterEach(() => {
@@ -81,7 +81,7 @@ afterEach(() => {
 });
 
 describe("use_case_change_tasks", () => {
-  test("shows compact task rows with step numbers and actions in their menus", async () => {
+  test("shows compact task rows with task numbers and actions in their menus", async () => {
     await render(
       <QuestTasks questId={QUEST_ID} tasks={TASKS} actions={TASKS_ACTIONS} />,
     );
@@ -91,7 +91,7 @@ describe("use_case_change_tasks", () => {
       .toBeVisible();
     expect(page.getByRole("textbox").all()).toHaveLength(0);
     await expect
-      .element(openSteps().getByRole("listitem").nth(0))
+      .element(openTasks().getByRole("listitem").nth(0))
       .toMatchTextContent(BLOCK_OUT);
     await page
       .getByRole("button", { name: TASKS_COPY.actions(BLOCK_OUT) })
@@ -104,7 +104,7 @@ describe("use_case_change_tasks", () => {
       .toBeDisabled();
   });
 
-  test("moving a step saves it and shows the change with Undo", async () => {
+  test("moving a task saves it and shows the change with Undo", async () => {
     actions.changeTasksAction.mockResolvedValue({
       kind: "changed",
       version: MOVED.version,
@@ -131,10 +131,10 @@ describe("use_case_change_tasks", () => {
     expect(actions.changeTasksAction).toHaveBeenCalledWith({
       questId: QUEST_ID,
       chatId: undefined,
-      operations: [{ op: "move", step: 2, before: 1 }],
+      operations: [{ op: "move", task: 2, before: 1 }],
     });
     await expect
-      .element(openSteps().getByRole("listitem").nth(0))
+      .element(openTasks().getByRole("listitem").nth(0))
       .toMatchTextContent(SCULPT);
     const status = page.getByRole("status");
     await expect
@@ -150,7 +150,7 @@ describe("use_case_change_tasks", () => {
       version: MOVED.version,
     });
     await expect
-      .element(openSteps().getByRole("listitem").nth(0))
+      .element(openTasks().getByRole("listitem").nth(0))
       .toMatchTextContent(BLOCK_OUT);
   });
 
@@ -180,10 +180,10 @@ describe("use_case_change_tasks", () => {
       expect(actions.changeTasksAction).toHaveBeenCalledWith({
         questId: QUEST_ID,
         chatId: undefined,
-        operations: [{ op: "move", step: 2, before: 1 }],
+        operations: [{ op: "move", task: 2, before: 1 }],
       });
       await expect
-        .element(openSteps().getByRole("listitem").nth(0))
+        .element(openTasks().getByRole("listitem").nth(0))
         .toMatchTextContent(SCULPT);
       await expect.element(handle).toHaveFocus();
     },
@@ -210,7 +210,7 @@ describe("use_case_change_tasks", () => {
     await expect.element(page.getByRole("textbox")).not.toBeInTheDocument();
   });
 
-  test("editing a step saves its new text, and an empty one says why", async () => {
+  test("editing a task saves its new text, and an empty one says why", async () => {
     actions.changeTasksAction.mockResolvedValue({
       kind: "changed",
       version: MOVED.version,
@@ -220,7 +220,7 @@ describe("use_case_change_tasks", () => {
         version: MOVED.version,
         tasks: {
           ...TASKS.tasks,
-          steps: [
+          items: [
             { number: 1, text: BLOCK_OUT, done: false },
             { number: 2, text: BRASS, done: false },
           ],
@@ -245,9 +245,9 @@ describe("use_case_change_tasks", () => {
     expect(actions.changeTasksAction).toHaveBeenCalledWith({
       questId: QUEST_ID,
       chatId: undefined,
-      operations: [{ op: "change", step: 2, text: BRASS }],
+      operations: [{ op: "change", task: 2, text: BRASS }],
     });
-    await expect.element(openSteps()).toMatchTextContent(BRASS);
+    await expect.element(openTasks()).toMatchTextContent(BRASS);
   });
 
   test("a change that couldn't be saved is an alert, and a refused one a routine status", async () => {
@@ -270,7 +270,7 @@ describe("use_case_change_tasks", () => {
 
     actions.changeTasksAction.mockResolvedValueOnce({
       kind: "failed",
-      reason: "missing-step",
+      reason: "missing-task",
       state: TASKS,
     });
     await page
@@ -279,23 +279,23 @@ describe("use_case_change_tasks", () => {
     await userEvent.click(moveUp);
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent(TASKS_COPY.failed["missing-step"]);
+      .toHaveTextContent(TASKS_COPY.failed["missing-task"]);
     await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
   });
 });
 
 const OUTSIDE_TASKS = "Another field";
 
-test("clicking outside a Tasks step saves and closes its edit without stealing focus", async () => {
+test("clicking outside a Tasks task saves and closes its edit without stealing focus", async () => {
   const updated: TasksState = {
     ...TASKS,
     version: TASKS.version + 1,
     tasks: {
       ...TASKS.tasks,
-      steps: [
-        TASKS.tasks.steps[0],
+      items: [
+        TASKS.tasks.items[0],
         { number: 2, text: BRASS, done: false },
-      ].filter((step) => step !== undefined),
+      ].filter((task) => task !== undefined),
     },
   };
   actions.changeTasksAction.mockResolvedValue({
@@ -320,7 +320,7 @@ test("clicking outside a Tasks step saves and closes its edit without stealing f
   expect(actions.changeTasksAction).toHaveBeenCalledExactlyOnceWith({
     questId: QUEST_ID,
     chatId: undefined,
-    operations: [{ op: "change", step: 2, text: BRASS }],
+    operations: [{ op: "change", task: 2, text: BRASS }],
   });
   await expect
     .element(page.getByRole("button", { name: TASKS_COPY.edit(BRASS) }))
@@ -328,11 +328,11 @@ test("clicking outside a Tasks step saves and closes its edit without stealing f
   await expect.element(outside).toHaveFocus();
 });
 
-test("Add a step puts the new step ahead of the existing steps", async () => {
+test("Add a task puts the new task ahead of the existing tasks", async () => {
   const updated: TasksState = {
     version: TASKS.version + 1,
     tasks: {
-      steps: [{ number: 3, text: BRASS, done: false }, ...TASKS.tasks.steps],
+      items: [{ number: 3, text: BRASS, done: false }, ...TASKS.tasks.items],
       nextNumber: 4,
     },
     undone: [],
@@ -355,12 +355,12 @@ test("Add a step puts the new step ahead of the existing steps", async () => {
     operations: [{ op: "add", text: BRASS, before: 1 }],
   });
   await expect
-    .element(openSteps().getByRole("listitem").first())
+    .element(openTasks().getByRole("listitem").first())
     .toMatchTextContent(BRASS);
 });
 
-describe("use_case_recurring_steps", () => {
-  test("in Dailies, a step's menu makes it recurring, and it shows as recurring", async () => {
+describe("use_case_recurring_tasks", () => {
+  test("in Dailies, a task's menu makes it recurring, and it shows as recurring", async () => {
     actions.changeTasksAction.mockResolvedValue({
       kind: "changed",
       version: RECURRING.version,
@@ -386,7 +386,7 @@ describe("use_case_recurring_steps", () => {
     expect(actions.changeTasksAction).toHaveBeenCalledWith({
       questId: QUEST_ID,
       chatId: undefined,
-      operations: [{ op: "recur", step: 2, recurring: true }],
+      operations: [{ op: "recur", task: 2, recurring: true }],
     });
     await expect
       .element(page.getByRole("status"))
@@ -405,7 +405,7 @@ describe("use_case_recurring_steps", () => {
       .toBeVisible();
   });
 
-  test("outside Dailies, a step's menu can't make it recurring", async () => {
+  test("outside Dailies, a task's menu can't make it recurring", async () => {
     await render(
       <QuestTasks questId={QUEST_ID} tasks={TASKS} actions={TASKS_ACTIONS} />,
     );

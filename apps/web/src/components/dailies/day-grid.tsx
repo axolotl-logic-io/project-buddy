@@ -19,21 +19,21 @@ function weekdayOf(date: LocalDate): string {
   return WEEKDAY.format(new Date(`${date}T00:00:00Z`));
 }
 
-// The Dailies quest's recurring steps over their last seven calendar dates:
-// one row of squares a step, filled when it was done, empty when it wasn't,
+// The Dailies quest's recurring tasks over their last seven calendar dates:
+// one row of squares a task, filled when it was done, empty when it wasn't,
 // and dashed on a gap, a date with no day started. It follows the tasks as
-// they change, so checking off a step fills today's square at once. Outside
+// they change, so checking off a task fills today's square at once. Outside
 // the Dailies quest it shows nothing.
 function DayGrid(): JSX.Element | null {
   const tasks = useTasks();
   const days = tasks?.days;
-  const steps = tasks?.state.tasks;
+  const current = tasks?.state.tasks;
   const grid = useMemo(() => {
-    if (days === undefined || steps === undefined) {
+    if (days === undefined || current === undefined) {
       return;
     }
-    return dayGrid(days, steps, DAYS_SHOWN);
-  }, [days, steps]);
+    return dayGrid(days, current, DAYS_SHOWN);
+  }, [days, current]);
   if (grid === undefined) {
     return null;
   }

@@ -14,6 +14,7 @@ import {
   type TimerSchedule,
   timerPhaseAt,
 } from "@/timer/schedule.ts";
+import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -56,6 +57,7 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ],
     ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
+    ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
   ]);
 

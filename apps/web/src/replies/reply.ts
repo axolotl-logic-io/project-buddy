@@ -29,6 +29,7 @@ import {
 } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
+import { experienceReply } from "@/experience/experience-reply.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { MessageId, UserId } from "@/ids.ts";
 import { hydrateImages } from "@/images/store.ts";
@@ -218,7 +219,11 @@ async function streamAndSaveReply(
   try {
     const named = withAuthorNames(history);
     let model = replyModel();
-    const text = await spellReply(actingUser, chat, answered);
+    // The exp command reads experience and changes nothing; any other
+    // message may cast, stop or feed the active spell.
+    const text =
+      (await experienceReply(actingUser, answered)) ??
+      (await spellReply(actingUser, chat, answered));
     if (text !== undefined) {
       model = localConstructModel(text);
     }

@@ -1,7 +1,7 @@
 // A quest's tasks in the test database with the local construct engine: the
 // construct's change_tasks through POST /api/chat, the user's changes from the
 // quest's page and from an adventure, the composer's commands, undo, the tasks
-// in the construct's prompt, who may change it, and the next step Today
+// in the construct's prompt, who may change it, and the next task Today
 // shows. How the tasks looks is the browser tests'.
 
 import { convertToModelMessages } from "ai";
@@ -53,10 +53,10 @@ const RENDER = "Render a turntable";
 // How many commands the commands test runs.
 const COMMANDS_RUN = 5;
 
-// The texts of the open steps of the user's quest's tasks, in order.
+// The texts of the open tasks of the user's quest's tasks, in order.
 async function openTexts(owner: UserId, questId: QuestId): Promise<string[]> {
   const state = await readTasksState(owner, questId);
-  return (state?.tasks.steps ?? []).flatMap(({ text, done }) => {
+  return (state?.tasks.items ?? []).flatMap(({ text, done }) => {
     if (done) {
       return [];
     }
@@ -64,7 +64,7 @@ async function openTexts(owner: UserId, questId: QuestId): Promise<string[]> {
   });
 }
 
-// The task list's three steps, laid out from the quest's page.
+// The task list's three tasks, laid out from the quest's page.
 function laidOut(questId: QuestId): Promise<TasksActionResult> {
   return changeTasksAction({
     questId,
@@ -111,15 +111,15 @@ describe("Tasks tool contract", () => {
     ]);
   });
 
-  test("a construct's change naming a step that's gone saves nothing and gives the tasks back", async () => {
+  test("a construct's change naming a task that's gone saves nothing and gives the tasks back", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
     const output = await Promise.resolve(
       changeTasksTool.execute?.(
         {
           operations: [
-            { op: "complete", step: 1 },
-            { op: "remove", step: 9 },
+            { op: "complete", task: 1 },
+            { op: "remove", task: 9 },
           ],
         },
         {
@@ -137,7 +137,7 @@ describe("Tasks tool contract", () => {
     );
     expect(output).toMatchObject({
       status: "not-changed",
-      reason: "missing-step",
+      reason: "missing-task",
     });
     expect(await openTexts(user.id, chat.quest.id)).toEqual([
       BLOCK_OUT,
@@ -146,7 +146,7 @@ describe("Tasks tool contract", () => {
     ]);
   });
 
-  test("the quest's conversation gets the tasks, with step numbers, in its prompt", async () => {
+  test("the quest's conversation gets the tasks, with task numbers, in its prompt", async () => {
     const user = await testUser();
     await signIn(user);
     const data = testData(user);
@@ -154,7 +154,7 @@ describe("Tasks tool contract", () => {
     await laidOut(chat.quest.id);
     await changeTasksAction({
       questId: chat.quest.id,
-      operations: [{ op: "complete", step: 1 }],
+      operations: [{ op: "complete", task: 1 }],
     });
 
     const prompt = await constructPrompt(chat.id);
@@ -170,7 +170,7 @@ describe("a quest's tasks, changed without the construct", () => {
     const added = await laidOut(chat.quest.id);
     const moved = await changeTasksAction({
       questId: chat.quest.id,
-      operations: [{ op: "move", step: 3, before: 1 }],
+      operations: [{ op: "move", task: 3, before: 1 }],
     });
     expect(moved).toMatchObject({ kind: "changed", version: 2 });
     expect(await openTexts(user.id, chat.quest.id)).toEqual([
@@ -213,7 +213,7 @@ describe("a quest's tasks, changed without the construct", () => {
     const edited = await changeTasksAction({
       questId: chat.quest.id,
       chatId: chat.id,
-      operations: [{ op: "change", step: 1, text: SCULPT }],
+      operations: [{ op: "change", task: 1, text: SCULPT }],
     });
     expect(edited).toMatchObject({ kind: "changed", version: 2 });
     expect(await openTexts(user.id, chat.quest.id)).toEqual([SCULPT]);
@@ -311,7 +311,7 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(
       await changeTasksAction({
         questId: quest.id,
-        operations: [{ op: "remove", step: 2 }],
+        operations: [{ op: "remove", task: 2 }],
       }),
     ).toEqual({ kind: "not-found" });
     expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
@@ -323,29 +323,29 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(await openTexts(owner.id, quest.id)).toEqual([SCULPT, RENDER]);
   });
 
-  test("Continue's next step comes only from the tasks", async () => {
+  test("Continue's next task comes only from the tasks", async () => {
     const { user, chat } = await signedInChat();
     await sendChatMessage(chat.id, "Hello");
-    expect((await readCurrentQuest(user.id))?.nextStep).toBeUndefined();
+    expect((await readCurrentQuest(user.id))?.nextTask).toBeUndefined();
     await laidOut(chat.quest.id);
-    expect((await readCurrentQuest(user.id))?.nextStep).toBe(BLOCK_OUT);
+    expect((await readCurrentQuest(user.id))?.nextTask).toBe(BLOCK_OUT);
     await changeTasksAction({
       questId: chat.quest.id,
       operations: [
-        { op: "remove", step: 1 },
-        { op: "remove", step: 2 },
-        { op: "remove", step: 3 },
+        { op: "remove", task: 1 },
+        { op: "remove", task: 2 },
+        { op: "remove", task: 3 },
       ],
     });
-    expect((await readCurrentQuest(user.id))?.nextStep).toBeUndefined();
+    expect((await readCurrentQuest(user.id))?.nextTask).toBeUndefined();
   });
 
-  test("controls and commands can add beyond the former step limit", async () => {
-    const ManySteps = 40;
+  test("controls and commands can add beyond the former task limit", async () => {
+    const ManyTasks = 40;
     const { user, chat } = await signedInChat();
     await changeTasksAction({
       questId: chat.quest.id,
-      operations: Array.from({ length: ManySteps }, (_, index) => ({
+      operations: Array.from({ length: ManyTasks }, (_, index) => ({
         op: "add" as const,
         text: `Study ${index + 1}`,
       })),
@@ -359,19 +359,19 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(await command(chat.id, "/add Another study")).toMatchObject({
       kind: "changed",
     });
-    expect(await openTexts(user.id, chat.quest.id)).toHaveLength(ManySteps + 2);
+    expect(await openTexts(user.id, chat.quest.id)).toHaveLength(ManyTasks + 2);
   });
 
-  test("undoing an older change keeps a newer edit of the same step", async () => {
+  test("undoing an older change keeps a newer edit of the same task", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
     const first = await changeTasksAction({
       questId: chat.quest.id,
-      operations: [{ op: "change", step: 2, text: "Sculpt the brass plates" }],
+      operations: [{ op: "change", task: 2, text: "Sculpt the brass plates" }],
     });
     await changeTasksAction({
       questId: chat.quest.id,
-      operations: [{ op: "change", step: 2, text: "Sculpt the copper plates" }],
+      operations: [{ op: "change", task: 2, text: "Sculpt the copper plates" }],
     });
     if (first.kind !== "changed") {
       throw new Error("The first edit wasn't saved");
@@ -411,7 +411,7 @@ describe("use_case_tasks_commands", () => {
       await changeTasksAction({
         questId: chat.quest.id,
         chatId: chat.id,
-        operations: [{ op: "complete", step: 1 }],
+        operations: [{ op: "complete", task: 1 }],
       }),
     ).toMatchObject({ kind: "failed", reason: "awaiting-reply" });
 
@@ -432,7 +432,7 @@ describe("use_case_tasks_commands", () => {
     expect(
       await changeTasksAction({
         questId: chat.quest.id,
-        operations: [{ op: "complete", step: 1 }],
+        operations: [{ op: "complete", task: 1 }],
       }),
     ).toMatchObject({ kind: "changed" });
     await sendChatMessage(chat.id, "Still there?");
@@ -471,10 +471,10 @@ describe("use_case_tasks_commands", () => {
     await laidOut(chat.quest.id);
     await command(chat.id, "/done 1");
     await command(chat.id, "/add Paint the enamel eyes");
-    // The added step is removed from the quest's page.
+    // The added task is removed from the quest's page.
     await changeTasksAction({
       questId: chat.quest.id,
-      operations: [{ op: "remove", step: 4 }],
+      operations: [{ op: "remove", task: 4 }],
     });
 
     expect(await command(chat.id, "/undo")).toMatchObject({

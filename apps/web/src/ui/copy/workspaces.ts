@@ -1,7 +1,7 @@
 const WORKSPACES_COPY = {
   security: "Security",
   appearance: "Appearance",
-  settingsIntro: "Your profile, appearance and security.",
+  settingsIntro: "Your appearance and security.",
 } as const;
 
 export { WORKSPACES_COPY };

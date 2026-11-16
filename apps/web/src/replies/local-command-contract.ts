@@ -7,6 +7,7 @@ const LOCAL_COMMAND_NAMES: readonly string[] = [
   "look",
   "search",
   "cast",
+  "exp",
 ];
 
 function isLocalCommandName(name: string): boolean {

@@ -4,10 +4,8 @@ import { requireUser } from "@/auth/current-user.ts";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
-import { NameForm } from "./name-form.tsx";
 import { SignOutButtons } from "./sign-out-buttons.tsx";
 
-const PROFILE_ID = "profile";
 const APPEARANCE_ID = "appearance";
 const APPEARANCE_HEADING_ID = "appearance-heading";
 const SECURITY_ID = "security";
@@ -15,14 +13,12 @@ const SECURITY_HEADING_ID = "security-heading";
 
 export const metadata: Metadata = { title: SETTINGS_COPY.title };
 
-// All preferences stay visible, including bookmarked sections and payment feedback.
+// All preferences stay visible, including bookmarked sections and payment
+// feedback. A visitor, or a session that has ended, goes to sign in.
 export default async function SettingsPage(): Promise<JSX.Element> {
-  const user = await requireUser();
+  await requireUser();
   return (
     <div className="workspace-content flex flex-col gap-4">
-      <div id={PROFILE_ID} className="flex flex-col gap-3">
-        <NameForm name={user.name} />
-      </div>
       <section
         id={APPEARANCE_ID}
         aria-labelledby={APPEARANCE_HEADING_ID}

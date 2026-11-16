@@ -239,7 +239,7 @@ async function showTasks(
 }
 
 // Undoes the user's newest change in the adventure that has something left
-// to undo: a newer one whose steps were all changed or removed since is
+// to undo: a newer one whose tasks were all changed or removed since is
 // passed over, so /undo never sticks on it.
 async function undoLatest(
   user: UserId,
@@ -347,7 +347,7 @@ async function runChatCommandAction(
     return { kind: "quest-status", feedback };
   }
 
-  const command = parseTasksCommand(text, { steps: [], nextNumber: 1 });
+  const command = parseTasksCommand(text, { items: [], nextNumber: 1 });
   if (command.kind === "problem" && command.problem.kind === "unknown") {
     return {
       kind: "problem",

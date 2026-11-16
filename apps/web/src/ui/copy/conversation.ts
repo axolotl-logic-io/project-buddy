@@ -1,4 +1,4 @@
-// A quest's conversation on its page: the quest's next step above it, the
+// A quest's conversation on its page: the quest's next task above it, the
 // Start action for a quest whose conversation hasn't started yet, and the
 // Dailies quest's Start Day.
 
@@ -37,13 +37,13 @@ export const QUEST_CONVERSATION_COPY = {
   startDay: "Start Day",
   cancel: "Cancel",
   confirmStartDay:
-    "Start a new day? The conversation starts empty, its active spell ends, and done recurring steps reopen. You can undo this until someone sends a message.",
-  clearSteps: "Remove all Steps",
-  keepSteps:
-    "By default, steps are kept: done recurring steps reopen, and one-off steps stay as they are.",
+    "Start a new day? The conversation starts empty, its active spell ends, and done recurring tasks reopen. You can undo this until someone sends a message.",
+  clearTasks: "Remove all tasks",
+  keepTasks:
+    "By default, tasks are kept: done recurring tasks reopen, and one-off tasks stay as they are.",
   clearIdeas: "Remove all Ideas",
   lastDayStarted,
   noDayYet: "No day started yet",
   undoStartDay: "Undo Start Day",
-  undoNote: "Undo brings back the conversation, steps and Ideas from before.",
+  undoNote: "Undo brings back the conversation, tasks and Ideas from before.",
 } as const;

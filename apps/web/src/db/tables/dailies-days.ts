@@ -13,9 +13,9 @@ import { chats, quests } from "./quests-and-chats.ts";
 
 // Each row is one day of a Dailies quest, begun by Start Day
 // (src/dailies/day-store.ts reads and writes them). local_date is the date
-// the user's browser was on. steps is null while the day is still going:
-// the next Start Day sets it to the recurring steps as the day ended, with
-// whether each was done. chat_id is the day's conversation.
+// the user's browser was on. tasks, saved in the steps column, is null
+// while the day is still going: the next Start Day sets it to the recurring
+// tasks as the day ended, with whether each was done. chat_id is the day's conversation.
 //
 // The rest is what Undo needs to put back the day before, until someone
 // sends a message in the day's conversation: parked_chat_id is the
@@ -34,7 +34,7 @@ export const dailiesDays = pgTable(
     startedAt: timestamp("started_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    steps: jsonb("steps"),
+    tasks: jsonb("steps"),
     chatId: uuid("chat_id").references(() => chats.id, {
       onDelete: "set null",
     }),
