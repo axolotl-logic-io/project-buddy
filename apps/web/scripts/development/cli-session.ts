@@ -13,6 +13,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import pg from "pg";
+import { DEVELOPER_EMAIL, DEVELOPER_NAME } from "./environment.ts";
 import {
   createSessionToken,
   MS_PER_DAY,
@@ -22,8 +23,6 @@ import {
 const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SESSION_FILE = resolve(WEB_ROOT, "../cli/.env.local");
 const SESSION_SETTING = "PROJECT_BUDDY_SESSION";
-const DEVELOPER_EMAIL = "developer@project-buddy.test";
-const DEVELOPER_NAME = "Developer";
 const RENEW_WITHIN_DAYS = 7;
 const CONNECTION_TIMEOUT_MS = 3000;
 const SECRET_FILE_MODE = 0o600;
@@ -142,4 +141,4 @@ if (import.meta.main) {
   }
 }
 
-export { cliSessionWorks, DEVELOPER_EMAIL };
+export { cliSessionWorks };

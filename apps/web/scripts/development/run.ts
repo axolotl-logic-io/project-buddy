@@ -10,6 +10,7 @@ import {
   localSettings,
   prepareEnvironment,
 } from "./environment.ts";
+import { linkEmail } from "./sign-in-link-token.ts";
 
 const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const ROOT = resolve(WEB_ROOT, "../..");
@@ -152,7 +153,7 @@ async function setup(): Promise<void> {
     "Manual test configuration: preserve or initialize .env.test.",
   );
   console.log(
-    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Open the link in the latest file.\nWith the site running, project-buddy commands act as the developer account; try project-buddy whoami.\nRun mise run doctor to check this environment. Database tests and browser tests remain opt-in; see README.md.",
+    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Or run mise run sign-in-link EMAIL to print a sign-in link at once.\nWith the site running, project-buddy commands act as the developer account; try project-buddy whoami.\nRun mise run doctor to check this environment. Database tests and browser tests remain opt-in; see README.md.",
   );
 }
 
@@ -224,14 +225,35 @@ async function doctor(): Promise<void> {
   }
 }
 
-const [action] = process.argv.slice(2);
+// A new sign-in link for the address, or the developer account without one.
+async function signInLink(address?: string): Promise<URL> {
+  const email = linkEmail(address);
+  const { DATABASE_URL } = localSettings(WEB_ROOT, process.env);
+  if (!DATABASE_URL) {
+    throw new Error("Run mise setup first.");
+  }
+  // pg is a dependency, so this waits for npm ci, as databaseHealth does.
+  const { createSignInLink } = await import("./sign-in-link.ts").catch(
+    (cause: unknown) => {
+      throw new Error("Run mise setup first.", { cause });
+    },
+  );
+  const { PROJECT_BUDDY_URL = "http://localhost:3000" } = process.env;
+  return await createSignInLink(DATABASE_URL, PROJECT_BUDDY_URL, email);
+}
+
+const [action, ...actionArgs] = process.argv.slice(2);
 try {
   if (action === "setup") {
     await setup();
   } else if (action === "doctor") {
     await doctor();
+  } else if (action === "sign-in-link" && actionArgs.length <= 1) {
+    console.log((await signInLink(actionArgs[0])).href);
   } else {
-    throw new Error("Usage: mise setup | mise run doctor");
+    throw new Error(
+      "Usage: mise setup | mise run doctor | mise run sign-in-link [EMAIL]",
+    );
   }
 } catch (error) {
   if (error instanceof Error) {
