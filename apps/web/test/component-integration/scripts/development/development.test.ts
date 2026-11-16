@@ -85,6 +85,7 @@ describe("development setup and diagnosis", () => {
     const commands = readFileSync(join(web, "commands"), "utf8");
     expect(commands).toContain("up --detach --wait");
     expect(commands).toContain("npm run db:migrate");
+    expect(commands).toContain("npm run dev:cli-session");
     expect(commands).toContain("npm run test-env:init");
     expect(commands).not.toContain("reset");
   });

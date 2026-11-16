@@ -141,11 +141,18 @@ async function setup(): Promise<void> {
   }
   console.log("OK: Development migrations applied.");
   requireStep(
+    command("npm", ["run", "dev:cli-session"], WEB_ROOT, {
+      ...process.env,
+      ...settings,
+    }),
+    "CLI session: the developer account's session is in apps/cli/.env.local.",
+  );
+  requireStep(
     command("npm", ["run", "test-env:init"]),
     "Manual test configuration: preserve or initialize .env.test.",
   );
   console.log(
-    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Open the link in the latest file.\nRun mise run doctor to check this environment. Database tests and browser tests remain opt-in; see README.md.",
+    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Open the link in the latest file.\nWith the site running, project-buddy commands act as the developer account; try project-buddy whoami.\nRun mise run doctor to check this environment. Database tests and browser tests remain opt-in; see README.md.",
   );
 }
 
@@ -187,6 +194,11 @@ async function doctor(): Promise<void> {
           report(
             true,
             "Development database reachable; migrations are current.",
+          );
+          const { cliSessionWorks } = await import("./cli-session.ts");
+          report(
+            await cliSessionWorks(settings),
+            "CLI session: run mise setup to renew apps/cli/.env.local.",
           );
         }
       } catch {
