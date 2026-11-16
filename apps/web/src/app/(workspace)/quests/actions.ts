@@ -3,16 +3,14 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { getConstruct } from "@/constructs/index.ts";
-import { startDailies } from "@/conversations/dailies.ts";
-import { startQuest } from "@/conversations/start-quest.ts";
-import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
+import { startPremadeQuest } from "@/conversations/start-premade-quest.ts";
+import { PREMADE_QUEST_ID } from "@/quests/premade-quests.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 const START_DETAILS = z.object({
-  premadeId: z.enum(["dailies", "learn", "make", "do"]),
+  premadeId: PREMADE_QUEST_ID,
   name: z.string(),
   context: z.string().trim(),
   motivation: z.string().trim().default(""),
@@ -45,26 +43,12 @@ export async function startQuestAction(
     }
     return { kind: "invalid", message };
   }
-  const premade = PREMADE_QUESTS.find(({ id }) => id === premadeId);
-  if (premade === undefined) {
-    return { kind: "invalid", message: QUEST_START_COPY.invalid };
-  }
-  const construct = getConstruct(premade.constructId);
-  const details = {
+  const result = await startPremadeQuest(user.id, {
+    premadeId,
     name: checked.name,
     context,
     motivation,
-    construct,
-  };
-  let result: Awaited<ReturnType<typeof startDailies>>;
-  if (premadeId === "dailies") {
-    result = await startDailies(user.id, details);
-  } else {
-    result = await startQuest(user.id, checked.name, construct, {
-      context,
-      motivation,
-    });
-  }
+  });
   if (result.kind === "claudeUnavailable") {
     return { kind: result.kind, message: OPENING_COPY.claudeUnavailable };
   }

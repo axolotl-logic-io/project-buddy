@@ -26,6 +26,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Practices
 
+- [CLI and API proposal](cli-api-proposal.md): planned commands, JSONL output, shared data access and implementation slices.
+
 - [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
 - [Docs style guide](docs-style-guide.md): how to write these docs.
 
