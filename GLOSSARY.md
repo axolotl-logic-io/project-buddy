@@ -214,7 +214,7 @@ The user's one ongoing quest for starting the day, continued every day in its on
 
 ### Start Day
 
-The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas.
+The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. The button sends `/start-day`, and Undo Start Day sends `/undo-start-day`.
 
 Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
 
@@ -280,19 +280,19 @@ The conversation’s saved mode: Tasks, Brainstorm or no spell. `cast tasks` and
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit or remove an idea, or move it into Tasks as an open task. Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas tab or with the `/idea` [commands](#command). Ideas have no done state.
 
 - **UI:** "Ideas", "Add idea", "Move to Tasks".
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the tab and the collection.
 
 ### Quest sidebar actions
 
-The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest.
+The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest. Like every sidebar control, each sends its [command](#command) to the conversation.
 
 - **UI:** "Actions".
 
@@ -316,9 +316,15 @@ A note in a quest's conversation that the construct or a person changed the ques
 
 ### Command
 
-A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The tasks commands keep the tasks without a model call.
+A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The tasks commands keep the tasks without a model call. The other commands change Ideas, Quick Notes, Progress, the quest's members and status, and start a day or the conversation. A command names an idea, a Quick Note, a milestone or a task by its place in its list as the sidebar shows it, 1 being first, and a member by their name.
 
-- **UI:** "Commands", "/tasks", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
+Every control in the quest sidebar works by sending its command to the conversation, as if the user had typed it, so the conversation records what was done to the quest. The Cast spell button sends `cast` with the spell's name, and Stop [Spell] sends `stop`. A refused command changes nothing and says why under the message box, whether it was typed or sent by a control.
+
+- **UI:** "Commands", "/tasks", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/recur", "/once", "/undo", "/idea", "/edit-idea", "/move-idea", "/drop-idea", "/idea-to-tasks", "/drop-note", "/edit-milestone", "/drop-milestone", "/start-day", "/undo-start-day", "/invite", "/withdraw", "/remove", "/leave", "/start", "/complete", "/abandon", "/restore".
+
+### Command note
+
+What the conversation shows under a [command](#command) that changed the quest, such as "Added the idea “Paint the eyes” to Ideas.". The construct reads it on its next reply as a note, not a request, and makes no reply to it.
 
 ## Experience
 
@@ -432,7 +438,7 @@ Wherever quests are listed or chosen, a multi-user quest carries a short marker,
 
 ### Member
 
-A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own constructs, spells or other quests. A removed member loses access; what they wrote stays.
+A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own constructs, spells or other quests. A removed member loses access; what they wrote stays. Members' controls send `/invite`, `/withdraw`, `/remove` and `/leave` to the conversation.
 
 - **UI:** "Member", "Members", "Remove", "Leave quest".
 

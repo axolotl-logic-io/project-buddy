@@ -1,6 +1,7 @@
 // The messages a person adds to a chat without the construct: a change they
-// made to the tasks, by command or with the Tasks panel, and a Tasks card the
-// /tasks command shows. Each is a user message whose one part is a data part,
+// made to the tasks, by command or with the Tasks panel; a Tasks card the
+// /tasks command shows; and a command note, which any other command saves
+// with what it did. Each is a user message whose one part is a data part,
 // saved in the chat so everyone in it, and the construct on its next reply,
 // sees it. No reply answers one. It imports nothing from the server, because
 // the chat in the browser reads the same parts.
@@ -13,6 +14,7 @@ import { TASKS_CHANGE_LINE } from "@/tasks/tasks.ts";
 // The data part names, as the AI SDK stores them: `data-` and a name.
 const TASKS_CHANGE_PART = "data-tasks-change";
 const TASKS_CARD_PART = "data-tasks-card";
+const COMMAND_NOTE_PART = "data-command-note";
 
 // A tasks change a person made in the chat: the version it saved, what it
 // did, the command they typed for it, if they typed one, and the version it
@@ -28,13 +30,22 @@ const TASKS_CHANGE_DATA = z.object({
 // command it answers asked for.
 const TASKS_CARD_DATA = z.object({ command: z.string() });
 
+// A command note: the command a person sent, as they or a quest panel
+// control wrote it, and one line saying what it did.
+const COMMAND_NOTE_DATA = z.object({
+  command: z.string(),
+  note: z.string(),
+});
+
 type TasksChangeData = z.infer<typeof TASKS_CHANGE_DATA>;
 type TasksCardData = z.infer<typeof TASKS_CARD_DATA>;
+type CommandNoteData = z.infer<typeof COMMAND_NOTE_DATA>;
 
 // A tasks message's one part, as the chat reads it.
 type TasksMessagePart =
   | { readonly kind: "change"; readonly data: TasksChangeData }
-  | { readonly kind: "card"; readonly data: TasksCardData };
+  | { readonly kind: "card"; readonly data: TasksCardData }
+  | { readonly kind: "note"; readonly data: CommandNoteData };
 
 // The part as a task message's part, or undefined for any other part.
 function readTasksPart(part: {
@@ -51,6 +62,12 @@ function readTasksPart(part: {
     const { data } = TASKS_CARD_DATA.safeParse(part.data);
     if (data !== undefined) {
       return { kind: "card", data };
+    }
+  }
+  if (part.type === COMMAND_NOTE_PART) {
+    const { data } = COMMAND_NOTE_DATA.safeParse(part.data);
+    if (data !== undefined) {
+      return { kind: "note", data };
     }
   }
   return undefined;
@@ -82,8 +99,16 @@ function tasksCardMessage(id: string, data: TasksCardData): ChatMessage {
   return { id, role: "user", parts: [{ type: TASKS_CARD_PART, data }] };
 }
 
+// A new command note message with this id.
+function commandNoteMessage(id: string, data: CommandNoteData): ChatMessage {
+  return { id, role: "user", parts: [{ type: COMMAND_NOTE_PART, data }] };
+}
+
+export type { CommandNoteData };
 export {
   awaitsReply,
+  COMMAND_NOTE_PART,
+  commandNoteMessage,
   isTasksMessage,
   readTasksPart,
   TASKS_CARD_PART,

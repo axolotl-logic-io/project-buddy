@@ -1,32 +1,37 @@
 "use client";
 
-import type { JSX } from "react";
-import { useFormStatus } from "react-dom";
-import { castSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
+import { type JSX, type SubmitEvent, useCallback } from "react";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
+import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
-import type { ChatId } from "@/ids.ts";
+import { Alert } from "@/components/ui/form-message.tsx";
 import type { SpellSnapshot } from "@/spells/spell-definition.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 
-function CastButton(): JSX.Element {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" variant="secondary" disabled={pending}>
-      {SPELLBOOK_COPY.cast}
-    </Button>
-  );
-}
+// Casts the chosen spell by sending "cast" and its name to the quest's
+// conversation, as if typed there; the spell's cast reply answers, and a
+// spell already active gives way to it.
 function SpellPicker({
-  chatId,
   spells,
 }: {
-  readonly chatId: ChatId;
   readonly spells: readonly SpellSnapshot[];
 }): JSX.Element {
+  const { send, busy, problem } = usePanelSend();
+  const cast = useCallback(
+    (event: SubmitEvent<HTMLFormElement>): void => {
+      event.preventDefault();
+      const chosen = new FormData(event.currentTarget).get("spellId");
+      const spell = spells.find((candidate) => candidate.id === chosen);
+      if (spell === undefined) {
+        return;
+      }
+      send(PANEL_COMMAND.cast(spell.name)).catch(() => undefined);
+    },
+    [send, spells],
+  );
   return (
-    <form action={castSpellAction} className="flex flex-col gap-2">
-      <input type="hidden" name="chatId" value={chatId} />
+    <form className="flex flex-col gap-2" onSubmit={cast}>
       <SelectField
         name="spellId"
         label={SPELLBOOK_COPY.choose}
@@ -42,7 +47,10 @@ function SpellPicker({
           </option>
         ))}
       </SelectField>
-      <CastButton />
+      <Button type="submit" variant="secondary" disabled={busy}>
+        {SPELLBOOK_COPY.cast}
+      </Button>
+      {problem !== undefined && <Alert>{problem}</Alert>}
     </form>
   );
 }

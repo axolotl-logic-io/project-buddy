@@ -1,30 +1,27 @@
 // A quest's milestones in the test database with the local construct engine: the
 // construct's record_milestone through POST /api/chat, the progress timeline on
-// the quest's page, and her edits and deletes from it. How the chat and
+// the quest's page, and her /edit-milestone and /drop-milestone commands. How the chat and
 // the timeline look is milestone-part.browser.test.tsx's and
 // progress-timeline.browser.test.tsx's.
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import {
-  deleteMilestoneAction,
-  editMilestoneAction,
-} from "@/app/(workspace)/quests/[questId]/(overview)/actions.ts";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
 import {
   listMilestones,
   recordMilestone,
 } from "@/milestones/milestone-store.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { commandNotes, runCommand } from "../commands/command-test-kit.ts";
 import {
   constructPrompt,
-  formOf,
   newMessageId,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
-import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 // Progress shares the page with the conversation, whose refresh hook needs
@@ -55,10 +52,6 @@ async function pageHtml(questId: string): Promise<string> {
       searchParams: Promise.resolve({ section: "progress" }),
     }),
   );
-}
-
-function editForm(milestoneId: string, text: string): FormData {
-  return formOf({ milestoneId, text });
 }
 
 describe("milestone tool contract", () => {
@@ -159,63 +152,91 @@ describe("use_case_view_progress_timeline", () => {
 });
 
 describe("use_case_edit_milestone", () => {
-  test("her edit changes the milestone's text and keeps its date and chat", async () => {
+  test("her /edit-milestone changes the milestone's text, keeps its date and chat, and notes it in the conversation", async () => {
     const { user, chat } = await signedInChat();
     const source = { questId: chat.quest.id, chatId: chat.id };
     const milestone = await recordMilestone(user.id, source, SHELL);
+    const command = PANEL_COMMAND.editMilestone(1, `  ${FLIPPERS}  `);
 
-    expect(
-      await editMilestoneAction(
-        { kind: "idle" },
-        editForm(milestone?.id ?? "", `  ${FLIPPERS}  `),
-      ),
-    ).toEqual({ kind: "saved" });
+    expect(await runCommand(chat.id, command)).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.editMilestone(1, FLIPPERS),
+    });
 
     expect(await listMilestones(user.id, chat.quest.id)).toEqual([
       { ...milestone, text: FLIPPERS },
     ]);
+    expect(await commandNotes(user.id, chat.id)).toEqual([
+      {
+        command: command.trim(),
+        note: PANEL_COMMANDS_COPY.notes.editMilestone(1, FLIPPERS),
+      },
+    ]);
   });
 
-  test("text that is empty, too long or on more than one line is refused, and the milestone kept", async () => {
+  test("text that is empty, too long or on more than one line is refused with the reason, and the milestone kept", async () => {
     const { user, chat } = await signedInChat();
     const source = { questId: chat.quest.id, chatId: chat.id };
     const milestone = await recordMilestone(user.id, source, SHELL);
-    const id = milestone?.id ?? "";
-
-    expect(
-      await editMilestoneAction({ kind: "idle" }, editForm(id, " ")),
-    ).toEqual({ kind: "invalid", message: PROGRESS_TIMELINE_COPY.needsText });
     const tooLong = PROGRESS_TIMELINE_COPY.tooLong(MILESTONE_TEXT_MAX_LENGTH);
+
+    expect(await runCommand(chat.id, "/edit-milestone 1")).toEqual({
+      kind: "problem",
+      text: PROGRESS_TIMELINE_COPY.needsText,
+    });
     expect(
-      await editMilestoneAction(
-        { kind: "idle" },
-        editForm(id, "x".repeat(MILESTONE_TEXT_MAX_LENGTH + 1)),
+      await runCommand(
+        chat.id,
+        PANEL_COMMAND.editMilestone(
+          1,
+          "x".repeat(MILESTONE_TEXT_MAX_LENGTH + 1),
+        ),
       ),
-    ).toEqual({ kind: "invalid", message: tooLong });
+    ).toEqual({ kind: "problem", text: tooLong });
     expect(
-      await editMilestoneAction(
-        { kind: "idle" },
-        editForm(id, `${SHELL}\n${FLIPPERS}`),
+      await runCommand(
+        chat.id,
+        PANEL_COMMAND.editMilestone(1, `${SHELL}\n${FLIPPERS}`),
       ),
-    ).toEqual({ kind: "invalid", message: tooLong });
+    ).toEqual({ kind: "problem", text: tooLong });
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.editMilestone(2, FLIPPERS)),
+    ).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.noMilestone(1),
+    });
 
     expect(await listMilestones(user.id, chat.quest.id)).toEqual([milestone]);
+    expect(await commandNotes(user.id, chat.id)).toEqual([]);
   });
 
-  test("she deletes a milestone, and deleting it again changes nothing", async () => {
+  test("she deletes a milestone by its place, newest first, and a place past the end changes nothing", async () => {
     const { user, chat } = await signedInChat();
     const source = { questId: chat.quest.id, chatId: chat.id };
     const kept = await recordMilestone(user.id, source, SHELL);
-    const deleted = await recordMilestone(user.id, source, FLIPPERS);
-    const form = formOf({ milestoneId: deleted?.id ?? "" });
+    await recordMilestone(user.id, source, FLIPPERS);
 
-    await deleteMilestoneAction(form);
-    await deleteMilestoneAction(form);
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.dropMilestone(1)),
+    ).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.dropMilestone(FLIPPERS),
+    });
+    expect(await runCommand(chat.id, PANEL_COMMAND.dropMilestone(2))).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.noMilestone(1),
+    });
 
     expect(await listMilestones(user.id, chat.quest.id)).toEqual([kept]);
+    expect(await commandNotes(user.id, chat.id)).toEqual([
+      {
+        command: PANEL_COMMAND.dropMilestone(1),
+        note: PANEL_COMMANDS_COPY.notes.dropMilestone(FLIPPERS),
+      },
+    ]);
   });
 
-  test("another user's milestone is not found to edit, deleting it changes nothing, and a malformed id is not found", async () => {
+  test("another user's conversation is not found, and their milestone is kept", async () => {
     const { other, otherData } = await twoUsers();
     const foreignChat = await otherData.chat(await otherData.quest());
     const foreign = await recordMilestone(
@@ -223,15 +244,16 @@ describe("use_case_edit_milestone", () => {
       { questId: foreignChat.quest.id, chatId: foreignChat.id },
       SHELL,
     );
-    const foreignId = foreign?.id ?? "";
 
-    await expectNotFound(() =>
-      editMilestoneAction({ kind: "idle" }, editForm(foreignId, FLIPPERS)),
-    );
-    await deleteMilestoneAction(formOf({ milestoneId: foreignId }));
-    await expectNotFound(() =>
-      editMilestoneAction({ kind: "idle" }, editForm("not-an-id", FLIPPERS)),
-    );
+    expect(
+      await runCommand(
+        foreignChat.id,
+        PANEL_COMMAND.editMilestone(1, FLIPPERS),
+      ),
+    ).toEqual({ kind: "not-found" });
+    expect(
+      await runCommand(foreignChat.id, PANEL_COMMAND.dropMilestone(1)),
+    ).toEqual({ kind: "not-found" });
 
     expect(await listMilestones(other.id, foreignChat.quest.id)).toEqual([
       foreign,

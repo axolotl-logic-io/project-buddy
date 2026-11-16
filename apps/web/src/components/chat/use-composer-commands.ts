@@ -13,6 +13,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { WHOLE_PANEL_COMMANDS } from "@/commands/panel-commands.ts";
 import {
   ChatCommandsContext,
   type CommandListing,
@@ -34,6 +35,7 @@ const WHOLE_COMMANDS: ReadonlySet<string> = new Set([
   "/complete",
   "/abandon",
   "/restore",
+  ...WHOLE_PANEL_COMMANDS.map((name) => `/${name}`),
 ]);
 
 interface ComposerCommands {
@@ -146,6 +148,8 @@ function useComposerCommands(): ComposerCommands {
   let shownProblem: string | undefined;
   if (problem !== undefined && problem.for === text) {
     shownProblem = problem.text;
+  } else {
+    shownProblem = commands?.panelProblem;
   }
   return {
     listings,

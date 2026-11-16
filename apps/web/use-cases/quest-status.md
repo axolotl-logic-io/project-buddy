@@ -4,8 +4,8 @@
 
 The owner or a member marks a quest completed or abandoned from Actions or through commands in its conversation.
 
-- **Steps:** Open Actions and choose Complete or Abandon. Alternatively, type `/complete` or `/abandon` in the composer and send it. The commands take no arguments and make no construct request.
-- **Outcome:** The quest shows the new status. Its conversations, Tasks and progress stay available. Undo restores the previous status while no newer status change has occurred. Users outside the quest, pending invitees included, cannot change the status.
+- **Steps:** Open Actions and choose Complete or Abandon, which sends `/complete` or `/abandon` to the conversation. Alternatively, type the command in the composer and send it. The commands take no arguments and make no construct request.
+- **Outcome:** The quest shows the new status, and the conversation shows the command with a note of the change, which the construct reads on its next reply. While the user's last message awaits a reply, the command changes nothing and says why. Its conversations, Tasks and progress stay available. Undo restores the previous status while no newer status change has occurred. Users outside the quest, pending invitees included, cannot change the status.
 
 ## use_case_restore_quest
 

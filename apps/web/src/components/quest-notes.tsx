@@ -1,18 +1,14 @@
 "use client";
 
 import { type JSX, useCallback, useRef, useState } from "react";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
+import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { QuestId } from "@/ids.ts";
-import type { Note, NoteId, NoteResult } from "@/notes/note.ts";
+import type { Note, NoteId } from "@/notes/note.ts";
 import { QUEST_NOTES_COPY } from "@/ui/copy/notes.ts";
-
-type DeleteNote = (request: {
-  readonly questId: QuestId;
-  readonly id: NoteId;
-}) => Promise<NoteResult>;
 
 function NoteRow({
   note,
@@ -49,21 +45,16 @@ function NoteRow({
 }
 
 // A quest's Quick Notes, newest first, each with its day and a button that
-// deletes it. A deleted note's button goes with it, so focus moves to the
-// list's heading, and the status line says it was deleted.
+// sends /drop-note to the quest's conversation. A deleted note's button goes
+// with it, so focus moves to the list's heading, and the status line says
+// what the conversation noted.
 function QuestNotes({
-  questId,
   notes: savedNotes,
-  action,
 }: {
-  readonly questId: QuestId;
   readonly notes: readonly Note[];
-  readonly action: DeleteNote;
 }): JSX.Element {
   const [notes, setNotes] = useState(savedNotes);
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | undefined>();
-  const [failure, setFailure] = useState<string | undefined>();
+  const { send, busy, status, problem } = usePanelSend();
   const headingRef = useRef<HTMLParagraphElement>(null);
   // A route refresh can add a note saved from the site panel.
   const [previous, setPrevious] = useState(savedNotes);
@@ -73,19 +64,20 @@ function QuestNotes({
   }
   const remove = useCallback(
     (id: NoteId): void => {
-      setBusy(true);
-      setStatus(undefined);
-      setFailure(undefined);
-      action({ questId, id })
-        .then(() => {
-          setNotes((current) => current.filter((note) => note.id !== id));
-          setStatus(QUEST_NOTES_COPY.deleted);
-          headingRef.current?.focus();
+      const index = notes.findIndex((note) => note.id === id);
+      if (index < 0) {
+        return;
+      }
+      send(PANEL_COMMAND.dropNote(index + 1))
+        .then((result) => {
+          if (result.sent) {
+            setNotes((current) => current.filter((note) => note.id !== id));
+            headingRef.current?.focus();
+          }
         })
-        .catch(() => setFailure(QUEST_NOTES_COPY.failed))
-        .finally(() => setBusy(false));
+        .catch(() => undefined);
     },
-    [action, questId],
+    [notes, send],
   );
   return (
     <section className="page-slot">
@@ -93,7 +85,7 @@ function QuestNotes({
         {QUEST_NOTES_COPY.heading}
       </p>
       <FormStatus>{status}</FormStatus>
-      {failure !== undefined && <Alert>{failure}</Alert>}
+      {problem !== undefined && <Alert>{problem}</Alert>}
       {notes.length === 0 && (
         <p className="text-muted">{QUEST_NOTES_COPY.none}</p>
       )}

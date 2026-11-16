@@ -10,6 +10,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import type { DailiesDay } from "@/dailies/dailies.ts";
 import type { ChatId, QuestId } from "@/ids.ts";
 import type { TasksOperation, TasksState } from "@/tasks/tasks.ts";
@@ -19,7 +20,11 @@ import type {
   TasksActionResult,
   undoTasksChangeAction,
 } from "@/tasks/tasks-actions.ts";
+import { tasksOperationCommand } from "@/tasks/tasks-commands.ts";
 import { TASKS_COPY, tasksLineText } from "@/ui/copy/tasks.ts";
+
+// The command that takes back the user's last tasks change in an adventure.
+const UNDO_COMMAND = "/undo";
 
 // The Server Actions that change the tasks (src/tasks/tasks-actions.ts). A
 // page, a Server Component, hands them to its client components, so these
@@ -59,8 +64,12 @@ interface TasksController {
   // The days of the Dailies quest, oldest first, for its recurring tasks
   // and their streaks; undefined in any other quest.
   readonly days?: readonly DailiesDay[] | undefined;
+  // Makes a change from the Tasks panel: in an adventure, by sending its
+  // command, which the conversation records.
   readonly change: (operations: readonly TasksOperation[]) => Promise<boolean>;
   readonly undo: (version: number) => Promise<void>;
+  // Undoes the panel's last change: in an adventure, by sending /undo.
+  readonly undoLast: (version: number) => Promise<void>;
   // Takes a newer tasks from elsewhere, such as the construct's change or an
   // action's answer; an older one is ignored.
   readonly receive: (state: TasksState) => void;
@@ -81,6 +90,11 @@ interface TasksControllerOptions {
   readonly observed?: Pick<TasksState, "version" | "tasks"> | undefined;
   // The Dailies quest's days, given in the Dailies quest alone.
   readonly days?: readonly DailiesDay[] | undefined;
+  // Shows the message a command sent from the panel saved in the adventure.
+  readonly onMessage?: ((message: ChatMessage) => void) | undefined;
+  // Says why a command sent from the panel did nothing, where the composer
+  // says it for a typed one.
+  readonly onProblem?: ((text: string) => void) | undefined;
 }
 
 const TasksContext = createContext<TasksController | undefined>(undefined);
@@ -107,6 +121,7 @@ function feedbackOf(result: TasksActionResult): TasksFeedback | undefined {
         undoVersion: result.version,
       };
     case "quest-status":
+    case "noted":
     case "shown":
       return undefined;
     case "failed":
@@ -130,6 +145,8 @@ function useTasksController({
   newestCardId,
   observed,
   days,
+  onMessage,
+  onProblem,
 }: TasksControllerOptions): TasksController | undefined {
   const [state, setState] = useState<TasksState>(initialState ?? NO_TASKS);
   const [pending, setPending] = useState(false);
@@ -149,15 +166,31 @@ function useTasksController({
   const settle = useCallback(
     (result: TasksActionResult): void => {
       if (
-        result.kind !== "problem" &&
-        result.kind !== "not-found" &&
-        result.kind !== "quest-status"
+        result.kind === "changed" ||
+        result.kind === "shown" ||
+        result.kind === "failed"
       ) {
         receive(result.state);
       }
-      setFeedback(feedbackOf(result));
+      if (
+        (result.kind === "changed" || result.kind === "shown") &&
+        result.message !== undefined
+      ) {
+        onMessage?.(result.message);
+      }
+      const settled = feedbackOf(result);
+      if (
+        onProblem !== undefined &&
+        settled !== undefined &&
+        (result.kind === "problem" || result.kind === "failed")
+      ) {
+        onProblem(settled.text);
+        setFeedback(undefined);
+        return;
+      }
+      setFeedback(settled);
     },
-    [receive],
+    [receive, onMessage, onProblem],
   );
   const run = useCallback(
     async (action: () => Promise<TasksActionResult>): Promise<boolean> => {
@@ -175,15 +208,28 @@ function useTasksController({
     },
     [settle],
   );
+  let shown = state;
+  if (observed !== undefined && observed.version > state.version) {
+    shown = { ...observed, undone: state.undone };
+  }
+  const shownTasks = shown.tasks;
   const change = useCallback(
     (operations: readonly TasksOperation[]): Promise<boolean> =>
       run(async () => {
         if (actions === undefined) {
           return { kind: "not-found" };
         }
-        return await actions.change({ questId, chatId, operations });
+        const [operation, ...more] = operations;
+        let command: string | undefined;
+        if (operation !== undefined && more.length === 0) {
+          command = tasksOperationCommand(shownTasks, operation);
+        }
+        if (chatId === undefined || command === undefined) {
+          return await actions.change({ questId, chatId, operations });
+        }
+        return await actions.command({ chatId, text: command });
       }),
-    [run, actions, questId, chatId],
+    [run, actions, questId, chatId, shownTasks],
   );
   const undo = useCallback(
     async (version: number): Promise<void> => {
@@ -196,10 +242,21 @@ function useTasksController({
     },
     [run, actions, questId, chatId],
   );
-  let shown = state;
-  if (observed !== undefined && observed.version > state.version) {
-    shown = { ...observed, undone: state.undone };
-  }
+  const undoLast = useCallback(
+    async (version: number): Promise<void> => {
+      if (chatId === undefined) {
+        await undo(version);
+        return;
+      }
+      await run(async () => {
+        if (actions === undefined) {
+          return { kind: "not-found" };
+        }
+        return await actions.command({ chatId, text: UNDO_COMMAND });
+      });
+    },
+    [run, undo, actions, chatId],
+  );
   return useMemo(() => {
     if (actions === undefined) {
       return;
@@ -215,6 +272,7 @@ function useTasksController({
       days,
       change,
       undo,
+      undoLast,
       receive,
     };
   }, [
@@ -229,6 +287,7 @@ function useTasksController({
     days,
     change,
     undo,
+    undoLast,
     receive,
   ]);
 }

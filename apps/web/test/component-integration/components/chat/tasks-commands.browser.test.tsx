@@ -9,11 +9,13 @@ import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { z } from "zod";
 import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
 import type { TasksActions } from "@/components/tasks/use-tasks.ts";
 import { getConstruct } from "@/constructs/index.ts";
+import { todayHere } from "@/dailies/dailies.ts";
 import { CHANGE_TASKS_TOOL } from "@/replies/tools/change-tasks-contract.ts";
 import type { TasksState } from "@/tasks/tasks.ts";
 import type {
@@ -53,12 +55,16 @@ const TASKS_ACTIONS: TasksActions = {
   command: actions.runChatCommandAction,
 };
 
+const COMMAND_TEXT = z.object({ text: z.string() });
 const CHAT_ID = chatIdFixture();
 const PHONE_WIDTH = 390;
 const PHONE_HEIGHT = 844;
 const QUEST_ID = questIdFixture();
 const BLOCK_OUT = "Block out the body and wings";
 const SCULPT = "Sculpt the feather plates";
+const STAMPS = "Buy stamps";
+// The browser's date, which a typed command carries for /start-day.
+const TODAY = todayHere(new Date());
 
 const TASKS: TasksState = {
   version: 2,
@@ -125,6 +131,13 @@ async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
   );
 }
 
+// The texts of the commands sent, in order.
+function sentCommands(): readonly string[] {
+  return actions.runChatCommandAction.mock.calls.map(
+    ([request]) => COMMAND_TEXT.parse(request).text,
+  );
+}
+
 function messageBox(): ReturnType<typeof page.getByRole> {
   return page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
 }
@@ -156,7 +169,7 @@ describe("use_case_tasks_commands", () => {
 
     await userEvent.type(messageBox(), "dr");
     await expect
-      .element(commandList().getByRole("option"))
+      .element(commandList().getByRole("option").first())
       .toMatchTextContent("/drop TASK");
     await userEvent.keyboard("{Tab}");
     await expect.element(messageBox()).toHaveValue("/drop ");
@@ -182,6 +195,7 @@ describe("use_case_tasks_commands", () => {
     expect(actions.runChatCommandAction).toHaveBeenCalledWith({
       chatId: CHAT_ID,
       text: "/done",
+      localDate: TODAY,
     });
     const change = page.getByRole("complementary", {
       name: TASKS_CHANGE_COPY.label,
@@ -220,6 +234,7 @@ describe("use_case_tasks_commands", () => {
       expect(actions.runChatCommandAction).toHaveBeenCalledWith({
         chatId: CHAT_ID,
         text: command,
+        localDate: TODAY,
       });
       await expect
         .element(page.getByText("Quest status changed.", { exact: true }))
@@ -290,16 +305,18 @@ describe("use_case_tasks_panel", () => {
       .toBeDisabled();
   });
 
-  test("shows the next task and changes the tasks from beside the conversation", async () => {
-    actions.changeTasksAction.mockResolvedValue({
+  test("shows the next task and changes the tasks from beside the conversation by sending its command", async () => {
+    const checkedOff = tasksChangeMessage("p1", {
+      version: DONE_TASKS.version,
+      lines: [{ kind: "complete", text: BLOCK_OUT }],
+      command: "/done 1",
+    });
+    actions.runChatCommandAction.mockResolvedValueOnce({
       kind: "changed",
       version: DONE_TASKS.version,
       lines: [{ kind: "complete", text: BLOCK_OUT }],
       state: DONE_TASKS,
-      message: tasksChangeMessage("p1", {
-        version: DONE_TASKS.version,
-        lines: [{ kind: "complete", text: BLOCK_OUT }],
-      }),
+      message: checkedOff,
     });
     // A phone's width, where a button above the conversation opens the panel.
     await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
@@ -317,18 +334,18 @@ describe("use_case_tasks_panel", () => {
       panel.getByRole("checkbox", { name: TASKS_COPY.checkOff(BLOCK_OUT) }),
     );
 
-    expect(actions.changeTasksAction).toHaveBeenCalledWith({
-      questId: QUEST_ID,
+    expect(actions.runChatCommandAction).toHaveBeenCalledWith({
       chatId: CHAT_ID,
-      operations: [{ op: "complete", task: 1 }],
+      text: "/done 1",
     });
+    expect(actions.changeTasksAction).not.toHaveBeenCalled();
     await expect
       .element(panel.getByRole("list", { name: TASKS_COPY.tasksLabel }))
       .not.toHaveTextContent(BLOCK_OUT);
     await expect
       .element(panel.getByRole("status"))
       .toMatchTextContent(`Checked off “${BLOCK_OUT}”`);
-    actions.undoTasksChangeAction.mockResolvedValue({
+    actions.runChatCommandAction.mockResolvedValueOnce({
       kind: "changed",
       version: DONE_TASKS.version + 1,
       lines: [{ kind: "reopen", text: BLOCK_OUT }],
@@ -341,6 +358,11 @@ describe("use_case_tasks_panel", () => {
     await panel
       .getByRole("button", { name: TASKS_COPY.undo, exact: true })
       .click();
+    expect(actions.runChatCommandAction).toHaveBeenLastCalledWith({
+      chatId: CHAT_ID,
+      text: "/undo",
+    });
+    expect(actions.undoTasksChangeAction).not.toHaveBeenCalled();
     await expect
       .element(
         panel.getByRole("checkbox", { name: TASKS_COPY.checkOff(BLOCK_OUT) }),
@@ -350,15 +372,85 @@ describe("use_case_tasks_panel", () => {
       .element(panel.getByRole("status"))
       .toMatchTextContent(`Reopened “${BLOCK_OUT}”`);
     await page.getByRole("button", { name: "Collapse quest sidebar" }).click();
+    // The conversation records the panel's change, as for a typed command.
     await expect
       .element(
         page.getByRole("complementary", { name: TASKS_CHANGE_COPY.label }),
       )
-      .not.toBeInTheDocument();
-    const history = page.getByRole("list", {
-      name: CHAT_COPY.conversationLabel,
+      .toMatchTextContent(`Checked off “${BLOCK_OUT}”`);
+  });
+
+  test("adding a task from the panel sends /add with its text, which puts it at the end", async () => {
+    const added: TasksState = {
+      version: TASKS.version + 1,
+      tasks: {
+        items: [...TASKS.tasks.items, { number: 3, text: STAMPS, done: false }],
+        nextNumber: 4,
+      },
+      undone: [],
+    };
+    actions.runChatCommandAction.mockResolvedValue({
+      kind: "changed",
+      version: added.version,
+      lines: [{ kind: "add", text: STAMPS }],
+      state: added,
     });
-    expect(history.getByRole("listitem").all()).toHaveLength(0);
+    await openChat();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    const panel = page.getByRole("complementary", {
+      name: "Quest side menu",
+      exact: true,
+    });
+    await panel
+      .getByRole("button", { name: TASKS_COPY.addPlaceholder })
+      .click();
+    await panel
+      .getByRole("textbox", { name: TASKS_COPY.addLabel })
+      .fill(STAMPS);
+    await userEvent.keyboard("{Enter}");
+
+    expect(actions.runChatCommandAction).toHaveBeenCalledWith({
+      chatId: CHAT_ID,
+      text: `/add ${STAMPS}`,
+    });
+    expect(actions.changeTasksAction).not.toHaveBeenCalled();
+    await expect
+      .element(
+        panel
+          .getByRole("list", { name: TASKS_COPY.tasksLabel })
+          .getByRole("listitem")
+          .last(),
+      )
+      .toMatchTextContent(STAMPS);
+  });
+
+  test("a refused panel change keeps the tasks and the composer says why", async () => {
+    actions.runChatCommandAction.mockResolvedValue({
+      kind: "problem",
+      text: "There is no task 1.",
+    });
+    await openChat();
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    const panel = page.getByRole("complementary", {
+      name: "Quest side menu",
+      exact: true,
+    });
+    await userEvent.click(
+      panel.getByRole("checkbox", { name: TASKS_COPY.checkOff(BLOCK_OUT) }),
+    );
+
+    expect(actions.runChatCommandAction).toHaveBeenCalledWith({
+      chatId: CHAT_ID,
+      text: "/done 1",
+    });
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent("There is no task 1.");
+    await expect
+      .element(
+        panel.getByRole("checkbox", { name: TASKS_COPY.checkOff(BLOCK_OUT) }),
+      )
+      .not.toBeChecked();
   });
 
   test("inline editing, dragging and row menus work inside the phone drawer", async () => {
@@ -373,7 +465,7 @@ describe("use_case_tasks_panel", () => {
         ),
       },
     };
-    actions.changeTasksAction.mockResolvedValue({
+    actions.runChatCommandAction.mockResolvedValue({
       kind: "changed",
       version: moved.version,
       lines: [{ kind: "move", text: SCULPT, before: BLOCK_OUT }],
@@ -417,11 +509,7 @@ describe("use_case_tasks_panel", () => {
     await page
       .getByRole("menuitem", { name: TASKS_COPY.moveDown(SCULPT) })
       .click();
-    expect(actions.changeTasksAction).toHaveBeenLastCalledWith({
-      questId: QUEST_ID,
-      chatId: CHAT_ID,
-      operations: [{ op: "move", task: 2 }],
-    });
+    expect(sentCommands()).toEqual(["/move 2 1", "/move 2 2"]);
   });
 
   test("the construct's change shows in the conversation, and Undo undoes it", async () => {
