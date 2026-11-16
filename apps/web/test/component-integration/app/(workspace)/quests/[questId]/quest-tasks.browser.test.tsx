@@ -328,11 +328,11 @@ test("clicking outside a Tasks task saves and closes its edit without stealing f
   await expect.element(outside).toHaveFocus();
 });
 
-test("Add a task puts the new task ahead of the existing tasks", async () => {
+test("Add a task puts the new task after the existing tasks, as /add does", async () => {
   const updated: TasksState = {
     version: TASKS.version + 1,
     tasks: {
-      items: [{ number: 3, text: BRASS, done: false }, ...TASKS.tasks.items],
+      items: [...TASKS.tasks.items, { number: 3, text: BRASS, done: false }],
       nextNumber: 4,
     },
     undone: [],
@@ -340,7 +340,7 @@ test("Add a task puts the new task ahead of the existing tasks", async () => {
   actions.changeTasksAction.mockResolvedValue({
     kind: "changed",
     version: updated.version,
-    lines: [{ kind: "add", text: BRASS, before: BLOCK_OUT }],
+    lines: [{ kind: "add", text: BRASS }],
     state: updated,
   });
   await render(
@@ -352,10 +352,10 @@ test("Add a task puts the new task ahead of the existing tasks", async () => {
   expect(actions.changeTasksAction).toHaveBeenCalledExactlyOnceWith({
     questId: QUEST_ID,
     chatId: undefined,
-    operations: [{ op: "add", text: BRASS, before: 1 }],
+    operations: [{ op: "add", text: BRASS }],
   });
   await expect
-    .element(openTasks().getByRole("listitem").first())
+    .element(openTasks().getByRole("listitem").last())
     .toMatchTextContent(BRASS);
 });
 

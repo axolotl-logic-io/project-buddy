@@ -1,10 +1,9 @@
 "use server";
 
-import { refresh, revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { CHAT_ID } from "@/ids.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
 import {
@@ -15,10 +14,8 @@ import {
 import {
   SPELL_DEFINITION,
   SPELL_NAME_MAX,
-  SPELL_REFERENCE,
   SPELL_REPLIES,
 } from "@/spells/spell-definition.ts";
-import { setSpell } from "@/spells/spell-store.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 
 const ID_FORM = z.object({ spellId: z.string() });
@@ -44,7 +41,6 @@ const SAVE_FORM = SPELL_DEFINITION.extend({
   stopReply: REPLY_FORM,
   invalidReply: REPLY_FORM,
 });
-const CAST_FORM = z.object({ chatId: CHAT_ID, spellId: SPELL_REFERENCE });
 
 async function newSpellAction(): Promise<never> {
   const user = await requireUser();
@@ -96,27 +92,5 @@ async function retireSpellAction(formData: FormData): Promise<never> {
   revalidatePath("/", "layout");
   redirect(`${workshopPath("spell")}&retired=1`);
 }
-async function castSpellAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const form = CAST_FORM.safeParse(Object.fromEntries(formData));
-  if (
-    !(
-      form.success &&
-      (await setSpell(user.id, {
-        chatId: form.data.chatId,
-        spell: form.data.spellId,
-      }))
-    )
-  ) {
-    notFound();
-  }
-  refresh();
-}
 
-export {
-  castSpellAction,
-  cloneSpellAction,
-  newSpellAction,
-  retireSpellAction,
-  saveSpellAction,
-};
+export { cloneSpellAction, newSpellAction, retireSpellAction, saveSpellAction };

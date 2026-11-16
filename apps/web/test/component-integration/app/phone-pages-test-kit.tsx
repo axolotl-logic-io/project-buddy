@@ -64,11 +64,6 @@ import {
 import { LINK_USER, OWN_SPELL, VELLUM_CLONE } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
-vi.mock("@/dailies/day-actions.ts", () => ({
-  startDayAction: vi.fn(),
-  undoStartDayAction: vi.fn(),
-}));
-
 // One page as the phone checks render it.
 
 interface PhonePage {
@@ -437,7 +432,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
 ];
 
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  castSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   cloneSpellAction: vi.fn(),
   saveSpellAction: vi.fn(),

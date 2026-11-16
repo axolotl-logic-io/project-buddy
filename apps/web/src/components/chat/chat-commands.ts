@@ -17,6 +17,9 @@ interface ChatCommands {
   // Runs the command and answers with why it did nothing, or undefined once
   // it ran.
   readonly run: (text: string) => Promise<string | undefined>;
+  // Why the last command a quest panel control sent did nothing, until
+  // another command runs.
+  readonly panelProblem?: string | undefined;
 }
 
 const ChatCommandsContext = createContext<ChatCommands | undefined>(undefined);

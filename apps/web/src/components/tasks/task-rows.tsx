@@ -195,7 +195,7 @@ function TaskRow({
 // why nothing changed, in the status region, which stays mounted; or, when the change
 // failed, an alert.
 function Feedback({ tasks }: { readonly tasks: TasksController }): JSX.Element {
-  const { feedback, undo } = tasks;
+  const { feedback, undoLast: undo } = tasks;
   const undoVersion = feedback?.undoVersion;
   const undoLast = useCallback((): Promise<void> => {
     if (undoVersion === undefined) {
@@ -246,9 +246,8 @@ function TaskRows(): JSX.Element | null {
       if (tasks === undefined) {
         return false;
       }
-      return await tasks.change([
-        { op: "add", text, before: openTasks(tasks.state.tasks)[0]?.number },
-      ]);
+      // As /add does, which the panel sends in an adventure.
+      return await tasks.change([{ op: "add", text }]);
     },
     [tasks],
   );

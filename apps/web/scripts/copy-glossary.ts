@@ -512,7 +512,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Command",
     aliases: ["command", "commands"],
     definition:
-      "A short instruction typed in the message box, such as /done 3. The site runs it as soon as it is sent. Typing / shows the command list. Commands such as tasks and brainstorm also work without /.",
+      "A short instruction typed in the message box, such as /done 3. The site runs it as soon as it is sent. Typing / shows the command list. Commands such as tasks and brainstorm also work without /. Each control in the quest sidebar sends one of these to the conversation, as if the user had typed it.",
+  },
+  {
+    term: "Command note",
+    heading: "Command note",
+    aliases: ["command note", "command notes"],
+    definition:
+      "The line the conversation shows under a command that changed the quest, saying what it did. The construct reads it on its next reply but does not answer it.",
   },
   {
     term: "Brainstorm",

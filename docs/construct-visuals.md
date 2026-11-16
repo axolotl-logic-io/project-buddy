@@ -36,7 +36,7 @@ The supplied avatar frames focus on Lumen's smiling light and Vellum's brass fac
 
 ## Character profile
 
-`components/constructs/adventure-character-header.tsx` exports `AdventureCharacterHeader`. The caller supplies the conversation's `construct` snapshot and an optional `destination`; a quest conversation passes `{ kind: "adventure", id: chat.id }`. The control opens a keyboard-accessible, scrollable profile and returns focus when closed. `compact={true}` shows the portrait without the name beside it; the button's accessible name still identifies the construct.
+`components/constructs/adventure-character-header.tsx` exports `AdventureCharacterHeader`. The caller supplies the conversation's `construct` snapshot and an optional `destination`; the trail band (`components/header-links.tsx`) passes the Active Dailies quest's conversation, with `{ kind: "adventure", id: chat.id }`. The control opens a keyboard-accessible, scrollable profile and returns focus when closed. `compact={true}` shows the portrait without the name beside it; the button's accessible name still identifies the construct.
 
 Public built-in personality copy requires explicit built-in canonical artwork metadata and unchanged built-in conversational instructions. Other constructs use generic own-construct copy. Names and source ids never infer identity. Neither private prompt text nor the Visual description is shown. Opening a profile makes no model call.
 

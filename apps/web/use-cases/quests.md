@@ -84,6 +84,7 @@ The user opens one of their quests, from Quests.
 - **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Tasks, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Tasks; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. Tasks, Ideas, Progress, Quick Notes and Actions are tabs at the top of the sidebar, with nothing above them; switching tabs retains drafts. Actions holds the spell picker, and Start Day for Dailies. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
 - **Variations:**
   - The Dailies quest: `use_case_dailies`.
+  - A quest with no conversation yet offers Start the conversation, which sends `/start`: the conversation shows the command, then the construct's opening.
   - Another user's quest is not found ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
@@ -99,7 +100,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
   - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
   - They begin each new day with Start Day in the sidebar's Actions tab.
-- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another.
+- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. While it is Active and its conversation has started, the construct's portrait and name sit at the right of the header's trail band, opposite the breadcrumbs and clear of the site panel, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). Any other quest's trail band shows no construct.
 - **Variations:**
   - A quest the user named Dailies by hand has no Start Day, recurring tasks or streaks: only a quest started as Dailies offers them.
 - **Next:**
@@ -114,7 +115,7 @@ The user begins a new day in Dailies.
 - **Steps:**
   - The user opens the sidebar's Actions tab. Under Start Day, a line says how long ago the last day started.
   - The user chooses Start Day. They can choose to remove all tasks and all Ideas; both options are off by default.
-  - The user confirms in the dialog.
+  - The user confirms in the dialog, which sends `/start-day` to the conversation, followed by `clear-tasks`, `clear-ideas` or both for the options chosen. The user can also type the command.
 - **Outcome:** a new day is recorded with the calendar date of the user's browser. The conversation starts empty with the same construct, without a model request, and the active spell ends. Done recurring tasks become open again, keeping their text, numbers and order. One-off tasks stay as they are, done or open. Ideas, Progress and quest status remain. Each recurring task's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
 - **Variations:**
   - With Remove all tasks or Remove all Ideas chosen, that list is empty in the new day.
@@ -129,7 +130,7 @@ The user begins a new day in Dailies.
 The user takes back a Start Day chosen by mistake.
 
 - **Prerequisites:** `use_case_start_day`, with no message sent in the new day's conversation.
-- **Steps:** the user chooses Undo Start Day in the sidebar's Actions tab.
+- **Steps:** the user chooses Undo Start Day in the sidebar's Actions tab, which sends `/undo-start-day`, or types it.
 - **Outcome:** the conversation from before Start Day comes back, with its messages, active spell and artwork. Tasks and Ideas come back as they were before Start Day, and a task added since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
 - **Variations:**
   - Once anyone sends a message in the new day's conversation, Undo Start Day is gone and the day stays.
@@ -154,7 +155,8 @@ The user changes or deletes a milestone on the progress timeline.
 - **Steps:**
   - The user chooses to edit a milestone, changes its text and saves it. Or the user cancels, and it stays as it was.
   - The user chooses to delete another, and confirms.
-- **Outcome:** the edited milestone shows their text, with the same day as before. The deleted one is gone from the timeline, and the conversation is unchanged. Text that is empty, longer than one line or over 200 characters is refused with the reason, and their text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
+  - Saving sends `/edit-milestone MILESTONE TEXT`, and deleting sends `/drop-milestone MILESTONE`, to the quest's conversation, naming the milestone by its place in Progress, newest first. The user can also type them.
+- **Outcome:** the edited milestone shows their text, with the same day as before. The deleted one is gone from the timeline. The conversation shows each command with a note of the change. Text that is empty, longer than one line or over 200 characters is refused with the reason, and their text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
 - **Next:**
   - `use_case_view_progress_timeline`: look over the result.
 

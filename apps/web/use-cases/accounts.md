@@ -94,12 +94,13 @@ The user tells the construct what to call them, so a construct that says `{{name
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - On Profile, under "Your name", the user types their name, such as "Mabel", and saves.
-  - The page says it is saved, and the field shows their name, also after a reload.
+  - On Profile, the user chooses Rename beside their name, types their name, such as "Mabel", and saves. A user with no saved name finds the field already open.
+  - The page says it is saved, the field closes, and Profile's card shows their name, also after a reload.
   - The user starts a quest with a construct of their own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](constructs.md#use_case_edit_construct)).
 - **Outcome:** their name is saved trimmed. Spell reply templates replace `{{name}}` with that acting user’s name, or "the user" when unset. Another user’s saved name is never used. The field’s hint explains the placeholder.
 - **Variations:**
   - The user empties the field and saves: the form requires a name and keeps the previous saved name.
+  - The user chooses Cancel: the field closes, their draft is dropped and the saved name stays.
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what the user typed, and nothing is saved.
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**

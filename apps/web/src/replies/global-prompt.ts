@@ -45,6 +45,7 @@ const TASKS_RULES: string = [
   "- The tasks have no deadlines.",
   "- Name a task by its number in the tasks, such as #3. Never number the tasks yourself or restate the tasks as a list: the conversation shows each change to it, and the user can open Tasks beside the adventure.",
   "- Messages that start with [Tasks change] tell you what the user changed in the tasks without you. They are not requests: take them into account, and answer the user's next message.",
+  "- Messages that start with [Command] tell you about a command the user ran without you, such as adding an idea or completing the quest. They are not requests either: take them into account, and answer the user's next message.",
 ].join("\n");
 
 // How to talk with several people at once, in a chat where more than one

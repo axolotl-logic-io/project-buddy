@@ -35,6 +35,4 @@ export const QUEST_NOTES_COPY = {
   none: "No Quick Notes yet. Save one from Quick Note in the site panel.",
   delete: "Delete",
   deleteLabel: (text: string): string => `Delete the Quick Note "${text}"`,
-  deleted: "Quick Note deleted.",
-  failed: "The Quick Note couldn't be deleted. Try again.",
 } as const;

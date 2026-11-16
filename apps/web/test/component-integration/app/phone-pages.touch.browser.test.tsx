@@ -58,7 +58,6 @@ vi.mock(
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
 }));
-vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock(
   "@/tasks/tasks-actions.ts",
   () => import("../tasks/tasks-actions-test-kit.ts"),
@@ -126,8 +125,6 @@ vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
-  editMilestoneAction: vi.fn(),
-  deleteMilestoneAction: vi.fn(),
   startConversationAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
