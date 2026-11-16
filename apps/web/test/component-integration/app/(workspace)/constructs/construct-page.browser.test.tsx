@@ -1,7 +1,4 @@
-// Her construct's page in the browser: its reset button names the construct whose
-// prompt it restores, so a copy of her own copy doesn't hide that reset gives
-// it the default construct's prompt; and it asks before it replaces her saved
-// prompt.
+// Construct editing keeps name and appearance drafts without exposing old prompt controls.
 
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -31,10 +28,9 @@ vi.mock(
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
 }));
-// The page exposes these actions; only reset is submitted.
+// These actions are exposed by the page.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   editBuiltInConstructAction: vi.fn(),
-  resetConstructPromptAction: vi.fn(),
   retireConstructAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
@@ -80,7 +76,7 @@ test("constructs expose name and appearance without prose instructions or reset"
     .element(page.getByRole("textbox", { name: "Prompt", exact: true }))
     .not.toBeInTheDocument();
   await expect
-    .element(page.getByRole("button", { name: PROMPT_COPY.resetPrompt }))
+    .element(page.getByRole("button", { name: "Reset prompt to default" }))
     .not.toBeInTheDocument();
 });
 
