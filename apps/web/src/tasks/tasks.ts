@@ -25,10 +25,13 @@ const TASK_TEXT = z
 // moves.
 const TASK_NUMBER = z.number().int().positive();
 
+// A task is recurring when Start Day, in Dailies, reopens it each day and
+// counts whether it was done; a task without the mark is done once.
 const TASK = z.object({
   number: TASK_NUMBER,
   text: z.string(),
   done: z.boolean(),
+  recurring: z.literal(true).optional(),
 });
 
 // A quest's Tasks: its tasks in order, open and done together, and the number its
@@ -78,6 +81,15 @@ const TASKS_OPERATION = z.discriminatedUnion("op", [
   z.object({ op: z.literal("reopen"), task: TASK_REF }),
   z.object({ op: z.literal("move"), task: TASK_REF, before: BEFORE }),
   z.object({ op: z.literal("remove"), task: TASK_REF }),
+  z.object({
+    op: z.literal("recur"),
+    task: TASK_REF,
+    recurring: z
+      .boolean()
+      .describe(
+        "True to make the task recurring, so Start Day reopens and counts it each day; false to make it a one-off task again.",
+      ),
+  }),
 ]);
 
 // The operation that undoes a removal: it puts the task back as it was, with
@@ -113,6 +125,11 @@ const TASKS_CHANGE_LINE = z.discriminatedUnion("kind", [
     before: z.string().optional(),
   }),
   z.object({ kind: z.literal("remove"), text: z.string() }),
+  z.object({
+    kind: z.literal("recur"),
+    text: z.string(),
+    recurring: z.boolean(),
+  }),
 ]);
 
 type TasksChangeLine = z.infer<typeof TASKS_CHANGE_LINE>;
@@ -254,6 +271,37 @@ function changeText(items: Task[], number: number, text: string): TaskOutcome {
   };
 }
 
+// A task marked recurring, or a one-off task again: the mark is absent, not
+// false, on a one-off task.
+function setRecurring(
+  items: Task[],
+  number: number,
+  recurring: boolean,
+): TaskOutcome {
+  const at = indexOf(items, number);
+  const task = items[at];
+  if (task === undefined) {
+    return "missing-task";
+  }
+  if ((task.recurring === true) === recurring) {
+    return undefined;
+  }
+  const oneOff: Task = {
+    number: task.number,
+    text: task.text,
+    done: task.done,
+  };
+  if (recurring) {
+    items[at] = { ...oneOff, recurring: true };
+  } else {
+    items[at] = oneOff;
+  }
+  return {
+    line: { kind: "recur", text: task.text, recurring },
+    undo: { op: "recur", task: number, recurring: !recurring },
+  };
+}
+
 function moveTask(
   items: Task[],
   number: number,
@@ -356,6 +404,8 @@ function applyOperation(
     }
     case "remove":
       return removeTask(items, operation.task);
+    case "recur":
+      return setRecurring(items, operation.task, operation.recurring);
     default:
       return operation satisfies never;
   }

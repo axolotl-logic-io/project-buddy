@@ -64,10 +64,12 @@ import {
 import { LINK_USER, OWN_SPELL, VELLUM_CLONE } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
-// One page as the phone checks render it.
-vi.mock("@/conversations/reset-conversation-action.ts", () => ({
-  resetConversationAction: vi.fn(),
+vi.mock("@/dailies/day-actions.ts", () => ({
+  startDayAction: vi.fn(),
+  undoStartDayAction: vi.fn(),
 }));
+
+// One page as the phone checks render it.
 
 interface PhonePage {
   readonly name: string;
@@ -301,13 +303,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project", path: QUEST_PATH, render: projectPage },
   {
-    name: "the Dailies quest, with Reset Day",
+    name: "the Dailies quest, with Start Day",
     path: QUEST_PATH,
     render: projectPageFor("actions", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
         page
-          .getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay })
+          .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
           .element(),
       );
     },

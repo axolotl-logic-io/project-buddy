@@ -33,6 +33,7 @@ import {
   TASKS,
   TASKS_CHANGE_LINE,
   TASKS_UNDO_OPERATION,
+  type Task,
   type Tasks,
   type TasksChangeLine,
   type TasksFailure,
@@ -412,72 +413,70 @@ function changeTasks(
   );
 }
 
-// A fresh day keeps the entire list and its numbering, reopening completed
-// tasks even when the saved list is longer than the usual new-task allowance.
-// Their completions keep their points, so completing them again gains more.
-async function reopenTasks(
+// What Start Day did to a quest's tasks: the version it saved, if it
+// changed anything, and the recurring tasks as the day before ended.
+interface TasksDayStart {
+  readonly version?: number | undefined;
+  readonly recurring: readonly Task[];
+}
+
+// Begins a new day in a Dailies quest's tasks: reopens its done recurring
+// tasks, keeping one-off tasks as they are, or, with clear, removes every
+// task. Either way it is one version, which Undo can undo, and it says how
+// the recurring tasks were before it. Completions keep their points, so
+// completing a recurring task again the next day gains more.
+async function startTasksDay(
   owner: UserId,
   questId: QuestId,
-  database: Database = getDb(),
-  clear = false,
-): Promise<void> {
+  database: Database,
+  clear: boolean,
+): Promise<TasksDayStart> {
+  let recurring: readonly Task[] = [];
   const result = await saveChange(
     owner,
     { questId, author: "person" },
     (state): Promise<Attempt> => {
+      recurring = state.tasks.items.filter((task) => task.recurring === true);
+      let operations: TasksUndoOperation[] = recurring
+        .filter((task) => task.done)
+        .map((task) => ({ op: "reopen", task: task.number }));
       if (clear) {
-        const outcome = applyTasksOperations(
-          state.tasks,
-          state.tasks.items.map((task) => ({
-            op: "remove",
-            task: task.number,
-          })),
-        );
-        if (outcome.kind === "failed") {
-          return Promise.resolve(outcome);
-        }
-        return Promise.resolve({
-          kind: "save",
-          next: { basedOn: state.version, ...outcome },
-        });
+        operations = state.tasks.items.map((task) => ({
+          op: "remove",
+          task: task.number,
+        }));
       }
-      const completed = state.tasks.items.filter((task) => task.done);
-      if (completed.length === 0) {
-        return Promise.resolve({ kind: "failed", reason: "unchanged" });
+      const outcome = applyTasksOperations(state.tasks, operations);
+      if (outcome.kind === "failed") {
+        return Promise.resolve(outcome);
       }
       return Promise.resolve({
         kind: "save",
-        next: {
-          basedOn: state.version,
-          tasks: {
-            ...state.tasks,
-            items: state.tasks.items.map((task) => ({ ...task, done: false })),
-          },
-          lines: completed.map((task) => ({ kind: "reopen", text: task.text })),
-          undo: completed.map((task) => ({
-            op: "complete",
-            task: task.number,
-          })),
-        },
+        next: { basedOn: state.version, ...outcome },
       });
     },
     { database, points: false },
   );
-  if (
-    result === undefined ||
-    (result.kind === "failed" && result.reason !== "unchanged")
-  ) {
-    throw new Error("Could not reopen the tasks for a fresh conversation");
+  if (result === undefined) {
+    throw new Error("The Dailies tasks are not open to their owner");
   }
+  if (result.kind === "failed") {
+    if (result.reason !== "unchanged") {
+      throw new Error(`Could not start the day's tasks: ${result.reason}`);
+    }
+    return { recurring };
+  }
+  return { version: result.change.version, recurring };
 }
 
 async function readVersion(
   owner: UserId,
   questId: QuestId,
   version: number,
+  database: Database,
 ): Promise<VersionRow | undefined> {
   const [row] = await withAppErrors("undoTasksChange", () =>
-    getDb()
+    database
       .select(VERSION_COLUMNS)
       .from(tasksVersions)
       .where(
@@ -494,32 +493,46 @@ async function readVersion(
 // Undoes the change saved as version of the owner's quest's tasks, as a new
 // version by the source's author that names it: the tasks as it would be had
 // that change not been made, keeping the changes after it (applyTasksUndo).
-// An undo can't be undone, and a change can be undone once.
+// An undo can't be undone, and a change can be undone once. A supplied
+// database keeps the undo in its caller's transaction. Without points, it
+// gains and takes back none, as undoing a fresh day's version, whose
+// reopened completions kept theirs.
 function undoTasksChange(
   owner: UserId,
   source: TasksChangeSource,
   version: number,
+  { database = getDb(), points = true }: Omit<SaveOptions, "tries"> = {},
 ): Promise<TasksChangeOutcome> {
-  return saveChange(owner, source, async (state): Promise<Attempt> => {
-    const undone = await readVersion(owner, source.questId, version);
-    if (undone === undefined || undone.undoesVersion !== null) {
-      return { kind: "failed", reason: "no-such-change" };
-    }
-    if (state.undone.includes(version)) {
-      return { kind: "failed", reason: "already-undone" };
-    }
-    const outcome = applyTasksUndo(state.tasks, undone);
-    if (outcome.kind === "failed" && outcome.reason === "unchanged") {
-      return { kind: "failed", reason: "nothing-to-undo" };
-    }
-    if (outcome.kind === "failed") {
-      return outcome;
-    }
-    return {
-      kind: "save",
-      next: { basedOn: state.version, ...outcome, undoesVersion: version },
-    };
-  });
+  return saveChange(
+    owner,
+    source,
+    async (state): Promise<Attempt> => {
+      const undone = await readVersion(
+        owner,
+        source.questId,
+        version,
+        database,
+      );
+      if (undone === undefined || undone.undoesVersion !== null) {
+        return { kind: "failed", reason: "no-such-change" };
+      }
+      if (state.undone.includes(version)) {
+        return { kind: "failed", reason: "already-undone" };
+      }
+      const outcome = applyTasksUndo(state.tasks, undone);
+      if (outcome.kind === "failed" && outcome.reason === "unchanged") {
+        return { kind: "failed", reason: "nothing-to-undo" };
+      }
+      if (outcome.kind === "failed") {
+        return outcome;
+      }
+      return {
+        kind: "save",
+        next: { basedOn: state.version, ...outcome, undoesVersion: version },
+      };
+    },
+    { database, points },
+  );
 }
 
 // The changes the owner made to their quest's tasks from the chat that
@@ -569,13 +582,14 @@ export type {
   TasksChangeFailure,
   TasksChangeOutcome,
   TasksChangeSource,
+  TasksDayStart,
   TasksUndoFailure,
 };
 export {
   changeTasks,
   readTasks,
   readTasksState,
-  reopenTasks,
+  startTasksDay,
   undoableChanges,
   undoTasksChange,
 };

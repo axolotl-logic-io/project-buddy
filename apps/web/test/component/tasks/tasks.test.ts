@@ -119,6 +119,43 @@ describe("tasks operations", () => {
     ]);
   });
 
+  test("use_case_recurring_tasks", () => {
+    const outcome = changed(OWL, [
+      { op: "recur", task: 2, recurring: true },
+      { op: "recur", task: 1, recurring: true },
+    ]);
+    expect(outcome.tasks.items.slice(0, 2)).toEqual([
+      {
+        number: 1,
+        text: "Gather reference photos",
+        done: true,
+        recurring: true,
+      },
+      { number: 2, text: "Block out the body", done: false, recurring: true },
+    ]);
+    expect(outcome.lines).toEqual([
+      { kind: "recur", text: "Block out the body", recurring: true },
+      { kind: "recur", text: "Gather reference photos", recurring: true },
+    ]);
+    const oneOff = changed(outcome.tasks, [
+      { op: "recur", task: 2, recurring: false },
+    ]);
+    expect(oneOff.tasks.items[1]).toEqual({
+      number: 2,
+      text: "Block out the body",
+      done: false,
+    });
+    expect(changed(oneOff.tasks, oneOff.undo).tasks.items[1]?.recurring).toBe(
+      true,
+    );
+    expect(changed(outcome.tasks, outcome.undo).tasks.items).toEqual(OWL.items);
+    expect(
+      applyTasksOperations(outcome.tasks, [
+        { op: "recur", task: 2, recurring: true },
+      ]).kind,
+    ).toBe("failed");
+  });
+
   test("the next task is the first open one", () => {
     expect(nextTask(OWL)?.text).toBe("Block out the body");
     expect(nextTask(EMPTY_TASKS)).toBeUndefined();

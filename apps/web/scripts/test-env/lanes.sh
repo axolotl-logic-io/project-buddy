@@ -7,7 +7,7 @@ COMPOSE_FILE="$WEB_ROOT/compose.test-db.yml"
 SHARED_PROJECT=project-buddy-test-db
 SHARED_SERVER="${SHARED_PROJECT}-postgres-1"
 SHARED_DATABASE_PORT=5433
-# Retain the legacy proxy namespace only for explicit prune of old resources.
+# Lane slots run from 1 to 399, so every lane's site port stays below 24000.
 MAX_LANE_SLOT=399
 
 # Decimal strings only, bounded before arithmetic (including leading zeroes).
@@ -17,23 +17,12 @@ valid_slot() {
 
 lane_names() {
   local slot="$1"
-  LANE_PROXY="pb-lane-${slot}-neon-proxy"
   LANE_DATABASE="pb_lane_${slot}"
   LANE_SITE_PORT=$((20000 + 10 * slot))
 }
 
 # Return only canonical slots in the owned namespace. Similar names, leading
 # zeroes and out-of-range suffixes are not authority to remove a resource.
-proxy_slot() {
-  local name="$1" slot
-  slot="${name#pb-lane-}"
-  slot="${slot%-neon-proxy}"
-  valid_slot "$slot" || return 1
-  lane_names "$slot"
-  [[ "$name" == "$LANE_PROXY" ]] || return 1
-  printf '%s\n' "$slot"
-}
-
 database_slot() {
   local name="$1" slot="${1#pb_lane_}"
   valid_slot "$slot" || return 1

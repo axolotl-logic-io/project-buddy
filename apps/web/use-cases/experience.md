@@ -8,7 +8,7 @@
   - They add a task, an idea and a Quick Note, complete the task, and complete the quest.
   - They open Profile from the site panel and read its Experience section.
   - They reopen the task, and later the quest.
-- **Outcome:** each ability shows one point for each thing they did: Adding tasks, Ideating, Quick Notes, Completing tasks and Completing quests. Their experience is the sum of those points, weighted 1 for each add, 3 for a completed task and 9 for a completed quest. The section shows their circle and its title, starting at Circle 1 · Initiate, and how much more experience the next circle needs. Reopening the task or the quest takes back its completion point, whoever reopens it. Reset Day reopens a Dailies quest's tasks without taking points back. Removing a task or idea keeps its points. Reading the section makes no model request.
+- **Outcome:** each ability shows one point for each thing they did: Adding tasks, Ideating, Quick Notes, Completing tasks and Completing quests. Their experience is the sum of those points, weighted 1 for each add, 3 for a completed task and 9 for a completed quest. The section shows their circle and its title, starting at Circle 1 · Initiate, and how much more experience the next circle needs. Reopening the task or the quest takes back its completion point, whoever reopens it. Start Day reopens a Dailies quest's recurring tasks without taking points back, and Undo Start Day gains none. Removing a task or idea keeps its points. Reading the section makes no model request.
 
 ## use_case_experience_command
 

@@ -9,7 +9,7 @@ work="$(mktemp -d "${TMPDIR:-/tmp}/pb-lanes.XXXXXX")"
 trap 'rm -rf -- "$work"' EXIT
 export REAL_NODE="$(command -v node)"
 export FAKE_DOCKER_STATE="$work/docker"
-mkdir -p "$work/bin" "$FAKE_DOCKER_STATE/containers"
+mkdir -p "$work/bin" "$FAKE_DOCKER_STATE"
 ln -s "$here/fake-docker.sh" "$work/bin/docker"
 export PATH="$work/bin:$PATH"
 unset ISSUE_PIPELINE_LANE_SLOT ISSUE_PIPELINE_LANE_SLOTS DATABASE_URL E2E_PORT
@@ -42,10 +42,8 @@ clear_log
 new_checkout 'checkout one'
 cp "$checkout/.env.test.example" "$work/example-before"
 
-# PostgreSQL is published on loopback; no proxy or pooler is provisioned.
+# PostgreSQL is published on loopback.
 contains "$checkout/compose.test-db.yml" '127.0.0.1:5433:5432'
-not_contains "$checkout/compose.test-db.yml" 'neon-proxy'
-not_contains "$checkout/compose.test-db.yml" 'pgbouncer'
 
 # No-slot mode does nothing with an absent, existing or symlink destination.
 for mode in absent existing link; do
@@ -81,9 +79,9 @@ done
 # Create missing databases on the shared PostgreSQL server. All other template settings
 # are byte-for-byte preserved; neither another lane nor the example is modified.
 for row in '1 5433 20010' '2 5433 20020' '399 5433 23990'; do
-  read -r slot proxy_port site_port <<< "$row"
+  read -r slot database_port site_port <<< "$row"
   setup_lane "$slot"
-  contains "$checkout/.env.test" "DATABASE_URL=postgres://postgres:postgres@127.0.0.1:$proxy_port/pb_lane_$slot"
+  contains "$checkout/.env.test" "DATABASE_URL=postgres://postgres:postgres@127.0.0.1:$database_port/pb_lane_$slot"
   contains "$checkout/.env.test" "E2E_PORT=$site_port"
   contains "$FAKE_DOCKER_STATE/databases" "pb_lane_$slot"
   sed -e '/^DATABASE_URL=/d' -e '/^E2E_PORT=/d' "$checkout/.env.test.example" > "$work/settings-before"
@@ -226,38 +224,31 @@ done
 checkout="$saved_checkout"
 
 # Prune preserves exact in-range resources and everything outside its namespace.
-for name in pb-lane-1-neon-proxy pb-lane-399-neon-proxy pb-lane-3-neon-proxy pb-issue-3-neon-proxy project-buddy-test-db-neon-proxy-1 other \
-  pb-lane-03-neon-proxy pb-lane-400-neon-proxy pb-lane-3-neon-proxy-extra; do
-  mkdir -p "$FAKE_DOCKER_STATE/containers/$name"
-done
 printf '%s\n' pb_lane_3 pb_issue_3 project_buddy_e2e unrelated pb_lane_03 pb_lane_400 pb_lane_3_extra >> "$FAKE_DOCKER_STATE/databases"
 clear_log
 prune 2
-printf '%s\n' 'rm pb-lane-3-neon-proxy' 'rm pb-lane-399-neon-proxy' 'drop pb_lane_3' 'drop pb_lane_399' | sort > "$work/expected-removals"
+printf '%s\n' 'drop pb_lane_3' 'drop pb_lane_399' | sort > "$work/expected-removals"
 sort "$FAKE_DOCKER_STATE/mutations" > "$work/removals"
 same "$work/expected-removals" "$work/removals"
 for name in pb_lane_1 pb_lane_2 pb_issue_3 project_buddy_e2e unrelated pb_lane_03 pb_lane_400 pb_lane_3_extra; do
   contains "$FAKE_DOCKER_STATE/databases" "$name"
 done
-[[ -d "$FAKE_DOCKER_STATE/containers/pb-lane-1-neon-proxy" ]] || die 'Lost in-range proxy'
 clear_log
 prune 2
 empty "$FAKE_DOCKER_STATE/mutations"
 
 # A zero-padded count is decimal, not octal or an invalid-value fallback to zero.
 for slot in 8 9; do
-  mkdir -p "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy"
   echo "pb_lane_$slot" >> "$FAKE_DOCKER_STATE/databases"
 done
 prune 0008
-printf '%s\n' 'rm pb-lane-9-neon-proxy' 'drop pb_lane_9' | sort > "$work/expected-removals"
+printf '%s\n' 'drop pb_lane_9' | sort > "$work/expected-removals"
 sort "$FAKE_DOCKER_STATE/mutations" > "$work/removals"
 same "$work/expected-removals" "$work/removals"
-[[ -d "$FAKE_DOCKER_STATE/containers/pb-lane-8-neon-proxy" ]] || die 'Decimal count lost in-range proxy'
 contains "$FAKE_DOCKER_STATE/databases" pb_lane_8
 clear_log
 prune 0002
-printf '%s\n' 'rm pb-lane-8-neon-proxy' 'drop pb_lane_8' | sort > "$work/expected-removals"
+printf '%s\n' 'drop pb_lane_8' | sort > "$work/expected-removals"
 sort "$FAKE_DOCKER_STATE/mutations" > "$work/removals"
 same "$work/expected-removals" "$work/removals"
 
@@ -274,20 +265,17 @@ contains "$work/error" 'nonnegative whole number'
 prune 999999999999999999999999999
 empty "$FAKE_DOCKER_STATE/mutations"
 
-mkdir -p "$FAKE_DOCKER_STATE/containers/pb-lane-3-neon-proxy"
 echo pb_lane_3 >> "$FAKE_DOCKER_STATE/databases"
-for uncertainty in unavailable not-running garbled inventory-failure bad-json empty wrong-type missing-core duplicate line-break empty-name list-failure; do
+for uncertainty in unavailable not-running garbled inventory-failure bad-json empty wrong-type missing-core duplicate line-break empty-name; do
   clear_log
   fails env FAKE_INSPECTION="$uncertainty" ISSUE_PIPELINE_LANE_SLOTS=2 bash "$checkout/scripts/test-env/prune.sh"
   empty "$FAKE_DOCKER_STATE/mutations"
-  [[ -d "$FAKE_DOCKER_STATE/containers/pb-lane-3-neon-proxy" ]] || die 'Uncertain inspection removed proxy'
   contains "$FAKE_DOCKER_STATE/databases" pb_lane_3
 done
 prune 0
 for name in pb_lane_1 pb_lane_2 pb_lane_3; do
   if grep -Fxq "$name" "$FAKE_DOCKER_STATE/databases"; then die "Prune retained obsolete $name"; fi
 done
-[[ -d "$FAKE_DOCKER_STATE/containers/project-buddy-test-db-postgres-1" ]] || die 'Removed shared server'
 
 # Every public environment-dependent command fails before Docker/DB/test work.
 rm "$checkout/.env.test"

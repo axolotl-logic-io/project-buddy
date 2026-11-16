@@ -1,9 +1,10 @@
 // Experience in the test database: the points each ability gains from the
 // stores that save tasks, ideas, Quick Notes and quest status, the points
-// reopening and undo take back, and the points Reset Day and removal keep.
+// reopening and undo take back, and the points Start Day and removal keep.
 
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import { getDb } from "@/db/client.ts";
 import type { AbilityPoints } from "@/experience/experience.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { changeIdea, listIdeas } from "@/ideas/idea-store.ts";
@@ -13,7 +14,7 @@ import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import type { TasksUndoOperation } from "@/tasks/tasks.ts";
 import {
   changeTasks,
-  reopenTasks,
+  startTasksDay,
   undoTasksChange,
 } from "@/tasks/tasks-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -109,13 +110,25 @@ describe("use_case_experience", () => {
     });
   });
 
-  test("Reset Day keeps completions' points, so completing again gains more", async () => {
+  test("Start Day keeps a recurring task's points, so completing it again gains more, and its undo gains none", async () => {
     const user = await testUser();
     const questId = await questOf(user);
     await change(user, questId, ADD_TWO);
-    await change(user, questId, [{ op: "complete", task: 1 }]);
-    await reopenTasks(user.id, questId);
+    await change(user, questId, [
+      { op: "recur", task: 1, recurring: true },
+      { op: "complete", task: 1 },
+    ]);
+    const { version } = await startTasksDay(user.id, questId, getDb(), false);
     expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
+    if (version === undefined) {
+      throw new Error("Start Day reopened nothing");
+    }
+    await undoTasksChange(user.id, { questId, author: "person" }, version, {
+      database: getDb(),
+      points: false,
+    });
+    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
+    await startTasksDay(user.id, questId, getDb(), false);
     await change(user, questId, [{ op: "complete", task: 1 }]);
     expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 2 });
   });

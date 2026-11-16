@@ -18,7 +18,9 @@ The quest's Progress section lists its milestones, newest first. Each entry show
 
 A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `src/milestones/milestone.ts`). The tool and the edit form both check it.
 
-The timeline celebrates and doesn't nag. Its copy (`src/ui/copy/milestones.ts`) and the construct's rules never count days or streaks, or point out a pause.
+## Day grid
+
+In the Dailies quest, the Progress section shows a day grid above the timeline. It has one row for each recurring task, with a square for each of its last seven dates: filled when the task was done, empty when it wasn't, and dashed for a gap, a date with no day started. [Dailies](dailies.md) describes the days and streaks behind it.
 
 ## Storage
 

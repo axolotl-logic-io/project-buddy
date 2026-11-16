@@ -1,7 +1,7 @@
 // The text of a quest's tasks: the Tasks section on the quest's page and the
 // Tasks section, the Tasks panel beside a quest's conversation, the tasks
 // changes and tasks cards in it, and the composer's commands. The tasks have no
-// deadlines and never nags: no counts of open tasks or days.
+// deadlines.
 
 import { TASK_TEXT_MAX_LENGTH, type TasksChangeLine } from "@/tasks/tasks.ts";
 import type {
@@ -38,6 +38,11 @@ function tasksLineText(line: TasksChangeLine): string {
       return `Moved ${quoted(line.text)}${beforeOrEnd(line.before)}`;
     case "remove":
       return `Removed ${quoted(line.text)}`;
+    case "recur":
+      if (line.recurring) {
+        return `Made ${quoted(line.text)} recurring`;
+      }
+      return `Made ${quoted(line.text)} a one-off task`;
     default:
       return line satisfies never;
   }
@@ -69,6 +74,19 @@ export const TASKS_COPY = {
   moveUpLabel: "Move up",
   moveDownLabel: "Move down",
   removeLabel: "Remove task",
+  makeRecurring: (text: string): string => `Make ${quoted(text)} recurring`,
+  makeOneOff: (text: string): string => `Make ${quoted(text)} a one-off task`,
+  makeRecurringLabel: "Make recurring",
+  makeOneOffLabel: "Make one-off",
+  // A recurring task's streak, as its badge shows it: the count, and the
+  // rest for screen readers.
+  streak: (count: number): string => {
+    if (count === 1) {
+      return "1-day streak";
+    }
+    return `${count}-day streak`;
+  },
+  recurringNoStreak: "Recurring, no streak",
   textLabel: "Task",
   save: "Save",
   cancel: "Cancel",

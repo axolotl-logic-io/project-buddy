@@ -401,6 +401,7 @@ function EditableListRow({
   checked,
   toggleLabel,
   onToggle,
+  badge,
 }: {
   readonly id: string;
   readonly text: string;
@@ -414,6 +415,9 @@ function EditableListRow({
   readonly checked?: boolean;
   readonly toggleLabel?: string;
   readonly onToggle?: () => Promise<void>;
+  // A short note about the item, shown before its actions, such as a
+  // recurring task's streak.
+  readonly badge?: ReactNode;
 }): JSX.Element {
   const sort = useContext(SortContext);
   const [editing, setEditing] = useState(false);
@@ -511,6 +515,7 @@ function EditableListRow({
         </Button>
       )}
       <span className="editable-actions">
+        {badge}
         {sort !== undefined && (
           <Button
             variant="quiet"
@@ -610,7 +615,7 @@ function EditableListAction({
   label,
 }: {
   readonly children: ReactNode;
-  readonly icon: "arrow-up" | "arrow-down" | "trash" | "checklist";
+  readonly icon: "arrow-up" | "arrow-down" | "trash" | "checklist" | "repeat";
   readonly onSelect: () => Promise<void>;
   readonly disabled?: boolean;
   readonly label?: string;

@@ -11,16 +11,20 @@ const EMPTY_TASKS_PROMPT = `The quest has no tasks yet. When the user agrees on 
 
 // The line before the tasks.
 const TASKS_PROMPT_INTRO =
-  "The quest's Tasks: its remaining work, in order, each with its number. Done tasks are marked [done]. The first open task is the quest's next task. The user can change the tasks without you, so this is the tasks as they are now:";
+  "The quest's Tasks: its remaining work, in order, each with its number. Done tasks are marked [done], and recurring tasks, which Start Day reopens each day, [recurring]. The first open task is the quest's next task. The user can change the tasks without you, so this is the tasks as they are now:";
 
 const TASKS_START_TAG = "<quest_tasks>";
 const TASKS_END_TAG = "</quest_tasks>";
 
-function taskLine({ number, text, done }: Task): string {
+function taskLine({ number, text, done, recurring }: Task): string {
+  const marks: string[] = [];
   if (done) {
-    return `#${number} [done] ${text}`;
+    marks.push("[done]");
   }
-  return `#${number} ${text}`;
+  if (recurring === true) {
+    marks.push("[recurring]");
+  }
+  return [`#${number}`, ...marks, text].join(" ");
 }
 
 // The tasks as the prompt gives them.

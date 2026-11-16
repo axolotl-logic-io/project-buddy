@@ -6,7 +6,7 @@ Each quest has Tasks: its ordered tasks of remaining work, which the construct a
 
 A task is one line of at most 200 characters (`TASK_TEXT` in `src/tasks/tasks.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. Tasks has no limit on the number of tasks. Done tasks keep their places, and the site shows them folded away under **Done**.
 
-The next task is the first open task in Tasks. Tasks shows the remaining work as compact todo rows, with no separate duplicate next-task card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a task opens a new editor above the list and saves the new task first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable task number. A new quest starts with an empty Tasks.
+The next task is the first open task in Tasks. Tasks shows the remaining work as compact todo rows, with no separate duplicate next-task card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a task opens a new editor above the list and saves the new task first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable task number. In the Dailies quest, it also holds Make recurring or Make one-off, and a recurring task's row shows its streak (see [Dailies](dailies.md)). A new quest starts with an empty Tasks.
 
 ## Operations
 
@@ -20,6 +20,7 @@ The next task is the first open task in Tasks. Tasks shows the remaining work as
 | `reopen` | task | Marks a done task open again. |
 | `move` | task, optional `before` task | Moves the task before another, or to the end. |
 | `remove` | task | Deletes the task. |
+| `recur` | task, `recurring` | Makes the task a [recurring task](dailies.md#recurring-tasks), which Start Day reopens each day, or a one-off task again. |
 
 A batch applies all or none. It saves nothing if a task it names isn't there or if no operation changes anything; an operation that changes nothing, such as completing a done task, is skipped. Each change records what each operation did, in words, and the operations that undo it.
 
@@ -27,7 +28,7 @@ An undo (`applyTasksUndo`) keeps the changes made since. It skips an operation o
 
 ## The construct
 
-Every quest conversation's prompt lists the current Tasks, between `<quest_tasks>` tags, one task per line with its number and done tasks marked (`src/replies/tasks-prompt.ts`). The `change_tasks` tool (`src/replies/tools/change-tasks.ts`) takes a batch of operations and returns the tasks after it, or the tasks as they are and why nothing changed. The global prompt's tasks rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed tasks, to check off a task the user finished, to keep a finished task apart from a milestone, never to count open tasks or days, and to name tasks by their `#` numbers rather than restate the tasks as a list with its own numbering.
+Every quest conversation's prompt lists the current Tasks, between `<quest_tasks>` tags, one task per line with its number, done tasks marked `[done]` and recurring tasks marked `[recurring]` (`src/replies/tasks-prompt.ts`). The `change_tasks` tool (`src/replies/tools/change-tasks.ts`) takes a batch of operations and returns the tasks after it, or the tasks as they are and why nothing changed. The global prompt's tasks rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed tasks, to check off a task the user finished, to keep a finished task apart from a milestone and to name tasks by their `#` numbers rather than restate the tasks as a list with its own numbering.
 
 The conversation shows each call as a **Tasks change** with Undo (`src/components/chat/tasks-change-part.tsx`), while the reply streams and after the user reopens the quest. The tool is active only in quest conversations.
 
