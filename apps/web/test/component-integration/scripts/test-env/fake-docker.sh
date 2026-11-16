@@ -15,15 +15,6 @@ case "$1" in
        "$6" == up && "$7" == --detach && "$8" == --wait ]] || fail 'unexpected compose command'
     [[ "${FAKE_SETUP_FAILURE:-}" != compose ]] || fail 'compose startup failed'
     mutation 'compose up'
-    mkdir -p "$state/containers/project-buddy-test-db-postgres-1"
-    ;;
-  container)
-    [[ "$*" == "container ls --all --format {{.Names}}" ]] || fail 'unexpected listing'
-    [[ "${FAKE_INSPECTION:-}" != list-failure ]] || fail 'listing failed'
-    for path in "$state"/containers/*; do
-      [[ -d "$path" ]] && basename "$path"
-    done
-    true
     ;;
   inspect)
     name="${@: -1}"
@@ -37,11 +28,6 @@ case "$1" in
     else
       fail 'unexpected container inspection'
     fi
-    ;;
-  rm)
-    [[ "$2" == --force && $# == 3 ]] || fail 'unexpected removal'
-    rm -rf -- "$state/containers/$3"
-    mutation "rm $3"
     ;;
   exec)
     [[ "$2" == project-buddy-test-db-postgres-1 && "$3" == psql ]] || fail 'unexpected database connection'

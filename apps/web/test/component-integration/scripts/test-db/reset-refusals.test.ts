@@ -21,7 +21,7 @@ function connectionString(host: string, database: string): string {
   return url.href;
 }
 
-const LOCAL_DATABASE = connectionString("localhost:4444", "project_buddy_e2e");
+const LOCAL_DATABASE = connectionString("localhost:5433", "project_buddy_e2e");
 
 // One run of the reset command.
 interface Run {
@@ -133,13 +133,13 @@ describe("the test database reset refuses", () => {
   });
 
   test("raw delimiters that the driver parses differently from a Postgres URL", () => {
-    const ambiguous = String.raw`postgres://remote.example\:placeholder@localhost:4444/pinned`;
+    const ambiguous = String.raw`postgres://remote.example\:placeholder@localhost:5433/pinned`;
 
     expect(reset({ databaseUrl: ambiguous })).toEqual(refusal(NOT_A_URL));
   });
 
   test("a non-Postgres scheme", () => {
-    expect(reset({ databaseUrl: "https://localhost:4444/e2e" })).toEqual(
+    expect(reset({ databaseUrl: "https://localhost:5433/e2e" })).toEqual(
       refusal(NOT_POSTGRES),
     );
   });
@@ -162,7 +162,7 @@ describe("the test database reset refuses", () => {
   });
 
   test("a connection string without the test server's credentials", () => {
-    expect(reset({ databaseUrl: "postgres://localhost:4444/e2e" })).toEqual(
+    expect(reset({ databaseUrl: "postgres://localhost:5433/e2e" })).toEqual(
       refusal(NO_CREDENTIALS),
     );
   });
@@ -175,22 +175,22 @@ describe("the test database reset refuses", () => {
       "template1",
       "ma%69n",
     ]) {
-      const own = connectionString("localhost:4444", name);
+      const own = connectionString("localhost:5433", name);
 
       expect(reset({ databaseUrl: own })).toEqual(refusal(RESERVED));
     }
   });
 
   test("a server with no database supplied", () => {
-    const server = connectionString("localhost:4444", "");
+    const server = connectionString("localhost:5433", "");
 
     expect(reset({ databaseUrl: server })).toEqual(refusal(NO_NAME));
   });
 
   test("a database name SQL would quote, or Postgres would truncate", () => {
-    const quoted = connectionString("localhost:4444", "Project-Buddy");
+    const quoted = connectionString("localhost:5433", "Project-Buddy");
     const truncated = connectionString(
-      "localhost:4444",
+      "localhost:5433",
       `${"a".repeat(MAX_IDENTIFIER_LENGTH)}_other`,
     );
 

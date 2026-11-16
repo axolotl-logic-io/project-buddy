@@ -25,10 +25,13 @@ const TASKS_STEP_TEXT = z
 // moves.
 const TASKS_STEP_NUMBER = z.number().int().positive();
 
+// A step is recurring when Start Day, in Dailies, reopens it each day and
+// counts whether it was done; a step without the mark is done once.
 const TASKS_STEP = z.object({
   number: TASKS_STEP_NUMBER,
   text: z.string(),
   done: z.boolean(),
+  recurring: z.literal(true).optional(),
 });
 
 // A tasks: its steps in order, open and done together, and the number its
@@ -78,6 +81,15 @@ const TASKS_OPERATION = z.discriminatedUnion("op", [
   z.object({ op: z.literal("reopen"), step: STEP }),
   z.object({ op: z.literal("move"), step: STEP, before: BEFORE }),
   z.object({ op: z.literal("remove"), step: STEP }),
+  z.object({
+    op: z.literal("recur"),
+    step: STEP,
+    recurring: z
+      .boolean()
+      .describe(
+        "True to make the step recurring, so Start Day reopens and counts it each day; false to make it a one-off step again.",
+      ),
+  }),
 ]);
 
 // The operation that undoes a removal: it puts the step back as it was, with
@@ -113,6 +125,11 @@ const TASKS_CHANGE_LINE = z.discriminatedUnion("kind", [
     before: z.string().optional(),
   }),
   z.object({ kind: z.literal("remove"), text: z.string() }),
+  z.object({
+    kind: z.literal("recur"),
+    text: z.string(),
+    recurring: z.boolean(),
+  }),
 ]);
 
 type TasksChangeLine = z.infer<typeof TASKS_CHANGE_LINE>;
@@ -262,6 +279,37 @@ function changeText(
   };
 }
 
+// A step marked recurring, or a one-off step again: the mark is absent, not
+// false, on a one-off step.
+function setRecurring(
+  steps: TasksStep[],
+  number: number,
+  recurring: boolean,
+): StepOutcome {
+  const at = indexOf(steps, number);
+  const step = steps[at];
+  if (step === undefined) {
+    return "missing-step";
+  }
+  if ((step.recurring === true) === recurring) {
+    return undefined;
+  }
+  const oneOff: TasksStep = {
+    number: step.number,
+    text: step.text,
+    done: step.done,
+  };
+  if (recurring) {
+    steps[at] = { ...oneOff, recurring: true };
+  } else {
+    steps[at] = oneOff;
+  }
+  return {
+    line: { kind: "recur", text: step.text, recurring },
+    undo: { op: "recur", step: number, recurring: !recurring },
+  };
+}
+
 function moveStep(
   steps: TasksStep[],
   number: number,
@@ -364,6 +412,8 @@ function applyOperation(
     }
     case "remove":
       return removeStep(steps, operation.step);
+    case "recur":
+      return setRecurring(steps, operation.step, operation.recurring);
     default:
       return operation satisfies never;
   }

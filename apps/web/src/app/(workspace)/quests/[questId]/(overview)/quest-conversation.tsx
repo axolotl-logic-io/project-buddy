@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
+import { DayGrid } from "@/components/dailies/day-grid.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestNotes } from "@/components/quest-notes.tsx";
@@ -9,11 +10,13 @@ import {
   QuestStatusControls,
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
-import { ResetConversation } from "@/components/reset-conversation.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
+import { StartDay } from "@/components/start-day.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
+import type { DailiesRecord } from "@/dailies/dailies.ts";
+import { readDailiesRecord } from "@/dailies/day-store.ts";
 import { changeIdeaAction } from "@/ideas/idea-actions.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import type { UserId } from "@/ids.ts";
@@ -73,8 +76,20 @@ function membersSection(
 // beside it: Tasks, Ideas, Progress, Quick Notes, Members, and Actions,
 // which holds the spell picker. Opening it marks it read for viewer alone. Reading it spends
 // nothing: a quest whose conversation hasn't started, as after the move
-// from adventures, offers to start it instead. The Dailies quest offers
-// Reset Day, which clears the conversation and reopens Tasks steps.
+// from adventures, offers to start it instead. The active Dailies quest
+// offers Start Day, which begins a new day with an empty conversation and
+// reopens its done recurring steps, and shows their streaks and day grid.
+// The Dailies quest's days while it is active; undefined in any other quest.
+function readRecord(
+  quest: Quest,
+  viewer: UserId,
+): Promise<DailiesRecord | undefined> {
+  if (!quest.dailies || quest.status !== "active") {
+    return Promise.resolve(undefined);
+  }
+  return readDailiesRecord(viewer, quest.id);
+}
+
 async function questConversation(
   quest: Quest,
   viewer: UserId,
@@ -98,6 +113,7 @@ async function questConversation(
     notes,
     ownSpells,
     people,
+    record,
   ] = await Promise.all([
     listMessages(viewer, conversation.id),
     readStoppedReply(viewer, conversation.id),
@@ -107,6 +123,7 @@ async function questConversation(
     listNotes(viewer, quest.id),
     listOwnSpells(viewer),
     listQuestPeople(viewer, quest.id),
+    readRecord(quest, viewer),
   ]);
   let initialSection: string | undefined = section;
   if (section === "conversation") {
@@ -145,7 +162,12 @@ async function questConversation(
         {
           id: "progress",
           label: PROGRESS_TIMELINE_COPY.heading,
-          content: <ProgressTimeline milestones={milestones} />,
+          content: (
+            <div className="flex flex-col gap-4">
+              <DayGrid />
+              <ProgressTimeline milestones={milestones} />
+            </div>
+          ),
         },
         {
           id: "notes",
@@ -167,11 +189,11 @@ async function questConversation(
               <QuestStatusFeedback>
                 <QuestStatusControls quest={quest} />
               </QuestStatusFeedback>
-              {quest.dailies && quest.status === "active" && (
-                <ResetConversation
+              {record !== undefined && (
+                <StartDay
                   chatId={conversation.id}
-                  label={QUEST_CONVERSATION_COPY.resetDay}
-                  quest={true}
+                  lastStartedAt={record.days.at(-1)?.startedAt}
+                  undoable={record.undoable}
                 />
               )}
               <SpellPicker
@@ -187,6 +209,7 @@ async function questConversation(
       stoppedReplyId={stoppedReplyId}
       viewer={viewer}
       tasks={tasks}
+      dailiesDays={record?.days}
     />
   );
 }

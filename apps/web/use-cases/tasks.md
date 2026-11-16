@@ -45,3 +45,30 @@ The user keeps the tasks with commands in the message box, without the construct
   - In a conversation with no quest, tasks commands say they need a quest. Any other message that starts with "/", such as "/shrug ok", goes to the construct as written, and typing "/" lists no tasks commands.
 - **Next:**
   - `use_case_change_tasks`: see the whole tasks on the quest's page.
+
+## use_case_recurring_steps
+
+The user marks a step in Dailies to do every day.
+
+- **Prerequisites:** [`use_case_dailies`](quests.md#use_case_dailies), with a step in its Tasks.
+- **Steps:** the user opens the step's menu and chooses Make recurring. Later, they can choose Make one-off to change it back.
+- **Outcome:** the step shows a repeat icon. The page says what changed, with Undo, as for any tasks change. Each Start Day reopens the step if it is done ([`use_case_start_day`](quests.md#use_case_start_day)), while a done one-off step stays done.
+- **Variations:**
+  - Steps in a quest not started as Dailies have no Make recurring.
+- **Next:**
+  - `use_case_daily_streaks`: see how often each recurring step gets done.
+
+## use_case_daily_streaks
+
+The user sees how many days in a row they have done each recurring step.
+
+- **Prerequisites:** `use_case_recurring_steps`, and days begun with [`use_case_start_day`](quests.md#use_case_start_day).
+- **Steps:**
+  - The user looks at a recurring step in Tasks.
+  - The user opens the sidebar's Progress tab.
+- **Outcome:** each recurring step shows its streak beside its repeat icon: the number of days in a row, up to the current day, on which it was done. The current day counts once the step is done, and an open step doesn't end the streak until the next Start Day. A day the step wasn't done ends the streak. So does a gap: a calendar date with no day started. Two days started on one date count as one date. Above the progress timeline, a day grid shows each recurring step's last seven dates: filled when done, empty when not, and dashed for a gap. Screen readers announce each date's weekday, date and mark.
+- **Variations:**
+  - Before the first Start Day, the grid says that Start Day begins counting. With no recurring steps, it says how to make one.
+  - A recurring step with no streak shows its repeat icon alone.
+  - A date before a step became recurring shows as untracked.
+  - A quest not started as Dailies shows no streaks or day grid.

@@ -1,17 +1,49 @@
-// A quest's conversation on its page: the quest's next step above it, and
-// the Start action for a quest whose conversation hasn't started yet.
+// A quest's conversation on its page: the quest's next step above it, the
+// Start action for a quest whose conversation hasn't started yet, and the
+// Dailies quest's Start Day.
+
+const HOUR_MS = 3_600_000;
+
+const HOURS_PER_DAY = 24;
+
+// How long the line counts in hours before it counts in days.
+const HOURS_SHOWN = 48;
+
+function plural(count: number, one: string, many: string): string {
+  if (count === 1) {
+    return `${count} ${one}`;
+  }
+  return `${count} ${many}`;
+}
+
+// How long ago the newest day started, under the Start Day button: in hours
+// for the first two days, and then in days.
+function lastDayStarted(milliseconds: number): string {
+  const hours = Math.floor(Math.max(0, milliseconds) / HOUR_MS);
+  if (hours < 1) {
+    return "Last day started less than an hour ago";
+  }
+  if (hours < HOURS_SHOWN) {
+    return `Last day started ${plural(hours, "hour", "hours")} ago`;
+  }
+  return `Last day started ${plural(Math.floor(hours / HOURS_PER_DAY), "day", "days")} ago`;
+}
 
 export const QUEST_CONVERSATION_COPY = {
   notStarted:
     "This quest’s conversation hasn’t started yet. Start it to hear from its construct.",
   start: "Start the conversation",
   starting: "Starting…",
-  resetDay: "Reset Day",
-  reset: "Reset",
+  startDay: "Start Day",
   cancel: "Cancel",
-  confirmReset:
-    "Reset this conversation? Its messages and active spell will be cleared. This cannot be undone.",
+  confirmStartDay:
+    "Start a new day? The conversation starts empty, its active spell ends, and done recurring steps reopen. You can undo this until someone sends a message.",
   clearSteps: "Remove all Steps",
-  keepSteps: "By default, Steps are kept and unchecked.",
+  keepSteps:
+    "By default, steps are kept: done recurring steps reopen, and one-off steps stay as they are.",
   clearIdeas: "Remove all Ideas",
+  lastDayStarted,
+  noDayYet: "No day started yet",
+  undoStartDay: "Undo Start Day",
+  undoNote: "Undo brings back the conversation, steps and Ideas from before.",
 } as const;

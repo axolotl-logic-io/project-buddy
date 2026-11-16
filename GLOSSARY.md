@@ -219,10 +219,38 @@ One of the four starting points every quest begins from: [Dailies](#dailies), Le
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, in the quest sidebar's Actions tab, asks for confirmation before clearing its conversation and active spell. By default, it keeps Tasks, Ideas and Progress and reopens completed Tasks steps. The user can also choose to remove Steps and Ideas. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. The user begins each day with [Start Day](#start-day). Its steps can be [recurring](#recurring-step), and each recurring step keeps a [streak](#streak). Dailies has no automatic daily reset: a day begins only when the user starts it.
 
-- **UI:** “Dailies”, “Reset Day”.
-- **Avoid:** "daily quest" for a new quest per day, "streak".
+- **UI:** “Dailies”, “Start Day”.
+- **Avoid:** "daily quest" for a new quest per day.
+
+### Start Day
+
+The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring steps](#recurring-step) reopen, and one-off steps, Ideas and Progress stay as they are. The user can also choose to remove all Steps or all Ideas.
+
+Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
+
+- **UI:** “Start Day”, “Undo Start Day”, “Last day started 5 hours ago”.
+- **Avoid:** "Reset Day", "reset", "new session".
+
+### Recurring step
+
+A [step](#step) in the Dailies quest that the user means to do every day. The step's menu in Tasks offers Make recurring and Make one-off. Start Day records whether each recurring step was done that day, then reopens the done ones. A recurring step shows a repeat icon with its [streak](#streak).
+
+- **UI:** “Make recurring”, “Make one-off”.
+- **Avoid:** "habit", "repeating task", "daily task".
+
+### Streak
+
+The number of days in a row, up to the current day, on which the user did a [recurring step](#recurring-step). The current day counts once the step is done, and an open step doesn't end the streak until the next Start Day. A day the step wasn't done ends the streak, and so does a [gap](#gap). Two days started on one date count as one date, done if the step was done in either.
+
+- **UI:** “3-day streak”.
+
+### Gap
+
+A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Progress section's day grid, a dashed square marks it.
+
+- **UI:** “no day started”.
 
 ### Quest code names
 
@@ -247,14 +275,14 @@ A meaningful result on the path toward a [goal](#goal). A milestone can be plann
 Something the user got done in a quest: one short line, in the past tense, that the construct records in a quest's conversation, dated and linked to the quest. The user can edit or delete it.
 
 - **UI:** "Milestone", "Added to the progress timeline".
-- **Avoid:** "achievement", "accomplishment", "streak", "log entry".
+- **Avoid:** "achievement", "accomplishment", "log entry".
 
 ### Progress timeline
 
-A quest's collection of recorded milestones. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
+A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, a day grid sits above it: each [recurring step](#recurring-step)'s last seven dates, with each date marked done, not done or a [gap](#gap).
 
 - **UI:** "Progress".
-- **Avoid:** "activity log", "history", "streak".
+- **Avoid:** "activity log", "history".
 
 ### Next step
 
@@ -282,20 +310,20 @@ A short, dated line the user saves to an Active quest open to them from the site
 
 ### Quest sidebar actions
 
-The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and Reset Day for an Active Dailies quest.
+The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest.
 
 - **UI:** "Actions".
 
 ### Tasks
 
-A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines and never counts open steps or days.
+A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines.
 
 - **UI:** "Tasks", "Tasks panel".
 - **Avoid:** "todo list", "task list", "backlog", "roadmap".
 
 ### Step
 
-One piece of remaining work in a [tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done step isn't a [recorded milestone](#milestone-recorded).
+One piece of remaining work in a [tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done step isn't a [recorded milestone](#milestone-recorded). In the Dailies quest, a step can be [recurring](#recurring-step); any other step is one-off.
 
 - **UI:** "Step", "#3", "Done".
 - **Avoid:** "todo", "task", "item", "action item".

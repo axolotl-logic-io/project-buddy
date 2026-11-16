@@ -18,7 +18,7 @@
 import type { UIMessageChunk } from "ai";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
@@ -29,7 +29,9 @@ import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
+import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -38,7 +40,9 @@ import {
   answerChat,
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
+import { readDailiesRecord } from "../../../../dailies/day-store-test-kit.ts";
 import { markdownReplyText } from "../../../../replies/rich-message-test-kit.ts";
+import { readTasksState } from "../../../../tasks/tasks-store-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   NARROWEST_VIEWPORT,
@@ -47,8 +51,9 @@ import {
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
 
-vi.mock("@/conversations/reset-conversation-action.ts", () => ({
-  resetConversationAction: vi.fn(),
+vi.mock("@/dailies/day-actions.ts", () => ({
+  startDayAction: vi.fn(),
+  undoStartDayAction: vi.fn(),
 }));
 
 vi.mock("@/ideas/idea-store.ts", () => ({
@@ -98,6 +103,10 @@ vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn().mockResolvedValue([]),
 }));
+vi.mock(
+  "@/dailies/day-store.ts",
+  () => import("../../../../dailies/day-store-test-kit.ts"),
+);
 
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
@@ -120,6 +129,17 @@ const SCREENS = [
   { viewport: LAPTOP_VIEWPORT, pinnedBudget: 140 },
   { viewport: PHONE_VIEWPORT, pinnedBudget: 112 },
 ] as const;
+// How long ago the Dailies quest's last day started, in hours and then in
+// milliseconds, with half an hour more so the minute the line counts from
+// stays within the hour.
+const HOURS_AGO = 5;
+const HOUR_MS = 3_600_000;
+const STARTED_MS_AGO: number = HOURS_AGO * HOUR_MS + HOUR_MS / 2;
+// The Dailies quest's recurring step and its streak since the gap, and a
+// one-off step.
+const STRETCH = "Stretch";
+const VET = "Book the vet";
+const STRETCH_STREAK = 3;
 // A quest's name that takes the band's heading to two lines on a phone.
 const LONG_QUEST_NAME = "One layer up: interface, associativity explorer";
 // The Python block that ends each reply, shown once the reply is laid out.
@@ -566,30 +586,30 @@ describe("conversation initialization fallback", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("Reset Day is in the sidebar's Actions tab and confirms reset options", async () => {
+  test("Start Day is in the sidebar's Actions tab and confirms its options", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    const reset = page.getByRole("button", {
-      name: QUEST_CONVERSATION_COPY.resetDay,
+    const start = page.getByRole("button", {
+      name: QUEST_CONVERSATION_COPY.startDay,
     });
-    await expect.element(reset).not.toBeInTheDocument();
+    await expect.element(start).not.toBeInTheDocument();
     await page.getByRole("tab", { name: "Actions", exact: true }).click();
     const actions = page.getByRole("tabpanel", { name: "Actions" });
     await expect
       .element(
         actions.getByRole("button", {
-          name: QUEST_CONVERSATION_COPY.resetDay,
+          name: QUEST_CONVERSATION_COPY.startDay,
         }),
       )
       .toBeVisible();
     await expect
       .element(actions.getByRole("button", { name: "Cast spell" }))
       .toBeVisible();
-    await reset.click();
+    await start.click();
     const dialog = page.getByRole("dialog", {
-      name: QUEST_CONVERSATION_COPY.resetDay,
+      name: QUEST_CONVERSATION_COPY.startDay,
     });
     await expect.element(dialog).toBeVisible();
     await expect
@@ -608,7 +628,58 @@ describe("use_case_dailies", () => {
       .not.toBeChecked();
   });
 
-  test("an ordinary quest offers no Reset Day", async () => {
+  test("Start Day shows how long ago the last day started, and Undo until a message", async () => {
+    store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+    store.listMessages.mockResolvedValue([]);
+    readDailiesRecord.mockResolvedValueOnce({
+      days: [
+        {
+          date: "2026-11-14",
+          startedAt: new Date(Date.now() - STARTED_MS_AGO),
+        },
+      ],
+      undoable: true,
+    });
+    await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("tab", { name: "Actions", exact: true }).click();
+    const actions = page.getByRole("tabpanel", { name: "Actions" });
+    await expect
+      .element(
+        actions.getByText(
+          QUEST_CONVERSATION_COPY.lastDayStarted(HOURS_AGO * HOUR_MS),
+        ),
+      )
+      .toBeVisible();
+    await expect
+      .element(
+        actions.getByRole("button", {
+          name: QUEST_CONVERSATION_COPY.undoStartDay,
+        }),
+      )
+      .toBeVisible();
+  });
+
+  test("a Dailies quest with no day started says so and offers no Undo", async () => {
+    store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+    store.listMessages.mockResolvedValue([]);
+    await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("tab", { name: "Actions", exact: true }).click();
+    const actions = page.getByRole("tabpanel", { name: "Actions" });
+    await expect
+      .element(actions.getByText(QUEST_CONVERSATION_COPY.noDayYet))
+      .toBeVisible();
+    await expect
+      .element(
+        actions.getByRole("button", {
+          name: QUEST_CONVERSATION_COPY.undoStartDay,
+        }),
+      )
+      .not.toBeInTheDocument();
+  });
+
+  test("an ordinary quest offers no Start Day", async () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
 
@@ -617,8 +688,86 @@ describe("use_case_dailies", () => {
       .toBeVisible();
     await expect
       .element(
-        page.getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay }),
+        page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay }),
       )
+      .not.toBeInTheDocument();
+  });
+});
+
+describe("use_case_daily_streaks", () => {
+  test("a recurring step shows its streak, and Progress shows its days with the gap", async () => {
+    store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+    store.listMessages.mockResolvedValue([]);
+    readTasksState.mockResolvedValueOnce({
+      version: 1,
+      tasks: {
+        steps: [
+          { number: 1, text: STRETCH, done: true, recurring: true },
+          { number: 2, text: VET, done: false },
+        ],
+        nextNumber: 3,
+      },
+      undone: [],
+    });
+    readDailiesRecord.mockResolvedValueOnce({
+      days: [
+        {
+          date: "2026-11-10",
+          startedAt: new Date("2026-11-10T08:00:00Z"),
+          steps: [{ number: 1, text: STRETCH, done: true }],
+        },
+        {
+          date: "2026-11-12",
+          startedAt: new Date("2026-11-12T08:00:00Z"),
+          steps: [{ number: 1, text: STRETCH, done: true }],
+        },
+        {
+          date: "2026-11-13",
+          startedAt: new Date("2026-11-13T08:00:00Z"),
+          steps: [{ number: 1, text: STRETCH, done: true }],
+        },
+        { date: "2026-11-14", startedAt: new Date("2026-11-14T08:00:00Z") },
+      ],
+      undoable: false,
+    });
+    await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await expect
+      .element(page.getByText(TASKS_COPY.streak(STRETCH_STREAK)))
+      .toBeInTheDocument();
+
+    await page.getByRole("button", { name: TASKS_COPY.actions(VET) }).click();
+    await expect
+      .element(
+        page.getByRole("menuitem", { name: TASKS_COPY.makeRecurring(VET) }),
+      )
+      .toBeVisible();
+    await userEvent.keyboard("{Escape}");
+
+    await page.getByRole("tab", { name: "Progress", exact: true }).click();
+    const progress = page.getByRole("tabpanel", { name: "Progress" });
+    await expect
+      .element(progress.getByRole("heading", { name: DAY_GRID_COPY.heading }))
+      .toBeVisible();
+    await expect
+      .element(
+        progress.getByText(DAY_GRID_COPY.day("Wed", "2026-11-11", "gap")),
+      )
+      .toBeInTheDocument();
+    await expect
+      .element(
+        progress.getByText(DAY_GRID_COPY.day("Sat", "2026-11-14", "done")),
+      )
+      .toBeInTheDocument();
+  });
+
+  test("an ordinary quest has no streaks or day grid", async () => {
+    store.listMessages.mockResolvedValue([]);
+    await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("tab", { name: "Progress", exact: true }).click();
+    await expect
+      .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
       .not.toBeInTheDocument();
   });
 });

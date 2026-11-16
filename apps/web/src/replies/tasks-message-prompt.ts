@@ -34,6 +34,11 @@ function lineForModel(line: TasksChangeLine): string {
       return `moved ${quoted(line.text)} before ${quoted(line.before)}`;
     case "remove":
       return `removed ${quoted(line.text)}`;
+    case "recur":
+      if (line.recurring) {
+        return `made ${quoted(line.text)} recurring`;
+      }
+      return `made ${quoted(line.text)} a one-off step`;
     default:
       return line satisfies never;
   }
