@@ -15,7 +15,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quest tasks](quest-tasks.md): a quest's steps of remaining work, the construct's `change_tasks` tool, the Tasks section and panel, and the composer's commands.
 - [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Tasks.
 - [Progress timeline](progress-timeline.md): the milestones the construct records in a quest's conversation, and how the user edits them.
-- [Quick Notes](quick-notes.md): saving a short note to a quest from the site menu, and the quest's Quick Notes tab.
+- [Quick Notes](quick-notes.md): saving a short note to a quest from the site panel, and the quest's Quick Notes tab.
 - [Graveyard](retirement.md): retiring, restoring, and permanently deleting own constructs and spells.
 - [Saved images](images.md): conversation images, owner access and deletion.
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and asset ownership.

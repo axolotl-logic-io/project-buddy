@@ -4,7 +4,7 @@ The Timer helps a user work and rest on a repeating schedule, alone or alongside
 
 ## Setup
 
-**Timer** in the site menu's Places opens `/timer`. Two selectors, **Work for** and **Break for**, each offer 10, 15, 25, 30, 45, 50, 60 and 120 minutes. A browser tab that has shown no timer offers 50 and 10 minutes; otherwise it offers the lengths of the timer it showed last. The tab's session storage keeps them, so another tab or device starts from the defaults.
+**Timer** in the site panel's Places opens `/timer`. Two selectors, **Work for** and **Break for**, each offer 10, 15, 25, 30, 45, 50, 60 and 120 minutes. A browser tab that has shown no timer offers 50 and 10 minutes; otherwise it offers the lengths of the timer it showed last. The tab's session storage keeps them, so another tab or device starts from the defaults.
 
 Setup has two actions:
 

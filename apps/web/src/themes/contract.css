@@ -82,7 +82,7 @@
 }
 
 /* Menus and popovers open and close with these, under motion-safe:, and
-   the site's menu slides in from the right edge with slide-in. */
+   the site panel's drawer slides in from the left edge with slide-in. */
 @theme {
   --animate-pop-in: pop-in 120ms ease-out;
   --animate-pop-out: pop-out 90ms ease-in;
@@ -90,7 +90,7 @@
 
   @keyframes slide-in {
     from {
-      transform: translateX(100%);
+      transform: translateX(-100%);
     }
   }
 

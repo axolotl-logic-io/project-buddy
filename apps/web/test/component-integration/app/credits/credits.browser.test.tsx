@@ -12,7 +12,7 @@ import {
   signOut,
 } from "../../auth/current-user-test-kit.ts";
 import { tabForward } from "../../components/keyboard-test-kit.ts";
-import { openMenu } from "../../components/site-menu-test-kit.ts";
+import { openPanel } from "../../components/site-panel-test-kit.ts";
 import { inSiteFrame } from "../site-frame-test-kit.tsx";
 
 vi.mock(
@@ -25,7 +25,7 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
 
-// Pages whose site menu offers Credits: public pages for a visitor, and a
+// Pages whose site panel offers Credits: public pages for a visitor, and a
 // signed-in page.
 const PAGES: readonly {
   name: string;
@@ -52,17 +52,17 @@ function stayOnThisPage(event: MouseEvent): void {
 
 describe("use_case_see_icon_credit", () => {
   for (const { name, signedIn, content } of PAGES) {
-    test(`the site menu on ${name} links to Credits, and following it closes the menu`, async () => {
+    test(`the site panel on ${name} links to Credits, and following it closes the panel`, async () => {
       signOut();
       if (signedIn) {
         signInAs(SIGNED_IN_USER);
       }
       await render(await inSiteFrame(await content()));
       expect(page.getByRole("contentinfo").query()).toBeNull();
-      await openMenu();
+      await openPanel();
       const credits = page
         .getByRole("dialog")
-        .getByRole("link", { name: CREDITS_COPY.menuLink, exact: true });
+        .getByRole("link", { name: CREDITS_COPY.panelLink, exact: true });
       await expect.element(credits).toBeVisible();
       await expect.element(credits).toHaveAttribute("href", "/credits");
 
