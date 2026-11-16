@@ -1,6 +1,10 @@
+import { z } from "zod";
 import type { ConstructId } from "@/constructs/index.ts";
 
-type PremadeQuestId = "dailies" | "learn" | "make" | "do";
+// The starting points' ids, as a form or the API sends them.
+const PREMADE_QUEST_ID = z.enum(["dailies", "learn", "make", "do"]);
+
+type PremadeQuestId = z.infer<typeof PREMADE_QUEST_ID>;
 
 interface PremadeQuest {
   readonly id: PremadeQuestId;
@@ -58,4 +62,4 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
 ];
 
 export type { PremadeQuest, PremadeQuestId, QuestStartPreset };
-export { PREMADE_QUESTS };
+export { PREMADE_QUEST_ID, PREMADE_QUESTS };

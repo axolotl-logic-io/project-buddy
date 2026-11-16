@@ -1,0 +1,3 @@
+[tasks.check]
+description = "Typecheck, lint and test the command-line interface without a running site"
+run = "npm run check"

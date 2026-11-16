@@ -23,6 +23,7 @@
     "check": "biome check --error-on-warnings && npm run typecheck && npm run test:scripts && npm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "dev:cli-session": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/development/cli-session.ts",
     "ops:link": "bash scripts/ops/link.sh",
     "ops:env": "bash scripts/ops/pull-env.sh",
     "ops:query": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/ops/query.ts",
