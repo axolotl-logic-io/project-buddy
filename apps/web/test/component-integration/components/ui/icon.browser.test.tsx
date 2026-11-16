@@ -2,8 +2,8 @@ import { expect, test } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { Icon } from "@/components/ui/icon.tsx";
+import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
-import { tabForward } from "../keyboard-test-kit.ts";
 
 const ORDINARY_ICON_SIZE_PX = 16;
 const NEXT_CONTROL = "Next";

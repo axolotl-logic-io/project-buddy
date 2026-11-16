@@ -1,10 +1,11 @@
 // "use_case_use_on_phone" in use-cases, the header and its site panel in
 // Chromium and WebKit, in every theme: the header's bar takes one row at
-// every width, the site panel's button and then the brand, so the page
-// starts high on the screen. On a phone the brand is its medallion alone,
-// still named for the site. The button stays a touch target's height
-// (44 px), the brand at least WCAG 2.5.8's minimum (24 px), and nothing
-// scrolls sideways. The open panel, on the left under the header, fits the
+// every width, so the page starts high on the screen. On a phone the brand
+// is its medallion alone, still named for the site. The site panel's button
+// floats under the header's left end, and the open panel's close button
+// takes its place. The button stays a touch target's height (44 px), the
+// brand at least WCAG 2.5.8's minimum (24 px), and nothing scrolls
+// sideways. The open panel, on the left under the header, fits the
 // narrowest phone, with every link a target's height. On a wide screen the
 // panel docks beside the page instead of opening over it.
 // The header is laid out by width alone (no pointer media query in src/),
@@ -57,6 +58,7 @@ import {
   type ViewportSize,
 } from "../viewports-test-kit.ts";
 import {
+  closeButton,
   closePanel,
   openPanel,
   panelButton,
@@ -193,10 +195,10 @@ describe("use_case_use_on_phone", () => {
           ).toContain("test kit");
           const titleBox = title.element().getBoundingClientRect();
           const buttonBox = panelButton().element().getBoundingClientRect();
-          expect(
-            titleBox.bottom > buttonBox.top && buttonBox.bottom > titleBox.top,
-            "the site's name and the panel's button share one row",
-          ).toBe(true);
+          const headerBox = page
+            .getByRole("banner")
+            .element()
+            .getBoundingClientRect();
           expect(
             titleBox.width === BUTTON_HEIGHT_PX,
             "on a phone the brand is its medallion alone, a target wide",
@@ -208,9 +210,13 @@ describe("use_case_use_on_phone", () => {
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
           expect(
+            buttonBox.top,
+            "the panel's button floats under the header",
+          ).toBeGreaterThan(headerBox.bottom);
+          expect(
             buttonBox.right,
-            "the panel's button starts the bar, on the side the panel opens",
-          ).toBeLessThanOrEqual(titleBox.left);
+            "the panel's button is on the left, where the panel opens",
+          ).toBeLessThan(screen.viewport.width / 2);
           expect(
             document.documentElement.scrollWidth,
             "no sideways scroll",
@@ -219,6 +225,11 @@ describe("use_case_use_on_phone", () => {
           await openPanel();
           const panel = sitePanel().element().getBoundingClientRect();
           expect(panel.left, "the panel is on the left").toBe(0);
+          const closeBox = closeButton().element().getBoundingClientRect();
+          expect(
+            [closeBox.left, closeBox.top],
+            "the panel's close button takes its button's place",
+          ).toEqual([buttonBox.left, buttonBox.top]);
           expect(
             panel.top,
             "the panel is under the header",
@@ -293,19 +304,17 @@ describe("use_case_experience_ring", () => {
         (nextCircleStart - experience) / (nextCircleStart - circleStart),
       );
       const ringBox = ring.element().getBoundingClientRect();
-      const buttonBox = panelButton().element().getBoundingClientRect();
       const titleBox = page
         .getByRole("link", { name: SITE_COPY.name })
         .element()
         .getBoundingClientRect();
       expect(ringBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+      expect(titleBox.right <= ringBox.left, "the brand, then the ring").toBe(
+        true,
+      );
       expect(
-        buttonBox.right <= titleBox.left && titleBox.right <= ringBox.left,
-        "the site panel's button, the brand, then the ring",
-      ).toBe(true);
-      expect(
-        ringBox.bottom > buttonBox.top && buttonBox.bottom > ringBox.top,
-        "the ring and the site panel's button share one row",
+        ringBox.bottom > titleBox.top && titleBox.bottom > ringBox.top,
+        "the ring and the brand share one row",
       ).toBe(true);
       const bar = page.getByRole("banner").element().getBoundingClientRect();
       expect(
@@ -359,7 +368,8 @@ describe("the site panel", () => {
     expect(sitePanel().element().matches(":modal"), "a modal drawer").toBe(
       true,
     );
-    expect(panelButton().element()).toHaveAttribute("aria-expanded", "true");
+    expect(closeButton().element()).toHaveAttribute("aria-expanded", "true");
+    await expect.element(closeButton()).toHaveFocus();
 
     await closePanel();
     expect(document.activeElement).toBe(panelButton().element());
@@ -426,7 +436,7 @@ describe("the site panel", () => {
         sitePanel().element().matches(":modal"),
         "the page beside it stays in reach",
       ).toBe(false);
-      await expect.element(panelButton()).toHaveFocus();
+      await expect.element(closeButton()).toHaveFocus();
       const panel = sitePanel().element().getBoundingClientRect();
       expect(
         pageStart(),
@@ -445,10 +455,15 @@ describe("the site panel", () => {
       await screen.unmount();
       await render(signedInFrame());
       await expect.element(sitePanel()).toBeVisible();
-      expect(panelButton().element()).toHaveAttribute("aria-expanded", "true");
+      expect(closeButton().element()).toHaveAttribute("aria-expanded", "true");
+      expect(
+        document.activeElement,
+        "a panel docked on load leaves focus on the page",
+      ).not.toBe(closeButton().element());
 
-      await panelButton().click();
+      await closeButton().click();
       await expect.poll(() => sitePanel().query()).toBeNull();
+      await expect.element(panelButton()).toHaveFocus();
       expect(pageStart(), "the page takes its room back").toBe(closedStart);
     } finally {
       globalThis.removeEventListener("click", stayOnThisPage, {
@@ -588,10 +603,13 @@ describe("the trail band", () => {
       .getByRole("link", { name: SITE_COPY.name })
       .element()
       .getBoundingClientRect();
-    const button = panelButton().element().getBoundingClientRect();
     expect(heading.top, "the band is under the bar").toBeGreaterThanOrEqual(
-      Math.max(brand.bottom, button.bottom),
+      brand.bottom,
     );
+    expect(
+      panelButton().element().getBoundingClientRect().top,
+      "the panel's button floats under the band",
+    ).toBeGreaterThan(heading.bottom);
     for (const link of links) {
       const bounds = link.element().getBoundingClientRect();
       expect(bounds.right, "parents lead into the heading").toBeLessThan(
@@ -631,7 +649,11 @@ describe("the trail band", () => {
     await expect
       .element(page.getByRole("link", { name: SITE_COPY.name }))
       .not.toBeInViewport();
-    await expect.element(panelButton()).not.toBeInViewport();
+    // The panel's button follows the band.
+    await expect
+      .poll(() => panelButton().element().getBoundingClientRect().top)
+      .toBeGreaterThan(pageHeading().element().getBoundingClientRect().bottom);
+    await expect.element(panelButton()).toBeInViewport({ ratio: 1 });
     window.scrollTo(0, 0);
   });
 
