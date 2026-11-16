@@ -22,12 +22,17 @@ function appliedChoice(): AppliedChoice {
   };
 }
 
-// The header's button that opens the site panel.
+// The button under the header that opens the site panel.
 function panelButton(): ReturnType<typeof page.getByRole> {
   return page.getByRole("button", {
     name: SITE_PANEL_COPY.title,
     exact: true,
   });
+}
+
+// The open site panel's close button, in the place of panelButton.
+function closeButton(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("button", { name: SITE_PANEL_COPY.close });
 }
 
 // The open site panel.
@@ -56,9 +61,7 @@ async function closePanel(): Promise<void> {
   if (sitePanel().element().matches(":modal")) {
     await userEvent.keyboard("{Escape}");
   } else {
-    await sitePanel()
-      .getByRole("button", { name: SITE_PANEL_COPY.close })
-      .click();
+    await closeButton().click();
   }
   await vi.waitFor(() => {
     if (sitePanel().query() !== null) {
@@ -99,6 +102,7 @@ export {
   appliedChoice,
   choice,
   choose,
+  closeButton,
   closePanel,
   openPanel,
   panelButton,
