@@ -95,7 +95,7 @@ function LastStarted({
 }
 
 // The Dailies quest's Start Day: a button and its confirming dialog, which
-// may also remove every step or every Idea; under it, how long ago the last
+// may also remove every task or every Idea; under it, how long ago the last
 // day started; and, until someone sends a message in the new day's
 // conversation, Undo.
 function StartDay({
@@ -129,10 +129,10 @@ function StartDay({
         <form action={startWithToday} className="flex flex-col gap-3">
           <p>{QUEST_CONVERSATION_COPY.confirmStartDay}</p>
           <label>
-            <input type="checkbox" name="clearSteps" />{" "}
-            {QUEST_CONVERSATION_COPY.clearSteps}
+            <input type="checkbox" name="clearTasks" />{" "}
+            {QUEST_CONVERSATION_COPY.clearTasks}
           </label>
-          <p className="text-muted">{QUEST_CONVERSATION_COPY.keepSteps}</p>
+          <p className="text-muted">{QUEST_CONVERSATION_COPY.keepTasks}</p>
           <label>
             <input type="checkbox" name="clearIdeas" />{" "}
             {QUEST_CONVERSATION_COPY.clearIdeas}

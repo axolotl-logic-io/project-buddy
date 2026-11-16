@@ -41,7 +41,7 @@ async function changeChatTasks(
     // other reason reads as the tasks unchanged.
     const { reason: found } = outcome;
     let reason: TasksFailure = "unchanged";
-    if (found === "missing-step") {
+    if (found === "missing-task") {
       reason = found;
     }
     return { status: "not-changed", reason, tasks: outcome.state.tasks };

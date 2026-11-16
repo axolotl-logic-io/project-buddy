@@ -21,7 +21,7 @@ import {
 } from "@/accounts/owner-scope.ts";
 import { moveConversationAssets } from "@/constructs/visual-asset-store.ts";
 import {
-  DAY_STEP,
+  DAY_TASK,
   type DailiesDay,
   type DailiesRecord,
   type LocalDate,
@@ -55,13 +55,13 @@ const REMOVED_IDEA = z.object({
 const DAY_ROW = z.object({
   localDate: z.string(),
   startedAt: z.date(),
-  steps: z.array(DAY_STEP).nullable(),
+  tasks: z.array(DAY_TASK).nullable(),
 });
 
-// What a Start Day may also remove: every Tasks step, every Idea.
+// What a Start Day may also remove: every task, every Idea.
 interface DayStartOptions {
   readonly localDate: LocalDate;
-  readonly clearSteps: boolean;
+  readonly clearTasks: boolean;
   readonly clearIdeas: boolean;
 }
 
@@ -115,10 +115,10 @@ async function newestDay(
 
 // Begins a new day in the owner's active Dailies, whose continuing
 // conversation id is, and returns the new conversation's id: it ends the
-// day before, recording its recurring steps, reopens the done ones, gives
+// day before, recording its recurring tasks, reopens the done ones, gives
 // the quest an empty conversation with the same construct and no spell,
-// and parks the one before for Undo. Ideas, Progress and one-off steps
-// stay, unless options remove the steps or the Ideas. Undefined, changing
+// and parks the one before for Undo. Ideas, Progress and one-off tasks
+// stay, unless options remove the tasks or the Ideas. Undefined, changing
 // nothing, if id isn't the owner's active Dailies conversation.
 function startDay(
   owner: UserId,
@@ -132,7 +132,7 @@ function startDay(
       if (previous === undefined || questId === undefined) {
         return;
       }
-      const tasks = await startTasksDay(owner, questId, db, options.clearSteps);
+      const tasks = await startTasksDay(owner, questId, db, options.clearTasks);
       let removedIdeas: unknown = null;
       if (options.clearIdeas) {
         removedIdeas = (
@@ -143,11 +143,11 @@ function startDay(
         ).map((idea) => ({ ...idea, createdAt: idea.createdAt.toISOString() }));
       }
       const ended = await newestDay(owner, questId, db);
-      if (ended !== undefined && ended.steps === null) {
+      if (ended !== undefined && ended.tasks === null) {
         await db
           .update(dailiesDays)
           .set({
-            steps: tasks.recurring.map(({ number, text, done }) => ({
+            tasks: tasks.recurring.map(({ number, text, done }) => ({
               number,
               text,
               done,
@@ -234,8 +234,8 @@ async function hasMessages(chatId: string, db: Transaction): Promise<boolean> {
 
 // Takes back the newest Start Day in the owner's active Dailies, whose
 // continuing conversation id is, and returns the id of the conversation it
-// puts back: the one before, with its messages and spell; the Tasks steps
-// and Ideas as they were, keeping later changes to the steps; and the day
+// puts back: the one before, with its messages and spell; the tasks
+// and Ideas as they were, keeping later changes to the tasks; and the day
 // before still going. Undefined, changing nothing, once someone has sent a
 // message in id, or if id isn't the newest day's conversation.
 function undoStartDay(owner: UserId, id: ChatId): Promise<ChatId | undefined> {
@@ -257,11 +257,12 @@ function undoStartDay(owner: UserId, id: ChatId): Promise<ChatId | undefined> {
       }
       const parkedId = CHAT_ID.parse(day.parkedChatId);
       if (day.tasksVersion !== null) {
+        // Start Day's version kept every point, so undoing it gains none.
         await undoTasksChange(
           owner,
           { questId, author: "person" },
           day.tasksVersion,
-          db,
+          { database: db, points: false },
         );
       }
       const ideas = z.array(REMOVED_IDEA).safeParse(day.removedIdeas).data;
@@ -282,7 +283,7 @@ function undoStartDay(owner: UserId, id: ChatId): Promise<ChatId | undefined> {
       if (reopened !== undefined) {
         await db
           .update(dailiesDays)
-          .set({ steps: null })
+          .set({ tasks: null })
           .where(eq(dailiesDays.id, reopened.id));
       }
       await db
@@ -335,7 +336,7 @@ async function readDailiesRecord(
       {
         date: parsed.data.localDate,
         startedAt: parsed.data.startedAt,
-        steps: parsed.data.steps ?? undefined,
+        tasks: parsed.data.tasks ?? undefined,
       },
     ];
   });

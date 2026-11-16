@@ -17,7 +17,7 @@ const DEFAULT_SPELL_RESPONSES = {
     "Cast {{spell}}. Subsequent messages go into {{bucket}}. Use stop when you’re finished.",
   savedReply: "Saved to {{bucket}}.",
   stopReply: "Spell stopped. Back to Chat.",
-  invalidReply: "Use 1 to 200 characters for each idea or Tasks step.",
+  invalidReply: "Use 1 to 200 characters for each idea or task.",
 };
 const SPELL_REPLY = z.string().trim().min(1).max(SPELL_REPLY_MAX);
 const SPELL_REPLIES = z

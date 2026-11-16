@@ -51,6 +51,10 @@ import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 import { siteHeaderAt } from "./site-header-test-kit.tsx";
 
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
 }));
@@ -134,8 +138,10 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   resetConstructPromptAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+vi.mock("@/app/(workspace)/profile/actions.ts", () => ({
   setNameAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));

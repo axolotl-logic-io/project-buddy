@@ -15,6 +15,12 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
+
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock(
   "@/auth/current-user.ts",

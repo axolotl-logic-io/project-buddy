@@ -138,7 +138,7 @@ describe("requests", () => {
     {
       args: ["task", "complete", "3", "--quest", QUEST],
       path: `/api/v1/quests/${QUEST}/tasks`,
-      body: { operations: [{ op: "complete", step: 3 }] },
+      body: { operations: [{ op: "complete", task: 3 }] },
     },
     {
       args: ["task", "undo", "7", "--quest", QUEST],
@@ -211,8 +211,8 @@ describe("invalid input", () => {
     },
     { args: ["note", "add", "--quest", QUEST], field: "text" },
     { args: ["note", "add", "--text", "a"], field: "quest" },
-    { args: ["task", "complete", "first", "--quest", QUEST], field: "step" },
-    { args: ["task", "complete", "0", "--quest", QUEST], field: "step" },
+    { args: ["task", "complete", "first", "--quest", QUEST], field: "task" },
+    { args: ["task", "complete", "0", "--quest", QUEST], field: "task" },
     { args: ["quest", "list", "--colour"], field: "colour" },
     { args: ["quest", "list", "--quest", QUEST], field: "quest" },
     { args: ["quest", "list", "extra"], field: "argument" },

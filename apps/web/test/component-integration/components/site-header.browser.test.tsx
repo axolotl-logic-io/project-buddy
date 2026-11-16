@@ -31,6 +31,8 @@ import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
+import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
+import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -39,6 +41,7 @@ import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { MABEL_EXPERIENCE } from "../experience/experience-store-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -60,7 +63,12 @@ import {
   sitePanel,
 } from "./site-panel-test-kit.ts";
 
-// SignedInHeader reads the session, server code.
+// SignedInHeader reads the session, and the ring of the user's circle reads
+// their experience: server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -87,7 +95,7 @@ const PLACES = [
   TIMER_COPY.panelLink,
   RETIREMENT_COPY.heading,
 ] as const;
-const YOU = [SETTINGS_COPY.headerLink] as const;
+const YOU = [PROFILE_COPY.headerLink, SETTINGS_COPY.headerLink] as const;
 
 // The screens the header is checked on.
 const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
@@ -249,8 +257,75 @@ test.each(SCREENS)(
   },
 );
 
+// How much of the ring is left unfilled: the arc's dash offset over its
+// length.
+function unfilledFraction(arc: Element): number {
+  return (
+    Number(arc.getAttribute("stroke-dashoffset")) /
+    Number(arc.getAttribute("stroke-dasharray"))
+  );
+}
+
+describe("use_case_experience_ring", () => {
+  test.each(SCREENS)(
+    "the ring of the user's circle fills toward the next one, at the bar's right end, on $name",
+    async (screen) => {
+      signInAs(SIGNED_IN_USER);
+      await setViewport(screen.viewport);
+      await render(await SignedInHeader());
+      const { circle, title, experience, circleStart, nextCircleStart } =
+        MABEL_EXPERIENCE;
+      const ring = page.getByRole("banner").getByRole("link", {
+        name: EXPERIENCE_COPY.progress(
+          circle,
+          title,
+          nextCircleStart - experience,
+          circle + 1,
+        ),
+      });
+      await expect.element(ring).toHaveAttribute("href", "/profile#experience");
+      await expect.element(ring).toHaveTextContent(String(circle));
+      const arc = ring.element().querySelector(".circle-progress-arc");
+      if (arc === null) {
+        throw new Error("The ring has no arc");
+      }
+      expect(unfilledFraction(arc)).toBeCloseTo(
+        (nextCircleStart - experience) / (nextCircleStart - circleStart),
+      );
+      const ringBox = ring.element().getBoundingClientRect();
+      const buttonBox = panelButton().element().getBoundingClientRect();
+      const titleBox = page
+        .getByRole("link", { name: SITE_COPY.name })
+        .element()
+        .getBoundingClientRect();
+      expect(ringBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+      expect(
+        buttonBox.right <= titleBox.left && titleBox.right <= ringBox.left,
+        "the site panel's button, the brand, then the ring",
+      ).toBe(true);
+      expect(
+        ringBox.bottom > buttonBox.top && buttonBox.bottom > ringBox.top,
+        "the ring and the site panel's button share one row",
+      ).toBe(true);
+      const bar = page.getByRole("banner").element().getBoundingClientRect();
+      expect(
+        bar.right - ringBox.right,
+        "the ring ends the bar, on its right",
+      ).toBeLessThanOrEqual(
+        Number.parseFloat(
+          getComputedStyle(page.getByRole("banner").element()).paddingRight,
+        ) + 1,
+      );
+      expect(
+        document.documentElement.scrollWidth,
+        "no sideways scroll",
+      ).toBeLessThanOrEqual(screen.viewport.width);
+    },
+  );
+});
+
 describe("the site panel", () => {
-  test("groups Quests and Workshop apart from Settings, above the appearance choices and Credits", async () => {
+  test("groups Quests and Workshop apart from Profile and Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openPanel();
 

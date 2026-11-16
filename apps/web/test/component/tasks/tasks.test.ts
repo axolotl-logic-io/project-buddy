@@ -9,13 +9,13 @@ import {
   EMPTY_TASKS,
   moveAmongOpen,
   moveToPlace,
-  nextTasksStep,
+  nextTask,
   type Tasks,
   type TasksUndoOperation,
 } from "@/tasks/tasks.ts";
 
 const OWL: Tasks = {
-  steps: [
+  items: [
     { number: 1, text: "Gather reference photos", done: true },
     { number: 2, text: "Block out the body", done: false },
     { number: 3, text: "Sculpt the feathers", done: false },
@@ -25,7 +25,7 @@ const OWL: Tasks = {
 };
 
 function texts(tasks: Tasks): string[] {
-  return tasks.steps.map(({ text, done }) => {
+  return tasks.items.map(({ text, done }) => {
     if (done) {
       return `[done] ${text}`;
     }
@@ -58,7 +58,7 @@ function changed(
 }
 
 describe("tasks operations", () => {
-  test("add a step at the end, or before another, with the next number", () => {
+  test("add a task at the end, or before another, with the next number", () => {
     const outcome = changed(OWL, [
       { op: "add", text: "Retopologize the head", before: 3 },
       { op: "add", text: "Share it" },
@@ -71,9 +71,9 @@ describe("tasks operations", () => {
       "Render a turntable",
       "Share it",
     ]);
-    // The new steps take the next numbers, in the order they were added.
-    const numbers = outcome.tasks.steps.map(({ number }) => number);
-    const [first, second, third, fourth] = OWL.steps.map(
+    // The new tasks take the next numbers, in the order they were added.
+    const numbers = outcome.tasks.items.map(({ number }) => number);
+    const [first, second, third, fourth] = OWL.items.map(
       ({ number }) => number,
     );
     expect(numbers).toEqual([
@@ -97,13 +97,13 @@ describe("tasks operations", () => {
     ]);
   });
 
-  test("complete, reopen, change, move and remove steps, saying what each did", () => {
+  test("complete, reopen, change, move and remove tasks, saying what each did", () => {
     const outcome = changed(OWL, [
-      { op: "complete", step: 2 },
-      { op: "reopen", step: 1 },
-      { op: "change", step: 4, text: "Render a floating turntable" },
-      { op: "move", step: 4, before: 3 },
-      { op: "remove", step: 1 },
+      { op: "complete", task: 2 },
+      { op: "reopen", task: 1 },
+      { op: "change", task: 4, text: "Render a floating turntable" },
+      { op: "move", task: 4, before: 3 },
+      { op: "remove", task: 1 },
     ]);
     expect(texts(outcome.tasks)).toEqual([
       "[done] Block out the body",
@@ -119,12 +119,12 @@ describe("tasks operations", () => {
     ]);
   });
 
-  test("use_case_recurring_steps", () => {
+  test("use_case_recurring_tasks", () => {
     const outcome = changed(OWL, [
-      { op: "recur", step: 2, recurring: true },
-      { op: "recur", step: 1, recurring: true },
+      { op: "recur", task: 2, recurring: true },
+      { op: "recur", task: 1, recurring: true },
     ]);
-    expect(outcome.tasks.steps.slice(0, 2)).toEqual([
+    expect(outcome.tasks.items.slice(0, 2)).toEqual([
       {
         number: 1,
         text: "Gather reference photos",
@@ -138,44 +138,44 @@ describe("tasks operations", () => {
       { kind: "recur", text: "Gather reference photos", recurring: true },
     ]);
     const oneOff = changed(outcome.tasks, [
-      { op: "recur", step: 2, recurring: false },
+      { op: "recur", task: 2, recurring: false },
     ]);
-    expect(oneOff.tasks.steps[1]).toEqual({
+    expect(oneOff.tasks.items[1]).toEqual({
       number: 2,
       text: "Block out the body",
       done: false,
     });
-    expect(changed(oneOff.tasks, oneOff.undo).tasks.steps[1]?.recurring).toBe(
+    expect(changed(oneOff.tasks, oneOff.undo).tasks.items[1]?.recurring).toBe(
       true,
     );
-    expect(changed(outcome.tasks, outcome.undo).tasks.steps).toEqual(OWL.steps);
+    expect(changed(outcome.tasks, outcome.undo).tasks.items).toEqual(OWL.items);
     expect(
       applyTasksOperations(outcome.tasks, [
-        { op: "recur", step: 2, recurring: true },
+        { op: "recur", task: 2, recurring: true },
       ]).kind,
     ).toBe("failed");
   });
 
-  test("the next step is the first open one", () => {
-    expect(nextTasksStep(OWL)?.text).toBe("Block out the body");
-    expect(nextTasksStep(EMPTY_TASKS)).toBeUndefined();
+  test("the next task is the first open one", () => {
+    expect(nextTask(OWL)?.text).toBe("Block out the body");
+    expect(nextTask(EMPTY_TASKS)).toBeUndefined();
   });
 
   test("undo puts the tasks back as it was, numbers included", () => {
     const outcome = changed(OWL, [
       { op: "add", text: "Retopologize the head", before: 3 },
-      { op: "complete", step: 2 },
-      { op: "change", step: 3, text: "Sculpt the brass plates" },
-      { op: "move", step: 4, before: 2 },
-      { op: "remove", step: 1 },
+      { op: "complete", task: 2 },
+      { op: "change", task: 3, text: "Sculpt the brass plates" },
+      { op: "move", task: 4, before: 2 },
+      { op: "remove", task: 1 },
     ]);
     const undone = changed(outcome.tasks, outcome.undo);
-    expect(undone.tasks.steps).toEqual(OWL.steps);
+    expect(undone.tasks.items).toEqual(OWL.items);
   });
 
-  test("undoing a removal after the step it went before is gone puts the step at the end", () => {
-    const removed = changed(OWL, [{ op: "remove", step: 3 }]);
-    const later = changed(removed.tasks, [{ op: "remove", step: 4 }]);
+  test("undoing a removal after the task it went before is gone puts the task at the end", () => {
+    const removed = changed(OWL, [{ op: "remove", task: 3 }]);
+    const later = changed(removed.tasks, [{ op: "remove", task: 4 }]);
     const undone = changed(later.tasks, removed.undo);
     expect(texts(undone.tasks)).toEqual([
       "[done] Gather reference photos",
@@ -184,23 +184,23 @@ describe("tasks operations", () => {
     ]);
   });
 
-  test("undoing a change keeps a later edit of the same step", () => {
+  test("undoing a change keeps a later edit of the same task", () => {
     const first = changed(OWL, [
-      { op: "change", step: 3, text: "Sculpt the brass plates" },
+      { op: "change", task: 3, text: "Sculpt the brass plates" },
     ]);
     const later = changed(first.tasks, [
-      { op: "change", step: 3, text: "Sculpt the copper plates" },
+      { op: "change", task: 3, text: "Sculpt the copper plates" },
     ]);
     expect(applyTasksUndo(later.tasks, first)).toEqual({
       kind: "failed",
       reason: "unchanged",
     });
     const both = changed(OWL, [
-      { op: "change", step: 3, text: "Sculpt the brass plates" },
-      { op: "complete", step: 2 },
+      { op: "change", task: 3, text: "Sculpt the brass plates" },
+      { op: "complete", task: 2 },
     ]);
     const edited = changed(both.tasks, [
-      { op: "change", step: 3, text: "Sculpt the copper plates" },
+      { op: "change", task: 3, text: "Sculpt the copper plates" },
     ]);
     expect(texts(applyTasksUndoChanged(edited.tasks, both))).toEqual([
       "[done] Gather reference photos",
@@ -211,15 +211,15 @@ describe("tasks operations", () => {
     expect(texts(applyTasksUndoChanged(both.tasks, both))).toEqual(texts(OWL));
   });
 
-  test("an undo skips steps removed since, and a moved step whose neighbour is gone goes to the end", () => {
-    const moved = changed(OWL, [{ op: "move", step: 2, before: 4 }]);
+  test("an undo skips tasks removed since, and a moved task whose neighbour is gone goes to the end", () => {
+    const moved = changed(OWL, [{ op: "move", task: 2, before: 4 }]);
     expect(texts(moved.tasks)).toEqual([
       "[done] Gather reference photos",
       "Sculpt the feathers",
       "Block out the body",
       "Render a turntable",
     ]);
-    const neighbourGone = changed(moved.tasks, [{ op: "remove", step: 3 }]);
+    const neighbourGone = changed(moved.tasks, [{ op: "remove", task: 3 }]);
     expect(texts(applyTasksUndoChanged(neighbourGone.tasks, moved))).toEqual([
       "[done] Gather reference photos",
       "Render a turntable",
@@ -227,9 +227,9 @@ describe("tasks operations", () => {
     ]);
     const added = changed(OWL, [
       { op: "add", text: "Paint the eyes" },
-      { op: "complete", step: 2 },
+      { op: "complete", task: 2 },
     ]);
-    const addedGone = changed(added.tasks, [{ op: "remove", step: 5 }]);
+    const addedGone = changed(added.tasks, [{ op: "remove", task: 5 }]);
     expect(texts(applyTasksUndoChanged(addedGone.tasks, added))).toEqual([
       "[done] Gather reference photos",
       "Block out the body",
@@ -237,88 +237,88 @@ describe("tasks operations", () => {
       "Render a turntable",
     ]);
     const onlyAdded = changed(OWL, [{ op: "add", text: "Paint the eyes" }]);
-    const gone = changed(onlyAdded.tasks, [{ op: "remove", step: 5 }]);
+    const gone = changed(onlyAdded.tasks, [{ op: "remove", task: 5 }]);
     expect(applyTasksUndo(gone.tasks, onlyAdded)).toEqual({
       kind: "failed",
       reason: "unchanged",
     });
   });
 
-  test("a step that isn't there fails the whole batch", () => {
+  test("a task that isn't there fails the whole batch", () => {
     expect(
       applyTasksOperations(OWL, [
-        { op: "complete", step: 2 },
-        { op: "remove", step: 9 },
+        { op: "complete", task: 2 },
+        { op: "remove", task: 9 },
       ]),
-    ).toEqual({ kind: "failed", reason: "missing-step" });
+    ).toEqual({ kind: "failed", reason: "missing-task" });
     expect(
       applyTasksOperations(OWL, [{ op: "add", text: "Share it", before: 9 }]),
-    ).toEqual({ kind: "failed", reason: "missing-step" });
+    ).toEqual({ kind: "failed", reason: "missing-task" });
   });
 
   test("operations that change nothing are skipped, and a batch of only those fails", () => {
     expect(
       applyTasksOperations(OWL, [
-        { op: "complete", step: 1 },
-        { op: "change", step: 2, text: "Block out the body" },
-        { op: "move", step: 2, before: 3 },
+        { op: "complete", task: 1 },
+        { op: "change", task: 2, text: "Block out the body" },
+        { op: "move", task: 2, before: 3 },
       ]),
     ).toEqual({ kind: "failed", reason: "unchanged" });
     const outcome = changed(OWL, [
-      { op: "complete", step: 1 },
-      { op: "complete", step: 2 },
+      { op: "complete", task: 1 },
+      { op: "complete", task: 2 },
     ]);
     expect(outcome.lines).toEqual([
       { kind: "complete", text: "Block out the body" },
     ]);
   });
 
-  test("tasks can grow and reopen steps without a capacity limit", () => {
-    const ManySteps = 1000;
+  test("tasks can grow and reopen tasks without a capacity limit", () => {
+    const ManyTasks = 1000;
     const many: Tasks = {
-      steps: Array.from({ length: ManySteps }, (_, index) => ({
+      items: Array.from({ length: ManyTasks }, (_, index) => ({
         number: index + 1,
-        text: `Step ${index + 1}`,
+        text: `Task ${index + 1}`,
         done: false,
       })),
-      nextNumber: ManySteps + 1,
+      nextNumber: ManyTasks + 1,
     };
     const added = changed(many, [{ op: "add", text: "One more" }]);
-    expect(added.tasks.steps).toHaveLength(ManySteps + 1);
-    const completed = changed(added.tasks, [{ op: "complete", step: 1 }]);
+    expect(added.tasks.items).toHaveLength(ManyTasks + 1);
+    const completed = changed(added.tasks, [{ op: "complete", task: 1 }]);
     const reopened = changed(completed.tasks, [
-      { op: "reopen", step: 1 },
+      { op: "reopen", task: 1 },
       { op: "add", text: "Another" },
     ]);
-    expect(reopened.tasks.steps).toHaveLength(ManySteps + 2);
-    expect(reopened.tasks.steps.every((step) => !step.done)).toBe(true);
+    expect(reopened.tasks.items).toHaveLength(ManyTasks + 2);
+    expect(reopened.tasks.items.every((task) => !task.done)).toBe(true);
   });
 
-  test("moves among the open steps step over the done ones", () => {
-    const [gather, block, sculpt, render] = OWL.steps.map(
+  test("moves among the open tasks task over the done ones", () => {
+    const [gather, block, sculpt, render] = OWL.items.map(
       ({ number }) => number,
     );
-    const open = OWL.steps.filter(({ done }) => !done).length;
+    const open = OWL.items.filter(({ done }) => !done).length;
     expect(moveAmongOpen(OWL, sculpt ?? 0, "up")).toEqual({
       op: "move",
-      step: sculpt,
+      task: sculpt,
       before: block,
     });
     expect(moveAmongOpen(OWL, block ?? 0, "down")).toEqual({
       op: "move",
-      step: block,
+      task: block,
       before: render,
     });
     expect(moveAmongOpen(OWL, block ?? 0, "up")).toBeUndefined();
     expect(moveAmongOpen(OWL, render ?? 0, "down")).toBeUndefined();
     expect(moveToPlace(OWL, render ?? 0, 1)).toEqual({
       op: "move",
-      step: render,
+      task: render,
       before: block,
     });
     expect(moveToPlace(OWL, block ?? 0, open)).toEqual({
       op: "move",
-      step: block,
+      task: block,
       before: undefined,
     });
     expect(moveToPlace(OWL, block ?? 0, open + 1)).toBeUndefined();

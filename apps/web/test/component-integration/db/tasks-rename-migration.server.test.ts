@@ -12,6 +12,9 @@ import {
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
 const BEFORE_TASKS = 67;
+// The last migration before tasks were saved as items; later migrations
+// change the form these tests check.
+const BEFORE_TASK_ITEMS = 69;
 const OWNER = "00000000-0000-4000-8000-000000000981";
 const QUEST = "00000000-0000-4000-8000-000000000982";
 const CHAT = "00000000-0000-4000-8000-000000000983";
@@ -23,6 +26,7 @@ const TASKS = {
 test("Tasks rename preserves history and converts spell and message protocols", async () => {
   const database = scratchDatabase("_tasks_rename");
   const before = await copyMigrationsUpTo(BEFORE_TASKS);
+  const through = await copyMigrationsUpTo(BEFORE_TASK_ITEMS);
   const pool = openPool(database.url);
   try {
     await resetTestDatabase(database, before);
@@ -75,7 +79,7 @@ test("Tasks rename preserves history and converts spell and message protocols", 
         ]),
       ],
     );
-    await migrateTestDatabase(database);
+    await migrateTestDatabase(database, through);
     expect(
       (await pool.query("select tasks,version from tasks_versions")).rows,
     ).toEqual([{ tasks: TASKS, version: 1 }]);
@@ -131,5 +135,6 @@ test("Tasks rename preserves history and converts spell and message protocols", 
     await pool.end();
     await dropTestDatabase(database);
     await removeOldMigrations(before);
+    await removeOldMigrations(through);
   }
 });

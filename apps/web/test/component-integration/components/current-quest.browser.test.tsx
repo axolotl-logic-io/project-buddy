@@ -1,5 +1,5 @@
 // The Continue card at the top of Quests, in Chromium and WebKit
-// ("use_case_continue_quest"): the quest to pick up again, its next step
+// ("use_case_continue_quest"): the quest to pick up again, its next task
 // when it has one, and Continue, which opens its conversation. Which quest
 // it is is quests/current-quest.server.test.ts's.
 
@@ -15,13 +15,13 @@ import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 const QUEST: ChatQuest = { id: FOX_QUEST.id, name: FOX_QUEST.name };
 
 describe("use_case_continue_quest", () => {
-  test("names the quest and its next step, and Continue opens its conversation", async () => {
+  test("names the quest and its next task, and Continue opens its conversation", async () => {
     await render(
       <CurrentQuestCard
         quest={{
           quest: QUEST,
           sharing: { kind: "personal" },
-          nextStep: "Sketch the ears",
+          nextTask: "Sketch the ears",
         }}
       />,
     );
@@ -29,7 +29,7 @@ describe("use_case_continue_quest", () => {
     const card = page.getByRole("region", { name: CURRENT_QUEST_COPY.label });
     await expect.element(card.getByText(QUEST.name)).toBeVisible();
     await expect
-      .element(card.getByText(CURRENT_QUEST_COPY.nextStep("Sketch the ears")))
+      .element(card.getByText(CURRENT_QUEST_COPY.nextTask("Sketch the ears")))
       .toBeVisible();
     await expect
       .element(
@@ -40,13 +40,13 @@ describe("use_case_continue_quest", () => {
       .toHaveAttribute("href", `/quests/${QUEST.id}`);
   });
 
-  test("a quest with no next step shows none", async () => {
+  test("a quest with no next task shows none", async () => {
     await render(
       <CurrentQuestCard
         quest={{
           quest: QUEST,
           sharing: { kind: "personal" },
-          nextStep: undefined,
+          nextTask: undefined,
         }}
       />,
     );
@@ -54,7 +54,7 @@ describe("use_case_continue_quest", () => {
     const card = page.getByRole("region", { name: CURRENT_QUEST_COPY.label });
     await expect.element(card.getByText(QUEST.name)).toBeVisible();
     await expect
-      .element(card.getByText(CURRENT_QUEST_COPY.nextStep("")))
+      .element(card.getByText(CURRENT_QUEST_COPY.nextTask("")))
       .not.toBeInTheDocument();
   });
 
@@ -64,7 +64,7 @@ describe("use_case_continue_quest", () => {
         quest={{
           quest: QUEST,
           sharing: { kind: "joined", owner: "Rowan" },
-          nextStep: undefined,
+          nextTask: undefined,
         }}
       />,
     );
@@ -77,7 +77,7 @@ describe("use_case_continue_quest", () => {
         quest={{
           quest: QUEST,
           sharing: { kind: "personal" },
-          nextStep: undefined,
+          nextTask: undefined,
         }}
       />,
     );

@@ -30,7 +30,7 @@ export const QUEST_COPY = {
 // (src/components/current-quest.tsx).
 export const CURRENT_QUEST_COPY = {
   label: "Current quest",
-  nextStep: (step: string): string => `Next step: ${step}`,
+  nextTask: (task: string): string => `Next task: ${task}`,
   continue: "Continue",
   continueLabel: (name: string): string => `Continue ${name}`,
 } as const;

@@ -1,52 +1,52 @@
-// A quest's tasks: its ordered steps of remaining work, which the construct
+// A quest's Tasks: its ordered tasks of remaining work, which the construct
 // and the quest's people change with the same operations. It holds the rules
-// for a step's text, the operations and what each one did, so the construct's
+// for a task's text, the operations and what each one did, so the construct's
 // tool, the user's controls and the composer's commands can't drift apart. It
 // imports nothing from the server, because the browser applies the same
 // rules.
 import { z } from "zod";
 
-// The longest text a step may have: one line, about a sentence.
-const TASKS_STEP_TEXT_MAX_LENGTH = 200;
+// The longest text a task may have: one line, about a sentence.
+const TASK_TEXT_MAX_LENGTH = 200;
 
 const LINE_BREAK = /[\r\n]/u;
 
-// A step's text as it is saved: trimmed, not empty, one line and at most
-// TASKS_STEP_TEXT_MAX_LENGTH characters.
-const TASKS_STEP_TEXT = z
+// A task's text as it is saved: trimmed, not empty, one line and at most
+// TASK_TEXT_MAX_LENGTH characters.
+const TASK_TEXT = z
   .string()
   .trim()
   .min(1)
-  .max(TASKS_STEP_TEXT_MAX_LENGTH)
+  .max(TASK_TEXT_MAX_LENGTH)
   .refine((text) => !LINE_BREAK.test(text));
 
-// A step's number: its id within its quest's tasks, from 1 up, given in order
-// and never given again, so an operation names the same step however the tasks
+// A task's number: its id within its quest's tasks, from 1 up, given in order
+// and never given again, so an operation names the same task however the tasks
 // moves.
-const TASKS_STEP_NUMBER = z.number().int().positive();
+const TASK_NUMBER = z.number().int().positive();
 
-// A step is recurring when Start Day, in Dailies, reopens it each day and
-// counts whether it was done; a step without the mark is done once.
-const TASKS_STEP = z.object({
-  number: TASKS_STEP_NUMBER,
+// A task is recurring when Start Day, in Dailies, reopens it each day and
+// counts whether it was done; a task without the mark is done once.
+const TASK = z.object({
+  number: TASK_NUMBER,
   text: z.string(),
   done: z.boolean(),
   recurring: z.literal(true).optional(),
 });
 
-// A tasks: its steps in order, open and done together, and the number its
-// next new step gets.
+// A quest's Tasks: its tasks in order, open and done together, and the number its
+// next new task gets.
 const TASKS = z.object({
-  steps: z.array(TASKS_STEP).readonly(),
-  nextNumber: TASKS_STEP_NUMBER,
+  items: z.array(TASK).readonly(),
+  nextNumber: TASK_NUMBER,
 });
 
-type TasksStep = z.infer<typeof TASKS_STEP>;
+type Task = z.infer<typeof TASK>;
 
 type Tasks = z.infer<typeof TASKS>;
 
 // The tasks of a quest whose tasks nobody has changed yet.
-const EMPTY_TASKS: Tasks = { steps: [], nextNumber: 1 };
+const EMPTY_TASKS: Tasks = { items: [], nextNumber: 1 };
 
 // A quest's tasks as of its newest saved version, 0 before any change,
 // with the versions whose changes were undone.
@@ -56,48 +56,48 @@ interface TasksState {
   readonly undone: readonly number[];
 }
 
-const STEP = TASKS_STEP_NUMBER.describe("The step's number, such as 3 for #3.");
+const TASK_REF = TASK_NUMBER.describe("The task's number, such as 3 for #3.");
 
-const BEFORE = TASKS_STEP_NUMBER.optional().describe(
-  "The number of the step to put it before. Leave it out for the end of the tasks.",
+const BEFORE = TASK_NUMBER.optional().describe(
+  "The number of the task to put it before. Leave it out for the end of the tasks.",
 );
 
 // One change to a tasks, as the construct and people ask for it. Each names
-// its step by number.
+// its task by number.
 const TASKS_OPERATION = z.discriminatedUnion("op", [
   z.object({
     op: z.literal("add"),
-    text: TASKS_STEP_TEXT.describe(
-      "The step: one short line of something to do, such as “Block out the body and wings”.",
+    text: TASK_TEXT.describe(
+      "The task: one short line of something to do, such as “Block out the body and wings”.",
     ),
     before: BEFORE,
   }),
   z.object({
     op: z.literal("change"),
-    step: STEP,
-    text: TASKS_STEP_TEXT.describe("The step's new text."),
+    task: TASK_REF,
+    text: TASK_TEXT.describe("The task's new text."),
   }),
-  z.object({ op: z.literal("complete"), step: STEP }),
-  z.object({ op: z.literal("reopen"), step: STEP }),
-  z.object({ op: z.literal("move"), step: STEP, before: BEFORE }),
-  z.object({ op: z.literal("remove"), step: STEP }),
+  z.object({ op: z.literal("complete"), task: TASK_REF }),
+  z.object({ op: z.literal("reopen"), task: TASK_REF }),
+  z.object({ op: z.literal("move"), task: TASK_REF, before: BEFORE }),
+  z.object({ op: z.literal("remove"), task: TASK_REF }),
   z.object({
     op: z.literal("recur"),
-    step: STEP,
+    task: TASK_REF,
     recurring: z
       .boolean()
       .describe(
-        "True to make the step recurring, so Start Day reopens and counts it each day; false to make it a one-off step again.",
+        "True to make the task recurring, so Start Day reopens and counts it each day; false to make it a one-off task again.",
       ),
   }),
 ]);
 
-// The operation that undoes a removal: it puts the step back as it was, with
+// The operation that undoes a removal: it puts the task back as it was, with
 // its number. Only undo uses it, so it is never offered to the construct.
 const RESTORE_OPERATION = z.object({
   op: z.literal("restore"),
-  step: TASKS_STEP,
-  before: TASKS_STEP_NUMBER.optional(),
+  task: TASK,
+  before: TASK_NUMBER.optional(),
 });
 
 // An operation an undo applies: any operation, or a restore.
@@ -107,9 +107,9 @@ type TasksOperation = z.infer<typeof TASKS_OPERATION>;
 
 type TasksUndoOperation = z.infer<typeof TASKS_UNDO_OPERATION>;
 
-// What one operation did, in words people and the construct read: the step's
+// What one operation did, in words people and the construct read: the task's
 // text, and for a change its text before; for an add or a move, the text of
-// the step it went before, or nothing for the end.
+// the task it went before, or nothing for the end.
 const TASKS_CHANGE_LINE = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("add"),
@@ -134,8 +134,8 @@ const TASKS_CHANGE_LINE = z.discriminatedUnion("kind", [
 
 type TasksChangeLine = z.infer<typeof TASKS_CHANGE_LINE>;
 
-// Operations fail when a named step is missing or nothing would change.
-const TASKS_FAILURES = ["missing-step", "unchanged"] as const;
+// Operations fail when a named task is missing or nothing would change.
+const TASKS_FAILURES = ["missing-task", "unchanged"] as const;
 
 type TasksFailure = (typeof TASKS_FAILURES)[number];
 
@@ -150,9 +150,9 @@ type TasksOutcome =
     }
   | { readonly kind: "failed"; readonly reason: TasksFailure };
 
-// What one operation did to the steps, or why it failed, or undefined when
-// it changed nothing, such as completing a done step.
-type StepOutcome =
+// What one operation did to the tasks, or why it failed, or undefined when
+// it changed nothing, such as completing a done task.
+type TaskOutcome =
   | {
       readonly line: TasksChangeLine;
       readonly undo: TasksUndoOperation;
@@ -160,16 +160,16 @@ type StepOutcome =
   | TasksFailure
   | undefined;
 
-// The steps being changed, and the number the next new step gets.
+// The tasks being changed, and the number the next new task gets.
 interface WorkingTasks {
-  readonly steps: TasksStep[];
+  readonly items: Task[];
   nextNumber: number;
 }
 
 // How a batch treats what has changed since it was made. A change is strict:
-// a step it names that isn't there fails it. An undo keeps the changes made
-// after the change it undoes: an operation on a step since removed, or on a
-// text since edited again, is skipped, and a step moved before one since
+// a task it names that isn't there fails it. An undo keeps the changes made
+// after the change it undoes: an operation on a task since removed, or on a
+// text since edited again, is skipped, and a task moved before one since
 // removed goes to the end.
 type ApplyMode = "change" | "undo";
 
@@ -177,175 +177,167 @@ type ApplyMode = "change" | "undo";
 // the text the change it undoes set, which it reverts only if still there.
 type AppliedOperation = TasksUndoOperation & { readonly expect?: string };
 
-function indexOf(steps: readonly TasksStep[], number: number): number {
-  return steps.findIndex((step) => step.number === number);
+function indexOf(items: readonly Task[], number: number): number {
+  return items.findIndex((task) => task.number === number);
 }
 
-// The number of the step after the one at index, or undefined at the end.
+// The number of the task after the one at index, or undefined at the end.
 function numberAfter(
-  steps: readonly TasksStep[],
+  items: readonly Task[],
   index: number,
 ): number | undefined {
-  return steps[index + 1]?.number;
+  return items[index + 1]?.number;
 }
 
 function textOf(
-  steps: readonly TasksStep[],
+  items: readonly Task[],
   number: number | undefined,
 ): string | undefined {
   if (number === undefined) {
     return undefined;
   }
-  return steps[indexOf(steps, number)]?.text;
+  return items[indexOf(items, number)]?.text;
 }
 
-// Puts step before the step numbered before, or at the end without one.
-// False, with nothing changed, if there is no such step.
+// Puts task before the task numbered before, or at the end without one.
+// False, with nothing changed, if there is no such task.
 function insert(
-  steps: TasksStep[],
-  step: TasksStep,
+  items: Task[],
+  task: Task,
   before: number | undefined,
 ): boolean {
   if (before === undefined) {
-    steps.push(step);
+    items.push(task);
     return true;
   }
-  const at = indexOf(steps, before);
+  const at = indexOf(items, before);
   if (at === -1) {
     return false;
   }
-  steps.splice(at, 0, step);
+  items.splice(at, 0, task);
   return true;
 }
 
-function addStep(
+function addTask(
   working: WorkingTasks,
-  step: TasksStep,
+  task: Task,
   before: number | undefined,
-): StepOutcome {
-  const { steps } = working;
-  if (indexOf(steps, step.number) !== -1 || !insert(steps, step, before)) {
-    return "missing-step";
+): TaskOutcome {
+  const { items } = working;
+  if (indexOf(items, task.number) !== -1 || !insert(items, task, before)) {
+    return "missing-task";
   }
   return {
-    line: { kind: "add", text: step.text, before: textOf(steps, before) },
-    undo: { op: "remove", step: step.number },
+    line: { kind: "add", text: task.text, before: textOf(items, before) },
+    undo: { op: "remove", task: task.number },
   };
 }
 
-function setDone(
-  steps: TasksStep[],
-  number: number,
-  done: boolean,
-): StepOutcome {
-  const at = indexOf(steps, number);
-  const step = steps[at];
-  if (step === undefined) {
-    return "missing-step";
+function setDone(items: Task[], number: number, done: boolean): TaskOutcome {
+  const at = indexOf(items, number);
+  const task = items[at];
+  if (task === undefined) {
+    return "missing-task";
   }
-  if (step.done === done) {
+  if (task.done === done) {
     return undefined;
   }
-  steps[at] = { ...step, done };
+  items[at] = { ...task, done };
   if (done) {
     return {
-      line: { kind: "complete", text: step.text },
-      undo: { op: "reopen", step: number },
+      line: { kind: "complete", text: task.text },
+      undo: { op: "reopen", task: number },
     };
   }
   return {
-    line: { kind: "reopen", text: step.text },
-    undo: { op: "complete", step: number },
+    line: { kind: "reopen", text: task.text },
+    undo: { op: "complete", task: number },
   };
 }
 
-function changeText(
-  steps: TasksStep[],
-  number: number,
-  text: string,
-): StepOutcome {
-  const at = indexOf(steps, number);
-  const step = steps[at];
-  if (step === undefined) {
-    return "missing-step";
+function changeText(items: Task[], number: number, text: string): TaskOutcome {
+  const at = indexOf(items, number);
+  const task = items[at];
+  if (task === undefined) {
+    return "missing-task";
   }
-  if (step.text === text) {
+  if (task.text === text) {
     return undefined;
   }
-  steps[at] = { ...step, text };
+  items[at] = { ...task, text };
   return {
-    line: { kind: "change", text, from: step.text },
-    undo: { op: "change", step: number, text: step.text },
+    line: { kind: "change", text, from: task.text },
+    undo: { op: "change", task: number, text: task.text },
   };
 }
 
-// A step marked recurring, or a one-off step again: the mark is absent, not
-// false, on a one-off step.
+// A task marked recurring, or a one-off task again: the mark is absent, not
+// false, on a one-off task.
 function setRecurring(
-  steps: TasksStep[],
+  items: Task[],
   number: number,
   recurring: boolean,
-): StepOutcome {
-  const at = indexOf(steps, number);
-  const step = steps[at];
-  if (step === undefined) {
-    return "missing-step";
+): TaskOutcome {
+  const at = indexOf(items, number);
+  const task = items[at];
+  if (task === undefined) {
+    return "missing-task";
   }
-  if ((step.recurring === true) === recurring) {
+  if ((task.recurring === true) === recurring) {
     return undefined;
   }
-  const oneOff: TasksStep = {
-    number: step.number,
-    text: step.text,
-    done: step.done,
+  const oneOff: Task = {
+    number: task.number,
+    text: task.text,
+    done: task.done,
   };
   if (recurring) {
-    steps[at] = { ...oneOff, recurring: true };
+    items[at] = { ...oneOff, recurring: true };
   } else {
-    steps[at] = oneOff;
+    items[at] = oneOff;
   }
   return {
-    line: { kind: "recur", text: step.text, recurring },
-    undo: { op: "recur", step: number, recurring: !recurring },
+    line: { kind: "recur", text: task.text, recurring },
+    undo: { op: "recur", task: number, recurring: !recurring },
   };
 }
 
-function moveStep(
-  steps: TasksStep[],
+function moveTask(
+  items: Task[],
   number: number,
   before: number | undefined,
-): StepOutcome {
-  const at = indexOf(steps, number);
-  const step = steps[at];
+): TaskOutcome {
+  const at = indexOf(items, number);
+  const task = items[at];
   if (
-    step === undefined ||
-    (before !== undefined && indexOf(steps, before) === -1)
+    task === undefined ||
+    (before !== undefined && indexOf(items, before) === -1)
   ) {
-    return "missing-step";
+    return "missing-task";
   }
-  const wasBefore = numberAfter(steps, at);
+  const wasBefore = numberAfter(items, at);
   if (before === number || before === wasBefore) {
     return undefined;
   }
-  steps.splice(at, 1);
-  insert(steps, step, before);
+  items.splice(at, 1);
+  insert(items, task, before);
   return {
-    line: { kind: "move", text: step.text, before: textOf(steps, before) },
-    undo: { op: "move", step: number, before: wasBefore },
+    line: { kind: "move", text: task.text, before: textOf(items, before) },
+    undo: { op: "move", task: number, before: wasBefore },
   };
 }
 
-function removeStep(steps: TasksStep[], number: number): StepOutcome {
-  const at = indexOf(steps, number);
-  const step = steps[at];
-  if (step === undefined) {
-    return "missing-step";
+function removeTask(items: Task[], number: number): TaskOutcome {
+  const at = indexOf(items, number);
+  const task = items[at];
+  if (task === undefined) {
+    return "missing-task";
   }
-  const before = numberAfter(steps, at);
-  steps.splice(at, 1);
+  const before = numberAfter(items, at);
+  items.splice(at, 1);
   return {
-    line: { kind: "remove", text: step.text },
-    undo: { op: "restore", step, before },
+    line: { kind: "remove", text: task.text },
+    undo: { op: "restore", task, before },
   };
 }
 
@@ -353,9 +345,9 @@ function applyOne(
   working: WorkingTasks,
   operation: AppliedOperation,
   mode: ApplyMode,
-): StepOutcome {
+): TaskOutcome {
   const outcome = applyOperation(working, operation, mode);
-  if (mode === "undo" && outcome === "missing-step") {
+  if (mode === "undo" && outcome === "missing-task") {
     return undefined;
   }
   return outcome;
@@ -365,11 +357,11 @@ function applyOperation(
   working: WorkingTasks,
   operation: AppliedOperation,
   mode: ApplyMode,
-): StepOutcome {
-  const { steps } = working;
+): TaskOutcome {
+  const { items } = working;
   switch (operation.op) {
     case "add": {
-      const outcome = addStep(
+      const outcome = addTask(
         working,
         { number: working.nextNumber, text: operation.text, done: false },
         operation.before,
@@ -380,40 +372,40 @@ function applyOperation(
       return outcome;
     }
     case "restore": {
-      // A step removed since goes back at the end.
+      // A task removed since goes back at the end.
       let { before } = operation;
-      if (before !== undefined && indexOf(steps, before) === -1) {
+      if (before !== undefined && indexOf(items, before) === -1) {
         before = undefined;
       }
-      return addStep(working, operation.step, before);
+      return addTask(working, operation.task, before);
     }
     case "change":
       if (
         operation.expect !== undefined &&
-        textOf(steps, operation.step) !== operation.expect
+        textOf(items, operation.task) !== operation.expect
       ) {
         return undefined;
       }
-      return changeText(steps, operation.step, operation.text);
+      return changeText(items, operation.task, operation.text);
     case "complete":
-      return setDone(steps, operation.step, true);
+      return setDone(items, operation.task, true);
     case "reopen":
-      return setDone(steps, operation.step, false);
+      return setDone(items, operation.task, false);
     case "move": {
       let { before } = operation;
       if (
         mode === "undo" &&
         before !== undefined &&
-        indexOf(steps, before) === -1
+        indexOf(items, before) === -1
       ) {
         before = undefined;
       }
-      return moveStep(steps, operation.step, before);
+      return moveTask(items, operation.task, before);
     }
     case "remove":
-      return removeStep(steps, operation.step);
+      return removeTask(items, operation.task);
     case "recur":
-      return setRecurring(steps, operation.step, operation.recurring);
+      return setRecurring(items, operation.task, operation.recurring);
     default:
       return operation satisfies never;
   }
@@ -425,7 +417,7 @@ function applyBatch(
   mode: ApplyMode,
 ): TasksOutcome {
   const working: WorkingTasks = {
-    steps: [...tasks.steps],
+    items: [...tasks.items],
     nextNumber: tasks.nextNumber,
   };
   const lines: TasksChangeLine[] = [];
@@ -445,7 +437,7 @@ function applyBatch(
   }
   return {
     kind: "changed",
-    tasks: { steps: working.steps, nextNumber: working.nextNumber },
+    tasks: { items: working.items, nextNumber: working.nextNumber },
     lines,
     undo,
   };
@@ -453,8 +445,8 @@ function applyBatch(
 
 // The tasks with operations applied in order, all or none: what each one
 // that changed something did, and the operations that undo them. An
-// operation that would change nothing, such as completing a done step, is
-// skipped. Nothing changes if a named step is missing or no operation
+// operation that would change nothing, such as completing a done task, is
+// skipped. Nothing changes if a named task is missing or no operation
 // changes anything.
 function applyTasksOperations(
   tasks: Tasks,
@@ -466,7 +458,7 @@ function applyTasksOperations(
 // The tasks with a saved change undone: its undo operations, which keep the
 // changes made since (ApplyMode). lines are what the change did, in order,
 // which its undo operations answer in reverse; each change of text is
-// reverted only while the step still has the text the change set. It fails
+// reverted only while the task still has the text the change set. It fails
 // as applyTasksOperations does, and as "unchanged" when nothing the change
 // did is left to undo.
 function applyTasksUndo(
@@ -487,32 +479,32 @@ function applyTasksUndo(
   return applyBatch(tasks, operations, "undo");
 }
 
-// The task list's open steps, in order.
-function openSteps(tasks: Tasks): TasksStep[] {
-  return tasks.steps.filter((step) => !step.done);
+// The  tasks, in order.
+function openTasks(tasks: Tasks): Task[] {
+  return tasks.items.filter((task) => !task.done);
 }
 
-// The task list's done steps, in order.
-function doneSteps(tasks: Tasks): TasksStep[] {
-  return tasks.steps.filter((step) => step.done);
+// The  tasks, in order.
+function doneTasks(tasks: Tasks): Task[] {
+  return tasks.items.filter((task) => task.done);
 }
 
-// The quest's next step: the task list's first open step, or undefined if it has
+// The quest's next task: the first open task, or undefined if it has
 // none.
-function nextTasksStep(tasks: Tasks): TasksStep | undefined {
-  return tasks.steps.find((step) => !step.done);
+function nextTask(tasks: Tasks): Task | undefined {
+  return tasks.items.find((task) => !task.done);
 }
 
-// The operation that moves the open step numbered number up or down one
-// place among the open steps, or undefined if it is first or last already,
-// or not open. Done steps keep their places.
+// The operation that moves the open task numbered number up or down one
+// place among the open tasks, or undefined if it is first or last already,
+// or not open. Done tasks keep their places.
 function moveAmongOpen(
   tasks: Tasks,
   number: number,
   direction: "up" | "down",
 ): TasksOperation | undefined {
-  const open = openSteps(tasks);
-  const at = open.findIndex((step) => step.number === number);
+  const open = openTasks(tasks);
+  const at = open.findIndex((task) => task.number === number);
   if (at === -1) {
     return undefined;
   }
@@ -521,56 +513,56 @@ function moveAmongOpen(
     if (before === undefined) {
       return undefined;
     }
-    return { op: "move", step: number, before: before.number };
+    return { op: "move", task: number, before: before.number };
   }
   if (at === open.length - 1) {
     return undefined;
   }
-  return { op: "move", step: number, before: open[at + 2]?.number };
+  return { op: "move", task: number, before: open[at + 2]?.number };
 }
 
-// The operation that moves the open step numbered number to place (from 1)
-// among the open steps, or undefined if there is no such place or step.
+// The operation that moves the open task numbered number to place (from 1)
+// among the open tasks, or undefined if there is no such place or task.
 function moveToPlace(
   tasks: Tasks,
   number: number,
   place: number,
 ): TasksOperation | undefined {
-  const open = openSteps(tasks);
+  const open = openTasks(tasks);
   if (
-    !(open.some((step) => step.number === number) && Number.isInteger(place)) ||
+    !(open.some((task) => task.number === number) && Number.isInteger(place)) ||
     place < 1 ||
     place > open.length
   ) {
     return undefined;
   }
-  const others = open.filter((step) => step.number !== number);
-  return { op: "move", step: number, before: others[place - 1]?.number };
+  const others = open.filter((task) => task.number !== number);
+  return { op: "move", task: number, before: others[place - 1]?.number };
 }
 
 export type {
+  Task,
   Tasks,
   TasksChangeLine,
   TasksFailure,
   TasksOperation,
   TasksState,
-  TasksStep,
   TasksUndoOperation,
 };
 export {
   applyTasksOperations,
   applyTasksUndo,
-  doneSteps,
+  doneTasks,
   EMPTY_TASKS,
   moveAmongOpen,
   moveToPlace,
-  nextTasksStep,
-  openSteps,
+  nextTask,
+  openTasks,
+  TASK_TEXT,
+  TASK_TEXT_MAX_LENGTH,
   TASKS,
   TASKS_CHANGE_LINE,
   TASKS_FAILURES,
   TASKS_OPERATION,
-  TASKS_STEP_TEXT,
-  TASKS_STEP_TEXT_MAX_LENGTH,
   TASKS_UNDO_OPERATION,
 };
