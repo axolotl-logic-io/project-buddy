@@ -10,8 +10,10 @@ const stores = vi.hoisted(() => ({
   getQuest: vi.fn(),
   getOwnConstruct: vi.fn(),
   getRetiredDefinition: vi.fn(),
+  readQuestConversation: vi.fn(),
 }));
 vi.mock("@/quests/store.ts", () => stores);
+vi.mock("@/conversations/start-quest.ts", () => stores);
 vi.mock("@/constructs/construct-store.ts", () => stores);
 vi.mock("@/retirement/retirement-store.ts", () => stores);
 
@@ -88,6 +90,53 @@ describe("header navigation hierarchy", () => {
     expect(await headerBreadcrumbs(MEMBER, ["quests"])).toEqual([
       { label: "Quests" },
     ]);
+  });
+
+  test("the active Dailies quest's crumb carries its started conversation's construct", async () => {
+    const quest = {
+      id: "dailies",
+      name: "Dailies",
+      dailies: true,
+      status: "active",
+    };
+    const conversation = { id: "chat", construct: { name: "Lumen" } };
+    stores.getQuest.mockResolvedValue(quest);
+    stores.readQuestConversation.mockResolvedValue({
+      ...conversation,
+      spell: undefined,
+    });
+    expect(await headerBreadcrumbs(MEMBER, ["quests", "dailies"])).toEqual([
+      { label: "Quests", href: "/quests" },
+      {
+        label: "Dailies",
+        quest: { id: "dailies", name: "Dailies" },
+        conversation,
+      },
+    ]);
+    expect(stores.readQuestConversation).toHaveBeenCalledWith(USER, "dailies");
+
+    stores.readQuestConversation.mockResolvedValue(undefined);
+    expect(
+      (await headerBreadcrumbs(MEMBER, ["quests", "dailies"])).at(-1),
+      "a conversation not yet started has no construct",
+    ).toEqual({ label: "Dailies", quest: { id: "dailies", name: "Dailies" } });
+  });
+
+  test.each([
+    { name: "a quest other than Dailies", dailies: false, status: "active" },
+    { name: "a completed Dailies quest", dailies: true, status: "completed" },
+  ])("$name has no construct in its crumb", async ({ dailies, status }) => {
+    stores.getQuest.mockResolvedValue({
+      id: "quest",
+      name: "Fox",
+      dailies,
+      status,
+    });
+    expect(await headerBreadcrumbs(MEMBER, ["quests", "quest"])).toEqual([
+      { label: "Quests", href: "/quests" },
+      { label: "Fox", quest: { id: "quest", name: "Fox" } },
+    ]);
+    expect(stores.readQuestConversation).not.toHaveBeenCalled();
   });
 
   test("removed quest subpages have no breadcrumb", async () => {

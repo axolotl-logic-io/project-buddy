@@ -32,7 +32,7 @@ Conversation behavior stays in Vitest. Playwright covers authentication flows on
 
 ## Conversation header
 
-A quest's conversation starts below the site header's trail band, without a separate portrait bar. The trail band names the quest and keeps its rename pencil pinned. An Active Dailies quest's conversation also shows the construct's portrait above its messages. Quest status changes use `/complete`, `/abandon` and `/restore` in the composer. Scroll clearance keeps quest messages below the trail band.
+A quest's conversation starts below the site header's trail band, without a separate portrait bar. The trail band names the quest and keeps its rename pencil pinned. On the Active Dailies quest, once its conversation has started, the trail band also shows the construct's portrait and name at its right end, opposite the breadcrumbs, as a running timer's tools show there; on a phone the portrait alone shows. Choosing it opens the construct's profile. Quest status changes use `/complete`, `/abandon` and `/restore` in the composer. Scroll clearance keeps quest messages below the trail band.
 
 ## Message authors
 
@@ -56,7 +56,7 @@ On phones, following adapts when the keyboard changes the available space. The c
 
 ### Scroll ownership
 
-`useChatScroll` owns automatic document movement. The conversation uses the page's scroll area so the pinned header, sticky composer and message jump clearance share one coordinate system. assistant-ui's automatic viewport scrolling and its initialization, run-start and thread-switch jumps stay disabled, because that viewport scrolls its own element and can't follow the document. Opening a mounted conversation and explicitly sending start following; reply completion and focus do not.
+`useChatScroll` owns automatic document movement. The conversation uses the page's scroll area so the pinned trail band, sticky composer and message jump clearance share one coordinate system. assistant-ui's automatic viewport scrolling and its initialization, run-start and thread-switch jumps stay disabled, because that viewport scrolls its own element and can't follow the document. Opening a mounted conversation and explicitly sending start following; reply completion and focus do not.
 
 Upward wheel, touch movement or document navigation keys suspend following before the browser emits a scroll event. An actual upward document movement away from the bottom also suspends following, including scrollbar dragging. A shorter document can clamp the scroll position upward while still at the bottom; this keeps following enabled for subsequent growth. Content growth cannot resume it. A downward arrival at the bottom or sending resumes it. Scrollbar input and message links can resume following after composer focus too. Upward input at the top of a short conversation leaves following enabled because there is no earlier content to navigate to.
 
@@ -72,7 +72,7 @@ Unsent message text is kept in this browser per viewer and conversation until se
 
 ## Construct presence
 
-Where the conversation header shows the construct's portrait, it opens the saved character's profile, with full artwork and public personality copy. The portrait keeps a full touch target without adding another header row.
+Where the trail band shows the construct's portrait, it opens the saved character's profile, with full artwork and public personality copy. The portrait keeps a full touch target without making the band taller.
 
 Construct messages show a 32px circular portrait beside the construct's name. User messages have no portrait. Reply text keeps the conversation's full width on narrow phones. Artwork uses the conversation's saved construct snapshot, so renaming or editing a source construct does not change existing conversations. Missing or unavailable artwork shows initials; names and compatibility ids never select built-in artwork.
 

@@ -63,8 +63,8 @@ The user makes a construct of their own from one the user can see: the user choo
 
 The user meets the construct saved in a conversation.
 
-- **Prerequisites:** a conversation.
-- **Steps:** open the portrait and name control in the conversation header.
+- **Prerequisites:** the Active Dailies quest's started conversation.
+- **Steps:** open the portrait and name control at the right of the header's trail band.
 - **Outcome:** a named profile shows the saved character's artwork, temperament, approach to quests and a representative sample line. Own characters without public personality copy show useful generic copy and initials when no art is available. Private conversational instructions and Visual descriptions never appear. The profile uses the conversation snapshot, so source edits do not change it. Opening it makes no model call. Keyboard focus stays inside the profile; Escape and Close return focus to its trigger. The profile fits a 320px phone, scrolls when needed and leaves the composer usable after closing.
 
 ### Look command
