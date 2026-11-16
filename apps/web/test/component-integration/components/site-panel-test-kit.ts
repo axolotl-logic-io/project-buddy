@@ -1,7 +1,7 @@
 // For the site panel's browser tests: the panel the way the user meets it
 // (open it, choose a theme or a mode, close it), and the choice the page
 // has applied. On a wide screen, such as the tests' own laptop, the panel
-// docks beside the page; narrower, it is a modal drawer.
+// docks over the page; narrower, it is a modal drawer.
 
 import { vi } from "vitest";
 import { page, userEvent } from "vitest/browser";

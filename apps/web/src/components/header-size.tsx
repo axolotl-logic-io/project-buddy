@@ -3,8 +3,7 @@
 import { useLayoutEffect } from "react";
 
 // The header's bar and its gold rim scroll away; the trail band under them
-// stays pinned. Its height is what the conversation's pinned header and
-// message jumps leave room for. The sidebar follows the visible bottom of
+// stays pinned. Its height is what message jumps leave room for. The sidebar follows the visible bottom of
 // the entire header as the bar scrolls away. CSS supplies initial sizes.
 function HeaderSize(): null {
   useLayoutEffect(() => {

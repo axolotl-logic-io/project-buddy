@@ -8,7 +8,7 @@ The repo's `README.md` is the operating guide for setup, tests and releases. [Pr
 - Production, Preview and Development share one Neon database. Agents must never connect to it. Manual checking uses an isolated local database. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate local database and file email outbox.
 - Every environment uses the local construct engine. There is no `CONSTRUCT_MODEL` setting. Production refuses `EMAIL_TRANSPORT=outbox`.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
-- PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
+- Pushes to `integration`, the default branch, deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Reaching Vercel and production
 

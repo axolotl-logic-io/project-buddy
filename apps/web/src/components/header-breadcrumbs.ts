@@ -3,6 +3,8 @@ import type { User } from "@/accounts/users-store.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
+import type { Conversation } from "@/conversations/conversation-store.ts";
+import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { workshopPath } from "@/routes.ts";
@@ -23,6 +25,9 @@ import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
   readonly quest?: Pick<Quest, "id" | "name">;
+  // The active Dailies quest's conversation, whose construct the band shows
+  // at its right.
+  readonly conversation?: Pick<Conversation, "id" | "construct">;
   // A running timer's schedule, whose tools the band shows at its right.
   readonly timer?: TimerSchedule;
 }
@@ -86,6 +91,22 @@ function timerLinkBreadcrumbs(
   return [root, { label, timer: schedule }];
 }
 
+// The conversation of the active Dailies quest, once it has started, for
+// the band's construct button. Any other quest's page shows none.
+async function dailiesConversation(
+  user: Pick<User, "id">,
+  quest: Quest,
+): Promise<Pick<Conversation, "id" | "construct"> | undefined> {
+  if (!quest.dailies || quest.status !== "active") {
+    return undefined;
+  }
+  const conversation = await readQuestConversation(user.id, quest.id);
+  if (conversation === undefined) {
+    return undefined;
+  }
+  return { id: conversation.id, construct: conversation.construct };
+}
+
 // The trail of a page anyone may open, signed in or not: the Timer's setup
 // and its links. Any other path has none.
 function publicBreadcrumbs(
@@ -130,10 +151,15 @@ async function headerBreadcrumbs(
     if (quest === undefined) {
       return [];
     }
-    return [
-      QUESTS,
-      { label: quest.name, quest: { id: quest.id, name: quest.name } },
-    ];
+    const crumb: HeaderBreadcrumb = {
+      label: quest.name,
+      quest: { id: quest.id, name: quest.name },
+    };
+    const conversation = await dailiesConversation(user, quest);
+    if (conversation === undefined) {
+      return [QUESTS, crumb];
+    }
+    return [QUESTS, { ...crumb, conversation }];
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
