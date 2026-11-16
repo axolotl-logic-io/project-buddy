@@ -11,22 +11,24 @@ import { SitePanel } from "@/components/site-panel.tsx";
 import { readExperience } from "@/experience/experience-store.ts";
 
 // Reads the session for the header slot and supplies the header with the
-// signed-in site panel, the ring of the user's progress toward their next
-// circle and the page's trail, or the visitor's header.
+// page's trail and either the signed-in site panel and the ring of the
+// user's progress toward their next circle, or the visitor's panel. A
+// visitor is given only the trail of a page anyone may open
+// (publicBreadcrumbs in header-breadcrumbs.ts).
 async function SignedInHeader({
   breadcrumbs,
 }: {
   readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
   const user = await currentUser();
-  if (user === undefined) {
-    return <SiteHeader />;
-  }
-  const experience = await readExperience(user.id);
   let trail: ReactNode;
   if (breadcrumbs !== undefined) {
     trail = <TrailBand items={breadcrumbs} />;
   }
+  if (user === undefined) {
+    return <SiteHeader trail={trail} />;
+  }
+  const experience = await readExperience(user.id);
   return (
     <SiteHeader
       panel={<SitePanel links={<AccountLinks />} />}

@@ -147,6 +147,25 @@ describe("use_case_timer_see_others", () => {
     expect(reportTimerPresenceAction).toHaveBeenCalledWith(FIFTY_TEN);
   });
 
+  test("a signed-out visitor runs the timer and copies its link, but neither reports nor sees the count", async () => {
+    vi.mocked(reportTimerPresenceAction).mockClear().mockResolvedValue({
+      kind: "count",
+      others: 2,
+    });
+    await renderTimer(FIFTY_TEN, minutesAfter(FIFTY_TEN, PARTWAY), {
+      signedIn: false,
+    });
+
+    await expect.element(countdown()).toHaveTextContent("45:00");
+    await expect
+      .element(page.getByRole("button", { name: TIMER_COPY.copyLink }))
+      .toBeVisible();
+    await expect
+      .element(page.getByText(TIMER_COPY.others(2)))
+      .not.toBeInTheDocument();
+    expect(reportTimerPresenceAction).not.toHaveBeenCalled();
+  });
+
   test("a failed report shows the count as unavailable, the countdown keeps going, and a later report recovers", async () => {
     vi.mocked(reportTimerPresenceAction).mockRejectedValueOnce(
       new Error("offline"),

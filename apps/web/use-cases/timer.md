@@ -1,13 +1,13 @@
 # Timer
 
-The conventions for these cases are in [the index](README.md#conventions). The Timer is a destination of its own in the site panel's Places, apart from every quest. A timer repeats a work period and a break period forever from a fixed start. Its link holds only the durations and the start, so following it reaches no quest, conversation, Tasks or Quick Notes.
+The conventions for these cases are in [the index](README.md#conventions). The Timer is a destination of its own in the site panel's Places, apart from every quest. A timer repeats a work period and a break period forever from a fixed start. Its link holds only the durations and the start, so following it reaches no quest, conversation, Tasks or Quick Notes. Anyone may open the Timer and its links without signing in.
 
 ## use_case_timer_start
 
 - **Intent:** Work for a chosen length of time and then take a break.
-- **Prerequisites:** the user is signed in ([`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link)).
+- **Prerequisites:** none. They need not be signed in.
 - **Steps:**
-  - They open Timer from the site panel.
+  - They open Timer from the site panel, or open `/timer` when signed out.
   - They choose how long to work for and how long to break for, and choose Start.
 - **Outcome:** each length is one of 10, 15, 25, 30, 45, 50, 60 or 120 minutes; a tab that has shown no timer offers 50 minutes of work and 10 of break. Start opens the new timer's link. It begins with work and its whole length left. A large ring fills as each period passes, and the period's name, Work or Break, and the time left, as MM:SS or from an hour HH:MM:SS, show in it. The timer moves between work and break by itself.
 - **Next:**
@@ -19,8 +19,8 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Intent:** Follow the same work and break schedule as someone else.
 - **Prerequisites:** someone shared a timer's link with them ([`use_case_timer_start`](#use_case_timer_start) or [`use_case_timer_join_global`](#use_case_timer_join_global)).
 - **Steps:**
-  - They open the link, at any time after the timer began. If they aren't signed in, they sign in by an emailed link first.
-- **Outcome:** they see the schedule's current period and the time left of it, not a new countdown, and refreshing keeps the same schedule. Signing in from a timer link leads back to that timer. A link that doesn't name a timer, such as one with a missing, zero, negative or other length than the presets, or a start more than a minute ahead of their clock, says so and offers the way to set up a timer, with no countdown. Opening a link changes no one else's timer.
+  - They open the link, at any time after the timer began, signed in or not.
+- **Outcome:** they see the schedule's current period and the time left of it, not a new countdown, and refreshing keeps the same schedule. A signed-out visitor sees the same timer and Copy link, with no sign-in first. A link that doesn't name a timer, such as one with a missing, zero, negative or other length than the presets, or a start more than a minute ahead of their clock, says so and offers the way to set up a timer, with no countdown. Opening a link changes no one else's timer.
 - **Next:**
   - [`use_case_timer_follow_cycle`](#use_case_timer_follow_cycle): follow the cycle.
   - [`use_case_timer_return_to_setup`](#use_case_timer_return_to_setup): leave it for another schedule.
@@ -48,10 +48,10 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 ## use_case_timer_see_others
 
 - **Intent:** Know that others are following the same schedule.
-- **Prerequisites:** an open timer ([`use_case_timer_start`](#use_case_timer_start), [`use_case_timer_join_link`](#use_case_timer_join_link) or [`use_case_timer_join_global`](#use_case_timer_join_global)).
+- **Prerequisites:** an open timer ([`use_case_timer_start`](#use_case_timer_start), [`use_case_timer_join_link`](#use_case_timer_join_link) or [`use_case_timer_join_global`](#use_case_timer_join_global)), opened while signed in.
 - **Steps:**
   - They read the count, such as 3 others here, at the right of the bar with the page's trail.
-- **Outcome:** the count is of other signed-in accounts that had this exact schedule open in the last 2 minutes. An open timer reports every minute and as its tab comes back into view. An account counts once however many tabs or devices it has open, and the user never counts themselves. The count names no one and shows no quest. When a report fails the count says it is unavailable, never a stale number or a made-up zero, and the timer keeps running; the next report that succeeds shows the count again.
+- **Outcome:** the count is of other signed-in accounts that had this exact schedule open in the last 2 minutes. A signed-out visitor is not counted and sees no count. An open timer reports every minute and as its tab comes back into view. An account counts once however many tabs or devices it has open, and the user never counts themselves. The count names no one and shows no quest. When a report fails the count says it is unavailable, never a stale number or a made-up zero, and the timer keeps running; the next report that succeeds shows the count again.
 - **Next:**
   - [`use_case_timer_join_link`](#use_case_timer_join_link): share the link with someone else.
 

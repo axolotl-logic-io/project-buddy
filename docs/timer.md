@@ -4,7 +4,7 @@ The Timer helps a user work and rest on a repeating schedule, alone or alongside
 
 ## Setup
 
-**Timer** in the site panel's Places opens `/timer`. Two selectors, **Work for** and **Break for**, each offer 10, 15, 25, 30, 45, 50, 60 and 120 minutes. A browser tab that has shown no timer offers 50 and 10 minutes; otherwise it offers the lengths of the timer it showed last. The tab's session storage keeps them, so another tab or device starts from the defaults.
+**Timer** in the site panel's Places opens `/timer`. Anyone may open `/timer` and every timer link without signing in. Two selectors, **Work for** and **Break for**, each offer 10, 15, 25, 30, 45, 50, 60 and 120 minutes. A browser tab that has shown no timer offers 50 and 10 minutes; otherwise it offers the lengths of the timer it showed last. The tab's session storage keeps them, so another tab or device starts from the defaults.
 
 Setup has two actions:
 
@@ -23,7 +23,7 @@ A running timer's address is its whole schedule:
 
 `WORK` and `BREAK` must be preset lengths. `START` is whole milliseconds since the Unix epoch. A start up to one minute ahead of the viewer's clock counts as now, to allow for clocks that disagree a little. A link with any other value, or a start further ahead, shows **This isn't a timer link** and a way back to setup, with no countdown.
 
-The link holds no quest, conversation or account data. A signed-out visitor who opens one is sent to `/login?next=PATH`, and the sign-in link emailed from there leads back to the timer. Every other signed-out page still leads home after sign-in. A visitor with no account who signs up lands on Quests and opens the link again.
+The link holds no quest, conversation or account data, so the proxy (`src/proxy.ts`) lets `/timer` and every path under it through without a session. A signed-out visitor sees the same timer, its trail and **Copy link**. Every other signed-out page still leads to sign-in.
 
 ## Running timer
 
@@ -38,6 +38,8 @@ The timer writes no message, completes no task, records no milestone, sends no n
 ## Others following
 
 An open timer calls `reportTimerPresenceAction` as it opens, every minute and when its tab comes back into view. The `timer_presence` table keeps one row per account and schedule with the time of its last report. The answer counts the other accounts whose last report on the exact schedule is at most 2 minutes old, so several tabs of one account count once. Each report also deletes every row older than that.
+
+Presence belongs to accounts, so a signed-out visitor's timer makes no report and shows no count; the action itself still requires a session.
 
 The trail shows the count as **3 others here**, or **Unknown others** when a report fails. It shows nothing until the first report answers. It never shows a stale count or a made-up zero, and the countdown never waits for a report. The next report that succeeds shows the count again.
 
