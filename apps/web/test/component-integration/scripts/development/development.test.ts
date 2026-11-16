@@ -21,10 +21,10 @@ let root: string;
 let web: string;
 let bin: string;
 
-function run(action: string): ReturnType<typeof spawnSync> {
+function run(action: string, ...args: string[]): ReturnType<typeof spawnSync> {
   return spawnSync(
     process.execPath,
-    [join(web, "scripts/development/run.ts"), action],
+    [join(web, "scripts/development/run.ts"), action, ...args],
     {
       cwd: root,
       encoding: "utf8",
@@ -176,5 +176,17 @@ describe("development setup and diagnosis", () => {
     expect(String(result.stdout)).not.toContain("existing-local-session-value");
     expect(run("setup").status).toBe(0);
     expect(readFileSync(file, "utf8")).toBe(updated);
+  });
+
+  test("sign-in-link refuses a non-address, and asks for setup without configuration", () => {
+    const notAnAddress = run("sign-in-link", "someone");
+    expect(notAnAddress.status).toBe(1);
+    expect(String(notAnAddress.stderr)).toContain("isn't an email address");
+    const unconfigured = run("sign-in-link", "dev@example.test");
+    expect(unconfigured.status).toBe(1);
+    expect(String(unconfigured.stderr)).toContain("Run mise setup first.");
+    expect(run("sign-in-link", "a@example.test", "b@example.test").status).toBe(
+      1,
+    );
   });
 });

@@ -21,3 +21,8 @@ run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps
 [tasks.doctor]
 description = "Check development prerequisites, configuration and database without changing them"
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" doctor'
+
+[tasks.sign-in-link]
+description = "Print a sign-in link for EMAIL, or the developer account, making the account if it's missing"
+usage = 'arg "[email]" help="The address to sign in as; developer@project-buddy.test without one"'
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" sign-in-link {{usage.email}}'

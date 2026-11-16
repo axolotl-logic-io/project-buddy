@@ -28,7 +28,9 @@ mise //apps/web:dev
 
 `mise setup` installs every workspace's dependencies with `npm ci`, creates `apps/web/.env.local` with a generated session secret and the local email outbox, starts the persistent development database, applies migrations, writes a CLI session for a local developer account to `apps/cli/.env.local`, and initializes manual test configuration with `test-env:init`. It fills missing or empty local settings, preserves existing nonempty values and development data, and makes no further configuration changes on repeat runs. Existing configuration must use the Compose development database and the email outbox; conflicting explicit settings are reported for you to fix. Setup and doctor refuse other database URLs, including hosted databases and the test database.
 
-Open `http://localhost:3000` and request a sign-up or sign-in link. With the generated configuration, emails appear as JSON files in `apps/web/test-results/dev-email-outbox/`. Open the link in the latest file's `text` field to continue. Local development needs no email service credentials.
+Open `http://localhost:3000` and request a sign-up or sign-in link. With the generated configuration, emails appear as JSON files in `apps/web/test-results/dev-email-outbox/`. Open the link to continue.
+
+To skip the email, run `mise run sign-in-link EMAIL`, where `EMAIL` is the address to sign in as. It prints a new 30-minute sign-in link. If no account has that address, it makes one, and the link asks for a name as sign-up does. Without `EMAIL`, it signs in the developer account, `developer@project-buddy.test`. Local development needs no email service credentials.
 
 With the site running, `project-buddy` works with no further setup. The root `mise.toml` puts it on the PATH and loads `PROJECT_BUDDY_SESSION` from `apps/cli/.env.local`, so each command acts as the account `developer@project-buddy.test`. To check, run `project-buddy whoami`. To see that account's data in a browser, sign in as it through the email outbox. Setup renews the session when it has a week or less left, and doctor reports when it needs renewing.
 
