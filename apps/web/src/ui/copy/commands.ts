@@ -7,6 +7,8 @@ const PANEL_COMMAND_DESCRIPTIONS: Readonly<Record<PanelCommandName, string>> = {
   "move-idea": "Move an idea to a new place in Ideas",
   "drop-idea": "Remove an idea from Ideas",
   "idea-to-tasks": "Move an idea from Ideas to the Tasks",
+  "edit-note":
+    "Change a Quick Note’s text, naming it by its place, newest first",
   "drop-note": "Delete a Quick Note, naming it by its place, newest first",
   "edit-milestone":
     "Change a milestone's text, naming it by its place in Progress, newest first",
@@ -37,6 +39,8 @@ const PANEL_COMMANDS_COPY = {
       `Removed the idea “${text}” from Ideas.`,
     ideaToTasks: (text: string): string =>
       `Moved the idea “${text}” to the Tasks.`,
+    editNote: (place: number, text: string): string =>
+      `Changed Quick Note ${place} to “${text}”.`,
     dropNote: (text: string): string => `Deleted the Quick Note “${text}”.`,
     editMilestone: (place: number, text: string): string =>
       `Changed milestone ${place} in Progress to “${text}”.`,

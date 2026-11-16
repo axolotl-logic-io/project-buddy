@@ -33,6 +33,10 @@ export const QUICK_NOTE_COPY = {
 export const QUEST_NOTES_COPY = {
   heading: "Quick Notes",
   none: "No Quick Notes yet. Save one from Quick Note in the site panel.",
+  edit: "Edit Quick Note",
+  save: "Save Quick Note",
+  cancel: "Cancel editing Quick Note",
+  actions: (text: string): string => `Actions for the Quick Note "${text}"`,
   delete: "Delete",
   deleteLabel: (text: string): string => `Delete the Quick Note "${text}"`,
 } as const;

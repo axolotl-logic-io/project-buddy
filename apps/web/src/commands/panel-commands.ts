@@ -20,6 +20,7 @@ const PANEL_COMMAND_NAMES = [
   "move-idea",
   "drop-idea",
   "idea-to-tasks",
+  "edit-note",
   "drop-note",
   "edit-milestone",
   "drop-milestone",
@@ -43,6 +44,7 @@ const PANEL_COMMAND_USAGE: Readonly<Record<PanelCommandName, string>> = {
   "move-idea": "/move-idea IDEA PLACE",
   "drop-idea": "/drop-idea IDEA",
   "idea-to-tasks": "/idea-to-tasks IDEA",
+  "edit-note": "/edit-note NOTE TEXT",
   "drop-note": "/drop-note NOTE",
   "edit-milestone": "/edit-milestone MILESTONE TEXT",
   "drop-milestone": "/drop-milestone MILESTONE",
@@ -89,6 +91,8 @@ const PANEL_COMMAND = {
   moveIdea: (place: number, to: number): string => `/move-idea ${place} ${to}`,
   dropIdea: (place: number): string => `/drop-idea ${place}`,
   ideaToTasks: (place: number): string => `/idea-to-tasks ${place}`,
+  editNote: (place: number, text: string): string =>
+    `/edit-note ${place} ${text}`,
   dropNote: (place: number): string => `/drop-note ${place}`,
   editMilestone: (place: number, text: string): string =>
     `/edit-milestone ${place} ${text}`,
