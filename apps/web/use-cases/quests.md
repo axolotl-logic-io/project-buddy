@@ -99,7 +99,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
   - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
   - They begin each new day with Start Day in the sidebar's Actions tab.
-- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another.
+- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. While it is Active and its conversation has started, the construct's portrait and name sit at the right of the header's trail band, opposite the breadcrumbs and clear of the site panel, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). Any other quest's trail band shows no construct.
 - **Variations:**
   - A quest the user named Dailies by hand has no Start Day, recurring tasks or streaks: only a quest started as Dailies offers them.
 - **Next:**
