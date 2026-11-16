@@ -15,6 +15,12 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
+
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock(
   "@/auth/current-user.ts",
@@ -54,7 +60,7 @@ async function show(
   await render(
     <>
       <SiteHeader
-        links={
+        trail={
           <TrailBand
             items={[
               { label: "Workshop", href: "/workshop" },
@@ -67,7 +73,6 @@ async function show(
         <Workshop kind="construct">
           <PromptEditor
             action={saveAction}
-            defaultPrompt="Default instructions."
             heading="Prompt"
             idName="constructId"
             kind="construct"
@@ -230,7 +235,7 @@ test.each([
 );
 
 test.each([{ width: 360, height: 700 }, NARROWEST_VIEWPORT])(
-  "a phone pins Save in one short row, with Reset and Discard below it, while editing at $width px",
+  "a phone pins Save in one short row, with Cancel below it, while editing at $width px",
   async (viewport) => {
     await setViewport(viewport);
     await show();
@@ -246,7 +251,7 @@ test.each([{ width: 360, height: 700 }, NARROWEST_VIEWPORT])(
     expect(window.innerHeight - save.top).toBeLessThanOrEqual(
       PHONE_SAVE_BAR_MAX_PX,
     );
-    for (const name of [PROMPT_COPY.resetPrompt, PROMPT_COPY.discard]) {
+    for (const name of [PROMPT_COPY.discard]) {
       expect(
         page.getByRole("button", { name }).element().getBoundingClientRect()
           .top,
@@ -255,7 +260,7 @@ test.each([{ width: 360, height: 700 }, NARROWEST_VIEWPORT])(
   },
 );
 
-test("name-first validation marks hidden errors and reset reveals only the prompt", async () => {
+test("name-first validation marks hidden errors without losing edits in other sections", async () => {
   await show(EDITOR_SECTIONS);
   await page.getByRole("textbox", { name: "Name", exact: true }).fill("");
   await page
@@ -292,13 +297,10 @@ test("name-first validation marks hidden errors and reset reveals only the promp
       page.getByRole("button", { name: "Visual description", exact: true }),
     )
     .toBeVisible();
-  await page.getByRole("button", { name: PROMPT_COPY.resetPrompt }).click();
+  await page.getByRole("button", { name: "Instructions", exact: true }).click();
   await expect
     .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
-    .toHaveFocus();
-  await expect
-    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
-    .toHaveValue("Default instructions.");
+    .toHaveValue(PROMPT);
   await page
     .getByRole("button", { name: "Visual description", exact: true })
     .click();

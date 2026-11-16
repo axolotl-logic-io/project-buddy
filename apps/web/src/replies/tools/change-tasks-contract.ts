@@ -18,10 +18,10 @@ const MOST_OPERATIONS = 40;
 
 // The tool's description.
 const CHANGE_TASKS_DESCRIPTION = [
-  "Change the quest's tasks: its ordered steps of remaining work, shown in your instructions with their numbers, such as #3. The quest's page, the conversation's Tasks panel and the composer's commands show the same tasks, and the user changes them there too.",
-  "Each call applies its operations in order, all or none, and saves one change that the user sees in the conversation and can undo: add a step, at the end or before another; change a step's text; complete a step the user finished; reopen one; move one before another or to the end; remove one.",
-  "The first open step is the quest's next step, which the site shows the user.",
-  "Name steps by their numbers. If a step you name is gone, for example because the user changed the tasks meanwhile, nothing is saved and the result gives the tasks as they are now.",
+  "Change the quest's Tasks: its remaining work, in order, shown in your instructions with their numbers, such as #3. The quest's page, the conversation's Tasks panel and the composer's commands show the same tasks, and the user changes them there too.",
+  "Each call applies its operations in order, all or none, and saves one change that the user sees in the conversation and can undo: add a task, at the end or before another; change a task's text; complete a task the user finished; reopen one; move one before another or to the end; remove one.",
+  "The first open task is the quest's next task, which the site shows the user.",
+  "Name tasks by their numbers. If a task you name is gone, for example because the user changed the tasks meanwhile, nothing is saved and the result gives the tasks as they are now.",
 ].join(" ");
 
 const CHANGE_TASKS_INPUT = z.object({

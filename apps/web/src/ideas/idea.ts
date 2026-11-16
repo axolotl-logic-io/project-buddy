@@ -24,10 +24,17 @@ const IDEA_REQUEST = z.discriminatedUnion("op", [
   z.object({ op: z.literal("move"), questId: QUEST_ID, id: IDEA_ID }),
 ]);
 type IdeaRequest = z.infer<typeof IDEA_REQUEST>;
+// Why an idea couldn't change: the request was malformed, the quest or idea
+// isn't open to the user, or Tasks couldn't take the idea.
+type IdeaProblem = "invalid" | "not-found" | "tasks-full";
 type IdeaResult =
   | { readonly kind: "saved" }
-  | { readonly kind: "problem"; readonly text: string };
+  | {
+      readonly kind: "problem";
+      readonly reason: IdeaProblem;
+      readonly text: string;
+    };
 type IdeaAction = (request: unknown) => Promise<IdeaResult>;
 
-export type { Idea, IdeaAction, IdeaRequest, IdeaResult };
+export type { Idea, IdeaAction, IdeaProblem, IdeaRequest, IdeaResult };
 export { IDEA, IDEA_REQUEST, IDEA_TEXT_MAX_LENGTH };

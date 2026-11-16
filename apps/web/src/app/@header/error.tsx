@@ -1,9 +1,9 @@
 "use client";
 
 import type { JSX } from "react";
-import { SiteMenu } from "@/components/site-menu.tsx";
+import { SiteHeader } from "@/components/site-header.tsx";
 
 // Keep public navigation available when the session cannot be read.
-export default function HeaderLinksError(): JSX.Element {
-  return <SiteMenu links={null} />;
+export default function HeaderError(): JSX.Element {
+  return <SiteHeader />;
 }

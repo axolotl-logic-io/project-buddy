@@ -476,7 +476,14 @@
     --trail-band-min-height: calc(var(--target-size) + --spacing(1));
     --trail-heading-leading: 1.15;
     --site-header-height: 0px;
-    --site-header-bottom: var(--site-header-height);
+    /* The bar, its rim and any trail band, until HeaderSize measures it. */
+    --site-header-bottom: calc(
+      var(--target-size) +
+      --spacing(4) +
+      var(--header-rim) +
+      var(--site-header-height)
+    );
+    --site-panel-width: 18rem;
     scroll-padding-top: var(--site-header-height);
   }
 
@@ -552,31 +559,27 @@
     );
   }
 
-  /* The site's menu (src/components/site-menu.tsx): a panel that slides in
-     from the right edge, full height, over a page it leaves undimmed, so a
-     theme or mode chosen in it shows on the page beside it. A closed
-     <dialog> is hidden by the browser's own display: none, so the panel is
-     a flex column only while open. The page under it doesn't scroll. Each
-     theme dresses it through the menu tokens (src/themes/themes.ts). */
   /* The header is a game's HUD in every theme, with an independent ink and
-     gold palette: one row of the brand, a compass medallion and the site's
-     name, then the buttons as ink tiles with a gold rim.
-     The menu's panel inside it keeps the theme's own look, so only the
-     header's own children are dressed. */
+     gold palette: one row, an ink tile with a gold rim, holding the brand,
+     a compass medallion and the site's name, and, for a signed-in user,
+     the ring of their progress at its right end. The site panel and its
+     button inside it keep the theme's own look, so only the header's own
+     children are dressed. The header contains nothing, so the site
+     panel's button and the docked panel inside it are fixed to the
+     screen. */
   .site-header {
     @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
-    container-type: inline-size;
     padding-inline: var(--header-gutter);
     background: var(--hud-ink);
     color: var(--hud-paper);
     border-block-end: var(--header-rim) solid var(--hud-gold);
   }
 
-  .site-header > :not(.site-menu, .trail-band) {
+  .site-header > :not(.site-panel, .site-panel-toggle, .trail-band) {
     --focus-outline: 3px solid var(--hud-gold);
   }
 
-  /* The brand pushes the buttons to the right edge. */
+  /* The brand takes the row up to the ring, if there is one. */
   .hud-title {
     @apply mr-auto inline-flex min-h-(--target-size) min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
@@ -600,6 +603,33 @@
     .hud-name {
       @apply sr-only;
     }
+  }
+
+  /* The ring of the user's progress toward their next circle, a target's
+     size, at the bar's right end: gold filling an ink track, with the
+     circle's number inside. */
+  .circle-progress {
+    @apply relative grid shrink-0 place-items-center rounded-full;
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+  }
+
+  .circle-progress-ring {
+    @apply absolute inset-0 size-full;
+  }
+
+  .circle-progress-track {
+    fill: none;
+    stroke: var(--hud-line);
+  }
+
+  .circle-progress-arc {
+    fill: none;
+    stroke: var(--hud-gold);
+  }
+
+  .circle-progress-number {
+    @apply relative font-heading font-semibold text-sm tabular-nums;
   }
 
   .site-header > .button-secondary {
@@ -702,58 +732,102 @@
     @apply line-clamp-2 font-heading font-semibold text-section-heading leading-(--trail-heading-leading) tracking-tight sm:text-page-heading-phone;
   }
 
-  .site-menu {
-    @apply fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(20rem,calc(100%-3rem))] max-w-none flex-col gap-1 overflow-y-auto border-line border-l bg-surface p-3 text-foreground shadow-raised open:flex open:motion-safe:animate-slide-in;
-    background-image: var(--menu-decoration);
+  /* The site panel (src/components/site-panel.tsx), the chat panel's
+     mirror on the left: under the header, for the rest of the screen's
+     height. Its button floats under the header's left end, as the chat
+     panel's does under the right, and the open panel's close button takes
+     the button's place. Below the lg breakpoint it is a drawer that slides in over a
+     page it leaves undimmed, so a theme or mode chosen in it shows on the
+     page beside it, and the page under it doesn't scroll. From lg it docks
+     beside the page, which makes room for it. A closed <dialog> is hidden
+     by the browser's own display: none, so the panel is a flex column only
+     while open. Each theme dresses it through the panel tokens
+     (src/themes/themes.ts). */
+  .site-panel {
+    inset-block-start: var(--site-header-bottom);
+    block-size: calc(100dvh - var(--site-header-bottom));
+    inline-size: min(var(--site-panel-width), calc(100% - 3rem));
+    max-block-size: none;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground open:flex;
+    background-image: var(--panel-decoration);
   }
 
-  .site-menu::backdrop {
+  .site-panel-toggle {
+    inset-block-start: calc(var(--site-header-bottom) + --spacing(4));
+    @apply fixed start-4 z-20 bg-surface;
+  }
+
+  .site-panel-toggle:has(+ .site-panel[open]) {
+    display: none;
+  }
+
+  /* The close button starts the panel's heading, in the place of the
+     button that opened it: the panel's padding plus this margin. */
+  .site-panel-heading {
+    @apply flex items-center gap-2 pb-1;
+  }
+
+  .site-panel-close {
+    @apply ms-1 mt-1;
+  }
+
+  .site-panel:modal {
+    @apply shadow-raised motion-safe:animate-slide-in;
+  }
+
+  .site-panel::backdrop {
     @apply bg-transparent;
   }
 
-  html:has(.site-menu[open]) {
+  html:has(.site-panel:modal) {
     overflow: hidden;
   }
 
-  .menu-label {
-    @apply px-2 pt-2 pb-1 font-heading text-muted text-xs;
-    letter-spacing: var(--menu-label-tracking);
-    text-transform: var(--menu-label-case);
+  @media (width >= --theme(--breakpoint-lg)) {
+    .site-header:has(.site-panel[open]) ~ main {
+      padding-inline-start: var(--site-panel-width);
+    }
   }
 
-  /* A link in the menu: a row a target's height, highlighted when pointed
+  .panel-label {
+    @apply px-2 pt-2 pb-1 font-heading text-muted text-xs;
+    letter-spacing: var(--panel-label-tracking);
+    text-transform: var(--panel-label-case);
+  }
+
+  /* A link in the site panel: a row a target's height, highlighted when pointed
      at or focused. */
-  .menu-link {
+  .panel-link {
     @apply flex min-h-(--target-size) items-center gap-2 rounded-control px-2 hover:bg-accent hover:text-on-accent;
   }
 
-  .menu-link:focus-visible {
+  .panel-link:focus-visible {
     @apply bg-accent text-on-accent;
   }
 
   /* The modes, side by side, the chosen one filled. */
-  .menu-modes {
+  .panel-modes {
     @apply mx-2 grid grid-cols-3 overflow-hidden rounded-control border border-line;
   }
 
-  .menu-mode {
+  .panel-mode {
     @apply flex min-h-(--target-size) cursor-pointer items-center justify-center text-sm hover:bg-accent hover:text-on-accent has-checked:bg-primary has-checked:font-semibold has-checked:text-on-primary;
   }
 
-  .menu-mode + .menu-mode {
+  .panel-mode + .panel-mode {
     @apply border-line border-l;
   }
 
-  .menu-mode:has(:focus-visible) {
+  .panel-mode:has(:focus-visible) {
     outline: var(--focus-outline);
     outline-offset: calc(-2 * var(--focus-offset));
   }
 
-  /* The rule between the menu's groups. */
-  .menu-rule {
+  /* The rule between the site panel's groups. */
+  .panel-rule {
     @apply mx-1 my-2 border-0;
-    block-size: var(--menu-separator-size);
-    background: var(--menu-separator);
+    block-size: var(--panel-separator-size);
+    background: var(--panel-separator);
   }
 
   /* A modal dialog: the veiled page behind it, and its panel, which scrolls
@@ -924,6 +998,45 @@
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
 
+  /* A running timer's ring, as large as the screen allows beside the
+     header and the details under it, with the phase and countdown inside.
+     It reserves its size before the browser's clock is read. */
+  .timer-face {
+    @apply relative grid aspect-square w-[min(100%,60dvh,32rem)] place-items-center;
+  }
+
+  .timer-ring {
+    @apply absolute inset-0 size-full;
+  }
+
+  .timer-readout {
+    @apply relative flex flex-col items-center gap-1 text-center;
+  }
+
+  .timer-phase {
+    @apply font-heading font-semibold text-page-heading-phone sm:text-page-heading;
+  }
+
+  .timer-countdown {
+    @apply font-heading font-semibold text-site-title tabular-nums tracking-tight sm:text-site-title-wide;
+  }
+
+  /* A running timer's count of others and Copy link, at the right end of
+     the trail band. The count gives up its room before the button does. */
+  .timer-trail-tools {
+    @apply ml-auto flex min-w-0 items-center gap-3 self-center;
+  }
+
+  .timer-others {
+    @apply min-w-0 truncate text-muted text-sm;
+  }
+
+  /* A whole target without making the band taller. */
+  .timer-trail-tools .button-secondary {
+    @apply shrink-0;
+    margin-block: calc((1lh - var(--target-size)) / 2);
+  }
+
   .quest-workspace > .workspace-content {
     @apply rounded-box border border-line bg-surface;
   }
@@ -962,11 +1075,11 @@
     @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
   }
 
-  .appearance-settings .menu-modes {
+  .appearance-settings .panel-modes {
     @apply mx-0 grid-cols-1 gap-2 overflow-visible border-0;
   }
 
-  .appearance-settings .menu-mode {
+  .appearance-settings .panel-mode {
     @apply justify-start gap-3 rounded-control border border-line px-3;
   }
 
@@ -987,7 +1100,7 @@
     @apply bg-current;
   }
 
-  /* .menu-mode:has(:focus-visible) rings the whole row instead. */
+  /* .panel-mode:has(:focus-visible) rings the whole row instead. */
   .appearance-setting-input:focus-visible {
     outline: none;
     box-shadow: none;
@@ -1072,6 +1185,42 @@
   .editable-form .button-quiet {
     min-inline-size: var(--target-size);
     @apply shrink-0 justify-center text-muted hover:text-foreground hover:no-underline;
+  }
+
+  .day-grid {
+    @apply flex flex-col gap-3;
+  }
+
+  .day-grid-days {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .day-grid-day {
+    @apply flex w-7 flex-col items-center gap-0.5 text-muted text-xs;
+  }
+
+  .day-grid-square {
+    @apply size-6 rounded-control border-2 border-muted;
+  }
+
+  .day-grid-day[data-mark="done"] .day-grid-square {
+    @apply border-primary bg-primary;
+  }
+
+  .day-grid-day[data-mark="pending"] .day-grid-square {
+    @apply border-primary;
+  }
+
+  .day-grid-day[data-mark="gap"] .day-grid-square {
+    @apply border-muted border-dashed;
+  }
+
+  .day-grid-day[data-mark="untracked"] .day-grid-square {
+    @apply border-line;
+  }
+
+  .editable-badge {
+    @apply inline-flex shrink-0 items-center gap-1 px-1 text-muted text-sm tabular-nums;
   }
 
   .editable-grip {
@@ -1236,14 +1385,18 @@
     @apply px-0 py-4;
   }
 
-  .quest-sidebar-toggle {
+  /* The button that opens or closes a side panel: the chat panel's and the
+     site panel's. */
+  .panel-toggle {
     inline-size: var(--target-size);
     block-size: var(--target-size);
     @apply shrink-0 justify-center rounded-control text-muted hover:bg-field hover:text-foreground hover:no-underline;
   }
 
+  /* It floats where the open panel's close button sits: the sidebar's
+     padding in from the screen's edge and below the header. */
   .quest-sidebar-expand {
-    inset-block-start: calc(var(--site-header-bottom) + --spacing(2));
+    inset-block-start: calc(var(--site-header-bottom) + --spacing(4));
     @apply fixed end-4 z-20 bg-surface;
   }
 

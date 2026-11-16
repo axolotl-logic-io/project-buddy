@@ -12,6 +12,7 @@ import {
   THEME_TYPEFACES,
   TYPEFACE_FONT_URLS,
 } from "@/themes/theme-font-urls.ts";
+import { TIMER_PATH } from "@/timer/schedule.ts";
 
 // The pages anyone may open: signing in, signing up, and the link a
 // sign-in email holds, plus Credits. Their Server Actions post to the same
@@ -22,6 +23,17 @@ const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   "/signup",
   "/login/link",
 ]);
+
+// Whether anyone may open pathname: a page of PUBLIC_PATHS, or the Timer,
+// its setup and every timer link, which people share with others who may
+// have no account. A timer link reaches no quest or account data.
+function isPublicPath(pathname: string): boolean {
+  return (
+    PUBLIC_PATHS.has(pathname) ||
+    pathname === TIMER_PATH ||
+    pathname.startsWith(`${TIMER_PATH}/`)
+  );
+}
 
 // The `Link` header value that preloads each font of the theme a theme
 // cookie's value saves; no cookie, or a bad one, is the default theme.
@@ -62,7 +74,7 @@ function nextPage(request: NextRequest): Response {
 export async function proxy(request: NextRequest): Promise<Response> {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
-  if (PUBLIC_PATHS.has(pathname)) {
+  if (isPublicPath(pathname)) {
     return nextPage(request);
   }
 

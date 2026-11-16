@@ -1,6 +1,6 @@
 // The text the site shows lives in src/ui/copy/, one module per area of the
 // site, and components render it from there rather than writing it inline.
-// This module holds the site's own name and tagline, its menu's text, the
+// This module holds the site's own name and tagline, its panel's text, the
 // name its email is sent under, the home page's text, and pageTitle, which
 // every page's title goes through.
 const SITE_NAME = "Project Buddy";
@@ -16,12 +16,12 @@ export const SITE_COPY = {
   tagline: "Work through your own quests and ideas with your constructs.",
 } as const;
 
-// The site's menu, which the header's button opens: its title, which also
-// names the button, the close button's name, and the names of its two
-// groups of links.
-export const SITE_MENU_COPY = {
-  title: "Menu",
-  close: "Close menu",
+// The site panel, which a button under the header opens on the left: its
+// title, which also names the button, the name of the button in the panel
+// that closes it, and the names of its two groups of links.
+export const SITE_PANEL_COPY = {
+  title: "Site panel",
+  close: "Close site panel",
   placesLabel: "Places",
   youLabel: "You",
 } as const;

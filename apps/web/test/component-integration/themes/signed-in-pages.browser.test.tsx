@@ -36,6 +36,12 @@ import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
 import { applyTheme } from "./theme-test-kit.ts";
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
+
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
 }));
@@ -81,6 +87,10 @@ vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock(
   "@/tasks/tasks-store.ts",
   () => import("../tasks/tasks-store-test-kit.ts"),
+);
+vi.mock(
+  "@/dailies/day-store.ts",
+  () => import("../dailies/day-store-test-kit.ts"),
 );
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),

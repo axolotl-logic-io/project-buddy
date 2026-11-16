@@ -1,40 +1,44 @@
 // The prompt section that gives every chat in a quest the quest's tasks,
-// as the prompt read it when the turn started, between tags: each step on a
+// as the prompt read it when the turn started, between tags: each task on a
 // line of its own, with the number change_tasks names it by.
 
 import type { ReplyPromptContext } from "@/replies/system-prompt.ts";
 import { CHANGE_TASKS_TOOL } from "@/replies/tools/change-tasks-contract.ts";
-import { nextTasksStep, type Tasks, type TasksStep } from "@/tasks/tasks.ts";
+import { nextTask, type Task, type Tasks } from "@/tasks/tasks.ts";
 
-// The line the prompt gives while the tasks have no steps.
-const EMPTY_TASKS_PROMPT = `The quest's tasks have no steps yet. When the user agrees on what to do next, add the steps with \`${CHANGE_TASKS_TOOL}\`.`;
+// The line the prompt gives while the quest has no tasks.
+const EMPTY_TASKS_PROMPT = `The quest has no tasks yet. When the user agrees on what to do next, add them with \`${CHANGE_TASKS_TOOL}\`.`;
 
 // The line before the tasks.
 const TASKS_PROMPT_INTRO =
-  "The quest's tasks: its steps of remaining work, in order, each with its number. Done steps are marked [done]. The first open step is the quest's next step. The user can change the tasks without you, so this is the tasks as they are now:";
+  "The quest's Tasks: its remaining work, in order, each with its number. Done tasks are marked [done], and recurring tasks, which Start Day reopens each day, [recurring]. The first open task is the quest's next task. The user can change the tasks without you, so this is the tasks as they are now:";
 
 const TASKS_START_TAG = "<quest_tasks>";
 const TASKS_END_TAG = "</quest_tasks>";
 
-function stepLine({ number, text, done }: TasksStep): string {
+function taskLine({ number, text, done, recurring }: Task): string {
+  const marks: string[] = [];
   if (done) {
-    return `#${number} [done] ${text}`;
+    marks.push("[done]");
   }
-  return `#${number} ${text}`;
+  if (recurring === true) {
+    marks.push("[recurring]");
+  }
+  return [`#${number}`, ...marks, text].join(" ");
 }
 
-// The task list's steps as the prompt gives them.
+// The tasks as the prompt gives them.
 function tasksLines(tasks: Tasks): string[] {
-  return tasks.steps.map(stepLine);
+  return tasks.items.map(taskLine);
 }
 
 // The quest's tasks, between tags that keep it apart from the rest of the
 // prompt.
 function tasksPromptSection({ quest }: ReplyPromptContext): string {
-  if (quest.tasks.steps.length === 0) {
+  if (quest.tasks.items.length === 0) {
     return EMPTY_TASKS_PROMPT;
   }
-  const next = nextTasksStep(quest.tasks);
+  const next = nextTask(quest.tasks);
   const lines = [
     TASKS_PROMPT_INTRO,
     TASKS_START_TAG,
@@ -42,7 +46,7 @@ function tasksPromptSection({ quest }: ReplyPromptContext): string {
     TASKS_END_TAG,
   ];
   if (next === undefined) {
-    lines.push("Every step is done.");
+    lines.push("Every task is done.");
   }
   return lines.join("\n");
 }

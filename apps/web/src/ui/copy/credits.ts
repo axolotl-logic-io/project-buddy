@@ -5,8 +5,8 @@ import { pageTitle } from "./site.ts";
 export const CREDITS_COPY = {
   title: pageTitle("Credits"),
   heading: "Credits",
-  // The link to the page in the site menu, on every page.
-  menuLink: "Credits",
+  // The link to the page in the site panel, on every page.
+  panelLink: "Credits",
   // A sentence that contains a link is a function of the link, so the
   // sentence reads whole here and its spacing stays in the sentence. Elements
   // passed in need keys, because the sentence comes back as a list.

@@ -97,4 +97,10 @@ function otherAuthorNames(
 }
 
 export type { ChatMessage, MessageAuthor };
-export { hasSeveralAuthors, otherAuthorNames, toMessageAuthor, withAuthor };
+export {
+  authorDisplayName,
+  hasSeveralAuthors,
+  otherAuthorNames,
+  toMessageAuthor,
+  withAuthor,
+};

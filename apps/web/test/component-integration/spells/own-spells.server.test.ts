@@ -20,7 +20,7 @@ import {
   readActiveSpell,
   setSpell,
 } from "@/spells/spell-store.ts";
-import { TASKS_STEP_TEXT_MAX_LENGTH } from "@/tasks/tasks.ts";
+import { TASK_TEXT_MAX_LENGTH } from "@/tasks/tasks.ts";
 import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -39,7 +39,7 @@ test("use_case_customize_spell", async () => {
     throw new Error("Expected a spell copy");
   }
   const edited = await updateSpell(user.id, copy.id, {
-    name: "Small steps",
+    name: "Small tasks",
     definition: {
       destination: "tasks",
       castReply: "Ready: {{spell}} in {{bucket}}.",
@@ -49,15 +49,15 @@ test("use_case_customize_spell", async () => {
     },
   });
   expect(edited?.definition.destination).toBe("tasks");
-  expect(messageText(await constructReply(chat.id, "cast Small steps"))).toBe(
-    "Ready: Small steps in Tasks.",
+  expect(messageText(await constructReply(chat.id, "cast Small tasks"))).toBe(
+    "Ready: Small tasks in Tasks.",
   );
   expect(await currentSpell(user.id, chat)).toBe(copy.id);
-  expect(await constructPrompt(chat.id)).toContain("Active spell: Small steps");
+  expect(await constructPrompt(chat.id)).toContain("Active spell: Small tasks");
   expect(messageText(await constructReply(chat.id, "Sketch a fox"))).toBe(
     "Kept Sketch a fox.",
   );
-  expect((await readTasks(user.id, chat.quest.id))?.steps).toMatchObject([
+  expect((await readTasks(user.id, chat.quest.id))?.items).toMatchObject([
     { text: "Sketch a fox", done: false },
   ]);
   expect(await listIdeas(user.id, chat.quest.id)).toEqual([]);
@@ -67,16 +67,16 @@ test("use_case_customize_spell", async () => {
       destination: "brainstorm",
     },
   });
-  expect((await readActiveSpell(user.id, chat))?.name).toBe("Small steps");
+  expect((await readActiveSpell(user.id, chat))?.name).toBe("Small tasks");
   expect(messageText(await constructReply(chat.id, "Buy clay"))).toBe(
     "Kept Buy clay.",
   );
   expect(
     messageText(
-      await constructReply(chat.id, "x".repeat(TASKS_STEP_TEXT_MAX_LENGTH + 1)),
+      await constructReply(chat.id, "x".repeat(TASK_TEXT_MAX_LENGTH + 1)),
     ),
   ).toBe("Try a shorter message.");
-  expect((await readTasks(user.id, chat.quest.id))?.steps).toHaveLength(2);
+  expect((await readTasks(user.id, chat.quest.id))?.items).toHaveLength(2);
   expect(messageText(await constructReply(chat.id, "/stop"))).toBe(
     "Until next time.",
   );
@@ -146,11 +146,11 @@ test("own spells enforce ownership and retirement preserves an active snapshot",
   expect(await currentSpell(user.id, chat)).toBeUndefined();
 });
 
-test("spells keep capturing messages beyond the former step limit", async () => {
+test("spells keep capturing messages beyond the former task limit", async () => {
   const { user, chat } = await signedInChat();
-  const ManySteps = 40;
+  const ManyTasks = 40;
   const spell = await createSpell(user.id, {
-    name: "Keep steps",
+    name: "Keep tasks",
     definition: {
       destination: "tasks",
       savedReply: "Kept {{message}}.",
@@ -160,16 +160,16 @@ test("spells keep capturing messages beyond the former step limit", async () => 
   await changeTasks(
     user.id,
     { questId: chat.quest.id, author: "person" },
-    Array.from({ length: ManySteps }, (_, index) => ({
+    Array.from({ length: ManyTasks }, (_, index) => ({
       op: "add",
-      text: `Step ${index}`,
+      text: `Task ${index}`,
     })),
   );
   expect(messageText(await constructReply(chat.id, "Buy paint"))).toBe(
     "Kept Buy paint.",
   );
-  expect((await readTasks(user.id, chat.quest.id))?.steps).toHaveLength(
-    ManySteps + 1,
+  expect((await readTasks(user.id, chat.quest.id))?.items).toHaveLength(
+    ManyTasks + 1,
   );
 });
 

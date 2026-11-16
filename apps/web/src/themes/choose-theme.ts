@@ -1,4 +1,4 @@
-// Applies the mode chosen in the site menu to this
+// Applies the mode chosen in the site panel to this
 // page at once, then saves the whole choice to this browser's cookie through
 // a Server Action (theme-choice.ts's header has where the cookie is written
 // and read).

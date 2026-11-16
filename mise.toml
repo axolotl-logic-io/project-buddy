@@ -2,7 +2,27 @@ min_version = "2026.9.4"
 monorepo_root = true
 
 [monorepo]
-config_roots = ["apps/web", "apps/instruction-counter"]
+config_roots = ["apps/web", "apps/instruction-counter", "apps/cli"]
 
 [tools]
 node = "24"
+
+# Puts the workspaces' commands, such as project-buddy, on the PATH, and
+# loads the CLI session that mise setup writes for the local developer
+# account. A missing file is skipped.
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+_.file = { path = "{{config_root}}/apps/cli/.env.local", redact = true }
+
+[tasks.setup]
+description = "Install dependencies and prepare the persistent local development environment"
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" setup'
+
+[tasks.doctor]
+description = "Check development prerequisites, configuration and database without changing them"
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" doctor'
+
+[tasks.sign-in-link]
+description = "Print a sign-in link for EMAIL, or the developer account, making the account if it's missing"
+usage = 'arg "[email]" help="The address to sign in as; developer@project-buddy.test without one"'
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" sign-in-link {{usage.email}}'

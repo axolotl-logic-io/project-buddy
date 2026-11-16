@@ -32,6 +32,7 @@ import {
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { DailiesDay } from "@/dailies/dailies.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
@@ -72,7 +73,9 @@ const TASKS_COMMAND_LISTINGS: readonly CommandListing[] =
     description: CHAT_COMMANDS_COPY.description(name),
   }));
 
-const SPELL_COMMANDS: readonly CommandListing[] = [
+// The construct's commands the composer lists, which it sends as messages
+// for the construct to answer.
+const CONSTRUCT_COMMANDS: readonly CommandListing[] = [
   {
     command: "/brainstorm",
     usage: "/brainstorm",
@@ -82,6 +85,11 @@ const SPELL_COMMANDS: readonly CommandListing[] = [
     command: "/stop",
     usage: "/stop",
     description: "Stop the active spell and return to Chat",
+  },
+  {
+    command: "/exp",
+    usage: "/exp",
+    description: "Show your experience, circle and title",
   },
 ];
 
@@ -126,6 +134,7 @@ function ChatView({
   questId,
   initialTasks,
   tasksActions,
+  dailiesDays,
   spellName,
   sideSections,
   initialSection,
@@ -145,6 +154,8 @@ function ChatView({
   initialTasks?: TasksState | undefined;
   // The task list's Server Actions, which the page hands over in a quest chat.
   tasksActions?: TasksActions | undefined;
+  // The Dailies quest's days, in the Dailies quest alone.
+  dailiesDays?: readonly DailiesDay[] | undefined;
 }): JSX.Element {
   const router = useRouter();
   const [stopStatus, setStopStatus] = useState("");
@@ -235,6 +246,7 @@ function ChatView({
     disabledNote: tasksDisabledNote,
     newestCardId: newestTasksCard(chat.messages),
     observed,
+    days: dailiesDays,
   });
   const receiveTasks = tasks?.receive;
   const publishStatus = useContext(StatusFeedbackContext);
@@ -278,7 +290,7 @@ function ChatView({
       listings: [
         ...TASKS_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
-        ...SPELL_COMMANDS,
+        ...CONSTRUCT_COMMANDS,
       ],
       run: runCommand,
     };

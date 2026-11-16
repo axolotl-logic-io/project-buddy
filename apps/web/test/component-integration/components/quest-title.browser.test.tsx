@@ -7,6 +7,12 @@ import { renameQuestAction } from "@/quests/rename-quest-action.ts";
 import { QUEST_COPY } from "@/ui/copy/quests.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -108,7 +114,7 @@ describe("use_case_rename_quest", () => {
 test("the title band offers an accessible pencil and keeps the name visible while editing", async () => {
   await render(
     <SiteHeader
-      links={
+      trail={
         <TrailBand
           items={[
             {

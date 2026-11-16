@@ -23,7 +23,7 @@ describe("use_case_quest_ideas", () => {
     ).toEqual({ kind: "saved" });
     const [idea] = await listIdeas(user.id, quest.id);
     expect(idea?.text).toBe("Try watercolours");
-    expect(await readTasks(user.id, quest.id)).toMatchObject({ steps: [] });
+    expect(await readTasks(user.id, quest.id)).toMatchObject({ items: [] });
     expect(
       await changeIdeaAction({
         op: "edit",
@@ -40,7 +40,7 @@ describe("use_case_quest_ideas", () => {
       1,
     );
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
-    expect((await readTasks(user.id, quest.id))?.steps).toMatchObject([
+    expect((await readTasks(user.id, quest.id))?.items).toMatchObject([
       { text: "Try ink", done: false },
     ]);
     await changeIdeaAction({
@@ -172,17 +172,17 @@ describe("use_case_quest_ideas", () => {
     expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
   });
 
-  test("an idea can move into a Tasks beyond the former step limit", async () => {
-    const ManySteps = 40;
+  test("an idea can move into a Tasks beyond the former task limit", async () => {
+    const ManyTasks = 40;
     const user = await testUser();
     const quest = await testData(user).quest();
     await signIn(user);
     await changeTasks(
       user.id,
       { questId: quest.id, author: "person" },
-      Array.from({ length: ManySteps }, (_, index) => ({
+      Array.from({ length: ManyTasks }, (_, index) => ({
         op: "add",
-        text: `Step ${index}`,
+        text: `Task ${index}`,
       })),
     );
     await changeIdeaAction({ op: "add", questId: quest.id, text: "Later" });
@@ -191,8 +191,8 @@ describe("use_case_quest_ideas", () => {
       await changeIdeaAction({ op: "move", questId: quest.id, id: idea?.id }),
     ).toMatchObject({ kind: "saved" });
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
-    expect((await readTasks(user.id, quest.id))?.steps).toHaveLength(
-      ManySteps + 1,
+    expect((await readTasks(user.id, quest.id))?.items).toHaveLength(
+      ManyTasks + 1,
     );
   });
 });
