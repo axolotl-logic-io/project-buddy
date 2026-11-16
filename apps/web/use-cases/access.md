@@ -10,7 +10,7 @@ The user opens any page of the site without being signed in.
 - **Steps:**
   - The user opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page and the menu. The menu offers Light, Dark and System modes and a Credits link. It doesn't ask for a shared code. No one's quests, conversations or Tasks appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page and the site panel's button. The site panel offers Light, Dark and System modes and a Credits link. It doesn't ask for a shared code. No one's quests, conversations or Tasks appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): the user has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): the user has no account yet.

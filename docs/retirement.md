@@ -10,7 +10,7 @@ Retire removes the definition from active collections and future spell casts. St
 
 ## Manage retired definitions
 
-The site menu links to Graveyard at `/retirement`. The page lists the acting user's retired definitions together, most recently retired first, with a retirement date and kind. Name search and kind filters narrow the list. It distinguishes an empty collection from a search with no matches.
+The site panel links to Graveyard at `/retirement`. The page lists the acting user's retired definitions together, most recently retired first, with a retirement date and kind. Name search and kind filters narrow the list. It distinguishes an empty collection from a search with no matches.
 
 View opens `/retirement/ID`, with the saved instructions as read-only text. Restore makes the same definition available immediately, keeping its id, instructions, creation date and source. Nothing expires automatically.
 

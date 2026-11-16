@@ -584,7 +584,7 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "QUEST_NOTES_COPY.none",
-    "In a quest’s Quick Notes section, where saved Quick Notes are read and deleted. When the quest has no Quick Notes, explain the menu action used to add one.",
+    "In a quest’s Quick Notes section, where saved Quick Notes are read and deleted. When the quest has no Quick Notes, explain the site panel item used to add one.",
   ],
   [
     "QUEST_SHARING_COPY.option.variant3",
@@ -652,43 +652,43 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "QUICK_NOTE_COPY.failed",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Report failure to save a Quick Note and suggest retrying.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Report failure to save a Quick Note and suggest retrying.",
   ],
   [
     "QUICK_NOTE_COPY.intro",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Explain saving a short note to a quest without opening it and finding it later in that quest's Quick Notes tab.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Explain saving a short note to a quest without opening it and finding it later in that quest's Quick Notes tab.",
   ],
   [
     "QUICK_NOTE_COPY.invalid",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. When someone tries to save a Quick Note without choosing a quest or writing text, explain that both are needed.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. When someone tries to save a Quick Note without choosing a quest or writing text, explain that both are needed.",
   ],
   [
     "QUICK_NOTE_COPY.noQuests",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Explain that Quick Notes require an Active quest; suggest starting or restoring one from Quests.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Explain that Quick Notes require an Active quest; suggest starting or restoring one from Quests.",
   ],
   [
     "QUICK_NOTE_COPY.notFound",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Explain that the selected quest is no longer Active, the note was not saved and another quest must be chosen.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Explain that the selected quest is no longer Active, the note was not saved and another quest must be chosen.",
   ],
   [
     "QUICK_NOTE_COPY.problem.variant1",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. When someone tries to save a blank Quick Note, ask them to write something first.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. When someone tries to save a blank Quick Note, ask them to write something first.",
   ],
   [
     "QUICK_NOTE_COPY.problem.variant2",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. When a Quick Note is too long, state the character limit and ask the user to shorten it.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. When a Quick Note is too long, state the character limit and ask the user to shorten it.",
   ],
   [
     "QUICK_NOTE_COPY.saved",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Confirm saving a Quick Note to the named quest.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Confirm saving a Quick Note to the named quest.",
   ],
   [
     "QUICK_NOTE_COPY.saving",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Short waiting message shown while a Quick Note is being saved.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Short waiting message shown while a Quick Note is being saved.",
   ],
   [
     "QUICK_NOTE_COPY.textHint",
-    "In the Quick Note window opened from the site menu, for saving text to an Active quest without opening it. Quick Note help stating the largest allowed number of characters.",
+    "In the Quick Note window opened from the site panel, for saving text to an Active quest without opening it. Quick Note help stating the largest allowed number of characters.",
   ],
   [
     "RETIREMENT_COPY.deleted",

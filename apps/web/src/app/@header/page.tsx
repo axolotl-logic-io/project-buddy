@@ -1,7 +1,7 @@
 import type { JSX } from "react";
-import { SignedInLinks } from "@/components/site-header.tsx";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 
-// The header's links at the root redirect.
-export default function RootHeaderLinks(): Promise<JSX.Element> {
-  return SignedInLinks();
+// The header at the root redirect.
+export default function RootHeader(): Promise<JSX.Element> {
+  return SignedInHeader();
 }

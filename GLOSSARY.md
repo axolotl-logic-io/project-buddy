@@ -16,6 +16,12 @@ A conversation is a [quest](#quest)'s one conversation, with its tasks, ideas an
 
 The product: a site where constructs help each user with their quests and ideas, on any subject, alone or with the members they invite.
 
+### Site panel
+
+The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Light, Dark and System modes, and Credits. On a wide screen it docks beside the page and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
+
+- **UI:** "Site panel", "Close site panel", "Places", "You".
+
 ### Workshop
 
 The shared page for editing constructs and inspecting Tasks and Brainstorm. It has no test drawer: a saved definition is tried in a quest.
@@ -254,9 +260,9 @@ A quest's saved possibilities that the user has not committed to. Ideas is separ
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site menu, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
 
-- **UI:** "Quick Note" for the menu item, the dialog and a single item; "Quick Notes" for the tab and the collection.
+- **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the tab and the collection.
 
 ### Quest sidebar actions
 
@@ -432,7 +438,7 @@ An account whose user has completed sign-up: every account made through Sign up,
 
 ## Timer
 
-The Timer is a destination of its own in the site menu's Places. It belongs to no quest, and quest membership and timer participation stay separate. See [Timer](docs/timer.md).
+The Timer is a destination of its own in the site panel's Places. It belongs to no quest, and quest membership and timer participation stay separate. See [Timer](docs/timer.md).
 
 ### Timer
 

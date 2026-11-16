@@ -114,7 +114,7 @@ describe("use_case_rename_quest", () => {
 test("the title band offers an accessible pencil and keeps the name visible while editing", async () => {
   await render(
     <SiteHeader
-      links={
+      trail={
         <TrailBand
           items={[
             {

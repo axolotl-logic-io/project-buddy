@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { JSX } from "react";
-import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   DEFAULT_THEME_ATTRIBUTES,
   THEME_PRE_PAINT_SCRIPT,
@@ -42,8 +42,8 @@ export const viewport: Viewport = {
 // page renders per request, and waits for the session lookup.
 export const instant = false;
 
-// Every page renders per request, because the header (the @header slot's
-// links) reads who is signed in. The HTML still carries the default theme,
+// Every page renders per request, because the header (the @header slot)
+// reads who is signed in. The HTML still carries the default theme,
 // and the pre-paint script applies the visitor's saved theme before the
 // first paint. suppressHydrationWarning,
 // on <html> alone, lets that choice stand when React hydrates. The not-found
@@ -64,7 +64,7 @@ export default function RootLayout({
         <script>{THEME_PRE_PAINT_SCRIPT}</script>
       </head>
       <body className="flex min-h-full flex-col">
-        <SiteHeader links={header ?? <SignedInLinks />} />
+        {header ?? <SignedInHeader />}
         <main className="flex flex-1 flex-col">{children}</main>
       </body>
     </html>

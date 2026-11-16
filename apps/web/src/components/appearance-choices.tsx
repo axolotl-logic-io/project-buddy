@@ -28,10 +28,10 @@ export function AppearanceChoices({
 
   return (
     <fieldset className={groupClass}>
-      <legend className="menu-label">{THEME_COPY.modeLabel}</legend>
-      <div className="menu-modes">
+      <legend className="panel-label">{THEME_COPY.modeLabel}</legend>
+      <div className="panel-modes">
         {THEME_MODES.map((mode) => (
-          <label className="menu-mode" key={mode}>
+          <label className="panel-mode" key={mode}>
             <input
               checked={mode === choice.mode}
               className={inputClass}

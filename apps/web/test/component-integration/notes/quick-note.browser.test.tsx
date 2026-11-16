@@ -1,4 +1,4 @@
-// The site menu's Quick Note dialog and a quest's Quick Notes tab, in
+// The site panel's Quick Note dialog and a quest's Quick Notes tab, in
 // Chromium and WebKit. The Server Actions are mocked; the server test
 // (quick-notes.server.test.ts) checks what they store.
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -6,12 +6,21 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { AccountLinks } from "@/components/site-header.tsx";
-import { SiteMenu } from "@/components/site-menu.tsx";
+import { SitePanel } from "@/components/site-panel.tsx";
 import { NOTE_ID, type NoteQuest, type NoteResult } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
-import { PHONE_VIEWPORT, setViewport } from "../viewports-test-kit.ts";
+import {
+  openPanel,
+  panelButton,
+  sitePanel,
+} from "../components/site-panel-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  PHONE_VIEWPORT,
+  setViewport,
+} from "../viewports-test-kit.ts";
 
 const OTHER_QUEST: NoteQuest = {
   id: "22222222-2222-4222-8222-222222222222",
@@ -24,18 +33,6 @@ const JOINED_QUEST: NoteQuest = {
   sharing: { kind: "joined", owner: "Rowan" },
 };
 
-// The header's ring of the user's circle reads their experience, server code.
-vi.mock(
-  "@/experience/experience-store.ts",
-  () => import("../experience/experience-store-test-kit.ts"),
-);
-
-// site-header.tsx reads the session for SignedInLinks, server code.
-vi.mock(
-  "@/auth/current-user.ts",
-  () => import("../auth/current-user-test-kit.ts"),
-);
-
 const route = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({
   usePathname: (): string => route.pathname,
@@ -43,8 +40,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 async function openQuickNote(): Promise<void> {
-  await render(<SiteMenu links={<AccountLinks />} />);
-  await page.getByRole("button", { name: "Menu" }).click();
+  await render(<SitePanel links={<AccountLinks />} />);
+  await panelButton().click();
   await page.getByRole("button", { name: "Quick Note", exact: true }).click();
 }
 
@@ -57,16 +54,14 @@ beforeEach(() => {
 });
 
 describe("use_case_quick_note", () => {
-  test("the menu's Quick Note saves a note to the open quest and keeps it chosen", async () => {
+  test("the site panel's Quick Note saves a note to the open quest and keeps it chosen", async () => {
     route.pathname = `/quests/${FOX_QUEST.id}`;
     vi.mocked(saveNoteAction).mockResolvedValue({ kind: "saved" });
     await openQuickNote();
 
     const dialog = page.getByRole("dialog", { name: "Quick Note" });
     await expect.element(dialog).toBeVisible();
-    await expect
-      .element(page.getByRole("dialog", { name: "Menu" }))
-      .not.toBeInTheDocument();
+    await expect.element(sitePanel()).not.toBeInTheDocument();
     const quest = dialog.getByRole("combobox", { name: "Quick Note for" });
     await expect.element(quest).toHaveValue(FOX_QUEST.id);
 
@@ -93,9 +88,29 @@ describe("use_case_quick_note", () => {
 
     await userEvent.keyboard("{Escape}");
     await expect.element(dialog).not.toBeInTheDocument();
-    await expect
-      .element(page.getByRole("button", { name: "Menu" }))
-      .toHaveFocus();
+    await expect.element(panelButton()).toHaveFocus();
+  });
+
+  test("in the site panel docked beside the page, Quick Note leaves the panel open and returns focus to itself", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    try {
+      await render(<SitePanel links={<AccountLinks />} />);
+      await openPanel();
+      const item = sitePanel().getByRole("button", {
+        name: "Quick Note",
+        exact: true,
+      });
+      await item.click();
+
+      const dialog = page.getByRole("dialog", { name: "Quick Note" });
+      await expect.element(dialog).toBeVisible();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(dialog).not.toBeInTheDocument();
+      await expect.element(sitePanel()).toBeVisible();
+      await expect.element(item).toHaveFocus();
+    } finally {
+      await setViewport(PHONE_VIEWPORT);
+    }
   });
 
   test("away from a quest the newest Active quest is chosen, and a refusal keeps the text", async () => {

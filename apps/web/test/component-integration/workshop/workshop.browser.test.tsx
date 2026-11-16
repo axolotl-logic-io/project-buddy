@@ -60,7 +60,7 @@ async function show(
   await render(
     <>
       <SiteHeader
-        links={
+        trail={
           <TrailBand
             items={[
               { label: "Workshop", href: "/workshop" },

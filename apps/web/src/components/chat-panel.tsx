@@ -9,32 +9,16 @@ import {
   useId,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { TaskRows } from "@/components/tasks/task-rows.tsx";
 import { useTasks } from "@/components/tasks/use-tasks.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useWideScreen } from "@/components/use-wide-screen.ts";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import { WorkspaceTabs } from "@/components/workspace-tabs.tsx";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
-
-const WIDE_SIDEBAR = "(min-width: 64rem)";
-
-function subscribeWidth(notify: () => void): () => void {
-  const media = globalThis.matchMedia(WIDE_SIDEBAR);
-  media.addEventListener("change", notify);
-  return (): void => media.removeEventListener("change", notify);
-}
-
-function isWide(): boolean {
-  return globalThis.matchMedia(WIDE_SIDEBAR).matches;
-}
-
-function serverWidth(): boolean {
-  return false;
-}
 
 function ChatPanel({
   children,
@@ -46,7 +30,7 @@ function ChatPanel({
   readonly initialSection?: string | undefined;
 }): JSX.Element {
   const tasks = useTasks();
-  const wide = useSyncExternalStore(subscribeWidth, isWide, serverWidth);
+  const wide = useWideScreen();
   const [expanded, setExpanded] = useState<boolean | undefined>();
   const open = expanded ?? (wide || initialSection !== undefined);
   const panelId = useId();
