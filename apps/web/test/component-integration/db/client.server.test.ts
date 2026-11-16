@@ -35,6 +35,33 @@ test("a transaction reads its own writes, commits, and rolls back on failure", a
   expect(saved?.name).toBe("Committed");
 });
 
+// Hosted Neon's HTTP driver had no transactions, so a transaction on the
+// app's database failed in production alone. Every database now uses one
+// driver; this keeps getDb() itself able to run one.
+test("the app's database runs a transaction that reads its own writes and rolls back", async () => {
+  const user = await testUser();
+  const failure = new Error("Cancel this change");
+  await expect(
+    getDb().transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({ name: "Rolled back" })
+        .where(eq(users.id, user.id));
+      const [inside] = await tx
+        .select({ name: users.name })
+        .from(users)
+        .where(eq(users.id, user.id));
+      expect(inside?.name).toBe("Rolled back");
+      throw failure;
+    }),
+  ).rejects.toBe(failure);
+  const [saved] = await getDb()
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, user.id));
+  expect(saved?.name).toBeNull();
+});
+
 test("native PostgreSQL constraint errors keep their application case and foreign key", async () => {
   const failure = await getDb()
     .insert(signInLinks)
