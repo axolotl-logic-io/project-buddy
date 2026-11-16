@@ -119,6 +119,14 @@ vi.mock("@/notes/note-actions.ts", () => ({
   }),
 }));
 
+// A running timer reports its presence as it opens. Tests of the count
+// supply their own answers; by default no one else follows the schedule.
+vi.mock("@/timer/presence-action.ts", () => ({
+  reportTimerPresenceAction: vi.fn(() =>
+    Promise.resolve({ kind: "count", others: 0 }),
+  ),
+}));
+
 vi.mock("@/notes/note-store.ts", () => ({
   listNotes: vi.fn(() => Promise.resolve([])),
 }));

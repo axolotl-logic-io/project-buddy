@@ -21,6 +21,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and asset ownership.
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 - [Installed app](notifications.md): installing on a phone's Home Screen.
+- [Timer](timer.md): the repeating work and break timer, its links and the count of others following a schedule.
 - [Multi-user quests](multi-user-quests.md): shared quest permissions, accounts created by invitations and acceptance through the Pending tab or invitation links.
 
 ## Practices
