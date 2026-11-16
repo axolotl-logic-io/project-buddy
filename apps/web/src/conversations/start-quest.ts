@@ -1,9 +1,12 @@
+import { generateId } from "ai";
 import { readUserName } from "@/accounts/users-store.ts";
 import type { Chat, ChatQuest } from "@/chats/chat-rows.ts";
 import {
   createQuestWithChat,
   type NewChatConstruct,
 } from "@/chats/new-chat-store.ts";
+import { saveTasksMessage } from "@/chats/store.ts";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import {
   type ConstructSnapshot,
   DEFAULT_CONSTRUCT_ID,
@@ -22,6 +25,8 @@ import { getQuest } from "@/quests/store.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
 import { type PromptQuest, readPromptQuest } from "@/replies/system-prompt.ts";
 import { EMPTY_TASKS } from "@/tasks/tasks.ts";
+import { commandNoteMessage } from "@/tasks/tasks-message.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
 const NOT_FOUND = { kind: "notFound" } as const;
@@ -140,9 +145,13 @@ function readQuestConversation(
   return findConversation(viewer, questId);
 }
 
+// The quest's conversation, started with its opening if it has none yet.
+// sentStart is true when the user sent /start, with the start button: the
+// conversation then shows the command before the opening it brought.
 async function startQuestConversation(
   actingUser: UserId,
   questId: QuestId,
+  sentStart = false,
 ): Promise<StartConversationResult> {
   const quest = await getQuest(actingUser, questId);
   if (quest === undefined) {
@@ -168,6 +177,16 @@ async function startQuestConversation(
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
+  }
+  if (sentStart) {
+    await saveTasksMessage(
+      actingUser,
+      found.conversation.id,
+      commandNoteMessage(generateId(), {
+        command: PANEL_COMMAND.start,
+        note: PANEL_COMMANDS_COPY.notes.started,
+      }),
+    );
   }
   await appendConstructMessage(actingUser, found.conversation.id, opening);
   return { kind: "started", conversation: found.conversation };

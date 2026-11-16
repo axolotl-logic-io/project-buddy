@@ -37,7 +37,7 @@ The conversation shows each call as a **Tasks change** with Undo (`src/component
 The owner and members change the tasks through the Server Actions in `src/tasks/tasks-actions.ts`. None calls a model:
 
 - The quest page's **Tasks** section, `/quests/QUEST_ID?section=tasks`, where `QUEST_ID` is the quest's id. A change there says what it did, with Undo, and a refused change says why in the same status line. A change that failed (it couldn't be saved, or the quest is gone) shows as an `Alert`, here and in the Tasks panel.
-- The **Tasks accordion** in the quest side menu, alongside Ideas, Progress, Quick Notes, Members and Actions. Edits and Undo update the Tasks and show feedback in the sidebar, without adding conversation messages. A panel icon opens or collapses the sidebar. It docks to the right edge on wide screens and opens as a drawer on phones. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
+- The **Tasks accordion** in the quest side menu, alongside Ideas, Progress, Quick Notes, Members and Actions. Each edit sends its command to the conversation, as if typed (`useTasksController` in `src/components/tasks/use-tasks.ts`): adding sends `/add`, which puts the task at the end, and Undo sends `/undo`. The sidebar shows feedback, and a refused command shows its reason under the message box. A panel icon opens or collapses the sidebar. It docks to the right edge on wide screens and opens as a drawer on phones. Its controls wait while the conversation's last message awaits a reply: while one runs, and after one failed or stopped, so that Retry or "send again" still answers that message.
 - **Commands** in the message box (`src/tasks/tasks-commands.ts`): typing "/" lists them, with how to write each and what it does. The arrow keys move through the list; Tab, Enter or a click picks one.
 
 | Command | Effect |
@@ -49,11 +49,15 @@ The owner and members change the tasks through the Server Actions in `src/tasks/
 | `/edit TASK TEXT` | Changes a task's text. |
 | `/move TASK PLACE` | Moves an open task to a place among the open tasks, 1 being first. |
 | `/drop TASK` | Removes a task. |
+| `/recur TASK` | Makes a Dailies task recurring. |
+| `/once TASK` | Makes a recurring task one-off again. |
 | `/undo` | Undoes the user's last tasks change in this conversation that has something left to undo. |
 
 `TASK` is the task's number, with or without "#". In a quest's conversation, any message that starts with "/" and a name runs as a command: an unknown one says so under the message box and keeps the text.
 
-A change made by a command is saved to the conversation as a task message (`src/tasks/tasks-message.ts`): a user message whose one part is a `data-tasks-change` or `data-tasks-card` part. No reply answers one, so it never counts as a stopped reply. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Tasks change]` (`src/replies/tasks-message-prompt.ts`), and the tasks in its prompt is current anyway. Direct changes and Undo from the sidebar, quest page or a saved card add no message. Their saved Tasks versions remain available, and the construct reads the current Tasks on its next reply.
+The quest sidebar's other controls send the commands in `src/commands/panel-commands.ts` the same way, for Ideas, Quick Notes, Progress, Members, Start Day and starting the conversation; `runPanelCommand` in `src/commands/run-panel-command.ts` runs them. Each that changes the quest saves a command note: a user message with a `data-command-note` part holding the command and what it did, which the construct reads marked `[Command]`. The quest status commands save one too, and Cast spell and Stop [Spell] send `cast NAME` and `stop` as ordinary messages.
+
+A change made by a command is saved to the conversation as a task message (`src/tasks/tasks-message.ts`): a user message whose one part is a `data-tasks-change` or `data-tasks-card` part. No reply answers one, so it never counts as a stopped reply. None is saved while the conversation's newest message awaits a reply (`chatAwaitsReply` in `src/chats/store.ts`), so a retry or "send again" always resends a conversation that ends in that message; the change itself is refused too, by the same check in its `insert … select`. The construct reads it on its next reply as a note marked `[Tasks change]` (`src/replies/tasks-message-prompt.ts`), and the tasks in its prompt is current anyway. The sidebar's changes are commands too, so each adds a message; changes and Undo from the quest page or a saved card add none. Their saved Tasks versions remain available, and the construct reads the current Tasks on its next reply.
 
 Only the quest's owner and its accepted [members](multi-user-quests.md) can change its tasks. Each change records its author.
 

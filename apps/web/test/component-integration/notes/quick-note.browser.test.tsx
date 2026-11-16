@@ -1,6 +1,7 @@
 // The site panel's Quick Note dialog and a quest's Quick Notes tab, in
-// Chromium and WebKit. The Server Actions are mocked; the server test
-// (quick-notes.server.test.ts) checks what they store.
+// Chromium and WebKit. The Server Actions and the conversation's send are
+// mocked; the server test (quick-notes.server.test.ts) checks what they
+// store, and what /drop-note deletes.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -11,6 +12,11 @@ import { NOTE_ID, type NoteQuest, type NoteResult } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
+import {
+  chatSendMock,
+  inConversation,
+  sentTexts,
+} from "../components/chat/chat-send-test-kit.tsx";
 import {
   openPanel,
   panelButton,
@@ -185,10 +191,11 @@ describe("use_case_quick_note", () => {
         savedAt: new Date("2026-11-12T12:00:00Z"),
       },
     ];
-    const action = vi.fn().mockResolvedValue({ kind: "deleted" });
-    await render(
-      <QuestNotes questId={FOX_QUEST.id} notes={notes} action={action} />,
-    );
+    const send = chatSendMock().mockResolvedValue({
+      sent: true,
+      note: "Deleted the Quick Note “Buy more clay”.",
+    });
+    await render(inConversation(send, <QuestNotes notes={notes} />));
 
     const list = page.getByRole("list", { name: "Quick Notes" });
     await expect
@@ -197,16 +204,39 @@ describe("use_case_quick_note", () => {
     await page
       .getByRole("button", { name: 'Delete the Quick Note "Buy more clay"' })
       .click();
-    expect(action).toHaveBeenCalledWith({
-      questId: FOX_QUEST.id,
-      id: newest.id,
-    });
+    expect(sentTexts(send)).toEqual(["/drop-note 1"]);
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Quick Note deleted.");
+      .toHaveTextContent("Deleted the Quick Note “Buy more clay”.");
     await expect
       .element(page.getByText("Buy more clay"))
       .not.toBeInTheDocument();
     await expect.element(page.getByText("Try a slower wheel")).toBeVisible();
+  });
+
+  test("a refused Quick Note deletion keeps the note and says why", async () => {
+    const problem = "Wait for the reply to your last message, then try again.";
+    const send = chatSendMock().mockResolvedValue({ sent: false, problem });
+    await render(
+      inConversation(
+        send,
+        <QuestNotes
+          notes={[
+            {
+              id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
+              text: "Buy more clay",
+              savedAt: new Date("2026-11-14T12:00:00Z"),
+            },
+          ]}
+        />,
+      ),
+    );
+
+    await page
+      .getByRole("button", { name: 'Delete the Quick Note "Buy more clay"' })
+      .click();
+
+    await expect.element(page.getByRole("alert")).toHaveTextContent(problem);
+    await expect.element(page.getByText("Buy more clay")).toBeVisible();
   });
 });
