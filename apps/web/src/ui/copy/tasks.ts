@@ -57,6 +57,8 @@ const TASKS_COMMAND_DESCRIPTIONS: Readonly<Record<TasksCommandName, string>> = {
   edit: "Change a task's text",
   move: "Move an open task to a place, 1 being first",
   drop: "Remove a task",
+  recur: "Make a task recurring, in Dailies",
+  once: "Make a recurring task a one-off task",
   undo: "Undo your last tasks change here",
 };
 
@@ -120,6 +122,7 @@ export const TASKS_CHANGE_COPY = {
   undoLabel: "Undo this task change",
   undone: "Undone",
   noModel: "Tasks change",
+  commandNote: "Command",
   notChanged: "The tasks didn't change.",
   sideMenu: "The Tasks controls are in the quest side menu.",
 } as const;

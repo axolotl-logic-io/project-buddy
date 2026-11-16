@@ -15,14 +15,24 @@ import {
   useState,
 } from "react";
 import {
+  PANEL_COMMAND,
+  PANEL_COMMAND_NAMES,
+  PANEL_COMMAND_USAGE,
+} from "@/commands/panel-commands.ts";
+import {
   type ChatCommands,
   ChatCommandsContext,
   type CommandListing,
 } from "@/components/chat/chat-commands.ts";
+import {
+  ChatSendContext,
+  type ChatSendResult,
+} from "@/components/chat/chat-send.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { ChatPanel } from "@/components/chat-panel.tsx";
+import { noteLeftQuest } from "@/components/left-quest.ts";
 import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import {
   type TasksActions,
@@ -32,7 +42,7 @@ import {
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
-import type { DailiesDay } from "@/dailies/dailies.ts";
+import { type DailiesDay, todayHere } from "@/dailies/dailies.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
@@ -46,18 +56,22 @@ import {
   CHANGE_TASKS_TOOL,
 } from "@/replies/tools/change-tasks-contract.ts";
 import type { TasksState } from "@/tasks/tasks.ts";
+import type { TasksActionResult } from "@/tasks/tasks-actions.ts";
 import {
+  isChatCommand,
   TASKS_COMMAND_NAMES,
   TASKS_COMMAND_USAGE,
 } from "@/tasks/tasks-commands.ts";
 import { awaitsReply, TASKS_CARD_PART } from "@/tasks/tasks-message.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 import {
   CHAT_COMMANDS_COPY,
   TASKS_COPY,
   TASKS_PANEL_COPY,
+  tasksLineText,
 } from "@/ui/copy/tasks.ts";
 
 // A chat whose every user message is the viewer's own.
@@ -72,6 +86,22 @@ const TASKS_COMMAND_LISTINGS: readonly CommandListing[] =
     usage: TASKS_COMMAND_USAGE[name],
     description: CHAT_COMMANDS_COPY.description(name),
   }));
+
+// The other commands the quest panel's controls send, as the composer lists
+// them.
+const PANEL_COMMAND_LISTINGS: readonly CommandListing[] =
+  PANEL_COMMAND_NAMES.map((name) => ({
+    command: `/${name}`,
+    usage: PANEL_COMMAND_USAGE[name],
+    description: PANEL_COMMANDS_COPY.description(name),
+  }));
+
+// What a command did, for the composer or a panel control: why it did
+// nothing, or what the conversation now notes of it.
+interface CommandOutcome {
+  readonly problem?: string | undefined;
+  readonly note?: string | undefined;
+}
 
 // The construct's commands the composer lists, which it sends as messages
 // for the construct to answer.
@@ -238,6 +268,8 @@ function ChatView({
     () => tasksFromConstruct(chat.messages),
     [chat.messages],
   );
+  const publishStatus = useContext(StatusFeedbackContext);
+  const [panelProblem, setPanelProblem] = useState<string | undefined>();
   const tasks = useTasksController({
     questId,
     actions: tasksActions,
@@ -247,38 +279,73 @@ function ChatView({
     newestCardId: newestTasksCard(chat.messages),
     observed,
     days: dailiesDays,
+    onMessage: addMessage,
+    onProblem: setPanelProblem,
   });
   const receiveTasks = tasks?.receive;
-  const publishStatus = useContext(StatusFeedbackContext);
-  const runCommand = useCallback(
-    async (text: string): Promise<string | undefined> => {
-      const result = await tasksActions?.command({ chatId, text });
-      if (result === undefined) {
-        return CHAT_COMMANDS_COPY.failed;
-      }
+  // Shows what the command's result says, and answers with its outcome.
+  const settleCommand = useCallback(
+    (result: TasksActionResult): CommandOutcome => {
       switch (result.kind) {
         case "quest-status":
           publishStatus?.(result.feedback);
-          return undefined;
+          if (result.message !== undefined) {
+            addMessage(result.message);
+          }
+          return { note: result.feedback.message };
+        case "noted":
+          if (result.message !== undefined) {
+            addMessage(result.message);
+          }
+          if (result.leftQuest !== undefined) {
+            noteLeftQuest(result.leftQuest);
+          }
+          if (result.navigate !== undefined) {
+            router.replace(result.navigate);
+          }
+          return { note: result.note };
         case "problem":
-          return result.text;
+          return { problem: result.text };
         case "not-found":
-          return TASKS_COPY.failed["not-found"];
+          return { problem: TASKS_COPY.failed["not-found"] };
         case "failed":
           receiveTasks?.(result.state);
-          return TASKS_COPY.failed[result.reason];
+          return { problem: TASKS_COPY.failed[result.reason] };
         case "changed":
         case "shown":
           receiveTasks?.(result.state);
           if (result.message !== undefined) {
             addMessage(result.message);
           }
-          return undefined;
+          if (result.kind === "changed") {
+            return { note: result.lines.map(tasksLineText).join(". ") };
+          }
+          return {};
         default:
           return result satisfies never;
       }
     },
-    [addMessage, chatId, tasksActions, receiveTasks, publishStatus],
+    [addMessage, receiveTasks, publishStatus, router],
+  );
+  const execute = useCallback(
+    async (text: string): Promise<CommandOutcome> => {
+      setPanelProblem(undefined);
+      const result = await tasksActions?.command({
+        chatId,
+        text,
+        localDate: todayHere(new Date()),
+      });
+      if (result === undefined) {
+        return { problem: CHAT_COMMANDS_COPY.failed };
+      }
+      return settleCommand(result);
+    },
+    [chatId, tasksActions, settleCommand],
+  );
+  const runCommand = useCallback(
+    async (text: string): Promise<string | undefined> =>
+      (await execute(text)).problem,
+    [execute],
   );
   // Without the task list's actions, as in a test of the conversation alone, the
   // composer runs no commands and sends every message.
@@ -290,15 +357,50 @@ function ChatView({
       listings: [
         ...TASKS_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
+        ...PANEL_COMMAND_LISTINGS,
         ...CONSTRUCT_COMMANDS,
       ],
       run: runCommand,
+      panelProblem,
     };
-  }, [tasksActions, runCommand]);
+  }, [tasksActions, runCommand, panelProblem]);
   const { sendMessage } = chat;
+  const busy = replying || replyingElsewhere;
+  // A quest panel control's send: a command runs at once, as typed in the
+  // composer; any other message goes to the construct.
+  const send = useCallback(
+    async (text: string): Promise<ChatSendResult> => {
+      if (tasksActions !== undefined && isChatCommand(text)) {
+        const outcome = await execute(text).catch(
+          (): CommandOutcome => ({ problem: CHAT_COMMANDS_COPY.failed }),
+        );
+        if (outcome.problem !== undefined) {
+          setPanelProblem(outcome.problem);
+          return { sent: false, problem: outcome.problem };
+        }
+        return { sent: true, note: outcome.note };
+      }
+      setPanelProblem(undefined);
+      if (busy) {
+        setPanelProblem(PANEL_COMMANDS_COPY.problems.awaitingReply);
+        return {
+          sent: false,
+          problem: PANEL_COMMANDS_COPY.problems.awaitingReply,
+        };
+      }
+      try {
+        await sendMessage({ text });
+        return { sent: true };
+      } catch {
+        setPanelProblem(PANEL_COMMANDS_COPY.problems.failed);
+        return { sent: false, problem: PANEL_COMMANDS_COPY.problems.failed };
+      }
+    },
+    [tasksActions, execute, busy, sendMessage],
+  );
   const stopSpell = useCallback((): void => {
-    sendMessage({ text: "/stop" }).catch(() => undefined);
-  }, [sendMessage]);
+    send(PANEL_COMMAND.stop).catch(() => undefined);
+  }, [send]);
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
@@ -377,15 +479,17 @@ function ChatView({
     <AssistantRuntimeProvider runtime={runtime}>
       <TasksContext.Provider value={tasks}>
         <ChatCommandsContext.Provider value={commands}>
-          {tasks === undefined && conversation}
-          {tasks !== undefined && (
-            <ChatPanel
-              initialSection={initialSection}
-              sideSections={sideSections}
-            >
-              {conversation}
-            </ChatPanel>
-          )}
+          <ChatSendContext.Provider value={send}>
+            {tasks === undefined && conversation}
+            {tasks !== undefined && (
+              <ChatPanel
+                initialSection={initialSection}
+                sideSections={sideSections}
+              >
+                {conversation}
+              </ChatPanel>
+            )}
+          </ChatSendContext.Provider>
         </ChatCommandsContext.Provider>
       </TasksContext.Provider>
     </AssistantRuntimeProvider>

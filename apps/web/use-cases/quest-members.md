@@ -9,8 +9,8 @@ The user invites someone to work on a quest with them.
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), as the quest's owner or a member.
 - **Steps:**
   - In the quest's sidebar, the user opens Members.
-  - Under Invite by email, they type an address and choose Invite.
-- **Outcome:** the form says the invitation was sent, and Members lists the address as invited, not accepted yet: always the address, never an existing account's name. Focus returns to the address field. An email holding an acceptance link reaches the address. It invites them to "the quest", names the owner when a member invites, lists what everyone shares, and says when an account was set aside for the address. If the address had no account, it now has an invited account, before anyone opens the email. An address that already has an account keeps it, with its name and sign-up unchanged. Inviting the same address to another quest uses the same account. Inviting the owner or a member again changes nothing, says they are already in the quest and keeps the address in the field. Inviting a pending invitee again sends a fresh link. Pending invitees, removed members and other users can't invite anyone to the quest.
+  - Under Invite by email, they type an address and choose Invite, which sends `/invite EMAIL` to the quest's conversation. The user can also type it.
+- **Outcome:** the conversation notes the invitation, the form says the invitation was sent, and Members lists the address as invited, not accepted yet: always the address, never an existing account's name. Focus returns to the address field. An email holding an acceptance link reaches the address. It invites them to "the quest", names the owner when a member invites, lists what everyone shares, and says when an account was set aside for the address. If the address had no account, it now has an invited account, before anyone opens the email. An address that already has an account keeps it, with its name and sign-up unchanged. Inviting the same address to another quest uses the same account. Inviting the owner or a member again changes nothing, says they are already in the quest and keeps the address in the field. Inviting a pending invitee again sends a fresh link. Pending invitees, removed members and other users can't invite anyone to the quest.
 - **Variations:**
   - The address isn't one: the form says so, keeps it, and nothing is sent.
   - The user has sent 20 invitations in the last hour: the form says the limit is 20 an hour and keeps the address. Only invitations that went out count.
@@ -78,7 +78,7 @@ Someone in a quest removes a member or an invitation, or a member leaves.
 
 - **Prerequisites:** `use_case_quest_member_access`.
 - **Steps:**
-  - In Members, the user chooses Remove beside a member and confirms; or Withdraw beside an invitation; or, as a member, Leave quest and confirms.
+  - In Members, the user chooses Remove beside a member and confirms, which sends `/remove NAME`; or Withdraw beside an invitation, which sends `/withdraw EMAIL`; or, as a member, Leave quest and confirms, which sends `/leave`. The user can also type these in the conversation.
 - **Outcome:** a removed member, or one who left, loses access to the quest at once; leaving opens Quests, where the status line names the quest they left and takes focus. On a phone or tablet the Remove and Leave questions open above the quest sidebar's drawer and hold focus until answered. Their messages and other contributions stay, with them as author. A reply their message was still waiting for stops, and anyone left in the quest can ask for it again at once. A withdrawn invitation disappears from the invitee's Pending, and its link stops working. Anyone in the quest can invite them again.
 - **Next:**
   - `use_case_invite_to_quest`: invite them again.

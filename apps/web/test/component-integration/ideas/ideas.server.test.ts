@@ -1,182 +1,195 @@
+// A quest's Ideas against the test database, changed with the /idea
+// commands that the Ideas tab's controls send to the quest's conversation.
+
 import { describe, expect, test, vi } from "vitest";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { IDEA_TEXT_MAX_LENGTH } from "@/ideas/idea.ts";
-import { changeIdeaAction } from "@/ideas/idea-actions.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { commandNotes, runCommand } from "../commands/command-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
+const notes: typeof PANEL_COMMANDS_COPY.notes = PANEL_COMMANDS_COPY.notes;
+const problems: typeof PANEL_COMMANDS_COPY.problems =
+  PANEL_COMMANDS_COPY.problems;
+
+// Places in a list of ideas.
+const Third = 3;
+const Fourth = 4;
+const PastEnd = 5;
+
+// A signed-in user's quest and its conversation.
+async function signedInQuest(): Promise<{
+  readonly user: Awaited<ReturnType<typeof testUser>>;
+  readonly quest: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
+  readonly chat: Awaited<ReturnType<ReturnType<typeof testData>["chat"]>>;
+}> {
+  const user = await testUser();
+  const data = testData(user);
+  const quest = await data.quest();
+  const chat = await data.chat(quest);
+  await signIn(user);
+  return { user, quest, chat };
+}
+
+async function ideaTexts(
+  user: { readonly id: Parameters<typeof listIdeas>[0] },
+  questId: Parameters<typeof listIdeas>[1],
+): Promise<string[]> {
+  return (await listIdeas(user.id, questId)).map((idea) => idea.text);
+}
+
 describe("use_case_quest_ideas", () => {
-  test("ideas persist, can be edited and removed, and move into Tasks once", async () => {
-    const user = await testUser();
-    const quest = await testData(user).quest();
-    await signIn(user);
+  test("ideas persist, can be edited and removed, and move into Tasks once, each noted in the conversation", async () => {
+    const { user, quest, chat } = await signedInQuest();
     expect(
-      await changeIdeaAction({
-        op: "add",
-        questId: quest.id,
-        text: "Try watercolours",
-      }),
-    ).toEqual({ kind: "saved" });
-    const [idea] = await listIdeas(user.id, quest.id);
-    expect(idea?.text).toBe("Try watercolours");
+      await runCommand(chat.id, PANEL_COMMAND.idea("Try watercolours")),
+    ).toMatchObject({ kind: "noted", note: notes.idea("Try watercolours") });
+    expect(await ideaTexts(user, quest.id)).toEqual(["Try watercolours"]);
     expect(await readTasks(user.id, quest.id)).toMatchObject({ items: [] });
     expect(
-      await changeIdeaAction({
-        op: "edit",
-        questId: quest.id,
-        id: idea?.id,
-        text: "Try ink",
-      }),
-    ).toEqual({ kind: "saved" });
+      await runCommand(chat.id, PANEL_COMMAND.editIdea(1, "Try ink")),
+    ).toMatchObject({ kind: "noted", note: notes.editIdea(1, "Try ink") });
     const outcomes = await Promise.all([
-      changeIdeaAction({ op: "move", questId: quest.id, id: idea?.id }),
-      changeIdeaAction({ op: "move", questId: quest.id, id: idea?.id }),
+      runCommand(chat.id, PANEL_COMMAND.ideaToTasks(1)),
+      runCommand(chat.id, PANEL_COMMAND.ideaToTasks(1)),
     ]);
-    expect(outcomes.filter((outcome) => outcome.kind === "saved")).toHaveLength(
-      1,
-    );
+    expect(outcomes.filter((outcome) => outcome.kind === "noted")).toEqual([
+      expect.objectContaining({ note: notes.ideaToTasks("Try ink") }),
+    ]);
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
     expect((await readTasks(user.id, quest.id))?.items).toMatchObject([
       { text: "Try ink", done: false },
     ]);
-    await changeIdeaAction({
-      op: "add",
-      questId: quest.id,
-      text: "Try charcoal",
+    await runCommand(chat.id, PANEL_COMMAND.idea("Try charcoal"));
+    expect(await runCommand(chat.id, PANEL_COMMAND.dropIdea(1))).toMatchObject({
+      kind: "noted",
+      note: notes.dropIdea("Try charcoal"),
     });
-    const [second] = await listIdeas(user.id, quest.id);
-    expect(
-      await changeIdeaAction({
-        op: "remove",
-        questId: quest.id,
-        id: second?.id,
-      }),
-    ).toEqual({ kind: "saved" });
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
+    expect(await commandNotes(user.id, chat.id)).toEqual([
+      {
+        command: PANEL_COMMAND.idea("Try watercolours"),
+        note: notes.idea("Try watercolours"),
+      },
+      {
+        command: PANEL_COMMAND.editIdea(1, "Try ink"),
+        note: notes.editIdea(1, "Try ink"),
+      },
+      {
+        command: PANEL_COMMAND.ideaToTasks(1),
+        note: notes.ideaToTasks("Try ink"),
+      },
+      {
+        command: PANEL_COMMAND.idea("Try charcoal"),
+        note: notes.idea("Try charcoal"),
+      },
+      {
+        command: PANEL_COMMAND.dropIdea(1),
+        note: notes.dropIdea("Try charcoal"),
+      },
+    ]);
   });
 
-  test("another user cannot read or change ideas, and invalid input saves nothing", async () => {
-    const owner = await testUser();
-    const quest = await testData(owner).quest();
-    await signIn(owner);
-    await changeIdeaAction({
-      op: "add",
-      questId: quest.id,
-      text: "Private idea",
-    });
-    const [idea] = await listIdeas(owner.id, quest.id);
+  test("another user's conversation is not found, and invalid commands say why and save nothing", async () => {
+    const { user: owner, quest, chat } = await signedInQuest();
+    await runCommand(chat.id, PANEL_COMMAND.idea("Private idea"));
+    const ideas = await listIdeas(owner.id, quest.id);
     const stranger = await testUser();
     await signIn(stranger);
     expect(await listIdeas(stranger.id, quest.id)).toEqual([]);
     const denied = await Promise.all(
-      ["add", "edit", "remove", "move"].map((op) =>
-        changeIdeaAction({
-          op,
-          questId: quest.id,
-          id: idea?.id,
-          text: "Other text",
-        }),
-      ),
+      [
+        PANEL_COMMAND.idea("Other text"),
+        PANEL_COMMAND.editIdea(1, "Other text"),
+        PANEL_COMMAND.moveIdea(1, 1),
+        PANEL_COMMAND.dropIdea(1),
+        PANEL_COMMAND.ideaToTasks(1),
+      ].map((text) => runCommand(chat.id, text)),
     );
-    expect(denied.every((result) => result.kind === "problem")).toBe(true);
-    expect(await listIdeas(owner.id, quest.id)).toEqual([idea]);
+    expect(denied).toEqual(denied.map(() => ({ kind: "not-found" })));
+    expect(await listIdeas(owner.id, quest.id)).toEqual(ideas);
+
     await signIn(owner);
-    const invalid = await Promise.all(
-      ["   ", "x".repeat(IDEA_TEXT_MAX_LENGTH + 1)].map((text) =>
-        changeIdeaAction({ op: "add", questId: quest.id, text }),
-      ),
-    );
-    expect(invalid.every((result) => result.kind === "problem")).toBe(true);
     expect(
-      await changeIdeaAction({ op: "move", questId: "bad", id: "bad" }),
-    ).toMatchObject({ kind: "problem" });
-    expect(await listIdeas(owner.id, quest.id)).toEqual([idea]);
+      await Promise.all(
+        [
+          "/idea   ",
+          PANEL_COMMAND.idea("x".repeat(IDEA_TEXT_MAX_LENGTH + 1)),
+          PANEL_COMMAND.editIdea(1, " "),
+          PANEL_COMMAND.editIdea(2, "Elsewhere"),
+          PANEL_COMMAND.dropIdea(0),
+          `${PANEL_COMMAND.dropIdea(1)} extra`,
+          PANEL_COMMAND.moveIdea(1, 2),
+        ].map((text) => runCommand(chat.id, text)),
+      ),
+    ).toEqual(
+      [
+        problems.noText("idea"),
+        problems.ideaTooLong,
+        problems.noText("edit-idea"),
+        problems.noIdea(1),
+        problems.noIdea(1),
+        problems.noIdea(1),
+        problems.noIdeaPlace(1),
+      ].map((text) => ({ kind: "problem", text })),
+    );
+    expect(await listIdeas(owner.id, quest.id)).toEqual(ideas);
+    expect(await commandNotes(owner.id, chat.id)).toHaveLength(1);
   });
 
-  test("new ideas go first, saved order persists and reordering stays owner-scoped", async () => {
-    const owner = await testUser();
-    const quest = await testData(owner).quest();
-    await signIn(owner);
-    await changeIdeaAction({ op: "add", questId: quest.id, text: "First" });
-    await changeIdeaAction({ op: "add", questId: quest.id, text: "Second" });
-    await changeIdeaAction({ op: "add", questId: quest.id, text: "Third" });
-    const initial = await listIdeas(owner.id, quest.id);
-    expect(initial.map((idea) => idea.text)).toEqual([
+  test("new ideas go first, and /move-idea's order persists", async () => {
+    const { user, quest, chat } = await signedInQuest();
+    await runCommand(chat.id, PANEL_COMMAND.idea("First"));
+    await runCommand(chat.id, PANEL_COMMAND.idea("Second"));
+    await runCommand(chat.id, PANEL_COMMAND.idea("Third"));
+    expect(await ideaTexts(user, quest.id)).toEqual([
       "Third",
       "Second",
       "First",
     ]);
-    const [third, second, first] = initial;
     expect(
-      await changeIdeaAction({
-        op: "reorder",
-        questId: quest.id,
-        id: first?.id,
-        before: third?.id,
-      }),
-    ).toEqual({ kind: "saved" });
-    expect(await listIdeas(owner.id, quest.id)).toEqual([first, third, second]);
-    await changeIdeaAction({ op: "add", questId: quest.id, text: "Fourth" });
-    const after = await listIdeas(owner.id, quest.id);
-    expect(after.map((idea) => idea.text)).toEqual([
+      await runCommand(chat.id, PANEL_COMMAND.moveIdea(Third, 1)),
+    ).toMatchObject({ kind: "noted", note: notes.moveIdea("First", 1) });
+    expect(await ideaTexts(user, quest.id)).toEqual([
+      "First",
+      "Third",
+      "Second",
+    ]);
+    await runCommand(chat.id, PANEL_COMMAND.idea("Fourth"));
+    expect(await ideaTexts(user, quest.id)).toEqual([
       "Fourth",
       "First",
       "Third",
       "Second",
     ]);
     expect(
-      await changeIdeaAction({
-        op: "reorder",
-        questId: quest.id,
-        id: third?.id,
-      }),
-    ).toEqual({ kind: "saved" });
-    const moved = await listIdeas(owner.id, quest.id);
+      await runCommand(chat.id, PANEL_COMMAND.moveIdea(Third, Fourth)),
+    ).toMatchObject({ kind: "noted", note: notes.moveIdea("Third", Fourth) });
+    const moved = await listIdeas(user.id, quest.id);
     expect(moved.map((idea) => idea.text)).toEqual([
       "Fourth",
       "First",
       "Second",
       "Third",
     ]);
-    const stranger = await testUser();
-    await signIn(stranger);
     expect(
-      await changeIdeaAction({
-        op: "reorder",
-        questId: quest.id,
-        id: first?.id,
-        before: second?.id,
-      }),
-    ).toMatchObject({ kind: "problem" });
-    expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
-    const otherQuest = await testData(stranger).quest();
-    await changeIdeaAction({
-      op: "add",
-      questId: otherQuest.id,
-      text: "Foreign",
+      await runCommand(chat.id, PANEL_COMMAND.moveIdea(1, PastEnd)),
+    ).toEqual({
+      kind: "problem",
+      text: problems.noIdeaPlace(Fourth),
     });
-    const [foreign] = await listIdeas(stranger.id, otherQuest.id);
-    await signIn(owner);
-    expect(
-      await changeIdeaAction({
-        op: "reorder",
-        questId: quest.id,
-        id: first?.id,
-        before: foreign?.id,
-      }),
-    ).toMatchObject({ kind: "problem" });
-    expect(await listIdeas(owner.id, quest.id)).toEqual(moved);
+    expect(await listIdeas(user.id, quest.id)).toEqual(moved);
   });
 
   test("an idea can move into a Tasks beyond the former task limit", async () => {
     const ManyTasks = 40;
-    const user = await testUser();
-    const quest = await testData(user).quest();
-    await signIn(user);
+    const { user, quest, chat } = await signedInQuest();
     await changeTasks(
       user.id,
       { questId: quest.id, author: "person" },
@@ -185,11 +198,10 @@ describe("use_case_quest_ideas", () => {
         text: `Task ${index}`,
       })),
     );
-    await changeIdeaAction({ op: "add", questId: quest.id, text: "Later" });
-    const [idea] = await listIdeas(user.id, quest.id);
+    await runCommand(chat.id, PANEL_COMMAND.idea("Later"));
     expect(
-      await changeIdeaAction({ op: "move", questId: quest.id, id: idea?.id }),
-    ).toMatchObject({ kind: "saved" });
+      await runCommand(chat.id, PANEL_COMMAND.ideaToTasks(1)),
+    ).toMatchObject({ kind: "noted" });
     expect(await listIdeas(user.id, quest.id)).toEqual([]);
     expect((await readTasks(user.id, quest.id))?.items).toHaveLength(
       ManyTasks + 1,

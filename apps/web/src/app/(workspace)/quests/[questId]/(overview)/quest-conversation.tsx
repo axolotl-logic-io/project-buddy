@@ -5,10 +5,7 @@ import { DayGrid } from "@/components/dailies/day-grid.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestNotes } from "@/components/quest-notes.tsx";
-import {
-  QuestStatusControls,
-  QuestStatusFeedback,
-} from "@/components/quest-status-controls.tsx";
+import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
 import { StartDay } from "@/components/start-day.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
@@ -16,16 +13,10 @@ import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { DailiesRecord } from "@/dailies/dailies.ts";
 import { readDailiesRecord } from "@/dailies/day-store.ts";
-import { changeIdeaAction } from "@/ideas/idea-actions.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { deleteNoteAction } from "@/notes/note-actions.ts";
 import { listNotes } from "@/notes/note-store.ts";
-import {
-  inviteToQuestAction,
-  removeFromQuestAction,
-} from "@/quests/membership-actions.ts";
 import {
   listQuestPeople,
   type QuestPeople,
@@ -57,15 +48,7 @@ function membersSection(
       id: "members",
       label: QUEST_MEMBERS_COPY.heading,
       content: (
-        <QuestMembers
-          questId={quest.id}
-          questName={quest.name}
-          viewer={viewer}
-          people={people}
-          dailies={quest.dailies}
-          invite={inviteToQuestAction}
-          remove={removeFromQuestAction}
-        />
+        <QuestMembers viewer={viewer} people={people} dailies={quest.dailies} />
       ),
     },
   ];
@@ -135,14 +118,7 @@ async function questConversation(
         {
           id: "ideas",
           label: IDEAS_COPY.heading,
-          content: (
-            <QuestIdeas
-              embedded={true}
-              questId={quest.id}
-              ideas={ideas}
-              action={changeIdeaAction}
-            />
-          ),
+          content: <QuestIdeas embedded={true} ideas={ideas} />,
         },
         {
           id: "progress",
@@ -157,13 +133,7 @@ async function questConversation(
         {
           id: "notes",
           label: QUEST_NOTES_COPY.heading,
-          content: (
-            <QuestNotes
-              questId={quest.id}
-              notes={notes}
-              action={deleteNoteAction}
-            />
-          ),
+          content: <QuestNotes notes={notes} />,
         },
         ...membersSection(quest, viewer, people),
         {
@@ -171,20 +141,14 @@ async function questConversation(
           label: QUEST_SIDEBAR_COPY.actions,
           content: (
             <div className="flex flex-col gap-3">
-              <QuestStatusFeedback>
-                <QuestStatusControls quest={quest} />
-              </QuestStatusFeedback>
+              <QuestStatusControls quest={quest} />
               {record !== undefined && (
                 <StartDay
-                  chatId={conversation.id}
                   lastStartedAt={record.days.at(-1)?.startedAt}
                   undoable={record.undoable}
                 />
               )}
-              <SpellPicker
-                chatId={conversation.id}
-                spells={[...listSpells(), ...ownSpells]}
-              />
+              <SpellPicker spells={[...listSpells(), ...ownSpells]} />
             </div>
           ),
         },

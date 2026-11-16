@@ -10,6 +10,10 @@ import { readTasksPart } from "@/tasks/tasks-message.ts";
 // What starts each note, which the global prompt's tasks rules name.
 const TASKS_NOTE_MARK = "[Tasks change]";
 
+// What starts the note for any other command a person ran without the
+// construct.
+const COMMAND_NOTE_MARK = "[Command]";
+
 function quoted(text: string): string {
   return JSON.stringify(text);
 }
@@ -54,6 +58,12 @@ function tasksPartForModel(part: {
   if (tasks === undefined) {
     return undefined;
   }
+  if (tasks.kind === "note") {
+    return {
+      type: "text",
+      text: `${COMMAND_NOTE_MARK} The user ran ${quoted(tasks.data.command)} in the conversation, without you: ${tasks.data.note}`,
+    };
+  }
   if (tasks.kind === "card") {
     return {
       type: "text",
@@ -71,4 +81,4 @@ function tasksPartForModel(part: {
   };
 }
 
-export { TASKS_NOTE_MARK, tasksPartForModel };
+export { COMMAND_NOTE_MARK, TASKS_NOTE_MARK, tasksPartForModel };
