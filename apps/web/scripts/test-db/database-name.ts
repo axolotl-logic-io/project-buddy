@@ -17,7 +17,7 @@ function databaseName(url: URL): string {
   }
   if (RESERVED_DATABASE_NAMES.has(name)) {
     throw new Error(
-      `DATABASE_URL names "${name}", which is reserved for the Postgres server and the proxy. Name a database of its own in .env.test.`,
+      `DATABASE_URL names "${name}", which is reserved for the Postgres server. Name a database of its own in .env.test.`,
     );
   }
   if (name.length > MAX_DATABASE_NAME_LENGTH) {

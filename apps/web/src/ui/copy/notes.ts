@@ -1,4 +1,4 @@
-// The text of Quick Notes: the site menu's Quick Note dialog, and a quest's
+// The text of Quick Notes: the site panel's Quick Note dialog, and a quest's
 // Quick Notes tab.
 import { NOTE_MAX_LENGTH, type NoteTextProblem } from "@/notes/note.ts";
 
@@ -8,7 +8,7 @@ const PROBLEMS: Record<NoteTextProblem, string> = {
 };
 
 export const QUICK_NOTE_COPY = {
-  menuItem: "Quick Note",
+  panelItem: "Quick Note",
   heading: "Quick Note",
   close: "Close Quick Note",
   intro:
@@ -32,7 +32,7 @@ export const QUICK_NOTE_COPY = {
 
 export const QUEST_NOTES_COPY = {
   heading: "Quick Notes",
-  none: "No Quick Notes yet. Save one from Quick Note in the menu.",
+  none: "No Quick Notes yet. Save one from Quick Note in the site panel.",
   delete: "Delete",
   deleteLabel: (text: string): string => `Delete the Quick Note "${text}"`,
   deleted: "Quick Note deleted.",

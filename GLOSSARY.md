@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Constructs run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Conversations keep their construct snapshots; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
 
-Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed steps; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and spells.
+Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed tasks; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and spells.
 
 A conversation is a [quest](#quest)'s one conversation, with its tasks, ideas and progress timeline.
 
@@ -15,6 +15,12 @@ A conversation is a [quest](#quest)'s one conversation, with its tasks, ideas an
 ### Project Buddy
 
 The product: a site where constructs help each user with their quests and ideas, on any subject, alone or with the members they invite.
+
+### Site panel
+
+The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Light, Dark and System modes, and Credits. On a wide screen it docks beside the page and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
+
+- **UI:** "Site panel", "Close site panel", "Places", "You".
 
 ### Workshop
 
@@ -53,7 +59,6 @@ To **retire** an own construct is to put it aside without losing its saved defin
 **Edit** opens an own definition. **Save** stores its name and functional settings. **Cancel** puts back the saved fields and clears the browser draft without changing saved data. Leaving the editor without Save or Cancel preserves draft recovery. These actions never start a quest. Creating, copying and saving settings makes no model request. **Rename** means changing the name in the editor.
 
 - **UI:** "Create construct", "Make a copy", "Edit", "Save", "Cancel".
-- **Avoid:** "Craft", "Customize", "Clone" and "Tweak" as action labels.
 
 ### Message
 
@@ -88,7 +93,6 @@ Shared instructions every conversation receives, including the role and rules fo
 The single collection destination for inspecting built-in constructs and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Each quest starting point assigns its construct.
 
 - **UI:** "Workshop", "Constructs", "Spells".
-- **Avoid:** "Buddies", "team", "party", "roster" for this collection.
 
 ### Construct
 
@@ -97,7 +101,6 @@ A named presence with a Visual description and artwork. Each conversation has ex
 The local engine does not interpret a construct’s historical voice or habits text.
 
 - **UI:** "Construct", "Constructs", "Built-in constructs", "Your constructs", "Create construct".
-- **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
 
 ### Construct code names
 
@@ -125,13 +128,11 @@ How a construct works with the user, as described by its prompt. Voice describes
 
 Habits describe the construct’s personal style across conversations.
 
-- **Avoid:** "teaching rules".
-
 ## Spells
 
 ### Spell
 
-A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open Tasks steps; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
+A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open tasks; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
 Workshop’s Spells tab offers creation and copying. Own spells can be edited, retired and restored like constructs. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
 
@@ -152,7 +153,6 @@ Clear the active spell and return to ordinary conversation commands. Choose **St
 The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner and [members](#member). Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
 
 - **UI:** the quest's own page; no list of conversations and no conversation names.
-- **Avoid:** "adventure", "thread", "session", and any second conversation in a quest.
 
 ### Quest status
 
@@ -166,7 +166,7 @@ The construct’s first message in a new quest conversation, generated from the 
 
 ### Current quest
 
-The quest Quests offers to pick up again, in its Continue card above Start a quest: the Active quest open to the user, their own or one they are a member of, whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next step](#next-step). Continue opens its conversation. With no Active quest there is none. Showing it makes no model call.
+The quest Quests offers to pick up again, in its Continue card above Start a quest: the Active quest open to the user, their own or one they are a member of, whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next task](#next-task). Continue opens its conversation. With no Active quest there is none. Showing it makes no model call.
 
 - **UI:** "Current quest", "Continue".
 
@@ -181,7 +181,6 @@ An image saved in a message of a conversation. It belongs to that conversation a
 The user who wrote a user message. Authorship belongs to the message and does not change with the person viewing or continuing the conversation, or when its author leaves or is removed from the quest. For planned API access, a message submitted through a [connection](#connection) still has that connection’s user as its author; the backend separately records the submitting connection without changing the conversation UI.
 
 - **UI:** the author's name, or "You" on the viewer's own messages.
-- **Avoid:** "sender" and "writer" as names for this concept.
 
 ### Reply
 
@@ -194,28 +193,50 @@ The construct's answer to one user message: text, plus any tool calls. The model
 Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its tasks, progress timeline and [Quick Notes](#quick-note). A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
 
 - **UI:** "Quest", "Quests".
-- **Avoid:** "Project", "Projects" for this concept.
 
 ### Start a quest
 
 The shared form that creates a quest: it offers the four [premade quests](#premade-quest) as tiles, each one target with its name and a one-line tagline, then the chosen one's name, starting context and optional Why to edit and confirm. Every link that starts a quest opens this same form; no construct page has a start of its own. Browsing or closing it creates nothing and spends nothing.
 
 - **UI:** "Start a quest".
-- **Avoid:** "New quest" as a separate flow, "Explore".
 
 ### Premade quest
 
 One of the four starting points every quest begins from: [Dailies](#dailies), Learn a thing, Make a thing and Do a thing. Each supplies a name, starting context and predetermined construct. Dailies and Learn a thing use Vellum; Make a thing and Do a thing use Lumen. The user optionally fills in Why except for Dailies; starting it creates an ordinary quest with its conversation. They are not quest types: once started, every quest works the same. Learn, Make and Do can be started for as many goals as the user likes. Browsing or cancelling creates nothing.
 
 - **UI:** “Dailies”, “Learn a thing”, “Make a thing”, “Do a thing”.
-- **Avoid:** "quest type", "template".
 
 ### Dailies
 
-The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. Reset Day, in the quest sidebar's Actions tab, asks for confirmation before clearing its conversation and active spell. By default, it keeps Tasks, Ideas and Progress and reopens completed Tasks steps. The user can also choose to remove Steps and Ideas. Dailies keeps no streaks, deadlines or daily resets.
+The user's one ongoing quest for starting the day, continued every day in its one conversation. Starting Dailies again resumes it as it is, without clearing its conversation or Tasks, whatever the user has renamed it: it is found by its mark, not its name. The user begins each day with [Start Day](#start-day). Its tasks can be [recurring](#recurring-task), and each recurring task keeps a [streak](#streak). Dailies has no automatic daily reset: a day begins only when the user starts it.
 
-- **UI:** “Dailies”, “Reset Day”.
-- **Avoid:** "daily quest" for a new quest per day, "streak".
+- **UI:** “Dailies”, “Start Day”.
+
+### Start Day
+
+The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas.
+
+Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
+
+- **UI:** “Start Day”, “Undo Start Day”, “Last day started 5 hours ago”.
+
+### Recurring task
+
+A [task](#task) in the Dailies quest that the user means to do every day. The task's menu in Tasks offers Make recurring and Make one-off. Start Day records whether each recurring task was done that day, then reopens the done ones. A recurring task shows a repeat icon with its [streak](#streak).
+
+- **UI:** “Make recurring”, “Make one-off”.
+
+### Streak
+
+The number of days in a row, up to the current day, on which the user did a [recurring task](#recurring-task). The current day counts once the task is done, and an open task doesn't end the streak until the next Start Day. A day the task wasn't done ends the streak, and so does a [gap](#gap). Two days started on one date count as one date, done if the task was done in either.
+
+- **UI:** “3-day streak”.
+
+### Gap
+
+A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Progress section's day grid, a dashed square marks it.
+
+- **UI:** “no day started”.
 
 ### Quest code names
 
@@ -229,7 +250,7 @@ A quest with no [members](#member): open to its [owner](#owner) alone. Every que
 
 ### Goal
 
-The outcome the user wants to achieve through a quest. It is discussed in the conversation; agreed work becomes steps in the Tasks. There is no separate Goal field.
+The outcome the user wants to achieve through a quest. It is discussed in the conversation; agreed work becomes tasks in Tasks. There is no separate Goal field.
 
 ### Milestone
 
@@ -240,21 +261,18 @@ A meaningful result on the path toward a [goal](#goal). A milestone can be plann
 Something the user got done in a quest: one short line, in the past tense, that the construct records in a quest's conversation, dated and linked to the quest. The user can edit or delete it.
 
 - **UI:** "Milestone", "Added to the progress timeline".
-- **Avoid:** "achievement", "accomplishment", "streak", "log entry".
 
 ### Progress timeline
 
-A quest's collection of recorded milestones. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
+A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, a day grid sits above it: each [recurring task](#recurring-task)'s last seven dates, with each date marked done, not done or a [gap](#gap).
 
 - **UI:** "Progress".
-- **Avoid:** "activity log", "history", "streak".
 
-### Next step
+### Next task
 
-The one small thing the user means to do next in a quest: the first open [step](#step) of its [tasks](#tasks). It is the first action toward a planned milestone. A quest with no open steps has no next step.
+The one small thing the user means to do next in a quest: the first open [task](#task) in its [Tasks](#tasks). It is the first action toward a planned milestone. A quest with no open tasks has no next task.
 
-- **UI:** "Next step".
-- **Avoid:** "todo", "task", "action item" as names for this concept.
+- **UI:** "Next task".
 
 ### Active spell
 
@@ -262,50 +280,65 @@ The conversation’s saved mode: Tasks, Brainstorm or no spell. `cast tasks` and
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit or remove an idea, or move it into Tasks as an open step. Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit or remove an idea, or move it into Tasks as an open task. Ideas have no done state.
 
 - **UI:** "Ideas", "Add idea", "Move to Tasks".
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site menu, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted. Constructs don't read them. **Quick Notes** names the feature and a quest's collection of them.
 
-- **UI:** "Quick Note" for the menu item, the dialog and a single item; "Quick Notes" for the tab and the collection.
-- **Avoid:** "note" alone, "memo", "jot", "inbox" or "quick capture".
+- **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the tab and the collection.
 
 ### Quest sidebar actions
 
-The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and Reset Day for an Active Dailies quest.
+The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest.
 
 - **UI:** "Actions".
 
 ### Tasks
 
-A quest's ordered list of [steps](#step): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines and never counts open steps or days.
+A quest's ordered list of [tasks](#task): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines.
 
 - **UI:** "Tasks", "Tasks panel".
-- **Avoid:** "todo list", "task list", "backlog", "roadmap".
 
-### Step
+### Task
 
-One piece of remaining work in a [tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done step isn't a [recorded milestone](#milestone-recorded).
+One piece of remaining work in a quest's [Tasks](#tasks): one short line, open or done, with a number that names it for the whole of the quest, such as #3. A done task isn't a [recorded milestone](#milestone-recorded). In the Dailies quest, a task can be [recurring](#recurring-task); any other task is one-off.
 
-- **UI:** "Step", "#3", "Done".
-- **Avoid:** "todo", "task", "item", "action item".
+- **UI:** "Task", "#3", "Done".
 
 ### Tasks change
 
 A note in a quest's conversation that the construct or a person changed the quest's [tasks](#tasks): what each operation did, with Undo. A person's tasks change, made with the Tasks panel or a command, the construct reads it on its next reply.
 
 - **UI:** "Tasks change", "Undid a task change".
-- **Avoid:** "Tasks change card", "tasks update".
 
 ### Command
 
 A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The tasks commands keep the tasks without a model call.
 
 - **UI:** "Commands", "/tasks", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/undo".
-- **Avoid:** "slash command" in UI copy.
+
+## Experience
+
+### Experience
+
+What a user has done across their quests, as one number: the sum of their [abilities'](#ability) points, each weighted by what the ability is worth. Experience counts only things done, never open work, days or streaks. It sets the user's [circle](#circle). Profile shows it in its Experience section, the construct answers the `exp` command with it in the conversation, and a ring in the site header fills as it nears the next circle.
+
+- **UI:** "Experience", "120 experience", `exp`.
+
+### Ability
+
+One kind of thing a user does, which gains them one point each time: **Adding tasks**, **Ideating** (adding an idea), **Quick Notes** (saving one), **Completing tasks** and **Completing quests**. Adding a task, an idea or a Quick Note is worth 1 experience; completing a task is worth 3, one of each; completing a quest is worth 9, three completed tasks. Reopening a completed task or quest takes its completion point back, except when Start Day reopens a Dailies quest's recurring tasks. Removing a task or idea keeps its points.
+
+- **UI:** "Abilities", the ability names above, "12 points".
+
+### Circle
+
+A user's level, set by their [experience](#experience). Circle 1 starts at 0 experience, and each circle needs 5 more experience than the one before it did: circle n starts at 5 · n(n − 1) / 2. Some circles start a new title, which the circles after them keep: Initiate (1), Apprentice (10), Practitioner (20), Expert (30), Master (40), Pathfinder (60), Grand Master (80), Legendary (100) and Transcendent (150).
+
+- **UI:** "Circle 12 · Apprentice".
 
 ## Tools
 
@@ -328,13 +361,18 @@ Text a construct writes before a spell cast, shown muted above it.
 Project Buddy added to a phone's Home Screen, where it opens in a window of its own. It is the same site: nothing is stored for use offline.
 
 - **UI:** "Add to Home Screen", "Install app", as the phone's browser names them.
-- **Avoid:** "PWA" and "progressive web app" in copy; "native app".
 
 ## Accounts and access
 
+### Profile
+
+The user's own page: their name, which constructs and quest members see, and their [experience](#experience).
+
+- **UI:** "Profile".
+
 ### Settings
 
-The single destination for profile name, appearance and security.
+The single destination for appearance and security.
 
 - **UI:** "Settings".
 
@@ -363,7 +401,6 @@ The user something belongs to. A quest's owner is the user who made it. The ques
 Ownership and access are distinct: own constructs and spells belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
-- **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
 
 ### Sign-up link
 
@@ -376,7 +413,6 @@ An emailed link that verifies an email address before creating an account. Anyon
 An emailed link that signs in an existing user. Continuing from it completes sign-up for an [invited account](#invited-account), with the name the user gives.
 
 - **UI:** "sign-in link".
-- **Avoid:** "login link" in UI copy and docs.
 
 ### Session, sign out everywhere
 
@@ -393,7 +429,6 @@ A quest with one owner and one or more [members](#member), who share its one con
 Wherever quests are listed or chosen, a multi-user quest carries a short marker, so it can't be mistaken for a personal quest of the same name.
 
 - **UI:** "Shared" on the user's own quest with members; "Shared by" and the owner's name on a quest they joined.
-- **Avoid:** "team quest", "shared quest" as names for this concept.
 
 ### Member
 
@@ -412,7 +447,6 @@ An invitation for one user to join one quest, sent by email by anyone in the que
 The link in a quest invitation's email. Opening it accepts nothing. Continuing signs the browser in as the invitee, completes an invited account's sign-up with their name, and accepts that one quest invitation. It works once, for 7 days, and a fresh invitation replaces it.
 
 - **UI:** "Join the quest" in the email; "Continue" on its page.
-- **Avoid:** "invite code", "magic link".
 
 ### Pending quest
 
@@ -428,6 +462,30 @@ An account a quest invitation created, before its user completes sign-up. Its us
 
 An account whose user has completed sign-up: every account made through Sign up, and every invited account once its user has given a name. Completing sign-up keeps the account and its pending invitations.
 
+## Timer
+
+The Timer is a destination of its own in the site panel's Places. It belongs to no quest, and quest membership and timer participation stay separate. See [Timer](docs/timer.md).
+
+### Timer
+
+A repeating work and break timer: a large ring that fills over the current period, the period's name and the time left. Anyone may open it, signed in or not.
+
+### Timer schedule
+
+A work length, a break length and a start instant. Work and break repeat from the start forever, and the current period follows from the time elapsed, never from counted ticks. A schedule never changes once made; starting again makes a new one.
+
+### Timer link
+
+The address of a timer schedule: `/timer/WORK/BREAK/START`, where `WORK` and `BREAK` are preset minutes and `START` is milliseconds since the Unix epoch. It holds nothing else, so sharing it reaches no quest or account, and anyone may open it without signing in.
+
+### Global timer
+
+The timer schedule of the chosen lengths that starts at the Unix epoch, which everyone who chooses Join global timer with those lengths shares.
+
+### Others following
+
+How many other signed-in accounts had the same timer schedule open in the last 2 minutes. An open timer reports every minute. It counts each account once and names no one; it is not a live attendance list.
+
 ## API access (planned)
 
 These terms describe planned API access, tracked in [API access requirements](https://github.com/axolotl-logic-io/project-buddy/issues/684). They do not mean the API or connection management is already available.
@@ -438,13 +496,9 @@ Software that calls the Project Buddy API on a user's behalf, such as a command 
 
 A client uses the same quests, conversations and other domain concepts as the site. It is not a construct or a user account.
 
-- **Avoid:** "tool" for an API client; a tool is a function the model can call during a reply.
-
 ### External agent
 
 Software outside Project Buddy that can use a client to act on a user's behalf. It can submit messages to a construct or use deterministic API operations directly. It has no separate user identity in this model.
-
-- **Avoid:** "construct" for an external agent.
 
 ### Connection
 
@@ -475,8 +529,6 @@ Some code and storage names outlast the features or words they were made for. Us
 
 `chat` and `chats` in code and storage, and `adventure` in a few code names such as `AdventureCharacterHeader` and the `adventure` visual destination kind, mean a quest's [conversation](#conversation). In product copy, "Chat" names only ordinary conversation when no spell is active.
 
-- **Avoid:** "adventure" in product copy, prompts and docs.
-
 ### Generated image
 
 An image a construct once saved as a tool result in a conversation. Constructs don't generate images now; the `image_generations` table and `/api/generated-images/GENERATION_ID` deliver the saved ones to the quest's owner and members.
@@ -485,10 +537,7 @@ An image a construct once saved as a tool result in a conversation. Constructs d
 
 The site has no balance, charges or purchases. The `gold_balances`, `gold_ledger`, `battery_purchases`, `battery_cash_events`, `listings` and `purchases` tables, and the `bought_from` column of `own_prompts`, keep their past rows in storage only.
 
-- **Avoid:** "batteries", "gold", "Marketplace" in product copy, prompts and docs.
-
 ### Other inert storage
 
 Standalone chats, `chats` rows with a `user_id` and no quest that an older build made, are open to no one. The `manual_sections` table, the `users.interview_construct_id` and `users.hidden_extras` columns, and the quests' `check_in_frequency` and `last_check_in_at` columns stay in storage, unread by the site. The site sends nothing on its own.
 
-- **Avoid:** "check-in", "nudge", "reminder" or "ping" for anything the site sends.

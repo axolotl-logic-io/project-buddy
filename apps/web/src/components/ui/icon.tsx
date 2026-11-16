@@ -1,4 +1,4 @@
-import { ListChecks, Pencil } from "lucide-react";
+import { ListChecks, Pencil, Repeat } from "lucide-react";
 import type { JSX } from "react";
 
 // What each icon draws on a 16 by 16 grid: an outline, in strokes, and
@@ -19,7 +19,7 @@ const ICON_PATHS = {
   },
   // A checkmark for confirming an edit.
   check: { stroke: "M3 8l3 3 7-7" },
-  // Arrows for moving an item up or down a list, such as a task list's steps.
+  // Arrows for moving an item up or down a list, such as Tasks.
   "arrow-up": { stroke: "M8 13V3M4 7l4-4 4 4" },
   "arrow-down": { stroke: "M8 3v10M4 9l4 4 4-4" },
   // A left-pointing arrow, back to where a page sits.
@@ -36,10 +36,11 @@ const ICON_PATHS = {
   close: { stroke: "M4 4l8 8M12 4l-8 8" },
   // A flag on its pole, for a milestone of a quest's progress.
   flag: { stroke: "M3.5 14V2.5M3.5 3h8.5l-2.25 3 2.25 3H3.5" },
-  // Three lines, for the site's menu.
-  menu: { stroke: "M2.5 4h11M2.5 8h11M2.5 12h11" },
-  // A page with a docked side panel, for the quest sidebar.
+  // A page with a panel docked on its right, for the chat panel.
   sidebar: { stroke: "M2 2.5h12v11H2zM10 2.5v11" },
+  // The mirror image, a page with a panel docked on its left, for the site
+  // panel, with lines standing for the links in it.
+  "site-panel": { stroke: "M2 2.5h12v11H2zM6 2.5v11M3.5 5h1M3.5 7h1" },
   // Three dots, for additional actions.
   more: { stroke: "M3 8h.01M8 8h.01M13 8h.01" },
   // A plus sign, for making something new.
@@ -66,6 +67,7 @@ const ICON_PATHS = {
 const PLACE_ICONS = {
   checklist: ListChecks,
   pencil: Pencil,
+  repeat: Repeat,
 } as const;
 
 type PlaceIconName = keyof typeof PLACE_ICONS;

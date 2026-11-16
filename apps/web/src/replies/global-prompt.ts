@@ -27,25 +27,23 @@ const NEW_QUEST_RULES: string = [
 ].join("\n");
 
 // When to add a milestone to a quest's progress timeline: sparingly, to
-// celebrate, never to nag.
+// celebrate.
 const MILESTONE_RULES: string = [
   "# Milestones",
   `In a quest's conversation, when the user tells you they finished something meaningful, such as a part of what they are making or a step of their path, call \`${RECORD_MILESTONE_TOOL}\` once with a short line, in the past tense, of what they got done. It adds the line to the quest's progress timeline.`,
   "- Use it sparingly: a real achievement, not every step, question or tasks, and never twice for the same thing, in this conversation. The quest's newest milestones, given below, are recorded already.",
-  "- The timeline celebrates what they have done. Never count days or streaks, and never point out a gap, a pause or what they haven't done yet.",
 ].join("\n");
 
-// How to keep the quest's tasks: the agreed remaining work, kept current,
-// never to nag.
+// How to keep the quest's tasks: the agreed remaining work, kept current.
 const TASKS_RULES: string = [
   "# Tasks",
   "- Keep discussion in the conversation and agreed tasks in the Tasks.",
-  `In a quest's conversation, keep the quest's tasks, given below with its steps' numbers, with \`${CHANGE_TASKS_TOOL}\`. It holds the remaining work the user agreed to, in order; its first open step is the quest's next step.`,
-  "- Add steps only when the user agrees to them. A tasks you propose stays in the conversation until they do.",
-  "- Complete a step when the user says they finished it, and change, move or remove steps when they change their mind. Keep the steps few and small.",
-  "- A finished step is not a milestone by itself: record a milestone only under the milestone rules. Keep remaining work in the tasks.",
-  "- The tasks have no deadlines. Never count open steps or days, or point out what the user hasn't done yet.",
-  "- Name a step by its number in the tasks, such as #3. Never number the task list's steps yourself or restate the tasks as a list: the conversation shows each change to it, and the user can open the whole tasks beside the adventure.",
+  `In a quest's conversation, keep the quest's tasks, given below with their numbers, with \`${CHANGE_TASKS_TOOL}\`. It holds the remaining work the user agreed to, in order; its first open task is the quest's next task.`,
+  "- Add tasks only when the user agrees to them. Tasks you propose stay in the conversation until they do.",
+  "- Complete a task when the user says they finished it, and change, move or remove tasks when they change their mind. Keep the tasks few and small.",
+  "- A finished task is not a milestone by itself: record a milestone only under the milestone rules. Keep remaining work in the tasks.",
+  "- The tasks have no deadlines.",
+  "- Name a task by its number in the tasks, such as #3. Never number the tasks yourself or restate the tasks as a list: the conversation shows each change to it, and the user can open Tasks beside the adventure.",
   "- Messages that start with [Tasks change] tell you what the user changed in the tasks without you. They are not requests: take them into account, and answer the user's next message.",
 ].join("\n");
 

@@ -10,21 +10,28 @@
 // reply runs, its Tasks, Ideas, milestones and Quick Notes, and the quest's
 // members and pending invitations, which any of them may see, add to or
 // remove. The owner is never a member row, so no one can remove them. The
-// one action left to the owner alone is finding a quest as their Dailies.
+// one action left to the owner alone is finding a quest as their Dailies,
+// with its days (dailies_days) and the conversations Start Day parks for
+// Undo.
 //
 // A pending quest invitation is not membership: it opens nothing of the
 // quest to its invitee but the quest's name, the inviter's name and the
 // invitation itself, which the invitee alone may accept or decline.
 //
 // Own prompts (constructs and spells) and image generation claims belong to
-// their user alone. A conversation keeps a snapshot of its construct and
-// its active spell, so a member sees the snapshot of an own construct or
-// spell used in the quest, never the definition itself.
+// their user alone. So does a timer presence report; the one read across
+// users is how many other accounts follow a schedule, a count that names no
+// one and reaches no quest (src/timer/presence-store.ts).
+//
+// A conversation keeps a snapshot of its construct and its active spell, so
+// a member sees the snapshot of an own construct or spell used in the
+// quest, never the definition itself.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { constructGenerations } from "@/db/tables/construct-visuals.ts";
+import { dailiesDays } from "@/db/tables/dailies-days.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
 import { milestones } from "@/db/tables/milestones.ts";
@@ -36,12 +43,32 @@ import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
 import { tasksVersions } from "@/db/tables/tasks-versions.ts";
+import { timerPresence } from "@/db/tables/timer-presence.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
 // A `quests` row of owner's: one owner made, which only they may use as
 // their Dailies.
 function questOwnedBy(owner: UserId): SQL {
   return eq(quests.userId, owner);
+}
+
+// A `dailies_days` row of a quest owner made: Dailies is always personal,
+// so its days are its owner's alone.
+function dailiesDayOwnedBy(owner: UserId): SQL {
+  return inArray(
+    dailiesDays.questId,
+    new QueryBuilder()
+      .select({ id: quests.id })
+      .from(quests)
+      .where(questOwnedBy(owner)),
+  );
+}
+
+// A `chats` row that Start Day parked outside its Dailies quest for Undo:
+// it has its owner's user id instead of a quest, so no one can open, read
+// or write to it until Undo puts it back.
+function parkedChatOwnedBy(owner: UserId): SQL {
+  return eq(chats.userId, owner);
 }
 
 // A `quests` row open to user: their own, or one they accepted an
@@ -184,6 +211,11 @@ function replyRunOpenTo(user: UserId): SQL {
   );
 }
 
+// A `timer_presence` row of owner's: their own report.
+function timerPresenceOwnedBy(owner: UserId): SQL {
+  return eq(timerPresence.userId, owner);
+}
+
 function replyRunOwnedBy(user: UserId): SQL {
   return and(replyRunOpenTo(user), eq(replyRuns.userId, user)) ?? sql`false`;
 }
@@ -191,6 +223,7 @@ function replyRunOwnedBy(user: UserId): SQL {
 export {
   chatOpenTo,
   constructGenerationOwnedBy,
+  dailiesDayOwnedBy,
   generationOpenTo,
   ideaOpenTo,
   imageOpenTo,
@@ -199,6 +232,7 @@ export {
   noteOpenTo,
   opensQuest,
   ownPromptOwnedBy,
+  parkedChatOwnedBy,
   questInvitationOpenTo,
   questInvitationTo,
   questMemberOpenTo,
@@ -209,4 +243,5 @@ export {
   replyRunOwnedBy,
   spellResultOpenTo,
   tasksVersionOpenTo,
+  timerPresenceOwnedBy,
 };

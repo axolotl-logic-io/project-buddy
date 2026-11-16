@@ -1,10 +1,4 @@
-// The editor on the page of her own construct, activity or spell, in the
-// browser: Reset prompt to default changes the prompt only in the editor,
-// until Save, and Undo reset takes it back; Save refuses a name of only
-// spaces beside the name, keeping what she typed; and her unsaved changes
-// are still there when she comes back to the page, until she saves or
-// discards them. The pages' Server Actions are mocked; the server tests
-// cover what Save stores.
+// Construct editing keeps name and appearance drafts without exposing old prompt controls.
 
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -104,7 +98,9 @@ test("use_case_edit_construct", async () => {
     "A brass lantern with blue light.",
   );
   expect(form.has("prompt")).toBe(false);
-  await expect.element(button(PROMPT_COPY.resetPrompt)).not.toBeInTheDocument();
+  await expect
+    .element(button("Reset prompt to default"))
+    .not.toBeInTheDocument();
 });
 
 test("invalid names keep the visual draft and focus the name", async () => {

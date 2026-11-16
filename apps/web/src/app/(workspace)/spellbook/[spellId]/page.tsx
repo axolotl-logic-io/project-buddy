@@ -91,7 +91,6 @@ async function SpellPage({
         key={revision}
         name={spell.name}
         nameMaxLength={120}
-        defaultPrompt={undefined}
         viewer={user.id}
         heading={SPELLBOOK_COPY.settings}
         texts={[
@@ -105,7 +104,6 @@ async function SpellPage({
             label: SPELLBOOK_COPY.responses[field],
             help: SPELLBOOK_COPY.responsesHelp,
             maxLength: SPELL_REPLY_MAX,
-            literal: true,
             requiredMessage: SPELLBOOK_COPY.responseRequired,
           })),
           {

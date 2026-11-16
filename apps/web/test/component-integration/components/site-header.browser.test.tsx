@@ -1,10 +1,13 @@
-// "use_case_use_on_phone" in use-cases, the header and its menu in Chromium
-// and WebKit, in every theme: the header's bar takes one row at every
-// width, the brand and the menu's button, so the page starts high on the
-// screen. On a phone the brand is its medallion alone, still named for the
-// site. The button stays a touch target's height (44 px), the brand at
-// least WCAG 2.5.8's minimum (24 px), and nothing scrolls sideways. The
-// open menu fits the narrowest phone, with every link a target's height.
+// "use_case_use_on_phone" in use-cases, the header and its site panel in
+// Chromium and WebKit, in every theme: the header's bar takes one row at
+// every width, so the page starts high on the screen. On a phone the brand
+// is its medallion alone, still named for the site. The site panel's button
+// floats under the header's left end, and the open panel's close button
+// takes its place. The button stays a touch target's height (44 px), the
+// brand at least WCAG 2.5.8's minimum (24 px), and nothing scrolls
+// sideways. The open panel, on the left under the header, fits the
+// narrowest phone, with every link a target's height. On a wide screen the
+// panel docks beside the page instead of opening over it.
 // The header is laid out by width alone (no pointer media query in src/),
 // so the test's viewport stands in for the phone. The theme fonts are
 // loaded, since the site's name's width depends on them. The trail band
@@ -19,23 +22,27 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   AccountLinks,
-  SignedInLinks,
   SiteHeader,
   TrailBand,
 } from "@/components/site-header.tsx";
-import { SiteMenu } from "@/components/site-menu.tsx";
+import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
+import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
+import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
+import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { MABEL_EXPERIENCE } from "../experience/experience-store-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -46,12 +53,24 @@ import {
   LAPTOP_VIEWPORT,
   MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
+  PHONE_VIEWPORT,
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
-import { closeMenu, menuButton, openMenu } from "./site-menu-test-kit.ts";
+import {
+  closeButton,
+  closePanel,
+  openPanel,
+  panelButton,
+  sitePanel,
+} from "./site-panel-test-kit.ts";
 
-// site-header.tsx reads the session for SignedInLinks, server code.
+// SignedInHeader reads the session, and the ring of the user's circle reads
+// their experience: server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -71,13 +90,14 @@ const BUTTON_HEIGHT_PX = 44;
 // trail leaves out its Quests link.
 const PHONE_LAYOUT_BELOW_PX = 512;
 
-// The menu's links, in their groups and order, by their names.
+// The site panel's links, in their groups and order, by their names.
 const PLACES = [
   QUESTS_COPY.headerLink,
   WORKSHOP_COPY.heading,
+  TIMER_COPY.panelLink,
   RETIREMENT_COPY.heading,
 ] as const;
-const YOU = [SETTINGS_COPY.headerLink] as const;
+const YOU = [PROFILE_COPY.headerLink, SETTINGS_COPY.headerLink] as const;
 
 // The screens the header is checked on.
 const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
@@ -106,7 +126,7 @@ function heightOf(target: Locator): number {
   return target.element().getBoundingClientRect().height;
 }
 
-// The names of the links in the menu's list labelled label, in order.
+// The names of the links in the panel's list labelled label, in order.
 function linkNames(label: string): readonly string[] {
   return page
     .getByRole("list", { name: label })
@@ -120,8 +140,25 @@ function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
 }
 
+const SIGNED_IN_PANEL: JSX.Element = <SitePanel links={<AccountLinks />} />;
+
 function renderSignedIn(): ReturnType<typeof render> {
-  return render(<SiteHeader links={<SiteMenu links={<AccountLinks />} />} />);
+  return render(<SiteHeader panel={SIGNED_IN_PANEL} />);
+}
+
+// The page under the header, in signedInFrame.
+const PAGE_TEXT = "The page";
+
+// The signed-in header over a page, as the root layout renders them.
+function signedInFrame(): JSX.Element {
+  return (
+    <>
+      <SiteHeader panel={SIGNED_IN_PANEL} />
+      <main>
+        <p>{PAGE_TEXT}</p>
+      </main>
+    </>
+  );
 }
 
 beforeAll(() => {
@@ -141,7 +178,7 @@ describe("use_case_use_on_phone", () => {
           applyTheme(theme);
           await setViewport(screen.viewport);
           await renderSignedIn();
-          await expect.element(menuButton()).toBeVisible();
+          await expect.element(panelButton()).toBeVisible();
           await expect
             .element(
               page.getByRole("link", { name: "Quick Note", exact: true }),
@@ -157,11 +194,11 @@ describe("use_case_use_on_phone", () => {
             "the site's name is in a loaded theme font",
           ).toContain("test kit");
           const titleBox = title.element().getBoundingClientRect();
-          const buttonBox = menuButton().element().getBoundingClientRect();
-          expect(
-            titleBox.bottom > buttonBox.top && buttonBox.bottom > titleBox.top,
-            "the site's name and the menu's button share one row",
-          ).toBe(true);
+          const buttonBox = panelButton().element().getBoundingClientRect();
+          const headerBox = page
+            .getByRole("banner")
+            .element()
+            .getBoundingClientRect();
           expect(
             titleBox.width === BUTTON_HEIGHT_PX,
             "on a phone the brand is its medallion alone, a target wide",
@@ -172,24 +209,36 @@ describe("use_case_use_on_phone", () => {
           ).toBe(1);
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-          expect(titleBox.right).toBeLessThanOrEqual(buttonBox.left);
+          expect(
+            buttonBox.top,
+            "the panel's button floats under the header",
+          ).toBeGreaterThan(headerBox.bottom);
+          expect(
+            buttonBox.right,
+            "the panel's button is on the left, where the panel opens",
+          ).toBeLessThan(screen.viewport.width / 2);
           expect(
             document.documentElement.scrollWidth,
             "no sideways scroll",
           ).toBeLessThanOrEqual(screen.viewport.width);
 
-          await openMenu();
-          const panel = page
-            .getByRole("dialog", { name: SITE_MENU_COPY.title })
-            .element()
-            .getBoundingClientRect();
-          expect(panel.left, "the menu starts on the screen").toBeGreaterThan(
-            0,
-          );
+          await openPanel();
+          const panel = sitePanel().element().getBoundingClientRect();
+          expect(panel.left, "the panel is on the left").toBe(0);
+          const closeBox = closeButton().element().getBoundingClientRect();
           expect(
-            panel.right,
-            "the menu ends on the screen",
-          ).toBeLessThanOrEqual(screen.viewport.width);
+            [closeBox.left, closeBox.top],
+            "the panel's close button takes its button's place",
+          ).toEqual([buttonBox.left, buttonBox.top]);
+          expect(
+            panel.top,
+            "the panel is under the header",
+          ).toBeGreaterThanOrEqual(
+            page.getByRole("banner").element().getBoundingClientRect().bottom,
+          );
+          expect(panel.right, "the panel ends on the screen").toBeLessThan(
+            screen.viewport.width,
+          );
           const links = page.getByRole("dialog").getByRole("link").all();
           expect(links).toHaveLength(PLACES.length + YOU.length + 1);
           expect(
@@ -203,7 +252,7 @@ describe("use_case_use_on_phone", () => {
 });
 
 test.each(SCREENS)(
-  "Quests is reached through the menu on $name",
+  "Quests is reached through the site panel on $name",
   async (screen) => {
     await setViewport(screen.viewport);
     await renderSignedIn();
@@ -211,76 +260,149 @@ test.each(SCREENS)(
     expect(
       header.getByRole("link", { name: QUESTS_COPY.headerLink }).query(),
     ).toBeNull();
-    await openMenu();
+    await openPanel();
     await expect
-      .element(
-        page
-          .getByRole("dialog")
-          .getByRole("link", { name: QUESTS_COPY.headerLink }),
-      )
+      .element(sitePanel().getByRole("link", { name: QUESTS_COPY.headerLink }))
       .toHaveAttribute("href", "/quests");
-    await closeMenu();
+    await closePanel();
   },
 );
 
-describe("the site menu", () => {
-  test("groups Quests and Workshop apart from Settings, above the appearance choices and Credits", async () => {
-    await renderSignedIn();
-    await openMenu();
+// How much of the ring is left unfilled: the arc's dash offset over its
+// length.
+function unfilledFraction(arc: Element): number {
+  return (
+    Number(arc.getAttribute("stroke-dashoffset")) /
+    Number(arc.getAttribute("stroke-dasharray"))
+  );
+}
 
-    expect(linkNames(SITE_MENU_COPY.placesLabel)).toEqual(PLACES);
-    expect(linkNames(SITE_MENU_COPY.youLabel)).toEqual(YOU);
+describe("use_case_experience_ring", () => {
+  test.each(SCREENS)(
+    "the ring of the user's circle fills toward the next one, at the bar's right end, on $name",
+    async (screen) => {
+      signInAs(SIGNED_IN_USER);
+      await setViewport(screen.viewport);
+      await render(await SignedInHeader());
+      const { circle, title, experience, circleStart, nextCircleStart } =
+        MABEL_EXPERIENCE;
+      const ring = page.getByRole("banner").getByRole("link", {
+        name: EXPERIENCE_COPY.progress(
+          circle,
+          title,
+          nextCircleStart - experience,
+          circle + 1,
+        ),
+      });
+      await expect.element(ring).toHaveAttribute("href", "/profile#experience");
+      await expect.element(ring).toHaveTextContent(String(circle));
+      const arc = ring.element().querySelector(".circle-progress-arc");
+      if (arc === null) {
+        throw new Error("The ring has no arc");
+      }
+      expect(unfilledFraction(arc)).toBeCloseTo(
+        (nextCircleStart - experience) / (nextCircleStart - circleStart),
+      );
+      const ringBox = ring.element().getBoundingClientRect();
+      const titleBox = page
+        .getByRole("link", { name: SITE_COPY.name })
+        .element()
+        .getBoundingClientRect();
+      expect(ringBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+      expect(titleBox.right <= ringBox.left, "the brand, then the ring").toBe(
+        true,
+      );
+      expect(
+        ringBox.bottom > titleBox.top && titleBox.bottom > ringBox.top,
+        "the ring and the brand share one row",
+      ).toBe(true);
+      const bar = page.getByRole("banner").element().getBoundingClientRect();
+      expect(
+        bar.right - ringBox.right,
+        "the ring ends the bar, on its right",
+      ).toBeLessThanOrEqual(
+        Number.parseFloat(
+          getComputedStyle(page.getByRole("banner").element()).paddingRight,
+        ) + 1,
+      );
+      expect(
+        document.documentElement.scrollWidth,
+        "no sideways scroll",
+      ).toBeLessThanOrEqual(screen.viewport.width);
+    },
+  );
+});
+
+describe("the site panel", () => {
+  test("groups Quests and Workshop apart from Profile and Settings, above the appearance choices and Credits", async () => {
+    await renderSignedIn();
+    await openPanel();
+
+    expect(linkNames(SITE_PANEL_COPY.placesLabel)).toEqual(PLACES);
+    expect(linkNames(SITE_PANEL_COPY.youLabel)).toEqual(YOU);
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
     expect(
       page.getByRole("dialog").getByRole("link").elements().at(-1)?.textContent,
-      "Credits ends the menu",
-    ).toBe(CREDITS_COPY.menuLink);
+      "Credits ends the panel",
+    ).toBe(CREDITS_COPY.panelLink);
   });
 
   test("its links are in the page while it is closed, for the first HTML", async () => {
     await renderSignedIn();
 
-    expect(menuButton().element()).toHaveAttribute("aria-expanded", "false");
+    expect(panelButton().element()).toHaveAttribute("aria-expanded", "false");
     expect(
       [...document.querySelectorAll("a")].map((link) => link.textContent),
     ).toEqual(expect.arrayContaining([...PLACES, ...YOU]));
     expect(page.getByRole("dialog").query()).toBeNull();
   });
 
-  test("opens from the keyboard, and Escape closes it and returns focus to its button", async () => {
+  test("on a phone, opens as a drawer from the keyboard, and Escape closes it and returns focus to its button", async () => {
+    await setViewport(PHONE_VIEWPORT);
     await renderSignedIn();
-    menuButton().element().focus();
+    panelButton().element().focus();
     await userEvent.keyboard("{Enter}");
-    await expect.element(page.getByRole("dialog")).toBeVisible();
-    expect(menuButton().element()).toHaveAttribute("aria-expanded", "true");
+    await expect.element(sitePanel()).toBeVisible();
+    expect(sitePanel().element().matches(":modal"), "a modal drawer").toBe(
+      true,
+    );
+    expect(closeButton().element()).toHaveAttribute("aria-expanded", "true");
+    await expect.element(closeButton()).toHaveFocus();
 
-    await closeMenu();
-    expect(document.activeElement).toBe(menuButton().element());
-    expect(menuButton().element()).toHaveAttribute("aria-expanded", "false");
+    await closePanel();
+    expect(document.activeElement).toBe(panelButton().element());
+    expect(panelButton().element()).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("its close button closes it", async () => {
-    await renderSignedIn();
-    await openMenu();
-    await page.getByRole("button", { name: SITE_MENU_COPY.close }).click();
+  for (const viewport of [PHONE_VIEWPORT, LAPTOP_VIEWPORT]) {
+    test(`its close button closes it and returns focus to its button at ${viewport.width} px`, async () => {
+      await setViewport(viewport);
+      await renderSignedIn();
+      await openPanel();
+      await sitePanel()
+        .getByRole("button", { name: SITE_PANEL_COPY.close })
+        .click();
 
-    await expect.poll(() => page.getByRole("dialog").query()).toBeNull();
-  });
+      await expect.poll(() => sitePanel().query()).toBeNull();
+      await expect.element(panelButton()).toHaveFocus();
+      expect(panelButton().element()).toHaveAttribute("aria-expanded", "false");
+    });
+  }
 
-  test("following one of its links closes it", async () => {
+  test("following one of its links closes its drawer", async () => {
+    await setViewport(PHONE_VIEWPORT);
     // Keep the test's page: the link's own navigation is Next's to test.
     globalThis.addEventListener("click", stayOnThisPage, { capture: true });
     try {
       await renderSignedIn();
-      await openMenu();
-      await page
-        .getByRole("dialog")
+      await openPanel();
+      await sitePanel()
         .getByRole("link", { name: QUESTS_COPY.headerLink })
         .click();
 
-      await expect.poll(() => page.getByRole("dialog").query()).toBeNull();
+      await expect.poll(() => sitePanel().query()).toBeNull();
     } finally {
       globalThis.removeEventListener("click", stayOnThisPage, {
         capture: true,
@@ -288,25 +410,77 @@ describe("the site menu", () => {
     }
   });
 
-  test("leaves the page beside it undimmed", async () => {
+  test("leaves the page beside its drawer undimmed", async () => {
+    await setViewport(PHONE_VIEWPORT);
     await renderSignedIn();
-    await openMenu();
-    const dialog = page.getByRole("dialog").element();
+    await openPanel();
+    const dialog = sitePanel().element();
 
     expect(getComputedStyle(dialog, "::backdrop").backgroundColor).toBe(
       "rgba(0, 0, 0, 0)",
     );
   });
 
+  test("on a wide screen, docks beside the page, which makes room for it, and stays open from page to page until closed", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    // Keep the test's page: the link's own navigation is Next's to test.
+    globalThis.addEventListener("click", stayOnThisPage, { capture: true });
+    try {
+      const screen = await render(signedInFrame());
+      function pageStart(): number {
+        return page.getByText(PAGE_TEXT).element().getBoundingClientRect().left;
+      }
+      const closedStart = pageStart();
+      await openPanel();
+      expect(
+        sitePanel().element().matches(":modal"),
+        "the page beside it stays in reach",
+      ).toBe(false);
+      await expect.element(closeButton()).toHaveFocus();
+      const panel = sitePanel().element().getBoundingClientRect();
+      expect(
+        pageStart(),
+        "the page starts beside the panel",
+      ).toBeGreaterThanOrEqual(panel.right);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        LAPTOP_VIEWPORT.width,
+      );
+
+      await sitePanel()
+        .getByRole("link", { name: QUESTS_COPY.headerLink })
+        .click();
+      await expect.element(sitePanel()).toBeVisible();
+
+      // The next page, or the same one reloaded, renders the panel afresh.
+      await screen.unmount();
+      await render(signedInFrame());
+      await expect.element(sitePanel()).toBeVisible();
+      expect(closeButton().element()).toHaveAttribute("aria-expanded", "true");
+      expect(
+        document.activeElement,
+        "a panel docked on load leaves focus on the page",
+      ).not.toBe(closeButton().element());
+
+      await closeButton().click();
+      await expect.poll(() => sitePanel().query()).toBeNull();
+      await expect.element(panelButton()).toHaveFocus();
+      expect(pageStart(), "the page takes its room back").toBe(closedStart);
+    } finally {
+      globalThis.removeEventListener("click", stayOnThisPage, {
+        capture: true,
+      });
+    }
+  });
+
   test("offers a visitor the appearance choices and Credits", async () => {
     await render(<SiteHeader />);
-    await openMenu();
+    await openPanel();
 
     await expect
       .element(
         page
           .getByRole("dialog")
-          .getByRole("link", { name: CREDITS_COPY.menuLink }),
+          .getByRole("link", { name: CREDITS_COPY.panelLink }),
       )
       .toHaveAttribute("href", "/credits");
     await expect
@@ -325,14 +499,7 @@ const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };
 // renders it.
 function bandedHeader(items: readonly Breadcrumb[]): JSX.Element {
   return (
-    <SiteHeader
-      links={
-        <>
-          <SiteMenu links={<AccountLinks />} />
-          <TrailBand items={items} />
-        </>
-      }
-    />
+    <SiteHeader panel={SIGNED_IN_PANEL} trail={<TrailBand items={items} />} />
   );
 }
 
@@ -362,7 +529,7 @@ describe("the trail band", () => {
         }
         return (
           <>
-            <SiteHeader links={await SignedInLinks({ breadcrumbs: trail })} />
+            {await SignedInHeader({ breadcrumbs: trail })}
             <main />
           </>
         );
@@ -397,8 +564,8 @@ describe("the trail band", () => {
           trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
         )
         .toHaveAttribute("href", "/quests");
-      await openMenu();
-      await closeMenu();
+      await openPanel();
+      await closePanel();
       await screen.rerender(await location(true));
       expect(main.getBoundingClientRect().y).toBe(origin);
       expect(
@@ -436,10 +603,13 @@ describe("the trail band", () => {
       .getByRole("link", { name: SITE_COPY.name })
       .element()
       .getBoundingClientRect();
-    const menu = menuButton().element().getBoundingClientRect();
     expect(heading.top, "the band is under the bar").toBeGreaterThanOrEqual(
-      Math.max(brand.bottom, menu.bottom),
+      brand.bottom,
     );
+    expect(
+      panelButton().element().getBoundingClientRect().top,
+      "the panel's button floats under the band",
+    ).toBeGreaterThan(heading.bottom);
     for (const link of links) {
       const bounds = link.element().getBoundingClientRect();
       expect(bounds.right, "parents lead into the heading").toBeLessThan(
@@ -479,7 +649,11 @@ describe("the trail band", () => {
     await expect
       .element(page.getByRole("link", { name: SITE_COPY.name }))
       .not.toBeInViewport();
-    await expect.element(menuButton()).not.toBeInViewport();
+    // The panel's button follows the band.
+    await expect
+      .poll(() => panelButton().element().getBoundingClientRect().top)
+      .toBeGreaterThan(pageHeading().element().getBoundingClientRect().bottom);
+    await expect.element(panelButton()).toBeInViewport({ ratio: 1 });
     window.scrollTo(0, 0);
   });
 
@@ -518,7 +692,7 @@ describe("the trail band", () => {
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,
       );
-      await expect.element(menuButton()).toBeVisible();
+      await expect.element(panelButton()).toBeVisible();
 
       await screen.rerender(bandedHeader([QUESTS, { label: LONG_NAME }]));
       await expect

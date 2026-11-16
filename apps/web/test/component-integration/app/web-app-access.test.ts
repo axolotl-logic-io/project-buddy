@@ -25,6 +25,7 @@ test("public app assets and paper textures are served without a session", () => 
 test("the pages around them still need a session", () => {
   for (const path of [
     "/",
+    "/profile",
     "/settings",
     "/sw.js",
     "/iconsettings",

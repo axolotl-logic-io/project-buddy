@@ -1,12 +1,9 @@
 // The text of a quest's tasks: the Tasks section on the quest's page and the
 // Tasks section, the Tasks panel beside a quest's conversation, the tasks
 // changes and tasks cards in it, and the composer's commands. The tasks have no
-// deadlines and never nags: no counts of open steps or days.
+// deadlines.
 
-import {
-  TASKS_STEP_TEXT_MAX_LENGTH,
-  type TasksChangeLine,
-} from "@/tasks/tasks.ts";
+import { TASK_TEXT_MAX_LENGTH, type TasksChangeLine } from "@/tasks/tasks.ts";
 import type {
   CommandProblem,
   TasksCommandName,
@@ -41,6 +38,11 @@ function tasksLineText(line: TasksChangeLine): string {
       return `Moved ${quoted(line.text)}${beforeOrEnd(line.before)}`;
     case "remove":
       return `Removed ${quoted(line.text)}`;
+    case "recur":
+      if (line.recurring) {
+        return `Made ${quoted(line.text)} recurring`;
+      }
+      return `Made ${quoted(line.text)} a one-off task`;
     default:
       return line satisfies never;
   }
@@ -48,20 +50,20 @@ function tasksLineText(line: TasksChangeLine): string {
 
 // What each built-in command does, as the composer's list shows it.
 const TASKS_COMMAND_DESCRIPTIONS: Readonly<Record<TasksCommandName, string>> = {
-  tasks: "Start Tasks; save subsequent messages as steps",
-  add: "Add a step at the end",
-  done: "Check off a step, or the next step",
-  reopen: "Reopen a done step",
-  edit: "Change a step's text",
-  move: "Move an open step to a place, 1 being first",
-  drop: "Remove a step",
+  tasks: "Start Tasks; save subsequent messages as tasks",
+  add: "Add a task at the end",
+  done: "Check off a task, or the next task",
+  reopen: "Reopen a done task",
+  edit: "Change a task's text",
+  move: "Move an open task to a place, 1 being first",
+  drop: "Remove a task",
   undo: "Undo your last tasks change here",
 };
 
 export const TASKS_COPY = {
   heading: "Tasks",
-  stepsLabel: "Open steps",
-  stepNumber: (number: number): string => `#${number}`,
+  tasksLabel: "Open tasks",
+  taskNumber: (number: number): string => `#${number}`,
   checkOff: (text: string): string => `Check off ${quoted(text)}`,
   reopen: (text: string): string => `Reopen ${quoted(text)}`,
   moveUp: (text: string): string => `Move ${quoted(text)} up`,
@@ -71,21 +73,34 @@ export const TASKS_COPY = {
   actions: (text: string): string => `Actions for ${quoted(text)}`,
   moveUpLabel: "Move up",
   moveDownLabel: "Move down",
-  removeLabel: "Remove step",
-  textLabel: "Step",
+  removeLabel: "Remove task",
+  makeRecurring: (text: string): string => `Make ${quoted(text)} recurring`,
+  makeOneOff: (text: string): string => `Make ${quoted(text)} a one-off task`,
+  makeRecurringLabel: "Make recurring",
+  makeOneOffLabel: "Make one-off",
+  // A recurring task's streak, as its badge shows it: the count, and the
+  // rest for screen readers.
+  streak: (count: number): string => {
+    if (count === 1) {
+      return "1-day streak";
+    }
+    return `${count}-day streak`;
+  },
+  recurringNoStreak: "Recurring, no streak",
+  textLabel: "Task",
   save: "Save",
   cancel: "Cancel",
-  addLabel: "New step",
-  addPlaceholder: "Add a step",
+  addLabel: "New task",
+  addPlaceholder: "Add a task",
   add: "Add",
   done: (count: number): string => `Done (${count})`,
-  needsText: "A step needs some text.",
+  needsText: "A task needs some text.",
   tooLong: (maxLength: number): string =>
-    `Keep a step to one line of at most ${maxLength} characters.`,
+    `Keep a task to one line of at most ${maxLength} characters.`,
   undo: "Undo",
   failed: {
-    "missing-step":
-      "That step isn't in Tasks any more. The latest steps are shown.",
+    "missing-task":
+      "That task isn't in Tasks any more. The latest tasks are shown.",
     unchanged: "Nothing changed.",
     "already-undone": "That change was undone already.",
     "no-such-change": "There's no change to undo.",
@@ -120,7 +135,7 @@ export const TASKS_PANEL_COPY = {
 
 export const CHAT_COMMANDS_COPY = {
   listLabel: "Commands",
-  hint: "Commands run at once. Steps are named by their numbers, such as #3.",
+  hint: "Commands run at once. Tasks are named by their numbers, such as #3.",
   description: (name: TasksCommandName): string =>
     TASKS_COMMAND_DESCRIPTIONS[name],
   problem: (found: CommandProblem): string => {
@@ -128,16 +143,16 @@ export const CHAT_COMMANDS_COPY = {
       case "unknown":
         return `There's no /${found.name} command. Type / to see the commands.`;
       case "no-text":
-        return `Write the step after /${found.name}.`;
+        return `Write the task after /${found.name}.`;
       case "too-long":
-        return `Keep a step to one line of at most ${TASKS_STEP_TEXT_MAX_LENGTH} characters.`;
-      case "no-step":
-        if (found.step === undefined) {
-          return "Name a step by its number, such as /done 3.";
+        return `Keep a task to one line of at most ${TASK_TEXT_MAX_LENGTH} characters.`;
+      case "no-task":
+        if (found.task === undefined) {
+          return "Name a task by its number, such as /done 3.";
         }
-        return `There is no task ${found.step}. Type /tasks to see the steps and their numbers.`;
+        return `There is no task ${found.task}. Type /tasks to see the tasks and their numbers.`;
       case "no-place":
-        return `Write /move, the step's number, then its new place from 1 to ${found.most}.`;
+        return `Write /move, the task's number, then its new place from 1 to ${found.most}.`;
       default:
         return found satisfies never;
     }

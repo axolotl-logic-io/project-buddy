@@ -6,14 +6,20 @@ import CreditsPage from "@/app/credits/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import NotFound from "@/app/not-found.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
+import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "../../auth/current-user-test-kit.ts";
-import { tabForward } from "../../components/keyboard-test-kit.ts";
-import { openMenu } from "../../components/site-menu-test-kit.ts";
+import { openPanel } from "../../components/site-panel-test-kit.ts";
 import { inSiteFrame } from "../site-frame-test-kit.tsx";
+
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../../experience/experience-store-test-kit.ts"),
+);
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -25,14 +31,22 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
 
-// Pages whose site menu offers Credits: public pages for a visitor, and a
+// Pages whose site panel offers Credits: public pages for a visitor, and a
 // signed-in page.
 const PAGES: readonly {
   name: string;
   signedIn: boolean;
-  content: () => JSX.Element;
+  content: () => JSX.Element | Promise<JSX.Element>;
 }[] = [
-  { name: "the sign-in page", signedIn: false, content: () => <LoginPage /> },
+  {
+    name: "the sign-in page",
+    signedIn: false,
+    content: () =>
+      LoginPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+  },
   { name: "the not-found page", signedIn: false, content: () => <NotFound /> },
   { name: "the Credits page", signedIn: true, content: () => <CreditsPage /> },
 ];
@@ -44,17 +58,17 @@ function stayOnThisPage(event: MouseEvent): void {
 
 describe("use_case_see_icon_credit", () => {
   for (const { name, signedIn, content } of PAGES) {
-    test(`the site menu on ${name} links to Credits, and following it closes the menu`, async () => {
+    test(`the site panel on ${name} links to Credits, and following it closes the panel`, async () => {
       signOut();
       if (signedIn) {
         signInAs(SIGNED_IN_USER);
       }
-      await render(await inSiteFrame(content()));
+      await render(await inSiteFrame(await content()));
       expect(page.getByRole("contentinfo").query()).toBeNull();
-      await openMenu();
+      await openPanel();
       const credits = page
         .getByRole("dialog")
-        .getByRole("link", { name: CREDITS_COPY.menuLink, exact: true });
+        .getByRole("link", { name: CREDITS_COPY.panelLink, exact: true });
       await expect.element(credits).toBeVisible();
       await expect.element(credits).toHaveAttribute("href", "/credits");
 

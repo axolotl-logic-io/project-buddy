@@ -4,6 +4,7 @@ import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { questStatusApprovals } from "@/db/tables/quest-status-approvals.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { gainPoints, losePoints } from "@/experience/experience-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   type QuestStatus,
@@ -34,6 +35,8 @@ async function lockedQuest(
     .for("update");
   return quest;
 }
+// Saves the change on the locked quest. Completing it gains the user a
+// point, and reopening a completed quest takes that point back.
 async function saveStatus(
   tx: Transaction,
   user: UserId,
@@ -46,6 +49,16 @@ async function saveStatus(
       statusRevision: sql`${quests.statusRevision} + 1`,
     })
     .where(and(eq(quests.id, change.questId), questOpenTo(user)));
+  if (change.toStatus === "completed") {
+    await gainPoints(
+      tx,
+      { user, questId: change.questId },
+      "completing-quests",
+      [change.questId],
+    );
+  } else if (change.fromStatus === "completed") {
+    await losePoints(tx, "completing-quests", change.questId, [change.questId]);
+  }
 }
 
 // A change the owner or a member asked for. The revision is the one shown

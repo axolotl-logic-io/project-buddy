@@ -31,9 +31,12 @@ vi.mock("@/quests/rename-quest-action.ts", () => ({
   }),
 }));
 
-vi.mock("@/conversations/reset-conversation-action.ts", () => ({
-  resetConversationAction: vi.fn(() => {
-    throw new Error("Mock the conversation reset action in this test");
+vi.mock("@/dailies/day-actions.ts", () => ({
+  startDayAction: vi.fn(() => {
+    throw new Error("Mock the Start Day action in this test");
+  }),
+  undoStartDayAction: vi.fn(() => {
+    throw new Error("Mock the Undo Start Day action in this test");
   }),
 }));
 
@@ -107,7 +110,7 @@ vi.mock("@/spells/own-spell-store.ts", () => ({
   getOwnSpell: vi.fn(),
 }));
 
-// The site menu's Quick Note dialog and a quest's Quick Notes tab reach these
+// The site panel's Quick Note dialog and a quest's Quick Notes tab reach these
 // from every signed-in page. Tests of those flows supply their own results.
 vi.mock("@/notes/note-actions.ts", () => ({
   listNoteQuestsAction: vi.fn(() => Promise.resolve([])),
@@ -117,6 +120,14 @@ vi.mock("@/notes/note-actions.ts", () => ({
   deleteNoteAction: vi.fn(() => {
     throw new Error("Mock the Quick Note delete action in this test");
   }),
+}));
+
+// A running timer reports its presence as it opens. Tests of the count
+// supply their own answers; by default no one else follows the schedule.
+vi.mock("@/timer/presence-action.ts", () => ({
+  reportTimerPresenceAction: vi.fn(() =>
+    Promise.resolve({ kind: "count", others: 0 }),
+  ),
 }));
 
 vi.mock("@/notes/note-store.ts", () => ({

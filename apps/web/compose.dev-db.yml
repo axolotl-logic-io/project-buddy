@@ -1,4 +1,6 @@
 # Persistent development data, separate from the disposable test database.
+# Each worktree has its own database on this server (mise setup makes it);
+# project_buddy_dev is the one they all shared before.
 name: project-buddy-dev-db
 services:
   postgres:

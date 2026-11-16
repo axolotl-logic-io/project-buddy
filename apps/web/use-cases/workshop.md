@@ -8,7 +8,7 @@ The user creates and edits constructs and spells from one page.
 
 - **Prerequisites:** a signed-in account.
 - **Steps:**
-  - Open Workshop from the site menu. It shows Constructs first.
+  - Open Workshop from the site panel. It shows Constructs first.
   - Open a definition’s name to inspect its built-in instructions or edit a private copy. Collection cards have no quest-start actions.
   - Choose Spells to see built-in Tasks and Brainstorm alongside their own spells.
   - In Constructs, choose Create construct, Make a copy on a built-in one, or Edit or Make a copy on an own one. In Spells, create a spell, copy a built-in or own spell, or edit an own spell.

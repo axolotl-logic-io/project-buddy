@@ -18,15 +18,9 @@ if ! running="$(docker inspect --format '{{.State.Running}}' "$SHARED_SERVER")" 
   echo 'Cannot safely inspect the shared test server: it is unavailable or inspection is unrecognizable.' >&2
   exit 1
 fi
-# Complete all inspections before the first removal, including proxy removal.
+# Complete the inventory before the first removal.
 databases="$(lane_database_inventory)"
-containers="$(docker container ls --all --format '{{.Names}}')"
 
-while IFS= read -r name; do
-  if slot="$(proxy_slot "$name")" && (( slot > count )); then
-    docker rm --force "$name"
-  fi
-done <<< "$containers"
 while IFS= read -r name; do
   if slot="$(database_slot "$name")" && (( slot > count )); then
     shared_psql "DROP DATABASE IF EXISTS $name WITH (FORCE)"

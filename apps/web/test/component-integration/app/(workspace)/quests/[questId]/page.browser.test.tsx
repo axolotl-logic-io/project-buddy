@@ -79,6 +79,10 @@ vi.mock(
   "@/tasks/tasks-store.ts",
   () => import("../../../../tasks/tasks-store-test-kit.ts"),
 );
+vi.mock(
+  "@/dailies/day-store.ts",
+  () => import("../../../../dailies/day-store-test-kit.ts"),
+);
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
@@ -253,8 +257,8 @@ test("the Tasks section shows the todo list without Goal, Preferences or Journal
   await expect
     .element(page.getByRole("tabpanel", { name: "Tasks", exact: true }))
     .toBeVisible();
-  await page.getByRole("button", { name: "Add a step", exact: true }).click();
-  await expect.element(page.getByPlaceholder("Add a step")).toBeVisible();
+  await page.getByRole("button", { name: "Add a task", exact: true }).click();
+  await expect.element(page.getByPlaceholder("Add a task")).toBeVisible();
   for (const name of ["Goal", "Preferences"]) {
     expect(
       page.getByRole("heading", { name, exact: true }).elements(),

@@ -10,6 +10,8 @@ import { vi } from "vitest";
 import { page } from "vitest/browser";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
+import ProfilePage from "@/app/(workspace)/profile/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
@@ -19,6 +21,9 @@ import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
+import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
+import TimerLayout from "@/app/(workspace)/timer/layout.tsx";
+import TimerSetupPage from "@/app/(workspace)/timer/page.tsx";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
@@ -41,6 +46,7 @@ import { findSpell, getOwnSpell } from "@/spells/own-spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -58,10 +64,12 @@ import {
 import { LINK_USER, OWN_SPELL, VELLUM_CLONE } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
-// One page as the phone checks render it.
-vi.mock("@/conversations/reset-conversation-action.ts", () => ({
-  resetConversationAction: vi.fn(),
+vi.mock("@/dailies/day-actions.ts", () => ({
+  startDayAction: vi.fn(),
+  undoStartDayAction: vi.fn(),
 }));
+
+// One page as the phone checks render it.
 
 interface PhonePage {
   readonly name: string;
@@ -151,7 +159,7 @@ const projectsPage = workspacePage(
     vi.mocked(readCurrentQuest).mockResolvedValue({
       quest: { id: FOX_QUEST.id, name: LONG_QUEST_NAME },
       sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
-      nextStep: "Sketch the fox's ears from three angles",
+      nextTask: "Sketch the fox's ears from three angles",
     });
     vi.mocked(listConstructs).mockResolvedValue([]);
   },
@@ -263,7 +271,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
 
   { name: "the Credits page", render: signedOut(CreditsPage) },
-  { name: "the sign-in page", render: signedOut(LoginPage) },
+  {
+    name: "the sign-in page",
+    render: async (): Promise<JSX.Element> => {
+      signOut();
+      return await LoginPage({
+        params: NO_PARAMS,
+        searchParams: NO_PARAMS,
+      });
+    },
+  },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
@@ -286,13 +303,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project", path: QUEST_PATH, render: projectPage },
   {
-    name: "the Dailies quest, with Reset Day",
+    name: "the Dailies quest, with Start Day",
     path: QUEST_PATH,
     render: projectPageFor("actions", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
         page
-          .getByRole("button", { name: QUEST_CONVERSATION_COPY.resetDay })
+          .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
           .element(),
       );
     },
@@ -309,13 +326,44 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the Timer's setup",
+    path: ["timer"],
+    render: workspacePage(noData, async () =>
+      TimerLayout({ children: await TimerSetupPage() }),
+    ),
+  },
+  {
+    name: "a running timer",
+    path: ["timer", "120", "60", "0"],
+    render: workspacePage(noData, async () =>
+      TimerLayout({
+        children: await TimerPage({
+          params: Promise.resolve({ work: "120", break: "60", start: "0" }),
+          searchParams: NO_PARAMS,
+        }),
+      }),
+    ),
+    open: async (): Promise<void> => {
+      await vi.waitFor(() =>
+        page.getByRole("timer", { name: TIMER_COPY.remainingLabel }).element(),
+      );
+    },
+  },
+  {
+    name: "the Profile page",
+    path: ["profile"],
+    render: workspacePage(noData, async () =>
+      ProfileLayout({ children: await ProfilePage() }),
+    ),
+  },
+  {
     name: "the Settings page",
     path: ["settings"],
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([]);
       },
-      async () => SettingsLayout({ children: await SettingsPage() }),
+      () => Promise.resolve(SettingsLayout({ children: SettingsPage() })),
     ),
   },
 

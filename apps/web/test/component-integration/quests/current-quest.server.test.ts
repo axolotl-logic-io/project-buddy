@@ -1,7 +1,7 @@
 // What Quests reads to offer Continue, against the test database
 // ("use_case_continue_quest"): the user's own Active quest whose
-// conversation was most recently active, with its next step. How the next
-// step is chosen between the tasks and the Journal is
+// conversation was most recently active, with its next task. How the next
+// task is chosen between the tasks and the Journal is
 // tasks/tasks.server.test.ts's.
 
 import { and, eq } from "drizzle-orm";
@@ -46,7 +46,7 @@ describe("use_case_continue_quest", () => {
     expect(await readCurrentQuest(fresh.id)).toBeUndefined();
   });
 
-  test("continues the quest whose conversation was most recently active, with its next step", async () => {
+  test("continues the quest whose conversation was most recently active, with its next task", async () => {
     const [user, other] = await Promise.all([testUser(), testUser()]);
     const data = testData(user);
     const [turtle, garden, idle] = await Promise.all([
@@ -73,7 +73,7 @@ describe("use_case_continue_quest", () => {
     expect(await readCurrentQuest(user.id)).toEqual({
       quest: { id: garden.id, name: "Garden planner" },
       sharing: { kind: "personal" },
-      nextStep: undefined,
+      nextTask: undefined,
     });
 
     // A message makes the turtle's conversation the most recently active.
@@ -82,7 +82,7 @@ describe("use_case_continue_quest", () => {
     expect(await readCurrentQuest(user.id)).toEqual({
       quest: { id: turtle.id, name: "Sea turtle model" },
       sharing: { kind: "personal" },
-      nextStep: "retopo the flipper",
+      nextTask: "retopo the flipper",
     });
   });
 

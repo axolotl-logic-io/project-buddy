@@ -1,6 +1,6 @@
 // The tasks controller: one quest's tasks as the page shows it, and the
 // changes the user can make to it from here, without the construct. A page
-// makes one with useTasksController and gives it to the task list's controls inside
+// makes one with useTasksController and gives it to the Tasks controls inside
 // it through TasksContext; they read it with useTasks.
 
 import {
@@ -10,6 +10,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { DailiesDay } from "@/dailies/dailies.ts";
 import type { ChatId, QuestId } from "@/ids.ts";
 import type { TasksOperation, TasksState } from "@/tasks/tasks.ts";
 import type {
@@ -32,7 +33,7 @@ interface TasksActions {
 // What the last change from these controls said: a line to show, and the
 // version it saved, which Undo undoes. failed is true when the change
 // could not be saved or the quest is gone, rather than being refused with
-// a reason such as a missing step.
+// a reason such as a missing task.
 interface TasksFeedback {
   readonly text: string;
   readonly undoVersion?: number | undefined;
@@ -55,6 +56,9 @@ interface TasksController {
   // The id of the adventure's newest tasks card message, the one that shows
   // the live tasks; undefined outside an adventure or without one.
   readonly newestCardId?: string | undefined;
+  // The days of the Dailies quest, oldest first, for its recurring tasks
+  // and their streaks; undefined in any other quest.
+  readonly days?: readonly DailiesDay[] | undefined;
   readonly change: (operations: readonly TasksOperation[]) => Promise<boolean>;
   readonly undo: (version: number) => Promise<void>;
   // Takes a newer tasks from elsewhere, such as the construct's change or an
@@ -75,13 +79,15 @@ interface TasksControllerOptions {
   // The newest tasks a construct's change in the adventure showed, which the
   // controller takes when it is newer than its own.
   readonly observed?: Pick<TasksState, "version" | "tasks"> | undefined;
+  // The Dailies quest's days, given in the Dailies quest alone.
+  readonly days?: readonly DailiesDay[] | undefined;
 }
 
 const TasksContext = createContext<TasksController | undefined>(undefined);
 
 const NO_TASKS: TasksState = {
   version: 0,
-  tasks: { steps: [], nextNumber: 1 },
+  tasks: { items: [], nextNumber: 1 },
   undone: [],
 };
 
@@ -123,6 +129,7 @@ function useTasksController({
   disabledNote,
   newestCardId,
   observed,
+  days,
 }: TasksControllerOptions): TasksController | undefined {
   const [state, setState] = useState<TasksState>(initialState ?? NO_TASKS);
   const [pending, setPending] = useState(false);
@@ -205,6 +212,7 @@ function useTasksController({
       pending,
       feedback,
       newestCardId,
+      days,
       change,
       undo,
       receive,
@@ -218,6 +226,7 @@ function useTasksController({
     pending,
     feedback,
     newestCardId,
+    days,
     change,
     undo,
     receive,
