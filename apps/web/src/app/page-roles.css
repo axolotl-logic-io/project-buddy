@@ -1132,6 +1132,42 @@
     @apply shrink-0 justify-center text-muted hover:text-foreground hover:no-underline;
   }
 
+  .day-grid {
+    @apply flex flex-col gap-3;
+  }
+
+  .day-grid-days {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .day-grid-day {
+    @apply flex w-7 flex-col items-center gap-0.5 text-muted text-xs;
+  }
+
+  .day-grid-square {
+    @apply size-6 rounded-control border-2 border-muted;
+  }
+
+  .day-grid-day[data-mark="done"] .day-grid-square {
+    @apply border-primary bg-primary;
+  }
+
+  .day-grid-day[data-mark="pending"] .day-grid-square {
+    @apply border-primary;
+  }
+
+  .day-grid-day[data-mark="gap"] .day-grid-square {
+    @apply border-muted border-dashed;
+  }
+
+  .day-grid-day[data-mark="untracked"] .day-grid-square {
+    @apply border-line;
+  }
+
+  .editable-badge {
+    @apply inline-flex shrink-0 items-center gap-1 px-1 text-muted text-sm tabular-nums;
+  }
+
   .editable-grip {
     touch-action: none;
     @apply cursor-grab active:cursor-grabbing;

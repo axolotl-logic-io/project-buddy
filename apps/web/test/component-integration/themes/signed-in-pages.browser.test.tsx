@@ -82,6 +82,10 @@ vi.mock(
   "@/tasks/tasks-store.ts",
   () => import("../tasks/tasks-store-test-kit.ts"),
 );
+vi.mock(
+  "@/dailies/day-store.ts",
+  () => import("../dailies/day-store-test-kit.ts"),
+);
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
