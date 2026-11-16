@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
+import { requireUser } from "@/auth/current-user.ts";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
@@ -12,8 +13,10 @@ const SECURITY_HEADING_ID = "security-heading";
 
 export const metadata: Metadata = { title: SETTINGS_COPY.title };
 
-// All preferences stay visible, including bookmarked sections and payment feedback.
-export default function SettingsPage(): JSX.Element {
+// All preferences stay visible, including bookmarked sections and payment
+// feedback. A visitor, or a session that has ended, goes to sign in.
+export default async function SettingsPage(): Promise<JSX.Element> {
+  await requireUser();
   return (
     <div className="workspace-content flex flex-col gap-4">
       <section
