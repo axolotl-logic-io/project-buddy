@@ -1,11 +1,12 @@
 // The name form in Profile, and the security forms in Settings.
 export const ACCOUNT_COPY = {
   loading: "Loading Settings…",
-  nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
     "Used by {{name}} in spell replies. People in quests you share see it beside your messages and in Members.",
   saveName: "Save",
+  rename: "Rename",
+  cancelRename: "Cancel",
   nameRequired: "Enter your name.",
   nameSaved: "Saved",
   nameMultiLine: "A name is one line. Take out the line break.",

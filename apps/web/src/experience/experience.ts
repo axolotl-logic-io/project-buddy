@@ -85,6 +85,40 @@ function titleOf(circle: number): CircleTitle {
   return reached.at(-1)?.title ?? "Initiate";
 }
 
+// The next circle that starts a new title, or undefined once the user has
+// reached the last title.
+function nextTitleOf(
+  circle: number,
+): (typeof CIRCLE_TITLES)[number] | undefined {
+  return CIRCLE_TITLES.find((entry) => entry.circle > circle);
+}
+
+// How far through their circle the user is, from 0 at its start to 1 at the
+// next circle's.
+function circleFraction(experience: Experience): number {
+  const { circleStart: start, nextCircleStart } = experience;
+  return (experience.experience - start) / (nextCircleStart - start);
+}
+
+// One ability's points and the experience they're worth.
+interface AbilityStanding {
+  readonly ability: Ability;
+  readonly points: number;
+  readonly experience: number;
+}
+
+// Each ability's points and the experience they're worth, the most experience
+// first. Abilities worth the same keep ABILITIES' order.
+function abilitiesByExperience(
+  points: AbilityPoints,
+): readonly AbilityStanding[] {
+  return ABILITIES.map((ability) => ({
+    ability,
+    points: points[ability],
+    experience: points[ability] * ABILITY_WEIGHTS[ability],
+  })).toSorted((a, b) => b.experience - a.experience);
+}
+
 // Where the points put a user.
 function experienceOf(points: AbilityPoints): Experience {
   const experience = ABILITIES.reduce(
@@ -102,15 +136,24 @@ function experienceOf(points: AbilityPoints): Experience {
   };
 }
 
-export type { Ability, AbilityPoints, CircleTitle, Experience };
+export type {
+  Ability,
+  AbilityPoints,
+  AbilityStanding,
+  CircleTitle,
+  Experience,
+};
 export {
   ABILITIES,
   ABILITY,
   ABILITY_WEIGHTS,
+  abilitiesByExperience,
   CIRCLE_STEP,
   CIRCLE_TITLES,
   circleAt,
+  circleFraction,
   circleStart,
   experienceOf,
   NO_POINTS,
+  nextTitleOf,
 };
