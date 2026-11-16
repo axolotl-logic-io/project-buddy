@@ -4,10 +4,12 @@
 
 import { describe, expect, test } from "vitest";
 import {
+  abilitiesByExperience,
   circleAt,
   circleStart,
   experienceOf,
   NO_POINTS,
+  nextTitleOf,
 } from "@/experience/experience.ts";
 import { taskPointChanges } from "@/experience/task-points.ts";
 import type { Tasks } from "@/tasks/tasks.ts";
@@ -68,6 +70,37 @@ describe("circles", () => {
       expect([titleAt(first), titleAt(last)]).toEqual([title, title]);
     }
   });
+
+  test("the next title is the first one a later circle takes, until the last", () => {
+    for (const [index, { first, last }] of TITLES.entries()) {
+      const next = TITLES[index + 1];
+      let expected: { circle: number; title: string } | undefined;
+      if (next !== undefined) {
+        expected = { circle: next.first, title: next.title };
+      }
+      expect([nextTitleOf(first), nextTitleOf(last)]).toEqual([
+        expected,
+        expected,
+      ]);
+    }
+  });
+});
+
+test("abilities line up by the experience they earned, ties in their usual order", () => {
+  const standings = abilitiesByExperience({
+    "adding-tasks": 3,
+    ideating: 3,
+    noting: 0,
+    "completing-tasks": 2,
+    "completing-quests": 1,
+  });
+  expect(standings).toEqual([
+    { ability: "completing-quests", points: 1, experience: 9 },
+    { ability: "completing-tasks", points: 2, experience: 6 },
+    { ability: "adding-tasks", points: 3, experience: 3 },
+    { ability: "ideating", points: 3, experience: 3 },
+    { ability: "noting", points: 0, experience: 0 },
+  ]);
 });
 
 test("abilities weigh into experience: a completed task three, a completed quest nine", () => {

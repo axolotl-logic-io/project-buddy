@@ -6,9 +6,9 @@
 - **Prerequisites:** a signed-in user with an Active quest open to them.
 - **Steps:**
   - They add a task, an idea and a Quick Note, complete the task, and complete the quest.
-  - They open Profile from the site panel and read its Experience section.
+  - They open Profile from the site panel and read its Experience card and Abilities.
   - They reopen the task, and later the quest.
-- **Outcome:** each ability shows one point for each thing they did: Adding tasks, Ideating, Quick Notes, Completing tasks and Completing quests. Their experience is the sum of those points, weighted 1 for each add, 3 for a completed task and 9 for a completed quest. The section shows their circle and its title, starting at Circle 1 · Initiate, and how much more experience the next circle needs. Reopening the task or the quest takes back its completion point, whoever reopens it. Start Day reopens a Dailies quest's recurring tasks without taking points back, and Undo Start Day gains none. Removing a task or idea keeps its points. Reading the section makes no model request.
+- **Outcome:** each ability shows one point for each thing they did: Adding tasks, Ideating, Quick Notes, Completing tasks and Completing quests. Their experience is the sum of those points, weighted 1 for each add, 3 for a completed task and 9 for a completed quest. The card shows their circle in a ring that fills toward the next circle, its title, starting at Circle 1 · Initiate, a bar toward the next circle, how much more experience that circle needs and the next title to reach. Abilities lists the ability that earned the most experience first, marked "Most experience", each with the experience its points are worth; an ability with no points says what its first point is worth. On a phone the card stacks and every ability takes the page's width. Reopening the task or the quest takes back its completion point, whoever reopens it. Start Day reopens a Dailies quest's recurring tasks without taking points back, and Undo Start Day gains none. Removing a task or idea keeps its points. Reading Profile makes no model request.
 
 ## use_case_experience_command
 
@@ -25,4 +25,4 @@
 - **Steps:**
   - They look at the right end of the site header's bar.
   - They follow the ring.
-- **Outcome:** a ring holding their circle's number fills as their experience nears the next circle, empty at the circle's start. Its name says their circle and its title and how much more experience the next circle needs. Following it opens Profile at its Experience section. It updates as the page refreshes after they do something. It shares the header's one row on a phone and never scrolls the page sideways.
+- **Outcome:** a ring holding their circle's number fills as their experience nears the next circle, empty at the circle's start. Its name says their circle and its title and how much more experience the next circle needs. Following it opens Profile at its Experience card. It updates as the page refreshes after they do something. It shares the header's one row on a phone and never scrolls the page sideways.
