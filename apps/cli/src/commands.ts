@@ -89,7 +89,7 @@ function wholeNumber(value: string, field: string): number {
   return Number(value);
 }
 
-// A number counted from 1, such as a step number or a Tasks version.
+// A number counted from 1, such as a task number or a Tasks version.
 function countingNumber(value: string, field: string): number {
   const number = wholeNumber(value, field);
   if (number < 1) {
@@ -100,8 +100,8 @@ function countingNumber(value: string, field: string): number {
   return number;
 }
 
-// The step the optional --before names.
-function beforeStep(input: CommandInput): number | undefined {
+// The task the optional --before names.
+function beforeTask(input: CommandInput): number | undefined {
   const before = input.options.get("before");
   if (before === undefined) {
     return undefined;
@@ -166,20 +166,20 @@ function tasksChange(input: CommandInput, operation: unknown): ApiRequest {
   };
 }
 
-// A change to one step that names only the step: complete, reopen or
+// A change to one task that names only the task: complete, reopen or
 // remove.
-function stepCommand(action: string, summary: string): Command {
+function taskCommand(action: string, summary: string): Command {
   return command({
     resource: "task",
     action,
-    usage: `task ${action} STEP --quest QUEST_ID`,
+    usage: `task ${action} TASK --quest QUEST_ID`,
     summary,
     target: true,
     options: ["quest"],
     request: (input: CommandInput): ApiRequest =>
       tasksChange(input, {
         op: action,
-        step: countingNumber(targetOf(input, "step"), "step"),
+        task: countingNumber(targetOf(input, "task"), "task"),
       }),
   });
 }
@@ -300,7 +300,7 @@ const TASK_COMMANDS: readonly Command[] = [
     resource: "task",
     action: "list",
     usage: "task list --quest QUEST_ID",
-    summary: "List the quest's steps in order, with the Tasks version.",
+    summary: "List the quest's tasks in order, with the Tasks version.",
     options: ["quest"],
     list: true,
     request: (input: CommandInput): ApiRequest => ({
@@ -312,48 +312,48 @@ const TASK_COMMANDS: readonly Command[] = [
     resource: "task",
     action: "add",
     usage:
-      "task add --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin) [--before STEP]",
-    summary: "Add a step, at the end or before another step.",
+      "task add --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin) [--before TASK]",
+    summary: "Add a task, at the end or before another task.",
     options: ["quest", "text", "before"],
     request: (input: CommandInput): ApiRequest =>
       tasksChange(input, {
         op: "add",
         text: textOf(input),
-        before: beforeStep(input),
+        before: beforeTask(input),
       }),
   }),
   command({
     resource: "task",
     action: "edit",
     usage:
-      "task edit STEP --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Change a step's text.",
+      "task edit TASK --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
+    summary: "Change a task's text.",
     target: true,
     options: ["quest", "text"],
     request: (input: CommandInput): ApiRequest =>
       tasksChange(input, {
         op: "change",
-        step: countingNumber(targetOf(input, "step"), "step"),
+        task: countingNumber(targetOf(input, "task"), "task"),
         text: textOf(input),
       }),
   }),
-  stepCommand("complete", "Mark a step done."),
-  stepCommand("reopen", "Mark a done step not done."),
+  taskCommand("complete", "Mark a task done."),
+  taskCommand("reopen", "Mark a done task not done."),
   command({
     resource: "task",
     action: "move",
-    usage: "task move STEP --quest QUEST_ID [--before STEP]",
-    summary: "Move a step to the end, or before another step.",
+    usage: "task move TASK --quest QUEST_ID [--before TASK]",
+    summary: "Move a task to the end, or before another task.",
     target: true,
     options: ["quest", "before"],
     request: (input: CommandInput): ApiRequest =>
       tasksChange(input, {
         op: "move",
-        step: countingNumber(targetOf(input, "step"), "step"),
-        before: beforeStep(input),
+        task: countingNumber(targetOf(input, "task"), "task"),
+        before: beforeTask(input),
       }),
   }),
-  stepCommand("remove", "Remove a step."),
+  taskCommand("remove", "Remove a task."),
   command({
     resource: "task",
     action: "undo",

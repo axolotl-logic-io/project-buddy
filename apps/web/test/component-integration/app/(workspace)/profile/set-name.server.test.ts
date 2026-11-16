@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
-import { setNameAction } from "@/app/(workspace)/settings/actions.ts";
+import { setNameAction } from "@/app/(workspace)/profile/actions.ts";
 import { createSpell } from "@/spells/own-spell-store.ts";
 import { setSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";

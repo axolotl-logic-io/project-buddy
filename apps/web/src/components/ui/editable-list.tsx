@@ -416,7 +416,7 @@ function EditableListRow({
   readonly toggleLabel?: string;
   readonly onToggle?: () => Promise<void>;
   // A short note about the item, shown before its actions, such as a
-  // recurring step's streak.
+  // recurring task's streak.
   readonly badge?: ReactNode;
 }): JSX.Element {
   const sort = useContext(SortContext);

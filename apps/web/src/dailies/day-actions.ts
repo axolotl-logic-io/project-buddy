@@ -20,7 +20,7 @@ async function startDayAction(formData: FormData): Promise<void> {
     conversation === undefined ||
     (await startDay(user.id, id.data, {
       localDate: dayDate(formData.get("localDate"), new Date()),
-      clearSteps: formData.get("clearSteps") === "on",
+      clearTasks: formData.get("clearTasks") === "on",
       clearIdeas: formData.get("clearIdeas") === "on",
     })) === undefined
   ) {

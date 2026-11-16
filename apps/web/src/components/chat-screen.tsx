@@ -51,7 +51,7 @@ function ChatScreen({
   readonly sideSections?: readonly WorkspaceSection[] | undefined;
   readonly initialSection?: string | undefined;
   readonly header?: ReactNode;
-  // The Dailies quest's days, for its recurring steps' streaks.
+  // The Dailies quest's days, for its recurring tasks' streaks.
   readonly dailiesDays?: readonly DailiesDay[] | undefined;
 }): JSX.Element {
   const { construct } = conversation;

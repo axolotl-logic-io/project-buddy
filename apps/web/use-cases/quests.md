@@ -23,7 +23,7 @@ The user picks up the quest they were last working on.
 - **Prerequisites:** `use_case_new_quest`, with at least one Active quest.
 - **Steps:**
   - They go to Quests and choose Continue.
-- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next step when it has one: the first open step of its tasks. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
+- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next task when it has one: the first open task in its Tasks. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
 
@@ -101,10 +101,10 @@ The user starts their day in Dailies, their one ongoing quest for it.
   - They begin each new day with Start Day in the sidebar's Actions tab.
 - **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another.
 - **Variations:**
-  - A quest the user named Dailies by hand has no Start Day, recurring steps or streaks: only a quest started as Dailies offers them.
+  - A quest the user named Dailies by hand has no Start Day, recurring tasks or streaks: only a quest started as Dailies offers them.
 - **Next:**
   - `use_case_start_day`: begin a new day.
-  - [`use_case_recurring_steps`](tasks.md#use_case_recurring_steps): mark the steps to do every day.
+  - [`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks): mark the tasks to do every day.
 
 ## use_case_start_day
 
@@ -113,11 +113,11 @@ The user begins a new day in Dailies.
 - **Prerequisites:** `use_case_dailies`.
 - **Steps:**
   - The user opens the sidebar's Actions tab. Under Start Day, a line says how long ago the last day started.
-  - The user chooses Start Day. They can choose to remove all Steps and all Ideas; both options are off by default.
+  - The user chooses Start Day. They can choose to remove all tasks and all Ideas; both options are off by default.
   - The user confirms in the dialog.
-- **Outcome:** a new day is recorded with the calendar date of the user's browser. The conversation starts empty with the same construct, without a model request, and the active spell ends. Done recurring steps become open again, keeping their text, numbers and order. One-off steps stay as they are, done or open. Ideas, Progress and quest status remain. Each recurring step's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
+- **Outcome:** a new day is recorded with the calendar date of the user's browser. The conversation starts empty with the same construct, without a model request, and the active spell ends. Done recurring tasks become open again, keeping their text, numbers and order. One-off tasks stay as they are, done or open. Ideas, Progress and quest status remain. Each recurring task's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
 - **Variations:**
-  - With Remove all Steps or Remove all Ideas chosen, that list is empty in the new day.
+  - With Remove all tasks or Remove all Ideas chosen, that list is empty in the new day.
   - Before the first Start Day, the line says no day has started yet.
   - The line counts in hours for the first two days, then in days.
   - Another user's Dailies quest, or a quest not started as Dailies, can't have a day started.
@@ -130,7 +130,7 @@ The user takes back a Start Day chosen by mistake.
 
 - **Prerequisites:** `use_case_start_day`, with no message sent in the new day's conversation.
 - **Steps:** the user chooses Undo Start Day in the sidebar's Actions tab.
-- **Outcome:** the conversation from before Start Day comes back, with its messages, active spell and artwork. Steps and Ideas come back as they were before Start Day, and a step added since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
+- **Outcome:** the conversation from before Start Day comes back, with its messages, active spell and artwork. Tasks and Ideas come back as they were before Start Day, and a task added since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
 - **Variations:**
   - Once anyone sends a message in the new day's conversation, Undo Start Day is gone and the day stays.
   - Another user can't undo it.

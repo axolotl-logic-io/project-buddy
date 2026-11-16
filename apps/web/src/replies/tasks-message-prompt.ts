@@ -38,7 +38,7 @@ function lineForModel(line: TasksChangeLine): string {
       if (line.recurring) {
         return `made ${quoted(line.text)} recurring`;
       }
-      return `made ${quoted(line.text)} a one-off step`;
+      return `made ${quoted(line.text)} a one-off task`;
     default:
       return line satisfies never;
   }

@@ -24,6 +24,7 @@ import { type Database, getDb } from "@/db/client.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { tasksVersions } from "@/db/tables/tasks-versions.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { changeTaskPoints } from "@/experience/experience-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   applyTasksOperations,
@@ -32,11 +33,11 @@ import {
   TASKS,
   TASKS_CHANGE_LINE,
   TASKS_UNDO_OPERATION,
+  type Task,
   type Tasks,
   type TasksChangeLine,
   type TasksFailure,
   type TasksState,
-  type TasksStep,
   type TasksUndoOperation,
 } from "@/tasks/tasks.ts";
 
@@ -276,16 +277,23 @@ type Attempt =
       readonly reason: TasksChangeFailure;
     };
 
+// How a change is saved: how often it was tried already, the database or
+// transaction it is saved in, and whether it gains and loses the acting
+// user's ability points, as every change but a fresh day's does.
+interface SaveOptions {
+  readonly tries?: number;
+  readonly database?: Database;
+  readonly points?: boolean;
+}
+
 // Works out a change from the newest tasks and saves it on top, again from
-// the newest tasks whenever another change saved first.
+// the newest tasks whenever another change saved first. The points it gains
+// or takes back are saved with it.
 async function saveChange(
   owner: UserId,
   source: TasksChangeSource,
   attempt: (state: TasksState) => Promise<Attempt>,
-  {
-    tries = 0,
-    database = getDb(),
-  }: { readonly tries?: number; readonly database?: Database } = {},
+  { tries = 0, database = getDb(), points = true }: SaveOptions = {},
 ): Promise<TasksChangeOutcome> {
   const state = await readTasksState(owner, source.questId, database);
   if (state === undefined) {
@@ -299,7 +307,23 @@ async function saveChange(
     return { kind: "failed", reason: worked.reason, state };
   }
   const { next } = worked;
-  if (await saveVersion(owner, source, next, database)) {
+  const saved = await database.transaction(async (tx): Promise<boolean> => {
+    if (!(await saveVersion(owner, source, next, tx))) {
+      return false;
+    }
+    if (points === true) {
+      await withAppErrors("changeTasks", () =>
+        changeTaskPoints(
+          tx,
+          { user: owner, questId: source.questId },
+          state.tasks,
+          next.tasks,
+        ),
+      );
+    }
+    return true;
+  });
+  if (saved) {
     const version = next.basedOn + 1;
     return {
       kind: "changed",
@@ -326,7 +350,11 @@ async function saveChange(
       return { kind: "failed", reason: "awaiting-reply", state };
     }
   }
-  return saveChange(owner, source, attempt, { tries: tries + 1, database });
+  return saveChange(owner, source, attempt, {
+    tries: tries + 1,
+    database,
+    points,
+  });
 }
 
 function undoneAfter(state: TasksState, next: NextVersion): readonly number[] {
@@ -386,35 +414,36 @@ function changeTasks(
 }
 
 // What Start Day did to a quest's tasks: the version it saved, if it
-// changed anything, and the recurring steps as the day before ended.
+// changed anything, and the recurring tasks as the day before ended.
 interface TasksDayStart {
   readonly version?: number | undefined;
-  readonly recurring: readonly TasksStep[];
+  readonly recurring: readonly Task[];
 }
 
 // Begins a new day in a Dailies quest's tasks: reopens its done recurring
-// steps, keeping one-off steps as they are, or, with clear, removes every
-// step. Either way it is one version, which Undo can undo, and it says how
-// the recurring steps were before it.
+// tasks, keeping one-off tasks as they are, or, with clear, removes every
+// task. Either way it is one version, which Undo can undo, and it says how
+// the recurring tasks were before it. Completions keep their points, so
+// completing a recurring task again the next day gains more.
 async function startTasksDay(
   owner: UserId,
   questId: QuestId,
   database: Database,
   clear: boolean,
 ): Promise<TasksDayStart> {
-  let recurring: readonly TasksStep[] = [];
+  let recurring: readonly Task[] = [];
   const result = await saveChange(
     owner,
     { questId, author: "person" },
     (state): Promise<Attempt> => {
-      recurring = state.tasks.steps.filter((step) => step.recurring === true);
+      recurring = state.tasks.items.filter((task) => task.recurring === true);
       let operations: TasksUndoOperation[] = recurring
-        .filter((step) => step.done)
-        .map((step) => ({ op: "reopen", step: step.number }));
+        .filter((task) => task.done)
+        .map((task) => ({ op: "reopen", task: task.number }));
       if (clear) {
-        operations = state.tasks.steps.map((step) => ({
+        operations = state.tasks.items.map((task) => ({
           op: "remove",
-          step: step.number,
+          task: task.number,
         }));
       }
       const outcome = applyTasksOperations(state.tasks, operations);
@@ -426,7 +455,7 @@ async function startTasksDay(
         next: { basedOn: state.version, ...outcome },
       });
     },
-    { database },
+    { database, points: false },
   );
   if (result === undefined) {
     throw new Error("The Dailies tasks are not open to their owner");
@@ -465,12 +494,14 @@ async function readVersion(
 // version by the source's author that names it: the tasks as it would be had
 // that change not been made, keeping the changes after it (applyTasksUndo).
 // An undo can't be undone, and a change can be undone once. A supplied
-// database keeps the undo in its caller's transaction.
+// database keeps the undo in its caller's transaction. Without points, it
+// gains and takes back none, as undoing a fresh day's version, whose
+// reopened completions kept theirs.
 function undoTasksChange(
   owner: UserId,
   source: TasksChangeSource,
   version: number,
-  database: Database = getDb(),
+  { database = getDb(), points = true }: Omit<SaveOptions, "tries"> = {},
 ): Promise<TasksChangeOutcome> {
   return saveChange(
     owner,
@@ -500,7 +531,7 @@ function undoTasksChange(
         next: { basedOn: state.version, ...outcome, undoesVersion: version },
       };
     },
-    { database },
+    { database, points },
   );
 }
 

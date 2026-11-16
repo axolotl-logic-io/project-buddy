@@ -17,46 +17,46 @@ import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { streaks } from "@/dailies/dailies.ts";
 import {
-  doneSteps,
+  doneTasks,
   moveAmongOpen,
-  openSteps,
-  TASKS_STEP_TEXT,
-  TASKS_STEP_TEXT_MAX_LENGTH,
-  type TasksStep,
+  openTasks,
+  TASK_TEXT,
+  TASK_TEXT_MAX_LENGTH,
+  type Task,
 } from "@/tasks/tasks.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 
 function checkedText(text: string): { text: string } | { problem: string } {
-  const parsed = TASKS_STEP_TEXT.safeParse(text);
+  const parsed = TASK_TEXT.safeParse(text);
   if (parsed.success) {
     return { text: parsed.data };
   }
   if (text.trim() === "") {
     return { problem: TASKS_COPY.needsText };
   }
-  return { problem: TASKS_COPY.tooLong(TASKS_STEP_TEXT_MAX_LENGTH) };
+  return { problem: TASKS_COPY.tooLong(TASK_TEXT_MAX_LENGTH) };
 }
 
-const STEP_EDITOR: EditorOptions = {
+const TASK_EDITOR: EditorOptions = {
   label: TASKS_COPY.textLabel,
   save: TASKS_COPY.save,
   cancel: TASKS_COPY.cancel,
   placeholder: TASKS_COPY.addPlaceholder,
-  maxLength: TASKS_STEP_TEXT_MAX_LENGTH,
+  maxLength: TASK_TEXT_MAX_LENGTH,
   validate: checkedText,
 };
 const ADD_EDITOR: EditorOptions = {
-  ...STEP_EDITOR,
+  ...TASK_EDITOR,
   label: TASKS_COPY.addLabel,
   save: TASKS_COPY.add,
 };
 
 const NO_STREAKS: ReadonlyMap<number, number> = new Map();
 
-// A recurring step's badge in the Dailies quest: the repeat icon and its
-// streak, or the icon alone with no streak; nothing for a one-off step.
-function streakBadge(step: TasksStep, streak: number | undefined): ReactNode {
-  if (step.recurring !== true) {
+// A recurring task's badge in the Dailies quest: the repeat icon and its
+// streak, or the icon alone with no streak; nothing for a one-off task.
+function streakBadge(task: Task, streak: number | undefined): ReactNode {
+  if (task.recurring !== true) {
     return null;
   }
   if (streak === undefined) {
@@ -76,11 +76,11 @@ function streakBadge(step: TasksStep, streak: number | undefined): ReactNode {
   );
 }
 
-// One step's row. In the Dailies quest (dailies), its menu makes it
-// recurring or one-off, and a recurring step shows its streak.
-function StepRow({
+// One task's row. In the Dailies quest (dailies), its menu makes it
+// recurring or one-off, and a recurring task shows its streak.
+function TaskRow({
   tasks,
-  step,
+  task,
   first,
   last,
   disabled,
@@ -88,7 +88,7 @@ function StepRow({
   streak,
 }: {
   readonly tasks: TasksController;
-  readonly step: TasksStep;
+  readonly task: Task;
   readonly first: boolean;
   readonly last: boolean;
   readonly disabled: boolean;
@@ -97,71 +97,71 @@ function StepRow({
 }): JSX.Element {
   const { change } = tasks;
   const toggle = useCallback(async (): Promise<void> => {
-    if (step.done) {
-      await change([{ op: "reopen", step: step.number }]);
+    if (task.done) {
+      await change([{ op: "reopen", task: task.number }]);
     } else {
-      await change([{ op: "complete", step: step.number }]);
+      await change([{ op: "complete", task: task.number }]);
     }
-  }, [change, step]);
+  }, [change, task]);
   const save = useCallback(
     (text: string): Promise<boolean> =>
-      change([{ op: "change", step: step.number, text }]),
-    [change, step.number],
+      change([{ op: "change", task: task.number, text }]),
+    [change, task.number],
   );
   const move = useCallback(
     async (direction: "up" | "down"): Promise<void> => {
       const operation = moveAmongOpen(
         tasks.state.tasks,
-        step.number,
+        task.number,
         direction,
       );
       if (operation !== undefined) {
         await change([operation]);
       }
     },
-    [change, tasks.state.tasks, step.number],
+    [change, tasks.state.tasks, task.number],
   );
   const moveUp = useCallback((): Promise<void> => move("up"), [move]);
   const moveDown = useCallback((): Promise<void> => move("down"), [move]);
   const remove = useCallback(async (): Promise<void> => {
-    await change([{ op: "remove", step: step.number }]);
-  }, [change, step.number]);
-  const recurring = step.recurring === true;
+    await change([{ op: "remove", task: task.number }]);
+  }, [change, task.number]);
+  const recurring = task.recurring === true;
   const recur = useCallback(async (): Promise<void> => {
-    await change([{ op: "recur", step: step.number, recurring: !recurring }]);
-  }, [change, step.number, recurring]);
-  let recurLabel = TASKS_COPY.makeRecurring(step.text);
+    await change([{ op: "recur", task: task.number, recurring: !recurring }]);
+  }, [change, task.number, recurring]);
+  let recurLabel = TASKS_COPY.makeRecurring(task.text);
   let recurText: string = TASKS_COPY.makeRecurringLabel;
   if (recurring) {
-    recurLabel = TASKS_COPY.makeOneOff(step.text);
+    recurLabel = TASKS_COPY.makeOneOff(task.text);
     recurText = TASKS_COPY.makeOneOffLabel;
   }
-  let checkLabel = TASKS_COPY.checkOff(step.text);
-  if (step.done) {
-    checkLabel = TASKS_COPY.reopen(step.text);
+  let checkLabel = TASKS_COPY.checkOff(task.text);
+  if (task.done) {
+    checkLabel = TASKS_COPY.reopen(task.text);
   }
   return (
     <EditableListRow
-      id={String(step.number)}
-      text={step.text}
-      editor={STEP_EDITOR}
-      editLabel={TASKS_COPY.edit(step.text)}
-      actionsLabel={TASKS_COPY.actions(step.text)}
-      menuLabel={TASKS_COPY.stepNumber(step.number)}
+      id={String(task.number)}
+      text={task.text}
+      editor={TASK_EDITOR}
+      editLabel={TASKS_COPY.edit(task.text)}
+      actionsLabel={TASKS_COPY.actions(task.text)}
+      menuLabel={TASKS_COPY.taskNumber(task.number)}
       disabled={disabled}
-      checked={step.done}
+      checked={task.done}
       toggleLabel={checkLabel}
       onToggle={toggle}
       onSave={save}
-      badge={dailies && streakBadge(step, streak)}
+      badge={dailies && streakBadge(task, streak)}
     >
-      {!step.done && (
+      {!task.done && (
         <>
           <EditableListAction
             icon="arrow-up"
             onSelect={moveUp}
             disabled={first}
-            label={TASKS_COPY.moveUp(step.text)}
+            label={TASKS_COPY.moveUp(task.text)}
           >
             {TASKS_COPY.moveUpLabel}
           </EditableListAction>
@@ -169,7 +169,7 @@ function StepRow({
             icon="arrow-down"
             onSelect={moveDown}
             disabled={last}
-            label={TASKS_COPY.moveDown(step.text)}
+            label={TASKS_COPY.moveDown(task.text)}
           >
             {TASKS_COPY.moveDownLabel}
           </EditableListAction>
@@ -183,7 +183,7 @@ function StepRow({
       <EditableListAction
         icon="trash"
         onSelect={remove}
-        label={TASKS_COPY.remove(step.text)}
+        label={TASKS_COPY.remove(task.text)}
       >
         {TASKS_COPY.removeLabel}
       </EditableListAction>
@@ -231,23 +231,23 @@ function Feedback({ tasks }: { readonly tasks: TasksController }): JSX.Element {
   );
 }
 
-function TasksSteps(): JSX.Element | null {
+function TaskRows(): JSX.Element | null {
   const tasks = useTasks();
   const days = tasks?.days;
-  const steps = tasks?.state.tasks;
+  const current = tasks?.state.tasks;
   const streakOf = useMemo(() => {
-    if (days === undefined || steps === undefined) {
+    if (days === undefined || current === undefined) {
       return NO_STREAKS;
     }
-    return streaks(days, steps);
-  }, [days, steps]);
+    return streaks(days, current);
+  }, [days, current]);
   const add = useCallback(
     async (text: string): Promise<boolean> => {
       if (tasks === undefined) {
         return false;
       }
       return await tasks.change([
-        { op: "add", text, before: openSteps(tasks.state.tasks)[0]?.number },
+        { op: "add", text, before: openTasks(tasks.state.tasks)[0]?.number },
       ]);
     },
     [tasks],
@@ -257,21 +257,21 @@ function TasksSteps(): JSX.Element | null {
       if (tasks === undefined) {
         return false;
       }
-      const step = tasks.state.tasks.steps.find(
+      const task = tasks.state.tasks.items.find(
         (item) => String(item.number) === id,
       );
-      const before = tasks.state.tasks.steps.find(
+      const before = tasks.state.tasks.items.find(
         (item) => String(item.number) === beforeId,
       );
       if (
-        step === undefined ||
-        step.done ||
+        task === undefined ||
+        task.done ||
         (beforeId !== undefined && before === undefined)
       ) {
         return false;
       }
       return await tasks.change([
-        { op: "move", step: step.number, before: before?.number },
+        { op: "move", task: task.number, before: before?.number },
       ]);
     },
     [tasks],
@@ -280,8 +280,8 @@ function TasksSteps(): JSX.Element | null {
     return null;
   }
   const disabled = tasks.disabledNote !== undefined || tasks.pending;
-  const open = openSteps(tasks.state.tasks);
-  const done = doneSteps(tasks.state.tasks);
+  const open = openTasks(tasks.state.tasks);
+  const done = doneTasks(tasks.state.tasks);
   return (
     <div className="tasks">
       <AddListItem
@@ -290,17 +290,17 @@ function TasksSteps(): JSX.Element | null {
         disabled={disabled}
         onSave={add}
       />
-      <EditableList label={TASKS_COPY.stepsLabel} onMove={reorder}>
-        {open.map((step, index) => (
-          <StepRow
-            key={step.number}
+      <EditableList label={TASKS_COPY.tasksLabel} onMove={reorder}>
+        {open.map((task, index) => (
+          <TaskRow
+            key={task.number}
             tasks={tasks}
-            step={step}
+            task={task}
             first={index === 0}
             last={index === open.length - 1}
             disabled={disabled}
             dailies={days !== undefined}
-            streak={streakOf.get(step.number)}
+            streak={streakOf.get(task.number)}
           />
         ))}
       </EditableList>
@@ -308,16 +308,16 @@ function TasksSteps(): JSX.Element | null {
         <details className="tasks-done">
           <summary>{TASKS_COPY.done(done.length)}</summary>
           <EditableList label={TASKS_COPY.done(done.length)}>
-            {done.map((step) => (
-              <StepRow
-                key={step.number}
+            {done.map((task) => (
+              <TaskRow
+                key={task.number}
                 tasks={tasks}
-                step={step}
+                task={task}
                 first={true}
                 last={true}
                 disabled={disabled}
                 dailies={days !== undefined}
-                streak={streakOf.get(step.number)}
+                streak={streakOf.get(task.number)}
               />
             ))}
           </EditableList>
@@ -331,4 +331,4 @@ function TasksSteps(): JSX.Element | null {
   );
 }
 
-export { TasksSteps };
+export { TaskRows };

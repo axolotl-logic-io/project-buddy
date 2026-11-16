@@ -251,7 +251,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Spell",
     aliases: ["spell", "spells"],
     definition:
-      "A setting turned on in a quest conversation to choose where messages sent afterward are saved. Tasks saves them as steps; Brainstorm saves them as Ideas. A person can also make spells with their own names and written replies.",
+      "A setting turned on in a quest conversation to choose where messages sent afterward are saved. Tasks saves them as tasks; Brainstorm saves them as Ideas. A person can also make spells with their own names and written replies.",
   },
   {
     term: "Cast",
@@ -320,7 +320,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Reply",
     aliases: ["reply", "replies"],
     definition:
-      "The construct's response to a message. It may include text and actions such as saving a step. In the current site, replies follow the commands and spell settings rather than being written by an outside AI service.",
+      "The construct's response to a message. It may include text and actions such as saving a task. In the current site, replies follow the commands and spell settings rather than being written by an outside AI service.",
   },
   {
     term: "Quest",
@@ -360,21 +360,21 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Start Day",
     aliases: ["Start Day", "Undo Start Day", "starting the day"],
     definition:
-      "A control in Dailies for beginning a new day, after confirmation. It sets the old conversation aside, opens an empty one and marks finished daily steps open again. Other steps, Ideas and Progress stay as they are, unless the person chooses to remove steps or Ideas. A line under it says how long ago the last day started. Until someone sends a message, Undo Start Day brings everything back.",
+      "A control in Dailies for beginning a new day, after confirmation. It sets the old conversation aside, opens an empty one and marks finished daily tasks open again. Other tasks, Ideas and Progress stay as they are, unless the person chooses to remove tasks or Ideas. A line under it says how long ago the last day started. Until someone sends a message, Undo Start Day brings everything back.",
   },
   {
-    term: "Recurring step",
-    heading: "Recurring step",
-    aliases: ["recurring step", "recurring steps", "Make recurring"],
+    term: "Recurring task",
+    heading: "Recurring task",
+    aliases: ["recurring task", "recurring tasks", "Make recurring"],
     definition:
-      "A step in Dailies that the person means to do every day. Each new day marks it open again and remembers whether it was done.",
+      "A task in Dailies that the person means to do every day. Each new day marks it open again and remembers whether it was done.",
   },
   {
     term: "Streak",
     heading: "Streak",
     aliases: ["streak", "streaks"],
     definition:
-      "How many days in a row the person has done a recurring step in Dailies. A day the step wasn't done ends it, and so does a day with no Start Day.",
+      "How many days in a row the person has done a recurring task in Dailies. A day the task wasn't done ends it, and so does a day with no Start Day.",
   },
   {
     term: "Gap",
@@ -431,11 +431,11 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "The quest's list of recorded milestones, shown under Progress. It celebrates finished work. In Dailies, a grid above it shows the last week of each daily step.",
   },
   {
-    term: "Next step",
-    heading: "Next step",
-    aliases: ["next step"],
+    term: "Next task",
+    heading: "Next task",
+    aliases: ["next task"],
     definition:
-      "The first unfinished step in a quest's Tasks list: the small piece of work the person plans to do next.",
+      "The first unfinished task in a quest's Tasks list: the small piece of work the person plans to do next.",
   },
   {
     term: "Active spell",
@@ -459,6 +459,27 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "A short piece of text saved to an Active quest from the site panel, without opening that quest. Quick Notes are listed newest first in the quest's Quick Notes section. The construct does not read them.",
   },
   {
+    term: "Experience",
+    heading: "Experience",
+    aliases: ["experience"],
+    definition:
+      "One number for everything a person has done across their quests: the points from each of their abilities added together, with some abilities worth more than others. It counts only finished actions, never open work, days or streaks. It decides their circle, and their Profile shows it.",
+  },
+  {
+    term: "Ability",
+    heading: "Ability",
+    aliases: ["ability", "abilities"],
+    definition:
+      "One kind of action that earns a person a point each time: adding tasks, ideating (adding ideas), saving Quick Notes, completing tasks and completing quests. Adding a task, idea or Quick Note is worth 1 experience, completing a task 3 and completing a quest 9. Reopening a completed task or quest takes its point back.",
+  },
+  {
+    term: "Circle",
+    heading: "Circle",
+    aliases: ["circle", "circles"],
+    definition:
+      "A person's level, set by their experience. Each circle needs a little more experience than the one before. Some circles bring a new title: Initiate, Apprentice, Practitioner, Expert, Master, Pathfinder, Grand Master, Legendary and Transcendent.",
+  },
+  {
     term: "Quest sidebar actions",
     heading: "Quest sidebar actions",
     aliases: ["quest sidebar actions", "Actions tab", "side menu"],
@@ -470,14 +491,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Tasks",
     aliases: ["Tasks"],
     definition:
-      "A quest's ordered list of work still to do. People can add steps, edit them, check them off, move them or remove them. Changes can be undone. Tasks does not set deadlines or count days.",
+      "A quest's ordered list of work still to do. People can add tasks, edit them, check them off, move them or remove them. Changes can be undone. Tasks does not set deadlines or count days.",
   },
   {
-    term: "Step",
-    heading: "Step",
-    aliases: ["step", "steps"],
+    term: "Task",
+    heading: "Task",
+    aliases: ["task", "tasks"],
     definition:
-      "One short line of work in Tasks, marked unfinished or done. Its number, such as #3, identifies it within the quest. Finishing a step does not automatically add a milestone to Progress.",
+      "One short line of work in Tasks, marked unfinished or done. Its number, such as #3, identifies it within the quest. Finishing a task does not automatically add a milestone to Progress.",
   },
   {
     term: "Tasks change",
@@ -529,11 +550,18 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "Project Buddy added to a phone's Home Screen so it opens in its own window. It remains the same website and does not keep an offline copy.",
   },
   {
+    term: "Profile",
+    heading: "Profile",
+    aliases: ["Profile"],
+    definition:
+      "A person's own page, where they change their saved name and see their experience, circle and points in each ability.",
+  },
+  {
     term: "Settings",
     heading: "Settings",
     aliases: ["Settings"],
     definition:
-      "The page where a person changes their saved name, appearance choices and sign-in security.",
+      "The page where a person changes their appearance choices and sign-in security.",
   },
   {
     term: "User",

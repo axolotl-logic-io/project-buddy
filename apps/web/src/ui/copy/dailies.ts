@@ -1,5 +1,5 @@
 // The text of the Dailies day grid, at the top of the Dailies quest's
-// Progress section: each recurring step's last seven calendar days.
+// Progress section: each recurring task's last seven calendar days.
 
 import type { DayMark } from "@/dailies/dailies.ts";
 
@@ -12,11 +12,11 @@ const MARK_TEXT: Readonly<Record<DayMark, string>> = {
 };
 
 export const DAY_GRID_COPY = {
-  heading: "Recurring steps",
+  heading: "Recurring tasks",
   noDays:
-    "Start Day begins counting. Each day, the grid shows which recurring steps you did.",
+    "Start Day begins counting. Each day, the grid shows which recurring tasks you did.",
   noRecurring:
-    "No recurring steps yet. To track a step every day, open its menu in Tasks and choose Make recurring.",
+    "No recurring tasks yet. To track a task every day, open its menu in Tasks and choose Make recurring.",
   legend:
     "A filled square is done, an empty one is not, and a dashed one is a gap: a day you didn’t start, which ends a streak.",
   // One day's square, for screen readers: the date and the mark.

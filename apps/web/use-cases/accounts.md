@@ -94,7 +94,7 @@ The user tells the construct what to call them, so a construct that says `{{name
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
-  - On Settings, under Profile, under "Your name", the user types their name, such as "Mabel", and saves.
+  - On Profile, under "Your name", the user types their name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows their name, also after a reload.
   - The user starts a quest with a construct of their own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](constructs.md#use_case_edit_construct)).
 - **Outcome:** their name is saved trimmed. Spell reply templates replace `{{name}}` with that acting user’s name, or "the user" when unset. Another user’s saved name is never used. The field’s hint explains the placeholder.
@@ -132,4 +132,4 @@ The user signs out of every browser and device at once, for example after signin
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where the user wants to be.
 
-Signup through Login asks for Name after the emailed verification link is opened. A name is required, trimmed, at most 60 characters, one line, and contains no braces. Invalid or blank names create no account and leave verification available for correction. Existing accounts continue signing in without a name field and keep their saved name. Settings refuses to clear a saved name.
+Signup through Login asks for Name after the emailed verification link is opened. A name is required, trimmed, at most 60 characters, one line, and contains no braces. Invalid or blank names create no account and leave verification available for correction. Existing accounts continue signing in without a name field and keep their saved name. Profile refuses to clear a saved name.

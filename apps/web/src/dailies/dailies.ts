@@ -1,7 +1,7 @@
-// The days of a Dailies quest and the streaks of its recurring steps. Start
+// The days of a Dailies quest and the streaks of its recurring tasks. Start
 // Day begins a day, dated by the user's own calendar, and ends the one
-// before it, recording whether each recurring step was done. A streak is a
-// recurring step's run of consecutive calendar days with it done; a
+// before it, recording whether each recurring task was done. A streak is a
+// recurring task's run of consecutive calendar days with it done; a
 // calendar day on which no day was started is a gap, and a gap ends every
 // streak. It imports nothing from the server, because the browser shows the
 // streaks of the tasks as they change.
@@ -26,23 +26,23 @@ const LOCAL_DATE = z
 
 type LocalDate = z.infer<typeof LOCAL_DATE>;
 
-// A recurring step as a day ended: its number and text then, and whether it
+// A recurring task as a day ended: its number and text then, and whether it
 // was done.
-const DAY_STEP = z.object({
+const DAY_TASK = z.object({
   number: z.number().int().positive(),
   text: z.string(),
   done: z.boolean(),
 });
 
-type DayStep = z.infer<typeof DAY_STEP>;
+type DayTask = z.infer<typeof DAY_TASK>;
 
 // A started day: its date and when it started, and, once the next Start Day
-// has ended it, its recurring steps as they ended. The newest day has no
-// steps while it is still going.
+// has ended it, its recurring tasks as they ended. The newest day has no
+// tasks while it is still going.
 interface DailiesDay {
   readonly date: LocalDate;
   readonly startedAt: Date;
-  readonly steps?: readonly DayStep[] | undefined;
+  readonly tasks?: readonly DayTask[] | undefined;
 }
 
 // A Dailies quest's days, oldest first, and whether the newest Start Day can
@@ -52,12 +52,12 @@ interface DailiesRecord {
   readonly undoable: boolean;
 }
 
-// What a grid cell says about a recurring step on a calendar date: done,
+// What a grid cell says about a recurring task on a calendar date: done,
 // not done, not done yet on the day still going, not recurring that day, or
 // a gap, with no day started on that date.
 type DayMark = "done" | "missed" | "pending" | "untracked" | "gap";
 
-// The newest calendar dates, oldest first, and each recurring step's mark on
+// The newest calendar dates, oldest first, and each recurring task's mark on
 // each of them.
 interface DayGrid {
   readonly dates: readonly LocalDate[];
@@ -107,7 +107,7 @@ function todayHere(now: Date): LocalDate {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-// A step's mark on date, across every day started on that date: done when
+// A task's mark on date, across every day started on that date: done when
 // any of them has it done; else pending when the day still going has it
 // open; else missed when one ended without it; else untracked. A date on
 // which no day was started is a gap.
@@ -139,30 +139,30 @@ function markOf(
   tasks: Tasks,
   number: number,
 ): Exclude<DayMark, "gap"> {
-  if (day.steps === undefined) {
-    const step = tasks.steps.find((each) => each.number === number);
-    if (step?.recurring !== true) {
+  if (day.tasks === undefined) {
+    const task = tasks.items.find((each) => each.number === number);
+    if (task?.recurring !== true) {
       return "untracked";
     }
-    if (step.done) {
+    if (task.done) {
       return "done";
     }
     return "pending";
   }
-  const step = day.steps.find((each) => each.number === number);
-  if (step === undefined) {
+  const task = day.tasks.find((each) => each.number === number);
+  if (task === undefined) {
     return "untracked";
   }
-  if (step.done) {
+  if (task.done) {
     return "done";
   }
   return "missed";
 }
 
-// Each recurring step's streak, by its number: how many consecutive
+// Each recurring task's streak, by its number: how many consecutive
 // calendar days, up to the newest day's date, it was done. The newest day
-// counts once the step is done; until then the streak runs to the day
-// before. A gap, or a day that ended without the step, ends it. Steps with
+// counts once the task is done; until then the streak runs to the day
+// before. A gap, or a day that ended without the task, ends it. Tasks with
 // no streak are left out.
 function streaks(
   days: readonly DailiesDay[],
@@ -173,25 +173,25 @@ function streaks(
   if (newest === undefined) {
     return found;
   }
-  for (const step of tasks.steps.filter((each) => each.recurring === true)) {
+  for (const task of tasks.items.filter((each) => each.recurring === true)) {
     let count = 0;
-    if (doneOn(days, tasks, step.number, newest.date) === "done") {
+    if (doneOn(days, tasks, task.number, newest.date) === "done") {
       count = 1;
     }
     let date = addDays(newest.date, -1);
-    while (doneOn(days, tasks, step.number, date) === "done") {
+    while (doneOn(days, tasks, task.number, date) === "done") {
       count += 1;
       date = addDays(date, -1);
     }
     if (count > 0) {
-      found.set(step.number, count);
+      found.set(task.number, count);
     }
   }
   return found;
 }
 
 // At most count calendar dates, up to the newest day's date and from the
-// first day's at the earliest, and each recurring step's mark on each.
+// first day's at the earliest, and each recurring task's mark on each.
 function dayGrid(
   days: readonly DailiesDay[],
   tasks: Tasks,
@@ -210,15 +210,15 @@ function dayGrid(
   }
   return {
     dates,
-    rows: tasks.steps
-      .filter((step) => step.recurring === true)
-      .map((step) => ({
-        number: step.number,
-        text: step.text,
-        marks: dates.map((each) => doneOn(days, tasks, step.number, each)),
+    rows: tasks.items
+      .filter((task) => task.recurring === true)
+      .map((task) => ({
+        number: task.number,
+        text: task.text,
+        marks: dates.map((each) => doneOn(days, tasks, task.number, each)),
       })),
   };
 }
 
-export type { DailiesDay, DailiesRecord, DayGrid, DayMark, DayStep, LocalDate };
-export { DAY_STEP, dayDate, dayGrid, LOCAL_DATE, streaks, todayHere };
+export type { DailiesDay, DailiesRecord, DayGrid, DayMark, DayTask, LocalDate };
+export { DAY_TASK, dayDate, dayGrid, LOCAL_DATE, streaks, todayHere };

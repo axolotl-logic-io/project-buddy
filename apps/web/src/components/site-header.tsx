@@ -7,6 +7,7 @@ import { QuickNote } from "@/components/quick-note.tsx";
 import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
+import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -98,6 +99,9 @@ function AccountLinks(): JSX.Element {
       </p>
       <ul aria-labelledby={YOU_LABEL_ID} className="flex flex-col">
         <li>
+          <PanelLink href="/profile">{PROFILE_COPY.headerLink}</PanelLink>
+        </li>
+        <li>
           <PanelLink href="/settings">{SETTINGS_COPY.headerLink}</PanelLink>
         </li>
       </ul>
@@ -113,13 +117,16 @@ const VISITOR_PANEL: JSX.Element = <SitePanel links={null} />;
 // site panel's button starts it, on the side the panel opens, and the
 // brand, a compass medallion and the site's name, leads back to Quests. On a
 // phone the medallion alone shows, and the name stays its accessible name.
-// A page with a trail adds the trail band under the rim; the bar scrolls
+// A signed-in user's ring of progress toward their next circle ends the
+// bar, on its right. A page with a trail adds the trail band under the rim; the bar scrolls
 // away and the band stays pinned.
 function SiteHeader({
   panel = VISITOR_PANEL,
+  ring,
   trail,
 }: {
   readonly panel?: ReactNode;
+  readonly ring?: ReactNode;
   readonly trail?: ReactNode;
 }): JSX.Element {
   return (
@@ -132,6 +139,7 @@ function SiteHeader({
         </span>
         <span className="hud-name">{SITE_COPY.name}</span>
       </Link>
+      {ring}
       {trail}
     </header>
   );

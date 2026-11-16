@@ -28,6 +28,7 @@ const WHOLE_COMMANDS: ReadonlySet<string> = new Set([
   "/tasks",
   "/brainstorm",
   "/stop",
+  "/exp",
   "/undo",
   "/done",
   "/complete",

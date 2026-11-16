@@ -15,6 +15,12 @@ import { tabForward } from "../../components/keyboard-test-kit.ts";
 import { openPanel } from "../../components/site-panel-test-kit.ts";
 import { inSiteFrame } from "../site-frame-test-kit.tsx";
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../../experience/experience-store-test-kit.ts"),
+);
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../../auth/current-user-test-kit.ts"),

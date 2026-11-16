@@ -107,13 +107,13 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Local construct engine
 
-The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look` and `cast <spell id>`. The conversation UI, streamed replies, tool parts, storage and access checks use the existing harness. See [local construct behavior and limits](docs/local-constructs.md).
+The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look`, `exp` and `cast <spell id>`. The conversation UI, streamed replies, tool parts, storage and access checks use the existing harness. See [local construct behavior and limits](docs/local-constructs.md).
 
 ### Quests and conversations
 
 Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Tasks, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/multi-user-quests.md). Dailies continues the same quest each day. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
 
-Each starting point assigns the construct for its quest's conversation. Workshop at `/workshop` is the single collection for built-in and private constructs and spells. Settings at `/settings` holds profile, appearance and security.
+Each starting point assigns the construct for its quest's conversation. Workshop at `/workshop` is the single collection for built-in and private constructs and spells. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 
 Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, the construct, and the quest's Tasks and recent milestones. Constructs always run the local command engine; there is no model mode setting. Tests exercise local commands and tool handlers directly.
 

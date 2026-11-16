@@ -60,7 +60,7 @@ test("quest context includes the tasks while unrelated requests take precedence"
     quest: {
       name: "Birdhouse",
       tasks: {
-        steps: [{ number: 1, text: "Assemble the roof.", done: false }],
+        items: [{ number: 1, text: "Assemble the roof.", done: false }],
         nextNumber: 2,
       },
       milestones: [],
@@ -79,12 +79,12 @@ test("shared instructions prohibit assumed pronouns", () => {
   );
 });
 
-test("tasks rules use the saved step numbers", () => {
+test("tasks rules use the saved task numbers", () => {
   const prompt = contents(CONTEXT).join("\n");
   expect(prompt).toContain(
-    "Name a step by its number in the tasks, such as #3",
+    "Name a task by its number in the tasks, such as #3",
   );
   expect(prompt).toContain(
-    "Never number the task list's steps yourself or restate the tasks as a list",
+    "Never number the tasks yourself or restate the tasks as a list",
   );
 });

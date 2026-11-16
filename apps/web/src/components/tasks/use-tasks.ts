@@ -1,6 +1,6 @@
 // The tasks controller: one quest's tasks as the page shows it, and the
 // changes the user can make to it from here, without the construct. A page
-// makes one with useTasksController and gives it to the task list's controls inside
+// makes one with useTasksController and gives it to the Tasks controls inside
 // it through TasksContext; they read it with useTasks.
 
 import {
@@ -33,7 +33,7 @@ interface TasksActions {
 // What the last change from these controls said: a line to show, and the
 // version it saved, which Undo undoes. failed is true when the change
 // could not be saved or the quest is gone, rather than being refused with
-// a reason such as a missing step.
+// a reason such as a missing task.
 interface TasksFeedback {
   readonly text: string;
   readonly undoVersion?: number | undefined;
@@ -56,7 +56,7 @@ interface TasksController {
   // The id of the adventure's newest tasks card message, the one that shows
   // the live tasks; undefined outside an adventure or without one.
   readonly newestCardId?: string | undefined;
-  // The days of the Dailies quest, oldest first, for its recurring steps
+  // The days of the Dailies quest, oldest first, for its recurring tasks
   // and their streaks; undefined in any other quest.
   readonly days?: readonly DailiesDay[] | undefined;
   readonly change: (operations: readonly TasksOperation[]) => Promise<boolean>;
@@ -87,7 +87,7 @@ const TasksContext = createContext<TasksController | undefined>(undefined);
 
 const NO_TASKS: TasksState = {
   version: 0,
-  tasks: { steps: [], nextNumber: 1 },
+  tasks: { items: [], nextNumber: 1 },
   undone: [],
 };
 

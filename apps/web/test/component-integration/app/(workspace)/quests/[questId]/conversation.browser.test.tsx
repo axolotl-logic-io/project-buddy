@@ -112,6 +112,11 @@ vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
 vi.mock("@/quests/store.ts", () => ({ getQuest: store.getQuest }));
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../../../../experience/experience-store-test-kit.ts"),
+);
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
 }));
@@ -135,8 +140,8 @@ const SCREENS = [
 const HOURS_AGO = 5;
 const HOUR_MS = 3_600_000;
 const STARTED_MS_AGO: number = HOURS_AGO * HOUR_MS + HOUR_MS / 2;
-// The Dailies quest's recurring step and its streak since the gap, and a
-// one-off step.
+// The Dailies quest's recurring task and its streak since the gap, and a
+// one-off task.
 const STRETCH = "Stretch";
 const VET = "Book the vet";
 const STRETCH_STREAK = 3;
@@ -615,7 +620,7 @@ describe("use_case_dailies", () => {
     await expect
       .element(
         dialog.getByRole("checkbox", {
-          name: QUEST_CONVERSATION_COPY.clearSteps,
+          name: QUEST_CONVERSATION_COPY.clearTasks,
         }),
       )
       .not.toBeChecked();
@@ -695,13 +700,13 @@ describe("use_case_dailies", () => {
 });
 
 describe("use_case_daily_streaks", () => {
-  test("a recurring step shows its streak, and Progress shows its days with the gap", async () => {
+  test("a recurring task shows its streak, and Progress shows its days with the gap", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     readTasksState.mockResolvedValueOnce({
       version: 1,
       tasks: {
-        steps: [
+        items: [
           { number: 1, text: STRETCH, done: true, recurring: true },
           { number: 2, text: VET, done: false },
         ],
@@ -714,17 +719,17 @@ describe("use_case_daily_streaks", () => {
         {
           date: "2026-11-10",
           startedAt: new Date("2026-11-10T08:00:00Z"),
-          steps: [{ number: 1, text: STRETCH, done: true }],
+          tasks: [{ number: 1, text: STRETCH, done: true }],
         },
         {
           date: "2026-11-12",
           startedAt: new Date("2026-11-12T08:00:00Z"),
-          steps: [{ number: 1, text: STRETCH, done: true }],
+          tasks: [{ number: 1, text: STRETCH, done: true }],
         },
         {
           date: "2026-11-13",
           startedAt: new Date("2026-11-13T08:00:00Z"),
-          steps: [{ number: 1, text: STRETCH, done: true }],
+          tasks: [{ number: 1, text: STRETCH, done: true }],
         },
         { date: "2026-11-14", startedAt: new Date("2026-11-14T08:00:00Z") },
       ],
