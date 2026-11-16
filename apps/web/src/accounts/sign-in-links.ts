@@ -37,6 +37,9 @@ const SIGN_IN_LINK_LIFETIME_MINUTES = 30;
 interface SignInLinkRequest {
   readonly email: string;
   readonly requestHeaders: Headers;
+  // A local path (LOCAL_PATH) that continuing from the link opens instead
+  // of the home page, such as the timer link that sent them to sign in.
+  readonly destination?: string | undefined;
 }
 
 // A new link for the user, saved as its token's hash, which works until
@@ -82,7 +85,7 @@ function unsentProblem(error: unknown): EmailProblem {
 async function newSignInLinkUrl(
   user: SessionUser["id"],
   origin: string,
-  destination?: string,
+  destination?: string | undefined,
 ): Promise<{ url: URL; tokenHash: string }> {
   const { token, tokenHash } = await createSignInLink(user, new Date());
   const url = new URL(SIGN_IN_LINK_PATH, origin);
@@ -93,9 +96,18 @@ async function newSignInLinkUrl(
   return { url, tokenHash };
 }
 
-// Sends a normal, reusable sign-in link, reporting delivery failures to the caller.
-async function sendSignInLink(user: User, origin: string): Promise<void> {
-  const { url, tokenHash } = await newSignInLinkUrl(user.id, origin);
+// Sends a normal, reusable sign-in link, which opens destination once
+// continued, if given, reporting delivery failures to the caller.
+async function sendSignInLink(
+  user: User,
+  origin: string,
+  destination: string | undefined,
+): Promise<void> {
+  const { url, tokenHash } = await newSignInLinkUrl(
+    user.id,
+    origin,
+    destination,
+  );
   await sendEmail(
     signInLinkEmail({
       to: user.email,
@@ -115,7 +127,7 @@ async function emailSignInLink(
     if (user === undefined) {
       await sendSignUpLink(request.email, origin);
     } else {
-      await sendSignInLink(user, origin);
+      await sendSignInLink(user, origin, request.destination);
     }
   } catch (error) {
     logEmailFailure(unsentProblem(error), "send sign-in link", error);

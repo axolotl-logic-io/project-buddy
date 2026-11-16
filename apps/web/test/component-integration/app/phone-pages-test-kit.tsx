@@ -19,6 +19,9 @@ import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
+import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
+import TimerLayout from "@/app/(workspace)/timer/layout.tsx";
+import TimerSetupPage from "@/app/(workspace)/timer/page.tsx";
 import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
@@ -41,6 +44,7 @@ import { findSpell, getOwnSpell } from "@/spells/own-spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -263,7 +267,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
 
   { name: "the Credits page", render: signedOut(CreditsPage) },
-  { name: "the sign-in page", render: signedOut(LoginPage) },
+  {
+    name: "the sign-in page",
+    render: async (): Promise<JSX.Element> => {
+      signOut();
+      return await LoginPage({
+        params: NO_PARAMS,
+        searchParams: NO_PARAMS,
+      });
+    },
+  },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
@@ -305,6 +318,30 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await page.getByRole("button", { name: QUEST_COPY.rename }).click();
       await vi.waitFor(() =>
         page.getByRole("textbox", { name: QUEST_COPY.titleLabel }).element(),
+      );
+    },
+  },
+  {
+    name: "the Timer's setup",
+    path: ["timer"],
+    render: workspacePage(noData, async () =>
+      TimerLayout({ children: await TimerSetupPage() }),
+    ),
+  },
+  {
+    name: "a running timer",
+    path: ["timer", "120", "60", "0"],
+    render: workspacePage(noData, async () =>
+      TimerLayout({
+        children: await TimerPage({
+          params: Promise.resolve({ work: "120", break: "60", start: "0" }),
+          searchParams: NO_PARAMS,
+        }),
+      }),
+    ),
+    open: async (): Promise<void> => {
+      await vi.waitFor(() =>
+        page.getByRole("timer", { name: TIMER_COPY.remainingLabel }).element(),
       );
     },
   },

@@ -17,9 +17,13 @@
 // invitation itself, which the invitee alone may accept or decline.
 //
 // Own prompts (constructs and spells) and image generation claims belong to
-// their user alone. A conversation keeps a snapshot of its construct and
-// its active spell, so a member sees the snapshot of an own construct or
-// spell used in the quest, never the definition itself.
+// their user alone. So does a timer presence report; the one read across
+// users is how many other accounts follow a schedule, a count that names no
+// one and reaches no quest (src/timer/presence-store.ts).
+//
+// A conversation keeps a snapshot of its construct and its active spell, so
+// a member sees the snapshot of an own construct or spell used in the
+// quest, never the definition itself.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
@@ -36,6 +40,7 @@ import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
 import { tasksVersions } from "@/db/tables/tasks-versions.ts";
+import { timerPresence } from "@/db/tables/timer-presence.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
 // A `quests` row of owner's: one owner made, which only they may use as
@@ -184,6 +189,11 @@ function replyRunOpenTo(user: UserId): SQL {
   );
 }
 
+// A `timer_presence` row of owner's: their own report.
+function timerPresenceOwnedBy(owner: UserId): SQL {
+  return eq(timerPresence.userId, owner);
+}
+
 function replyRunOwnedBy(user: UserId): SQL {
   return and(replyRunOpenTo(user), eq(replyRuns.userId, user)) ?? sql`false`;
 }
@@ -209,4 +219,5 @@ export {
   replyRunOwnedBy,
   spellResultOpenTo,
   tasksVersionOpenTo,
+  timerPresenceOwnedBy,
 };

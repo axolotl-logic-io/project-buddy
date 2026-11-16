@@ -428,6 +428,34 @@ An account a quest invitation created, before its user completes sign-up. Its us
 
 An account whose user has completed sign-up: every account made through Sign up, and every invited account once its user has given a name. Completing sign-up keeps the account and its pending invitations.
 
+## Timer
+
+The Timer is a destination of its own in the site menu's Places. It belongs to no quest, and quest membership and timer participation stay separate. See [Timer](docs/timer.md).
+
+### Timer
+
+A repeating work and break timer: a large ring that fills over the current period, the period's name and the time left. It needs the normal signed-in session.
+
+- **Avoid:** "Pomodoro" as the feature's name, "stopwatch", "focus session".
+
+### Timer schedule
+
+A work length, a break length and a start instant. Work and break repeat from the start forever, and the current period follows from the time elapsed, never from counted ticks. A schedule never changes once made; starting again makes a new one.
+
+### Timer link
+
+The address of a timer schedule: `/timer/WORK/BREAK/START`, where `WORK` and `BREAK` are preset minutes and `START` is milliseconds since the Unix epoch. It holds nothing else, so sharing it reaches no quest or account. Signing in from a timer link leads back to it.
+
+### Global timer
+
+The timer schedule of the chosen lengths that starts at the Unix epoch, which everyone who chooses Join global timer with those lengths shares.
+
+### Others following
+
+How many other signed-in accounts had the same timer schedule open in the last 2 minutes. An open timer reports every minute. It counts each account once and names no one; it is not a live attendance list.
+
+- **Avoid:** "watching now", "online", "attendees".
+
 ## API access (planned)
 
 These terms describe planned API access, tracked in [API access requirements](https://github.com/axolotl-logic-io/project-buddy/issues/684). They do not mean the API or connection management is already available.

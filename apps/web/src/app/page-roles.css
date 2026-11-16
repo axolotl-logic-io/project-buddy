@@ -924,6 +924,33 @@
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
 
+  /* A running timer's ring, as large as the screen allows beside the
+     header and the details under it, with the phase and countdown inside.
+     It reserves its size before the browser's clock is read. */
+  .timer-face {
+    @apply relative grid aspect-square w-[min(100%,60dvh,32rem)] place-items-center;
+  }
+
+  .timer-ring {
+    @apply absolute inset-0 size-full;
+  }
+
+  .timer-readout {
+    @apply relative flex flex-col items-center gap-1 text-center;
+  }
+
+  .timer-phase {
+    @apply font-heading font-semibold text-page-heading-phone sm:text-page-heading;
+  }
+
+  .timer-countdown {
+    @apply font-heading font-semibold text-site-title tabular-nums tracking-tight sm:text-site-title-wide;
+  }
+
+  .timer-details {
+    @apply flex w-full max-w-xl flex-col gap-3;
+  }
+
   .quest-workspace > .workspace-content {
     @apply rounded-box border border-line bg-surface;
   }

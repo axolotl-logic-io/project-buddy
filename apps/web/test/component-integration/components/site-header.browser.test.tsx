@@ -34,6 +34,7 @@ import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import {
@@ -75,6 +76,7 @@ const PHONE_LAYOUT_BELOW_PX = 512;
 const PLACES = [
   QUESTS_COPY.headerLink,
   WORKSHOP_COPY.heading,
+  TIMER_COPY.menuLink,
   RETIREMENT_COPY.heading,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink] as const;

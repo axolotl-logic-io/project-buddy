@@ -56,6 +56,7 @@ Each area's cases are in their own file:
 - [Tasks](tasks.md)
 - [Ideas](ideas.md)
 - [Quick Notes](quick-notes.md)
+- [Timer](timer.md): a repeating work and break timer, shared by its link.
 - [Command line](command-line.md): work with quests through the `project-buddy` command.
 - [Constructs](constructs.md)
 - [Workshop](workshop.md): create and edit private constructs and spells.
