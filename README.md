@@ -182,3 +182,41 @@ See [installed app](docs/notifications.md) for Home Screen installation.
 ## Saved images
 
 The composer accepts text only. Images already saved in a conversation stay readable by the quest's owner. See [saved images](docs/images.md) and [image storage](docs/Site-Operations.md#saved-conversation-images).
+
+## Export copy for a writer
+
+From `apps/web/`, run `npm run copy:export -- copy.csv`. Import the resulting
+UTF-8 CSV into Google Sheets. The same command writes `copy-definitions.csv` beside
+it. Import this second CSV as a separate sheet for the writer. An optional first
+path selects the copy file; an optional second path selects the definitions file:
+`npm run copy:export -- copy.csv copy-definitions.csv`.
+
+The script reads all `*_COPY` objects in `src/ui/copy/` without starting the app
+and exports only fields with more than three words.
+Each text field gets an Identifier, Needed Word Count (Approx), Description and empty
+Copy cell. Nested identifiers use dots; array entries use numbers starting at 1.
+Functions and lookups with multiple wordings get separate `.variant1`, `.variant2`
+rows in source order. Shared text appears under each field that uses it.
+
+Descriptions explain where each piece of text appears, what has happened, what it
+needs to say and what the person can do next, using everyday language,
+without showing the original wording. Templates also list the `{{placeholders}}` to
+preserve. Maintain these writer briefs in `apps/web/scripts/copy-briefs.ts`; the export
+stops if an included field has no brief. Source wording is omitted even for templates
+so the writer can create new copy without seeing it.
+Counts split text on whitespace, counting each interpolation as one word, including
+interpolations containing expressions or shared copy. Page titles include their page
+text, separator and a one-word site-name placeholder. The command prints total fields
+and approximate words for the exported fields. These totals cover the Copy objects,
+including their nested values, rather than text elsewhere in the app. Unsupported
+expressions stop the export instead of silently skipping a field.
+
+The definitions sheet has Term and Definition columns. It explains glossary terms
+found in the copy identifiers and descriptions, including plural forms and screen
+names. It also includes terms used in those explanations, so a writer does not need
+the repository docs. Definitions describe the site's purpose and how its features
+fit together, and distinguish older saved content from features available today.
+Maintain the plain-language explanations in `apps/web/scripts/copy-glossary.ts`
+when `GLOSSARY.md` changes. A new glossary section without an explanation stops
+the export. Copy descriptions never include the original sentences. Copy fields
+that can only appear in existing saved conversations remain part of the export.

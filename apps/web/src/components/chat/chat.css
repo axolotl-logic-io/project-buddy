@@ -279,10 +279,6 @@
 
   /* An unsent image's thumbnail is always 5rem tall, even from a small
      image, so every draft reads as one row of previews. */
-  .chat-image-draft {
-    block-size: 5rem;
-    max-block-size: 5rem;
-  }
 }
 
 @layer components {

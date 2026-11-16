@@ -42,5 +42,9 @@ next-env.d.ts
 # misc
 *.pem
 
+# generated writer spreadsheets
+/apps/web/copy.csv
+/apps/web/copy-definitions.csv
+
 # OS
 .DS_Store
