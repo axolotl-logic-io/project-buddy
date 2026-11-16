@@ -61,6 +61,19 @@ function copyFields(
     return `{{${expression.getText().replace(PLACEHOLDER_SPACE, "_")}}}`;
   }
 
+  function returnTexts(body: ts.Block): string[] {
+    const results: string[] = [];
+    function visit(node: ts.Node): void {
+      if (ts.isReturnStatement(node) && node.expression) {
+        results.push(...texts(node.expression));
+        return;
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(body);
+    return results;
+  }
+
   function texts(expression: ts.Expression): string[] {
     const value = unwrap(expression);
     if (ts.isIdentifier(value) && value.text === "undefined") {
@@ -89,16 +102,15 @@ function copyFields(
       if (!ts.isBlock(value.body)) {
         return texts(value.body);
       }
-      const results: string[] = [];
-      function visit(node: ts.Node): void {
-        if (ts.isReturnStatement(node) && node.expression) {
-          results.push(...texts(node.expression));
-          return;
-        }
-        ts.forEachChild(node, visit);
-      }
-      visit(value.body);
-      return results;
+      return returnTexts(value.body);
+    }
+    const functionDeclaration = declaration(value);
+    if (
+      functionDeclaration &&
+      ts.isFunctionDeclaration(functionDeclaration) &&
+      functionDeclaration.body
+    ) {
+      return returnTexts(functionDeclaration.body);
     }
     if (ts.isArrayLiteralExpression(value)) {
       return [

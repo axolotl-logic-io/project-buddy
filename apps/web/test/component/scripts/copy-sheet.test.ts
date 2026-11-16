@@ -20,6 +20,28 @@ function extract(source: string): ReturnType<typeof copyFields> {
 }
 
 describe("copy spreadsheet", (): void => {
+  test("exports each wording from a named text helper", (): void => {
+    const fields = extract(`
+      function duration(minutes: number): string {
+        if (minutes === 60) return \`\${minutes} minutes (1 hour)\`;
+        return \`\${minutes} minutes\`;
+      }
+      const TIMER_COPY = { minutes: duration };
+    `);
+    expect(fields).toEqual([
+      {
+        identifier: "TIMER_COPY.minutes.variant1",
+        words: 4,
+        placeholders: ["{{minutes}}"],
+      },
+      {
+        identifier: "TIMER_COPY.minutes.variant2",
+        words: 2,
+        placeholders: ["{{minutes}}"],
+      },
+    ]);
+  });
+
   test("hides ordinary copy and counts each interpolation once", (): void => {
     const fields = extract(`
       const EXAMPLE_COPY = {

@@ -854,6 +854,70 @@ const COPY_BRIEFS = new Map<string, string>([
     "WORKSPACES_COPY.settingsIntro",
     "On the Settings page. Introduce Settings as the place for profile, appearance and security preferences.",
   ],
+  [
+    "TIMER_COPY.runningTitle",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Title shown in the browser tab while a timer is running, including the site name.",
+  ],
+  [
+    "TIMER_COPY.intro",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that work and break periods repeat and that sharing the link lets other people follow the same schedule.",
+  ],
+  [
+    "TIMER_COPY.minutes.variant1",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. A choice in the work or break length list showing the number of minutes and that this is one hour.",
+  ],
+  [
+    "TIMER_COPY.minutes.variant2",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. A choice in the work or break length list showing the number of minutes and the matching whole number of hours.",
+  ],
+  [
+    "TIMER_COPY.startHint",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Help beside Start explaining that it begins a new schedule now, starting with work.",
+  ],
+  [
+    "TIMER_COPY.joinGlobalHint",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Help beside Join global timer explaining that everyone choosing these lengths follows the same already-running schedule, so they may join partway through work or a break.",
+  ],
+  [
+    "TIMER_COPY.scheduleName",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Name the timer schedule using the number of minutes of work and of break.",
+  ],
+  [
+    "TIMER_COPY.others",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. State how many other people had this exact timer schedule open within the supplied number of minutes. It is a recent count, not a promise that they are watching now.",
+  ],
+  [
+    "TIMER_COPY.noOthers",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that no other person had this timer schedule open within the supplied number of minutes.",
+  ],
+  [
+    "TIMER_COPY.othersLoading",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Short waiting message while the site checks how many other people recently opened this timer schedule.",
+  ],
+  [
+    "TIMER_COPY.othersUnavailable",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that the count of other people cannot be shown right now, but the timer continues.",
+  ],
+  [
+    "TIMER_COPY.shareHint",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that sharing this page’s link shares only the timer schedule and gives no access to the person’s quests or account.",
+  ],
+  [
+    "TIMER_COPY.copyFailed",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that copying the timer link failed and suggest copying it from the browser’s address bar instead.",
+  ],
+  [
+    "TIMER_COPY.invalidHeading",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Heading on the error page explaining that this address cannot be opened as a timer.",
+  ],
+  [
+    "TIMER_COPY.invalid",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that the timer link is not valid. A valid link specifies allowed lengths for work and break and a start time that has already passed.",
+  ],
+  [
+    "TIMER_COPY.invalidAction",
+    "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Button label taking the person from an invalid timer link to the form for choosing timer lengths.",
+  ],
 ]);
 
 const MARKER_HELP = new Map<string, string>([
@@ -909,6 +973,18 @@ const MARKER_HELP = new Map<string, string>([
   ],
   ["text", "the saved text of the milestone or Quick Note"],
   ["time", "when the invitation was sent"],
+  ["minutes", "the number of minutes of work or break"],
+  ["hours", "the same duration expressed in hours"],
+  ["workMinutes", "the number of minutes of work"],
+  ["breakMinutes", "the number of minutes of break"],
+  [
+    "othersCount(others)",
+    "the number of other people, with the appropriate singular or plural wording",
+  ],
+  [
+    "TIMER_PRESENCE_EXPIRY_MINUTES",
+    "how many minutes back the count of other people looks",
+  ],
 ]);
 
 // Only included fields need briefs. Fail rather than silently give the writer

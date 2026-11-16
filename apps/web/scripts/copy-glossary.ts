@@ -690,6 +690,41 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     definition:
       "Old saved information the current site no longer uses. It is not a feature the writer needs to describe to site users.",
   },
+  {
+    term: "Timer",
+    heading: "Timer",
+    aliases: ["timer", "timers"],
+    definition:
+      "The page for a repeating work and break timer. A large ring shows progress through the current period, its name and the time left. It requires signing in, is separate from quests and can be shared by its link.",
+  },
+  {
+    term: "Timer schedule",
+    heading: "Timer schedule",
+    aliases: ["timer schedule", "schedule", "schedules"],
+    definition:
+      "The length of work, the length of break and when they first began. Work and break repeat from that start time. The schedule cannot be changed; starting again creates a new schedule.",
+  },
+  {
+    term: "Timer link",
+    heading: "Timer link",
+    aliases: ["timer link", "timer links"],
+    definition:
+      "The address of one timer schedule. Sharing it lets others follow the same work and break periods. It contains no quest or account information, and gives no access to either.",
+  },
+  {
+    term: "Global timer",
+    heading: "Global timer",
+    aliases: ["global timer"],
+    definition:
+      "The shared timer schedule for everyone who chooses the same work and break lengths through Join global timer. It is already running, so someone may join partway through a period.",
+  },
+  {
+    term: "Others following",
+    heading: "Others following",
+    aliases: ["others following", "other people", "no other person"],
+    definition:
+      "The count of other signed-in accounts that had the same timer schedule open within the last two minutes. Each account counts once, and no names are shown. It is not a live attendance list.",
+  },
 ];
 
 const CAMEL_WORD = /(?<lower>[a-z])(?<upper>[A-Z])/gu;
