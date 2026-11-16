@@ -5,6 +5,7 @@
 // needs to know how the CSS is laid out. Vitest loads the CSS
 // (vitest.config.mts lets it through); the app never imports this file.
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
+import { THEME_MODES } from "@/themes/themes.ts";
 
 const STYLESHEETS = import.meta.glob<string>("./*.css", {
   base: "/src/themes",
@@ -34,9 +35,6 @@ const IMPORT =
   /@import "\.\/(?<name>[\w-]+)\.css" layer\((?<layer>[\w-]+)\);/gu;
 const DEPTH_CHANGE: Readonly<Record<string, number>> = { "{": 1, "}": -1 };
 
-// The at-rule under which contract.css sets System's colours when the
-// operating system asks for dark.
-const SYSTEM_DARK = "@media (prefers-color-scheme: dark)";
 // The at-rule that declares Streamdown's names in chat.css.
 const REFERENCE_THEME = "@theme reference";
 
@@ -102,26 +100,19 @@ function modeColors(
   return customProperties(ruleBody(within, `[${MODE_ATTRIBUTE}="${mode}"]`));
 }
 
-// The colour tokens contract.css sets under each mode, by name without "--",
-// to their values: under Light; under Dark; and under System when the
-// operating system asks for dark (the Light rule covers System otherwise).
-function modeColorMappings(): {
-  readonly light: ReadonlyMap<string, string>;
-  readonly dark: ReadonlyMap<string, string>;
-  readonly systemDark: ReadonlyMap<string, string>;
-} {
-  return {
-    light: modeColors("light"),
-    dark: modeColors("dark"),
-    systemDark: modeColors(
-      "system",
-      ruleBody(themeStylesheet("contract"), SYSTEM_DARK),
-    ),
-  };
+// Each selectable appearance's palette and decoration mappings.
+function modeColorMappings(): readonly {
+  readonly mode: string;
+  readonly mappings: ReadonlyMap<string, string>;
+}[] {
+  return THEME_MODES.map((mode) => ({ mode, mappings: modeColors(mode) }));
 }
 
-// The colour tokens: the ones contract.css sets under Light.
-const COLOR_TOKENS: readonly string[] = [...modeColors("light").keys()];
+const MODE_TOKENS: readonly string[] = [...modeColors("light").keys()];
+// Decoration is an image, not a colour that can have a contrast ratio.
+const COLOR_TOKENS: readonly string[] = MODE_TOKENS.filter(
+  (token) => token !== "page-decoration",
+);
 
 // The stylesheets themes.css imports, by name without ".css", to the layer
 // it imports each one into.
@@ -178,6 +169,7 @@ export {
   COLOR_TOKENS,
   contractReads,
   contractTokens,
+  MODE_TOKENS,
   modeColorMappings,
   streamdownThemeNames,
   THEME_STYLESHEET_NAMES,

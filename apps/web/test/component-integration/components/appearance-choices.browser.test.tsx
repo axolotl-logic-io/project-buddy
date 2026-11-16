@@ -17,7 +17,7 @@ import {
   test,
   vi,
 } from "vitest";
-import { commands, page } from "vitest/browser";
+import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
@@ -28,7 +28,7 @@ import {
   THEME_COOKIE_NAME,
   THEME_PRE_PAINT_SCRIPT,
 } from "@/themes/theme-choice.ts";
-import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
+import { DEFAULT_THEME_CHOICE, THEME_MODES, THEMES } from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
@@ -39,11 +39,13 @@ import {
 } from "../themes/theme-fonts-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
   setViewport as resize,
 } from "../viewports-test-kit.ts";
 import {
   appliedChoice,
+  choice,
   choose,
   closePanel,
   openPanel,
@@ -58,6 +60,9 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 
 // Vitest's own viewport for browser tests, restored after each test.
 const MODE_COUNT = 3;
+const TEXTURE_SIZE = 1024;
+const SWATCH_TARGET_PX = 44;
+const BACKGROUND_URL = /^url\(["']?(?<url>[^"')]+)["']?\)$/u;
 
 const VITEST_VIEWPORT = { width: 414, height: 896 } as const;
 
@@ -126,12 +131,26 @@ afterEach(async () => {
 });
 
 describe("use_case_choose_theme", () => {
-  test("offers only the three modes for one theme", async () => {
+  test("offers only the three named texture swatches", async () => {
     await openPanel();
     expect(page.getByRole("dialog").getByRole("radio").all()).toHaveLength(
       MODE_COUNT,
     );
     expect(appliedColors()).toBe("light");
+    await Promise.all(
+      THEME_MODES.map((mode) =>
+        expect
+          .element(choice(THEME_COPY.modeLabel, THEME_COPY.modes[mode]))
+          .toBeInTheDocument(),
+      ),
+    );
+    await Promise.all(
+      ["Light", "Dark", "System"].map((name) =>
+        expect
+          .element(page.getByRole("radio", { name, exact: true }))
+          .not.toBeInTheDocument(),
+      ),
+    );
   });
 
   test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
@@ -150,7 +169,7 @@ describe("use_case_choose_theme", () => {
       expect(appliedColors()).toBe("dark");
     },
   );
-  test("choosing Dark applies it at once", async () => {
+  test("choosing Espresso Leather applies it at once", async () => {
     await openPanel();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await closePanel();
@@ -162,18 +181,96 @@ describe("use_case_choose_theme", () => {
     expect(appliedColors()).toBe("dark");
   });
 
-  test("System follows the computer's setting", async () => {
-    await openPanel();
-    await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
-    await choose(THEME_COPY.modeLabel, THEME_COPY.modes.system);
-    await closePanel();
+  test.each(THEME_MODES)(
+    "%s applies, saves and ignores operating system changes",
+    async (mode) => {
+      await openPanel();
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      expect(appliedChoice().mode).toBe(mode);
+      expect(action.saveThemeChoiceAction).toHaveBeenLastCalledWith({
+        theme: "parchment",
+        mode,
+      });
+      const rootStyle = getComputedStyle(document.documentElement);
+      expect(rootStyle.getPropertyValue("--background")).toBe(
+        rootStyle.getPropertyValue(`--${mode}-background`),
+      );
+      const texture = getComputedStyle(document.body).backgroundImage;
+      expect(texture).toContain(".webp");
+      const { url = "" } = BACKGROUND_URL.exec(texture)?.groups ?? {};
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      expect(image.naturalWidth).toBe(TEXTURE_SIZE);
+      expect(image.naturalHeight).toBe(TEXTURE_SIZE);
+      await commands.emulateColorScheme("dark");
+      expect(getComputedStyle(document.body).backgroundImage).toBe(texture);
+      await commands.emulateColorScheme("light");
+      expect(getComputedStyle(document.body).backgroundImage).toBe(texture);
+      await closePanel();
+    },
+  );
 
-    await commands.emulateColorScheme("dark");
-    expect(appliedColors()).toBe("dark");
-    await commands.emulateColorScheme("light");
-    expect(appliedColors()).toBe("light");
-    expect(appliedChoice().mode).toBe("system");
+  test.each([
+    { value: "parchment.light", mode: "light" },
+    { value: "parchment.dark", mode: "dark" },
+    { value: "parchment.soot-brass", mode: "soot-brass" },
+    { value: "parchment.system", mode: "light" },
+    { value: "unknown.unknown", mode: "light" },
+  ])("restores $value before paint", ({ value, mode }) => {
+    vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(
+      `${THEME_COOKIE_NAME}=${value}`,
+    );
+    const script = document.createElement("script");
+    script.textContent = THEME_PRE_PAINT_SCRIPT;
+    document.head.append(script);
+    script.remove();
+    expect(appliedChoice()).toEqual({ theme: "parchment", mode });
+    expect(parseThemeChoiceCookie(value)).toEqual(appliedChoice());
   });
+
+  test("arrow keys choose the next swatch with visible focus", async () => {
+    await openPanel();
+    const first = choice(
+      THEME_COPY.modeLabel,
+      THEME_COPY.modes.light,
+    ).element();
+    if (!(first instanceof HTMLInputElement)) {
+      throw new Error("The swatch has no native radio");
+    }
+    await userEvent.keyboard("{Shift}");
+    first.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect
+      .element(choice(THEME_COPY.modeLabel, THEME_COPY.modes["soot-brass"]))
+      .toBeChecked();
+    expect(appliedChoice().mode).toBe("soot-brass");
+    const label = document.activeElement?.closest("label");
+    if (label === null || label === undefined) {
+      throw new Error("The focused swatch has no label");
+    }
+    await expect.poll(() => getComputedStyle(label).outlineStyle).toBe("solid");
+  });
+
+  test.each([NARROWEST_VIEWPORT, PHONE_VIEWPORT])(
+    "the swatches fit at $width px with 44 px targets",
+    async (viewport) => {
+      await resize(viewport);
+      await openPanel();
+      const dialog = page.getByRole("dialog").element();
+      expect(dialog.scrollWidth).toBeLessThanOrEqual(dialog.clientWidth);
+      for (const mode of THEME_MODES) {
+        const radio = choice(
+          THEME_COPY.modeLabel,
+          THEME_COPY.modes[mode],
+        ).element();
+        const { width: targetWidth, height } = radio.getBoundingClientRect();
+        expect(targetWidth).toBeGreaterThanOrEqual(SWATCH_TARGET_PX);
+        expect(height).toBeGreaterThanOrEqual(SWATCH_TARGET_PX);
+      }
+    },
+  );
 
   for (const { id, name } of THEMES) {
     test(`the ${name} theme: its own fonts, and the site's name on one line, wide and on a phone`, async () => {

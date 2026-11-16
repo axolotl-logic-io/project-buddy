@@ -27,6 +27,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-navigation-surface: var(--navigation-surface);
+  --color-trail-surface: var(--trail-surface);
+  --color-sidebar-surface: var(--sidebar-surface);
+  --color-secondary-surface: var(--secondary-surface);
+  --color-header-ink: var(--header-ink);
+  --color-header-paper: var(--header-paper);
+  --color-header-line: var(--header-line);
+  --color-header-gold: var(--header-gold);
+
   --color-field: var(--field);
   --color-code-surface: var(--code-surface);
   --color-foreground: var(--foreground);
@@ -109,13 +118,10 @@
   }
 }
 
-/* Each colour token takes the theme's light or dark value: light under
-   Light, dark under Dark, and under System whichever the operating system
-   asks for. color-scheme does the same for scrollbars and form controls. */
+/* Each swatch chooses one fixed palette, independently of the operating system. */
 @layer modes {
   :root,
-  [data-mode="light"],
-  [data-mode="system"] {
+  [data-mode="light"] {
     color-scheme: light;
     --background: var(--light-background);
     --surface: var(--light-surface);
@@ -137,6 +143,48 @@
     --code-string: var(--light-code-string);
     --code-function: var(--light-code-function);
     --code-constant: var(--light-code-constant);
+    --navigation-surface: var(--light-navigation-surface);
+    --trail-surface: var(--light-trail-surface);
+    --sidebar-surface: var(--light-sidebar-surface);
+    --secondary-surface: var(--light-secondary-surface);
+    --header-ink: var(--light-header-ink);
+    --header-paper: var(--light-header-paper);
+    --header-line: var(--light-header-line);
+    --header-gold: var(--light-header-gold);
+    --page-decoration: var(--light-page-decoration);
+  }
+
+  [data-mode="soot-brass"] {
+    color-scheme: dark;
+    --background: var(--soot-brass-background);
+    --surface: var(--soot-brass-surface);
+    --field: var(--soot-brass-field);
+    --code-surface: var(--soot-brass-code-surface);
+    --foreground: var(--soot-brass-foreground);
+    --muted: var(--soot-brass-muted);
+    --line: var(--soot-brass-line);
+    --primary: var(--soot-brass-primary);
+    --on-primary: var(--soot-brass-on-primary);
+    --accent: var(--soot-brass-accent);
+    --on-accent: var(--soot-brass-on-accent);
+    --danger: var(--soot-brass-danger);
+    --on-danger: var(--soot-brass-on-danger);
+    --focus: var(--soot-brass-focus);
+    --shadow: var(--soot-brass-shadow);
+    --code-comment: var(--soot-brass-code-comment);
+    --code-keyword: var(--soot-brass-code-keyword);
+    --code-string: var(--soot-brass-code-string);
+    --code-function: var(--soot-brass-code-function);
+    --code-constant: var(--soot-brass-code-constant);
+    --navigation-surface: var(--soot-brass-navigation-surface);
+    --trail-surface: var(--soot-brass-trail-surface);
+    --sidebar-surface: var(--soot-brass-sidebar-surface);
+    --secondary-surface: var(--soot-brass-secondary-surface);
+    --header-ink: var(--soot-brass-header-ink);
+    --header-paper: var(--soot-brass-header-paper);
+    --header-line: var(--soot-brass-header-line);
+    --header-gold: var(--soot-brass-header-gold);
+    --page-decoration: var(--soot-brass-page-decoration);
   }
 
   [data-mode="dark"] {
@@ -161,32 +209,15 @@
     --code-string: var(--dark-code-string);
     --code-function: var(--dark-code-function);
     --code-constant: var(--dark-code-constant);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    [data-mode="system"] {
-      color-scheme: dark;
-      --background: var(--dark-background);
-      --surface: var(--dark-surface);
-      --field: var(--dark-field);
-      --code-surface: var(--dark-code-surface);
-      --foreground: var(--dark-foreground);
-      --muted: var(--dark-muted);
-      --line: var(--dark-line);
-      --primary: var(--dark-primary);
-      --on-primary: var(--dark-on-primary);
-      --accent: var(--dark-accent);
-      --on-accent: var(--dark-on-accent);
-      --danger: var(--dark-danger);
-      --on-danger: var(--dark-on-danger);
-      --focus: var(--dark-focus);
-      --shadow: var(--dark-shadow);
-      --code-comment: var(--dark-code-comment);
-      --code-keyword: var(--dark-code-keyword);
-      --code-string: var(--dark-code-string);
-      --code-function: var(--dark-code-function);
-      --code-constant: var(--dark-code-constant);
-    }
+    --navigation-surface: var(--dark-navigation-surface);
+    --trail-surface: var(--dark-trail-surface);
+    --sidebar-surface: var(--dark-sidebar-surface);
+    --secondary-surface: var(--dark-secondary-surface);
+    --header-ink: var(--dark-header-ink);
+    --header-paper: var(--dark-header-paper);
+    --header-line: var(--dark-header-line);
+    --header-gold: var(--dark-header-gold);
+    --page-decoration: var(--dark-page-decoration);
   }
 }
 
@@ -194,6 +225,8 @@
   body {
     background-color: var(--background);
     background-image: var(--page-decoration);
+    background-size: cover;
+    background-repeat: no-repeat;
     color: var(--foreground);
     font-family: var(--body-font);
   }

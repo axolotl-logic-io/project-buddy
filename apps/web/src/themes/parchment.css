@@ -9,7 +9,7 @@
   }
 
   [data-theme="parchment"] {
-    --light-background: rgb(239 208 147);
+    --light-background: rgb(244 236 216);
     --light-surface: rgb(250 229 185);
     --light-field: rgb(255 243 215);
     --light-code-surface: rgb(244 220 173);
@@ -51,6 +51,56 @@
     --dark-code-function: rgb(189 194 221);
     --dark-code-constant: rgb(244 201 122);
 
+    --light-navigation-surface: rgb(250 229 185);
+    --light-trail-surface: rgb(250 229 185);
+    --light-sidebar-surface: rgb(250 229 185);
+    --light-secondary-surface: rgb(250 229 185);
+    --light-header-ink: oklch(25% 0.04 60);
+    --light-header-paper: oklch(92% 0.065 85);
+    --light-header-line: oklch(51% 0.06 65);
+    --light-header-gold: oklch(78% 0.13 80);
+    --light-page-decoration: url("/textures/ivory-vellum.webp");
+
+    --dark-navigation-surface: rgb(49 36 24);
+    --dark-trail-surface: rgb(49 36 24);
+    --dark-sidebar-surface: rgb(49 36 24);
+    --dark-secondary-surface: rgb(49 36 24);
+    --dark-header-ink: oklch(25% 0.04 60);
+    --dark-header-paper: oklch(92% 0.065 85);
+    --dark-header-line: oklch(51% 0.06 65);
+    --dark-header-gold: oklch(78% 0.13 80);
+    --dark-page-decoration: url("/textures/espresso-leather.webp");
+
+    --soot-brass-background: rgb(33 23 26);
+    --soot-brass-surface: rgb(41 36 38);
+    --soot-brass-field: rgb(25 23 25);
+    --soot-brass-foreground: rgb(238 228 210);
+    --soot-brass-muted: rgb(199 187 169);
+    --soot-brass-line: rgb(162 147 126);
+    --soot-brass-primary: rgb(205 179 124);
+    --soot-brass-on-primary: rgb(40 34 22);
+    --soot-brass-accent: rgb(194 181 155);
+    --soot-brass-on-accent: rgb(43 35 32);
+    --soot-brass-danger: rgb(232 170 146);
+    --soot-brass-on-danger: rgb(45 25 22);
+    --soot-brass-focus: rgb(232 211 160);
+    --soot-brass-shadow: rgb(14 11 12);
+    --soot-brass-code-surface: rgb(36 29 32);
+    --soot-brass-code-comment: rgb(199 187 169);
+    --soot-brass-code-keyword: rgb(224 178 159);
+    --soot-brass-code-string: rgb(199 199 151);
+    --soot-brass-code-function: rgb(198 187 212);
+    --soot-brass-code-constant: rgb(221 191 141);
+    --soot-brass-navigation-surface: rgb(41 30 34);
+    --soot-brass-trail-surface: rgb(52 36 40);
+    --soot-brass-sidebar-surface: rgb(45 37 40);
+    --soot-brass-secondary-surface: rgb(59 45 48);
+    --soot-brass-header-ink: rgb(29 24 26);
+    --soot-brass-header-paper: rgb(238 228 210);
+    --soot-brass-header-line: rgb(142 128 107);
+    --soot-brass-header-gold: rgb(185 160 106);
+    --soot-brass-page-decoration: url("/textures/soot-brass.webp");
+
     --body-font: var(--typeface-nunito);
     --heading-font: var(--typeface-source-serif-4);
     --mono-font: var(--typeface-jetbrains-mono);
@@ -79,13 +129,7 @@
     --header-title-size: 1.25rem;
     --card-title-size: 1.125rem;
 
-    --header-ink: oklch(25% 0.04 60);
-    --header-paper: oklch(92% 0.065 85);
-    --header-line: oklch(51% 0.06 65);
-    --header-gold: oklch(78% 0.13 80);
-
-    /* A tileable paper grain stays continuous on pages of any length. */
-    --page-decoration: url("/textures/parchment.svg");
+    /* The fixed page image also aligns with the conversation composer. */
     --panel-decoration: linear-gradient(
       110deg,
       transparent,
