@@ -53,6 +53,7 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 | --- | --- |
 | `GET /login` | HTTP 200 |
 | `GET /textures/parchment.svg` | HTTP 200 with an SVG image content type, without a session |
+| `GET /textures/ivory-vellum.webp`, `/textures/soot-brass.webp`, `/textures/espresso-leather.webp` | Each returns HTTP 200 with a WebP image content type, without a session |
 | `GET /signup` | HTTP 200, the public sign-up form and introduction (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
 | `GET /` | HTTP 307 with a Location pointing to `/login` |
 | Signed-out `POST /api/chat` with `{}` | HTTP 401 |

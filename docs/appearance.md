@@ -1,0 +1,15 @@
+# Appearance
+
+The site panel and Settings offer three texture swatches:
+
+- **Ivory Vellum** uses pale parchment, sepia text, cream panels, and gold accents. This is the default.
+- **Soot & Brass** uses a burgundy book cover, warm charcoal panels, ivory text, and restrained brass accents. Its header, navigation, fields, buttons, and quest sidebar follow the approved palette.
+- **Espresso Leather** uses dark brown leather with the sepia and gold dark palette.
+
+Each swatch previews its material and panel colors. Its name labels a native radio control. The chosen swatch has a check mark; keyboard focus rings the whole choice. The same controls work by touch at 320 px. There is no Light, Dark, or System control, and operating system appearance changes do not change the selection.
+
+Selecting a swatch changes the page immediately and saves the selection in this browser's theme cookie. Navigation, reloading, signing out, and failed pages keep it. The inline script in the document head applies the saved choice before the first paint. Existing Light or System cookies resolve to Ivory Vellum; existing Dark cookies resolve to Espresso Leather. Invalid values use Ivory Vellum.
+
+The semantic token contract in `apps/web/src/themes/contract.css` selects the palette and texture from `parchment.css`. The internal `light` and `dark` values remain for cookie compatibility; `soot-brass` selects the third palette. Components use semantic roles and do not choose palette colors. Contract and contrast tests cover all three appearances, including header and panel colors.
+
+The three generated material textures were approved as L1, D2, and D1 during design review. Their optimized 1024 px WebP files live in `apps/web/public/textures/`: `ivory-vellum.webp`, `soot-brass.webp`, and `espresso-leather.webp`. A fixed, covering background keeps the texture aligned with the conversation composer on long pages. The old `parchment.svg` URL remains available for older pages.
