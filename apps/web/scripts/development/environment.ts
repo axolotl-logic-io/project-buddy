@@ -1,11 +1,11 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import {
   appendFileSync,
   existsSync,
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { parseEnv } from "node:util";
 
 const SESSION_SECRET_BYTES = 32;
@@ -14,13 +14,43 @@ const SESSION_SECRET_BYTES = 32;
 const DEVELOPER_EMAIL = "developer@project-buddy.test";
 const DEVELOPER_NAME = "Developer";
 
+// The Compose development server (compose.dev-db.yml). Each worktree has a
+// database of its own on it, so one branch's migrations never reach another's.
+const DEVELOPMENT_SERVER = "postgres://127.0.0.1:5434";
+// The local-only user and password in compose.dev-db.yml.
+const DEVELOPMENT_SERVER_USER = "postgres";
+const DEVELOPMENT_DATABASE_PREFIX = "pb_dev_";
+const DATABASE_KEY_LENGTH = 12;
+const DATABASE_SETTING = "DATABASE_URL";
+
+function developmentServerUrl(database: string): string {
+  const url = new URL(`${DEVELOPMENT_SERVER}/${database}`);
+  url.username = DEVELOPMENT_SERVER_USER;
+  url.password = DEVELOPMENT_SERVER_USER;
+  return url.href;
+}
+
+// The database every worktree shared before each had its own.
+const SHARED_DATABASE_URL = developmentServerUrl("project_buddy_dev");
+
+// This worktree's development database: the same name for the same path.
+function developmentDatabaseUrl(webRoot: string): string {
+  const key = createHash("sha256")
+    .update(resolve(webRoot))
+    .digest("hex")
+    .slice(0, DATABASE_KEY_LENGTH);
+  return developmentServerUrl(`${DEVELOPMENT_DATABASE_PREFIX}${key}`);
+}
+
 function defaults(webRoot: string): NodeJS.Dict<string> {
-  return parseEnv(
+  const settings = parseEnv(
     readFileSync(
       join(webRoot, "scripts/development/local.env.example"),
       "utf8",
     ),
   );
+  settings[DATABASE_SETTING] = developmentDatabaseUrl(webRoot);
+  return settings;
 }
 
 // Setup owns only the persistent Compose development database. In particular,
@@ -57,12 +87,57 @@ function localSettings(
   }
   const { DATABASE_URL: localDatabase } = defaults(webRoot);
   const { DATABASE_URL = localDatabase } = { ...settings, ...overrides };
+  if (DATABASE_URL === SHARED_DATABASE_URL) {
+    throw new Error(
+      "Each worktree now has its own development database. Run mise setup to switch DATABASE_URL in apps/web/.env.local to it.",
+    );
+  }
   if (DATABASE_URL && DATABASE_URL !== localDatabase) {
     throw new Error(
-      "Use the Compose development DATABASE_URL from README.md. Setup and doctor refuse other databases; existing settings were kept.",
+      "Use this worktree's development DATABASE_URL, which mise setup writes; see README.md. Setup and doctor refuse other databases; existing settings were kept.",
     );
   }
   return settings;
+}
+
+// The environment for the test database commands, which read .env.test. Node's
+// --env-file never overrides an inherited setting, so a shell DATABASE_URL for
+// the development database would otherwise be the one they reset.
+function testCommandEnvironment(
+  webRoot: string,
+  environment: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  const result = { ...environment };
+  for (const name of [
+    ...Object.keys(defaults(webRoot)),
+    "SESSION_SECRET",
+    "E2E_PORT",
+  ]) {
+    delete result[name];
+  }
+  return result;
+}
+
+// Points an apps/web/.env.local that names the shared development database
+// at this worktree's own. The shared database and its data are left alone.
+function adoptWorktreeDatabase(webRoot: string): void {
+  const file = join(webRoot, ".env.local");
+  if (!existsSync(file)) {
+    return;
+  }
+  const shared = `DATABASE_URL=${SHARED_DATABASE_URL}`;
+  const lines = readFileSync(file, "utf8").split("\n");
+  if (!lines.includes(shared)) {
+    return;
+  }
+  const own = `DATABASE_URL=${developmentDatabaseUrl(webRoot)}`;
+  const adopted = lines.map((line) => {
+    if (line === shared) {
+      return own;
+    }
+    return line;
+  });
+  writeFileSync(file, adopted.join("\n"));
 }
 
 function prepareEnvironment(
@@ -114,9 +189,12 @@ function configurationProblems(settings: NodeJS.Dict<string>): string[] {
 }
 
 export {
+  adoptWorktreeDatabase,
   configurationProblems,
   DEVELOPER_EMAIL,
   DEVELOPER_NAME,
+  developmentDatabaseUrl,
   localSettings,
   prepareEnvironment,
+  testCommandEnvironment,
 };
