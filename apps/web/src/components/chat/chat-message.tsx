@@ -68,7 +68,7 @@ const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
 };
 
 function renderImageAttachment(): JSX.Element {
-  return <ImageAttachment removable={false} />;
+  return <ImageAttachment />;
 }
 
 // Who wrote the message: the construct, its author when someone else wrote it,

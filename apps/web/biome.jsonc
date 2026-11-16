@@ -230,6 +230,17 @@
       }
     },
 
+    // The copy export command reads TypeScript sources, writes a CSV and prints totals.
+    {
+      "includes": ["scripts/export-copy.ts"],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" },
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+
     // The release workflow's smoke test command prints the failed checks and
     // sets its exit status, which only Node's node:process can do; it takes
     // the site's URL from its arguments. The build's font check

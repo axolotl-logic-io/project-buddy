@@ -77,7 +77,6 @@ function OwnConstructForm({
       <p className="text-muted">{CONSTRUCT_COPY.ownIntro}</p>
       <PromptEditor
         action={saveConstructAction}
-        defaultPrompt={undefined}
         heading={VISUAL_COPY.heading}
         idName="constructId"
         key={draftRevision}
@@ -93,7 +92,6 @@ function OwnConstructForm({
             label: VISUAL_COPY.description,
             help: VISUAL_COPY.descriptionHelp,
             maxLength: 4000,
-            literal: true,
             requiredMessage: visualRequiredMessage(construct),
           },
         ]}

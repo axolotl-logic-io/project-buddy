@@ -25,16 +25,12 @@ import { parseTextList } from "@/components/ui/text-list-value.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
-// The text Reset puts back to its default.
-const RESET_TEXT = "prompt";
-
 // An unsaved draft as this browser keeps it (local-draft.ts), with the save
 // it was based on.
 const KEPT_DRAFT = z.object({
   basedOn: z.string(),
   name: z.string(),
   texts: z.record(z.string(), z.string()),
-  beforeReset: z.string().optional(),
 });
 
 // One editable text field, with its label, help, saved value and optional limit.
@@ -44,7 +40,6 @@ interface PromptEditorText {
   readonly help: string;
   readonly text: string;
   readonly maxLength?: number;
-  readonly literal?: boolean;
   readonly placement?: "under-name";
   readonly list?: { readonly maxLength: number; readonly maxItems: number };
   readonly choices?: readonly {
@@ -61,7 +56,7 @@ interface PromptDraft {
 }
 
 // What the editor last did that the user should know.
-type Notice = "none" | "reset" | "restored";
+type Notice = "none" | "restored";
 
 function sameDraft(one: PromptDraft, other: PromptDraft): boolean {
   return (
@@ -90,13 +85,11 @@ function restoredDraft(
 // What the status line says after each.
 const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
   none: "",
-  reset: PROMPT_COPY.resetDone,
   restored: PROMPT_COPY.restored,
 };
 
 // Saves an own construct’s name and text fields. Drafts survive navigation in
 // this browser until Save or Cancel; a newer savedAt invalidates an older draft.
-// Reset affects only the prompt draft and can be undone before saving.
 function PromptEditor({
   action,
   kind,
@@ -106,7 +99,6 @@ function PromptEditor({
   name,
   nameMaxLength,
   texts,
-  defaultPrompt,
   viewer,
   heading,
   formId,
@@ -117,8 +109,7 @@ function PromptEditor({
   disabled = false,
   onDraftChange,
 }: {
-  // Told the draft whenever it changes, by typing or by recovery, reset,
-  // undo or discard.
+  // Told the draft whenever it changes, by typing, recovery or discard.
   readonly onDraftChange?: (draft: PromptDraft) => void;
   readonly onSubmitCapture?: (event: SubmitEvent<HTMLFormElement>) => void;
   readonly saveLabel?: string;
@@ -134,7 +125,6 @@ function PromptEditor({
   readonly name: string;
   readonly nameMaxLength?: number;
   readonly texts: readonly PromptEditorText[];
-  readonly defaultPrompt: string | undefined;
   readonly viewer: string;
   readonly heading: string;
 }): JSX.Element {
@@ -172,7 +162,6 @@ function PromptEditor({
     onDraftChange?.(draft);
   }, [onDraftChange, draft]);
   const [notice, setNotice] = useState<Notice>("none");
-  const [beforeReset, setBeforeReset] = useState<string | undefined>();
   const [nameRefused, setNameRefused] = useState<boolean>(false);
   const [textErrors, setTextErrors] = useState<
     Readonly<Record<string, string>>
@@ -187,9 +176,9 @@ function PromptEditor({
         keepLocalDraft(draftKey, undefined);
         return;
       }
-      keepLocalDraft(draftKey, { basedOn: savedAt, ...next, beforeReset });
+      keepLocalDraft(draftKey, { basedOn: savedAt, ...next });
     },
-    [draftKey, saved, savedAt, beforeReset],
+    [draftKey, saved, savedAt],
   );
 
   useEffect(() => {
@@ -203,7 +192,6 @@ function PromptEditor({
       return;
     }
     setDraft(restored);
-    setBeforeReset(kept.beforeReset);
     setNotice("restored");
   }, [draftKey, saved, savedAt]);
 
@@ -228,58 +216,13 @@ function PromptEditor({
       const { name: field, value } = event.target;
       setTextErrors({});
       change({ ...draft, texts: { ...draft.texts, [field]: value } });
-      if (field === RESET_TEXT) {
-        setBeforeReset(undefined);
-        keepLocalDraft(draftKey, {
-          basedOn: savedAt,
-          ...draft,
-          texts: { ...draft.texts, [field]: value },
-        });
-      }
       setNotice("none");
     },
-    [change, draft, draftKey, savedAt],
+    [change, draft],
   );
-  const reset = useCallback((): void => {
-    if (defaultPrompt === undefined) {
-      return;
-    }
-    const { [RESET_TEXT]: current = "" } = draft.texts;
-    change({
-      ...draft,
-      texts: { ...draft.texts, [RESET_TEXT]: defaultPrompt },
-    });
-    const recovery = beforeReset ?? current;
-    setBeforeReset(recovery);
-    keepLocalDraft(draftKey, {
-      basedOn: savedAt,
-      ...draft,
-      texts: { ...draft.texts, [RESET_TEXT]: defaultPrompt },
-      beforeReset: recovery,
-    });
-    setNotice("reset");
-    setSelectedField(RESET_TEXT);
-    setFocusField(RESET_TEXT);
-  }, [change, draft, defaultPrompt, beforeReset, draftKey, savedAt]);
-  const undoReset = useCallback((): void => {
-    if (beforeReset === undefined) {
-      return;
-    }
-    change({ ...draft, texts: { ...draft.texts, [RESET_TEXT]: beforeReset } });
-    keepLocalDraft(draftKey, {
-      basedOn: savedAt,
-      ...draft,
-      texts: { ...draft.texts, [RESET_TEXT]: beforeReset },
-    });
-    setBeforeReset(undefined);
-    setNotice("none");
-    setSelectedField(RESET_TEXT);
-    setFocusField(RESET_TEXT);
-  }, [beforeReset, change, draft, draftKey, savedAt]);
   const discard = useCallback((): void => {
     change(saved);
     setTextErrors({});
-    setBeforeReset(undefined);
     setNameRefused(false);
     setNotice("none");
     nameRef.current?.focus();
@@ -395,18 +338,14 @@ function PromptEditor({
         })}
       </nav>
       {sections.map(
-        ({ name: field, label, help, maxLength, literal, choices, list }) => {
+        ({ name: field, label, help, maxLength, choices, list }) => {
           const { [field]: text = "" } = draft.texts;
           const { [field]: error } = textErrors;
-          let hint = PROMPT_COPY.textHint(help, maxLength);
-          if (literal === true) {
-            hint = help;
-          }
           let control = (
             <TextAreaField
               className="min-h-40 font-mono text-sm"
               error={error}
-              hint={hint}
+              hint={help}
               key={field}
               label={label}
               maxLength={maxLength}
@@ -419,7 +358,7 @@ function PromptEditor({
             control = (
               <SelectField
                 error={error}
-                hint={hint}
+                hint={help}
                 label={label}
                 name={field}
                 onChange={changeText}
@@ -438,7 +377,7 @@ function PromptEditor({
               <TextListField
                 name={field}
                 label={label}
-                hint={hint}
+                hint={help}
                 value={text}
                 maxLength={list.maxLength}
                 maxItems={list.maxItems}
@@ -475,25 +414,13 @@ function PromptEditor({
         </Button>
         <div className="flex flex-wrap items-center gap-3">
           <FormStatus>{NOTICE_TEXTS[notice]}</FormStatus>
-          {beforeReset !== undefined && (
-            <Button onClick={undoReset} variant="secondary">
-              {PROMPT_COPY.undoReset}
-            </Button>
-          )}
         </div>
       </div>
-      {(defaultPrompt !== undefined || changed) && (
+      {changed && (
         <div className="prompt-editor-more">
-          {defaultPrompt !== undefined && (
-            <Button onClick={reset} variant="quiet">
-              {PROMPT_COPY.resetPrompt}
-            </Button>
-          )}
-          {changed && (
-            <Button onClick={discard} variant="quiet">
-              {PROMPT_COPY.discard}
-            </Button>
-          )}
+          <Button onClick={discard} variant="quiet">
+            {PROMPT_COPY.discard}
+          </Button>
         </div>
       )}
     </form>
