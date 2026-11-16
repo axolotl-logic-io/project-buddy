@@ -36,6 +36,11 @@ const QUESTS: Breadcrumb = {
   label: QUESTS_COPY.heading,
   href: "/quests",
 };
+const TIMER_ROOT: Breadcrumb & { readonly href: Route } = {
+  label: TIMER_COPY.heading,
+  href: TIMER_PATH,
+};
+
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
@@ -54,7 +59,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
-    ["timer", { label: TIMER_COPY.heading, href: TIMER_PATH }],
   ]);
 
 // A timer link's trail: the Timer, then the schedule it names. Once the
@@ -82,6 +86,21 @@ function timerLinkBreadcrumbs(
   return [root, { label, timer: schedule }];
 }
 
+// The trail of a page anyone may open, signed in or not: the Timer's setup
+// and its links. Any other path has none.
+function publicBreadcrumbs(
+  path: readonly string[],
+): readonly HeaderBreadcrumb[] {
+  const [section, id] = path;
+  if (section !== "timer") {
+    return [];
+  }
+  if (id === undefined) {
+    return [{ label: TIMER_ROOT.label }];
+  }
+  return timerLinkBreadcrumbs(TIMER_ROOT, path);
+}
+
 // Resolve names only through the same acting-user stores as the page. Unknown
 // or inaccessible destinations, such as Invitations for anyone but an admin,
 // expose no trail. The last item is the page's heading, so it is worded as
@@ -93,6 +112,9 @@ async function headerBreadcrumbs(
   path: readonly string[],
 ): Promise<readonly HeaderBreadcrumb[]> {
   const [section = "", id, child] = path;
+  if (section === "timer") {
+    return publicBreadcrumbs(path);
+  }
   const root = ROOTS.get(section);
   if (id === undefined) {
     if (root === undefined) {
@@ -112,9 +134,6 @@ async function headerBreadcrumbs(
       QUESTS,
       { label: quest.name, quest: { id: quest.id, name: quest.name } },
     ];
-  }
-  if (section === "timer" && root !== undefined) {
-    return timerLinkBreadcrumbs(root, path);
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
@@ -149,4 +168,4 @@ async function headerBreadcrumbs(
   return [root, { label: name }];
 }
 
-export { headerBreadcrumbs };
+export { headerBreadcrumbs, publicBreadcrumbs };

@@ -28,7 +28,7 @@ test("new users can reach sign-up from the login page", async () => {
     .toHaveAttribute("href", "/signup");
 });
 
-test("a sign-in page reached from a timer link asks for a link that leads back to it", async () => {
+test("a sign-in page given a destination asks for a link that leads back to it", async () => {
   vi.mocked(requestSignInLinkAction).mockResolvedValue({
     kind: "sent",
     message: LOGIN_COPY.checkEmail,

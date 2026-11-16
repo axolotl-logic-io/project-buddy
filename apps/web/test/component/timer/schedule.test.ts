@@ -4,7 +4,6 @@
 import { describe, expect, test } from "vitest";
 import {
   formatRemaining,
-  isTimerPath,
   msUntilNextSecond,
   parseTimerSchedule,
   type TimerSchedule,
@@ -158,13 +157,4 @@ describe("a timer link", () => {
       expect(parseTimerSchedule(values)).toBeUndefined();
     },
   );
-
-  test("is told apart from other paths for signing in", () => {
-    expect(isTimerPath(`/timer/25/15/${T}`)).toBe(true);
-    expect(isTimerPath("/timer")).toBe(false);
-    expect(isTimerPath("/timer/25/15")).toBe(false);
-    expect(isTimerPath("/timer/25/16/0")).toBe(false);
-    expect(isTimerPath("/timer/25/15/0/more")).toBe(false);
-    expect(isTimerPath("/quests/25/15/0")).toBe(false);
-  });
 });
