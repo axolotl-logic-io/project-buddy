@@ -6,3 +6,11 @@ config_roots = ["apps/web", "apps/instruction-counter"]
 
 [tools]
 node = "24"
+
+[tasks.setup]
+description = "Install dependencies and prepare the persistent local development environment"
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" setup'
+
+[tasks.doctor]
+description = "Check development prerequisites, configuration and database without changing them"
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" doctor'
