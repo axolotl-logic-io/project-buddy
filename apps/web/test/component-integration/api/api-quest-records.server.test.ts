@@ -30,7 +30,7 @@ import { twoUsers } from "../test-database/two-users-test-kit.ts";
 import { callApi, dataOf, firstItemId } from "./api-test-kit.ts";
 
 describe("use_case_cli_api_quest_records", () => {
-  test("Tasks change by step number, report the version and undo", async () => {
+  test("Tasks change by task number, report the version and undo", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest();
     await signIn(her);
@@ -55,7 +55,7 @@ describe("use_case_cli_api_quest_records", () => {
 
     await callApi(changeTasks, {
       params,
-      body: { operations: [{ op: "complete", step: 1 }] },
+      body: { operations: [{ op: "complete", task: 1 }] },
     });
     expect((await callApi(listTasks, { params })).body).toEqual({
       version: 2,
@@ -78,11 +78,11 @@ describe("use_case_cli_api_quest_records", () => {
 
     const missing = await callApi(changeTasks, {
       params,
-      body: { operations: [{ op: "remove", step: 9 }] },
+      body: { operations: [{ op: "remove", task: 9 }] },
     });
     expect(missing).toMatchObject({
       status: HTTP_STATUS.notFound,
-      body: { error: { code: "not_found", field: "step" } },
+      body: { error: { code: "not_found", field: "task" } },
     });
 
     const invalid = await callApi(changeTasks, {

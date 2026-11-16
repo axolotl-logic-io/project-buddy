@@ -63,7 +63,7 @@ const SCULPT = "Sculpt the feather plates";
 const TASKS: TasksState = {
   version: 2,
   tasks: {
-    steps: [
+    items: [
       { number: 1, text: BLOCK_OUT, done: false },
       { number: 2, text: SCULPT, done: false },
     ],
@@ -75,7 +75,7 @@ const TASKS: TasksState = {
 const DONE_TASKS: TasksState = {
   version: 3,
   tasks: {
-    steps: [
+    items: [
       { number: 1, text: BLOCK_OUT, done: true },
       { number: 2, text: SCULPT, done: false },
     ],
@@ -146,7 +146,7 @@ describe("use_case_tasks_commands", () => {
     await expect.element(commandList()).toBeVisible();
     const list = commandList();
     await expect.element(list).toMatchTextContent("/add TEXT");
-    await expect.element(list).toMatchTextContent("/done [STEP]");
+    await expect.element(list).toMatchTextContent("/done [TASK]");
     await expect.element(list).toMatchTextContent("/undo");
     await Promise.all(
       ["/complete", "/abandon", "/restore"].map(async (command) => {
@@ -157,7 +157,7 @@ describe("use_case_tasks_commands", () => {
     await userEvent.type(messageBox(), "dr");
     await expect
       .element(commandList().getByRole("option"))
-      .toMatchTextContent("/drop STEP");
+      .toMatchTextContent("/drop TASK");
     await userEvent.keyboard("{Tab}");
     await expect.element(messageBox()).toHaveValue("/drop ");
     await expect.element(commandList()).not.toBeInTheDocument();
@@ -290,7 +290,7 @@ describe("use_case_tasks_panel", () => {
       .toBeDisabled();
   });
 
-  test("shows the next step and changes the tasks from beside the conversation", async () => {
+  test("shows the next task and changes the tasks from beside the conversation", async () => {
     actions.changeTasksAction.mockResolvedValue({
       kind: "changed",
       version: DONE_TASKS.version,
@@ -320,10 +320,10 @@ describe("use_case_tasks_panel", () => {
     expect(actions.changeTasksAction).toHaveBeenCalledWith({
       questId: QUEST_ID,
       chatId: CHAT_ID,
-      operations: [{ op: "complete", step: 1 }],
+      operations: [{ op: "complete", task: 1 }],
     });
     await expect
-      .element(panel.getByRole("list", { name: TASKS_COPY.stepsLabel }))
+      .element(panel.getByRole("list", { name: TASKS_COPY.tasksLabel }))
       .not.toHaveTextContent(BLOCK_OUT);
     await expect
       .element(panel.getByRole("status"))
@@ -368,8 +368,8 @@ describe("use_case_tasks_panel", () => {
       version: TASKS.version + 1,
       tasks: {
         ...TASKS.tasks,
-        steps: [TASKS.tasks.steps[1], TASKS.tasks.steps[0]].filter(
-          (step) => step !== undefined,
+        items: [TASKS.tasks.items[1], TASKS.tasks.items[0]].filter(
+          (task) => task !== undefined,
         ),
       },
     };
@@ -398,7 +398,7 @@ describe("use_case_tasks_panel", () => {
     await expect
       .element(
         panel
-          .getByRole("list", { name: TASKS_COPY.stepsLabel })
+          .getByRole("list", { name: TASKS_COPY.tasksLabel })
           .getByRole("listitem")
           .first(),
       )
@@ -420,7 +420,7 @@ describe("use_case_tasks_panel", () => {
     expect(actions.changeTasksAction).toHaveBeenLastCalledWith({
       questId: QUEST_ID,
       chatId: CHAT_ID,
-      operations: [{ op: "move", step: 2 }],
+      operations: [{ op: "move", task: 2 }],
     });
   });
 
@@ -450,7 +450,7 @@ describe("use_case_tasks_panel", () => {
             type: `tool-${CHANGE_TASKS_TOOL}`,
             toolCallId: "call-tasks",
             state: "output-available",
-            input: { operations: [{ op: "complete", step: 1 }] },
+            input: { operations: [{ op: "complete", task: 1 }] },
             output: {
               status: "changed",
               questId: QUEST_ID,

@@ -17,7 +17,7 @@ const CHANGE_BODY = z.object({
   operations: z.array(TASKS_OPERATION).min(1).max(MOST_OPERATIONS),
 });
 
-// The quest's steps in saved order, with the Tasks version.
+// The quest's tasks in saved order, with the Tasks version.
 export const GET = questRoute(
   async ({ user, quest }: QuestCall<QuestParams>): Promise<Response> => {
     const state = await readTasksState(user.id, quest.id);
@@ -28,7 +28,7 @@ export const GET = questRoute(
   },
 );
 
-// Changes the steps as the quest's page does, all operations or none, saved
+// Changes the tasks as the quest's page does, all operations or none, saved
 // in Tasks history so they can be undone.
 export const POST = questRoute(
   async ({

@@ -32,7 +32,7 @@ import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
-const KEEP = { localDate: "2026-11-14", clearSteps: false, clearIdeas: false };
+const KEEP = { localDate: "2026-11-14", clearTasks: false, clearIdeas: false };
 
 // Starts a day with nothing removed, on date.
 function startOn(
@@ -46,7 +46,7 @@ function startOn(
 function resetConversation(
   owner: UserId,
   id: ChatId,
-  options: { clearSteps: boolean; clearIdeas: boolean } = KEEP,
+  options: { clearTasks: boolean; clearIdeas: boolean } = KEEP,
 ): Promise<ChatId | undefined> {
   return startDay(owner, id, { ...options, localDate: KEEP.localDate });
 }
@@ -94,10 +94,10 @@ describe("Start Day", () => {
       { op: "add", text: "Make tea" },
       { op: "add", text: "Draw a fox" },
       { op: "add", text: "Book the vet" },
-      { op: "recur", step: 1, recurring: true },
-      { op: "recur", step: 2, recurring: true },
-      { op: "complete", step: 1 },
-      { op: "complete", step: 3 },
+      { op: "recur", task: 1, recurring: true },
+      { op: "recur", task: 2, recurring: true },
+      { op: "complete", task: 1 },
+      { op: "complete", task: 3 },
     ]);
     await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
     await setSpell(user.id, { chatId: before.id, spell: "brainstorm" });
@@ -113,7 +113,7 @@ describe("Start Day", () => {
     const next = await getChat(user.id, nextId ?? "");
     expect(next?.quest.id).toBe(questId);
     expect(await getQuest(user.id, questId)).toBeDefined();
-    expect((await readTasks(user.id, questId))?.steps).toEqual([
+    expect((await readTasks(user.id, questId))?.items).toEqual([
       { number: 1, text: "Make tea", done: false, recurring: true },
       { number: 2, text: "Draw a fox", done: false, recurring: true },
       { number: 3, text: "Book the vet", done: true },
@@ -131,11 +131,11 @@ describe("Start Day", () => {
     const record = await readDailiesRecord(user.id, questId);
     expect(record.undoable).toBe(true);
     expect(record.days).toMatchObject([
-      { date: "2026-11-14", steps: undefined },
+      { date: "2026-11-14", tasks: undefined },
     ]);
   });
 
-  test("the next Start Day records the day before's recurring steps", async () => {
+  test("the next Start Day records the day before's recurring tasks", async () => {
     const user = await testUser();
     const first = await dailiesChat(user);
     const questId = first.quest.id;
@@ -143,16 +143,16 @@ describe("Start Day", () => {
       { op: "add", text: "Make tea" },
       { op: "add", text: "Draw a fox" },
       { op: "add", text: "Book the vet" },
-      { op: "recur", step: 1, recurring: true },
-      { op: "recur", step: 2, recurring: true },
+      { op: "recur", task: 1, recurring: true },
+      { op: "recur", task: 2, recurring: true },
     ]);
     const second = await startOn(user.id, first.id, "2026-11-13");
     if (second === undefined) {
       throw new Error("The day did not start");
     }
     await changeTasks(user.id, { questId, author: "person" }, [
-      { op: "complete", step: 1 },
-      { op: "complete", step: 3 },
+      { op: "complete", task: 1 },
+      { op: "complete", task: 3 },
     ]);
     const third = await startOn(user.id, second, "2026-11-14");
     expect(third).toBeDefined();
@@ -160,12 +160,12 @@ describe("Start Day", () => {
     expect(record.days).toMatchObject([
       {
         date: "2026-11-13",
-        steps: [
+        tasks: [
           { number: 1, text: "Make tea", done: true },
           { number: 2, text: "Draw a fox", done: false },
         ],
       },
-      { date: "2026-11-14", steps: undefined },
+      { date: "2026-11-14", tasks: undefined },
     ]);
     // The conversation parked by the first Start Day is gone for good.
     const [parked] = await getDb()
@@ -184,8 +184,8 @@ describe("Start Day", () => {
     await changeTasks(user.id, { questId, author: "person" }, [
       { op: "add", text: "Make tea" },
       { op: "add", text: "Book the vet" },
-      { op: "recur", step: 1, recurring: true },
-      { op: "complete", step: 1 },
+      { op: "recur", task: 1, recurring: true },
+      { op: "complete", task: 1 },
     ]);
     await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
     const ideas = await listIdeas(user.id, questId);
@@ -194,7 +194,7 @@ describe("Start Day", () => {
     const messages = await listMessages(user.id, before.id);
     const nextId = await startDay(user.id, before.id, {
       localDate: "2026-11-14",
-      clearSteps: false,
+      clearTasks: false,
       clearIdeas: true,
     });
     if (nextId === undefined) {
@@ -215,7 +215,7 @@ describe("Start Day", () => {
     }
     expect(await currentSpell(user.id, back)).toBe("brainstorm");
     expect(await getChat(user.id, nextId)).toBeUndefined();
-    expect((await readTasks(user.id, questId))?.steps).toEqual([
+    expect((await readTasks(user.id, questId))?.items).toEqual([
       { number: 1, text: "Make tea", done: true, recurring: true },
       { number: 2, text: "Book the vet", done: false },
       { number: 3, text: "Water the plants", done: false },
@@ -243,7 +243,7 @@ describe("Start Day", () => {
     expect(await getChat(user.id, before.id)).toBeUndefined();
   });
 
-  test("Start Day can remove Steps and Ideas when requested", async () => {
+  test("Start Day can remove Tasks and Ideas when requested", async () => {
     const user = await testUser();
     const started = await startDailies(user.id, {
       name: QUEST_NAME.parse("My day"),
@@ -260,11 +260,11 @@ describe("Start Day", () => {
     await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
     expect(
       await resetConversation(user.id, started.chat.id, {
-        clearSteps: true,
+        clearTasks: true,
         clearIdeas: true,
       }),
     ).toBeDefined();
-    expect((await readTasks(user.id, questId))?.steps).toEqual([]);
+    expect((await readTasks(user.id, questId))?.items).toEqual([]);
     expect(await listIdeas(user.id, questId)).toEqual([]);
   });
 

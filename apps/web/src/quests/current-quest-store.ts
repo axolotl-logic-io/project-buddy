@@ -1,6 +1,6 @@
 // Reads the quest Quests offers to Continue: the owner's Active quest whose
-// conversation was most recently active, with its next step. Reading makes
-// no model call: the next step is whatever the quest's tasks
+// conversation was most recently active, with its next task. Reading makes
+// no model call: the next task is whatever the quest's tasks
 // records (nextStepOfQuest).
 
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
@@ -12,15 +12,15 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import type { QuestSharing } from "@/quests/membership.ts";
 import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
-import { EMPTY_TASKS, nextTasksStep } from "@/tasks/tasks.ts";
+import { EMPTY_TASKS, nextTask } from "@/tasks/tasks.ts";
 import { readTasks } from "@/tasks/tasks-store.ts";
 
 interface CurrentQuest {
   readonly quest: ChatQuest;
   // How it is shared, as its reader sees it.
   readonly sharing: QuestSharing;
-  // The next step its tasks records, or undefined if none.
-  readonly nextStep: string | undefined;
+  // The next task its tasks records, or undefined if none.
+  readonly nextTask: string | undefined;
 }
 
 // When a conversation was last active: its newest message's time, or when
@@ -31,17 +31,17 @@ function lastActiveAt(): SQL<Date> {
   );
 }
 
-// The quest's next step, from its tasks.
-async function readNextStep(
+// The quest's next task, from its tasks.
+async function readNextTask(
   owner: UserId,
   questId: QuestId,
 ): Promise<string | undefined> {
   const tasks = await readTasks(owner, questId);
-  return nextTasksStep(tasks ?? EMPTY_TASKS)?.text;
+  return nextTask(tasks ?? EMPTY_TASKS)?.text;
 }
 
 // The owner's Active quest whose conversation was most recently active,
-// with its next step, or undefined if they have no Active quest with a
+// with its next task, or undefined if they have no Active quest with a
 // conversation.
 function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
   return withAppErrors("readCurrentQuest", async () => {
@@ -66,7 +66,7 @@ function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
     return {
       quest: { id, name: latest.name },
       sharing: sharingOf(owner, latest),
-      nextStep: await readNextStep(owner, id),
+      nextTask: await readNextTask(owner, id),
     };
   });
 }

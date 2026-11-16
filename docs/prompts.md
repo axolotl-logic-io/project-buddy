@@ -8,4 +8,4 @@ Neither editor has a prose Instructions, Prompt or Character Sheet field, becaus
 
 `own_prompts` stores owner-scoped constructs and spells. The local command engine interprets explicit commands and uses spell destinations and reply templates. See [Spells](spellbook.md) for snapshot and reply-list behavior.
 
-New accounts require a name when confirming the emailed signup link from Login. Settings can change the name but cannot clear it. Existing accounts sign in without repeating the name step.
+New accounts require a name when confirming the emailed signup link from Login. Profile can change the name but cannot clear it. Existing accounts sign in without repeating the name step.

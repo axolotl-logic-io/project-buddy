@@ -9,7 +9,7 @@ import { CURRENT_QUEST_COPY } from "@/ui/copy/quests.ts";
 const HEADING_ID = "current-quest-heading";
 
 // The quest to pick up again, at the top of Quests: its name, with a
-// marker if it is multi-user, its next step when it has one, and Continue, which opens its conversation. It shows
+// marker if it is multi-user, its next task when it has one, and Continue, which opens its conversation. It shows
 // nothing when there is no quest to continue.
 function CurrentQuestCard({
   quest,
@@ -19,7 +19,7 @@ function CurrentQuestCard({
   if (quest === undefined) {
     return null;
   }
-  const { quest: current, nextStep } = quest;
+  const { quest: current, nextTask } = quest;
   return (
     <section aria-labelledby={HEADING_ID} className="current-quest">
       <div className="current-quest-body">
@@ -30,9 +30,9 @@ function CurrentQuestCard({
         <span>
           <QuestSharingMark sharing={quest.sharing} />
         </span>
-        {nextStep !== undefined && (
+        {nextTask !== undefined && (
           <p className="wrap-anywhere text-muted text-sm">
-            {CURRENT_QUEST_COPY.nextStep(nextStep)}
+            {CURRENT_QUEST_COPY.nextTask(nextTask)}
           </p>
         )}
       </div>

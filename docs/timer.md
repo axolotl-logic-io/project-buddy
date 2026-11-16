@@ -33,7 +33,7 @@ The browser's clock decides the period: `src/timer/schedule.ts` works it out fro
 
 The bar with the page's trail, **Timer › Work 25 · Break 15**, holds the timer's other parts at its right: the count of others following the schedule and **Copy link**. **Copy link** copies the page's address and reads **Copied** for two seconds, or **Copy failed** when the browser refuses. A hidden status line says the same to a screen reader. **Timer** in the trail leads back to setup. A link whose start is still ahead of the server's clock shows neither the count nor **Copy link**.
 
-The timer writes no message, completes no step, records no milestone, sends no notification and makes no model request.
+The timer writes no message, completes no task, records no milestone, sends no notification and makes no model request.
 
 ## Others following
 

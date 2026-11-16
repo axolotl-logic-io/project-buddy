@@ -1,5 +1,5 @@
 // The days of a Dailies quest: the date a new day takes, the streaks of its
-// recurring steps, the gaps that end them, and the Progress grid.
+// recurring tasks, the gaps that end them, and the Progress grid.
 
 import { describe, expect, test } from "vitest";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/dailies/dailies.ts";
 import type { Tasks } from "@/tasks/tasks.ts";
 
-// The step numbers, and the grid's usual week.
+// The task numbers, and the grid's usual week.
 const STRETCH = 1;
 const SKETCH = 2;
 const VET = 3;
@@ -22,7 +22,7 @@ const TWICE_RUN = 3;
 const SHOWN = 3;
 
 const TASKS: Tasks = {
-  steps: [
+  items: [
     { number: 1, text: "Stretch", done: false, recurring: true },
     { number: 2, text: "Sketch", done: true, recurring: true },
     { number: 3, text: "Book the vet", done: true },
@@ -30,12 +30,12 @@ const TASKS: Tasks = {
   nextNumber: 4,
 };
 
-// An ended day on date, with the recurring steps done that are listed.
+// An ended day on date, with the recurring tasks done that are listed.
 function ended(date: string, done: readonly number[]): DailiesDay {
   return {
     date,
     startedAt: new Date(`${date}T08:00:00Z`),
-    steps: [
+    tasks: [
       { number: 1, text: "Stretch", done: done.includes(1) },
       { number: 2, text: "Sketch", done: done.includes(2) },
     ],
@@ -116,7 +116,7 @@ describe("Dailies days", () => {
     expect(streaks(days, TASKS).get(SKETCH)).toBe(TWICE_RUN);
   });
 
-  test("one-off steps and steps with no days have no streak", () => {
+  test("one-off tasks and tasks with no days have no streak", () => {
     expect(streaks([], TASKS)).toEqual(new Map());
     expect(streaks([going("2026-11-14")], TASKS).has(VET)).toBe(false);
   });
@@ -161,12 +161,12 @@ describe("Dailies days", () => {
     expect(dayGrid([], TASKS, WEEK)).toEqual({ dates: [], rows: [] });
   });
 
-  test("a step made recurring later is untracked on earlier days", () => {
+  test("a task made recurring later is untracked on earlier days", () => {
     const days = [
       {
         date: "2026-11-13",
         startedAt: new Date("2026-11-13T08:00:00Z"),
-        steps: [{ number: 2, text: "Sketch", done: true }],
+        tasks: [{ number: 2, text: "Sketch", done: true }],
       },
       going("2026-11-14"),
     ];

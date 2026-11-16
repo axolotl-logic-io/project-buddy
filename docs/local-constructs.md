@@ -7,11 +7,12 @@ Project Buddy makes no requests to AI model companies. Constructs run a local co
 | Command | Result |
 | --- | --- |
 | `brainstorm` | Enter Brainstorm; save subsequent messages to Ideas. |
-| `tasks` | Enter Tasks; save subsequent messages as open steps. |
+| `tasks` | Enter Tasks; save subsequent messages as open tasks. |
 | `stop` | Return to Chat without changing existing bucket contents. |
 | `help` | List supported commands. |
 | `look` | Show the Visual description from the conversation's saved construct, or explain that it has none. |
 | `cast <spell id>` | Use the existing owner-scoped spell tool and save the cast. |
+| `exp` | Show the sender's [experience](experience.md#the-exp-command): their circle and its title, the experience the next circle needs, and their points in each ability. An active spell doesn't save it. |
 
 Verbs ignore case and accept an optional leading `/`. Missing arguments get usage instructions. Other messages remain saved and receive command help. Tasks edit commands and controls keep their own path; `/tasks` enters the Tasks spell.
 
@@ -23,7 +24,7 @@ Replies keep the shared context assembly, streaming, tool execution, ownership c
 
 ## Limits
 
-The engine does not infer intent, interpret prose instructions, understand images, infer tasks or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Tasks or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. Tasks, Ideas, Progress, Quick Notes and Actions are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help and cast keep their command behavior. New quest openings use the shared greeting request.
+The engine does not infer intent, interpret prose instructions, understand images, infer tasks or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Tasks or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. Tasks, Ideas, Progress, Quick Notes and Actions are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, cast and exp keep their command behavior. New quest openings use the shared greeting request.
 
 The composer accepts text only. Saving a Visual description changes text without replacing artwork. Existing artwork and saved conversation images remain readable.
 
@@ -41,4 +42,4 @@ Workshop offers built-in Tasks and Brainstorm and customizable own spells. See [
 
 The tests use real local commands for spell transitions and message persistence. Prompt context and conversation-window tests inspect the real assembly directly. Tool contract tests call the registered handlers without a model simulator. Rich Markdown tests use fixed saved content. Cancellation and execution-failure tests use small, explicit stream doubles; duplicate reply claims use event barriers instead of delays.
 
-Local reply tests cover command guidance and replies. Image delivery, retained artwork and owner isolation have real database coverage. Reset tests cover fresh conversations, reopened Tasks steps, retained Ideas and Progress, and the ownership of retained artwork.
+Local reply tests cover command guidance and replies. Image delivery, retained artwork and owner isolation have real database coverage. Reset tests cover fresh conversations, reopened tasks, retained Ideas and Progress, and the ownership of retained artwork.

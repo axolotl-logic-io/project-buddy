@@ -20,7 +20,7 @@ A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `s
 
 ## Day grid
 
-In the Dailies quest, the Progress section shows a day grid above the timeline. It has one row for each recurring step, with a square for each of its last seven dates: filled when the step was done, empty when it wasn't, and dashed for a gap, a date with no day started. [Dailies](dailies.md) describes the days and streaks behind it.
+In the Dailies quest, the Progress section shows a day grid above the timeline. It has one row for each recurring task, with a square for each of its last seven dates: filled when the task was done, empty when it wasn't, and dashed for a gap, a date with no day started. [Dailies](dailies.md) describes the days and streaks behind it.
 
 ## Storage
 
