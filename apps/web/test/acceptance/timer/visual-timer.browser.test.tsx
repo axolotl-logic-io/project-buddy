@@ -15,6 +15,7 @@ import {
   type TimerSchedule,
 } from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { tabForward } from "../../support/keyboard-test-kit.ts";
 import { timerRouter } from "../../support/timer/timer-router.ts";
 import {
   countdown,
@@ -258,11 +259,11 @@ describe("Feature: Visual work and break timer", () => {
       await expect.element(countdown()).toBeVisible();
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
 
-      await userEvent.tab();
+      await tabForward();
       await expect.element(workSelect()).toHaveFocus();
-      await userEvent.tab();
+      await tabForward();
       await expect.element(breakSelect()).toHaveFocus();
-      await userEvent.tab();
+      await tabForward();
       await expect
         .element(page.getByRole("button", { name: TIMER_COPY.start }))
         .toHaveFocus();
