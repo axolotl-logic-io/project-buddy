@@ -1,10 +1,10 @@
-// Appearance controls for the single parchment theme.
+// The three fixed appearances, shown as texture swatches.
 export const THEME_COPY = {
   picker: "Appearance",
-  modeLabel: "Mode",
+  modeLabel: "Theme",
   modes: {
-    light: "Light",
-    dark: "Dark",
-    system: "System",
+    light: "Ivory Vellum",
+    "soot-brass": "Soot & Brass",
+    dark: "Espresso Leather",
   },
 } as const;

@@ -173,7 +173,7 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Tasks link.
+The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, and Espresso Leather. Texture swatches in the site panel and Settings apply the choice immediately and remember it in this browser. There is no system-following appearance. See [Appearance](docs/appearance.md). Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Tasks link.
 
 ## Installed app
 

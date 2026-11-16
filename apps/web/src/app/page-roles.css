@@ -298,7 +298,7 @@
 
   /* Another action beside the main one. */
   .button-secondary {
-    @apply border-line bg-surface text-foreground;
+    @apply border-line bg-secondary-surface text-foreground;
   }
 
   /* The main action when it removes something for good, such as a confirm
@@ -826,7 +826,7 @@
     padding: var(--trail-band-padding-top) var(--header-gutter)
       var(--trail-band-padding-bottom);
     border-block-start: var(--header-rim) solid var(--hud-gold);
-    @apply flex min-w-0 items-baseline gap-2 border-line border-b bg-surface text-foreground;
+    @apply flex min-w-0 items-baseline gap-2 border-line border-b bg-trail-surface text-foreground;
   }
 
   /* The parents give up their room before the heading does, while it keeps
@@ -902,7 +902,7 @@
     block-size: calc(100dvh - var(--site-header-bottom));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground shadow-raised open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-navigation-surface p-3 text-foreground shadow-raised open:flex;
     background-image: var(--panel-decoration);
   }
 
@@ -953,22 +953,44 @@
     @apply bg-accent text-on-accent;
   }
 
-  /* The modes, side by side, the chosen one filled. */
+  /* Texture swatches share native radio behavior in both appearance pickers. */
   .panel-modes {
-    @apply mx-2 grid grid-cols-3 overflow-hidden rounded-control border border-line;
+    @apply mx-2 grid grid-cols-3 gap-2;
   }
 
   .panel-mode {
-    @apply flex min-h-(--target-size) cursor-pointer items-center justify-center text-sm hover:bg-accent hover:text-on-accent has-checked:bg-primary has-checked:font-semibold has-checked:text-on-primary;
+    @apply relative flex min-h-(--target-size) min-w-0 cursor-pointer flex-col items-center gap-2 rounded-control border border-line p-2 text-center text-xs hover:bg-field has-checked:border-primary has-checked:font-semibold;
   }
 
-  .panel-mode + .panel-mode {
-    @apply border-line border-l;
-  }
-
-  .panel-mode:has(:focus-visible) {
+  .panel-mode:focus-within {
     outline: var(--focus-outline);
-    outline-offset: calc(-2 * var(--focus-offset));
+    outline-offset: var(--focus-offset);
+  }
+
+  .theme-choice-input {
+    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none rounded-control;
+  }
+
+  /* The label draws focus around the whole swatch and its name. */
+  .theme-choice-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .theme-swatch {
+    @apply relative block h-12 w-full overflow-hidden rounded-control border border-line bg-background bg-(image:--page-decoration) bg-cover;
+  }
+
+  .theme-swatch-panel {
+    @apply absolute right-1 bottom-1 left-2 h-6 rounded-control border border-line bg-surface;
+  }
+
+  .theme-swatch-accent {
+    @apply absolute right-2 bottom-2 h-2 w-4 rounded-control bg-primary;
+  }
+
+  .theme-choice-mark {
+    @apply flex h-4 items-center justify-center text-primary;
   }
 
   /* The rule between the site panel's groups. */
@@ -1240,34 +1262,7 @@
   }
 
   .appearance-settings .panel-modes {
-    @apply mx-0 grid-cols-1 gap-2 overflow-visible border-0;
-  }
-
-  .appearance-settings .panel-mode {
-    @apply justify-start gap-3 rounded-control border border-line px-3;
-  }
-
-  /* The radio keeps a target's size; the ring drawn in it takes the row's
-     colour, so it reads on the chosen row's primary fill as on the others. */
-  .appearance-setting-input {
-    inline-size: var(--target-size);
-    block-size: var(--target-size);
-    @apply -ms-3 grid shrink-0 cursor-pointer appearance-none place-content-center;
-  }
-
-  .appearance-setting-input::before {
-    content: "";
-    @apply size-5 rounded-full border-2 border-current bg-clip-content p-1;
-  }
-
-  .appearance-setting-input:checked::before {
-    @apply bg-current;
-  }
-
-  /* .panel-mode:has(:focus-visible) rings the whole row instead. */
-  .appearance-setting-input:focus-visible {
-    outline: none;
-    box-shadow: none;
+    @apply mx-0;
   }
 
   /* Shared compact editors for Tasks and Ideas. */
@@ -1520,7 +1515,7 @@
     block-size: calc(100dvh - var(--site-header-bottom));
     inline-size: min(22rem, 100%);
     max-block-size: none;
-    @apply fixed inset-e-0 inset-s-auto m-0 max-w-none overflow-y-auto border-0 border-s border-line/40 bg-surface p-0 text-foreground;
+    @apply fixed inset-e-0 inset-s-auto m-0 max-w-none overflow-y-auto border-0 border-s border-line/40 bg-sidebar-surface p-0 text-foreground;
   }
 
   .quest-sidebar-frame::backdrop {
@@ -1532,7 +1527,7 @@
   }
 
   .quest-sidebar .workspace-rail {
-    @apply sticky top-0 z-10 flex-nowrap items-start gap-x-2 border-t-0 bg-surface px-0;
+    @apply sticky top-0 z-10 flex-nowrap items-start gap-x-2 border-t-0 bg-sidebar-surface px-0;
   }
 
   /* The sidebar is too narrow for all its tabs in one row, so they wrap
