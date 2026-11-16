@@ -95,7 +95,7 @@ Then run `npm run dev:database` with this worktree's `DATABASE_URL`, which `mise
 
 ### Branches and deploys
 
-Feature pull requests target `integration`. To release production, merge a release PR from `integration` into `main` after the integration checks and preview pass. Reconcile any changes unique to `main` into `integration` first, preserving both branches' work. Never force-push either branch.
+To release production, merge a release PR from `integration` into `main` after the integration checks and preview pass. Reconcile any changes unique to `main` into `integration` first, preserving both branches' work. Never force-push either branch.
 
 1. A push to `integration` builds a Vercel preview and runs signed-out smoke checks. It never migrates the shared production database. Code that needs a pending migration may fail on pages that read it. Check the Integration preview, Check and Full suite workflows for the integration commit before releasing.
 2. Inspect pending migrations for compatibility with the live build, as [project practices](docs/project-practices.md#site-data) requires. Then merge the release PR into `main` after its required checks pass.
