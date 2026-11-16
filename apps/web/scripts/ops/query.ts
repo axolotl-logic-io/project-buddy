@@ -13,6 +13,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
 import { parseEnv } from "node:util";
+import type { PoolClient } from "pg";
 import { openPool } from "../../src/db/client.ts";
 
 // A variable's value, or undefined when it's unset or empty. A pulled sensitive
@@ -69,7 +70,7 @@ if (connectionString === "") {
 }
 
 const pool = openPool(connectionString);
-const client: Awaited<ReturnType<typeof pool.connect>> = await pool.connect();
+const client: PoolClient = await pool.connect();
 try {
   await client.query("BEGIN READ ONLY");
   await client.query("SET LOCAL statement_timeout = '15s'");
