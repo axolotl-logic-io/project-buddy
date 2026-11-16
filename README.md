@@ -15,7 +15,25 @@ The repo is a monorepo of npm workspaces with mise tasks:
 
 ## Development
 
-Node is pinned to 24 in the root `mise.toml`. Run `mise install` once, then use mise shell activation or prefix commands with `mise exec --`. Install every workspace's dependencies once, at the root, with `npm ci`.
+Install mise and Docker with its Compose plugin, and start the Docker engine. From the repository root, run:
+
+```bash
+mise trust
+mise install
+mise setup
+mise run doctor
+mise //apps/web:dev
+```
+
+`mise setup` installs every workspace's dependencies with `npm ci`, creates `apps/web/.env.local` with a generated session secret and the local email outbox, starts the persistent development database, applies migrations, and initializes manual test configuration with `test-env:init`. It fills missing or empty local settings, preserves existing nonempty values and development data, and makes no further configuration changes on repeat runs. Existing configuration must use the Compose development database and the email outbox; conflicting explicit settings are reported for you to fix. Setup and doctor refuse other database URLs, including hosted databases and the test database.
+
+Open `http://localhost:3000` and request a sign-up or sign-in link. With the generated configuration, emails appear as JSON files in `apps/web/test-results/dev-email-outbox/`. Open the link in the latest file's `text` field to continue. Local development needs no email service credentials.
+
+`mise doctor` is mise’s built-in diagnostic command. Use `mise run doctor` for this repository’s checks. It checks Node, npm, Docker, Compose, workspace dependencies, effective development configuration, database connectivity and migration hashes. It changes no configuration or database data and exits nonzero when a check fails. Each failure includes a repair command or setting. It does not run tests or prove that the application builds. Database-dependent checks are skipped when dependencies or configuration are missing. If recorded migration hashes differ from this checkout, doctor reports a migration history conflict. Setup does not reset the database or rewrite its migration history; reconcile the history or explicitly choose to reset local data before continuing.
+
+Setup initializes `.env.test` but does not start or reset the test database or install browser binaries. For database tests, run `npm run test-db:up --workspace apps/web`, then the desired test command below. Browser tests install their browsers when selected. These remain separate from the fast default checks.
+
+Node is pinned to 24 in the root `mise.toml`. Use mise shell activation or prefix commands with `mise exec --`. To install dependencies manually, run `npm ci` at the repository root. Root setup and doctor tasks also work from subdirectories with `mise //:setup` and `mise //:doctor`.
 
 From anywhere in the repo, mise runs the site's tasks:
 
@@ -59,7 +77,7 @@ npm run db:migrate   # apply migrations to the database at DATABASE_URL
 
 The app uses local PostgreSQL through the native `pg` driver, or hosted Neon through its HTTP driver, with [Drizzle ORM](https://orm.drizzle.team). Each feature defines its tables in `src/db/tables/`, which `drizzle.config.ts` names as the schema, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `apps/web/.env.local`, which git ignores, or run `vercel env pull .env.local` in `apps/web/` once the Vercel project is linked with `npm run ops:link`. To look at production, use the `ops:*` scripts in [Reaching Vercel and production](docs/Site-Operations.md#reaching-vercel-and-production) instead. `.env.test`, which the e2e and server tests read, lives in `apps/web/` too: the orchestrator provides it with the database and site port pinned to the lane, or a developer runs `npm run test-env:init` (or copies `.env.test.example` by hand) for a manual run. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
-For a persistent local development database, run these commands from `apps/web/`:
+For a persistent local development database, `mise setup` handles startup and migrations. To start it manually, run this command from `apps/web/`:
 
 ```bash
 docker compose --file compose.dev-db.yml up --detach --wait
