@@ -107,7 +107,7 @@ vi.mock("@/spells/own-spell-store.ts", () => ({
   getOwnSpell: vi.fn(),
 }));
 
-// The site menu's Quick Note dialog and a quest's Quick Notes tab reach these
+// The site panel's Quick Note dialog and a quest's Quick Notes tab reach these
 // from every signed-in page. Tests of those flows supply their own results.
 vi.mock("@/notes/note-actions.ts", () => ({
   listNoteQuestsAction: vi.fn(() => Promise.resolve([])),

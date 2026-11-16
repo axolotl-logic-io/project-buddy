@@ -24,6 +24,13 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "The page where people find constructs and spells, make their own copies and change the copies they own.",
   },
   {
+    term: "Site panel",
+    heading: "Site panel",
+    aliases: ["site panel"],
+    definition:
+      "The panel on the left of every page, opened from the button at the start of the header. It holds links to the site's places, the person's own pages, the Light, Dark and System choices and Credits. On a wide screen it can stay open beside the page.",
+  },
+  {
     term: "Prompt",
     heading: "Prompt",
     aliases: ["prompt", "prompts"],
@@ -428,7 +435,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Quick Note",
     aliases: ["Quick Note", "Quick Notes"],
     definition:
-      "A short piece of text saved to an Active quest from the site menu, without opening that quest. Quick Notes are listed newest first in the quest's Quick Notes section. The construct does not read them.",
+      "A short piece of text saved to an Active quest from the site panel, without opening that quest. Quick Notes are listed newest first in the quest's Quick Notes section. The construct does not read them.",
   },
   {
     term: "Quest sidebar actions",

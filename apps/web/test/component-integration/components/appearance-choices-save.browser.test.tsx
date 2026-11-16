@@ -1,5 +1,5 @@
 // "use_case_choose_theme", without the Cookie Store API: browsers before
-// 2025, and pages not on HTTPS or localhost, have none, and the menu still
+// 2025, and pages not on HTTPS or localhost, have none, and the site panel still
 // applies a choice and saves it, through its Server Action (#42). That the
 // saved cookie reaches the next page is
 // save-theme-choice-action.server.test.ts's and
@@ -7,7 +7,7 @@
 
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { SiteMenu } from "@/components/site-menu.tsx";
+import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, type ThemeChoice } from "@/themes/themes.ts";
@@ -15,9 +15,9 @@ import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
   appliedChoice,
   choose,
-  closeMenu,
-  openMenu,
-} from "./site-menu-test-kit.ts";
+  closePanel,
+  openPanel,
+} from "./site-panel-test-kit.ts";
 
 const action = vi.hoisted(() => ({
   saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
@@ -60,11 +60,11 @@ afterAll(() => {
 describe("use_case_choose_theme", () => {
   test("saves the choice without the Cookie Store API", async () => {
     expect(COOKIE_STORE in globalThis).toBe(false);
-    await render(<SiteMenu links={null} />);
+    await render(<SitePanel links={null} />);
 
-    await openMenu();
+    await openPanel();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
-    await closeMenu();
+    await closePanel();
 
     expect(appliedChoice()).toStrictEqual(PARCHMENT_DARK);
     expect(action.saveThemeChoiceAction).toHaveBeenLastCalledWith(

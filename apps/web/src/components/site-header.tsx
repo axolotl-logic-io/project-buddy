@@ -5,13 +5,13 @@ import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
 import { QuickNote } from "@/components/quick-note.tsx";
-import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
+import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
+import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
@@ -60,92 +60,98 @@ function TrailBand({
   );
 }
 
-// The ids of the menu's two groups' names. The header is on every page
-// once, so they are unique.
-const PLACES_LABEL_ID = "site-menu-places";
-const YOU_LABEL_ID = "site-menu-you";
+// The ids of the site panel's two groups' names. The header is on every
+// page once, so they are unique.
+const PLACES_LABEL_ID = "site-panel-places";
+const YOU_LABEL_ID = "site-panel-you";
 
 // Quick Note, then signed-in destinations, grouped into Places and You.
 function AccountLinks(): JSX.Element {
   return (
-    <nav aria-label={SITE_MENU_COPY.title} className="flex flex-col">
+    <nav aria-label={SITE_PANEL_COPY.title} className="flex flex-col">
       <QuickNote />
-      <hr className="menu-rule" />
-      <p className="menu-label" id={PLACES_LABEL_ID}>
-        {SITE_MENU_COPY.placesLabel}
+      <hr className="panel-rule" />
+      <p className="panel-label" id={PLACES_LABEL_ID}>
+        {SITE_PANEL_COPY.placesLabel}
       </p>
       <ul aria-labelledby={PLACES_LABEL_ID} className="flex flex-col">
         <li>
-          <MenuLink href="/quests">{QUESTS_COPY.headerLink}</MenuLink>
+          <PanelLink href="/quests">{QUESTS_COPY.headerLink}</PanelLink>
         </li>
 
         <li>
-          <MenuLink href="/workshop">{WORKSHOP_COPY.heading}</MenuLink>
+          <PanelLink href="/workshop">{WORKSHOP_COPY.heading}</PanelLink>
         </li>
         <li>
-          <MenuLink href="/timer">{TIMER_COPY.menuLink}</MenuLink>
+          <PanelLink href="/timer">{TIMER_COPY.panelLink}</PanelLink>
         </li>
         <li>
-          <MenuLink href="/retirement">{RETIREMENT_COPY.heading}</MenuLink>
+          <PanelLink href="/retirement">{RETIREMENT_COPY.heading}</PanelLink>
         </li>
       </ul>
-      <hr className="menu-rule" />
-      <p className="menu-label" id={YOU_LABEL_ID}>
-        {SITE_MENU_COPY.youLabel}
+      <hr className="panel-rule" />
+      <p className="panel-label" id={YOU_LABEL_ID}>
+        {SITE_PANEL_COPY.youLabel}
       </p>
       <ul aria-labelledby={YOU_LABEL_ID} className="flex flex-col">
         <li>
-          <MenuLink href="/settings">{SETTINGS_COPY.headerLink}</MenuLink>
+          <PanelLink href="/settings">{SETTINGS_COPY.headerLink}</PanelLink>
         </li>
       </ul>
     </nav>
   );
 }
 
-// Reads the session for the header slot and supplies the signed-in menu
-// or the public menu for a visitor.
-async function SignedInLinks({
+// Reads the session for the header slot and supplies the header with the
+// signed-in site panel and the page's trail, or the visitor's header.
+async function SignedInHeader({
   breadcrumbs,
 }: {
   readonly breadcrumbs?: readonly Breadcrumb[];
 } = {}): Promise<JSX.Element> {
   const user = await currentUser();
   if (user === undefined) {
-    return <SiteMenu links={null} />;
+    return <SiteHeader />;
+  }
+  let trail: ReactNode;
+  if (breadcrumbs !== undefined) {
+    trail = <TrailBand items={breadcrumbs} />;
   }
   return (
-    <>
-      <SiteMenu links={<AccountLinks />} />
-      {breadcrumbs !== undefined && <TrailBand items={breadcrumbs} />}
-    </>
+    <SiteHeader panel={<SitePanel links={<AccountLinks />} />} trail={trail} />
   );
 }
 
-// Every page has a menu, including public pages and the not-found page.
-const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
+// Every page has a site panel, including public pages and the not-found
+// page.
+const VISITOR_PANEL: JSX.Element = <SitePanel links={null} />;
 
-// The site's header, set as a game's HUD: an ink bar with a gold rim, whose
+// The site's header, set as a game's HUD: an ink bar with a gold rim. The
+// site panel's button starts it, on the side the panel opens, and the
 // brand, a compass medallion and the site's name, leads back to Quests. On a
 // phone the medallion alone shows, and the name stays its accessible name.
 // A page with a trail adds the trail band under the rim; the bar scrolls
 // away and the band stays pinned.
 function SiteHeader({
-  links = VISITOR_MENU,
+  panel = VISITOR_PANEL,
+  trail,
 }: {
-  readonly links?: ReactNode;
+  readonly panel?: ReactNode;
+  readonly trail?: ReactNode;
 }): JSX.Element {
   return (
     <header className="site-header">
       <HeaderSize />
+      {panel}
       <Link className="header-title hud-title" href={HOME_PATH}>
         <span className="hud-medallion">
           <Icon name="compass" />
         </span>
         <span className="hud-name">{SITE_COPY.name}</span>
       </Link>
-      {links}
+      {trail}
     </header>
   );
 }
 
-export { AccountLinks, SignedInLinks, SiteHeader, TrailBand };
+export { AccountLinks, SignedInHeader, SiteHeader, TrailBand };

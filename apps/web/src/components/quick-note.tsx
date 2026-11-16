@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { closePanelAround } from "@/components/close-panel-around.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
@@ -34,11 +35,12 @@ function chosenQuest(quests: readonly NoteQuest[], pathname: string): string {
   return quests[0]?.id ?? "";
 }
 
-// The site menu's Quick Note item and its dialog. Choosing the item closes
-// the menu and opens a modal dialog with a choice of the user's Active
-// quests and the Quick Note's text. A saved Quick Note clears the text and
+// The site panel's Quick Note item and its dialog. Choosing the item closes
+// the panel's drawer and opens a modal dialog with a choice of the user's
+// Active quests and the Quick Note's text. A saved Quick Note clears the text and
 // keeps the quest chosen, ready for the next one. Closing the dialog returns
-// focus to the menu's button. Saving makes no model request.
+// focus to the panel's button, or to Quick Note in a docked panel. Saving
+// makes no model request.
 function QuickNote(): JSX.Element {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -54,12 +56,16 @@ function QuickNote(): JSX.Element {
 
   const openDialog = useCallback(
     (event: MouseEvent<HTMLButtonElement>): void => {
-      // Closing the menu gives focus back to its button, where closing this
-      // dialog returns it.
-      event.currentTarget.closest("dialog")?.close();
-      const { activeElement } = document;
-      if (activeElement instanceof HTMLElement) {
-        returnFocusRef.current = activeElement;
+      // Closing the site panel's drawer gives focus back to its button,
+      // where closing this dialog returns it. A docked panel stays open,
+      // and focus returns to Quick Note, which a click doesn't focus in
+      // Safari.
+      returnFocusRef.current = event.currentTarget;
+      if (closePanelAround(event)) {
+        const { activeElement } = document;
+        if (activeElement instanceof HTMLElement) {
+          returnFocusRef.current = activeElement;
+        }
       }
       setQuests(undefined);
       setTextProblem(undefined);
@@ -125,8 +131,8 @@ function QuickNote(): JSX.Element {
   }
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <button className="menu-link" onClick={openDialog} type="button">
-        {QUICK_NOTE_COPY.menuItem}
+      <button className="panel-link" onClick={openDialog} type="button">
+        {QUICK_NOTE_COPY.panelItem}
       </button>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />

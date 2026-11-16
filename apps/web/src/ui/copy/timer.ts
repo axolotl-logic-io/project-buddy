@@ -30,7 +30,7 @@ const PHASES = { work: "Work", break: "Break" } as const;
 export const TIMER_COPY = {
   heading: "Timer",
   title: pageTitle("Timer"),
-  menuLink: "Timer",
+  panelLink: "Timer",
   runningTitle: pageTitle("Running timer"),
   // A timer link's place in the trail when it names no schedule.
   unknownTrail: "Unknown timer",

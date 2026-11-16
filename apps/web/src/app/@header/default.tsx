@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { SiteMenu } from "@/components/site-menu.tsx";
+import { SiteHeader } from "@/components/site-header.tsx";
 
-export default function NoHeaderLinks(): JSX.Element {
-  return <SiteMenu links={null} />;
+export default function VisitorHeader(): JSX.Element {
+  return <SiteHeader />;
 }

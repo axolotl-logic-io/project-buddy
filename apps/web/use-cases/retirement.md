@@ -15,7 +15,7 @@ The user puts aside an own construct or spell.
 The user finds a retired definition across both kinds.
 
 - **Prerequisites:** the user is signed in.
-- **Steps:** open Graveyard from the site menu or a collection page. Filter by kind, search by name, and choose View.
+- **Steps:** open Graveyard from the site panel or a collection page. Filter by kind, search by name, and choose View.
 - **Outcome:** the page lists only the user's retired definitions, most recently retired first. Filters combine with the name search. Empty collections and searches with no matches are explained. View shows saved instructions as read-only text. Workshop lists active definitions; Graveyard keeps retired definitions and their restore and delete controls.
 
 ## use_case_restore_retired_definition
