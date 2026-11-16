@@ -156,7 +156,7 @@ Test commands only consume the supplied file. A missing `.env.test` is an error:
 
 For a **manual run**, `npm run test-env:init` in `apps/web` writes `apps/web/.env.test` from the example with a database and site port derived from the worktree's path, one database per worktree, and keeps any `.env.test` already there. Or copy the example by hand and configure a local test database and an unused site port. From `apps/web`, run `npm run test-db:up` to start the local server, then `npm run test-db:reset` to create/migrate that configured database. Never share a manual database or port between simultaneous runs. Safety guards require localhost/127.0.0.1, safe database names (including `pb_lane_K`, never the server's own databases), the file email outbox.
 
-The shared server publishes native PostgreSQL on `127.0.0.1:5433`; no Neon proxy or pgbouncer is needed. App queries reuse a bounded connection pool. A locally installed PostgreSQL also works: set `DATABASE_URL` to its `localhost` or `127.0.0.1` address and port. The app also recognizes IPv6 loopback (`[::1]`); destructive test commands still require localhost or 127.0.0.1.
+The shared server publishes native PostgreSQL on `127.0.0.1:5433`. App queries reuse a bounded connection pool. A locally installed PostgreSQL also works: set `DATABASE_URL` to its `localhost` or `127.0.0.1` address and port. The app also recognizes IPv6 loopback (`[::1]`); destructive test commands still require localhost or 127.0.0.1.
 
 Changes to the installed issue pipeline belong in the ecosystem repository.
 
@@ -165,7 +165,7 @@ Changes to the installed issue pipeline belong in the ecosystem repository.
 - `npm run test:e2e` runs `test:server` followed by `test:playwright` only on success, both with the same configured environment.
 - `npm run test:scripts` includes deterministic lane tests using `fake-docker.sh` on PATH; no real Docker or database is used.
 
-Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_SLOTS=N` (nonnegative whole count; zero prunes all identifiable lanes). It inventories the shared server before any removal and refuses uncertain inspection. Only canonical lane proxies/databases above N may be removed; retained issue resources and other namespaces are untouched. Names, shared container/network and port formulas live in `lanes.sh`. Do not run shared-server `test-db:down` while another checkout needs it.
+Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_SLOTS=N` (nonnegative whole count; zero prunes all identifiable lanes). It inventories the shared server before any removal and refuses uncertain inspection. Only canonical lane databases above N may be removed; retained issue resources and other namespaces are untouched. Names, shared container/network and port formulas live in `lanes.sh`. Do not run shared-server `test-db:down` while another checkout needs it.
 
 **Keep one full web suite scheduled at a time until this change is accepted and operator setup is separately made compatible.** Merging repository scripts does not configure or install the pipeline's laneSlots, setup/prune/teardown wiring, nor authorize removal of retained resources. Operator setup remains separate. See [Project practices](docs/project-practices.md). Fix failures before rerunning; a flake is a failure.
 
