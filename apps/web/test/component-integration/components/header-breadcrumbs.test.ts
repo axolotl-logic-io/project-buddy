@@ -41,9 +41,15 @@ describe("header navigation hierarchy", () => {
     expect(trail[0]?.href).toBeUndefined();
   });
 
-  test("a timer link sits under Timer, named by its durations", async () => {
+  test("a timer link sits under Timer, named by its durations, and carries its schedule", async () => {
     expect(await headerBreadcrumbs(MEMBER, ["timer", "25", "15", "0"])).toEqual(
-      [{ label: "Timer", href: "/timer" }, { label: "Work 25 · Break 15" }],
+      [
+        { label: "Timer", href: "/timer" },
+        {
+          label: "Work 25 · Break 15",
+          timer: { workMinutes: 25, breakMinutes: 15, startMs: 0 },
+        },
+      ],
     );
     expect(await headerBreadcrumbs(MEMBER, ["timer", "25", "16", "0"])).toEqual(
       [{ label: "Timer", href: "/timer" }, { label: "Unknown timer" }],

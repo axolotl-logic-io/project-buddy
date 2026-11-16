@@ -140,7 +140,10 @@ describe("use_case_timer_see_others", () => {
     });
     await renderTimer(FIFTY_TEN);
 
-    await expect.element(page.getByText(TIMER_COPY.others(2))).toBeVisible();
+    await expect.element(page.getByText("2 others here")).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: TIMER_COPY.copyLink }))
+      .toBeVisible();
     expect(reportTimerPresenceAction).toHaveBeenCalledWith(FIFTY_TEN);
   });
 
@@ -154,7 +157,7 @@ describe("use_case_timer_see_others", () => {
       .element(page.getByText(TIMER_COPY.othersUnavailable))
       .toBeVisible();
     await expect
-      .element(page.getByText(TIMER_COPY.noOthers))
+      .element(page.getByText(TIMER_COPY.others(0)))
       .not.toBeInTheDocument();
 
     vi.mocked(reportTimerPresenceAction).mockResolvedValueOnce({
@@ -167,6 +170,8 @@ describe("use_case_timer_see_others", () => {
   });
 });
 
+// The trail's Timer link back to setup is checked in
+// header-breadcrumbs.test.ts.
 describe("use_case_timer_return_to_setup", () => {
   test("setup offers the durations of the timer this tab last showed", async () => {
     const shown = await renderTimer({
@@ -174,9 +179,7 @@ describe("use_case_timer_return_to_setup", () => {
       breakMinutes: 15,
       startMs: T,
     });
-    await expect
-      .element(page.getByRole("link", { name: TIMER_COPY.change }))
-      .toHaveAttribute("href", "/timer");
+    await expect.element(countdown()).toBeVisible();
     await shown.unmount();
 
     await renderSetup();
