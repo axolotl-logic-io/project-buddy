@@ -460,14 +460,13 @@
   }
 
   /* What stays pinned of the site's header: nothing, or the trail band
-     under its bar. Jumps and the conversation's pinned header leave room
-     for it. HeaderSize (src/components/header-size.tsx) measures the band;
-     this is its one-line height, for the first paint. */
+     under its bar. Jumps leave room for it. HeaderSize
+     (src/components/header-size.tsx) measures the band; this is its
+     one-line height, for the first paint. */
   /* The header's sizes. The trail band's room above the heading leaves the
      parents' targets whole on screen while the band is pinned. On a phone
      the room below is less, and the band at least a target's height, so a
-     two-line heading and the conversation's pinned header stay within the
-     pinned budget. */
+     two-line heading stays within the pinned budget. */
   html {
     --header-gutter: --spacing(4);
     --header-rim: 4px;
@@ -509,54 +508,14 @@
     }
   }
 
-  /* A conversation's pinned header, under the trail band. With the band's
-     two-line heading it stays within the pinned budget (112 px on a
-     phone; docs/chats.md). */
-  .chat-header {
-    inset-block-start: var(--site-header-height);
-    @apply sticky z-10 bg-background bg-(image:--page-decoration) bg-fixed py-0.5;
-  }
-
-  @supports (mask-image: none) {
-    .chat-header::after {
-      content: "";
-      position: absolute;
-      inset-inline: 0;
-      inset-block-start: 100%;
-      block-size: --spacing(4);
-      pointer-events: none;
-      background: inherit;
-      mask-image: linear-gradient(to bottom, black, transparent);
-    }
-  }
-
-  /* A long unbroken name breaks, so the clamp ends it with an ellipsis
-     rather than cutting it off at the column's edge. */
-  /* A conversation's pinned header (src/components/chat-screen.tsx): the
-     construct's portrait button and any page action, such as Start a
-     quest from this, which wraps under it on a phone. */
   /* A quest's conversation below its section links and actions. */
   .quest-conversation {
     @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
-  .conversation-header {
-    @apply flex min-w-0 flex-wrap items-center justify-between gap-2;
-  }
-
-  /* Leave room for the pinned conversation header, a touch target's
-     height, and its fade when jumping to a message. */
+  /* Leave room under the pinned trail band when jumping to a message. */
   html:has(.quest-workspace) {
     scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
-  }
-
-  html:has(.chat-header) {
-    scroll-padding-top: calc(
-      var(--site-header-height) +
-      --spacing(1) +
-      var(--target-size) +
-      --spacing(4)
-    );
   }
 
   /* The header is a game's HUD in every theme, with an independent ink and
@@ -736,10 +695,11 @@
      mirror on the left: under the header, for the rest of the screen's
      height. Its button floats under the header's left end, as the chat
      panel's does under the right, and the open panel's close button takes
-     the button's place. Below the lg breakpoint it is a drawer that slides in over a
-     page it leaves undimmed, so a theme or mode chosen in it shows on the
-     page beside it, and the page under it doesn't scroll. From lg it docks
-     beside the page, which makes room for it. A closed <dialog> is hidden
+     the button's place. It opens over the page's left edge and never
+     changes the page's size or flow. Below the lg breakpoint it is a drawer
+     that slides in over a page it leaves undimmed, so a theme or mode
+     chosen in it shows on the page beside it, and the page under it doesn't
+     scroll. From lg it docks over the page. A closed <dialog> is hidden
      by the browser's own display: none, so the panel is a flex column only
      while open. Each theme dresses it through the panel tokens
      (src/themes/themes.ts). */
@@ -748,7 +708,7 @@
     block-size: calc(100dvh - var(--site-header-bottom));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground shadow-raised open:flex;
     background-image: var(--panel-decoration);
   }
 
@@ -772,7 +732,7 @@
   }
 
   .site-panel:modal {
-    @apply shadow-raised motion-safe:animate-slide-in;
+    @apply motion-safe:animate-slide-in;
   }
 
   .site-panel::backdrop {
@@ -781,12 +741,6 @@
 
   html:has(.site-panel:modal) {
     overflow: hidden;
-  }
-
-  @media (width >= --theme(--breakpoint-lg)) {
-    .site-header:has(.site-panel[open]) ~ main {
-      padding-inline-start: var(--site-panel-width);
-    }
   }
 
   .panel-label {
@@ -1025,6 +979,22 @@
      the trail band. The count gives up its room before the button does. */
   .timer-trail-tools {
     @apply ml-auto flex min-w-0 items-center gap-3 self-center;
+  }
+
+  /* The active Dailies quest's construct button, at the band's right. On a
+     phone its portrait alone shows, and the button keeps the construct's
+     name as its accessible name. A whole target without making the band
+     taller. */
+  .construct-trail-tools {
+    @apply ml-auto flex min-w-0 shrink-0 items-center self-center;
+  }
+
+  .construct-trail-tools .character-header-control {
+    margin-block: calc((1lh - var(--target-size)) / 2);
+  }
+
+  .construct-trail-tools .character-header-control > span {
+    @apply hidden max-w-[16ch] truncate text-base sm:inline;
   }
 
   .timer-others {

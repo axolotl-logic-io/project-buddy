@@ -1,7 +1,6 @@
 import type { JSX } from "react";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import { DayGrid } from "@/components/dailies/day-grid.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
@@ -112,22 +111,8 @@ async function questConversation(
   if (section === "conversation") {
     initialSection = undefined;
   }
-  let header: JSX.Element | null = null;
-  if (quest.dailies && quest.status === "active") {
-    header = (
-      <header className="chat-header">
-        <div className="conversation-header">
-          <AdventureCharacterHeader
-            construct={conversation.construct}
-            destination={{ kind: "adventure", id: conversation.id }}
-          />
-        </div>
-      </header>
-    );
-  }
   return (
     <ChatScreen
-      header={header}
       initialSection={initialSection}
       sideSections={[
         {

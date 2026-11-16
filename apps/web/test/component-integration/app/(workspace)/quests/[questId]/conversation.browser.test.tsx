@@ -13,12 +13,21 @@
 // "use_case_send_message": a reply streams in the quest's conversation, and a
 // panel command typed in the composer runs without the construct.
 // "use_case_dailies": Start Day and its Undo send their commands to the
-// conversation. "conversation initialization fallback": a quest without a
-// conversation offers to start it, and reading it starts nothing.
+// conversation, and the construct's button sits at the trail band's right,
+// clear of the site panel. "conversation initialization fallback": a quest
+// without a conversation offers to start it, and reading it starts nothing.
 
 import type { UIMessageChunk } from "ai";
 import type { JSX } from "react";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  onTestFinished,
+  test,
+  vi,
+} from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
@@ -30,6 +39,7 @@ import { todayHere } from "@/dailies/dailies.ts";
 import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
@@ -42,12 +52,18 @@ import {
   answerChat,
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
+import {
+  closePanel,
+  openPanel,
+  sitePanel,
+} from "../../../../components/site-panel-test-kit.ts";
 import { readDailiesRecord } from "../../../../dailies/day-store-test-kit.ts";
 import { markdownReplyText } from "../../../../replies/rich-message-test-kit.ts";
 import { runChatCommandAction } from "../../../../tasks/tasks-actions-test-kit.ts";
 import { readTasksState } from "../../../../tasks/tasks-store-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
+  MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
@@ -121,6 +137,9 @@ vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
 );
+
+// The header's widest gutter, in CSS px: the trail band's right padding.
+const SITE_GUTTER_PX = 24;
 
 // The screens the case is checked on, a laptop's and a phone's, and the
 // most the trail band and the conversation's pinned header may take of
@@ -607,6 +626,86 @@ describe("conversation initialization fallback", () => {
 });
 
 describe("use_case_dailies", () => {
+  test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
+    "the construct's button sits at the trail band's right, clear of the open site panel, at $width px",
+    async (size) => {
+      // The later cases open the sidebar from its button, so they keep the
+      // screen they had.
+      const before = { width: window.innerWidth, height: window.innerHeight };
+      onTestFinished(() => page.viewport(before.width, before.height));
+      await page.viewport(size.width, size.height);
+      store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+      store.listMessages.mockResolvedValue([]);
+      await render(await chatPage());
+      const banner = page.getByRole("banner");
+      const heading = banner.getByRole("heading", { level: 1 });
+      const construct = banner.getByRole("button", {
+        name: CONSTRUCT_DISCOVERY_COPY.openProfile(
+          FOX_CONVERSATION.construct.name,
+        ),
+      });
+      await expect.element(construct).toBeVisible();
+      const button = construct.element().getBoundingClientRect();
+      const title = heading.element().getBoundingClientRect();
+      expect(
+        button.left,
+        "the button follows the quest's name",
+      ).toBeGreaterThanOrEqual(title.right);
+      expect(
+        Math.abs(
+          button.top + button.height / 2 - (title.top + title.height / 2),
+        ),
+        "the button sits on the heading's row",
+      ).toBeLessThan(button.height / 2);
+      expect(
+        window.innerWidth - button.right,
+        "the button ends at the band's right",
+      ).toBeLessThanOrEqual(SITE_GUTTER_PX);
+      expect(button.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        size.width,
+      );
+
+      await openPanel();
+      const panel = sitePanel().element().getBoundingClientRect();
+      const open = construct.element().getBoundingClientRect();
+      expect(
+        open.bottom <= panel.top || open.left >= panel.right,
+        "the open panel leaves the button clear",
+      ).toBe(true);
+      await closePanel();
+
+      await construct.click();
+      await expect
+        .element(
+          page.getByRole("dialog", { name: FOX_CONVERSATION.construct.name }),
+        )
+        .toBeVisible();
+    },
+  );
+
+  test("a quest other than the active Dailies quest shows no construct in its trail band", async () => {
+    store.getQuest.mockResolvedValue({
+      ...FOX_QUEST,
+      dailies: true,
+      status: "completed",
+    });
+    store.listMessages.mockResolvedValue([]);
+    await render(await chatPage());
+    await expect
+      .element(page.getByRole("banner").getByRole("heading", { level: 1 }))
+      .toBeVisible();
+    await expect
+      .element(
+        page.getByRole("button", {
+          name: CONSTRUCT_DISCOVERY_COPY.openProfile(
+            FOX_CONVERSATION.construct.name,
+          ),
+        }),
+      )
+      .not.toBeInTheDocument();
+  });
+
   test("Start Day is in the sidebar's Actions tab and confirms its options", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
