@@ -1,14 +1,20 @@
 import { describe, expect, test, vi } from "vitest";
 import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
-import { NOTE_MAX_LENGTH } from "@/notes/note.ts";
+import { readExperience } from "@/experience/experience-store.ts";
+import { NOTE_ID, NOTE_MAX_LENGTH } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
-import { listNotes } from "@/notes/note-store.ts";
+import { editNote, listNotes } from "@/notes/note-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { commandNotes, runCommand } from "../commands/command-test-kit.ts";
+import {
+  addInvitee,
+  addMember,
+  addRemovedMember,
+} from "../quests/quest-members-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
@@ -56,6 +62,100 @@ describe("use_case_quick_note", () => {
         note: PANEL_COMMANDS_COPY.notes.dropNote("Buy more clay"),
       },
     ]);
+  });
+
+  test("editing preserves line breaks, saved dates and experience and validates text", async () => {
+    const user = await testUser();
+    const data = testData(user);
+    const quest = await data.quest();
+    const chat = await data.chat(quest);
+    await signIn(user);
+    await saveNoteAction({ questId: quest.id, text: "Original" });
+    const before = await listNotes(user.id, quest.id);
+    const experience = await readExperience(user.id);
+    const text = "First paragraph\n\nSecond paragraph";
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.editNote(1, `  ${text}  `)),
+    ).toMatchObject({ kind: "noted" });
+    expect(await listNotes(user.id, quest.id)).toEqual(
+      before.map((note) => ({ ...note, text })),
+    );
+    expect(await readExperience(user.id)).toEqual(experience);
+    expect(await commandNotes(user.id, chat.id)).toEqual([
+      {
+        command: PANEL_COMMAND.editNote(1, `  ${text}`),
+        note: PANEL_COMMANDS_COPY.notes.editNote(1, text),
+      },
+    ]);
+    const refused = await Promise.all(
+      ["", "a".repeat(NOTE_MAX_LENGTH + 1)].map((invalid) =>
+        runCommand(chat.id, PANEL_COMMAND.editNote(1, invalid)),
+      ),
+    );
+    expect(refused).toEqual([
+      { kind: "problem", text: QUICK_NOTE_COPY.problem("empty") },
+      { kind: "problem", text: QUICK_NOTE_COPY.problem("too-long") },
+    ]);
+    expect((await listNotes(user.id, quest.id))[0]?.text).toBe(text);
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.editNote(2, "Missing")),
+    ).toMatchObject({ kind: "problem" });
+  });
+
+  test("only the owner and accepted members can edit a note", async () => {
+    const [owner, member, pending, removed, stranger] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const data = testData(owner);
+    const [quest, otherQuest] = await Promise.all([data.quest(), data.quest()]);
+    await signIn(owner);
+    await saveNoteAction({ questId: quest.id, text: "Original" });
+    const [note] = await listNotes(owner.id, quest.id);
+    if (note === undefined) {
+      throw new Error("The saved note is missing");
+    }
+    await addMember(owner, quest.id, member);
+    await addInvitee(owner, quest.id, pending);
+    await addRemovedMember(owner, quest.id, removed);
+    const denied = await Promise.all(
+      [pending, removed, stranger].map((user) =>
+        editNote(user.id, { questId: quest.id, id: note.id, text: "Denied" }),
+      ),
+    );
+    expect(denied).toEqual([false, false, false]);
+    expect(
+      await editNote(owner.id, {
+        questId: otherQuest.id,
+        id: note.id,
+        text: "Wrong quest",
+      }),
+    ).toBe(false);
+    expect(
+      await editNote(owner.id, {
+        questId: quest.id,
+        id: NOTE_ID.parse("55555555-5555-4555-8555-555555555555"),
+        text: "Missing",
+      }),
+    ).toBe(false);
+    expect(
+      await editNote(owner.id, {
+        questId: quest.id,
+        id: note.id,
+        text: "Owner",
+      }),
+    ).toBe(true);
+    expect(
+      await editNote(member.id, {
+        questId: quest.id,
+        id: note.id,
+        text: "Member",
+      }),
+    ).toBe(true);
+    expect((await listNotes(owner.id, quest.id))[0]?.text).toBe("Member");
   });
 
   test("an empty or overlong Quick Note is refused with its reason", async () => {
@@ -107,6 +207,9 @@ describe("use_case_quick_note", () => {
     });
     const [kept] = await listNotes(user.id, quest.id);
     expect(kept?.text).toBe("Kept");
+    expect(
+      await runCommand(chat.id, PANEL_COMMAND.editNote(1, "Edited later")),
+    ).toMatchObject({ kind: "noted" });
     expect(await runCommand(chat.id, PANEL_COMMAND.dropNote(1))).toMatchObject({
       kind: "noted",
     });
