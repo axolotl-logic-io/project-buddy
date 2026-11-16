@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { QuestNotes } from "@/components/quest-notes.tsx";
-import { AccountLinks } from "@/components/site-header.tsx";
+import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import {
   NOTE_ID,
@@ -27,6 +27,7 @@ import {
   panelButton,
   sitePanel,
 } from "../components/site-panel-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   PHONE_VIEWPORT,
@@ -51,12 +52,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 async function openQuickNote(): Promise<void> {
-  await render(<SitePanel links={<AccountLinks />} />);
+  await render(<SiteHeader panel={<SitePanel links={<AccountLinks />} />} />);
   await panelButton().click();
   await page.getByRole("button", { name: "Quick Note", exact: true }).click();
 }
 
 beforeEach(() => {
+  applyTheme("parchment");
   route.pathname = "/";
   vi.mocked(listNoteQuestsAction).mockResolvedValue([
     OTHER_QUEST,
@@ -105,7 +107,9 @@ describe("use_case_quick_note", () => {
   test("in the site panel docked beside the page, Quick Note leaves the panel open and returns focus to itself", async () => {
     await setViewport(LAPTOP_VIEWPORT);
     try {
-      await render(<SitePanel links={<AccountLinks />} />);
+      await render(
+        <SiteHeader panel={<SitePanel links={<AccountLinks />} />} />,
+      );
       await openPanel();
       const item = sitePanel().getByRole("button", {
         name: "Quick Note",

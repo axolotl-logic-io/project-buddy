@@ -72,11 +72,11 @@ function PanelLink({
 }
 
 // The site panel, on the left of every page, mirroring the chat panel on
-// the right: a button floating under the header's left end opens it under
-// the header, holding links (the @header slot's, or none for a visitor),
-// the theme and mode choices, and, for everyone, a link to the Credits
-// page. The open panel hides that button and puts its own close button in
-// the same place, so the same spot opens and closes it.
+// the right: a button at the breadcrumb row's left end opens it from
+// that row, holding links (the @header slot's, or none for a visitor),
+// the appearance choices, and, for everyone, a link to the Credits
+// page. The open panel hides that button and puts its own close button
+// at the same point.
 // It opens over the page and never changes the page's size or flow. On a
 // wide screen it docks there, leaving the page in reach, and stays open
 // from page to page until the user closes it. Narrower, it is a
@@ -115,7 +115,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
         const focusInside = dialog.contains(document.activeElement);
         dialog.close();
         if (focusInside) {
-          toggleRef.current?.focus();
+          toggleRef.current?.focus({ preventScroll: true });
         }
       }
     } else if (wide) {
@@ -124,11 +124,11 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
       }
       // A docked panel must not take focus from the page beside it, but
       // opening it from its button, which it hides, moves focus to its
-      // close button in the same place.
+      // close button.
       const fromButton = document.activeElement === toggleRef.current;
       dialog.setAttribute("open", "");
       if (fromButton) {
-        closeRef.current?.focus();
+        closeRef.current?.focus({ preventScroll: true });
       }
     } else if (!modal) {
       if (dialog.open) {
@@ -141,7 +141,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
   // The button takes focus, which closing the drawer returns to it, even
   // where a click doesn't focus a button, as in Safari.
   const toggle = useCallback((): void => {
-    toggleRef.current?.focus();
+    toggleRef.current?.focus({ preventScroll: true });
     if (wide) {
       setDocked(!docked);
     } else {
@@ -173,7 +173,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
       <Button
         aria-controls={panelId}
         aria-expanded={panelOpen}
-        className="panel-toggle site-panel-toggle"
+        className="panel-toggle panel-edge-tab site-panel-toggle"
         onClick={toggle}
         ref={toggleRef}
         title={SITE_PANEL_COPY.title}
@@ -195,7 +195,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
             aria-controls={panelId}
             aria-expanded={panelOpen}
             aria-label={SITE_PANEL_COPY.close}
-            className="panel-toggle site-panel-close"
+            className="panel-toggle panel-edge-tab site-panel-close"
             onClick={close}
             ref={closeRef}
             title={SITE_PANEL_COPY.close}

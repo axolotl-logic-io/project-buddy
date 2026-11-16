@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import CreditsPage from "@/app/credits/page.tsx";
@@ -13,6 +13,7 @@ import {
   signOut,
 } from "../../auth/current-user-test-kit.ts";
 import { openPanel } from "../../components/site-panel-test-kit.ts";
+import { applyTheme } from "../../themes/theme-test-kit.ts";
 import { inSiteFrame } from "../site-frame-test-kit.tsx";
 
 // The header's ring of the user's circle reads their experience, server code.
@@ -55,6 +56,10 @@ const PAGES: readonly {
 function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
 }
+
+beforeEach(() => {
+  applyTheme("parchment");
+});
 
 describe("use_case_see_icon_credit", () => {
   for (const { name, signedIn, content } of PAGES) {
