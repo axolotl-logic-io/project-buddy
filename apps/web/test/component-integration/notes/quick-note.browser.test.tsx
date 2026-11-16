@@ -33,12 +33,6 @@ const JOINED_QUEST: NoteQuest = {
   sharing: { kind: "joined", owner: "Rowan" },
 };
 
-// site-header.tsx reads the session for SignedInHeader, server code.
-vi.mock(
-  "@/auth/current-user.ts",
-  () => import("../auth/current-user-test-kit.ts"),
-);
-
 const route = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({
   usePathname: (): string => route.pathname,

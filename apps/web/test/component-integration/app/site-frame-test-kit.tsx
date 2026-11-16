@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { SignedInHeader } from "@/components/site-header.tsx";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 
 // Content in the site's frame, as the root layout renders it: the header,
 // with the site panel the @header slot gives whoever is signed in, and the main

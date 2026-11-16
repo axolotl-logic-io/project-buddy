@@ -21,9 +21,9 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   AccountLinks,
-  SignedInHeader,
   SiteHeader,
   TrailBand,
 } from "@/components/site-header.tsx";
@@ -60,7 +60,7 @@ import {
   sitePanel,
 } from "./site-panel-test-kit.ts";
 
-// site-header.tsx reads the session for SignedInHeader, server code.
+// SignedInHeader reads the session, server code.
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
