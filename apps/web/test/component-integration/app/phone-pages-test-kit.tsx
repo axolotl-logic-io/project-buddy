@@ -10,6 +10,8 @@ import { vi } from "vitest";
 import { page } from "vitest/browser";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
+import ProfilePage from "@/app/(workspace)/profile/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
@@ -155,7 +157,7 @@ const projectsPage = workspacePage(
     vi.mocked(readCurrentQuest).mockResolvedValue({
       quest: { id: FOX_QUEST.id, name: LONG_QUEST_NAME },
       sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
-      nextStep: "Sketch the fox's ears from three angles",
+      nextTask: "Sketch the fox's ears from three angles",
     });
     vi.mocked(listConstructs).mockResolvedValue([]);
   },
@@ -346,13 +348,20 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the Profile page",
+    path: ["profile"],
+    render: workspacePage(noData, async () =>
+      ProfileLayout({ children: await ProfilePage() }),
+    ),
+  },
+  {
     name: "the Settings page",
     path: ["settings"],
     render: workspacePage(
       () => {
         vi.mocked(listConstructs).mockResolvedValue([]);
       },
-      async () => SettingsLayout({ children: await SettingsPage() }),
+      () => Promise.resolve(SettingsLayout({ children: SettingsPage() })),
     ),
   },
 

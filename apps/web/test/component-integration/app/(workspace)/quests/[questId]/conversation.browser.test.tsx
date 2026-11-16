@@ -104,6 +104,11 @@ vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn(),
 }));
 vi.mock("@/quests/store.ts", () => ({ getQuest: store.getQuest }));
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../../../../experience/experience-store-test-kit.ts"),
+);
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
 }));
@@ -598,7 +603,7 @@ describe("use_case_dailies", () => {
     await expect
       .element(
         dialog.getByRole("checkbox", {
-          name: QUEST_CONVERSATION_COPY.clearSteps,
+          name: QUEST_CONVERSATION_COPY.clearTasks,
         }),
       )
       .not.toBeChecked();

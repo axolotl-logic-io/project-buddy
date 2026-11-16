@@ -11,7 +11,7 @@ test("use_case_ask_whats_next", async () => {
   await changeTasks(user.id, { questId: chat.quest.id, author: "person" }, [
     { op: "add", text: "Shape the shell" },
     { op: "add", text: "Add the flippers" },
-    { op: "complete", step: 1 },
+    { op: "complete", task: 1 },
   ]);
   const prompt = JSON.stringify(await constructPrompt(chat.id));
   expect(prompt).toContain("Shape the shell");

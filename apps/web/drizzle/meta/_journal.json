@@ -491,6 +491,20 @@
       "when": 1794776552873,
       "tag": "0069_timer_presence",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1794798104721,
+      "tag": "0070_tasks_as_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794799590744,
+      "tag": "0071_ability_points",
+      "breakpoints": true
     }
   ]
 }

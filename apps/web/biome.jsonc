@@ -90,7 +90,8 @@
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
     // check only the root layout, the frame it renders (header, the site
-    // menu, its appearance choices and the Quick Note dialog, with the form
+    // menu, its appearance choices, the ring of the user's circle and the
+    // Quick Note dialog, with the form
     // fields and notices it shows) and the global CSS files whose classes
     // pages use.
     {
@@ -98,6 +99,7 @@
         "src/app/layout.tsx",
         "src/components/site-header.tsx",
         "src/components/site-menu.tsx",
+        "src/components/experience/circle-progress.tsx",
         "src/components/appearance-choices.tsx",
         "src/components/quick-note.tsx",
         "src/components/ui/field.tsx",

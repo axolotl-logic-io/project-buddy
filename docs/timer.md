@@ -31,7 +31,7 @@ The page shows a ring that fills as the period passes, the period's name, **Work
 
 The browser's clock decides the period: `src/timer/schedule.ts` works it out from the time since the start. The page reads the clock at each second the countdown shows and whenever its tab comes back into view. A tab that slept therefore shows the current period at once and replays nothing. Two devices agree when their clocks do; the site doesn't synchronize clocks.
 
-The timer writes no message, completes no step, records no milestone, sends no notification and makes no model request.
+The timer writes no message, completes no task, records no milestone, sends no notification and makes no model request.
 
 ## Others following
 

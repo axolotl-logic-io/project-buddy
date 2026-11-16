@@ -12,6 +12,9 @@ import {
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
 const LAST_WITH_JOURNAL = 58;
+// The last migration before tasks were saved as items; later migrations
+// change the form these tests check.
+const BEFORE_TASK_ITEMS = 69;
 const OWNER = "00000000-0000-4000-8000-000000000921";
 const QUEST = "00000000-0000-4000-8000-000000000922";
 const CHAT = "00000000-0000-4000-8000-000000000923";
@@ -23,6 +26,7 @@ const TASKS = {
 test("Tasks-only migration removes Journal storage and records without changing the Tasks", async () => {
   const database = scratchDatabase("_tasks_only");
   const before = await copyMigrationsUpTo(LAST_WITH_JOURNAL);
+  const through = await copyMigrationsUpTo(BEFORE_TASK_ITEMS);
   const pool = openPool(database.url);
   try {
     await resetTestDatabase(database, before);
@@ -68,7 +72,7 @@ test("Tasks-only migration removes Journal storage and records without changing 
         ]),
       ],
     );
-    await migrateTestDatabase(database);
+    await migrateTestDatabase(database, through);
     const { rows: removed } = await pool.query(
       "select table_name from information_schema.tables where table_schema='public' and table_name in ('memory_versions','journal_versions')",
     );
@@ -92,5 +96,6 @@ test("Tasks-only migration removes Journal storage and records without changing 
     await pool.end();
     await dropTestDatabase(database);
     await removeOldMigrations(before);
+    await removeOldMigrations(through);
   }
 });

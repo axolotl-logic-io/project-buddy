@@ -72,7 +72,9 @@ const TASKS_COMMAND_LISTINGS: readonly CommandListing[] =
     description: CHAT_COMMANDS_COPY.description(name),
   }));
 
-const SPELL_COMMANDS: readonly CommandListing[] = [
+// The construct's commands the composer lists, which it sends as messages
+// for the construct to answer.
+const CONSTRUCT_COMMANDS: readonly CommandListing[] = [
   {
     command: "/brainstorm",
     usage: "/brainstorm",
@@ -82,6 +84,11 @@ const SPELL_COMMANDS: readonly CommandListing[] = [
     command: "/stop",
     usage: "/stop",
     description: "Stop the active spell and return to Chat",
+  },
+  {
+    command: "/exp",
+    usage: "/exp",
+    description: "Show your experience, circle and title",
   },
 ];
 
@@ -278,7 +285,7 @@ function ChatView({
       listings: [
         ...TASKS_COMMAND_LISTINGS,
         ...QUEST_STATUS_COPY.commands,
-        ...SPELL_COMMANDS,
+        ...CONSTRUCT_COMMANDS,
       ],
       run: runCommand,
     };

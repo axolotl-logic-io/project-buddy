@@ -49,10 +49,10 @@ function ResetConversation({
         {quest === true && (
           <>
             <label>
-              <input type="checkbox" name="clearSteps" />{" "}
-              {QUEST_CONVERSATION_COPY.clearSteps}
+              <input type="checkbox" name="clearTasks" />{" "}
+              {QUEST_CONVERSATION_COPY.clearTasks}
             </label>
-            <p className="text-muted">{QUEST_CONVERSATION_COPY.keepSteps}</p>
+            <p className="text-muted">{QUEST_CONVERSATION_COPY.keepTasks}</p>
             <label>
               <input type="checkbox" name="clearIdeas" />{" "}
               {QUEST_CONVERSATION_COPY.clearIdeas}

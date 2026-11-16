@@ -74,7 +74,7 @@ function membersSection(
 // which holds the spell picker. Opening it marks it read for viewer alone. Reading it spends
 // nothing: a quest whose conversation hasn't started, as after the move
 // from adventures, offers to start it instead. The Dailies quest offers
-// Reset Day, which clears the conversation and reopens Tasks steps.
+// Reset Day, which clears the conversation and reopens tasks.
 async function questConversation(
   quest: Quest,
   viewer: UserId,

@@ -24,6 +24,7 @@ import { type Database, getDb } from "@/db/client.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { tasksVersions } from "@/db/tables/tasks-versions.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { changeTaskPoints } from "@/experience/experience-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   applyTasksOperations,
@@ -275,16 +276,23 @@ type Attempt =
       readonly reason: TasksChangeFailure;
     };
 
+// How a change is saved: how often it was tried already, the database or
+// transaction it is saved in, and whether it gains and loses the acting
+// user's ability points, as every change but a fresh day's does.
+interface SaveOptions {
+  readonly tries?: number;
+  readonly database?: Database;
+  readonly points?: boolean;
+}
+
 // Works out a change from the newest tasks and saves it on top, again from
-// the newest tasks whenever another change saved first.
+// the newest tasks whenever another change saved first. The points it gains
+// or takes back are saved with it.
 async function saveChange(
   owner: UserId,
   source: TasksChangeSource,
   attempt: (state: TasksState) => Promise<Attempt>,
-  {
-    tries = 0,
-    database = getDb(),
-  }: { readonly tries?: number; readonly database?: Database } = {},
+  { tries = 0, database = getDb(), points = true }: SaveOptions = {},
 ): Promise<TasksChangeOutcome> {
   const state = await readTasksState(owner, source.questId, database);
   if (state === undefined) {
@@ -298,7 +306,23 @@ async function saveChange(
     return { kind: "failed", reason: worked.reason, state };
   }
   const { next } = worked;
-  if (await saveVersion(owner, source, next, database)) {
+  const saved = await database.transaction(async (tx): Promise<boolean> => {
+    if (!(await saveVersion(owner, source, next, tx))) {
+      return false;
+    }
+    if (points === true) {
+      await withAppErrors("changeTasks", () =>
+        changeTaskPoints(
+          tx,
+          { user: owner, questId: source.questId },
+          state.tasks,
+          next.tasks,
+        ),
+      );
+    }
+    return true;
+  });
+  if (saved) {
     const version = next.basedOn + 1;
     return {
       kind: "changed",
@@ -325,7 +349,11 @@ async function saveChange(
       return { kind: "failed", reason: "awaiting-reply", state };
     }
   }
-  return saveChange(owner, source, attempt, { tries: tries + 1, database });
+  return saveChange(owner, source, attempt, {
+    tries: tries + 1,
+    database,
+    points,
+  });
 }
 
 function undoneAfter(state: TasksState, next: NextVersion): readonly number[] {
@@ -385,7 +413,8 @@ function changeTasks(
 }
 
 // A fresh day keeps the entire list and its numbering, reopening completed
-// steps even when the saved list is longer than the usual new-step allowance.
+// tasks even when the saved list is longer than the usual new-task allowance.
+// Their completions keep their points, so completing them again gains more.
 async function reopenTasks(
   owner: UserId,
   questId: QuestId,
@@ -399,9 +428,9 @@ async function reopenTasks(
       if (clear) {
         const outcome = applyTasksOperations(
           state.tasks,
-          state.tasks.steps.map((step) => ({
+          state.tasks.items.map((task) => ({
             op: "remove",
-            step: step.number,
+            task: task.number,
           })),
         );
         if (outcome.kind === "failed") {
@@ -412,7 +441,7 @@ async function reopenTasks(
           next: { basedOn: state.version, ...outcome },
         });
       }
-      const completed = state.tasks.steps.filter((step) => step.done);
+      const completed = state.tasks.items.filter((task) => task.done);
       if (completed.length === 0) {
         return Promise.resolve({ kind: "failed", reason: "unchanged" });
       }
@@ -422,17 +451,17 @@ async function reopenTasks(
           basedOn: state.version,
           tasks: {
             ...state.tasks,
-            steps: state.tasks.steps.map((step) => ({ ...step, done: false })),
+            items: state.tasks.items.map((task) => ({ ...task, done: false })),
           },
-          lines: completed.map((step) => ({ kind: "reopen", text: step.text })),
-          undo: completed.map((step) => ({
+          lines: completed.map((task) => ({ kind: "reopen", text: task.text })),
+          undo: completed.map((task) => ({
             op: "complete",
-            step: step.number,
+            task: task.number,
           })),
         },
       });
     },
-    { database },
+    { database, points: false },
   );
   if (
     result === undefined ||

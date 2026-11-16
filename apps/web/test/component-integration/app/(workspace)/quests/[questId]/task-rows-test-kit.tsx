@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { TasksSteps } from "@/components/tasks/tasks-steps.tsx";
+import { TaskRows } from "@/components/tasks/task-rows.tsx";
 import {
   type TasksActions,
   TasksContext,
@@ -8,7 +8,7 @@ import {
 import type { QuestId } from "@/ids.ts";
 import type { TasksState } from "@/tasks/tasks.ts";
 
-// The task list's steps with every control to change them, as the quest's
+// The tasks with every control to change them, as the quest's
 // conversation shows them.
 export function QuestTasks({
   questId,
@@ -26,7 +26,7 @@ export function QuestTasks({
   });
   return (
     <TasksContext.Provider value={controller}>
-      <TasksSteps />
+      <TaskRows />
     </TasksContext.Provider>
   );
 }

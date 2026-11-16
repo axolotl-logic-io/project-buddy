@@ -1,4 +1,4 @@
-// Profile and security forms in Settings.
+// The name form in Profile, and the security forms in Settings.
 export const ACCOUNT_COPY = {
   loading: "Loading Settings…",
   nameHeading: "Your name",

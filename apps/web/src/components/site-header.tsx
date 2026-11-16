@@ -3,11 +3,14 @@ import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { CircleProgress } from "@/components/experience/circle-progress.tsx";
 import { HeaderSize } from "@/components/header-size.tsx";
 import { QuickNote } from "@/components/quick-note.tsx";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { readExperience } from "@/experience/experience-store.ts";
 import { HOME_PATH } from "@/routes.ts";
+import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -95,6 +98,9 @@ function AccountLinks(): JSX.Element {
       </p>
       <ul aria-labelledby={YOU_LABEL_ID} className="flex flex-col">
         <li>
+          <MenuLink href="/profile">{PROFILE_COPY.headerLink}</MenuLink>
+        </li>
+        <li>
           <MenuLink href="/settings">{SETTINGS_COPY.headerLink}</MenuLink>
         </li>
       </ul>
@@ -102,8 +108,9 @@ function AccountLinks(): JSX.Element {
   );
 }
 
-// Reads the session for the header slot and supplies the signed-in menu
-// or the public menu for a visitor.
+// Reads the session for the header slot and supplies the signed-in menu,
+// after the ring of the user's progress toward their next circle, or the
+// public menu for a visitor.
 async function SignedInLinks({
   breadcrumbs,
 }: {
@@ -113,8 +120,10 @@ async function SignedInLinks({
   if (user === undefined) {
     return <SiteMenu links={null} />;
   }
+  const experience = await readExperience(user.id);
   return (
     <>
+      <CircleProgress experience={experience} />
       <SiteMenu links={<AccountLinks />} />
       {breadcrumbs !== undefined && <TrailBand items={breadcrumbs} />}
     </>

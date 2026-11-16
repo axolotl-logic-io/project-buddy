@@ -11,7 +11,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { TasksSteps } from "@/components/tasks/tasks-steps.tsx";
+import { TaskRows } from "@/components/tasks/task-rows.tsx";
 import { useTasks } from "@/components/tasks/use-tasks.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -86,7 +86,7 @@ function ChatPanel({
     sections.push({
       id: "tasks",
       label: TASKS_COPY.heading,
-      content: <TasksSteps />,
+      content: <TaskRows />,
     });
   }
   sections.push(...(sideSections ?? []));

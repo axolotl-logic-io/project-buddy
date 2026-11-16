@@ -55,6 +55,7 @@ Each area's cases are in their own file:
 - [Conversations](chats.md)
 - [Tasks](tasks.md)
 - [Ideas](ideas.md)
+- [Experience](experience.md): ability points, experience and circles.
 - [Quick Notes](quick-notes.md)
 - [Timer](timer.md): a repeating work and break timer, shared by its link.
 - [Command line](command-line.md): work with quests through the `project-buddy` command.

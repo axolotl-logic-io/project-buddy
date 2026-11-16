@@ -3,7 +3,7 @@ import { IDEA_REQUEST } from "@/ideas/idea.ts";
 import { changeIdea } from "@/ideas/idea-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import type { SpellDestination } from "@/spells/spell-destination.ts";
-import { TASKS_STEP_TEXT } from "@/tasks/tasks.ts";
+import { TASK_TEXT } from "@/tasks/tasks.ts";
 import { changeTasks } from "@/tasks/tasks-store.ts";
 
 interface SpellMessage {
@@ -23,7 +23,7 @@ const DESTINATION_HANDLERS: Readonly<Record<SpellDestination, SaveMessage>> = {
     { questId, text }: SpellMessage,
     tx: Transaction,
   ): Promise<boolean> {
-    const parsed = TASKS_STEP_TEXT.safeParse(text);
+    const parsed = TASK_TEXT.safeParse(text);
     if (!parsed.success) {
       return false;
     }
@@ -34,7 +34,7 @@ const DESTINATION_HANDLERS: Readonly<Record<SpellDestination, SaveMessage>> = {
       tx,
     );
     if (result?.kind !== "changed") {
-      throw new Error("Could not save the spell’s Tasks step");
+      throw new Error("Could not save the spell’s task");
     }
     return true;
   },
