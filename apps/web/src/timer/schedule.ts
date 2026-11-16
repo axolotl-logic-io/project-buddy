@@ -126,17 +126,6 @@ function timerPath({
   return `/timer/${workMinutes}/${breakMinutes}/${startMs}`;
 }
 
-// Whether path is a timer link's path, which signing in leads back to.
-function isTimerPath(path: string): boolean {
-  const [empty, root, work, rest, start, ...more] = path.split("/");
-  return (
-    empty === "" &&
-    root === TIMER_PATH.slice(1) &&
-    more.length === 0 &&
-    parseTimerSchedule({ work, break: rest, start }) !== undefined
-  );
-}
-
 // Where schedule is at nowMs. The work period runs from each cycle's start
 // up to, not including, its length; the break runs from there up to, not
 // including, the next cycle.
@@ -202,7 +191,6 @@ export {
   DEFAULT_DURATIONS,
   formatRemaining,
   GLOBAL_START_MS,
-  isTimerPath,
   MINUTES_PER_HOUR,
   msUntilNextSecond,
   parseTimerDurations,

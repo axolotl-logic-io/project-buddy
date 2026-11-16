@@ -28,15 +28,16 @@ async function renderSetup(): Promise<void> {
 }
 
 // The schedule running, with the clock at nowMs, and the trail band's
-// tools for it.
+// tools for it, as a signed-in user sees them unless signedIn is false.
 async function renderTimer(
   schedule: TimerSchedule,
   nowMs: number = schedule.startMs,
+  { signedIn = true }: { readonly signedIn?: boolean } = {},
 ): Promise<{ unmount: () => Promise<void> }> {
   clock.now = nowMs;
   const screen = await render(
     <>
-      <TimerTrailTools schedule={schedule} />
+      <TimerTrailTools schedule={schedule} signedIn={signedIn} />
       <TimerDisplay clock={readClock} schedule={schedule} />
     </>,
   );
