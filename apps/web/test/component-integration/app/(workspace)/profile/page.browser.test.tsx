@@ -4,9 +4,17 @@ import { render } from "vitest-browser-react";
 import type { setNameAction } from "@/app/(workspace)/profile/actions.ts";
 import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
 import ProfilePage from "@/app/(workspace)/profile/page.tsx";
+import {
+  ABILITY_WEIGHTS,
+  experienceOf,
+  nextTitleOf,
+} from "@/experience/experience.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
-import { MABEL_EXPERIENCE } from "../../../experience/experience-store-test-kit.ts";
+import {
+  MABEL_EXPERIENCE,
+  readExperience,
+} from "../../../experience/experience-store-test-kit.ts";
 
 const actions = vi.hoisted(() => ({
   setNameAction: vi.fn<typeof setNameAction>(),
@@ -24,13 +32,27 @@ vi.mock(
 
 beforeEach(() => vi.clearAllMocks());
 
+async function renderProfile(): Promise<void> {
+  await render(ProfileLayout({ children: await ProfilePage() }));
+}
+
+function renameButton(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("button", { name: ACCOUNT_COPY.rename });
+}
+
+function nameField(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("textbox", { name: ACCOUNT_COPY.nameLabel });
+}
+
 test("Profile keeps a refused name's draft and feedback visible beside experience", async () => {
   actions.setNameAction.mockResolvedValue({
     kind: "invalid",
     message: ACCOUNT_COPY.nameMultiLine,
   });
-  await render(ProfileLayout({ children: await ProfilePage() }));
-  const name = page.getByRole("textbox", { name: ACCOUNT_COPY.nameLabel });
+  await renderProfile();
+  await renameButton().click();
+  const name = nameField();
+  await expect.element(name).toHaveFocus();
   await expect.element(name).toHaveValue("Mabel");
   await name.fill("Mabel draft");
   await page
@@ -45,32 +67,120 @@ test("Profile keeps a refused name's draft and feedback visible beside experienc
     .toBeVisible();
 });
 
-test("Profile shows the user's circle, the experience the next one needs and each ability's points", async () => {
-  await render(ProfileLayout({ children: await ProfilePage() }));
-  const { circle, title, experience, nextCircleStart, points } =
-    MABEL_EXPERIENCE;
-  const section = page.getByRole("region", {
-    name: EXPERIENCE_COPY.heading,
-  });
+test("Profile closes the name's form once the name is saved", async () => {
+  actions.setNameAction.mockResolvedValue({ kind: "saved" });
+  await renderProfile();
   await expect
-    .element(section.getByText(EXPERIENCE_COPY.circle(circle, title)))
+    .element(page.getByRole("heading", { name: "Mabel" }))
+    .toBeVisible();
+  await renameButton().click();
+  await nameField().fill("Mabel Rose");
+  await page
+    .getByRole("button", { name: ACCOUNT_COPY.saveName, exact: true })
+    .click();
+  await expect.element(page.getByText(ACCOUNT_COPY.nameSaved)).toBeVisible();
+  await expect.element(nameField()).not.toBeInTheDocument();
+  await expect.element(renameButton()).toHaveFocus();
+});
+
+test("Profile's Cancel closes the name's form and drops the draft", async () => {
+  await renderProfile();
+  await renameButton().click();
+  await nameField().fill("Someone else");
+  await page.getByRole("button", { name: ACCOUNT_COPY.cancelRename }).click();
+  await expect.element(nameField()).not.toBeInTheDocument();
+  await expect.element(renameButton()).toHaveFocus();
+  await renameButton().click();
+  await expect.element(nameField()).toHaveValue("Mabel");
+  expect(actions.setNameAction).not.toHaveBeenCalled();
+});
+
+test("Profile's card shows the user's circle, title, the experience the next circle needs and the next title", async () => {
+  await renderProfile();
+  const { circle, title, experience, nextCircleStart } = MABEL_EXPERIENCE;
+  const card = page.getByRole("region", { name: EXPERIENCE_COPY.heading });
+  await expect
+    .element(card.getByText(`${EXPERIENCE_COPY.circleLabel} ${circle}`))
+    .toBeVisible();
+  await expect.element(card.getByText(title, { exact: true })).toBeVisible();
+  await expect
+    .element(card.getByRole("progressbar"))
+    .toHaveAccessibleName(EXPERIENCE_COPY.progressLabel(circle + 1));
+  await expect
+    .element(card.getByText(EXPERIENCE_COPY.experience(experience)))
     .toBeVisible();
   await expect
     .element(
-      section.getByText(
-        EXPERIENCE_COPY.standing(
-          experience,
-          nextCircleStart - experience,
-          circle + 1,
+      card.getByText(
+        EXPERIENCE_COPY.toNext(nextCircleStart - experience, circle + 1),
+      ),
+    )
+    .toBeVisible();
+  const next = nextTitleOf(circle) ?? { title: "none", circle: 0 };
+  await expect
+    .element(card.getByText(EXPERIENCE_COPY.nextTitle(next.title, next.circle)))
+    .toBeVisible();
+});
+
+test("Profile lists abilities by the experience they earned, the most marked", async () => {
+  await renderProfile();
+  const abilities = page
+    .getByRole("region", { name: EXPERIENCE_COPY.abilitiesLabel })
+    .getByRole("listitem");
+  // Mabel's abilities, by experience: 7 completed tasks are worth 21, 12
+  // added tasks 12, 1 completed quest 9, 4 ideas 4 and 1 Quick Note 1.
+  const order = [
+    "completing-tasks",
+    "adding-tasks",
+    "completing-quests",
+    "ideating",
+    "noting",
+  ] as const;
+  await expect.element(abilities).toHaveLength(order.length);
+  expect(abilities.elements().map((tile) => tile.textContent)).toEqual(
+    order.map((ability) =>
+      expect.stringContaining(EXPERIENCE_COPY.abilities[ability]),
+    ),
+  );
+  const [most] = order;
+  await expect
+    .element(abilities.nth(0).getByText(EXPERIENCE_COPY.mostExperience))
+    .toBeVisible();
+  await expect
+    .element(
+      abilities
+        .nth(0)
+        .getByText(
+          EXPERIENCE_COPY.worth(
+            MABEL_EXPERIENCE.points[most] * ABILITY_WEIGHTS[most],
+          ),
+        ),
+    )
+    .toBeVisible();
+  await expect
+    .element(page.getByText(EXPERIENCE_COPY.mostExperience))
+    .toHaveLength(1);
+});
+
+test("Profile says what an untried ability's first point is worth", async () => {
+  readExperience.mockResolvedValueOnce(
+    experienceOf({ ...MABEL_EXPERIENCE.points, noting: 0 }),
+  );
+  await renderProfile();
+  const noting = page
+    .getByRole("listitem")
+    .filter({ hasText: EXPERIENCE_COPY.abilities.noting });
+  await expect
+    .element(
+      noting.getByText(
+        EXPERIENCE_COPY.untried(
+          EXPERIENCE_COPY.firstSteps.noting,
+          ABILITY_WEIGHTS.noting,
         ),
       ),
     )
     .toBeVisible();
-  const abilities = section.getByRole("definition");
   await expect
-    .element(abilities.nth(0))
-    .toHaveTextContent(EXPERIENCE_COPY.points(points["adding-tasks"]));
-  await expect
-    .element(abilities.nth(-1))
-    .toHaveTextContent(EXPERIENCE_COPY.points(points["completing-quests"]));
+    .element(noting.getByText(EXPERIENCE_COPY.worth(0)))
+    .not.toBeInTheDocument();
 });

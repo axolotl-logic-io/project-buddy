@@ -1,21 +1,12 @@
 import Link from "next/link";
 import type { JSX } from "react";
-import type { Experience } from "@/experience/experience.ts";
+import { circleFraction, type Experience } from "@/experience/experience.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 
 // The ring's radius and circumference, in the SVG's 100-unit box, as the
 // timer's ring (src/components/timer/timer-display.tsx).
 const RING_RADIUS = 42;
 const RING_LENGTH: number = 2 * Math.PI * RING_RADIUS;
-
-// How far through their circle the user is, from 0 at its start to 1 at the
-// next circle's.
-function circleFraction(experience: Experience): number {
-  const { circleStart, nextCircleStart } = experience;
-  return (
-    (experience.experience - circleStart) / (nextCircleStart - circleStart)
-  );
-}
 
 // The user's circle in the site header: its number inside a ring that fills
 // as they near the next circle, linking to Profile's Experience section.
