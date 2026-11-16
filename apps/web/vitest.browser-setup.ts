@@ -31,9 +31,12 @@ vi.mock("@/quests/rename-quest-action.ts", () => ({
   }),
 }));
 
-vi.mock("@/conversations/reset-conversation-action.ts", () => ({
-  resetConversationAction: vi.fn(() => {
-    throw new Error("Mock the conversation reset action in this test");
+vi.mock("@/dailies/day-actions.ts", () => ({
+  startDayAction: vi.fn(() => {
+    throw new Error("Mock the Start Day action in this test");
+  }),
+  undoStartDayAction: vi.fn(() => {
+    throw new Error("Mock the Undo Start Day action in this test");
   }),
 }));
 

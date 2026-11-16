@@ -119,6 +119,43 @@ describe("tasks operations", () => {
     ]);
   });
 
+  test("use_case_recurring_steps", () => {
+    const outcome = changed(OWL, [
+      { op: "recur", step: 2, recurring: true },
+      { op: "recur", step: 1, recurring: true },
+    ]);
+    expect(outcome.tasks.steps.slice(0, 2)).toEqual([
+      {
+        number: 1,
+        text: "Gather reference photos",
+        done: true,
+        recurring: true,
+      },
+      { number: 2, text: "Block out the body", done: false, recurring: true },
+    ]);
+    expect(outcome.lines).toEqual([
+      { kind: "recur", text: "Block out the body", recurring: true },
+      { kind: "recur", text: "Gather reference photos", recurring: true },
+    ]);
+    const oneOff = changed(outcome.tasks, [
+      { op: "recur", step: 2, recurring: false },
+    ]);
+    expect(oneOff.tasks.steps[1]).toEqual({
+      number: 2,
+      text: "Block out the body",
+      done: false,
+    });
+    expect(changed(oneOff.tasks, oneOff.undo).tasks.steps[1]?.recurring).toBe(
+      true,
+    );
+    expect(changed(outcome.tasks, outcome.undo).tasks.steps).toEqual(OWL.steps);
+    expect(
+      applyTasksOperations(outcome.tasks, [
+        { op: "recur", step: 2, recurring: true },
+      ]).kind,
+    ).toBe("failed");
+  });
+
   test("the next step is the first open one", () => {
     expect(nextTasksStep(OWL)?.text).toBe("Block out the body");
     expect(nextTasksStep(EMPTY_TASKS)).toBeUndefined();

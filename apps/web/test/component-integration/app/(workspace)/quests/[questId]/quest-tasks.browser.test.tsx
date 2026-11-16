@@ -1,6 +1,7 @@
 // A quest's tasks steps, in Chromium and WebKit: the open steps with their
 // controls, editing and moving a step without the construct, and Undo for
-// the last change. What the actions save is tasks.server.test.ts's.
+// the last change. "use_case_recurring_steps": in Dailies, a step's menu makes
+// it recurring. What the actions save is tasks.server.test.ts's.
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
@@ -53,6 +54,18 @@ const MOVED: TasksState = {
     steps: [
       { number: 2, text: SCULPT, done: false },
       { number: 1, text: BLOCK_OUT, done: false },
+    ],
+    nextNumber: 3,
+  },
+  undone: [],
+};
+
+const RECURRING: TasksState = {
+  version: 3,
+  tasks: {
+    steps: [
+      { number: 1, text: BLOCK_OUT, done: false },
+      { number: 2, text: SCULPT, done: false, recurring: true },
     ],
     nextNumber: 3,
   },
@@ -344,4 +357,69 @@ test("Add a step puts the new step ahead of the existing steps", async () => {
   await expect
     .element(openSteps().getByRole("listitem").first())
     .toMatchTextContent(BRASS);
+});
+
+describe("use_case_recurring_steps", () => {
+  test("in Dailies, a step's menu makes it recurring, and it shows as recurring", async () => {
+    actions.changeTasksAction.mockResolvedValue({
+      kind: "changed",
+      version: RECURRING.version,
+      lines: [{ kind: "recur", text: SCULPT, recurring: true }],
+      state: RECURRING,
+    });
+    await render(
+      <QuestTasks
+        questId={QUEST_ID}
+        tasks={TASKS}
+        actions={TASKS_ACTIONS}
+        days={[]}
+      />,
+    );
+
+    await page
+      .getByRole("button", { name: TASKS_COPY.actions(SCULPT) })
+      .click();
+    await page
+      .getByRole("menuitem", { name: TASKS_COPY.makeRecurring(SCULPT) })
+      .click();
+
+    expect(actions.changeTasksAction).toHaveBeenCalledWith({
+      questId: QUEST_ID,
+      chatId: undefined,
+      operations: [{ op: "recur", step: 2, recurring: true }],
+    });
+    await expect
+      .element(page.getByRole("status"))
+      .toMatchTextContent(`Made “${SCULPT}” recurring`);
+    await expect
+      .element(page.getByText(TASKS_COPY.recurringNoStreak))
+      .toBeInTheDocument();
+
+    await page
+      .getByRole("button", { name: TASKS_COPY.actions(SCULPT) })
+      .click();
+    await expect
+      .element(
+        page.getByRole("menuitem", { name: TASKS_COPY.makeOneOff(SCULPT) }),
+      )
+      .toBeVisible();
+  });
+
+  test("outside Dailies, a step's menu can't make it recurring", async () => {
+    await render(
+      <QuestTasks questId={QUEST_ID} tasks={TASKS} actions={TASKS_ACTIONS} />,
+    );
+
+    await page
+      .getByRole("button", { name: TASKS_COPY.actions(SCULPT) })
+      .click();
+    await expect
+      .element(page.getByRole("menuitem", { name: TASKS_COPY.moveUp(SCULPT) }))
+      .toBeVisible();
+    await expect
+      .element(
+        page.getByRole("menuitem", { name: TASKS_COPY.makeRecurring(SCULPT) }),
+      )
+      .not.toBeInTheDocument();
+  });
 });

@@ -10,6 +10,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { DailiesDay } from "@/dailies/dailies.ts";
 import type { ChatId, QuestId } from "@/ids.ts";
 import type { TasksOperation, TasksState } from "@/tasks/tasks.ts";
 import type {
@@ -55,6 +56,9 @@ interface TasksController {
   // The id of the adventure's newest tasks card message, the one that shows
   // the live tasks; undefined outside an adventure or without one.
   readonly newestCardId?: string | undefined;
+  // The days of the Dailies quest, oldest first, for its recurring steps
+  // and their streaks; undefined in any other quest.
+  readonly days?: readonly DailiesDay[] | undefined;
   readonly change: (operations: readonly TasksOperation[]) => Promise<boolean>;
   readonly undo: (version: number) => Promise<void>;
   // Takes a newer tasks from elsewhere, such as the construct's change or an
@@ -75,6 +79,8 @@ interface TasksControllerOptions {
   // The newest tasks a construct's change in the adventure showed, which the
   // controller takes when it is newer than its own.
   readonly observed?: Pick<TasksState, "version" | "tasks"> | undefined;
+  // The Dailies quest's days, given in the Dailies quest alone.
+  readonly days?: readonly DailiesDay[] | undefined;
 }
 
 const TasksContext = createContext<TasksController | undefined>(undefined);
@@ -123,6 +129,7 @@ function useTasksController({
   disabledNote,
   newestCardId,
   observed,
+  days,
 }: TasksControllerOptions): TasksController | undefined {
   const [state, setState] = useState<TasksState>(initialState ?? NO_TASKS);
   const [pending, setPending] = useState(false);
@@ -205,6 +212,7 @@ function useTasksController({
       pending,
       feedback,
       newestCardId,
+      days,
       change,
       undo,
       receive,
@@ -218,6 +226,7 @@ function useTasksController({
     pending,
     feedback,
     newestCardId,
+    days,
     change,
     undo,
     receive,
