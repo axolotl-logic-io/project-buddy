@@ -28,7 +28,7 @@ function isLink(item: Breadcrumb): item is Breadcrumb & { href: Route } {
 // pages above it, small and muted, leading into the current page's name,
 // which is the page's one heading. Each parent stays a full-size target and
 // keeps its whole name as its accessible name, however much of it shows.
-// The last item is the current page; an empty trail draws no band.
+// The last item is the current page; an empty trail draws no content.
 function TrailBand({
   items,
 }: {
@@ -40,7 +40,7 @@ function TrailBand({
   }
   const parents = items.slice(0, -1).filter(isLink);
   return (
-    <div className="trail-band">
+    <div className="trail-content">
       {parents.length > 0 && (
         <nav aria-label={SITE_COPY.breadcrumbs} className="trail-parents">
           <ol>
@@ -116,10 +116,9 @@ const VISITOR_PANEL: JSX.Element = <SitePanel links={null} />;
 // The site's header, set as a game's HUD: an ink bar with a gold rim. The
 // brand, a compass medallion and the site's name, leads back to Quests. On a
 // phone the medallion alone shows, and the name stays its accessible name.
-// The site panel's button floats under the header's left end, on the side
-// the panel opens. A signed-in user's ring of progress toward their next
-// circle ends the bar, on its right. A page with a trail adds the trail
-// band under the rim; the bar scrolls away and the band stays pinned.
+// A signed-in user's progress ring ends the bar. The site and quest panel
+// expand buttons bookend the breadcrumb row below it. The bar scrolls
+// away while the breadcrumb row and its panel controls stay pinned.
 function SiteHeader({
   panel = VISITOR_PANEL,
   ring,
@@ -132,7 +131,6 @@ function SiteHeader({
   return (
     <header className="site-header">
       <HeaderSize />
-      {panel}
       <Link className="header-title hud-title" href={HOME_PATH}>
         <span className="hud-medallion">
           <Icon name="compass" />
@@ -140,7 +138,11 @@ function SiteHeader({
         <span className="hud-name">{SITE_COPY.name}</span>
       </Link>
       {ring}
-      {trail}
+      <section aria-label={SITE_COPY.breadcrumbs} className="trail-band">
+        {panel}
+        {trail}
+        <div className="header-panel-control" />
+      </section>
     </header>
   );
 }

@@ -471,18 +471,25 @@
     --header-gutter: --spacing(4);
     --header-rim: 4px;
     --trail-band-padding-top: --spacing(2.5);
-    --trail-band-padding-bottom: --spacing(1);
-    --trail-band-min-height: calc(var(--target-size) + --spacing(1));
+    --trail-band-padding-bottom: --spacing(2.5);
+    --panel-tab-width: calc(var(--target-size) + --spacing(3));
+    --panel-tab-height: calc(
+      var(--target-size) +
+      var(--trail-band-padding-top) +
+      var(--trail-band-padding-bottom)
+    );
+    --trail-band-min-height: calc(
+      var(--target-size) +
+      var(--trail-band-padding-top) +
+      var(--trail-band-padding-bottom) +
+      var(--line-width)
+    );
     --trail-heading-leading: 1.15;
     --site-header-height: 0px;
-    /* The bar, its rim and any trail band, until HeaderSize measures it. */
-    --site-header-bottom: calc(
-      var(--target-size) +
-      --spacing(4) +
-      var(--header-rim) +
-      var(--site-header-height)
-    );
+    /* The breadcrumb row's top, until HeaderSize measures it. */
+    --panel-top: calc(var(--target-size) + --spacing(4) + var(--header-rim));
     --site-panel-width: 18rem;
+    --quest-panel-width: 22rem;
     scroll-padding-top: var(--site-header-height);
   }
 
@@ -493,7 +500,7 @@
   @media (width >= 40rem) {
     html {
       --header-gutter: --spacing(6);
-      --trail-band-padding-bottom: --spacing(2.5);
+      --panel-tab-width: calc(var(--target-size) + --spacing(5));
       --trail-heading-leading: 1.2;
     }
 
@@ -522,10 +529,8 @@
      gold palette: one row, an ink tile with a gold rim, holding the brand,
      a compass medallion and the site's name, and, for a signed-in user,
      the ring of their progress at its right end. The site panel and its
-     button inside it keep the theme's own look, so only the header's own
-     children are dressed. The header contains nothing, so the site
-     panel's button and the docked panel inside it are fixed to the
-     screen. */
+     contents keep the theme's own look. The expand buttons sit in the
+     breadcrumb row; the panels open from the same row. */
   .site-header {
     @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
     padding-inline: var(--header-gutter);
@@ -534,7 +539,7 @@
     border-block-end: var(--header-rim) solid var(--hud-gold);
   }
 
-  .site-header > :not(.site-panel, .site-panel-toggle, .trail-band) {
+  .site-header > :not(.site-panel, .trail-band) {
     --focus-outline: 3px solid var(--hud-gold);
   }
 
@@ -819,14 +824,37 @@
   /* The trail band: a parchment strip, the header's full width, of the
      parent pages' links leading into the page's heading. */
   .trail-band {
+    position: relative;
     flex: none;
     inline-size: calc(100% + 2 * var(--header-gutter));
     margin-inline: calc(-1 * var(--header-gutter));
     min-block-size: calc(var(--header-rim) + var(--trail-band-min-height));
-    padding: var(--trail-band-padding-top) var(--header-gutter)
+    padding-block: var(--trail-band-padding-top)
       var(--trail-band-padding-bottom);
     border-block-start: var(--header-rim) solid var(--hud-gold);
-    @apply flex min-w-0 items-baseline gap-2 border-line border-b bg-trail-surface text-foreground;
+    @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
+  }
+
+  .trail-content {
+    margin-inline-start: calc(var(--panel-tab-width) + var(--header-gutter));
+    margin-inline-end: var(--header-gutter);
+    @apply flex min-w-0 flex-1 items-baseline gap-2;
+  }
+
+  .trail-band:has(.header-panel-control > .quest-sidebar-expand)
+    .trail-content {
+    margin-inline-end: calc(var(--panel-tab-width) + var(--header-gutter));
+  }
+
+  /* Docked panels cover the row's ends, not its breadcrumb actions. */
+  @media (width >= 64rem) {
+    .trail-band:has(.site-panel[open]) .trail-content {
+      margin-inline-start: calc(var(--site-panel-width) + var(--header-gutter));
+    }
+
+    .trail-band:has(.quest-sidebar-expand[hidden]) .trail-content {
+      margin-inline-end: calc(var(--quest-panel-width) + var(--header-gutter));
+    }
   }
 
   /* The parents give up their room before the heading does, while it keeps
@@ -880,16 +908,15 @@
   /* The page's one heading: its whole name, on at most two lines. */
   .trail-heading {
     flex: 0 1 auto;
-    min-inline-size: 8ch;
+    min-inline-size: 0;
     overflow-wrap: anywhere;
     @apply line-clamp-2 font-heading font-semibold text-section-heading leading-(--trail-heading-leading) tracking-tight sm:text-page-heading-phone;
   }
 
   /* The site panel (src/components/site-panel.tsx), the chat panel's
      mirror on the left: under the header, for the rest of the screen's
-     height. Its button floats under the header's left end, as the chat
-     panel's does under the right, and the open panel's close button takes
-     the button's place. It opens over the page's left edge and never
+     height. Its expand button starts the breadcrumb row; the close button
+     lines up with it inside the open panel. It opens over the page's left edge and never
      changes the page's size or flow. Below the lg breakpoint it is a drawer
      that slides in over a page it leaves undimmed, so a theme or mode
      chosen in it shows on the page beside it, and the page under it doesn't
@@ -898,31 +925,33 @@
      while open. Each theme dresses it through the panel tokens
      (src/themes/themes.ts). */
   .site-panel {
-    inset-block-start: var(--site-header-bottom);
-    block-size: calc(100dvh - var(--site-header-bottom));
+    inset-block-start: var(--panel-top);
+    block-size: calc(100dvh - var(--panel-top));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
     @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-navigation-surface p-3 text-foreground shadow-raised open:flex;
+    padding-block-start: 0;
+    padding-inline: var(--header-gutter);
     background-image: var(--panel-decoration);
   }
 
   .site-panel-toggle {
-    inset-block-start: calc(var(--site-header-bottom) + --spacing(4));
-    @apply fixed start-4 z-20 bg-surface;
+    @apply absolute inset-y-0 start-0;
+    block-size: auto;
   }
 
   .site-panel-toggle:has(+ .site-panel[open]) {
-    display: none;
+    visibility: hidden;
   }
 
-  /* The close button starts the panel's heading, in the place of the
-     button that opened it: the panel's padding plus this margin. */
+  /* The close button starts the panel's heading. */
   .site-panel-heading {
-    @apply flex items-center gap-2 pb-1;
+    margin-inline: calc(-1 * var(--header-gutter));
+    @apply flex items-center gap-4 border-line border-b;
   }
 
   .site-panel-close {
-    @apply ms-1 mt-1;
+    @apply m-0;
   }
 
   .site-panel:modal {
@@ -1194,7 +1223,7 @@
   /* A running timer's count of others and Copy link, at the right end of
      the trail band. The count gives up its room before the button does. */
   .timer-trail-tools {
-    @apply ml-auto flex min-w-0 items-center gap-3 self-center;
+    @apply ml-auto flex min-w-min items-center gap-3 self-center;
   }
 
   /* The active Dailies quest's construct button, at the band's right. On a
@@ -1511,9 +1540,9 @@
   }
 
   .quest-sidebar-frame {
-    inset-block-start: var(--site-header-bottom);
-    block-size: calc(100dvh - var(--site-header-bottom));
-    inline-size: min(22rem, 100%);
+    inset-block-start: var(--panel-top);
+    block-size: calc(100dvh - var(--panel-top));
+    inline-size: min(var(--quest-panel-width), 100%);
     max-block-size: none;
     @apply fixed inset-e-0 inset-s-auto m-0 max-w-none overflow-y-auto border-0 border-s border-line/40 bg-sidebar-surface p-0 text-foreground;
   }
@@ -1524,10 +1553,14 @@
 
   .quest-sidebar {
     @apply flex min-h-full min-w-0 flex-col p-4 text-sm;
+    padding-block-start: 0;
+    padding-inline: var(--header-gutter);
   }
 
   .quest-sidebar .workspace-rail {
-    @apply sticky top-0 z-10 flex-nowrap items-start gap-x-2 border-t-0 bg-sidebar-surface px-0;
+    margin-inline: calc(-1 * var(--header-gutter));
+    padding-inline-start: var(--header-gutter);
+    @apply sticky top-0 z-10 flex-nowrap items-start gap-x-4 border-t-0 bg-sidebar-surface pe-0;
   }
 
   /* The sidebar is too narrow for all its tabs in one row, so they wrap
@@ -1552,11 +1585,44 @@
     @apply shrink-0 justify-center rounded-control text-muted hover:bg-field hover:text-foreground hover:no-underline;
   }
 
-  /* It floats where the open panel's close button sits: the sidebar's
-     padding in from the screen's edge and below the header. */
-  .quest-sidebar-expand {
-    inset-block-start: calc(var(--site-header-bottom) + --spacing(4));
-    @apply fixed end-4 z-20 bg-surface;
+  /* Edge tabs belong to the panel surfaces and span the breadcrumb row,
+     rather than sitting inside it as separate floating buttons. */
+  .panel-edge-tab {
+    inline-size: var(--panel-tab-width);
+    block-size: var(--panel-tab-height);
+    outline-offset: calc(-1 * var(--focus-offset));
+    @apply rounded-none border-line text-foreground;
+  }
+
+  .panel-edge-tab .icon > svg {
+    @apply size-7;
+  }
+
+  .site-panel-toggle,
+  .site-panel-close {
+    @apply bg-navigation-surface;
+  }
+
+  .quest-sidebar-expand,
+  .quest-sidebar-collapse {
+    @apply bg-sidebar-surface;
+  }
+
+  /* The quest's tab attaches to the opposite end of the breadcrumb row. */
+  .header-panel-control {
+    @apply absolute inset-y-0 end-0 flex items-stretch;
+  }
+
+  .header-panel-control:empty {
+    display: none;
+  }
+
+  .header-panel-control:has(.quest-sidebar-expand) {
+    inline-size: var(--panel-tab-width);
+  }
+
+  .header-panel-control .quest-sidebar-expand {
+    block-size: auto;
   }
 
   .quest-sidebar-expand[hidden] {
