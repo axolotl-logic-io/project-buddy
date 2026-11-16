@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { listMessages } from "@/chats/store.ts";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { CAST_SPELL_INPUT } from "@/spells/cast-spell-contract.ts";
 import { getSpell } from "@/spells/spell.ts";
 import { spellResponse } from "@/spells/spell-response.ts";
@@ -48,5 +49,29 @@ describe("use_case_construct_casts_spell", () => {
     );
     await constructReply(chat.id, "cast brainstorm");
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
+  });
+
+  test("the picker's cast replaces an active spell, casting the active spell keeps it, and stop ends it", async () => {
+    const { user, chat } = await signedInChat();
+    const tasks = getSpell("tasks");
+    const brainstorm = getSpell("brainstorm");
+    await constructReply(chat.id, PANEL_COMMAND.cast(tasks.name));
+    expect(await currentSpell(user.id, chat)).toBe("tasks");
+
+    await constructReply(chat.id, PANEL_COMMAND.cast(brainstorm.name));
+    expect(await currentSpell(user.id, chat)).toBe("brainstorm");
+
+    const again = await constructReply(
+      chat.id,
+      PANEL_COMMAND.cast(brainstorm.name),
+    );
+    expect(messageText(again)).not.toBe("");
+    expect(await currentSpell(user.id, chat)).toBe("brainstorm");
+    expect(await constructPrompt(chat.id)).toContain(
+      "Active spell: Brainstorm",
+    );
+
+    await constructReply(chat.id, PANEL_COMMAND.stop);
+    expect(await currentSpell(user.id, chat)).toBeUndefined();
   });
 });

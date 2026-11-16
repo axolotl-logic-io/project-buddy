@@ -37,11 +37,9 @@ function checkNoteText(
 // A Quick Note to save, before its text is checked.
 const SAVE_NOTE_REQUEST = z.object({ questId: QUEST_ID, text: z.string() });
 
-const DELETE_NOTE_REQUEST = z.object({ questId: QUEST_ID, id: NOTE_ID });
-
-// What a save or delete did: done, or a reason for the user.
+// What a save did: done, or a reason for the user.
 type NoteResult =
-  | { readonly kind: "saved" | "deleted" }
+  | { readonly kind: "saved" }
   | { readonly kind: "problem"; readonly text: string };
 
 // An Active quest a Quick Note can go to, and how it is shared.
@@ -52,10 +50,4 @@ interface NoteQuest {
 }
 
 export type { Note, NoteId, NoteQuest, NoteResult, NoteTextProblem };
-export {
-  checkNoteText,
-  DELETE_NOTE_REQUEST,
-  NOTE_ID,
-  NOTE_MAX_LENGTH,
-  SAVE_NOTE_REQUEST,
-};
+export { checkNoteText, NOTE_ID, NOTE_MAX_LENGTH, SAVE_NOTE_REQUEST };

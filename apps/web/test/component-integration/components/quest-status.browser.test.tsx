@@ -28,6 +28,11 @@ import {
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
+import {
+  chatSendMock,
+  inConversation,
+  sentTexts,
+} from "./chat/chat-send-test-kit.tsx";
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
@@ -134,6 +139,31 @@ describe("quest status actions", () => {
     expect(undone?.get("toStatus")).toBe("completed");
     expect(undone?.get("revision")).toBe("1");
   });
+});
+
+describe("quest status actions in a quest's conversation", () => {
+  test.each([
+    ["active", "Complete", "/complete"],
+    ["active", "Abandon", "/abandon"],
+    ["completed", "Restore quest", "/restore"],
+  ] as const)(
+    "a %s quest's %s button sends %s to the conversation",
+    async (status, label, command) => {
+      const send = chatSendMock();
+      await render(
+        inConversation(
+          send,
+          <QuestStatusControls quest={{ ...FOX_QUEST, status }} />,
+        ),
+      );
+      await page.getByRole("button", { name: label, exact: true }).click();
+
+      await vi.waitFor(() => {
+        expect(sentTexts(send)).toEqual([command]);
+      });
+      expect(changeQuestStatusAction).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("quest approval card", () => {

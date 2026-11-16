@@ -1,24 +1,24 @@
 import { describe, expect, test, vi } from "vitest";
+import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { NOTE_MAX_LENGTH } from "@/notes/note.ts";
-import {
-  deleteNoteAction,
-  listNoteQuestsAction,
-  saveNoteAction,
-} from "@/notes/note-actions.ts";
+import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
 import { listNotes } from "@/notes/note-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { commandNotes, runCommand } from "../commands/command-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 describe("use_case_quick_note", () => {
-  test("a Quick Note is saved to an Active quest, listed newest first and deleted", async () => {
+  test("a Quick Note is saved to an Active quest, listed newest first and deleted with /drop-note", async () => {
     const user = await testUser();
     const data = testData(user);
     const quest = await data.quest("Pottery");
+    const chat = await data.chat(quest);
     await signIn(user);
 
     expect(await listNoteQuestsAction()).toEqual([
@@ -39,15 +39,23 @@ describe("use_case_quick_note", () => {
       "Try a slower wheel",
     ]);
 
-    expect(
-      await deleteNoteAction({ questId: quest.id, id: notes[0]?.id }),
-    ).toEqual({ kind: "deleted" });
-    expect(
-      await deleteNoteAction({ questId: quest.id, id: notes[0]?.id }),
-    ).toEqual({ kind: "deleted" });
+    expect(await runCommand(chat.id, PANEL_COMMAND.dropNote(1))).toMatchObject({
+      kind: "noted",
+      note: PANEL_COMMANDS_COPY.notes.dropNote("Buy more clay"),
+    });
+    expect(await runCommand(chat.id, PANEL_COMMAND.dropNote(2))).toEqual({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.noNote(1),
+    });
     expect(
       (await listNotes(user.id, quest.id)).map((note) => note.text),
     ).toEqual(["Try a slower wheel"]);
+    expect(await commandNotes(user.id, chat.id)).toEqual([
+      {
+        command: PANEL_COMMAND.dropNote(1),
+        note: PANEL_COMMANDS_COPY.notes.dropNote("Buy more clay"),
+      },
+    ]);
   });
 
   test("an empty or overlong Quick Note is refused with its reason", async () => {
@@ -80,7 +88,9 @@ describe("use_case_quick_note", () => {
 
   test("a Completed quest takes no new Quick Note but keeps its notes", async () => {
     const user = await testUser();
-    const quest = await testData(user).quest("Finished");
+    const data = testData(user);
+    const quest = await data.quest("Finished");
+    const chat = await data.chat(quest);
     await signIn(user);
     await saveNoteAction({ questId: quest.id, text: "Kept" });
     await changeQuestStatus(user.id, {
@@ -97,16 +107,19 @@ describe("use_case_quick_note", () => {
     });
     const [kept] = await listNotes(user.id, quest.id);
     expect(kept?.text).toBe("Kept");
-    await deleteNoteAction({ questId: quest.id, id: kept?.id });
+    expect(await runCommand(chat.id, PANEL_COMMAND.dropNote(1))).toMatchObject({
+      kind: "noted",
+    });
     expect(await listNotes(user.id, quest.id)).toEqual([]);
   });
 
   test("another user can neither save to, list nor delete a quest's Quick Notes", async () => {
     const owner = await testUser();
-    const quest = await testData(owner).quest();
+    const ownerData = testData(owner);
+    const quest = await ownerData.quest();
+    const chat = await ownerData.chat(quest);
     await signIn(owner);
     await saveNoteAction({ questId: quest.id, text: "Private" });
-    const [note] = await listNotes(owner.id, quest.id);
 
     const stranger = await testUser();
     await signIn(stranger);
@@ -116,7 +129,9 @@ describe("use_case_quick_note", () => {
       kind: "problem",
       text: QUICK_NOTE_COPY.notFound,
     });
-    await deleteNoteAction({ questId: quest.id, id: note?.id });
+    expect(await runCommand(chat.id, PANEL_COMMAND.dropNote(1))).toEqual({
+      kind: "not-found",
+    });
 
     expect(
       (await listNotes(owner.id, quest.id)).map((saved) => saved.text),

@@ -131,8 +131,8 @@ function TasksChangeToolPart({
 }
 
 // A tasks message's part (src/tasks/tasks-message.ts): a person's tasks change,
-// with the command they typed for it, or a Tasks card, inside the frame of
-// their message. Any other data part shows nothing.
+// with the command they typed for it, a Tasks card, or a command note, inside
+// the frame of their message. Any other data part shows nothing.
 function TasksDataPart({
   name,
   data,
@@ -143,6 +143,15 @@ function TasksDataPart({
   const part = readTasksPart({ type: `data-${name}`, data });
   if (part === undefined) {
     return null;
+  }
+  if (part.kind === "note") {
+    return (
+      <div className="tasks-message">
+        <p className="tasks-command">{part.data.command}</p>
+        <p className="text-sm">{part.data.note}</p>
+        <p className="text-muted text-xs">{TASKS_CHANGE_COPY.commandNote}</p>
+      </div>
+    );
   }
   if (part.kind === "card") {
     return (

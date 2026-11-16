@@ -51,6 +51,7 @@ import {
 } from "@/ids.ts";
 import {
   awaitsReply,
+  COMMAND_NOTE_PART,
   TASKS_CARD_PART,
   TASKS_CHANGE_PART,
 } from "@/tasks/tasks-message.ts";
@@ -253,7 +254,7 @@ export function noReplyAwaited(chatId: ChatId): SQL {
     .orderBy(desc(messages.createdAt), desc(messages.id))
     .limit(1)
     .as("newest");
-  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${TASKS_CHANGE_PART}, ${TASKS_CARD_PART}))))`;
+  return sql`not exists (select 1 from ${newest} where ${newest.role} = 'user' and (jsonb_array_length(${newest.parts}) = 0 or exists (select 1 from jsonb_array_elements(${newest.parts}) as part where part->>'type' not in (${TASKS_CHANGE_PART}, ${TASKS_CARD_PART}, ${COMMAND_NOTE_PART}))))`;
 }
 
 // Whether the owner's chat's newest message awaits a reply (noReplyAwaited);

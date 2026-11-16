@@ -3,7 +3,6 @@ import { page, userEvent } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import {
-  castSpellAction,
   newSpellAction,
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
@@ -23,11 +22,15 @@ import { EDITABLE_LIST_COPY } from "@/ui/copy/editable-list.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TEXT_LIST_COPY } from "@/ui/copy/text-list.ts";
-import { chatIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../auth/current-user-test-kit.ts";
+import {
+  chatSendMock,
+  inConversation,
+  sentTexts,
+} from "../../../components/chat/chat-send-test-kit.tsx";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
 vi.mock(
@@ -44,7 +47,6 @@ vi.mock("@/spells/own-spell-store.ts", () => ({
   listOwnSpells: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  castSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   cloneSpellAction: vi.fn(),
   saveSpellAction: vi.fn(),
@@ -204,20 +206,33 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn().mockResolvedValue(undefined),
 }));
 
-test("a quest picker casts the chosen own spell", async () => {
-  const chatId = chatIdFixture();
-  await render(<SpellPicker chatId={chatId} spells={[OWN]} />);
+test("a quest picker casts the chosen own spell by sending cast and its name", async () => {
+  const send = chatSendMock();
+  await render(inConversation(send, <SpellPicker spells={[OWN]} />));
   await page
     .getByRole("combobox", { name: SPELLBOOK_COPY.choose })
     .selectOptions(OWN.id);
-  expect(castSpellAction).not.toHaveBeenCalled();
+  expect(send).not.toHaveBeenCalled();
   await page
     .getByRole("button", { name: SPELLBOOK_COPY.cast, exact: true })
     .click();
-  expect(castSpellAction).toHaveBeenCalledOnce();
-  const [form] = vi.mocked(castSpellAction).mock.calls[0] ?? [];
-  expect(form?.get("chatId")).toBe(chatId);
-  expect(form?.get("spellId")).toBe(OWN.id);
+  await vi.waitFor(() => {
+    expect(sentTexts(send)).toEqual([`cast ${OWN.name}`]);
+  });
+});
+
+test("a quest picker shows why a cast wasn't sent", async () => {
+  const problem = "Wait for the reply to your last message.";
+  const send = chatSendMock().mockResolvedValue({ sent: false, problem });
+  await render(inConversation(send, <SpellPicker spells={[OWN]} />));
+  await page
+    .getByRole("combobox", { name: SPELLBOOK_COPY.choose })
+    .selectOptions(OWN.id);
+  await page
+    .getByRole("button", { name: SPELLBOOK_COPY.cast, exact: true })
+    .click();
+
+  await expect.element(page.getByRole("alert")).toHaveTextContent(problem);
 });
 
 test("saving the spell includes a reply still being edited", async () => {
