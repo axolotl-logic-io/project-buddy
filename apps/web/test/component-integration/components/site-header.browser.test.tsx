@@ -7,7 +7,7 @@
 // brand at least WCAG 2.5.8's minimum (24 px), and nothing scrolls
 // sideways. The open panel, on the left under the header, fits the
 // narrowest phone, with every link a target's height. On a wide screen the
-// panel docks beside the page instead of opening over it.
+// panel docks over the page, which keeps its size and flow (#999).
 // The header is laid out by width alone (no pointer media query in src/),
 // so the test's viewport stands in for the phone. The theme fonts are
 // loaded, since the site's name's width depends on them. The trail band
@@ -421,16 +421,21 @@ describe("the site panel", () => {
     );
   });
 
-  test("on a wide screen, docks beside the page, which makes room for it, and stays open from page to page until closed", async () => {
+  test("on a wide screen, docks over the page, which keeps its size and flow, and stays open from page to page until closed", async () => {
     await setViewport(LAPTOP_VIEWPORT);
     // Keep the test's page: the link's own navigation is Next's to test.
     globalThis.addEventListener("click", stayOnThisPage, { capture: true });
     try {
       const screen = await render(signedInFrame());
-      function pageStart(): number {
-        return page.getByText(PAGE_TEXT).element().getBoundingClientRect().left;
+      // Where the page's content starts, and how wide it is.
+      function pageBox(): { readonly left: number; readonly width: number } {
+        const { left, width } = page
+          .getByText(PAGE_TEXT)
+          .element()
+          .getBoundingClientRect();
+        return { left, width };
       }
-      const closedStart = pageStart();
+      const closedBox = pageBox();
       await openPanel();
       expect(
         sitePanel().element().matches(":modal"),
@@ -438,10 +443,11 @@ describe("the site panel", () => {
       ).toBe(false);
       await expect.element(closeButton()).toHaveFocus();
       const panel = sitePanel().element().getBoundingClientRect();
+      expect(pageBox(), "the page stays where it was").toEqual(closedBox);
       expect(
-        pageStart(),
-        "the page starts beside the panel",
-      ).toBeGreaterThanOrEqual(panel.right);
+        panel.right,
+        "the panel lies over the page's left edge",
+      ).toBeGreaterThan(closedBox.left);
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         LAPTOP_VIEWPORT.width,
       );
@@ -464,7 +470,7 @@ describe("the site panel", () => {
       await closeButton().click();
       await expect.poll(() => sitePanel().query()).toBeNull();
       await expect.element(panelButton()).toHaveFocus();
-      expect(pageStart(), "the page takes its room back").toBe(closedStart);
+      expect(pageBox(), "the page stays where it was").toEqual(closedBox);
     } finally {
       globalThis.removeEventListener("click", stayOnThisPage, {
         capture: true,
