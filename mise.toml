@@ -2,10 +2,17 @@ min_version = "2026.9.4"
 monorepo_root = true
 
 [monorepo]
-config_roots = ["apps/web", "apps/instruction-counter"]
+config_roots = ["apps/web", "apps/instruction-counter", "apps/cli"]
 
 [tools]
 node = "24"
+
+# Puts the workspaces' commands, such as project-buddy, on the PATH, and
+# loads the CLI session that mise setup writes for the local developer
+# account. A missing file is skipped.
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+_.file = { path = "{{config_root}}/apps/cli/.env.local", redact = true }
 
 [tasks.setup]
 description = "Install dependencies and prepare the persistent local development environment"
