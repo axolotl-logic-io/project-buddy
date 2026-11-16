@@ -24,7 +24,6 @@ import HeaderLinks from "@/app/@header/[...path]/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { listMessages, readStoppedReply } from "@/chats/store.ts";
-import { SiteHeader } from "@/components/site-header.tsx";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
@@ -418,14 +417,12 @@ async function chatPage(): Promise<JSX.Element> {
   });
   return (
     <>
-      <SiteHeader
-        links={
-          await HeaderLinks({
-            params: Promise.resolve({ path: ["quests", FOX_QUEST.id] }),
-            searchParams: Promise.resolve({}),
-          })
-        }
-      />
+      {
+        await HeaderLinks({
+          params: Promise.resolve({ path: ["quests", FOX_QUEST.id] }),
+          searchParams: Promise.resolve({}),
+        })
+      }
       {inWorkspace(content)}
     </>
   );

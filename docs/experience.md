@@ -34,7 +34,7 @@ The **Experience** section of Profile (`/profile`) (`src/components/experience/e
 
 ## The header's ring
 
-For a signed-in user, the site header shows their circle's number inside a ring, beside the menu's button (`src/components/experience/circle-progress.tsx`). The ring fills, like the timer's, from the circle's start to the next circle's, and links to Profile's Experience section; its accessible name gives the circle, its title and the experience still needed. `SignedInLinks` in `src/components/site-header.tsx` reads the experience with the session, so every page's header reads it once. Actions that gain or lose points refresh the page, and so the ring, and a finished reply in the conversation refreshes it too.
+For a signed-in user, the site header shows their circle's number inside a ring, at the right end of the bar (`src/components/experience/circle-progress.tsx`). The ring fills, like the timer's, from the circle's start to the next circle's, and links to Profile's Experience section; its accessible name gives the circle, its title and the experience still needed. `SignedInHeader` in `src/components/signed-in-header.tsx` reads the experience with the session, so every page's header reads it once. Actions that gain or lose points refresh the page, and so the ring, and a finished reply in the conversation refreshes it too.
 
 ## The exp command
 

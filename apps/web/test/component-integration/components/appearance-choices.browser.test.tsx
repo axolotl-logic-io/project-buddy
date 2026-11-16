@@ -1,5 +1,5 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
-// WebKit: what choosing a mode in the real site menu does to this
+// WebKit: what choosing a mode in the real site panel does to this
 // page, at once. appearance-choices-save.browser.test.tsx checks the choice
 // is saved without the Cookie Store API;
 // save-theme-choice-action.server.test.ts that a saved choice survives
@@ -20,7 +20,7 @@ import {
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
-import { SiteMenu } from "@/components/site-menu.tsx";
+import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,
@@ -45,9 +45,9 @@ import {
 import {
   appliedChoice,
   choose,
-  closeMenu,
-  openMenu,
-} from "./site-menu-test-kit.ts";
+  closePanel,
+  openPanel,
+} from "./site-panel-test-kit.ts";
 
 // Saving the choice is a round trip to the server, which
 // save-theme-choice-action.server.test.ts covers.
@@ -66,12 +66,12 @@ const siteTitle = page.getByRole("heading", {
   name: SITE_COPY.name,
 });
 
-// The sign-in page's frame, under the header's menu, as a signed-out
+// The sign-in page's frame, under the header's site panel, as a signed-out
 // visitor first meets them.
 async function renderSignInPage(): Promise<void> {
   await render(
     <>
-      <SiteMenu links={null} />
+      <SitePanel links={null} />
       <SignInPanel intro={SITE_COPY.name}>{null}</SignInPanel>
     </>,
   );
@@ -127,7 +127,7 @@ afterEach(async () => {
 
 describe("use_case_choose_theme", () => {
   test("offers only the three modes for one theme", async () => {
-    await openMenu();
+    await openPanel();
     expect(page.getByRole("dialog").getByRole("radio").all()).toHaveLength(
       MODE_COUNT,
     );
@@ -151,9 +151,9 @@ describe("use_case_choose_theme", () => {
     },
   );
   test("choosing Dark applies it at once", async () => {
-    await openMenu();
+    await openPanel();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
-    await closeMenu();
+    await closePanel();
 
     expect(appliedChoice()).toStrictEqual({
       theme: DEFAULT_THEME_CHOICE.theme,
@@ -163,10 +163,10 @@ describe("use_case_choose_theme", () => {
   });
 
   test("System follows the computer's setting", async () => {
-    await openMenu();
+    await openPanel();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.system);
-    await closeMenu();
+    await closePanel();
 
     await commands.emulateColorScheme("dark");
     expect(appliedColors()).toBe("dark");
@@ -177,8 +177,8 @@ describe("use_case_choose_theme", () => {
 
   for (const { id, name } of THEMES) {
     test(`the ${name} theme: its own fonts, and the site's name on one line, wide and on a phone`, async () => {
-      await openMenu();
-      await closeMenu();
+      await openPanel();
+      await closePanel();
       expect(appliedChoice().theme).toBe(id);
 
       expect(await fontsLoaded()).toStrictEqual(ALL_FONTS_LOADED);
