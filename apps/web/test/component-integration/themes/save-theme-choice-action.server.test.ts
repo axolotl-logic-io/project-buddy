@@ -12,7 +12,7 @@ import {
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
 } from "@/themes/theme-choice.ts";
-import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
+import { DEFAULT_THEME_CHOICE, THEME_MODES } from "@/themes/themes.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   requestWithSession,
@@ -30,12 +30,12 @@ function visit(path: string): Promise<Response> {
 }
 
 describe("use_case_choose_theme", () => {
-  test("a signed-in user's choice is saved, and the sign-in page keeps it once she signs out", async () => {
+  test.each(THEME_MODES)("the %s choice survives signing out", async (mode) => {
     await signIn(await testUser());
 
     await saveThemeChoiceAction({
       theme: DEFAULT_THEME_CHOICE.theme,
-      mode: "dark",
+      mode,
     });
 
     expect(fontPreloads(await visit("/quests"))).toEqual(
@@ -48,7 +48,7 @@ describe("use_case_choose_theme", () => {
       parseThemeChoiceCookie((await cookies()).get(THEME_COOKIE_NAME)?.value),
     ).toEqual({
       theme: DEFAULT_THEME_CHOICE.theme,
-      mode: "dark",
+      mode,
     });
 
     expect((await visit("/quests")).headers.get("location")).toBe(

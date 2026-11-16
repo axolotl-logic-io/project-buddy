@@ -4,18 +4,16 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_choose_theme
 
-The user picks a light or dark mode for the site's parchment theme, or follows the mode their computer uses.
+The user picks a fixed textured appearance for this browser.
 
 - **Prerequisites:** none.
 - **Steps:**
-  - The user opens the site panel from the button under the left end of the header on any page.
-  - They choose Dark. The page takes on dark parchment colours at once, without reloading.
-  - They reload the page, or return in the same browser.
-  - They sign out, or open the sign-in page.
-  - They choose System.
-- **Outcome:** every page uses the same parchment theme, with serif headings, sepia ink, gold accents and a subtle repeating paper texture that stays seamless on long pages and behind pinned conversation controls. The site panel offers Light, Dark and System modes without a theme picker. The chosen mode appears from the first paint, on a page that failed to load too, and belongs to this browser. System follows the computer's setting and changes with it. New visitors start in Light mode. The theme's self-hosted typefaces start loading with the page. Cards and controls follow the active palette, including live System changes and returning from another page. Headings, focus rings and Tasks completion controls remain readable, and the site's name fits on one line on a wide screen.
+  - The user opens the site panel from the button under the left end of the header on any page, or opens Appearance in Settings.
+  - They choose the Ivory Vellum, Soot & Brass, or Espresso Leather texture swatch by pointer or keyboard. The complete palette and texture apply at once, without reloading.
+  - They reload the page, return in the same browser, sign out, or open the sign-in page.
+- **Outcome:** the chosen swatch has an accessible name, a visible selection mark, and a visible keyboard focus ring. The site panel and Settings offer the same three swatches, with no Light, Dark, or System control. Ivory Vellum uses the approved L1 parchment and light palette; Soot & Brass uses burgundy leather, warm charcoal surfaces, ivory text, and restrained brass; Espresso Leather uses the approved D1 leather with sepia and gold. The selection belongs to this browser and appears before the first paint, including failed pages. Operating system changes never change it. New visitors start with Ivory Vellum. Older Light and System choices use Ivory Vellum; older Dark choices use Espresso Leather. Unknown values use Ivory Vellum. The self-hosted fonts start loading with the page. All three palettes keep readable headings, controls, syntax colors, and focus rings. Their fixed backgrounds stay aligned behind long pages and the pinned conversation composer. The three swatches fit a 320 px phone with 44 px touch targets.
 - **Next:**
-  - [`use_case_view_quests`](quests.md#use_case_view_quests): carry on in the chosen mode.
+  - [`use_case_view_quests`](quests.md#use_case_view_quests): carry on in the chosen appearance.
 
 ## use_case_use_on_phone
 

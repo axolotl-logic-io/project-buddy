@@ -1,12 +1,12 @@
-// Every registered theme, in both modes, passes WCAG AA for each pair of
+// Every selectable appearance passes WCAG AA for each pair of
 // colour tokens that meet on the page. The tokens and their values are read
 // from the CSS itself: contract.css names the colour tokens, and each
-// theme's file gives every one a light and a dark value. contract.test.ts
+// theme's file gives every appearance its own values. contract.test.ts
 // checks that each mode shows the values for that mode.
 
 import { displayable, parse, wcagContrast } from "culori";
 import { describe, expect, test } from "vitest";
-import { THEME_IDS } from "@/themes/themes.ts";
+import { THEME_IDS, THEME_MODES } from "@/themes/themes.ts";
 import {
   COLOR_TOKENS,
   themeTokens,
@@ -20,13 +20,19 @@ interface Pair {
   readonly minimum: number;
 }
 
-const MODES = ["light", "dark"] as const;
-
 // WCAG AA: body text, and large text or the boundary of a control.
 const TEXT_CONTRAST = 4.5;
 const BOUNDARY_CONTRAST = 3;
 
-const TEXT_SURFACES = ["background", "surface", "field"];
+const TEXT_SURFACES = [
+  "background",
+  "surface",
+  "field",
+  "navigation-surface",
+  "trail-surface",
+  "sidebar-surface",
+  "secondary-surface",
+];
 const CODE_COLORS = [
   "code-comment",
   "code-keyword",
@@ -47,7 +53,7 @@ const PAIRS: readonly Pair[] = [
   ...pairs("foreground", [...TEXT_SURFACES, "code-surface"], TEXT_CONTRAST),
   ...pairs("muted", TEXT_SURFACES, TEXT_CONTRAST),
   ...pairs("danger", TEXT_SURFACES, TEXT_CONTRAST),
-  ...pairs("primary", ["background", "surface"], TEXT_CONTRAST),
+  ...pairs("primary", TEXT_SURFACES, TEXT_CONTRAST),
   ...pairs("on-primary", ["primary"], TEXT_CONTRAST),
   ...pairs("on-danger", ["danger"], TEXT_CONTRAST),
   ...pairs("on-accent", ["accent"], TEXT_CONTRAST),
@@ -56,8 +62,11 @@ const PAIRS: readonly Pair[] = [
   ...CODE_COLORS.flatMap((code) =>
     pairs(code, ["code-surface"], TEXT_CONTRAST),
   ),
-  ...pairs("line", ["background", "surface"], BOUNDARY_CONTRAST),
-  ...pairs("focus", ["background", "surface"], BOUNDARY_CONTRAST),
+  ...pairs("line", TEXT_SURFACES, BOUNDARY_CONTRAST),
+  ...pairs("focus", TEXT_SURFACES, BOUNDARY_CONTRAST),
+  ...pairs("header-paper", ["header-ink"], TEXT_CONTRAST),
+  ...pairs("header-gold", ["header-ink"], TEXT_CONTRAST),
+  ...pairs("header-ink", ["header-gold"], TEXT_CONTRAST),
 ];
 
 describe.each(THEME_IDS)("the %s theme", (themeId) => {
@@ -67,7 +76,7 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
     return values.get(`${mode}-${token}`) ?? "";
   }
 
-  test.each(MODES)("sets every colour token in %s mode", (mode) => {
+  test.each(THEME_MODES)("sets every colour token in %s mode", (mode) => {
     expect(COLOR_TOKENS.length).toBeGreaterThan(0);
     for (const token of COLOR_TOKENS) {
       const value = color(mode, token);
@@ -76,24 +85,10 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
     }
   });
 
-  test.each(MODES)("passes WCAG AA in %s mode", (mode) => {
+  test.each(THEME_MODES)("passes WCAG AA in %s mode", (mode) => {
     for (const { front, back, minimum } of PAIRS) {
       const ratio = wcagContrast(color(mode, front), color(mode, back));
       expect(ratio, `${front} on ${back}`).toBeGreaterThanOrEqual(minimum);
     }
-  });
-});
-
-// The shared HUD keeps a separate stable palette in both modes.
-describe("the shared HUD", () => {
-  const values = themeTokens("parchment");
-  test.each([
-    { front: "header-paper", back: "header-ink", minimum: TEXT_CONTRAST },
-    { front: "header-gold", back: "header-ink", minimum: TEXT_CONTRAST },
-    { front: "header-ink", back: "header-gold", minimum: TEXT_CONTRAST },
-  ])("$front is readable on $back", ({ front, back, minimum }) => {
-    expect(
-      wcagContrast(values.get(front) ?? "", values.get(back) ?? ""),
-    ).toBeGreaterThanOrEqual(minimum);
   });
 });
