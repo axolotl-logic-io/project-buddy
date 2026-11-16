@@ -5,6 +5,7 @@ import { type Database, getDb, inTransaction } from "@/db/client.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { gainPoints } from "@/experience/experience-store.ts";
 import {
   IDEA,
   type Idea,
@@ -38,7 +39,7 @@ function listIdeas(owner: UserId, questId: QuestId): Promise<Idea[]> {
 }
 
 // Every write checks ownership in SQL. Moving locks the idea until both the
-// Tasks change and removal commit, so concurrent moves cannot duplicate a step.
+// Tasks change and removal commit, so concurrent moves cannot duplicate a task.
 function changeIdea(
   owner: UserId,
   request: IdeaRequest,
@@ -131,6 +132,12 @@ function changeIdea(
         if (rows.length === 0) {
           return NOT_FOUND;
         }
+        await gainPoints(
+          tx,
+          { user: owner, questId },
+          "ideating",
+          rows.map((row) => row.id),
+        );
         return { kind: "saved" };
       });
     }

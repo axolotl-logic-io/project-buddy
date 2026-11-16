@@ -20,7 +20,7 @@ const SPELLS: Readonly<Record<SpellId, Spell>> = {
     id: "tasks",
     name: "Tasks",
     description:
-      "Save subsequent messages as open Tasks steps until you stop the spell.",
+      "Save subsequent messages as open tasks until you stop the spell.",
   },
   brainstorm: {
     definition: SPELL_DEFINITION.parse({

@@ -4,10 +4,11 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { noteOpenTo, questOpenTo } from "@/accounts/owner-scope.ts";
-import { getDb } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { questNotes } from "@/db/tables/quest-notes.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { gainPoints } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import { NOTE_ID, type Note, type NoteId } from "@/notes/note.ts";
 
@@ -27,35 +28,44 @@ function listNotes(owner: UserId, questId: QuestId): Promise<Note[]> {
   });
 }
 
-// Saves text, already checked, as a Quick Note of the owner's Active quest.
-// False when the owner has no such Active quest, so nothing was saved.
+// Saves text, already checked, as a Quick Note of the owner's Active quest,
+// with the owner's point for noting it. False when the owner has no such
+// Active quest, so nothing was saved.
 function saveNote(
   owner: UserId,
   { questId, text }: { readonly questId: QuestId; readonly text: string },
 ): Promise<boolean> {
-  return withAppErrors("saveNote", async () => {
-    const rows = await getDb()
-      .insert(questNotes)
-      .select(
-        new QueryBuilder()
-          .select({
-            id: sql`gen_random_uuid()`.as("id"),
-            questId: quests.id,
-            text: sql`${text}::text`.as("text"),
-            createdAt: sql`now()`.as("created_at"),
-          })
-          .from(quests)
-          .where(
-            and(
-              eq(quests.id, questId),
-              questOpenTo(owner),
-              eq(quests.status, "active"),
+  return withAppErrors("saveNote", () =>
+    inTransaction(async (tx): Promise<boolean> => {
+      const rows = await tx
+        .insert(questNotes)
+        .select(
+          new QueryBuilder()
+            .select({
+              id: sql`gen_random_uuid()`.as("id"),
+              questId: quests.id,
+              text: sql`${text}::text`.as("text"),
+              createdAt: sql`now()`.as("created_at"),
+            })
+            .from(quests)
+            .where(
+              and(
+                eq(quests.id, questId),
+                questOpenTo(owner),
+                eq(quests.status, "active"),
+              ),
             ),
-          ),
-      )
-      .returning({ id: questNotes.id });
-    return rows.length > 0;
-  });
+        )
+        .returning({ id: questNotes.id });
+      await gainPoints(
+        tx,
+        { user: owner, questId },
+        "noting",
+        rows.map((row) => row.id),
+      );
+      return rows.length > 0;
+    }),
+  );
 }
 
 // Takes the Quick Note out of the owner's quest. A note that is already

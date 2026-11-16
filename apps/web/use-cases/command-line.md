@@ -17,11 +17,11 @@ These cases cover the `project-buddy` command, which works with the user's quest
 - **Intent:** Keep a quest's Tasks, Ideas, Quick Notes and milestones from a terminal.
 - **Prerequisites:** [`use_case_cli_api_quests`](#use_case_cli_api_quests).
 - **Steps:**
-  - They add, edit, complete and remove Tasks by step number, and undo a change by its version.
+  - They add, edit, complete and remove tasks by task number, and undo a change by its version.
   - They add Ideas, reorder them and move one to Tasks.
   - They save and delete Quick Notes, and list and edit milestones.
   - They list and read the constructs and spells open to them.
-- **Outcome:** each change answers with the quest's records as they now are, and Tasks answers with its new version. A missing Idea, Task step or milestone is not found. Quick Notes save only to an Active quest, and deleting one that's already gone succeeds. Another user's records are not found.
+- **Outcome:** each change answers with the quest's records as they now are, and Tasks answers with its new version. A missing idea, task or milestone is not found. Quick Notes save only to an Active quest, and deleting one that's already gone succeeds. Another user's records are not found.
 
 ## use_case_cli_api_conversation
 

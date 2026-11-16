@@ -244,7 +244,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Spell",
     aliases: ["spell", "spells"],
     definition:
-      "A setting turned on in a quest conversation to choose where messages sent afterward are saved. Tasks saves them as steps; Brainstorm saves them as Ideas. A person can also make spells with their own names and written replies.",
+      "A setting turned on in a quest conversation to choose where messages sent afterward are saved. Tasks saves them as tasks; Brainstorm saves them as Ideas. A person can also make spells with their own names and written replies.",
   },
   {
     term: "Cast",
@@ -313,7 +313,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Reply",
     aliases: ["reply", "replies"],
     definition:
-      "The construct's response to a message. It may include text and actions such as saving a step. In the current site, replies follow the commands and spell settings rather than being written by an outside AI service.",
+      "The construct's response to a message. It may include text and actions such as saving a task. In the current site, replies follow the commands and spell settings rather than being written by an outside AI service.",
   },
   {
     term: "Quest",
@@ -353,7 +353,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Dailies",
     aliases: ["Reset Day", "resetting", "conversation reset"],
     definition:
-      "A control for clearing the Dailies conversation and turning off its spell, after confirmation. It normally keeps Tasks, Ideas and Progress and marks completed steps open again. The person can also choose to remove steps and Ideas.",
+      "A control for clearing the Dailies conversation and turning off its spell, after confirmation. It normally keeps Tasks, Ideas and Progress and marks completed tasks open again. The person can also choose to remove tasks and Ideas.",
   },
   {
     term: "Quest code names",
@@ -403,11 +403,11 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "The quest's list of recorded milestones, shown under Progress. It celebrates finished work without counting streaks or criticizing pauses.",
   },
   {
-    term: "Next step",
-    heading: "Next step",
-    aliases: ["next step"],
+    term: "Next task",
+    heading: "Next task",
+    aliases: ["next task"],
     definition:
-      "The first unfinished step in a quest's Tasks list: the small piece of work the person plans to do next.",
+      "The first unfinished task in a quest's Tasks list: the small piece of work the person plans to do next.",
   },
   {
     term: "Active spell",
@@ -431,6 +431,27 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "A short piece of text saved to an Active quest from the site menu, without opening that quest. Quick Notes are listed newest first in the quest's Quick Notes section. The construct does not read them.",
   },
   {
+    term: "Experience",
+    heading: "Experience",
+    aliases: ["experience"],
+    definition:
+      "One number for everything a person has done across their quests: the points from each of their abilities added together, with some abilities worth more than others. It counts only finished actions, never open work, days or streaks. It decides their circle, and their Profile shows it.",
+  },
+  {
+    term: "Ability",
+    heading: "Ability",
+    aliases: ["ability", "abilities"],
+    definition:
+      "One kind of action that earns a person a point each time: adding tasks, ideating (adding ideas), saving Quick Notes, completing tasks and completing quests. Adding a task, idea or Quick Note is worth 1 experience, completing a task 3 and completing a quest 9. Reopening a completed task or quest takes its point back.",
+  },
+  {
+    term: "Circle",
+    heading: "Circle",
+    aliases: ["circle", "circles"],
+    definition:
+      "A person's level, set by their experience. Each circle needs a little more experience than the one before. Some circles bring a new title: Initiate, Apprentice, Practitioner, Expert, Master, Pathfinder, Grand Master, Legendary and Transcendent.",
+  },
+  {
     term: "Quest sidebar actions",
     heading: "Quest sidebar actions",
     aliases: ["quest sidebar actions", "Actions tab", "side menu"],
@@ -442,14 +463,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Tasks",
     aliases: ["Tasks"],
     definition:
-      "A quest's ordered list of work still to do. People can add steps, edit them, check them off, move them or remove them. Changes can be undone. Tasks does not set deadlines or count days.",
+      "A quest's ordered list of work still to do. People can add tasks, edit them, check them off, move them or remove them. Changes can be undone. Tasks does not set deadlines or count days.",
   },
   {
-    term: "Step",
-    heading: "Step",
-    aliases: ["step", "steps"],
+    term: "Task",
+    heading: "Task",
+    aliases: ["task", "tasks"],
     definition:
-      "One short line of work in Tasks, marked unfinished or done. Its number, such as #3, identifies it within the quest. Finishing a step does not automatically add a milestone to Progress.",
+      "One short line of work in Tasks, marked unfinished or done. Its number, such as #3, identifies it within the quest. Finishing a task does not automatically add a milestone to Progress.",
   },
   {
     term: "Tasks change",
@@ -501,11 +522,18 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "Project Buddy added to a phone's Home Screen so it opens in its own window. It remains the same website and does not keep an offline copy.",
   },
   {
+    term: "Profile",
+    heading: "Profile",
+    aliases: ["Profile"],
+    definition:
+      "A person's own page, where they change their saved name and see their experience, circle and points in each ability.",
+  },
+  {
     term: "Settings",
     heading: "Settings",
     aliases: ["Settings"],
     definition:
-      "The page where a person changes their saved name, appearance choices and sign-in security.",
+      "The page where a person changes their appearance choices and sign-in security.",
   },
   {
     term: "User",

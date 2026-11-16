@@ -16,6 +16,12 @@ import {
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../../experience/experience-store-test-kit.ts"),
+);
+
 // site-header.tsx reads the session and balance for SignedInLinks, server
 // code these tests never call.
 vi.mock(

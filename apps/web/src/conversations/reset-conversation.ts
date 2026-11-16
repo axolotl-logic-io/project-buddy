@@ -19,8 +19,8 @@ import { reopenTasks } from "@/tasks/tasks-store.ts";
 async function resetConversation(
   owner: UserId,
   id: ChatId,
-  options: { clearSteps: boolean; clearIdeas: boolean } = {
-    clearSteps: false,
+  options: { clearTasks: boolean; clearIdeas: boolean } = {
+    clearTasks: false,
     clearIdeas: false,
   },
 ): Promise<ChatId | undefined> {
@@ -55,7 +55,7 @@ async function resetConversation(
       if (previous === undefined) {
         return;
       }
-      await reopenTasks(owner, conversation.quest.id, db, options.clearSteps);
+      await reopenTasks(owner, conversation.quest.id, db, options.clearTasks);
       if (options.clearIdeas) {
         await db
           .delete(questIdeas)

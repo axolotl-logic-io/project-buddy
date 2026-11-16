@@ -16,7 +16,7 @@ async function resetConversationAction(formData: FormData): Promise<void> {
   if (
     conversation === undefined ||
     (await resetConversation(user.id, id.data, {
-      clearSteps: formData.get("clearSteps") === "on",
+      clearTasks: formData.get("clearTasks") === "on",
       clearIdeas: formData.get("clearIdeas") === "on",
     })) === undefined
   ) {

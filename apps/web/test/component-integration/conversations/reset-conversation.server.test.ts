@@ -69,7 +69,7 @@ describe("conversation resets", () => {
     await changeTasks(user.id, { questId, author: "person" }, [
       { op: "add", text: "Make tea" },
       { op: "add", text: "Draw a fox" },
-      { op: "complete", step: 1 },
+      { op: "complete", task: 1 },
     ]);
     await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
     await setSpell(user.id, { chatId: before.id, spell: "brainstorm" });
@@ -85,7 +85,7 @@ describe("conversation resets", () => {
     const next = await getChat(user.id, nextId ?? "");
     expect(next?.quest.id).toBe(questId);
     expect(await getQuest(user.id, questId)).toBeDefined();
-    expect((await readTasks(user.id, questId))?.steps).toEqual([
+    expect((await readTasks(user.id, questId))?.items).toEqual([
       { number: 1, text: "Make tea", done: false },
       { number: 2, text: "Draw a fox", done: false },
     ]);
@@ -101,7 +101,7 @@ describe("conversation resets", () => {
     expect(await getChat(user.id, before.id)).toBeUndefined();
   });
 
-  test("reset can remove Steps and Ideas when requested", async () => {
+  test("reset can remove Tasks and Ideas when requested", async () => {
     const user = await testUser();
     const started = await startDailies(user.id, {
       name: QUEST_NAME.parse("My day"),
@@ -118,11 +118,11 @@ describe("conversation resets", () => {
     await changeIdea(user.id, { op: "add", questId, text: "Try clay" });
     expect(
       await resetConversation(user.id, started.chat.id, {
-        clearSteps: true,
+        clearTasks: true,
         clearIdeas: true,
       }),
     ).toBeDefined();
-    expect((await readTasks(user.id, questId))?.steps).toEqual([]);
+    expect((await readTasks(user.id, questId))?.items).toEqual([]);
     expect(await listIdeas(user.id, questId)).toEqual([]);
   });
 

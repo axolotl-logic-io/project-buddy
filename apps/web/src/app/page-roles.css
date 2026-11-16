@@ -602,6 +602,33 @@
     }
   }
 
+  /* The ring of the user's progress toward their next circle, a target's
+     size, beside the menu's button: gold filling an ink track, with the
+     circle's number inside. */
+  .circle-progress {
+    @apply relative grid shrink-0 place-items-center rounded-full;
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+  }
+
+  .circle-progress-ring {
+    @apply absolute inset-0 size-full;
+  }
+
+  .circle-progress-track {
+    fill: none;
+    stroke: var(--hud-line);
+  }
+
+  .circle-progress-arc {
+    fill: none;
+    stroke: var(--hud-gold);
+  }
+
+  .circle-progress-number {
+    @apply relative font-heading font-semibold text-sm tabular-nums;
+  }
+
   .site-header > .button-secondary {
     flex-shrink: 0;
     @apply rounded-control border-2 shadow-none;

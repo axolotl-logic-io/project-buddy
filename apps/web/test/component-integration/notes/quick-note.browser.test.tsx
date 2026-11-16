@@ -24,6 +24,12 @@ const JOINED_QUEST: NoteQuest = {
   sharing: { kind: "joined", owner: "Rowan" },
 };
 
+// The header's ring of the user's circle reads their experience, server code.
+vi.mock(
+  "@/experience/experience-store.ts",
+  () => import("../experience/experience-store-test-kit.ts"),
+);
+
 // site-header.tsx reads the session for SignedInLinks, server code.
 vi.mock(
   "@/auth/current-user.ts",

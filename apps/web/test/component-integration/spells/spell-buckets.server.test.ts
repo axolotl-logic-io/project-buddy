@@ -22,18 +22,18 @@ describe("use_case_spell_buckets", () => {
     expect(
       (await listIdeas(user.id, chat.quest.id)).map((idea) => idea.text),
     ).toEqual(["Make a clay fox"]);
-    expect((await readTasks(user.id, chat.quest.id))?.steps).toEqual([]);
+    expect((await readTasks(user.id, chat.quest.id))?.items).toEqual([]);
     await constructReply(chat.id, "/cast tasks");
     expect(await currentSpell(user.id, chat)).toBe("tasks");
     await constructReply(chat.id, "Buy clay");
-    expect((await readTasks(user.id, chat.quest.id))?.steps).toMatchObject([
+    expect((await readTasks(user.id, chat.quest.id))?.items).toMatchObject([
       { text: "Buy clay", done: false },
     ]);
     await constructReply(chat.id, "/stop");
     expect(await currentSpell(user.id, chat)).toBeUndefined();
     await constructReply(chat.id, "This stays in the conversation");
     expect(await listIdeas(user.id, chat.quest.id)).toHaveLength(1);
-    expect((await readTasks(user.id, chat.quest.id))?.steps).toHaveLength(1);
+    expect((await readTasks(user.id, chat.quest.id))?.items).toHaveLength(1);
   });
 
   test("replaying a saved message adds no second item and foreign access writes nothing", async () => {

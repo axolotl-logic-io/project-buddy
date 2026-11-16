@@ -23,7 +23,7 @@ The user picks up the quest they were last working on.
 - **Prerequisites:** `use_case_new_quest`, with at least one Active quest.
 - **Steps:**
   - They go to Quests and choose Continue.
-- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next step when it has one: the first open step of its tasks. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
+- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, whose conversation has the newest message, or, for one with no messages, that started most recently. It shows the quest's next task when it has one: the first open task in its Tasks. Continue opens the quest on its conversation. Completed and Abandoned quests, pending invitations, Chat and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on the conversation.
 
@@ -98,8 +98,8 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Steps:**
   - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
-  - They choose Reset Day in the sidebar's Actions tab and confirm in a modal. They can choose to remove Steps and Ideas separately; both options are off by default.
-- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without a model request. Tasks and Ideas endure; completed Tasks steps become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
+  - They choose Reset Day in the sidebar's Actions tab and confirm in a modal. They can choose to remove tasks and Ideas separately; both options are off by default.
+- **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Reset Day clears the conversation and active spell and starts an empty conversation with the same construct, without a model request. Tasks and Ideas endure; completed tasks become open again, keeping their text, numbers and order. Progress and quest status remain. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. There are no streaks, missed days or deadlines.
 - **Variations:**
   - A quest the user named Dailies by hand has no Reset Day: only a quest started as Dailies offers it.
 
