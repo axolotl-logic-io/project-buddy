@@ -54,9 +54,11 @@ test("an idea can be edited and moved, with feedback and retained focus", async 
 });
 
 test("a failed add keeps the draft and a failed move keeps the idea", async () => {
-  const action = vi
-    .fn<IdeaAction>()
-    .mockResolvedValue({ kind: "problem", text: "Please try again." });
+  const action = vi.fn<IdeaAction>().mockResolvedValue({
+    kind: "problem",
+    reason: "not-found",
+    text: "Please try again.",
+  });
   await render(
     <QuestIdeas
       questId={FOX_QUEST.id}

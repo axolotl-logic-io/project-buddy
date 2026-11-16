@@ -15,7 +15,11 @@ import type { QuestId, UserId } from "@/ids.ts";
 import { changeTasks } from "@/tasks/tasks-store.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 
-const NOT_FOUND: IdeaResult = { kind: "problem", text: IDEAS_COPY.notFound };
+const NOT_FOUND: IdeaResult = {
+  kind: "problem",
+  reason: "not-found",
+  text: IDEAS_COPY.notFound,
+};
 
 // Only the quest’s owner can read its ideas, in their saved order.
 function listIdeas(owner: UserId, questId: QuestId): Promise<Idea[]> {
@@ -153,7 +157,11 @@ function changeIdea(
           tx,
         );
         if (changed?.kind !== "changed") {
-          return { kind: "problem", text: IDEAS_COPY.tasksFull };
+          return {
+            kind: "problem",
+            reason: "tasks-full",
+            text: IDEAS_COPY.tasksFull,
+          };
         }
         await tx.delete(questIdeas).where(scope);
         return { kind: "saved" };
