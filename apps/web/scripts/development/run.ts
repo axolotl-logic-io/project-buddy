@@ -1,35 +1,49 @@
-// Runs before npm ci, so dependency imports must stay inside databaseHealth.
+// Runs before npm ci, so modules that import dependencies are imported only
+// where they're used, after it.
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
+  adoptWorktreeDatabase,
   configurationProblems,
   localSettings,
   prepareEnvironment,
+  testCommandEnvironment,
 } from "./environment.ts";
 import { linkEmail } from "./sign-in-link-token.ts";
 
 const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const ROOT = resolve(WEB_ROOT, "../..");
 const COMPOSE = ["compose", "--file", "compose.dev-db.yml"];
+const COMMAND_TIMEOUT_MS = 180_000;
+// The first browser install downloads Chromium and WebKit.
+const BROWSER_INSTALL_TIMEOUT_MS = 600_000;
 
 function command(
   program: string,
   args: string[],
   cwd: string = WEB_ROOT,
-  env: NodeJS.ProcessEnv = process.env,
+  {
+    env = process.env,
+    timeout = COMMAND_TIMEOUT_MS,
+    show = false,
+  }: { env?: NodeJS.ProcessEnv; timeout?: number; show?: boolean } = {},
 ): boolean {
+  // Child output may contain connection credentials. Report only the step,
+  // unless the child is one of ours that prints only its own messages.
+  let stdio: "pipe" | ["ignore", "inherit", "inherit"] = "pipe";
+  if (show === true) {
+    stdio = ["ignore", "inherit", "inherit"];
+  }
   const result = spawnSync(program, args, {
     cwd,
     env,
     encoding: "utf8",
-    timeout: 180_000,
-    stdio: "pipe",
+    timeout,
+    stdio,
   });
-  // Child output may contain connection credentials. Report only the step.
   return result.status === 0;
 }
 
@@ -55,61 +69,11 @@ function prerequisites(): [boolean, string][] {
   ];
 }
 
-type MigrationState = "current" | "pending" | "diverged";
-const DIVERGED_DATABASE =
-  "The development database migration history differs from this checkout. Setup cannot safely migrate it. Existing data is preserved; reconcile the migration history or explicitly reset the development database before rerunning setup.";
-
-async function databaseHealth(
-  settings: NodeJS.Dict<string>,
-): Promise<MigrationState> {
-  const { default: pg } = await import("pg");
-  const { DATABASE_URL } = settings;
-  const client = new pg.Client({
-    connectionString: DATABASE_URL,
-    connectionTimeoutMillis: 3000,
-    options: "-c statement_timeout=3000",
-  });
-  try {
-    await client.connect();
-    await client.query("BEGIN READ ONLY");
-    let hashes: Set<string>;
-    try {
-      const applied = await client.query<{ hash: string }>(
-        "SELECT hash FROM drizzle.__drizzle_migrations",
-      );
-      hashes = new Set(applied.rows.map((row) => row.hash));
-    } catch (error) {
-      if (error instanceof Error && "code" in error && error.code === "42P01") {
-        return "pending";
-      }
-      throw error;
-    }
-    const migrations = join(WEB_ROOT, "drizzle");
-    const knownHashes = new Set(
-      readdirSync(migrations)
-        .filter((file) => file.endsWith(".sql"))
-        .map((file) =>
-          createHash("sha256")
-            .update(readFileSync(join(migrations, file)))
-            .digest("hex"),
-        ),
-    );
-    if ([...hashes].some((hash) => !knownHashes.has(hash))) {
-      return "diverged";
-    }
-    if ([...knownHashes].some((hash) => !hashes.has(hash))) {
-      return "pending";
-    }
-    return "current";
-  } finally {
-    await client.end();
-  }
-}
-
-async function setup(): Promise<void> {
+function setup(): void {
   for (const [ok, message] of prerequisites()) {
     requireStep(ok, message);
   }
+  adoptWorktreeDatabase(WEB_ROOT);
   // Validate the target before installation, file creation or database writes.
   localSettings(WEB_ROOT, process.env);
   prepareEnvironment(WEB_ROOT, process.env);
@@ -124,27 +88,20 @@ async function setup(): Promise<void> {
     command("docker", [...COMPOSE, "up", "--detach", "--wait"]),
     "Development database: start Docker and check port 5434 is available.",
   );
-  console.log("Applying development migrations (npm run db:migrate)...");
-  const migrated = command("npm", ["run", "db:migrate"], WEB_ROOT, {
-    ...process.env,
-    ...settings,
-  });
-  if (!migrated) {
-    const state = await databaseHealth(settings).catch(() => undefined);
-    if (state === "diverged") {
-      throw new Error(DIVERGED_DATABASE);
-    }
-  }
-  if (!migrated) {
-    throw new Error(
-      "Development migrations failed. Run mise run doctor to check database access and migration history. Existing data is not reset.",
-    );
-  }
-  console.log("OK: Development migrations applied.");
+  console.log(
+    "Preparing this worktree's development database (npm run dev:database)...",
+  );
+  requireStep(
+    command("npm", ["run", "--silent", "dev:database"], WEB_ROOT, {
+      env: { ...process.env, ...settings },
+      // It prints only its own messages, never the database URL.
+      show: true,
+    }),
+    "Development database: this worktree's own, with this checkout's migrations.",
+  );
   requireStep(
     command("npm", ["run", "dev:cli-session"], WEB_ROOT, {
-      ...process.env,
-      ...settings,
+      env: { ...process.env, ...settings },
     }),
     "CLI session: the developer account's session is in apps/cli/.env.local.",
   );
@@ -152,8 +109,31 @@ async function setup(): Promise<void> {
     command("npm", ["run", "test-env:init"]),
     "Manual test configuration: preserve or initialize .env.test.",
   );
+  const testEnvironment = testCommandEnvironment(WEB_ROOT, process.env);
+  requireStep(
+    command("npm", ["run", "test-db:up"], WEB_ROOT, {
+      env: testEnvironment,
+    }),
+    "Test database server: start Docker and check port 5433 is available.",
+  );
   console.log(
-    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Or run mise run sign-in-link EMAIL to print a sign-in link at once.\nWith the site running, project-buddy commands act as the developer account; try project-buddy whoami.\nRun mise run doctor to check this environment. Database tests and browser tests remain opt-in; see README.md.",
+    "Creating and migrating the test database (npm run test-db:reset)...",
+  );
+  requireStep(
+    command("npm", ["run", "test-db:reset"], WEB_ROOT, {
+      env: testEnvironment,
+    }),
+    "Test database: the database in .env.test is created and migrated.",
+  );
+  console.log("Installing test browsers (npm run browsers:install)...");
+  requireStep(
+    command("npm", ["run", "browsers:install"], WEB_ROOT, {
+      timeout: BROWSER_INSTALL_TIMEOUT_MS,
+    }),
+    "Test browsers: Playwright's Chromium and WebKit are installed.",
+  );
+  console.log(
+    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Or run mise run sign-in-link EMAIL to print a sign-in link at once.\nWith the site running, project-buddy commands act as the developer account; try project-buddy whoami.\nRun mise run doctor to check this environment. The test database and browsers are ready; the test commands are in README.md.",
   );
 }
 
@@ -183,9 +163,14 @@ async function doctor(): Promise<void> {
     }
     if (problems.length === 0 && dependencies) {
       try {
-        const state = await databaseHealth(settings);
+        const { migrationState } = await import("./database.ts");
+        const { DATABASE_URL = "" } = settings;
+        const state = await migrationState(DATABASE_URL);
         if (state === "diverged") {
-          report(false, DIVERGED_DATABASE);
+          report(
+            false,
+            "This worktree's development database has migrations this checkout lacks. Run mise setup to reset it; its data is lost.",
+          );
         } else if (state === "pending") {
           report(
             false,
@@ -232,7 +217,7 @@ async function signInLink(address?: string): Promise<URL> {
   if (!DATABASE_URL) {
     throw new Error("Run mise setup first.");
   }
-  // pg is a dependency, so this waits for npm ci, as databaseHealth does.
+  // pg is a dependency, so this waits for npm ci, as the database check does.
   const { createSignInLink } = await import("./sign-in-link.ts").catch(
     (cause: unknown) => {
       throw new Error("Run mise setup first.", { cause });
@@ -245,7 +230,7 @@ async function signInLink(address?: string): Promise<URL> {
 const [action, ...actionArgs] = process.argv.slice(2);
 try {
   if (action === "setup") {
-    await setup();
+    setup();
   } else if (action === "doctor") {
     await doctor();
   } else if (action === "sign-in-link" && actionArgs.length <= 1) {
