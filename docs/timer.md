@@ -27,9 +27,11 @@ The link holds no quest, conversation or account data. A signed-out visitor who 
 
 ## Running timer
 
-The page shows a ring that fills as the period passes, the period's name, **Work** or **Break**, and the time left as `MM:SS`, or `HH:MM:SS` from an hour. The ring is decoration; the name and time say everything in text. The countdown has the `timer` role, so screen readers don't read every second. A hidden status line announces the period's name as each one begins.
+The page shows only the timer: a ring that fills as the period passes, the period's name, **Work** or **Break**, and the time left as `MM:SS`, or `HH:MM:SS` from an hour. The ring is decoration; the name and time say everything in text. The countdown has the `timer` role, so screen readers don't read every second. A hidden status line announces the period's name as each one begins.
 
 The browser's clock decides the period: `src/timer/schedule.ts` works it out from the time since the start. The page reads the clock at each second the countdown shows and whenever its tab comes back into view. A tab that slept therefore shows the current period at once and replays nothing. Two devices agree when their clocks do; the site doesn't synchronize clocks.
+
+The bar with the page's trail, **Timer › Work 25 · Break 15**, holds the timer's other parts at its right: the count of others following the schedule and **Copy link**. **Copy link** copies the page's address and reads **Copied** for two seconds, or **Copy failed** when the browser refuses. A hidden status line says the same to a screen reader. **Timer** in the trail leads back to setup. A link whose start is still ahead of the server's clock shows neither the count nor **Copy link**.
 
 The timer writes no message, completes no step, records no milestone, sends no notification and makes no model request.
 
@@ -37,7 +39,7 @@ The timer writes no message, completes no step, records no milestone, sends no n
 
 An open timer calls `reportTimerPresenceAction` as it opens, every minute and when its tab comes back into view. The `timer_presence` table keeps one row per account and schedule with the time of its last report. The answer counts the other accounts whose last report on the exact schedule is at most 2 minutes old, so several tabs of one account count once. Each report also deletes every row older than that.
 
-The page shows the count, or **The count of others is unavailable right now** when a report fails. It never shows a stale count or a made-up zero, and the countdown never waits for a report. The next report that succeeds shows the count again.
+The trail shows the count as **3 others here**, or **Unknown others** when a report fails. It shows nothing until the first report answers. It never shows a stale count or a made-up zero, and the countdown never waits for a report. The next report that succeeds shows the count again.
 
 ## Code
 
@@ -47,4 +49,4 @@ The page shows the count, or **The count of others is unavailable right now** wh
 | `src/timer/presence.ts` | Report interval, expiry and the count's shape |
 | `src/timer/presence-store.ts` | The `timer_presence` table's reads and writes |
 | `src/timer/presence-action.ts` | The Server Action the running timer calls |
-| `src/components/timer/` | Setup, the running timer and the tab's remembered lengths |
+| `src/components/timer/` | Setup, the running timer, its tools in the trail and the tab's remembered lengths |
