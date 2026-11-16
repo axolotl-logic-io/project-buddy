@@ -460,14 +460,13 @@
   }
 
   /* What stays pinned of the site's header: nothing, or the trail band
-     under its bar. Jumps and the conversation's pinned header leave room
-     for it. HeaderSize (src/components/header-size.tsx) measures the band;
-     this is its one-line height, for the first paint. */
+     under its bar. Jumps leave room for it. HeaderSize
+     (src/components/header-size.tsx) measures the band; this is its
+     one-line height, for the first paint. */
   /* The header's sizes. The trail band's room above the heading leaves the
      parents' targets whole on screen while the band is pinned. On a phone
      the room below is less, and the band at least a target's height, so a
-     two-line heading and the conversation's pinned header stay within the
-     pinned budget. */
+     two-line heading stays within the pinned budget. */
   html {
     --header-gutter: --spacing(4);
     --header-rim: 4px;
@@ -509,54 +508,14 @@
     }
   }
 
-  /* A conversation's pinned header, under the trail band. With the band's
-     two-line heading it stays within the pinned budget (112 px on a
-     phone; docs/chats.md). */
-  .chat-header {
-    inset-block-start: var(--site-header-height);
-    @apply sticky z-10 bg-background bg-(image:--page-decoration) bg-fixed py-0.5;
-  }
-
-  @supports (mask-image: none) {
-    .chat-header::after {
-      content: "";
-      position: absolute;
-      inset-inline: 0;
-      inset-block-start: 100%;
-      block-size: --spacing(4);
-      pointer-events: none;
-      background: inherit;
-      mask-image: linear-gradient(to bottom, black, transparent);
-    }
-  }
-
-  /* A long unbroken name breaks, so the clamp ends it with an ellipsis
-     rather than cutting it off at the column's edge. */
-  /* A conversation's pinned header (src/components/chat-screen.tsx): the
-     construct's portrait button and any page action, such as Start a
-     quest from this, which wraps under it on a phone. */
   /* A quest's conversation below its section links and actions. */
   .quest-conversation {
     @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
-  .conversation-header {
-    @apply flex min-w-0 flex-wrap items-center justify-between gap-2;
-  }
-
-  /* Leave room for the pinned conversation header, a touch target's
-     height, and its fade when jumping to a message. */
+  /* Leave room under the pinned trail band when jumping to a message. */
   html:has(.quest-workspace) {
     scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
-  }
-
-  html:has(.chat-header) {
-    scroll-padding-top: calc(
-      var(--site-header-height) +
-      --spacing(1) +
-      var(--target-size) +
-      --spacing(4)
-    );
   }
 
   /* The header is a game's HUD in every theme, with an independent ink and
@@ -630,6 +589,200 @@
 
   .circle-progress-number {
     @apply relative font-heading font-semibold text-sm tabular-nums;
+  }
+
+  /* Profile's head: a gilded card with the user's circle in a large ring
+     beside their name, title and progress. On a phone the ring stands
+     above the rest, centred. */
+  .profile-card {
+    @apply flex flex-col items-center gap-4 rounded-box border-2 p-5 text-center shadow-raised sm:flex-row sm:gap-6 sm:p-6 sm:text-start;
+    border-color: color-mix(in oklab, var(--hud-gold) 60%, transparent);
+    background: linear-gradient(
+      135deg,
+      var(--field),
+      color-mix(in oklab, var(--hud-gold) 22%, var(--surface))
+    );
+  }
+
+  .profile-card-body {
+    @apply flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start;
+  }
+
+  /* The ring: the header's ink disc and gold arc, with "Circle" over the
+     circle's number. */
+  .profile-ring {
+    @apply relative grid size-28 shrink-0 content-center justify-items-center sm:size-33;
+    color: var(--hud-paper);
+  }
+
+  .profile-ring-arc {
+    @apply absolute inset-0 size-full;
+  }
+
+  .profile-ring-disc {
+    fill: var(--hud-ink);
+  }
+
+  .profile-ring-track {
+    fill: none;
+    stroke: var(--hud-line);
+  }
+
+  .profile-ring-fill {
+    fill: none;
+    stroke: var(--hud-gold);
+  }
+
+  .profile-ring-label {
+    @apply relative font-extrabold text-xs uppercase tracking-widest;
+    color: var(--hud-gold);
+  }
+
+  .profile-ring-number {
+    @apply relative font-bold font-heading text-5xl tabular-nums leading-none;
+  }
+
+  .profile-name {
+    @apply flex w-full flex-col items-center gap-2 sm:items-start;
+  }
+
+  .profile-name-row {
+    @apply flex flex-wrap items-center justify-center gap-x-3 sm:justify-start;
+  }
+
+  .profile-name-heading {
+    @apply min-w-0 break-words font-bold text-3xl;
+  }
+
+  .profile-name-form {
+    @apply flex w-full flex-col gap-3 text-start;
+  }
+
+  /* The title, as a badge in the header's ink and gold. */
+  .profile-title {
+    @apply rounded-full px-3 py-0.5 font-extrabold text-xs uppercase tracking-[0.2em];
+    background: var(--hud-ink);
+    color: var(--hud-gold);
+  }
+
+  /* The bar toward the next circle: gold filling a faint track. */
+  .profile-progress {
+    @apply mt-2 h-3.5 w-full appearance-none overflow-hidden rounded-full border-0;
+    background: color-mix(in oklab, var(--shadow) 15%, transparent);
+  }
+
+  .profile-progress::-webkit-progress-bar {
+    background: transparent;
+  }
+
+  .profile-progress::-webkit-progress-value {
+    @apply rounded-full;
+    background: linear-gradient(90deg, var(--hud-gold), var(--accent));
+  }
+
+  .profile-progress::-moz-progress-bar {
+    @apply rounded-full;
+    background: linear-gradient(90deg, var(--hud-gold), var(--accent));
+  }
+
+  .profile-standing {
+    @apply flex w-full flex-wrap justify-between gap-x-3 text-sm;
+  }
+
+  .profile-next {
+    @apply text-muted text-sm;
+  }
+
+  /* The abilities: full-width rows on a phone, tiles side by side from sm,
+     the most experience first. A badge sits on its tile's top edge. */
+  .ability-tiles {
+    @apply mt-3 grid gap-3 pt-2 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];
+  }
+
+  .ability-tile {
+    @apply relative grid items-center gap-x-3 rounded-box border-2 bg-field px-3 py-2.5 sm:gap-y-2 sm:p-3.5;
+    border-color: color-mix(in oklab, var(--line) 40%, transparent);
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "icon name count"
+      "icon name worth";
+  }
+
+  .ability-tile-untried {
+    @apply border-dashed bg-transparent;
+    border-color: color-mix(in oklab, var(--line) 60%, transparent);
+    grid-template-areas:
+      "icon name count"
+      "icon hint count";
+  }
+
+  .ability-tile-most {
+    @apply mt-1.5;
+    border-color: var(--hud-gold);
+  }
+
+  @media (width >= 40rem) {
+    .ability-tile {
+      grid-template-areas:
+        "icon name name"
+        "count count worth";
+    }
+
+    .ability-tile-untried {
+      grid-template-areas:
+        "icon name count"
+        "hint hint hint";
+    }
+
+    .ability-tile-most {
+      @apply mt-0;
+    }
+  }
+
+  .ability-badge {
+    @apply absolute start-3 -top-2.5 rounded-full px-2 py-px font-extrabold text-[0.6875rem] uppercase tracking-wider sm:start-auto sm:end-3;
+    background: var(--hud-gold);
+    color: var(--hud-ink);
+  }
+
+  .ability-icon {
+    @apply grid size-9 place-items-center rounded-full;
+    grid-area: icon;
+    background: var(--hud-ink);
+    color: var(--hud-gold);
+  }
+
+  .ability-icon > .icon > svg {
+    @apply size-4.5;
+  }
+
+  .ability-tile-untried > .ability-icon {
+    @apply border-2 border-line border-dashed bg-transparent text-muted;
+  }
+
+  .ability-name {
+    @apply font-bold leading-tight;
+    grid-area: name;
+  }
+
+  .ability-count {
+    @apply text-end text-muted text-sm leading-none sm:text-start;
+    grid-area: count;
+  }
+
+  .ability-number {
+    @apply font-bold font-heading text-2xl text-foreground sm:text-3xl;
+  }
+
+  .ability-worth {
+    @apply self-center justify-self-end rounded-full px-2 py-0.5 font-extrabold text-accent text-xs;
+    grid-area: worth;
+    background: color-mix(in oklab, var(--accent) 12%, transparent);
+  }
+
+  .ability-hint {
+    @apply text-muted text-sm leading-snug;
+    grid-area: hint;
   }
 
   .site-header > .button-secondary {
@@ -736,10 +889,11 @@
      mirror on the left: under the header, for the rest of the screen's
      height. Its button floats under the header's left end, as the chat
      panel's does under the right, and the open panel's close button takes
-     the button's place. Below the lg breakpoint it is a drawer that slides in over a
-     page it leaves undimmed, so a theme or mode chosen in it shows on the
-     page beside it, and the page under it doesn't scroll. From lg it docks
-     beside the page, which makes room for it. A closed <dialog> is hidden
+     the button's place. It opens over the page's left edge and never
+     changes the page's size or flow. Below the lg breakpoint it is a drawer
+     that slides in over a page it leaves undimmed, so a theme or mode
+     chosen in it shows on the page beside it, and the page under it doesn't
+     scroll. From lg it docks over the page. A closed <dialog> is hidden
      by the browser's own display: none, so the panel is a flex column only
      while open. Each theme dresses it through the panel tokens
      (src/themes/themes.ts). */
@@ -748,7 +902,7 @@
     block-size: calc(100dvh - var(--site-header-bottom));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground shadow-raised open:flex;
     background-image: var(--panel-decoration);
   }
 
@@ -772,7 +926,7 @@
   }
 
   .site-panel:modal {
-    @apply shadow-raised motion-safe:animate-slide-in;
+    @apply motion-safe:animate-slide-in;
   }
 
   .site-panel::backdrop {
@@ -781,12 +935,6 @@
 
   html:has(.site-panel:modal) {
     overflow: hidden;
-  }
-
-  @media (width >= --theme(--breakpoint-lg)) {
-    .site-header:has(.site-panel[open]) ~ main {
-      padding-inline-start: var(--site-panel-width);
-    }
   }
 
   .panel-label {
@@ -1025,6 +1173,22 @@
      the trail band. The count gives up its room before the button does. */
   .timer-trail-tools {
     @apply ml-auto flex min-w-0 items-center gap-3 self-center;
+  }
+
+  /* The active Dailies quest's construct button, at the band's right. On a
+     phone its portrait alone shows, and the button keeps the construct's
+     name as its accessible name. A whole target without making the band
+     taller. */
+  .construct-trail-tools {
+    @apply ml-auto flex min-w-0 shrink-0 items-center self-center;
+  }
+
+  .construct-trail-tools .character-header-control {
+    margin-block: calc((1lh - var(--target-size)) / 2);
+  }
+
+  .construct-trail-tools .character-header-control > span {
+    @apply hidden max-w-[16ch] truncate text-base sm:inline;
   }
 
   .timer-others {

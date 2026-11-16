@@ -34,7 +34,6 @@ type IdeaResult =
       readonly reason: IdeaProblem;
       readonly text: string;
     };
-type IdeaAction = (request: unknown) => Promise<IdeaResult>;
 
-export type { Idea, IdeaAction, IdeaProblem, IdeaRequest, IdeaResult };
+export type { Idea, IdeaProblem, IdeaRequest, IdeaResult };
 export { IDEA, IDEA_REQUEST, IDEA_TEXT_MAX_LENGTH };

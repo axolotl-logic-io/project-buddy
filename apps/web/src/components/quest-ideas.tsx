@@ -1,6 +1,8 @@
 "use client";
 
 import { type JSX, useCallback, useRef, useState } from "react";
+import { PANEL_COMMAND, placeBefore } from "@/commands/panel-commands.ts";
+import { usePanelSend } from "@/components/chat/chat-send.ts";
 import {
   AddListItem,
   EditableList,
@@ -9,14 +11,7 @@ import {
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import {
-  IDEA_REQUEST,
-  IDEA_TEXT_MAX_LENGTH,
-  type Idea,
-  type IdeaAction,
-  type IdeaRequest,
-} from "@/ideas/idea.ts";
-import type { QuestId } from "@/ids.ts";
+import { IDEA_TEXT_MAX_LENGTH, type Idea } from "@/ideas/idea.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 
 function checkIdeaText(text: string): { text: string } | { problem: string } {
@@ -36,28 +31,30 @@ const IDEA_EDITOR: EditorOptions = {
 };
 const ADD_EDITOR: EditorOptions = { ...IDEA_EDITOR, save: IDEAS_COPY.add };
 
+// What a row's control does to its idea.
+type IdeaChange =
+  | { readonly op: "edit"; readonly id: string; readonly text: string }
+  | { readonly op: "move" | "remove"; readonly id: string };
+
 function IdeaRow({
-  questId,
   idea,
   busy,
   run,
 }: {
-  readonly questId: QuestId;
   readonly idea: Idea;
   readonly busy: boolean;
-  readonly run: (request: IdeaRequest) => Promise<boolean>;
+  readonly run: (change: IdeaChange) => Promise<boolean>;
 }): JSX.Element {
   const save = useCallback(
-    (text: string): Promise<boolean> =>
-      run({ op: "edit", questId, id: idea.id, text }),
-    [questId, idea.id, run],
+    (text: string): Promise<boolean> => run({ op: "edit", id: idea.id, text }),
+    [idea.id, run],
   );
   const move = useCallback(async (): Promise<void> => {
-    await run({ op: "move", questId, id: idea.id });
-  }, [questId, idea.id, run]);
+    await run({ op: "move", id: idea.id });
+  }, [idea.id, run]);
   const remove = useCallback(async (): Promise<void> => {
-    await run({ op: "remove", questId, id: idea.id });
-  }, [questId, idea.id, run]);
+    await run({ op: "remove", id: idea.id });
+  }, [idea.id, run]);
   return (
     <EditableListRow
       id={idea.id}
@@ -78,109 +75,71 @@ function IdeaRow({
   );
 }
 
+// The command a row's control sends for its idea, at place, 1 being first.
+function ideaCommand(change: IdeaChange, place: number): string {
+  switch (change.op) {
+    case "edit":
+      return PANEL_COMMAND.editIdea(place, change.text);
+    case "move":
+      return PANEL_COMMAND.ideaToTasks(place);
+    case "remove":
+      return PANEL_COMMAND.dropIdea(place);
+    default:
+      return change satisfies never;
+  }
+}
+
+// A quest's Ideas. Each control sends its command to the quest's
+// conversation (src/commands/panel-commands.ts), which saves the change and
+// notes it; the list follows the route refresh that comes with it.
 function QuestIdeas({
-  questId,
-  ideas: initialIdeas,
-  action,
+  ideas: savedIdeas,
   embedded,
 }: {
-  readonly questId: QuestId;
   readonly ideas: readonly Idea[];
-  readonly action: IdeaAction;
   readonly embedded?: boolean;
 }): JSX.Element {
-  const [ideas, setIdeas] = useState(initialIdeas);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | undefined>(undefined);
-  const [status, setStatus] = useState<string | undefined>(undefined);
+  const { send, busy, status, problem } = usePanelSend();
+  const [ideas, setIdeas] = useState(savedIdeas);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // A route refresh brings the saved list, as after a command.
+  const [previous, setPrevious] = useState(savedIdeas);
+  if (previous !== savedIdeas) {
+    setPrevious(savedIdeas);
+    setIdeas(savedIdeas);
+  }
   const run = useCallback(
-    async (request: IdeaRequest): Promise<boolean> => {
-      setBusy(true);
-      setProblem(undefined);
-      setStatus(undefined);
-      try {
-        const result = await action(request);
-        if (result.kind === "problem") {
-          setProblem(result.text);
-          return false;
-        }
-        // Refresh supplies additions; apply edits/removals now so controls never
-        // show an idea that the completed action has already removed.
-        if (request.op === "edit") {
-          setIdeas((current) =>
-            current.map((idea) => {
-              if (idea.id === request.id) {
-                return { ...idea, text: request.text };
-              }
-              return idea;
-            }),
-          );
-        } else if (request.op === "reorder") {
-          setIdeas((current) => {
-            const moved = current.find((idea) => idea.id === request.id);
-            if (moved === undefined) {
-              return current;
-            }
-            const rest = current.filter((idea) => idea.id !== request.id);
-            const index = rest.findIndex((idea) => idea.id === request.before);
-            if (index < 0) {
-              return [...rest, moved];
-            }
-            return [...rest.slice(0, index), moved, ...rest.slice(index)];
-          });
-        } else if (request.op !== "add") {
-          setIdeas((current) =>
-            current.filter((idea) => idea.id !== request.id),
-          );
-          headingRef.current?.focus();
-        }
-        let feedback: string = IDEAS_COPY.saved;
-        if (request.op === "remove") {
-          feedback = IDEAS_COPY.removed;
-        }
-        if (request.op === "move") {
-          feedback = IDEAS_COPY.moved;
-        }
-        if (request.op === "reorder") {
-          feedback = IDEAS_COPY.reordered;
-        }
-        setStatus(feedback);
-        return true;
-      } catch {
-        setProblem(IDEAS_COPY.failed);
+    async (change: IdeaChange): Promise<boolean> => {
+      const index = ideas.findIndex((idea) => idea.id === change.id);
+      if (index < 0) {
         return false;
-      } finally {
-        setBusy(false);
       }
+      const result = await send(ideaCommand(change, index + 1));
+      if (result.sent && change.op !== "edit") {
+        setIdeas((current) => current.filter((idea) => idea.id !== change.id));
+        headingRef.current?.focus();
+      }
+      return result.sent;
     },
-    [action],
+    [ideas, send],
   );
   const add = useCallback(
-    (text: string): Promise<boolean> => run({ op: "add", questId, text }),
-    [questId, run],
+    async (text: string): Promise<boolean> =>
+      (await send(PANEL_COMMAND.idea(text))).sent,
+    [send],
   );
   const reorder = useCallback(
     async (id: string, before: string | undefined): Promise<boolean> => {
-      const parsed = IDEA_REQUEST.safeParse({
-        op: "reorder",
-        questId,
-        id,
-        before,
-      });
-      if (!parsed.success) {
+      const ids: readonly string[] = ideas.map((idea) => idea.id);
+      const from = ids.indexOf(id);
+      const to = placeBefore(ids, id, before);
+      if (from < 0 || to === undefined) {
         return false;
       }
-      return await run(parsed.data);
+      return (await send(PANEL_COMMAND.moveIdea(from + 1, to))).sent;
     },
-    [questId, run],
+    [ideas, send],
   );
-  // A route refresh can add an idea or load another quest's list.
-  const [previous, setPrevious] = useState(initialIdeas);
-  if (previous !== initialIdeas) {
-    setPrevious(initialIdeas);
-    setIdeas(initialIdeas);
-  }
   let Heading: "h2" | "p" = "h2";
   let headingClass = "section-heading";
   if (embedded === true) {
@@ -204,13 +163,7 @@ function QuestIdeas({
       />
       <EditableList label={IDEAS_COPY.heading} onMove={reorder}>
         {ideas.map((idea) => (
-          <IdeaRow
-            key={idea.id}
-            questId={questId}
-            idea={idea}
-            busy={busy}
-            run={run}
-          />
+          <IdeaRow key={idea.id} idea={idea} busy={busy} run={run} />
         ))}
       </EditableList>
     </section>

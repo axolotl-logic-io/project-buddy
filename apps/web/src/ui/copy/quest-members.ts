@@ -21,13 +21,8 @@ export const QUEST_MEMBERS_COPY = {
   emailLabel: "Invite by email",
   emailHint:
     "They'll get an email with a link to join. People without an account get one when you invite them.",
-  needsEmail: "Enter an email address, such as name@example.com.",
   invite: "Invite",
   inviting: "Inviting…",
-  invitedNotice: (email: string): string =>
-    `Invitation sent to ${email}. The quest shows up in their Pending tab until they accept.`,
-  unsent: (email: string): string =>
-    `The invitation to ${email} is saved, but its email didn't send. Invite them again to resend it.`,
   inQuest: (email: string): string => `${email} is already in this quest.`,
   limited: `You can send up to ${INVITATIONS_PER_HOUR} invitations an hour, and you've reached that. Try again later.`,
   notFound: "This quest is no longer available to you.",
@@ -38,8 +33,6 @@ export const QUEST_MEMBERS_COPY = {
   removeCancel: "Keep member",
   withdraw: "Withdraw",
   withdrawLabel: (name: string): string => `Withdraw ${name}'s invitation`,
-  removed: (name: string): string => `${name} was removed from this quest.`,
-  withdrawn: (name: string): string => `${name}'s invitation was withdrawn.`,
   leave: "Leave quest",
   leaveConfirm:
     "Leave this quest? You'll lose access to it. What you wrote stays. Someone in the quest can invite you again.",

@@ -10,14 +10,24 @@
 // message lands below the trail band. The page sits in
 // the main landmark and the workspace's column, as the layouts render it;
 // the site's stylesheet comes from vitest.browser-setup.ts.
-// "use_case_send_message": a reply streams in the quest's conversation.
-// "use_case_dailies": Start the day sends its prepared message like any
-// other, keeping the draft. "conversation initialization fallback": a quest
+// "use_case_send_message": a reply streams in the quest's conversation, and a
+// panel command typed in the composer runs without the construct.
+// "use_case_dailies": Start Day and its Undo send their commands to the
+// conversation, and the construct's button sits at the trail band's right,
+// clear of the site panel. "conversation initialization fallback": a quest
 // without a conversation offers to start it, and reading it starts nothing.
 
 import type { UIMessageChunk } from "ai";
 import type { JSX } from "react";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  onTestFinished,
+  test,
+  vi,
+} from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import HeaderLinks from "@/app/@header/[...path]/page.tsx";
@@ -25,9 +35,11 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { listMessages, readStoppedReply } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
+import { todayHere } from "@/dailies/dailies.ts";
 import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
@@ -40,26 +52,27 @@ import {
   answerChat,
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
+import {
+  closePanel,
+  openPanel,
+  sitePanel,
+} from "../../../../components/site-panel-test-kit.ts";
 import { readDailiesRecord } from "../../../../dailies/day-store-test-kit.ts";
 import { markdownReplyText } from "../../../../replies/rich-message-test-kit.ts";
+import { runChatCommandAction } from "../../../../tasks/tasks-actions-test-kit.ts";
 import { readTasksState } from "../../../../tasks/tasks-store-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
+  MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
 
-vi.mock("@/dailies/day-actions.ts", () => ({
-  startDayAction: vi.fn(),
-  undoStartDayAction: vi.fn(),
-}));
-
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
 }));
-vi.mock("@/ideas/idea-actions.ts", () => ({ changeIdeaAction: vi.fn() }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: (): never => {
     throw new Error("Quest creation is not available in a quest conversation");
@@ -97,8 +110,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   startConversationAction: vi.fn(),
-  editMilestoneAction: vi.fn(),
-  deleteMilestoneAction: vi.fn(),
 }));
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn().mockResolvedValue([]),
@@ -126,6 +137,9 @@ vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
 );
+
+// The header's widest gutter, in CSS px: the trail band's right padding.
+const SITE_GUTTER_PX = 24;
 
 // The screens the case is checked on, a laptop's and a phone's, and the
 // most the trail band and the conversation's pinned header may take of
@@ -545,6 +559,27 @@ describe("use_case_send_message", () => {
   });
 });
 
+test("a panel command typed in the composer runs without the construct", async () => {
+  store.listMessages.mockResolvedValue([]);
+  const sent = answerChat(new Response(null));
+  runChatCommandAction.mockResolvedValue({
+    kind: "noted",
+    note: "Added the idea “Try charcoal” to Ideas.",
+  });
+  await render(await chatPage());
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  await userEvent.type(box, "/idea Try charcoal{Enter}");
+
+  await expect.poll(() => runChatCommandAction.mock.calls.length).toBe(1);
+  expect(runChatCommandAction).toHaveBeenCalledWith({
+    chatId: FOX_CONVERSATION.id,
+    text: "/idea Try charcoal",
+    localDate: todayHere(new Date()),
+  });
+  await expect.element(box).toHaveValue("");
+  expect(sent).not.toHaveBeenCalled();
+});
+
 describe("use_case_open_quest", () => {
   test("the quest opens on its conversation, with its sections a tap away", async () => {
     store.listMessages.mockResolvedValue([]);
@@ -591,6 +626,86 @@ describe("conversation initialization fallback", () => {
 });
 
 describe("use_case_dailies", () => {
+  test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
+    "the construct's button sits at the trail band's right, clear of the open site panel, at $width px",
+    async (size) => {
+      // The later cases open the sidebar from its button, so they keep the
+      // screen they had.
+      const before = { width: window.innerWidth, height: window.innerHeight };
+      onTestFinished(() => page.viewport(before.width, before.height));
+      await page.viewport(size.width, size.height);
+      store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+      store.listMessages.mockResolvedValue([]);
+      await render(await chatPage());
+      const banner = page.getByRole("banner");
+      const heading = banner.getByRole("heading", { level: 1 });
+      const construct = banner.getByRole("button", {
+        name: CONSTRUCT_DISCOVERY_COPY.openProfile(
+          FOX_CONVERSATION.construct.name,
+        ),
+      });
+      await expect.element(construct).toBeVisible();
+      const button = construct.element().getBoundingClientRect();
+      const title = heading.element().getBoundingClientRect();
+      expect(
+        button.left,
+        "the button follows the quest's name",
+      ).toBeGreaterThanOrEqual(title.right);
+      expect(
+        Math.abs(
+          button.top + button.height / 2 - (title.top + title.height / 2),
+        ),
+        "the button sits on the heading's row",
+      ).toBeLessThan(button.height / 2);
+      expect(
+        window.innerWidth - button.right,
+        "the button ends at the band's right",
+      ).toBeLessThanOrEqual(SITE_GUTTER_PX);
+      expect(button.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        size.width,
+      );
+
+      await openPanel();
+      const panel = sitePanel().element().getBoundingClientRect();
+      const open = construct.element().getBoundingClientRect();
+      expect(
+        open.bottom <= panel.top || open.left >= panel.right,
+        "the open panel leaves the button clear",
+      ).toBe(true);
+      await closePanel();
+
+      await construct.click();
+      await expect
+        .element(
+          page.getByRole("dialog", { name: FOX_CONVERSATION.construct.name }),
+        )
+        .toBeVisible();
+    },
+  );
+
+  test("a quest other than the active Dailies quest shows no construct in its trail band", async () => {
+    store.getQuest.mockResolvedValue({
+      ...FOX_QUEST,
+      dailies: true,
+      status: "completed",
+    });
+    store.listMessages.mockResolvedValue([]);
+    await render(await chatPage());
+    await expect
+      .element(page.getByRole("banner").getByRole("heading", { level: 1 }))
+      .toBeVisible();
+    await expect
+      .element(
+        page.getByRole("button", {
+          name: CONSTRUCT_DISCOVERY_COPY.openProfile(
+            FOX_CONVERSATION.construct.name,
+          ),
+        }),
+      )
+      .not.toBeInTheDocument();
+  });
+
   test("Start Day is in the sidebar's Actions tab and confirms its options", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
@@ -631,6 +746,72 @@ describe("use_case_dailies", () => {
         }),
       )
       .not.toBeChecked();
+  });
+
+  test("Start Day sends /start-day with the chosen clearing and the browser's date", async () => {
+    store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+    store.listMessages.mockResolvedValue([]);
+    runChatCommandAction.mockResolvedValue({
+      kind: "noted",
+      note: "Started a new day.",
+    });
+    await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("tab", { name: "Actions", exact: true }).click();
+    await page
+      .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: QUEST_CONVERSATION_COPY.startDay,
+    });
+    await dialog
+      .getByRole("checkbox", { name: QUEST_CONVERSATION_COPY.clearTasks })
+      .click();
+    await dialog
+      .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
+      .click();
+
+    await expect.poll(() => runChatCommandAction.mock.calls.length).toBe(1);
+    expect(runChatCommandAction).toHaveBeenCalledWith({
+      chatId: FOX_CONVERSATION.id,
+      text: "/start-day clear-tasks",
+      localDate: todayHere(new Date()),
+    });
+  });
+
+  test("Undo Start Day sends /undo-start-day, and a refusal says why", async () => {
+    store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
+    store.listMessages.mockResolvedValue([]);
+    readDailiesRecord.mockResolvedValueOnce({
+      days: [
+        {
+          date: "2026-11-14",
+          startedAt: new Date(Date.now() - STARTED_MS_AGO),
+        },
+      ],
+      undoable: true,
+    });
+    runChatCommandAction.mockResolvedValue({
+      kind: "problem",
+      text: "There is no day to undo.",
+    });
+    await render(await chatPage());
+    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("tab", { name: "Actions", exact: true }).click();
+    const actions = page.getByRole("tabpanel", { name: "Actions" });
+    await actions
+      .getByRole("button", { name: QUEST_CONVERSATION_COPY.undoStartDay })
+      .click();
+
+    await expect
+      .element(actions.getByRole("alert"))
+      .toHaveTextContent("There is no day to undo.");
+    expect(runChatCommandAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chatId: FOX_CONVERSATION.id,
+        text: "/undo-start-day",
+      }),
+    );
   });
 
   test("Start Day shows how long ago the last day started, and Undo until a message", async () => {
@@ -795,10 +976,10 @@ test("Stop Spell stays beside the composer and sends stop without replacing the 
   await page
     .getByRole("button", { name: "Stop Brainstorm", exact: true })
     .click();
-  await expect.element(page.getByText("/stop", { exact: true })).toBeVisible();
+  await expect.element(page.getByText("stop", { exact: true })).toBeVisible();
   await expect.element(box).toHaveValue("Keep this draft");
   await expect.poll(() => sent.mock.calls.length).toBe(1);
-  expect(String(sent.mock.calls[0]?.[1]?.body)).toContain("/stop");
+  expect(String(sent.mock.calls[0]?.[1]?.body)).toContain('"text":"stop"');
   held.release();
 });
 
@@ -834,7 +1015,6 @@ test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
 );
 
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  castSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
   cloneSpellAction: vi.fn(),
   saveSpellAction: vi.fn(),

@@ -19,13 +19,17 @@ import {
   saveTasksMessage,
 } from "@/chats/store.ts";
 import {
+  type PanelCommandResult,
+  runPanelCommand,
+} from "@/commands/run-panel-command.ts";
+import {
   CHAT_ID,
   type ChatId,
   QUEST_ID,
   type QuestId,
   type UserId,
 } from "@/ids.ts";
-import type { StatusActionState } from "@/quests/quest-status.ts";
+import type { QuestStatus, StatusActionState } from "@/quests/quest-status.ts";
 import { questStatusCommand } from "@/quests/quest-status-commands.ts";
 import { getQuest } from "@/quests/store.ts";
 import {
@@ -35,7 +39,11 @@ import {
   type TasksUndoOperation,
 } from "@/tasks/tasks.ts";
 import { parseTasksCommand } from "@/tasks/tasks-commands.ts";
-import { tasksCardMessage, tasksChangeMessage } from "@/tasks/tasks-message.ts";
+import {
+  commandNoteMessage,
+  tasksCardMessage,
+  tasksChangeMessage,
+} from "@/tasks/tasks-message.ts";
 import {
   changeTasks,
   readTasksState,
@@ -44,6 +52,7 @@ import {
   undoableChanges,
   undoTasksChange,
 } from "@/tasks/tasks-store.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { CHAT_COMMANDS_COPY } from "@/ui/copy/tasks.ts";
 
@@ -72,15 +81,24 @@ const UNDO_REQUEST = z.object({
 const COMMAND_REQUEST = z.object({
   chatId: CHAT_ID,
   text: z.string().min(1).max(MOST_COMMAND_LENGTH),
+  // The browser's date, which /start-day dates the new day by.
+  localDate: z.string().max(MOST_COMMAND_LENGTH).optional(),
 });
 
-// What an action did: changed the tasks, with the tasks after it and, in an
+// What an action did: changed the quest's status, with the note it saved in
+// the adventure; ran another panel command (src/commands/panel-commands.ts),
+// with its note; changed the tasks, with the tasks after it and, in an
 // adventure, the tasks message it saved there; showed the tasks as a card;
 // changed nothing, with why and the tasks as they are; or found a problem with
 // a command, in words to show; or found no quest or adventure open to the
 // user.
 type TasksActionResult =
-  | { readonly kind: "quest-status"; readonly feedback: StatusActionState }
+  | {
+      readonly kind: "quest-status";
+      readonly feedback: StatusActionState;
+      readonly message?: ChatMessage | undefined;
+    }
+  | Extract<PanelCommandResult, { readonly kind: "noted" }>
   | {
       readonly kind: "changed";
       readonly version: number;
@@ -309,8 +327,51 @@ async function runOperations(
   return answer(user, chat.id, outcome, command.text);
 }
 
+// Changes the quest's status as /complete, /abandon or /restore asks, from
+// the status it has now, and saves the command's note in the adventure.
+async function runStatusCommand(
+  user: UserId,
+  chat: Chat,
+  text: string,
+  status: QuestStatus,
+): Promise<TasksActionResult> {
+  if (await chatAwaitsReply(user, chat.id)) {
+    return {
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.awaitingReply,
+    };
+  }
+  const quest = await getQuest(user, chat.quest.id);
+  if (quest === undefined) {
+    return { kind: "problem", text: QUEST_STATUS_COPY.noQuest };
+  }
+  const form = new FormData();
+  form.set("questId", quest.id);
+  form.set("fromStatus", quest.status);
+  form.set("toStatus", status);
+  form.set("revision", String(quest.statusRevision));
+  const feedback = await changeQuestStatusAction({ kind: "idle" }, form);
+  if (feedback.kind !== "saved") {
+    return {
+      kind: "problem",
+      text: feedback.message ?? QUEST_STATUS_COPY.failed,
+    };
+  }
+  const message = await savedMessage(
+    user,
+    chat.id,
+    commandNoteMessage(generateId(), {
+      command: text,
+      note: PANEL_COMMANDS_COPY.notes.status[status],
+    }),
+  );
+  return { kind: "quest-status", feedback, message };
+}
+
 // Runs a built-in command typed in an adventure open to the signed-in
-// user (src/tasks/tasks-commands.ts), without the construct.
+// user, or sent by a quest panel control, without the construct: a status
+// command, a panel command (src/commands/panel-commands.ts) or a tasks
+// command (src/tasks/tasks-commands.ts).
 async function runChatCommandAction(
   request: unknown,
 ): Promise<TasksActionResult> {
@@ -328,23 +389,16 @@ async function runChatCommandAction(
   const questId = chat.quest.id;
   const status = questStatusCommand(text);
   if (status !== undefined) {
-    const quest = await getQuest(user.id, questId);
-    if (quest === undefined) {
-      return { kind: "problem", text: QUEST_STATUS_COPY.noQuest };
-    }
-    const form = new FormData();
-    form.set("questId", quest.id);
-    form.set("fromStatus", quest.status);
-    form.set("toStatus", status);
-    form.set("revision", String(quest.statusRevision));
-    const feedback = await changeQuestStatusAction({ kind: "idle" }, form);
-    if (feedback.kind !== "saved") {
-      return {
-        kind: "problem",
-        text: feedback.message ?? QUEST_STATUS_COPY.failed,
-      };
-    }
-    return { kind: "quest-status", feedback };
+    return runStatusCommand(user.id, chat, text, status);
+  }
+  const panel = await runPanelCommand(
+    user.id,
+    chat,
+    text,
+    parsed.data.localDate,
+  );
+  if (panel !== undefined) {
+    return panel;
   }
 
   const command = parseTasksCommand(text, { items: [], nextNumber: 1 });
