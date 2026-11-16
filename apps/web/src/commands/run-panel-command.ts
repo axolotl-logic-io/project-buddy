@@ -41,7 +41,8 @@ import {
   editMilestone,
   listMilestones,
 } from "@/milestones/milestone-store.ts";
-import { deleteNote, listNotes } from "@/notes/note-store.ts";
+import { checkNoteText } from "@/notes/note.ts";
+import { deleteNote, editNote, listNotes } from "@/notes/note-store.ts";
 import {
   inviteToQuest,
   listQuestPeople,
@@ -53,6 +54,7 @@ import { readCommandLine } from "@/tasks/tasks-commands.ts";
 import { commandNoteMessage } from "@/tasks/tasks-message.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 
 const WHITE_SPACE = /\s+/u;
@@ -272,9 +274,32 @@ async function noteCommand(
   context: CommandContext,
 ): Promise<PanelCommandResult> {
   const notes = await listNotes(context.user, context.questId);
-  const place = placeIn(context.argument, notes.length);
+  const { place: named, rest, written } = placeThenRest(context.argument);
+  const place = placeIn(named, notes.length);
   const note = notes[(place ?? 0) - 1];
   if (note === undefined) {
+    return problem(PANEL_COMMANDS_COPY.problems.noNote(notes.length));
+  }
+  if (context.name === "edit-note") {
+    const checked = checkNoteText(written);
+    if ("problem" in checked) {
+      return problem(QUICK_NOTE_COPY.problem(checked.problem));
+    }
+    if (
+      !(await editNote(context.user, {
+        questId: context.questId,
+        id: note.id,
+        text: checked.text,
+      }))
+    ) {
+      return problem(PANEL_COMMANDS_COPY.problems.noNote(notes.length));
+    }
+    return noted(
+      context,
+      PANEL_COMMANDS_COPY.notes.editNote(Number(named), checked.text),
+    );
+  }
+  if (rest !== "") {
     return problem(PANEL_COMMANDS_COPY.problems.noNote(notes.length));
   }
   await deleteNote(context.user, { questId: context.questId, id: note.id });
@@ -509,6 +534,7 @@ function runNamed(context: CommandContext): Promise<PanelCommandResult> {
     case "drop-idea":
     case "idea-to-tasks":
       return ideaCommand(context);
+    case "edit-note":
     case "drop-note":
       return noteCommand(context);
     case "edit-milestone":

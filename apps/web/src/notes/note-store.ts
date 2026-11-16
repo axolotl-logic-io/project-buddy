@@ -87,4 +87,30 @@ function deleteNote(
   });
 }
 
-export { deleteNote, listNotes, saveNote };
+// Edits checked text without changing the saved date or awarding experience.
+// A missing note or a quest no longer open to the acting user is not found.
+function editNote(
+  owner: UserId,
+  {
+    questId,
+    id,
+    text,
+  }: { readonly questId: QuestId; readonly id: NoteId; readonly text: string },
+): Promise<boolean> {
+  return withAppErrors("editNote", async () => {
+    const rows = await getDb()
+      .update(questNotes)
+      .set({ text })
+      .where(
+        and(
+          eq(questNotes.questId, questId),
+          eq(questNotes.id, id),
+          noteOpenTo(owner),
+        ),
+      )
+      .returning({ id: questNotes.id });
+    return rows.length > 0;
+  });
+}
+
+export { deleteNote, editNote, listNotes, saveNote };

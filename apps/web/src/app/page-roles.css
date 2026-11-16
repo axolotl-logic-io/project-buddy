@@ -1334,7 +1334,7 @@
   }
 
   .editable-text {
-    @apply wrap-anywhere min-w-0 justify-start py-2.5 text-left font-normal text-foreground hover:no-underline disabled:opacity-100;
+    @apply wrap-anywhere whitespace-pre-wrap min-w-0 justify-start py-2.5 text-left font-normal text-foreground hover:no-underline disabled:opacity-100;
   }
 
   .editable-row[data-completed="true"] .editable-text {
@@ -1570,6 +1570,11 @@
 
   .quest-sidebar .input-field {
     @apply rounded-control border-line/40 bg-transparent text-sm shadow-none;
+  }
+
+  .editable-form textarea.input-field {
+    @apply basis-full resize-y;
+    min-block-size: calc(3 * var(--target-size));
   }
 
   .editable-form .input-field {
