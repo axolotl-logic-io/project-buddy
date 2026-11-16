@@ -1,6 +1,6 @@
 // "use_case_choose_theme", signed in, in Chromium and WebKit: each theme on
 // the pages it styles beyond its colours. A long quest name, the trail
-// band's heading, keeps the quest's sections below it, the memory's
+// band's heading, shares its row with the quest's section controls, the memory's
 // checkboxes take the theme's colours, and a reply's heading stays smaller
 // than the page's. Each page is rendered from fixed data, in its layouts
 // and under the site header the @header slot gives it, with the site's
@@ -22,6 +22,7 @@ import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEMES } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
 import {
   FOX_CONVERSATION,
   FOX_QUEST,
@@ -155,17 +156,19 @@ async function renderMarkdownChat(): Promise<void> {
 }
 
 // Opens the page of a quest with a long name and returns whether its
-// Journal link is below the name, the page's heading.
-async function journalBelowLongName(): Promise<boolean> {
+// section controls share the breadcrumb row, below the brand bar.
+async function sectionsAlongsideLongName(): Promise<boolean> {
   await renderQuest(LONG_NAME);
   await loadFonts();
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
   const link = page.getByRole("tab", { name: "Tasks", exact: true });
+  const brand = page.getByRole("link", { name: SITE_COPY.name });
+  const sectionBounds = link.element().getBoundingClientRect();
   return (
-    link.element().getBoundingClientRect().top >=
-    heading.element().getBoundingClientRect().bottom
+    sectionBounds.top >= brand.element().getBoundingClientRect().bottom &&
+    sectionBounds.top <= heading.element().getBoundingClientRect().bottom
   );
 }
 
@@ -213,8 +216,8 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a long quest title keeps Tasks navigation below it at 1280 px", async () => {
-        expect(await journalBelowLongName()).toBe(true);
+      test("a long quest title keeps Tasks navigation on its row below the brand at 1280 px", async () => {
+        expect(await sectionsAlongsideLongName()).toBe(true);
       });
 
       test("a heading in a reply stays smaller than the page's heading", async () => {
