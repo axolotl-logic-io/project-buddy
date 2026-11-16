@@ -9,6 +9,7 @@ import {
   COLOR_TOKENS,
   contractReads,
   contractTokens,
+  MODE_TOKENS,
   modeColorMappings,
   THEME_STYLESHEET_NAMES,
   themeImports,
@@ -56,17 +57,7 @@ function remSize(value: string | undefined): number {
   return Number.parseFloat(rem);
 }
 
-// The colour tokens each mode shows, and whose values they should be.
-const { light, dark, systemDark } = modeColorMappings();
-const MODE_RULES = [
-  { name: "Light", values: "light", mappings: light },
-  { name: "Dark", values: "dark", mappings: dark },
-  {
-    name: "System when the system is dark",
-    values: "dark",
-    mappings: systemDark,
-  },
-] as const;
+const MODE_RULES = modeColorMappings();
 
 describe("themes.css", () => {
   test("imports every other stylesheet in src/themes", () => {
@@ -100,11 +91,11 @@ describe("contract.css", () => {
   });
 
   test.each(MODE_RULES)(
-    "under $name, sets exactly the colour tokens to their $values values",
-    ({ mappings, values }) => {
+    "under $mode, maps every palette and decoration token",
+    ({ mappings, mode }) => {
       expect(Object.fromEntries(mappings)).toEqual(
         Object.fromEntries(
-          COLOR_TOKENS.map((token) => [token, `var(--${values}-${token})`]),
+          MODE_TOKENS.map((token) => [token, `var(--${mode}-${token})`]),
         ),
       );
     },

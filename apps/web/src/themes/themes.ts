@@ -1,15 +1,15 @@
 // The site's themes. A theme is data: values for the token contract below,
-// with a light and a dark value for each colour, plus the fonts it names.
+// with three fixed palettes, their materials, and the fonts they share.
 // Components and pages style themselves with the contract's Tailwind
 // utilities only. They never name a theme, never test which theme or mode is
 // active, never use palette colours and never use Tailwind's dark: variant
 // (it follows the operating system, not the user's mode). So every theme,
-// in either mode, restyles all of them. contract.css clears Tailwind's own
+// in every appearance, restyles all of them. contract.css clears Tailwind's own
 // colours, radii, shadows and font families, so of those scales only the
 // contract's utilities compile, plus Streamdown's names, which chat.css maps
 // for the Markdown alone and no component writes (streamdown-names.test.ts).
 //
-// The user's choice of theme and mode (Light, Dark or System) lives in
+// The browser's fixed appearance choice lives in
 // theme-choice.ts, which saves it in a cookie and applies it before the
 // first paint.
 //
@@ -17,12 +17,16 @@
 // A theme's CSS file sets the tokens on the left; components use the
 // Tailwind utilities on the right (contract.css exposes them).
 //
-// Colours. A theme sets each one twice, as --light-<token> and
-// --dark-<token>, and contract.css picks one by the mode. Each "on-" colour
+// Colours. A theme sets each one for light, soot-brass and dark, and
+// contract.css picks the fixed appearance. Each "on-" colour
 // is the text and icons on the filled colour it names. contrast.test.ts
-// checks every pair that meets on the page for WCAG AA, in both modes.
+// checks every pair that meets on the page for WCAG AA, in all three appearances.
 //   background      the page                           bg-background
 //   surface         panels on the page: menus, cards   bg-surface
+//   navigation-surface  site panel                     bg-navigation-surface
+//   trail-surface       trail band                     bg-trail-surface
+//   sidebar-surface     quest sidebar                  bg-sidebar-surface
+//   secondary-surface   secondary buttons              bg-secondary-surface
 //   field           inside inputs, textareas, selects  bg-field
 //   code-surface    behind code                        bg-code-surface
 //   foreground      text, on any surface above         text-foreground
@@ -60,11 +64,11 @@
 //   --body-font       body text (set on <body>)         font-body
 //   --heading-font    headings (set on h1 to h6)        font-heading
 //   --mono-font       code                              font-mono
-// Spacing, one value for both modes:
+// Spacing, one value for all three appearances:
 //   --space-unit      the step of every spacing         any spacing
 //                     utility, such as 0.25rem          utility: p-4,
 //                     (Tailwind's own)                  gap-2, size-4
-// Heading sizes, one value for both modes, each in rem and larger than body
+// Heading sizes, one value for all three appearances, each in rem and larger than body
 // text (1rem), from the site's title down to a section's heading, with a
 // page's heading at least 1.2 times a section's (contract.test.ts checks
 // both). page-roles.css's heading roles use them; the line heights are the
@@ -79,7 +83,7 @@
 //                           most as large, and still
 //                           clearly above a section's
 //   --section-heading-size  a heading inside a page   text-section-heading
-// Title sizes, one value for both modes, each in rem, for titles that
+// Title sizes, one value for all three appearances, each in rem, for titles that
 // aren't a page's headings (contract.test.ts checks each sits below the
 // heading named). page-roles.css's title roles use them.
 //   --header-title-size     the site's name in the    text-header-title
@@ -90,7 +94,7 @@
 //                           a quest's name, below
 //                           a section's heading, at
 //                           least body text
-// Shape and depth, one value for both modes:
+// Shape and depth, one value for all three appearances:
 //   --control-radius  buttons, inputs, menu items       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
 //   --line-width      the width of every border, and    border (any side)
@@ -105,7 +109,7 @@
 // Decoration:
 //   --page-decoration a background-image behind the     (set on <body>)
 //                     page, or `none`
-// The site panel, one value for both modes, read by page-roles.css's
+// The site panel, using the active palette, read by page-roles.css's
 // .site-panel and .panel-* roles:
 //   --panel-decoration     a background-image behind the site panel, or
 //                          `none`; hidden with the page decoration
@@ -127,8 +131,8 @@ const THEMES = [{ id: "parchment", name: "Parchment" }] as const;
 
 type ThemeId = (typeof THEMES)[number]["id"];
 
-// Light and Dark pick a mode; System follows the operating system.
-const THEME_MODES = ["light", "dark", "system"] as const;
+// Fixed appearances; light and dark retain the existing cookie values.
+const THEME_MODES = ["light", "soot-brass", "dark"] as const;
 
 type ThemeMode = (typeof THEME_MODES)[number];
 

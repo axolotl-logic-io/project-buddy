@@ -63,6 +63,17 @@ function checkTexture(response: Response): Promise<string | undefined> {
   return Promise.resolve("expected an SVG image");
 }
 
+function checkMaterialTexture(response: Response): Promise<string | undefined> {
+  const problem = statusProblem(response, OK);
+  if (problem !== undefined) {
+    return Promise.resolve(problem);
+  }
+  if (response.headers.get("content-type")?.includes("image/webp")) {
+    return Promise.resolve(undefined);
+  }
+  return Promise.resolve("expected a WebP image");
+}
+
 async function checkSignUpPage(
   response: Response,
   explanation: string,
@@ -122,6 +133,12 @@ const CHECKS: readonly SmokeCheck[] = [
     init: {},
     check: checkTexture,
   },
+  ...["ivory-vellum", "soot-brass", "espresso-leather"].map((material) => ({
+    name: `GET /textures/${material}.webp`,
+    path: `/textures/${material}.webp`,
+    init: {},
+    check: checkMaterialTexture,
+  })),
   {
     name: "GET /signup",
     path: "/signup",

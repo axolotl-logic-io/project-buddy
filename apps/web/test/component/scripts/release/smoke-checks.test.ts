@@ -17,3 +17,24 @@ test("rejects a public paper texture redirected to sign-in", async () => {
     "GET /textures/parchment.svg: answered 307, expected 200",
   );
 });
+
+test.each(["ivory-vellum", "soot-brass", "espresso-leather"])(
+  "requires the %s material to be publicly served as WebP",
+  async (material) => {
+    const path = `/textures/${material}.webp`;
+    const failures = await smokeChecks(
+      "https://example.test",
+      (url: string): Promise<Response> => {
+        if (new URL(url).pathname === path) {
+          return Promise.resolve(
+            new Response("sign in", {
+              headers: { "content-type": "text/html" },
+            }),
+          );
+        }
+        return Promise.resolve(new Response(null, { status: 503 }));
+      },
+    );
+    expect(failures).toContain(`GET ${path}: expected a WebP image`);
+  },
+);

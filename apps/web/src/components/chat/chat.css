@@ -219,7 +219,7 @@
   .chat-composer-dock {
     margin-block-start: auto;
     inset-block-end: var(--chat-keyboard-inset);
-    @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
+    @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-cover bg-fixed bg-no-repeat pt-2 pb-4;
   }
 
   @supports (mask-image: none) {

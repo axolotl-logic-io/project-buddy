@@ -13,8 +13,7 @@
 // Rendering never reads the cookie, so every page keeps its prerendered
 // shell: the HTML carries the default choice (DEFAULT_THEME_ATTRIBUTES), and
 // THEME_PRE_PAINT_SCRIPT, inline in <head>, swaps in the saved choice while
-// the browser is still parsing. Under System, CSS follows the operating system's
-// setting with no script.
+// the browser is still parsing. Appearances never follow the operating system.
 import {
   DEFAULT_THEME_CHOICE,
   parseThemeChoice,
@@ -39,6 +38,16 @@ const DEFAULT_THEME_ATTRIBUTES = {
   [THEME_ATTRIBUTE]: DEFAULT_THEME_CHOICE.theme,
   [MODE_ATTRIBUTE]: DEFAULT_THEME_CHOICE.mode,
 } as const;
+
+// Each preview resolves its own palette without changing the page's choice.
+// The picker receives opaque attributes; their names remain in this module.
+const THEME_SWATCHES = THEME_MODES.map((mode) => ({
+  mode,
+  attributes: {
+    [THEME_ATTRIBUTE]: DEFAULT_THEME_CHOICE.theme,
+    [MODE_ATTRIBUTE]: mode,
+  },
+}));
 
 // Plain JavaScript, built from the values above, for an inline <script> in
 // <head>. It reads the cookie and copies each part of its value, in order,
@@ -152,5 +161,6 @@ export {
   subscribeToThemeChoice,
   THEME_ATTRIBUTE,
   THEME_PRE_PAINT_SCRIPT,
+  THEME_SWATCHES,
   themeChoiceSetCookie,
 };
