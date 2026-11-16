@@ -16,9 +16,9 @@ export const SITE_COPY = {
   tagline: "Work through your own quests and ideas with your constructs.",
 } as const;
 
-// The site panel, which the header's button opens on the left: its title,
-// which also names the button, the name of the button in the panel that
-// closes it, and the names of its two groups of links.
+// The site panel, which a button under the header opens on the left: its
+// title, which also names the button, the name of the button in the panel
+// that closes it, and the names of its two groups of links.
 export const SITE_PANEL_COPY = {
   title: "Site panel",
   close: "Close site panel",

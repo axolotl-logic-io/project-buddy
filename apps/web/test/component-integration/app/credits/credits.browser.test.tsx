@@ -6,12 +6,12 @@ import CreditsPage from "@/app/credits/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import NotFound from "@/app/not-found.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
+import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "../../auth/current-user-test-kit.ts";
-import { tabForward } from "../../components/keyboard-test-kit.ts";
 import { openPanel } from "../../components/site-panel-test-kit.ts";
 import { inSiteFrame } from "../site-frame-test-kit.tsx";
 

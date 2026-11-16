@@ -72,17 +72,20 @@ function PanelLink({
 }
 
 // The site panel, on the left of every page, mirroring the chat panel on
-// the right: a button at the start of the header opens it under the header,
-// holding links (the @header slot's, or none for a visitor), the theme and
-// mode choices, and, for everyone, a link to the Credits page.
+// the right: a button floating under the header's left end opens it under
+// the header, holding links (the @header slot's, or none for a visitor),
+// the theme and mode choices, and, for everyone, a link to the Credits
+// page. The open panel hides that button and puts its own close button in
+// the same place, so the same spot opens and closes it.
 // On a wide screen it docks beside the page, which makes room for it, and
 // stays open from page to page until the user closes it. Narrower, it is a
 // modal drawer over the page, so the keyboard stays in it, and Escape, its
 // close button, following a link or a click beside it (where the browser
 // supports closedby) closes it. The page beside it isn't dimmed, so a theme
 // or mode chosen in it shows there at once.
-// Closing it returns focus to the header's button. The links are in the
-// page's first HTML, inside the closed panel.
+// Opening it from its button moves focus to the close button, and closing
+// it returns focus to its button. The links are in the page's first HTML,
+// inside the closed panel.
 function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
   const wide = useWideScreen();
   const docked = useSyncExternalStore(subscribeDocked, isDocked, serverDocked);
@@ -93,6 +96,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
   }
   const dialogRef = useRef<HTMLDialogElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const titleId = useId();
   const appearanceId = useId();
@@ -105,14 +109,26 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
     const modal = dialog.matches(":modal");
     if (!panelOpen) {
       if (dialog.open) {
+        // The open panel hides its button, so focus inside it goes back to
+        // the button once it shows again.
+        const focusInside = dialog.contains(document.activeElement);
         dialog.close();
+        if (focusInside) {
+          toggleRef.current?.focus();
+        }
       }
     } else if (wide) {
       if (modal) {
         dialog.close();
       }
-      // A docked panel must not take focus from the page beside it.
+      // A docked panel must not take focus from the page beside it, but
+      // opening it from its button, which it hides, moves focus to its
+      // close button in the same place.
+      const fromButton = document.activeElement === toggleRef.current;
       dialog.setAttribute("open", "");
+      if (fromButton) {
+        closeRef.current?.focus();
+      }
     } else if (!modal) {
       if (dialog.open) {
         dialog.close();
@@ -121,7 +137,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
     }
   }, [panelOpen, wide]);
 
-  // The button keeps focus, which closing the drawer returns to it, even
+  // The button takes focus, which closing the drawer returns to it, even
   // where a click doesn't focus a button, as in Safari.
   const toggle = useCallback((): void => {
     toggleRef.current?.focus();
@@ -134,7 +150,6 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
   const close = useCallback((): void => {
     if (wide) {
       setDocked(false);
-      toggleRef.current?.focus();
     } else {
       dialogRef.current?.close();
     }
@@ -157,10 +172,11 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
       <Button
         aria-controls={panelId}
         aria-expanded={panelOpen}
-        className="site-panel-toggle min-w-(--target-size)"
+        className="panel-toggle site-panel-toggle"
         onClick={toggle}
         ref={toggleRef}
-        variant="secondary"
+        title={SITE_PANEL_COPY.title}
+        variant="quiet"
       >
         <Icon name="site-panel" />
         <span className="sr-only">{SITE_PANEL_COPY.title}</span>
@@ -173,21 +189,22 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
         onClose={markClosed}
         ref={dialogRef}
       >
-        <div className="flex items-center justify-between gap-2 pb-1 pl-2">
-          <h2 className="header-title" id={titleId}>
-            {SITE_PANEL_COPY.title}
-          </h2>
+        <div className="site-panel-heading">
           <Button
             aria-controls={panelId}
             aria-expanded={panelOpen}
             aria-label={SITE_PANEL_COPY.close}
-            className="min-w-(--target-size)"
+            className="panel-toggle site-panel-close"
             onClick={close}
+            ref={closeRef}
             title={SITE_PANEL_COPY.close}
             variant="quiet"
           >
             <Icon name="site-panel" />
           </Button>
+          <h2 className="header-title" id={titleId}>
+            {SITE_PANEL_COPY.title}
+          </h2>
         </div>
         {links}
         <hr className="panel-rule" />

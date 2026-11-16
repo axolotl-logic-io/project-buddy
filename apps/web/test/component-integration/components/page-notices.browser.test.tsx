@@ -5,13 +5,13 @@ import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+import { tabForward } from "../../support/keyboard-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
-import { tabForward } from "./keyboard-test-kit.ts";
 
 const WARNING = "This quest is completed. ";
 const RESTORE = "Restore this quest";
