@@ -10,7 +10,14 @@ import type { TasksChangeLine } from "@/tasks/tasks.ts";
 import { readTasksPart } from "@/tasks/tasks-message.ts";
 import { TASKS_CHANGE_COPY, tasksLineText } from "@/ui/copy/tasks.ts";
 
-type LineIcon = "plus" | "pencil" | "check" | "close" | "arrow-down" | "trash";
+type LineIcon =
+  | "plus"
+  | "pencil"
+  | "check"
+  | "close"
+  | "arrow-down"
+  | "trash"
+  | "repeat";
 
 const LINE_ICONS: Readonly<Record<TasksChangeLine["kind"], LineIcon>> = {
   add: "plus",
@@ -19,6 +26,7 @@ const LINE_ICONS: Readonly<Record<TasksChangeLine["kind"], LineIcon>> = {
   reopen: "close",
   move: "arrow-down",
   remove: "trash",
+  recur: "repeat",
 };
 
 // Each line with its words and a key: its words, and how often they came

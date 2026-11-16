@@ -11,16 +11,20 @@ const EMPTY_TASKS_PROMPT = `The quest's tasks have no steps yet. When the user a
 
 // The line before the tasks.
 const TASKS_PROMPT_INTRO =
-  "The quest's tasks: its steps of remaining work, in order, each with its number. Done steps are marked [done]. The first open step is the quest's next step. The user can change the tasks without you, so this is the tasks as they are now:";
+  "The quest's tasks: its steps of remaining work, in order, each with its number. Done steps are marked [done], and recurring steps, which Start Day reopens each day, [recurring]. The first open step is the quest's next step. The user can change the tasks without you, so this is the tasks as they are now:";
 
 const TASKS_START_TAG = "<quest_tasks>";
 const TASKS_END_TAG = "</quest_tasks>";
 
-function stepLine({ number, text, done }: TasksStep): string {
+function stepLine({ number, text, done, recurring }: TasksStep): string {
+  const marks: string[] = [];
   if (done) {
-    return `#${number} [done] ${text}`;
+    marks.push("[done]");
   }
-  return `#${number} ${text}`;
+  if (recurring === true) {
+    marks.push("[recurring]");
+  }
+  return [`#${number}`, ...marks, text].join(" ");
 }
 
 // The task list's steps as the prompt gives them.

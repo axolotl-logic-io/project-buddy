@@ -6,7 +6,7 @@ Each quest has Tasks: its ordered steps of remaining work, which the construct a
 
 A step is one line of at most 200 characters (`TASKS_STEP_TEXT` in `src/tasks/tasks.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. Tasks have no limit on the number of steps. Done steps keep their places, and the site shows them folded away under **Done**.
 
-The next step is the task list's first open step. Tasks shows the remaining work as compact todo rows, with no separate duplicate next-step card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a step opens a new editor above the list and saves the new step first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable step number. A new quest starts with an empty Tasks.
+The next step is the task list's first open step. Tasks shows the remaining work as compact todo rows, with no separate duplicate next-step card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a step opens a new editor above the list and saves the new step first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable step number. In the Dailies quest, it also holds Make recurring or Make one-off, and a recurring step's row shows its streak (see [Dailies](dailies.md)). A new quest starts with an empty Tasks.
 
 ## Operations
 
@@ -20,6 +20,7 @@ The next step is the task list's first open step. Tasks shows the remaining work
 | `reopen` | step | Marks a done step open again. |
 | `move` | step, optional `before` step | Moves the step before another, or to the end. |
 | `remove` | step | Deletes the step. |
+| `recur` | step, `recurring` | Makes the step a [recurring step](dailies.md#recurring-steps), which Start Day reopens each day, or a one-off step again. |
 
 A batch applies all or none. It saves nothing if a step it names isn't there or if no operation changes anything; an operation that changes nothing, such as completing a done step, is skipped. Each change records what each operation did, in words, and the operations that undo it.
 
@@ -27,7 +28,7 @@ An undo (`applyTasksUndo`) keeps the changes made since. It skips an operation o
 
 ## The construct
 
-Every quest conversation's prompt lists the current Tasks, between `<quest_tasks>` tags, one step per line with its number and done steps marked (`src/replies/tasks-prompt.ts`). The `change_tasks` tool (`src/replies/tools/change-tasks.ts`) takes a batch of operations and returns the tasks after it, or the tasks as they are and why nothing changed. The global prompt's tasks rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, never to count open steps or days, and to name steps by their `#` numbers rather than restate the tasks as a list with its own numbering.
+Every quest conversation's prompt lists the current Tasks, between `<quest_tasks>` tags, one step per line with its number, done steps marked `[done]` and recurring steps marked `[recurring]` (`src/replies/tasks-prompt.ts`). The `change_tasks` tool (`src/replies/tools/change-tasks.ts`) takes a batch of operations and returns the tasks after it, or the tasks as they are and why nothing changed. The global prompt's tasks rules (`src/replies/global-prompt.ts`) tell the construct to add only agreed steps, to check off a step the user finished, to keep a finished step apart from a milestone, and to name steps by their `#` numbers rather than restate the tasks as a list with its own numbering.
 
 The conversation shows each call as a **Tasks change** with Undo (`src/components/chat/tasks-change-part.tsx`), while the reply streams and after the user reopens the quest. The tool is active only in quest conversations.
 

@@ -353,14 +353,35 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Dailies",
     aliases: ["Dailies"],
     definition:
-      "A person's one ongoing private quest for starting the day. Opening it again returns to the same conversation. It has no automatic daily clearing, deadlines or streak counts.",
+      "A person's one ongoing private quest for starting the day. Opening it again returns to the same conversation. A new day begins only when the person chooses Start Day. Some of its steps can repeat every day, and each of those counts a streak.",
   },
   {
-    term: "Reset Day",
-    heading: "Dailies",
-    aliases: ["Reset Day", "resetting", "conversation reset"],
+    term: "Start Day",
+    heading: "Start Day",
+    aliases: ["Start Day", "Undo Start Day", "starting the day"],
     definition:
-      "A control for clearing the Dailies conversation and turning off its spell, after confirmation. It normally keeps Tasks, Ideas and Progress and marks completed steps open again. The person can also choose to remove steps and Ideas.",
+      "A control in Dailies for beginning a new day, after confirmation. It sets the old conversation aside, opens an empty one and marks finished daily steps open again. Other steps, Ideas and Progress stay as they are, unless the person chooses to remove steps or Ideas. A line under it says how long ago the last day started. Until someone sends a message, Undo Start Day brings everything back.",
+  },
+  {
+    term: "Recurring step",
+    heading: "Recurring step",
+    aliases: ["recurring step", "recurring steps", "Make recurring"],
+    definition:
+      "A step in Dailies that the person means to do every day. Each new day marks it open again and remembers whether it was done.",
+  },
+  {
+    term: "Streak",
+    heading: "Streak",
+    aliases: ["streak", "streaks"],
+    definition:
+      "How many days in a row the person has done a recurring step in Dailies. A day the step wasn't done ends it, and so does a day with no Start Day.",
+  },
+  {
+    term: "Gap",
+    heading: "Gap",
+    aliases: ["gap", "no day started"],
+    definition:
+      "A date on which the person didn't start a day in Dailies. It ends every streak, and the Progress section shows it with a dashed square.",
   },
   {
     term: "Quest code names",
@@ -407,7 +428,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "progress",
     ],
     definition:
-      "The quest's list of recorded milestones, shown under Progress. It celebrates finished work without counting streaks or criticizing pauses.",
+      "The quest's list of recorded milestones, shown under Progress. It celebrates finished work. In Dailies, a grid above it shows the last week of each daily step.",
   },
   {
     term: "Next step",
@@ -442,7 +463,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Quest sidebar actions",
     aliases: ["quest sidebar actions", "Actions tab", "side menu"],
     definition:
-      "The Actions section of the area beside a quest conversation. It contains controls for choosing a spell and, for an Active Dailies quest, Reset Day.",
+      "The Actions section of the area beside a quest conversation. It contains controls for choosing a spell and, for an Active Dailies quest, Start Day.",
   },
   {
     term: "Tasks",

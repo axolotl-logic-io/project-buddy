@@ -32,6 +32,7 @@ import {
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { DailiesDay } from "@/dailies/dailies.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
@@ -126,6 +127,7 @@ function ChatView({
   questId,
   initialTasks,
   tasksActions,
+  dailiesDays,
   spellName,
   sideSections,
   initialSection,
@@ -145,6 +147,8 @@ function ChatView({
   initialTasks?: TasksState | undefined;
   // The task list's Server Actions, which the page hands over in a quest chat.
   tasksActions?: TasksActions | undefined;
+  // The Dailies quest's days, in the Dailies quest alone.
+  dailiesDays?: readonly DailiesDay[] | undefined;
 }): JSX.Element {
   const router = useRouter();
   const [stopStatus, setStopStatus] = useState("");
@@ -235,6 +239,7 @@ function ChatView({
     disabledNote: tasksDisabledNote,
     newestCardId: newestTasksCard(chat.messages),
     observed,
+    days: dailiesDays,
   });
   const receiveTasks = tasks?.receive;
   const publishStatus = useContext(StatusFeedbackContext);

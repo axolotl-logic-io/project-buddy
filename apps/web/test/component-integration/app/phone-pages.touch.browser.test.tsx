@@ -92,6 +92,10 @@ vi.mock(
   "@/tasks/tasks-store.ts",
   () => import("../tasks/tasks-store-test-kit.ts"),
 );
+vi.mock(
+  "@/dailies/day-store.ts",
+  () => import("../dailies/day-store-test-kit.ts"),
+);
 vi.mock("@/constructs/construct-store.ts", () => ({
   getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
   listConstructs: vi.fn<typeof listConstructs>(),
