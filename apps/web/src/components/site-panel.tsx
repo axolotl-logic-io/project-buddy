@@ -77,8 +77,9 @@ function PanelLink({
 // the theme and mode choices, and, for everyone, a link to the Credits
 // page. The open panel hides that button and puts its own close button in
 // the same place, so the same spot opens and closes it.
-// On a wide screen it docks beside the page, which makes room for it, and
-// stays open from page to page until the user closes it. Narrower, it is a
+// It opens over the page and never changes the page's size or flow. On a
+// wide screen it docks there, leaving the page in reach, and stays open
+// from page to page until the user closes it. Narrower, it is a
 // modal drawer over the page, so the keyboard stays in it, and Escape, its
 // close button, following a link or a click beside it (where the browser
 // supports closedby) closes it. The page beside it isn't dimmed, so a theme

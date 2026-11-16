@@ -736,10 +736,11 @@
      mirror on the left: under the header, for the rest of the screen's
      height. Its button floats under the header's left end, as the chat
      panel's does under the right, and the open panel's close button takes
-     the button's place. Below the lg breakpoint it is a drawer that slides in over a
-     page it leaves undimmed, so a theme or mode chosen in it shows on the
-     page beside it, and the page under it doesn't scroll. From lg it docks
-     beside the page, which makes room for it. A closed <dialog> is hidden
+     the button's place. It opens over the page's left edge and never
+     changes the page's size or flow. Below the lg breakpoint it is a drawer
+     that slides in over a page it leaves undimmed, so a theme or mode
+     chosen in it shows on the page beside it, and the page under it doesn't
+     scroll. From lg it docks over the page. A closed <dialog> is hidden
      by the browser's own display: none, so the panel is a flex column only
      while open. Each theme dresses it through the panel tokens
      (src/themes/themes.ts). */
@@ -748,7 +749,7 @@
     block-size: calc(100dvh - var(--site-header-bottom));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground shadow-raised open:flex;
     background-image: var(--panel-decoration);
   }
 
@@ -772,7 +773,7 @@
   }
 
   .site-panel:modal {
-    @apply shadow-raised motion-safe:animate-slide-in;
+    @apply motion-safe:animate-slide-in;
   }
 
   .site-panel::backdrop {
@@ -781,12 +782,6 @@
 
   html:has(.site-panel:modal) {
     overflow: hidden;
-  }
-
-  @media (width >= --theme(--breakpoint-lg)) {
-    .site-header:has(.site-panel[open]) ~ main {
-      padding-inline-start: var(--site-panel-width);
-    }
   }
 
   .panel-label {
