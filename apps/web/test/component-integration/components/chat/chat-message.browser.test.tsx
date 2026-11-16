@@ -146,7 +146,7 @@ describe("use_case_read_formatted_reply", () => {
   });
 });
 
-for (const mode of ["light", "dark"] as const) {
+for (const mode of ["light", "soot-brass", "dark"] as const) {
   test(`code keywords use the contract colour in ${mode}`, async () => {
     chooseMode(mode);
     const probe = document.createElement("span");

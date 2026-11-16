@@ -1,8 +1,9 @@
 "use client";
 
 import { type ChangeEvent, type JSX, useId } from "react";
+import { Icon } from "@/components/ui/icon.tsx";
 import { chooseMode } from "@/themes/choose-theme.ts";
-import { THEME_MODES } from "@/themes/themes.ts";
+import { THEME_SWATCHES } from "@/themes/theme-choice.ts";
 import { useThemeChoice } from "@/themes/use-theme-choice.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -10,17 +11,14 @@ function chooseModeOf(event: ChangeEvent<HTMLInputElement>): void {
   chooseMode(event.currentTarget.value);
 }
 
-// The parchment theme's mode (Light, Dark or System), applied at once
-// and remembered in this browser.
+// Three fixed texture swatches, applied at once and remembered in this browser.
 export function AppearanceChoices({
   settings = false,
 }: {
   readonly settings?: boolean;
 } = {}): JSX.Element {
-  let inputClass = "sr-only";
   let groupClass = "flex flex-col";
   if (settings === true) {
-    inputClass = "appearance-setting-input";
     groupClass += " appearance-settings";
   }
   const choice = useThemeChoice();
@@ -30,17 +28,24 @@ export function AppearanceChoices({
     <fieldset className={groupClass}>
       <legend className="panel-label">{THEME_COPY.modeLabel}</legend>
       <div className="panel-modes">
-        {THEME_MODES.map((mode) => (
+        {THEME_SWATCHES.map(({ mode, attributes }) => (
           <label className="panel-mode" key={mode}>
             <input
               checked={mode === choice.mode}
-              className={inputClass}
+              className="theme-choice-input"
               name={modeGroupId}
               onChange={chooseModeOf}
               type="radio"
               value={mode}
             />
+            <span aria-hidden="true" className="theme-swatch" {...attributes}>
+              <span className="theme-swatch-panel" />
+              <span className="theme-swatch-accent" />
+            </span>
             {THEME_COPY.modes[mode]}
+            <span aria-hidden="true" className="theme-choice-mark">
+              {mode === choice.mode && <Icon name="check" />}
+            </span>
           </label>
         ))}
       </div>

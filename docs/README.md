@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Appearance](appearance.md): the three textured swatches and browser preferences.
+
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share.
 - [Local constructs](local-constructs.md): MUD-inspired commands, the no-model-request policy and the retained harness.
 - [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
