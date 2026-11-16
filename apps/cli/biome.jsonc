@@ -1,0 +1,27 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "extends": "//",
+  "overrides": [
+    // PROJECT_BUDDY_URL and PROJECT_BUDDY_SESSION are the command's
+    // environment variable names.
+    {
+      "includes": ["test/system/cli-test-kit.ts"],
+      "linter": { "rules": { "style": { "useNamingConvention": "off" } } }
+    },
+    // The CLI's Node platform boundaries: the process entry point reads
+    // files, stdin, signals and the environment; argument reading uses
+    // node:util's parseArgs; the system tests start the CLI and a fake site.
+    {
+      "includes": ["src/cli.ts", "src/arguments.ts", "test/system/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noProcessGlobal": "off"
+          },
+          "style": { "noProcessEnv": "off" }
+        }
+      }
+    }
+  ]
+}

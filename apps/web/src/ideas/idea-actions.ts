@@ -10,7 +10,7 @@ async function changeIdeaAction(request: unknown): Promise<IdeaResult> {
   const user = await requireUser();
   const parsed = IDEA_REQUEST.safeParse(request);
   if (!parsed.success) {
-    return { kind: "problem", text: IDEAS_COPY.invalid };
+    return { kind: "problem", reason: "invalid", text: IDEAS_COPY.invalid };
   }
   const result = await changeIdea(user.id, parsed.data);
   if (result.kind === "saved") {
