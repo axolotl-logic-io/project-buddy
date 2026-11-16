@@ -12,7 +12,7 @@ Workshop’s Constructs tab lists built-ins and private constructs. An introduct
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - The user goes to Workshop, by the menu's Workshop link on any signed-in page.
+  - The user goes to Workshop, by the site panel's Workshop link on any signed-in page.
   - Workshop lists the built-in constructs, then their private constructs.
 - **Outcome:** The two built-in constructs are listed by name: Vellum and Lumen. Under them, their own constructs are listed by name, oldest first. With none of their own, the page says the user has none yet. Each built-in construct offers to make a copy of it, and each of their own offers to edit it or make a copy. Their own constructs also offer Create construct to make one without copying another. Each construct name opens its instructions for inspection or editing. Another user's constructs are never listed.
 - **Next:**
