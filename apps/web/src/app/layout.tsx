@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { JSX } from "react";
-import { SignedInHeader } from "@/components/site-header.tsx";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   DEFAULT_THEME_ATTRIBUTES,
   THEME_PRE_PAINT_SCRIPT,

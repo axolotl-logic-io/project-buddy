@@ -16,13 +16,6 @@ import {
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
 
-// site-header.tsx reads the session and balance for SignedInHeader, server
-// code these tests never call.
-vi.mock(
-  "@/auth/current-user.ts",
-  () => import("../../auth/current-user-test-kit.ts"),
-);
-
 // The browser's cookies when Dark is saved, beside a stale cookie from the
 // removed Extras switches, which must hide nothing.
 const SAVED_COOKIES = "theme=parchment.dark; hidden-extras=page-decorations";

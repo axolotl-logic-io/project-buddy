@@ -1,7 +1,6 @@
 import type { Route } from "next";
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
-import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
 import { QuickNote } from "@/components/quick-note.tsx";
@@ -14,6 +13,10 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+
+// The header's parts, free of server code, so a client component such as the
+// header slot's error boundary can draw the header too. The signed-in header,
+// which reads the session, is signed-in-header.tsx.
 
 // A breadcrumb that leads somewhere: every one but the current page.
 function isLink(item: Breadcrumb): item is Breadcrumb & { href: Route } {
@@ -102,26 +105,6 @@ function AccountLinks(): JSX.Element {
   );
 }
 
-// Reads the session for the header slot and supplies the header with the
-// signed-in site panel and the page's trail, or the visitor's header.
-async function SignedInHeader({
-  breadcrumbs,
-}: {
-  readonly breadcrumbs?: readonly Breadcrumb[];
-} = {}): Promise<JSX.Element> {
-  const user = await currentUser();
-  if (user === undefined) {
-    return <SiteHeader />;
-  }
-  let trail: ReactNode;
-  if (breadcrumbs !== undefined) {
-    trail = <TrailBand items={breadcrumbs} />;
-  }
-  return (
-    <SiteHeader panel={<SitePanel links={<AccountLinks />} />} trail={trail} />
-  );
-}
-
 // Every page has a site panel, including public pages and the not-found
 // page.
 const VISITOR_PANEL: JSX.Element = <SitePanel links={null} />;
@@ -154,4 +137,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, SignedInHeader, SiteHeader, TrailBand };
+export { AccountLinks, SiteHeader, TrailBand };
