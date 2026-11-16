@@ -3,8 +3,9 @@
 import { useLayoutEffect } from "react";
 
 // The header's bar and its gold rim scroll away; the trail band under them
-// stays pinned. Its height is what message jumps leave room for. The sidebar follows the visible bottom of
-// the entire header as the bar scrolls away. CSS supplies initial sizes.
+// stays pinned. Its height is what message jumps leave room for. Panels
+// start at the breadcrumb row so their close and expand controls align.
+// CSS supplies initial sizes.
 function HeaderSize(): null {
   useLayoutEffect(() => {
     const header = document.querySelector<HTMLElement>(".site-header");
@@ -12,11 +13,19 @@ function HeaderSize(): null {
       return;
     }
     const element = header;
-    function updateBottom(): void {
-      document.documentElement.style.setProperty(
-        "--site-header-bottom",
-        `${Math.max(0, element.getBoundingClientRect().bottom)}px`,
-      );
+    function updatePanelTop(): void {
+      const band = element.querySelector<HTMLElement>(".trail-band");
+      if (band !== null) {
+        const panelTop = band.getBoundingClientRect().top + band.clientTop;
+        document.documentElement.style.setProperty(
+          "--panel-top",
+          `${panelTop}px`,
+        );
+        document.documentElement.style.setProperty(
+          "--panel-tab-height",
+          `${band.clientHeight}px`,
+        );
+      }
     }
     function update(): void {
       const band = element.querySelector<HTMLElement>(".trail-band");
@@ -37,20 +46,21 @@ function HeaderSize(): null {
         "--site-header-height",
         `${pinnedHeight}px`,
       );
-      updateBottom();
+      updatePanelTop();
     }
     const observer = new ResizeObserver(update);
     observer.observe(element);
     update();
-    globalThis.addEventListener("scroll", updateBottom, { passive: true });
-    globalThis.addEventListener("resize", updateBottom);
+    globalThis.addEventListener("scroll", updatePanelTop, { passive: true });
+    globalThis.addEventListener("resize", updatePanelTop);
     return (): void => {
       observer.disconnect();
-      globalThis.removeEventListener("scroll", updateBottom);
-      globalThis.removeEventListener("resize", updateBottom);
+      globalThis.removeEventListener("scroll", updatePanelTop);
+      globalThis.removeEventListener("resize", updatePanelTop);
       element.style.removeProperty("--header-controls-height");
       document.documentElement.style.removeProperty("--site-header-height");
-      document.documentElement.style.removeProperty("--site-header-bottom");
+      document.documentElement.style.removeProperty("--panel-top");
+      document.documentElement.style.removeProperty("--panel-tab-height");
     };
   });
   return null;

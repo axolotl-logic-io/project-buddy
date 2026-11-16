@@ -13,8 +13,8 @@
 // "use_case_send_message": a reply streams in the quest's conversation, and a
 // panel command typed in the composer runs without the construct.
 // "use_case_dailies": Start Day and its Undo send their commands to the
-// conversation, and the construct's button sits at the trail band's right,
-// clear of the site panel. "conversation initialization fallback": a quest
+// conversation, and the construct's button shares the breadcrumb row
+// with the panel controls. "conversation initialization fallback": a quest
 // without a conversation offers to start it, and reading it starts nothing.
 
 import type { UIMessageChunk } from "ai";
@@ -43,6 +43,7 @@ import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import {
   SIGNED_IN_USER,
@@ -139,7 +140,6 @@ vi.mock(
 );
 
 // The header's widest gutter, in CSS px: the trail band's right padding.
-const SITE_GUTTER_PX = 24;
 
 // The screens the case is checked on, a laptop's and a phone's, and the
 // most the trail band and the conversation's pinned header may take of
@@ -381,14 +381,14 @@ describe("the pinned quest title", () => {
   });
 });
 
-describe("sidebar header clearance", () => {
+describe("sidebar breadcrumb alignment", () => {
   test.each([FOX_QUEST.name, LONG_QUEST_NAME])(
-    "stays below the full header and follows its pinned edge for %s",
+    "opens from the breadcrumb row and follows it while pinned for %s",
     async (name) => {
       await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
       store.getQuest.mockResolvedValue({ ...FOX_QUEST, name });
       await render(await chatPage());
-      const header = page.getByRole("banner");
+      const row = page.getByRole("region", { name: SITE_COPY.breadcrumbs });
       const panel = page.getByRole("dialog", { name: "Quest side menu" });
       await expect.element(panel).toBeVisible();
       globalThis.scrollTo(0, 0);
@@ -397,7 +397,8 @@ describe("sidebar header clearance", () => {
         .poll(
           () =>
             panel.element().getBoundingClientRect().top -
-            header.element().getBoundingClientRect().bottom,
+            row.element().getBoundingClientRect().top -
+            row.element().clientTop,
         )
         .toBeCloseTo(0, 0);
       expect(panel.element().getBoundingClientRect().right).toBe(
@@ -411,7 +412,8 @@ describe("sidebar header clearance", () => {
         .poll(
           () =>
             panel.element().getBoundingClientRect().top -
-            header.element().getBoundingClientRect().bottom,
+            row.element().getBoundingClientRect().top -
+            row.element().clientTop,
         )
         .toBeCloseTo(0, 0);
       expect(panel.element().getBoundingClientRect().bottom).toBe(
@@ -421,25 +423,25 @@ describe("sidebar header clearance", () => {
         .getByRole("button", { name: "Collapse quest sidebar" })
         .click();
       const toggle = page.getByRole("button", { name: "Open quest sidebar" });
-      expect(
-        toggle.element().getBoundingClientRect().top,
-      ).toBeGreaterThanOrEqual(header.element().getBoundingClientRect().bottom);
+      await expect.element(toggle).toBeInViewport({ ratio: 1 });
       globalThis.scrollTo(0, 0);
       await expect
         .poll(
           () =>
             toggle.element().getBoundingClientRect().top -
-            header.element().getBoundingClientRect().bottom,
+            row.element().getBoundingClientRect().top,
         )
         .toBeGreaterThanOrEqual(0);
+      const toggleBounds = toggle.element().getBoundingClientRect();
       await toggle.click();
-      await expect
-        .poll(
-          () =>
-            panel.element().getBoundingClientRect().top -
-            header.element().getBoundingClientRect().bottom,
-        )
-        .toBeCloseTo(0, 0);
+      const closeBounds = page
+        .getByRole("button", { name: "Collapse quest sidebar" })
+        .element()
+        .getBoundingClientRect();
+      expect([closeBounds.left, closeBounds.top]).toEqual([
+        toggleBounds.left,
+        toggleBounds.top,
+      ]);
     },
   );
 });
@@ -627,7 +629,7 @@ describe("conversation initialization fallback", () => {
 
 describe("use_case_dailies", () => {
   test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
-    "the construct's button sits at the trail band's right, clear of the open site panel, at $width px",
+    "the construct's button shares the breadcrumb row at $width px",
     async (size) => {
       // The later cases open the sidebar from its button, so they keep the
       // screen they had.
@@ -658,22 +660,18 @@ describe("use_case_dailies", () => {
         "the button sits on the heading's row",
       ).toBeLessThan(button.height / 2);
       expect(
-        window.innerWidth - button.right,
-        "the button ends at the band's right",
-      ).toBeLessThanOrEqual(SITE_GUTTER_PX);
+        button.right,
+        "the construct stays within the row",
+      ).toBeLessThanOrEqual(size.width);
       expect(button.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         size.width,
       );
 
       await openPanel();
-      const panel = sitePanel().element().getBoundingClientRect();
-      const open = construct.element().getBoundingClientRect();
-      expect(
-        open.bottom <= panel.top || open.left >= panel.right,
-        "the open panel leaves the button clear",
-      ).toBe(true);
+      await expect.element(sitePanel()).toBeVisible();
       await closePanel();
+      await expect.element(construct).toBeVisible();
 
       await construct.click();
       await expect

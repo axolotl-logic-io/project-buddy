@@ -2,8 +2,8 @@
 // Chromium and WebKit, in every theme: the header's bar takes one row at
 // every width, so the page starts high on the screen. On a phone the brand
 // is its medallion alone, still named for the site. The site panel's button
-// floats under the header's left end, and the open panel's close button
-// takes its place. The button stays a touch target's height (44 px), the
+// sits at the breadcrumb row's left end; the close button lines up with
+// it inside the open panel. The button stays a touch target's height (44 px), the
 // brand at least WCAG 2.5.8's minimum (24 px), and nothing scrolls
 // sideways. The open panel, on the left under the header, fits the
 // narrowest phone, with every link a target's height. On a wide screen the
@@ -18,7 +18,15 @@
 // and targets.
 
 import type { JSX } from "react";
-import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
@@ -165,6 +173,10 @@ beforeAll(() => {
   installThemeFonts();
 });
 
+beforeEach(() => {
+  applyTheme("parchment");
+});
+
 afterEach(async () => {
   action.saveThemeChoiceAction.mockReset();
   await setViewport(LAPTOP_VIEWPORT);
@@ -211,8 +223,10 @@ describe("use_case_use_on_phone", () => {
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
           expect(
             buttonBox.top,
-            "the panel's button floats under the header",
-          ).toBeGreaterThan(headerBox.bottom);
+            "the panel's button is inside the header",
+          ).toBeGreaterThanOrEqual(headerBox.top);
+          expect(buttonBox.bottom).toBeLessThanOrEqual(headerBox.bottom);
+          expect(buttonBox.top).toBeGreaterThanOrEqual(titleBox.bottom);
           expect(
             buttonBox.right,
             "the panel's button is on the left, where the panel opens",
@@ -228,14 +242,12 @@ describe("use_case_use_on_phone", () => {
           const closeBox = closeButton().element().getBoundingClientRect();
           expect(
             [closeBox.left, closeBox.top],
-            "the panel's close button takes its button's place",
+            "the panel's close button lines up with its expand button",
           ).toEqual([buttonBox.left, buttonBox.top]);
           expect(
             panel.top,
-            "the panel is under the header",
-          ).toBeGreaterThanOrEqual(
-            page.getByRole("banner").element().getBoundingClientRect().bottom,
-          );
+            "the panel opens from the breadcrumb row",
+          ).toBeLessThanOrEqual(buttonBox.top);
           expect(panel.right, "the panel ends on the screen").toBeLessThan(
             screen.viewport.width,
           );
@@ -281,6 +293,7 @@ describe("use_case_experience_ring", () => {
   test.each(SCREENS)(
     "the ring of the user's circle fills toward the next one, at the bar's right end, on $name",
     async (screen) => {
+      applyTheme("parchment");
       signInAs(SIGNED_IN_USER);
       await setViewport(screen.viewport);
       await render(await SignedInHeader());
@@ -422,6 +435,7 @@ describe("the site panel", () => {
   });
 
   test("on a wide screen, docks over the page, which keeps its size and flow, and stays open from page to page until closed", async () => {
+    applyTheme("parchment");
     await setViewport(LAPTOP_VIEWPORT);
     // Keep the test's page: the link's own navigation is Next's to test.
     globalThis.addEventListener("click", stayOnThisPage, { capture: true });
@@ -614,8 +628,11 @@ describe("the trail band", () => {
     );
     expect(
       panelButton().element().getBoundingClientRect().top,
-      "the panel's button floats under the band",
-    ).toBeGreaterThan(heading.bottom);
+      "the panel's button is alongside the breadcrumb heading",
+    ).toBeLessThanOrEqual(heading.bottom);
+    expect(
+      panelButton().element().getBoundingClientRect().bottom,
+    ).toBeGreaterThanOrEqual(heading.top);
     for (const link of links) {
       const bounds = link.element().getBoundingClientRect();
       expect(bounds.right, "parents lead into the heading").toBeLessThan(
@@ -655,11 +672,24 @@ describe("the trail band", () => {
     await expect
       .element(page.getByRole("link", { name: SITE_COPY.name }))
       .not.toBeInViewport();
-    // The panel's button follows the band.
-    await expect
-      .poll(() => panelButton().element().getBoundingClientRect().top)
-      .toBeGreaterThan(pageHeading().element().getBoundingClientRect().bottom);
+    // The panel's expand button stays pinned with the breadcrumbs.
     await expect.element(panelButton()).toBeInViewport({ ratio: 1 });
+    const expandBounds = panelButton().element().getBoundingClientRect();
+    panelButton().element().focus({ preventScroll: true });
+    await userEvent.keyboard("{Enter}");
+    await expect.element(sitePanel()).toBeVisible();
+    await Promise.all(
+      sitePanel()
+        .element()
+        .getAnimations()
+        .map((animation) => animation.finished),
+    );
+    const closeBounds = closeButton().element().getBoundingClientRect();
+    expect([closeBounds.left, closeBounds.top]).toEqual([
+      expandBounds.left,
+      expandBounds.top,
+    ]);
+    await closePanel();
     window.scrollTo(0, 0);
   });
 
