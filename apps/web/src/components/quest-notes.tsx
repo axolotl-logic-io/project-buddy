@@ -65,7 +65,7 @@ function QuestNotes({
   const [status, setStatus] = useState<string | undefined>();
   const [failure, setFailure] = useState<string | undefined>();
   const headingRef = useRef<HTMLParagraphElement>(null);
-  // A route refresh can add a note saved from the menu.
+  // A route refresh can add a note saved from the site panel.
   const [previous, setPrevious] = useState(savedNotes);
   if (previous !== savedNotes) {
     setPrevious(savedNotes);

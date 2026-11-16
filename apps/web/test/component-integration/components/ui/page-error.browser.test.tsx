@@ -62,7 +62,7 @@ describe("the error page's message", () => {
   test("under a trail band, which names the page, its heading is a section's", async () => {
     await render(
       <>
-        <SiteHeader links={<TrailBand items={[{ label: "Settings" }]} />} />
+        <SiteHeader trail={<TrailBand items={[{ label: "Settings" }]} />} />
         <main>
           <PageError error={FAILURE} retry={noRetry} />
         </main>

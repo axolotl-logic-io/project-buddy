@@ -105,14 +105,14 @@
 // Decoration:
 //   --page-decoration a background-image behind the     (set on <body>)
 //                     page, or `none`
-// The site's menu, one value for both modes, read by page-roles.css's
-// .site-menu and .menu-* roles:
-//   --menu-decoration      a background-image behind the menu's panel, or
+// The site panel, one value for both modes, read by page-roles.css's
+// .site-panel and .panel-* roles:
+//   --panel-decoration     a background-image behind the site panel, or
 //                          `none`; hidden with the page decoration
-//   --menu-label-case      a text-transform for its groups' names
-//   --menu-label-tracking  their letter-spacing
-//   --menu-separator       a background for the rule between its groups
-//   --menu-separator-size  that rule's height
+//   --panel-label-case     a text-transform for its groups' names
+//   --panel-label-tracking their letter-spacing
+//   --panel-separator      a background for the rule between its groups
+//   --panel-separator-size that rule's height
 //   --header-ink      the shared HUD's permanent dark ground
 //   --header-paper    light text and medallion on the HUD
 //   --header-line     HUD separators and button shadow

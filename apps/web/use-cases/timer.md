@@ -1,13 +1,13 @@
 # Timer
 
-The conventions for these cases are in [the index](README.md#conventions). The Timer is a destination of its own in the site menu's Places, apart from every quest. A timer repeats a work period and a break period forever from a fixed start. Its link holds only the durations and the start, so following it reaches no quest, conversation, Tasks or Quick Notes.
+The conventions for these cases are in [the index](README.md#conventions). The Timer is a destination of its own in the site panel's Places, apart from every quest. A timer repeats a work period and a break period forever from a fixed start. Its link holds only the durations and the start, so following it reaches no quest, conversation, Tasks or Quick Notes.
 
 ## use_case_timer_start
 
 - **Intent:** Work for a chosen length of time and then take a break.
 - **Prerequisites:** the user is signed in ([`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link)).
 - **Steps:**
-  - They open Timer from the site menu.
+  - They open Timer from the site panel.
   - They choose how long to work for and how long to break for, and choose Start.
 - **Outcome:** each length is one of 10, 15, 25, 30, 45, 50, 60 or 120 minutes; a tab that has shown no timer offers 50 minutes of work and 10 of break. Start opens the new timer's link. It begins with work and its whole length left. A large ring fills as each period passes, and the period's name, Work or Break, and the time left, as MM:SS or from an hour HH:MM:SS, show in it. The timer moves between work and break by itself.
 - **Next:**
@@ -60,7 +60,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Intent:** Leave a timer and choose another schedule.
 - **Prerequisites:** an open timer.
 - **Steps:**
-  - They choose Change timer, or Timer in the site menu.
+  - They choose Change timer, or Timer in the site panel.
   - They may change the lengths and start again.
 - **Outcome:** setup offers the lengths of the timer last shown in this browser tab; another tab or device offers its own. A new Start makes a new schedule with a new link. Links already shared, and other people's timers, are unchanged.
 - **Next:**

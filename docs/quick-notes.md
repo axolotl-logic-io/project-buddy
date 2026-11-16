@@ -4,9 +4,9 @@ A Quick Note is a short, dated line that the user saves to one of their quests w
 
 ## The Quick Note dialog
 
-The signed-in site menu has a **Quick Note** item at its top. Choosing it closes the menu and opens a modal dialog, which loads the user's Active quests and offers them newest first. On a quest's page, that quest is chosen if it is Active; otherwise the newest Active quest is chosen. With no Active quest, the dialog says so and links to Quests.
+The signed-in site panel has a **Quick Note** item at its top. Choosing it closes the panel's drawer on a narrow screen, leaves a docked panel open, and opens a modal dialog, which loads the user's Active quests and offers them newest first. On a quest's page, that quest is chosen if it is Active; otherwise the newest Active quest is chosen. With no Active quest, the dialog says so and links to Quests.
 
-Saving calls no model and spends nothing. A saved Quick Note clears the text and keeps the quest chosen, ready for the next one. The text is trimmed and holds 1 to 1000 characters; the dialog refuses an empty or longer note with a message under the field, and the server checks it again. A quest that is gone, not the user's, or no longer Active takes no note, and the dialog says so. In each case the dialog keeps the typed text. Closing the dialog returns focus to the menu's button.
+Saving calls no model and spends nothing. A saved Quick Note clears the text and keeps the quest chosen, ready for the next one. The text is trimmed and holds 1 to 1000 characters; the dialog refuses an empty or longer note with a message under the field, and the server checks it again. A quest that is gone, not the user's, or no longer Active takes no note, and the dialog says so. In each case the dialog keeps the typed text. Closing the dialog returns focus to the site panel's button, or to Quick Note when the panel is docked.
 
 ## Storage
 

@@ -3,7 +3,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { headerBreadcrumbs } from "@/components/header-breadcrumbs.ts";
 import { QuestTitle } from "@/components/quest-title.tsx";
-import { SignedInLinks } from "@/components/site-header.tsx";
+import { SignedInHeader } from "@/components/site-header.tsx";
 
 // Shared header rendering for explicit collection routes and the detail catch-all.
 async function HeaderLinksAt({
@@ -22,7 +22,7 @@ async function HeaderLinksAt({
       return { ...item, action: <QuestTitle quest={item.quest} /> };
     });
   }
-  return SignedInLinks({ breadcrumbs });
+  return SignedInHeader({ breadcrumbs });
 }
 
 export { HeaderLinksAt };
