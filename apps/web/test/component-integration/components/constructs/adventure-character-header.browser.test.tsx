@@ -5,8 +5,8 @@ import { AdventureCharacterHeader } from "@/components/constructs/adventure-char
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
+import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
-import { tabForward } from "../keyboard-test-kit.ts";
 
 const PROFILE_VISUAL_PATH =
   /^\/constructs\/vellum-v1-(?:64|128|256|512|1024)\.webp$/u;

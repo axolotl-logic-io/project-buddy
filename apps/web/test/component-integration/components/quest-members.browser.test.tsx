@@ -10,6 +10,7 @@ import type { PendingQuest, QuestPeople } from "@/quests/membership-store.ts";
 import { PENDING_COPY, QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { questIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
+import { tabForward } from "../../support/keyboard-test-kit.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -348,9 +349,9 @@ describe("the Members tab in the quest sidebar's drawer", () => {
       await expect.element(cancel).toHaveFocus();
       // Three presses from Cancel end on Remove only if focus wraps
       // within the question, never reaching the drawer behind it.
-      await userEvent.keyboard("{Tab}");
-      await userEvent.keyboard("{Tab}");
-      await userEvent.keyboard("{Tab}");
+      await tabForward();
+      await tabForward();
+      await tabForward();
       await expect.element(confirm).toHaveFocus();
       await cancel.click();
       await expect.element(question).not.toBeInTheDocument();
@@ -361,7 +362,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
         .getByRole("button", { name: QUEST_MEMBERS_COPY.removeLabel("Rae") })
         .click();
       await expect.element(cancel).toHaveFocus();
-      await userEvent.keyboard("{Tab}");
+      await tabForward();
       await expect.element(confirm).toHaveFocus();
       await userEvent.keyboard("{Enter}");
       await expect
