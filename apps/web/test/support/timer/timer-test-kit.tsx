@@ -7,6 +7,7 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { TimerDisplay } from "@/components/timer/timer-display.tsx";
 import { TimerSetup } from "@/components/timer/timer-setup.tsx";
+import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
 import type { TimerSchedule } from "@/timer/schedule.ts";
 
 const MS_PER_MINUTE = 60_000;
@@ -26,14 +27,18 @@ async function renderSetup(): Promise<void> {
   await render(<TimerSetup clock={readClock} />);
 }
 
-// The schedule running, with the clock at nowMs.
+// The schedule running, with the clock at nowMs, and the trail band's
+// tools for it.
 async function renderTimer(
   schedule: TimerSchedule,
   nowMs: number = schedule.startMs,
 ): Promise<{ unmount: () => Promise<void> }> {
   clock.now = nowMs;
   const screen = await render(
-    <TimerDisplay clock={readClock} schedule={schedule} />,
+    <>
+      <TimerTrailTools schedule={schedule} />
+      <TimerDisplay clock={readClock} schedule={schedule} />
+    </>,
   );
   return { unmount: (): Promise<void> => Promise.resolve(screen.unmount()) };
 }

@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useCallback, useEffect, useId, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import { rememberDurations } from "@/components/timer/remembered-durations.ts";
-import { useTimerPresence } from "@/components/timer/use-timer-presence.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { FormStatus, Notice } from "@/components/ui/form-message.tsx";
-import type { TimerPresence } from "@/timer/presence.ts";
+import { Notice } from "@/components/ui/form-message.tsx";
 import {
   formatRemaining,
   msUntilNextSecond,
@@ -108,43 +106,10 @@ function TimerFace({
   );
 }
 
-// What the page says of the others following the schedule.
-function othersText(presence: TimerPresence | undefined): string {
-  if (presence === undefined) {
-    return TIMER_COPY.othersLoading;
-  }
-  if (presence.kind === "unavailable") {
-    return TIMER_COPY.othersUnavailable;
-  }
-  if (presence.others === 0) {
-    return TIMER_COPY.noOthers;
-  }
-  return TIMER_COPY.others(presence.others);
-}
-
-// Copies the page's link, and says whether it could.
-function CopyLink(): JSX.Element {
-  const [status, setStatus] = useState("");
-  const copy = useCallback((): void => {
-    navigator.clipboard.writeText(globalThis.location.href).then(
-      () => setStatus(TIMER_COPY.copied),
-      () => setStatus(TIMER_COPY.copyFailed),
-    );
-  }, []);
-  return (
-    <div className="flex flex-col gap-2">
-      <Button className="self-start" onClick={copy} variant="secondary">
-        {TIMER_COPY.copyLink}
-      </Button>
-      <FormStatus>{status}</FormStatus>
-    </div>
-  );
-}
-
 // A running timer: the schedule's current phase, the time left of it and
-// a ring of its progress, kept to the browser's clock; how many others
-// follow the same schedule; its link to share; and the way back to setup.
-// It remembers the schedule's durations for setup in this tab. A schedule
+// a ring of its progress, kept to the browser's clock. The count of others
+// and the link to copy are in the trail band (timer-trail-tools.tsx). It
+// remembers the schedule's durations for setup in this tab. A schedule
 // that hasn't started yet shows no countdown.
 function TimerDisplay({
   schedule,
@@ -155,8 +120,6 @@ function TimerDisplay({
   readonly clock?: () => number;
 }): JSX.Element {
   const now = useNow(schedule, clock);
-  const presence = useTimerPresence(schedule);
-  const othersId = useId();
   const { workMinutes, breakMinutes } = schedule;
 
   useEffect(() => {
@@ -177,17 +140,6 @@ function TimerDisplay({
       <p className="sr-only" role="status">
         {phase !== undefined && TIMER_COPY.phaseStarted(phase.kind)}
       </p>
-      <section aria-labelledby={othersId} className="timer-details">
-        <h2 className="section-heading" id={othersId}>
-          {TIMER_COPY.othersHeading}
-        </h2>
-        <p className="text-muted">{othersText(presence)}</p>
-        <p className="text-muted">{TIMER_COPY.shareHint}</p>
-        <CopyLink />
-        <Button asChild={true} className="self-start" variant="quiet">
-          <Link href={TIMER_PATH}>{TIMER_COPY.change}</Link>
-        </Button>
-      </section>
     </div>
   );
 }

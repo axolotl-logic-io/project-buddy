@@ -50,7 +50,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Intent:** Know that others are following the same schedule.
 - **Prerequisites:** an open timer ([`use_case_timer_start`](#use_case_timer_start), [`use_case_timer_join_link`](#use_case_timer_join_link) or [`use_case_timer_join_global`](#use_case_timer_join_global)).
 - **Steps:**
-  - They read the count under the timer.
+  - They read the count, such as 3 others here, at the right of the bar with the page's trail.
 - **Outcome:** the count is of other signed-in accounts that had this exact schedule open in the last 2 minutes. An open timer reports every minute and as its tab comes back into view. An account counts once however many tabs or devices it has open, and the user never counts themselves. The count names no one and shows no quest. When a report fails the count says it is unavailable, never a stale number or a made-up zero, and the timer keeps running; the next report that succeeds shows the count again.
 - **Next:**
   - [`use_case_timer_join_link`](#use_case_timer_join_link): share the link with someone else.
@@ -60,7 +60,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Intent:** Leave a timer and choose another schedule.
 - **Prerequisites:** an open timer.
 - **Steps:**
-  - They choose Change timer, or Timer in the site menu.
+  - They choose Timer in the page's trail, or Timer in the site menu.
   - They may change the lengths and start again.
 - **Outcome:** setup offers the lengths of the timer last shown in this browser tab; another tab or device offers its own. A new Start makes a new schedule with a new link. Links already shared, and other people's timers, are unchanged.
 - **Next:**
