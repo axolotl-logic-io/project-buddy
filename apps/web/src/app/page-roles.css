@@ -476,7 +476,13 @@
     --trail-band-min-height: calc(var(--target-size) + --spacing(1));
     --trail-heading-leading: 1.15;
     --site-header-height: 0px;
-    --site-header-bottom: var(--site-header-height);
+    /* The bar, its rim and any trail band, until HeaderSize measures it. */
+    --site-header-bottom: calc(
+      var(--target-size) +
+      --spacing(4) +
+      var(--header-rim) +
+      var(--site-header-height)
+    );
     --site-panel-width: 18rem;
     scroll-padding-top: var(--site-header-height);
   }
@@ -554,11 +560,13 @@
   }
 
   /* The header is a game's HUD in every theme, with an independent ink and
-     gold palette: one row of the site panel's button, an ink tile with a
-     gold rim, then the brand, a compass medallion and the site's name.
-     The site panel inside it keeps the theme's own look, so only the
-     header's own children are dressed. The header contains nothing, so
-     the docked site panel inside it is fixed to the screen. */
+     gold palette: one row, an ink tile with a gold rim, holding the brand,
+     a compass medallion and the site's name, and, for a signed-in user,
+     the ring of their progress at its right end. The site panel and its
+     button inside it keep the theme's own look, so only the header's own
+     children are dressed. The header contains nothing, so the site
+     panel's button and the docked panel inside it are fixed to the
+     screen. */
   .site-header {
     @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
     padding-inline: var(--header-gutter);
@@ -567,12 +575,11 @@
     border-block-end: var(--header-rim) solid var(--hud-gold);
   }
 
-  .site-header > :not(.site-panel, .trail-band) {
+  .site-header > :not(.site-panel, .site-panel-toggle, .trail-band) {
     --focus-outline: 3px solid var(--hud-gold);
   }
 
-  /* The brand follows the site panel's button and takes the rest of the
-     row. */
+  /* The brand takes the row up to the ring, if there is one. */
   .hud-title {
     @apply mr-auto inline-flex min-h-(--target-size) min-w-0 shrink items-center gap-2 whitespace-nowrap;
   }
@@ -727,7 +734,9 @@
 
   /* The site panel (src/components/site-panel.tsx), the chat panel's
      mirror on the left: under the header, for the rest of the screen's
-     height. Below the lg breakpoint it is a drawer that slides in over a
+     height. Its button floats under the header's left end, as the chat
+     panel's does under the right, and the open panel's close button takes
+     the button's place. Below the lg breakpoint it is a drawer that slides in over a
      page it leaves undimmed, so a theme or mode chosen in it shows on the
      page beside it, and the page under it doesn't scroll. From lg it docks
      beside the page, which makes room for it. A closed <dialog> is hidden
@@ -741,6 +750,25 @@
     max-block-size: none;
     @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-surface p-3 text-foreground open:flex;
     background-image: var(--panel-decoration);
+  }
+
+  .site-panel-toggle {
+    inset-block-start: calc(var(--site-header-bottom) + --spacing(4));
+    @apply fixed start-4 z-20 bg-surface;
+  }
+
+  .site-panel-toggle:has(+ .site-panel[open]) {
+    display: none;
+  }
+
+  /* The close button starts the panel's heading, in the place of the
+     button that opened it: the panel's padding plus this margin. */
+  .site-panel-heading {
+    @apply flex items-center gap-2 pb-1;
+  }
+
+  .site-panel-close {
+    @apply ms-1 mt-1;
   }
 
   .site-panel:modal {
@@ -1357,14 +1385,18 @@
     @apply px-0 py-4;
   }
 
-  .quest-sidebar-toggle {
+  /* The button that opens or closes a side panel: the chat panel's and the
+     site panel's. */
+  .panel-toggle {
     inline-size: var(--target-size);
     block-size: var(--target-size);
     @apply shrink-0 justify-center rounded-control text-muted hover:bg-field hover:text-foreground hover:no-underline;
   }
 
+  /* It floats where the open panel's close button sits: the sidebar's
+     padding in from the screen's edge and below the header. */
   .quest-sidebar-expand {
-    inset-block-start: calc(var(--site-header-bottom) + --spacing(2));
+    inset-block-start: calc(var(--site-header-bottom) + --spacing(4));
     @apply fixed end-4 z-20 bg-surface;
   }
 

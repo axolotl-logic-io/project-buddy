@@ -80,7 +80,7 @@ function ChatPanel({
       <Button
         ref={toggleRef}
         variant="quiet"
-        className="quest-sidebar-toggle quest-sidebar-expand"
+        className="panel-toggle quest-sidebar-expand"
         aria-label={QUEST_SIDEBAR_COPY.expand}
         title={QUEST_SIDEBAR_COPY.expand}
         aria-expanded={open}
@@ -105,7 +105,7 @@ function ChatPanel({
             navigation={
               <Button
                 variant="quiet"
-                className="quest-sidebar-toggle"
+                className="panel-toggle"
                 aria-label={QUEST_SIDEBAR_COPY.collapse}
                 title={QUEST_SIDEBAR_COPY.collapse}
                 aria-expanded={open}
