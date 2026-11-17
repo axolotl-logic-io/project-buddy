@@ -25,6 +25,7 @@ import {
   type CommandListing,
 } from "@/components/chat/chat-commands.ts";
 import {
+  ChatBusyContext,
   ChatSendContext,
   type ChatSendResult,
 } from "@/components/chat/chat-send.ts";
@@ -479,17 +480,19 @@ function ChatView({
     <AssistantRuntimeProvider runtime={runtime}>
       <TasksContext.Provider value={tasks}>
         <ChatCommandsContext.Provider value={commands}>
-          <ChatSendContext.Provider value={send}>
-            {tasks === undefined && conversation}
-            {tasks !== undefined && (
-              <ChatPanel
-                initialSection={initialSection}
-                sideSections={sideSections}
-              >
-                {conversation}
-              </ChatPanel>
-            )}
-          </ChatSendContext.Provider>
+          <ChatBusyContext.Provider value={busy}>
+            <ChatSendContext.Provider value={send}>
+              {tasks === undefined && conversation}
+              {tasks !== undefined && (
+                <ChatPanel
+                  initialSection={initialSection}
+                  sideSections={sideSections}
+                >
+                  {conversation}
+                </ChatPanel>
+              )}
+            </ChatSendContext.Provider>
+          </ChatBusyContext.Provider>
         </ChatCommandsContext.Provider>
       </TasksContext.Provider>
     </AssistantRuntimeProvider>
