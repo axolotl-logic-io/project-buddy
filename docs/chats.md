@@ -8,7 +8,7 @@ A conversation keeps the construct it started with. Casting or stopping a spell 
 
 ## Start a quest
 
-On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. Edit the name and starting context, and optionally fill in Why. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell.
+On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. The starting point supplies the name, starting context and construct. Learn a thing, Make a thing and Do a thing offer an optional Why field; Dailies starts without one. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell.
 
 Failed openings save nothing and keep the form's edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one. See [Premade quests](premade-quests.md).
 

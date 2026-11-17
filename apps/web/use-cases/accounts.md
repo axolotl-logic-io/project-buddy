@@ -45,7 +45,7 @@ The user opens a sign-in link more than 30 minutes after the site sent it.
 - **Steps:**
   - The user opens the link from the email.
   - The page says the link has expired, with a link to the sign-in page to ask for a new one.
-- **Outcome:** the user is still signed out in that browser: every other page shows the sign-in page. Asking for a new link on the sign-in page sends a fresh one that signs them in.
+- **Outcome:** the user is still signed out in that browser: pages that require sign-in show the sign-in page. Public pages, including Timer and Credits, remain available. Asking for a new link on the sign-in page sends a fresh one that signs them in.
 - **Next:**
   - `use_case_sign_in_by_link`: ask for a new link.
 
@@ -114,7 +114,7 @@ The user signs out of the browser the user is using.
 - **Steps:**
   - On Settings, the user chooses Sign out.
   - The site shows the sign-in page.
-- **Outcome:** every page in this browser shows the sign-in page until the user signs in again. Their other browsers and devices stay signed in. A sign-in link from the last 30 minutes still signs them in.
+- **Outcome:** every page that requires sign-in in this browser shows the sign-in page until the user signs in again. Their other browsers and devices stay signed in. A sign-in link from the last 30 minutes still signs them in.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again.
   - `use_case_sign_out_everywhere`: the user wants every device signed out.
@@ -129,7 +129,7 @@ The user signs out of every browser and device at once, for example after signin
   - The site asks them to confirm. The user confirms.
   - The site shows the sign-in page.
   - In the other browser, the user opens a page.
-- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and a conversation left open there says the user has been signed out when the user next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs them in, even within its 30 minutes. If the user cancels instead of confirming, nothing changes and the user stays signed in everywhere. A new link signs them in as usual.
+- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page when it next opens a page that requires sign-in, and a conversation left open there says the user has been signed out when the user next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs them in, even within its 30 minutes. If the user cancels instead of confirming, nothing changes and the user stays signed in everywhere. A new link signs them in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where the user wants to be.
 
