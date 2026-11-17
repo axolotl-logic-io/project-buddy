@@ -4,7 +4,6 @@ import { SPELL_DEFINITION } from "@/spells/spell-definition.ts";
 // and chats.
 
 import type { SessionUser } from "@/auth/session-token.ts";
-import type { OwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { OWN_PROMPT_ID } from "@/ids.ts";
 import type { OwnSpell } from "@/spells/own-spell-store.ts";
@@ -12,6 +11,7 @@ import {
   userConstructIdFixture,
   userIdFixture,
 } from "../../support/id-fixtures.ts";
+import type { OwnConstruct } from "../../support/test-database/historical-construct-test-kit.ts";
 
 // Her clone of Vellum.
 const VELLUM_CLONE: OwnConstruct = {

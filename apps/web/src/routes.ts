@@ -1,19 +1,10 @@
 // The app's route paths that code refers to.
 
-import type { Route } from "next";
-
 // Where a visitor without a session is sent.
 const SIGN_IN_PATH = "/login";
 
 // Quests is the signed-in landing destination.
 const HOME_PATH = "/quests";
-
-function workshopPath(kind: "construct" | "spell"): Route {
-  if (kind === "construct") {
-    return "/workshop";
-  }
-  return `/workshop?kind=${kind}`;
-}
 
 // The page a sign-in link opens, and its parameter naming where continuing
 // leads, when not home.
@@ -40,5 +31,4 @@ export {
   SIGN_IN_DESTINATION_PARAMETER,
   SIGN_IN_LINK_PATH,
   SIGN_IN_PATH,
-  workshopPath,
 };

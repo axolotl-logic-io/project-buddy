@@ -170,12 +170,12 @@
     @apply flex min-w-0 flex-col gap-4;
   }
 
-  .workshop {
+  .definition-editor {
     @apply flex min-w-0 flex-col gap-6;
   }
 
   /* Save, with the hint that says what it costs above it and the status
-     line below: what the Workshop pins while the form scrolls. The other
+     line below: what the editor pins while the form scrolls. The other
      actions, Reset and Discard changes, follow it at the form's end, so
      the pinned bar is one short row on a phone. */
   .prompt-editor-actions {
@@ -1271,12 +1271,6 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
-  /* Built-in or own constructs, activities or spells: two columns from sm
-     up, or one column of rows inside a tabbed page (workspace-rows). */
-  .definition-grid {
-    @apply grid gap-3 sm:grid-cols-2;
-  }
-
   .workspace-rows > ul {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1519,7 +1513,7 @@
   }
 
   /* Without its list-item display, a summary loses its marker: draw it, as
-     the Workshop's test settings do. */
+     the editor's settings do. */
   .tasks-done > summary::before {
     content: "▸";
   }

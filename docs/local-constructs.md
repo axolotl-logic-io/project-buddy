@@ -36,7 +36,7 @@ No model selector or API key is required. The local engine runs in every environ
 
 `src/spells/spell-reply.ts` applies explicit spell commands and routes ordinary messages before the local reply streams. The spell transition or bucket write and its result commit together. `spell_message_results` keeps one result per source message, so a retry reuses the result without adding a duplicate item. Only the conversation's owner can read or write it.
 
-Workshop offers built-in Tasks and Brainstorm and customizable own spells. See [Spells](spellbook.md) for creation, destinations and active snapshots.
+Spellbook offers built-in Tasks and Brainstorm and customizable own spells. See [Spells](spellbook.md) for creation, destinations and active snapshots.
 
 ## Tests
 
