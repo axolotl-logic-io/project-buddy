@@ -1,0 +1,85 @@
+{
+  "branch": "integration",
+  "head": "c4ef8ddce033204f2426ff49fd9477018b57b0ab",
+  "workingTree": true,
+  "evidence": [
+    {
+      "width": 1280,
+      "mode": "light",
+      "url": "http://localhost:3000/quests",
+      "panel": "1280-light-panel.png",
+      "dialog": "1280-light-dialog.png",
+      "metrics": {
+        "width": 238,
+        "height": 86,
+        "description": "Quick NoteSave a thought to a quest."
+      },
+      "state": "Quick Note\n\nSave a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.\n\nQuick Note for\nDailies\nQuick Note\n\nUp to 1000 characters.\n\nSave Quick Note"
+    },
+    {
+      "width": 1280,
+      "mode": "soot-brass",
+      "url": "http://localhost:3000/quests",
+      "panel": "1280-soot-brass-panel.png",
+      "dialog": "1280-soot-brass-dialog.png",
+      "metrics": {
+        "width": 238,
+        "height": 86,
+        "description": "Quick NoteSave a thought to a quest."
+      },
+      "state": "Quick Note\n\nSave a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.\n\nQuick Note for\nDailies\nQuick Note\n\nUp to 1000 characters.\n\nSave Quick Note"
+    },
+    {
+      "width": 1280,
+      "mode": "dark",
+      "url": "http://localhost:3000/quests",
+      "panel": "1280-dark-panel.png",
+      "dialog": "1280-dark-dialog.png",
+      "metrics": {
+        "width": 238,
+        "height": 86,
+        "description": "Quick NoteSave a thought to a quest."
+      },
+      "state": "Quick Note\n\nSave a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.\n\nQuick Note for\nDailies\nQuick Note\n\nUp to 1000 characters.\n\nSave Quick Note"
+    },
+    {
+      "width": 320,
+      "mode": "light",
+      "url": "http://localhost:3000/quests",
+      "panel": "320-light-panel.png",
+      "dialog": "320-light-dialog.png",
+      "metrics": {
+        "width": 238,
+        "height": 86,
+        "description": "Quick NoteSave a thought to a quest."
+      },
+      "state": "Quick Note\n\nSave a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.\n\nQuick Note for\nDailies\nQuick Note\n\nUp to 1000 characters.\n\nSave Quick Note"
+    },
+    {
+      "width": 320,
+      "mode": "soot-brass",
+      "url": "http://localhost:3000/quests",
+      "panel": "320-soot-brass-panel.png",
+      "dialog": "320-soot-brass-dialog.png",
+      "metrics": {
+        "width": 238,
+        "height": 86,
+        "description": "Quick NoteSave a thought to a quest."
+      },
+      "state": "Quick Note\n\nSave a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.\n\nQuick Note for\nDailies\nQuick Note\n\nUp to 1000 characters.\n\nSave Quick Note"
+    },
+    {
+      "width": 320,
+      "mode": "dark",
+      "url": "http://localhost:3000/quests",
+      "panel": "320-dark-panel.png",
+      "dialog": "320-dark-dialog.png",
+      "metrics": {
+        "width": 238,
+        "height": 86,
+        "description": "Quick NoteSave a thought to a quest."
+      },
+      "state": "Quick Note\n\nSave a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.\n\nQuick Note for\nDailies\nQuick Note\n\nUp to 1000 characters.\n\nSave Quick Note"
+    }
+  ]
+}

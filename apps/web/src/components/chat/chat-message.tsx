@@ -37,8 +37,8 @@ type BodyRenderInfo =
 // anything, writing it, or done. The user's messages are always done.
 type MessageProgress = "thinking" | "writing" | "done";
 
-// All messages share the manuscript measure. The role distinguishes a
-// compact inline author rubric from a ruled construct reply.
+// All messages share the reading measure. The role lets the stylesheet join
+// a user message and its following construct reply into one card.
 const MESSAGE_LOOKS: Readonly<Record<Role, string>> = {
   user: "chat-message chat-message-user",
   assistant: "chat-message chat-message-construct",

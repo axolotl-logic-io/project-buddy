@@ -40,7 +40,9 @@ A quest's conversation starts below the site header's trail band, without a sepa
 
 ## Conversation layout
 
-The Folio layout reads as one continuous manuscript. Source Serif 4 prose stays at 17 px with a 1.55 line height. A person's small-cap name starts their message inline; a construct's name and 24 px portrait sit above its reply, after a fine rule. Messages use the full reading width without bubbles or a user-message inset. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available.
+Each user message and its following construct reply share one card. The user message has a slightly translucent tinted surface that lets the page texture show through, with the author's name above the text. The reply continues directly below it, inside the same side borders, with the construct's name and 24 px portrait above its prose. Space separates each exchange. An opening or an unanswered user message has its own complete card; consecutive construct messages continue the same reply card. Consecutive user messages remain separate cards, with the reply joining the latest one.
+
+Source Serif 4 prose stays at 17 px with a 1.55 line height. User messages and replies have the same inset within the reading width. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available.
 
 The reading measure is at most 43 rem. Compact message spacing and Markdown paragraph gaps reduce scrolling without shrinking prose or action targets. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
 

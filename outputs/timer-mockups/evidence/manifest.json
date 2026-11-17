@@ -1,0 +1,59 @@
+{
+  "branch": "integration",
+  "head": "c4ef8ddce033204f2426ff49fd9477018b57b0ab",
+  "workingTree": "Uncommitted timer appearance integration; other concurrent edits were preserved.",
+  "page": "http://localhost:3000/timer/50/10/0",
+  "comparisonClockMs": 1549000,
+  "reference": "outputs/timer-mockups/{folio,necromancy,manuscript}.html",
+  "review": "Compared actual Next.js timer renders with approved mockups at desktop and 320 CSS px. Typography, paper grain, dial ornament, marginal notes, illumination, and progress arcs retained. Site chrome surrounds the book. Small red grimoire text is brighter for readability. The 320 px designs reflow to fit.",
+  "screenshots": [
+    {
+      "name": "folio",
+      "width": 1280,
+      "state": "Work, 24:11, sidebar closed",
+      "file": "outputs/timer-mockups/evidence/folio-1280.png"
+    },
+    {
+      "name": "necromancy",
+      "width": 1280,
+      "state": "Work, 24:11, sidebar closed",
+      "file": "outputs/timer-mockups/evidence/necromancy-1280.png"
+    },
+    {
+      "name": "manuscript",
+      "width": 1280,
+      "state": "Work, 24:11, sidebar closed",
+      "file": "outputs/timer-mockups/evidence/manuscript-1280.png"
+    },
+    {
+      "name": "folio",
+      "width": 320,
+      "state": "Work, 24:11, sidebar closed",
+      "file": "outputs/timer-mockups/evidence/folio-320.png"
+    },
+    {
+      "name": "necromancy",
+      "width": 320,
+      "state": "Work, 24:11, sidebar closed",
+      "file": "outputs/timer-mockups/evidence/necromancy-320.png"
+    },
+    {
+      "name": "manuscript",
+      "width": 320,
+      "state": "Work, 24:11, sidebar closed",
+      "file": "outputs/timer-mockups/evidence/manuscript-320.png"
+    },
+    {
+      "name": "preferences",
+      "width": 320,
+      "state": "Phone drawer open during Break; final semantic radio controls and Copy link",
+      "file": "outputs/timer-mockups/evidence/preferences-320.png"
+    },
+    {
+      "name": "manuscript-break",
+      "width": 320,
+      "state": "Break, 10:00, empty progress ring",
+      "file": "outputs/timer-mockups/evidence/manuscript-break-320.png"
+    }
+  ]
+}

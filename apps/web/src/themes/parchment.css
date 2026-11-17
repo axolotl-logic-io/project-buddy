@@ -3,12 +3,43 @@
   /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
      until it does. */
   :root {
+    --typeface-im-fell-english: Georgia, serif;
+    --typeface-im-fell-english-italic: Georgia, serif;
+    --typeface-cormorant-garamond: Georgia, serif;
+    --typeface-unifrakturmaguntia: Georgia, serif;
     --typeface-source-serif-4: Georgia, "Times New Roman", serif;
     --typeface-nunito: ui-rounded, system-ui, sans-serif;
     --typeface-jetbrains-mono: ui-monospace, monospace;
   }
 
   [data-theme="parchment"] {
+    /* Timer dials share the site's paper and ink. Only ornament and lettering differ. */
+    --timer-body-font: var(--typeface-im-fell-english);
+    --timer-phase-font: var(--typeface-im-fell-english-italic);
+    --timer-numeral-font: var(--typeface-cormorant-garamond);
+    --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
+    --timer-phase-size: 1.75rem;
+    --timer-numeral-size: 6rem;
+    --timer-radius: 173px;
+    --timer-stroke: 10px;
+    --timer-arc: var(--primary);
+    --timer-marker-active: var(--primary);
+    --timer-track: var(--line);
+    --timer-ornament-ink: var(--muted);
+    --timer-guide-outer: 182px;
+    --timer-guide-middle: 165px;
+    --timer-guide-inner: 0px;
+    --timer-roman-display: block;
+    --timer-inscription-display: none;
+    --timer-tick-display: block;
+    --timer-sigil-display: none;
+    --timer-chapter-display: none;
+    --timer-seal-display: none;
+    --timer-mark-glow: drop-shadow(
+      0 0 3px color-mix(in srgb, var(--timer-marker-active) 45%, transparent)
+    );
+    --timer-hatch-opacity: 0;
+
     --light-background: rgb(244 236 216);
     --light-surface: rgb(250 229 185);
     --light-field: rgb(255 243 215);
@@ -169,5 +200,34 @@
       transparent
     );
     --panel-separator-size: 1px;
+  }
+  [data-mode="soot-brass"] {
+    --timer-marker-active: var(--foreground);
+    --timer-phase-font: var(--heading-font);
+    --timer-radius: 164px;
+    --timer-stroke: 12px;
+    --timer-hatch-opacity: 0.16;
+    --timer-guide-outer: 186px;
+    --timer-guide-middle: 176px;
+    --timer-guide-inner: 151px;
+    --timer-roman-display: none;
+    --timer-tick-display: none;
+    --timer-chapter-display: block;
+  }
+
+  [data-mode="dark"] {
+    --timer-marker-active: var(--foreground);
+    --timer-phase-font: var(--timer-blackletter-font);
+    --timer-phase-size: 2rem;
+    --timer-radius: 162px;
+    --timer-stroke: 12px;
+    --timer-guide-outer: 186px;
+    --timer-guide-middle: 0px;
+    --timer-guide-inner: 136px;
+    --timer-roman-display: none;
+    --timer-inscription-display: block;
+    --timer-tick-display: none;
+    --timer-sigil-display: block;
+    --timer-seal-display: block;
   }
 }
