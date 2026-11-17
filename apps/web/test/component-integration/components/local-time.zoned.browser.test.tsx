@@ -19,8 +19,8 @@ import {
   vi,
 } from "vitest";
 import { page } from "vitest/browser";
-import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
-import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
+import { ForgottenSpellDetail } from "@/app/(workspace)/spellbook/forgotten-detail.tsx";
+import { ForgottenSpellList } from "@/app/(workspace)/spellbook/forgotten-list.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { QuestList } from "@/components/quest-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
@@ -217,7 +217,7 @@ vi.mock(
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+vi.mock("@/app/(workspace)/spellbook/forgotten-actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
 }));
@@ -226,13 +226,12 @@ test("Retirement list and detail show the local retirement day", async () => {
   signInAs(SIGNED_IN_USER);
   const definition = { ...RETIRED_SPELL, retiredAt: INSTANT };
   vi.mocked(getRetiredDefinition).mockResolvedValue(definition);
-  serverRenderThenHydrate(<RetirementList definitions={[definition]} />);
+  serverRenderThenHydrate(<ForgottenSpellList definitions={[definition]} />);
   await expect.element(page.getByText(zoneTimes().day)).toBeVisible();
   root?.unmount();
   container?.remove();
-  const detail = await RetiredDefinitionPage({
-    params: Promise.resolve({ promptId: definition.id }),
-    searchParams: Promise.resolve({}),
+  const detail = await ForgottenSpellDetail({
+    definition,
   });
   serverRenderThenHydrate(detail);
   await expect.element(page.getByText(zoneTimes().day)).toBeVisible();

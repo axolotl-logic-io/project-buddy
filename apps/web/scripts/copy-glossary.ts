@@ -64,29 +64,29 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "A private construct made by an older build. Its stored record and conversation snapshots remain, but creating, copying and editing custom constructs is no longer available.",
   },
   {
-    term: "Retire",
-    heading: "Retire, Graveyard, restore, delete forever",
-    aliases: ["retire", "retired", "retiring", "retirement"],
+    term: "Forget",
+    heading: "Forget, forgotten spells, restore, delete forever",
+    aliases: ["forget", "forgotten", "forgetting"],
     definition:
       "Put aside a spell the person owns without losing its settings. It cannot be chosen for new use until restored. Existing conversations keep what they already saved.",
   },
   {
-    term: "Graveyard",
-    heading: "Retire, Graveyard, restore, delete forever",
-    aliases: ["Graveyard"],
+    term: "Forgotten spells",
+    heading: "Forget, forgotten spells, restore, delete forever",
+    aliases: ["forgotten spells"],
     definition:
-      "The page listing a person's retired spells. They can bring one back for use or permanently delete it here.",
+      "The Spellbook tab listing a person's forgotten spells. They can bring one back for use or permanently delete it here.",
   },
   {
     term: "Restore",
-    heading: "Retire, Graveyard, restore, delete forever",
+    heading: "Forget, forgotten spells, restore, delete forever",
     aliases: ["restore", "restoring", "restored", "restoration"],
     definition:
-      "Make a retired spell available again, keeping its saved settings. For a Completed or Abandoned quest, restore means change its status back to Active.",
+      "Make a forgotten spell available again, keeping its saved settings. For a Completed or Abandoned quest, restore means change its status back to Active.",
   },
   {
     term: "Delete forever",
-    heading: "Retire, Graveyard, restore, delete forever",
+    heading: "Forget, forgotten spells, restore, delete forever",
     aliases: [
       "delete forever",
       "permanently delete",
@@ -94,7 +94,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "permanently deleted",
     ],
     definition:
-      "Remove a retired spell for good after asking the person to confirm. It cannot be brought back. Conversations already started keep their saved copies.",
+      "Remove a forgotten spell for good after asking the person to confirm. It cannot be brought back. Conversations already started keep their saved copies.",
   },
   {
     term: "Create spell",

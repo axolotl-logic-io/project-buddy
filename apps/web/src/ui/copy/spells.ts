@@ -14,6 +14,7 @@ const SPELLBOOK_COPY = {
   search: "Search spells by name",
   filters: "Filter spells",
   all: "All",
+  forgotten: "Forgotten",
   builtInFilter: "Built-in",
   ownFilter: "Yours",
   view: "View",
@@ -21,7 +22,7 @@ const SPELLBOOK_COPY = {
   noMatches: "No spells match. Try another name or filter.",
   empty:
     "You have no spells of your own yet. Create one or copy a built-in spell.",
-  help: "Cast and stop spells inside a quest. Copy and retirement actions are on each spell’s page.",
+  help: "Cast and stop spells inside a quest. Copy and forget actions are on each spell’s page.",
   loading: "Loading spell…",
   ownHeading: "Your spells",
   newSpell: "Create spell",

@@ -16,11 +16,10 @@ import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
-import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
+import { ForgottenSpellDetail } from "@/app/(workspace)/spellbook/forgotten-detail.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/page.tsx";
 import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
 import TimerLayout from "@/app/(workspace)/timer/layout.tsx";
@@ -202,41 +201,48 @@ const projectPage = projectPageFor();
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
-    name: "Retirement",
-    path: ["retirement"],
+    name: "Forgotten spells",
+    path: ["spellbook"],
     render: workspacePage(
       () => {
         vi.mocked(listRetiredDefinitions).mockResolvedValue([
           ...RETIRED_DEFINITIONS,
         ]);
       },
-      () => RetirementPage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+      () =>
+        SpellbookPage({
+          params: NO_PARAMS,
+          searchParams: Promise.resolve({ filter: "forgotten" }),
+        }),
     ),
   },
   {
-    name: "a retired definition",
-    path: ["retirement", RETIRED_SPELL.id],
+    name: "a forgotten spell",
+    path: ["spellbook", RETIRED_SPELL.id],
     render: workspacePage(
       () => {
         vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_SPELL);
       },
-      () =>
-        RetiredDefinitionPage({
-          params: Promise.resolve({ promptId: RETIRED_SPELL.id }),
-          searchParams: NO_PARAMS,
+      async () =>
+        ForgottenSpellDetail({
+          definition: RETIRED_SPELL,
         }),
     ),
   },
   {
     name: "Delete forever confirmation",
-    path: ["retirement"],
+    path: ["spellbook"],
     render: workspacePage(
       () => {
         vi.mocked(listRetiredDefinitions).mockResolvedValue([
           ...RETIRED_DEFINITIONS,
         ]);
       },
-      () => RetirementPage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+      () =>
+        SpellbookPage({
+          params: NO_PARAMS,
+          searchParams: Promise.resolve({ filter: "forgotten" }),
+        }),
     ),
     open: async (): Promise<void> => {
       await page

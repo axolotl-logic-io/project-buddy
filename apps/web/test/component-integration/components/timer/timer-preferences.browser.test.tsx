@@ -3,6 +3,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
+import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
@@ -45,7 +46,7 @@ function preferences(): ReturnType<typeof page.getByRole> {
 }
 
 function selectedAppearance(name: string): ReturnType<typeof page.getByRole> {
-  return preferences().getByRole("radio", { name });
+  return page.getByRole("radio", { name });
 }
 
 async function selectSiteAppearance(name: string): Promise<void> {
@@ -62,7 +63,9 @@ test("use_case_timer_choose_appearance", async () => {
   localStorage.setItem("timer-appearance", "manuscript");
   const shown = await renderTimer(SCHEDULE, minutesAfter(SCHEDULE, PARTWAY));
   const initialInk = getComputedStyle(countdown().element()).color;
-  await openTimerPreferences();
+  await page
+    .getByRole("button", { name: SITE_PANEL_COPY.title, exact: true })
+    .click();
   await expect
     .element(selectedAppearance(THEME_COPY.modes.light))
     .toBeChecked();
@@ -98,6 +101,9 @@ test("use_case_timer_copy_link", async () => {
     .element(page.getByRole("button", { name: TIMER_COPY.copyLink }))
     .not.toBeInTheDocument();
   await openTimerPreferences();
+  await expect
+    .element(preferences().getByRole("radio"))
+    .not.toBeInTheDocument();
   const copy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
   await preferences()
     .getByRole("button", { name: TIMER_COPY.copyLink })
@@ -150,14 +156,12 @@ test("the phone drawer traps focus, closes with Escape, and restores focus", asy
 test.each(THEME_MODES)(
   "%s fits on phones in work, break, and hour-long periods",
   async (mode) => {
-    const name = THEME_COPY.modes[mode];
     await commands.reduceMotion();
     await page.viewport(PHONE_WIDTH, HEIGHT);
     const longSchedule = { ...SCHEDULE, workMinutes: TWO_HOURS } as const;
+    applyTheme("parchment", mode);
     await renderTimer(longSchedule);
     await openTimerPreferences();
-    await selectSiteAppearance(name);
-    await expect.element(selectedAppearance(name)).toBeChecked();
     const stage = page
       .getByRole("region", { name: TIMER_COPY.displayLabel })
       .element();
