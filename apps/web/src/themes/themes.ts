@@ -94,13 +94,23 @@
 //                           a quest's name, below
 //                           a section's heading, at
 //                           least body text
+// Letterpress actions (buttons, action links and specialized control roles):
+//   action-fill / on-action     brass commitment       bg-action-fill / text-on-action
+//   action-paper / action-ink   paper and ink          bg-action-paper / text-action-ink
+//   --action-font               action labels          font-action
+//   --action-radius             fine action corners    rounded-action
+//   --action-line-width         action keyline width   (read by page-roles.css)
+//   --action-hover-shadow       subtle pointer hover   shadow-action-hover
+//   --action-pressed-shadow     shallow inset press    (read by page-roles.css)
+// Danger continues to use danger/on-danger. Quiet destructive triggers use
+// Button quiet-danger; irreversible confirmations use danger and a trash icon.
 // Shape and depth, one value for all three appearances:
-//   --control-radius  buttons, inputs, menu items       rounded-control
+//   --control-radius  inputs, swatches, content details       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
 //   --line-width      the width of every border, and    border (any side)
 //                     of a chosen card's outline and a  (and read by
 //                     link's underline                  page-roles.css)
-//   --control-shadow  buttons and inputs                shadow-control
+//   --control-shadow  fields and content surfaces                shadow-control
 //   --raised-shadow   panels that float: menus, cards   shadow-raised
 //   --focus-glow      a box-shadow layer added to the   (set on
 //                     focused element's shadows, such   :focus-visible and

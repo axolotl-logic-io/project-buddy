@@ -101,12 +101,33 @@
     --soot-brass-header-gold: rgb(185 160 106);
     --soot-brass-page-decoration: url("/textures/soot-brass.webp");
 
+    --light-action-fill: rgb(128 80 20);
+    --light-on-action: rgb(255 244 220);
+    --light-action-paper: rgb(255 243 215);
+    --light-action-ink: rgb(53 33 17);
+    --soot-brass-action-fill: rgb(205 179 124);
+    --soot-brass-on-action: rgb(40 34 22);
+    --soot-brass-action-paper: rgb(41 36 38);
+    --soot-brass-action-ink: rgb(238 228 210);
+    --dark-action-fill: rgb(237 190 106);
+    --dark-on-action: rgb(45 30 16);
+    --dark-action-paper: rgb(49 36 24);
+    --dark-action-ink: rgb(250 229 185);
+
     --body-font: var(--typeface-nunito);
     --heading-font: var(--typeface-source-serif-4);
     --mono-font: var(--typeface-jetbrains-mono);
 
     /* Tailwind's own unit, as the site had before themes. */
     --space-unit: 0.25rem;
+    /* Letterpress actions are distinct from rounded fields/content panels. */
+    --action-radius: 2px;
+    --action-line-width: 1px;
+    --action-font: var(--typeface-source-serif-4);
+    --action-hover-shadow: 0 2px 5px
+      color-mix(in srgb, var(--shadow) 18%, transparent);
+    --action-pressed-shadow: inset 0 1px 2px
+      color-mix(in srgb, var(--shadow) 20%, transparent);
     --control-radius: 0.625rem;
     --box-radius: 1rem;
     --line-width: 2px;
