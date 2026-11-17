@@ -29,7 +29,7 @@ import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
-import { RETIRED_CONSTRUCT } from "../retirement/retirement-fixtures.ts";
+import { RETIRED_SPELL } from "../retirement/retirement-fixtures.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -224,7 +224,7 @@ vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
 
 test("Retirement list and detail show the local retirement day", async () => {
   signInAs(SIGNED_IN_USER);
-  const definition = { ...RETIRED_CONSTRUCT, retiredAt: INSTANT };
+  const definition = { ...RETIRED_SPELL, retiredAt: INSTANT };
   vi.mocked(getRetiredDefinition).mockResolvedValue(definition);
   serverRenderThenHydrate(<RetirementList definitions={[definition]} />);
   await expect.element(page.getByText(zoneTimes().day)).toBeVisible();
