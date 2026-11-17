@@ -64,7 +64,7 @@
   }
 
   .quests-index-tab[data-state="active"] {
-    @apply border-primary bg-surface font-semibold text-foreground;
+    @apply border-primary bg-surface/85 font-semibold text-foreground;
   }
 
   .quests-index-tab[data-pointer-focus]:focus-visible {
@@ -96,10 +96,10 @@
   }
 
   .quests-index-content {
-    @apply relative isolate min-w-0 border-line border-t px-1 pb-16 sm:px-2;
+    @apply relative isolate min-w-0 border-line border-t px-1 pb-8 sm:px-2;
   }
 
-  /* Keep the panel solid until the last six spacing steps, then fade only
+  /* Keep the panel solid until the last four spacing steps, then fade only
      its surface and side rules, in the space below its
      last row. Text, controls and focus rings remain fully opaque. There
      is no bottom border to jump when another tab has fewer quests. */
@@ -108,17 +108,18 @@
     background-image:
       linear-gradient(
         to bottom,
-        var(--line) calc(100% - --spacing(6)),
+        var(--line) calc(100% - --spacing(4)),
         transparent
       ),
       linear-gradient(
         to bottom,
-        var(--line) calc(100% - --spacing(6)),
+        var(--line) calc(100% - --spacing(4)),
         transparent
       ),
       linear-gradient(
         to bottom,
-        var(--surface) calc(100% - --spacing(6)),
+        color-mix(in oklab, var(--surface) 85%, transparent)
+          calc(100% - --spacing(4)),
         transparent
       );
     background-size:
