@@ -512,6 +512,13 @@
       "when": 1794802485815,
       "tag": "0072_ability_points",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1794883504867,
+      "tag": "0073_same_vindicator",
+      "breakpoints": true
     }
   ]
 }

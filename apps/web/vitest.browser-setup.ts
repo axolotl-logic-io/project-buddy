@@ -154,3 +154,8 @@ vi.mock("@/quests/membership-store.ts", () => ({
   listPendingQuests: vi.fn(() => Promise.resolve([])),
   readInvitationLink: vi.fn(() => Promise.resolve(undefined)),
 }));
+
+// Signed-in pages report visible visits. Feature tests override the result.
+vi.mock("@/visits/record-visit-action.ts", () => ({
+  recordVisitAction: vi.fn(() => Promise.resolve("known")),
+}));

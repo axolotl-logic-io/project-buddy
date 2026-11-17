@@ -17,11 +17,11 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "The website these descriptions are for. People use it to work toward things they want to do, make or learn. Each goal is worked on in a quest, with a construct, a conversation and places to save work and ideas.",
   },
   {
-    term: "Workshop",
-    heading: "Workshop",
-    aliases: ["Workshop"],
+    term: "Spellbook",
+    heading: "Spellbook",
+    aliases: ["Spellbook"],
     definition:
-      "The page where people find constructs and spells, make their own copies and change the copies they own.",
+      "The page where people search built-in and own spells, create or copy spells and edit their own spells.",
   },
   {
     term: "Site panel",
@@ -49,11 +49,11 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Built-in construct or spell",
     aliases: ["built-in spell", "built-in spells"],
     definition:
-      "A construct or spell supplied with the website. People can use it or make a separate copy, but cannot change the supplied original. The supplied spells are Tasks and Brainstorm.",
+      "A construct or spell supplied with the website. People can copy built-in spells, but cannot change supplied originals or copy constructs. The supplied spells are Tasks and Brainstorm.",
   },
   {
-    term: "Own construct",
-    heading: "Own construct",
+    term: "Historical own construct",
+    heading: "Historical own construct",
     aliases: [
       "own construct",
       "own constructs",
@@ -61,28 +61,28 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "custom constructs",
     ],
     definition:
-      "A construct someone has made or copied and can change. Sharing a quest using it does not let others change the original construct.",
+      "A private construct made by an older build. Its stored record and conversation snapshots remain, but creating, copying and editing custom constructs is no longer available.",
   },
   {
     term: "Retire",
     heading: "Retire, Graveyard, restore, delete forever",
     aliases: ["retire", "retired", "retiring", "retirement"],
     definition:
-      "Put aside a construct or spell the person owns without losing its settings. It cannot be chosen for new use until restored. Existing conversations keep what they already saved.",
+      "Put aside a spell the person owns without losing its settings. It cannot be chosen for new use until restored. Existing conversations keep what they already saved.",
   },
   {
     term: "Graveyard",
     heading: "Retire, Graveyard, restore, delete forever",
     aliases: ["Graveyard"],
     definition:
-      "The page listing a person's retired constructs and spells. They can bring one back for use or permanently delete it here.",
+      "The page listing a person's retired spells. They can bring one back for use or permanently delete it here.",
   },
   {
     term: "Restore",
     heading: "Retire, Graveyard, restore, delete forever",
     aliases: ["restore", "restoring", "restored", "restoration"],
     definition:
-      "Make a retired construct or spell available again, keeping its saved settings. For a Completed or Abandoned quest, restore means change its status back to Active.",
+      "Make a retired spell available again, keeping its saved settings. For a Completed or Abandoned quest, restore means change its status back to Active.",
   },
   {
     term: "Delete forever",
@@ -94,18 +94,18 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "permanently deleted",
     ],
     definition:
-      "Remove a retired construct or spell for good after asking the person to confirm. It cannot be brought back. Conversations already started keep their saved copies.",
+      "Remove a retired spell for good after asking the person to confirm. It cannot be brought back. Conversations already started keep their saved copies.",
   },
   {
-    term: "Create construct",
+    term: "Create spell",
     heading: "Create, make a copy, edit, save, cancel",
     aliases: [
-      "create construct",
-      "creating a construct",
-      "creating or copying a construct",
+      "create spell",
+      "creating a spell",
+      "creating or copying a spell",
     ],
     definition:
-      "Make a private construct that the person can name and change. This does not start a quest.",
+      "Make a private spell that the person can name and change. This does not start a quest.",
   },
   {
     term: "Make a copy",
@@ -118,7 +118,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "editable copies",
     ],
     definition:
-      "Make a separate construct or spell that the person can change without changing the original. The new copy opens for editing and initially adds (copy) to its name.",
+      "Make a separate spell that the person can change without changing the original. The new copy opens for editing and initially adds (copy) to its name.",
   },
   {
     term: "Edit",
@@ -132,7 +132,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Create, make a copy, edit, save, cancel",
     aliases: ["save", "saved", "saving"],
     definition:
-      "Keep the person's changes. When editing a construct or spell, leaving without saving may keep unfinished changes in the browser, but does not change the saved version.",
+      "Keep the person's changes. When editing a spell, leaving without saving may keep unfinished changes in the browser, but does not change the saved version.",
   },
   {
     term: "Cancel",
@@ -202,7 +202,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Built-in construct",
     aliases: ["built-in construct", "built-in constructs"],
     definition:
-      "A construct supplied with the site, such as Vellum or Lumen. A person can use it or make an editable copy, but cannot change the supplied original.",
+      "A construct supplied with the site, such as Vellum or Lumen. Premade quests assign one. Supplied constructs are read-only.",
   },
   {
     term: "Default construct",
@@ -491,14 +491,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Buckets",
     aliases: ["Buckets", "bucket", "buckets"],
     definition:
-      "The first tab beside a quest conversation. It opens a short menu of the quest's Tasks, Ideas, Quick Notes and Progress, and shows the one chosen, with its name as the heading.",
+      "The collections beside a quest conversation: Tasks, Ideas, Quick Notes and Progress, each reached by a direct tab. Dailies also has Day grid for recurring history. Switching collections keeps unfinished edits.",
   },
   {
     term: "Quest sidebar actions",
     heading: "Quest sidebar actions",
-    aliases: ["quest sidebar actions", "Actions tab", "side menu"],
+    aliases: ["quest sidebar actions", "Spells & status", "side menu"],
     definition:
-      "The Actions section of the area beside a quest conversation. It contains controls for choosing a spell and, for an Active Dailies quest, Start Day.",
+      "The Spells & status disclosure beside a quest conversation. It contains the spell picker and quest status controls. Active Dailies keeps Start Day and its available Undo above the collection tabs.",
   },
   {
     term: "Tasks",
@@ -575,7 +575,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Profile",
     aliases: ["Profile"],
     definition:
-      "A person's own page, where they change their saved name and see their experience, circle and points in each ability.",
+      "A person's own page, where they change their saved name and see their experience, circle, points in each ability and days signed in.",
+  },
+  {
+    term: "Days signed in",
+    heading: "Days signed in",
+    aliases: ["days signed in", "day signed in", "days total"],
+    definition:
+      "The private total of UTC calendar dates when a person visited while signed in. Each date counts once across tabs and devices, including returns without a fresh sign-in. Tracking starts with their first visit after release; earlier days are not included. It earns no experience and is separate from Dailies and streaks.",
   },
   {
     term: "Settings",
@@ -610,7 +617,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Owner",
     aliases: ["owner", "owners"],
     definition:
-      "The person who created a quest. They cannot be removed from it. A person also owns their private constructs and spells; sharing a quest does not share those originals. The site owner means the person running the website.",
+      "The person who created a quest. They cannot be removed from it. A person also owns their own spells and historical construct records; sharing a quest does not share those originals. The site owner means the person running the website.",
   },
   {
     term: "Sign-up link",

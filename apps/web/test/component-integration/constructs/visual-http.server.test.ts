@@ -1,10 +1,10 @@
 import sharp from "sharp";
 import { expect, test, vi } from "vitest";
 import { currentUser } from "@/auth/current-user.ts";
-import { createConstruct } from "@/constructs/construct-store.ts";
 import { deliverVisualAsset } from "@/constructs/visual-http.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { seedGeneratedArtwork } from "../../support/test-database/artwork-test-kit.ts";
+import { createConstruct } from "../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 vi.mock("@/auth/current-user.ts", () => ({ currentUser: vi.fn() }));

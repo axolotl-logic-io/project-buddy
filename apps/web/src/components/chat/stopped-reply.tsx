@@ -15,7 +15,7 @@ export function StoppedReply({
   readonly onRetry?: (() => void) | undefined;
 }): JSX.Element {
   return (
-    <div className="panel flex flex-wrap items-center gap-3">
+    <div className="chat-reply-stopped flex flex-wrap items-center gap-3">
       <p className="text-muted">{CHAT_COPY.replyStopped(constructName)}</p>
       {onRetry !== undefined && (
         <Button onClick={onRetry} variant="secondary">

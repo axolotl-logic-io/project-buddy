@@ -1,14 +1,13 @@
 // Shared ownership, cloning and transaction behavior for saved definitions. The parts column is a legacy storage detail.
 
-import { and, asc, eq, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
-import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type OwnPromptId, parseOwnPromptId, type UserId } from "@/ids.ts";
-import type { NamedDefinition, PromptKind } from "@/prompts/prompt.ts";
+import type { NamedDefinition } from "@/prompts/prompt.ts";
 
 interface DefinitionLimits<Definition> {
   readonly nameMax: number;
@@ -16,7 +15,7 @@ interface DefinitionLimits<Definition> {
 }
 
 interface DefinitionStore<Definition> {
-  readonly kind: PromptKind;
+  readonly kind: "spell";
   readonly encodeDefinition?: (text: Definition) => unknown;
   readonly parseDefinition: (stored: unknown) => Definition | undefined;
   readonly builtIn: (id: string) => NamedDefinition<Definition> | undefined;
@@ -108,7 +107,7 @@ function toPrompts<Definition>(
   });
 }
 
-function ownedOfKind(owner: UserId, kind: PromptKind): SQL | undefined {
+function ownedOfKind(owner: UserId, kind: "spell"): SQL | undefined {
   return and(
     ownPromptOwnedBy(owner),
     eq(ownPrompts.kind, kind),
@@ -118,7 +117,7 @@ function ownedOfKind(owner: UserId, kind: PromptKind): SQL | undefined {
 
 function ownedPrompt(
   owner: UserId,
-  kind: PromptKind,
+  kind: "spell",
   id: OwnPromptId,
 ): SQL | undefined {
   return and(eq(ownPrompts.id, id), ownedOfKind(owner, kind));
@@ -188,14 +187,7 @@ async function createOwnPrompt<Definition>(
           new Error("The new prompt was not returned"),
         );
       }
-      if (store.kind === "construct") {
-        await grantVisualAssets(
-          owner,
-          tx,
-          { kind: "construct", id: created.id },
-          { parts: created.definition },
-        );
-      }
+
       return created;
     }),
   );
@@ -240,15 +232,7 @@ async function cloneOwnPrompt<Definition>(
           })
           .returning(),
       );
-      const [copy] = clones;
-      if (copy !== undefined && store.kind === "construct") {
-        await grantVisualAssets(
-          owner,
-          tx,
-          { kind: "construct", id: copy.id },
-          { parts: copy.definition },
-        );
-      }
+
       return clones;
     }),
   );
@@ -280,51 +264,17 @@ async function updateOwnPrompt<Definition>(
           .where(ownedPrompt(owner, store.kind, promptId))
           .returning(),
       );
-      const [updated] = prompts;
-      if (updated !== undefined && store.kind === "construct") {
-        await grantVisualAssets(
-          owner,
-          tx,
-          { kind: "construct", id: updated.id },
-          { parts: updated.definition },
-        );
-      }
+
       return prompts;
     }),
   );
   return prompt;
 }
 
-async function deleteOwnPrompt<Definition>(
-  store: DefinitionStore<Definition>,
-  owner: UserId,
-  id: string,
-): Promise<boolean> {
-  const promptId = parseOwnPromptId(id);
-  if (promptId === undefined) {
-    return false;
-  }
-  const deleted = await withAppErrors("deleteOwnPrompt", async () =>
-    getDb()
-      .delete(ownPrompts)
-      .where(
-        and(
-          ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, store.kind),
-          eq(ownPrompts.id, promptId),
-          isNotNull(ownPrompts.retiredAt),
-        ),
-      )
-      .returning({ id: ownPrompts.id }),
-  );
-  return deleted.length > 0;
-}
-
 export type { DefinitionEdit, DefinitionStore, OwnPrompt };
 export {
   cloneOwnPrompt,
   createOwnPrompt,
-  deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
   updateOwnPrompt,

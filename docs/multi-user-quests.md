@@ -42,7 +42,7 @@ The same rules hold for commands such as `/complete`, direct controls, construct
 
 The site has no quest deletion today. When it gains one, deletion must use the owner-only predicate `questOwnedBy`, never `questOpenTo`.
 
-Membership opens only that quest. It gives no access to another member's own constructs, spells or other quests. A conversation keeps the construct snapshot saved when it started, and an active spell keeps its cast snapshot, so members see those snapshots and never the private definitions.
+Membership opens only that quest. It gives no access to another member's own spells, historical construct records or other quests. A conversation keeps the construct snapshot saved when it started, and an active spell keeps its cast snapshot, so members see those snapshots and never the private definitions.
 
 ## Accounts created by invitations
 
@@ -93,9 +93,9 @@ The emailed token proves control of the invited address, in the same way a sign-
 - **Another account in the browser:** the page says which address the invitation is for, and continuing signs the browser in as that account instead.
 - **Expired or used links:** the page says the link no longer works, on one line, and on the next says that a still-pending invitation is under Pending in Quests. It can't tell which kind of link it was, so it names no quest and no account. A signed-out browser gets **Log in**; a signed-in one gets **Open Quests**. Log in never sends a new invitation.
 
-## Members tab
+## Members
 
-A quest's sidebar has a **Members** tab. It lists the owner, members and pending invitations, then an **Invite by email** form. The tab works the same for the owner and for members.
+A quest's sidebar has a **Members** disclosure. It lists the owner, members and pending invitations, then an **Invite by email** form. The disclosure works the same for the owner and for members.
 
 A pending invitation is listed by the address it was sent to, never by the account's name, so inviting reveals nothing of an existing account. A member's name shows once they accept.
 
@@ -130,7 +130,7 @@ Members use the mechanisms that already keep one user's tabs consistent:
 
 ## Personal features
 
-- **Dailies:** Dailies stays its owner's alone and can't have members. Its Members tab says only that.
+- **Dailies:** Dailies stays its owner's alone and can't have members. Its Members disclosure says only that.
 - **Shared marker:** wherever quests are listed or chosen, a multi-user quest carries a marker: **Shared** on the user's own quest with members, and **Shared by** its owner's name on a quest they joined. Active, Completed and Abandoned rows and the Continue card show it as a small tag; the Quick Note choice adds it in brackets. Personal quests carry none.
 - **Current quest:** Quests offers the most recently active Active quest open to the user, whether they own it or are a member.
 - **Quick Notes:** the Quick Note dialog offers every Active quest open to the user.
@@ -148,4 +148,4 @@ The previous build neither reads nor writes these, and every account it creates 
 
 ## Tests
 
-Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, how pending invitees are shown, the invitation limit, the email's text, both acceptance paths, a reopened link, member powers, removal, the shared marker's data and the migration. Browser tests cover the Members tab and Pending, including keyboard use, the Remove and Leave questions inside the sidebar's drawer at 320 to 768 px, and phone widths of 320 and 390 px in both appearance modes.
+Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, how pending invitees are shown, the invitation limit, the email's text, both acceptance paths, a reopened link, member powers, removal, the shared marker's data and the migration. Browser tests cover the Members disclosure and Pending, including keyboard use, the Remove and Leave questions inside the sidebar's drawer at 320 to 768 px, and phone widths of 320 and 390 px in both appearance modes.

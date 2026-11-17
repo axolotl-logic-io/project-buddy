@@ -37,34 +37,12 @@ type BodyRenderInfo =
 // anything, writing it, or done. The user's messages are always done.
 type MessageProgress = "thinking" | "writing" | "done";
 
-// The classes of a message's three parts: the item, the speaker's name and
-// the body under it.
-interface MessageLook {
-  readonly item: string;
-  readonly speaker: string;
-  readonly body: string;
-}
-
-// How a message looks, by who sent it. The user's messages sit at the end
-// of the line on a quiet panel, so her side of the conversation is easy to
-// find; the construct's replies read as the page's own text, at full width.
-const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
-  user: {
-    item: "flex flex-col items-end gap-1.5 pl-8 sm:pl-16",
-    speaker: "wrap-anywhere max-w-full text-muted text-sm",
-    body: "flex max-w-full flex-col gap-3 rounded-box border border-line/40 bg-surface px-4 py-2.5 shadow-control",
-  },
-  assistant: {
-    item: "flex flex-col gap-1.5",
-    speaker:
-      "flex items-center gap-2 font-heading font-semibold text-primary text-sm",
-    body: "flex flex-col gap-3 leading-relaxed",
-  },
-  system: {
-    item: "flex flex-col gap-1.5",
-    speaker: "text-muted text-sm",
-    body: "flex flex-col gap-3",
-  },
+// All messages share the manuscript measure. The role distinguishes a
+// compact inline author rubric from a ruled construct reply.
+const MESSAGE_LOOKS: Readonly<Record<Role, string>> = {
+  user: "chat-message chat-message-user",
+  assistant: "chat-message chat-message-construct",
+  system: "chat-message",
 };
 
 function renderImageAttachment(): JSX.Element {
@@ -162,8 +140,8 @@ function ChatMessage({
 
   return (
     <MessagePrimitive.Root asChild={true}>
-      <li aria-busy={progress !== "done"} className={look.item}>
-        <p className={look.speaker}>
+      <li aria-busy={progress !== "done"} className={look}>
+        <p className="chat-speaker">
           {role === "assistant" && (
             <span
               className="chat-presence"
@@ -200,7 +178,7 @@ function ChatMessage({
             />
           </div>
         )}
-        <div className={look.body}>
+        <div className="chat-message-body">
           <MessagePrimitive.Attachments>
             {renderImageAttachment}
           </MessagePrimitive.Attachments>

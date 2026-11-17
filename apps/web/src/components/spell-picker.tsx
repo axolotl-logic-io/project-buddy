@@ -47,7 +47,12 @@ function SpellPicker({
           </option>
         ))}
       </SelectField>
-      <Button type="submit" variant="secondary" disabled={busy}>
+      <Button
+        type="submit"
+        variant="secondary"
+        aria-busy={busy}
+        disabled={busy}
+      >
         {SPELLBOOK_COPY.cast}
       </Button>
       {problem !== undefined && <Alert>{problem}</Alert>}

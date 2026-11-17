@@ -4,7 +4,7 @@ Dailies is the user's one ongoing quest for starting the day ([Premade quests](p
 
 ## Start Day
 
-A day begins only when the user chooses **Start Day** in the quest sidebar's Actions tab and confirms. Nothing starts a day on a timer. Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. The browser fills in the line after the page loads, because only the browser knows its own clock.
+A day begins only when the user chooses **Start Day** at the top of the Dailies sidebar and confirms. Nothing starts a day on a timer. Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. The browser fills in the line after the page loads, because only the browser knows its own clock.
 
 Start Day (`startDay` in `apps/web/src/dailies/day-store.ts`) does all of this in one transaction:
 
@@ -18,7 +18,7 @@ The server takes the browser's date only when it is within two days of the serve
 
 ## Undo Start Day
 
-Until anyone sends a message in the new day's conversation, the Actions tab offers **Undo Start Day** (`undoStartDay`). It brings back the conversation from before, with its messages, active spell and artwork. It undoes the Start Day tasks change and puts back the removed Ideas. A task added since stays, because the undo keeps later changes ([Quest tasks](quest-tasks.md#operations)). The day's record is deleted, and the day before is going again.
+Until anyone sends a message in the new day's conversation, the day controls offer **Undo Start Day** (`undoStartDay`). It brings back the conversation from before, with its messages, active spell and artwork. It undoes the Start Day tasks change and puts back the removed Ideas. A task added since stays, because the undo keeps later changes ([Quest tasks](quest-tasks.md#operations)). The day's record is deleted, and the day before is going again.
 
 To make Undo possible, Start Day doesn't delete the old conversation. It parks it: the conversation leaves the quest and belongs to the user alone, so no page opens it. The next Start Day deletes the parked conversation. Until then, a milestone recorded in it still links to it.
 
@@ -35,7 +35,7 @@ A recurring task's streak is the number of dates in a row, up to the current day
 - A gap ends every streak. A gap is a calendar date between two days with no day started on it.
 - Two days started on one date count as one date, done if the task was done in either.
 
-The Progress section's [day grid](progress-timeline.md#day-grid) shows each recurring task's last seven dates. A date before the task became recurring shows as untracked.
+The Day grid tab's [day grid](progress-timeline.md#day-grid) shows each recurring task's last seven dates. A date before the task became recurring shows as untracked.
 
 ## Storage
 

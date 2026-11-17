@@ -45,15 +45,17 @@ function MarkdownContent({
   text,
   running,
   topHeadingLevel = 1,
+  className = "",
 }: {
   text: string;
   running: boolean;
   topHeadingLevel?: number;
+  className?: string;
 }): JSX.Element {
   return (
     <Streamdown
       caret="block"
-      className="markdown"
+      className={`markdown ${className}`}
       components={
         HEADING_COMPONENTS[topHeadingLevel - 1] ??
         headingComponents(topHeadingLevel)

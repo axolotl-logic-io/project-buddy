@@ -17,7 +17,6 @@ import {
   questPendingFor,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
@@ -28,6 +27,7 @@ import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
+import { cloneConstruct } from "../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   addInvitee,

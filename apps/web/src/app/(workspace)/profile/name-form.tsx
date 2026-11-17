@@ -79,7 +79,7 @@ function NameEditor({
         value={draft}
       />
       <div className="flex flex-wrap gap-2">
-        <Button disabled={pending} type="submit">
+        <Button aria-busy={pending} disabled={pending} type="submit">
           {ACCOUNT_COPY.saveName}
         </Button>
         {name !== undefined && (

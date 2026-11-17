@@ -58,6 +58,7 @@ function PendingRow({
       <div className="quests-index-answer">
         <Button
           aria-label={PENDING_COPY.acceptLabel(quest.name)}
+          aria-busy={busy}
           disabled={busy}
           onClick={accept}
         >
@@ -65,6 +66,7 @@ function PendingRow({
         </Button>
         <Button
           aria-label={PENDING_COPY.declineLabel(quest.name)}
+          aria-busy={busy}
           disabled={busy}
           onClick={decline}
           variant="secondary"
@@ -147,7 +149,9 @@ function PendingQuests({
           PENDING_COPY.declined(answered.quest.name)}
       </FormStatus>
       {failure !== undefined && <Alert>{failure}</Alert>}
-      {quests.length === 0 && <p className="text-muted">{PENDING_COPY.none}</p>}
+      {quests.length === 0 && (
+        <p className="quests-index-empty">{PENDING_COPY.none}</p>
+      )}
       {quests.length > 0 && (
         <ul aria-label={PENDING_COPY.label} className="quests-index-list">
           {quests.map((quest) => (
