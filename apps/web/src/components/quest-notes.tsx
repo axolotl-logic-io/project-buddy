@@ -1,9 +1,14 @@
 "use client";
 
-import { type JSX, useCallback, useRef, useState } from "react";
+import { type JSX, useCallback, useContext, useRef, useState } from "react";
 import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
-import { usePanelSend } from "@/components/chat/chat-send.ts";
+import {
+  ChatBusyContext,
+  useChatSend,
+  usePanelSend,
+} from "@/components/chat/chat-send.ts";
 import { LocalTime } from "@/components/local-time.tsx";
+import { QuestNoteComposer } from "@/components/quest-note-composer.tsx";
 import {
   EditableList,
   EditableListAction,
@@ -17,6 +22,8 @@ import {
   type Note,
   type NoteId,
 } from "@/notes/note.ts";
+import type { Quest } from "@/quests/store.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 
 function validateNote(text: string): { text: string } | { problem: string } {
@@ -81,16 +88,34 @@ function NoteRow({
   );
 }
 
-// A quest's Quick Notes, newest first, edited and deleted through commands.
+// A quest's Quick Notes, newest first, with direct creation and command edits
+// and deletions.
 // A deleted note's button goes with it, so focus moves to the list's heading, and the status line says
 // what the conversation noted.
 function QuestNotes({
   notes: savedNotes,
+  quest,
 }: {
   readonly notes: readonly Note[];
+  readonly quest: Pick<Quest, "id" | "status">;
 }): JSX.Element {
   const [notes, setNotes] = useState(savedNotes);
   const { send, busy, status, problem } = usePanelSend();
+  const conversationBusy: boolean = useContext(ChatBusyContext);
+  const chatSend = useChatSend();
+  const [creating, setCreating] = useState(false);
+  const receive = useCallback(
+    (saved: readonly Note[]): void => setNotes(saved),
+    [],
+  );
+  let creationProblem: string | undefined;
+  if (quest.status !== "active") {
+    creationProblem = QUEST_NOTES_COPY.inactive;
+  } else if (chatSend === undefined) {
+    creationProblem = PANEL_COMMANDS_COPY.problems.noConversation;
+  } else if (conversationBusy) {
+    creationProblem = PANEL_COMMANDS_COPY.problems.awaitingReply;
+  }
   const headingRef = useRef<HTMLParagraphElement>(null);
   // A route refresh can add a note saved from the site panel.
   const [previous, setPrevious] = useState(savedNotes);
@@ -138,6 +163,13 @@ function QuestNotes({
       <p className="sr-only" ref={headingRef} tabIndex={-1}>
         {QUEST_NOTES_COPY.heading}
       </p>
+      <QuestNoteComposer
+        questId={quest.id}
+        disabled={busy}
+        unavailable={creationProblem}
+        onSaved={receive}
+        onPending={setCreating}
+      />
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
       {notes.length === 0 && (
@@ -147,7 +179,7 @@ function QuestNotes({
         <EditableList label={QUEST_NOTES_COPY.heading}>
           {notes.map((note) => (
             <NoteRow
-              busy={busy}
+              busy={busy || creating}
               key={note.id}
               note={note}
               onDelete={remove}

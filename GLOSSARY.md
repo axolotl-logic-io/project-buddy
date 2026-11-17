@@ -294,7 +294,7 @@ A quest's saved possibilities that the user has not committed to. Ideas is separ
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel without opening the quest, or directly from its Quick Notes bucket, without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where an always-visible composer adds to the current quest, each note can be edited, and deleting one sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the bucket and the collection.
 

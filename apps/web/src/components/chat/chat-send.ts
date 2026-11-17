@@ -16,6 +16,9 @@ type ChatSendResult =
 
 type ChatSend = (text: string) => Promise<ChatSendResult>;
 
+// Whether the conversation is waiting for a reply, including another tab.
+const ChatBusyContext = createContext<boolean>(false);
+
 const ChatSendContext = createContext<ChatSend | undefined>(undefined);
 
 // The conversation's send, or undefined outside a conversation.
@@ -71,4 +74,4 @@ function usePanelSend(): PanelSend {
 }
 
 export type { ChatSend, ChatSendResult, PanelSend };
-export { ChatSendContext, useChatSend, usePanelSend };
+export { ChatBusyContext, ChatSendContext, useChatSend, usePanelSend };
