@@ -23,10 +23,7 @@ import {
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
-import {
-  RETIRED_CONSTRUCT,
-  RETIRED_DEFINITIONS,
-} from "./retirement-fixtures.ts";
+import { RETIRED_DEFINITIONS, RETIRED_SPELL } from "./retirement-fixtures.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -43,7 +40,7 @@ vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listRetiredDefinitions).mockResolvedValue([...RETIRED_DEFINITIONS]);
-  vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_CONSTRUCT);
+  vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_SPELL);
   vi.mocked(deleteRetiredDefinitionAction).mockReset();
   vi.mocked(restoreDefinitionAction).mockReset();
 });
@@ -71,29 +68,27 @@ test("use_case_view_retirement", async () => {
     .getByRole("searchbox", { name: RETIREMENT_COPY.search })
     .fill("Moss");
   await expect
-    .element(page.getByText(RETIRED_CONSTRUCT.name, { exact: true }))
+    .element(page.getByText(RETIRED_SPELL.name, { exact: true }))
     .toBeVisible();
   await expect
     .element(
       page.getByRole("link", {
-        name: RETIREMENT_COPY.viewLabel(RETIRED_CONSTRUCT.name),
+        name: RETIREMENT_COPY.viewLabel(RETIRED_SPELL.name),
       }),
     )
-    .toHaveAttribute("href", `/retirement/${RETIRED_CONSTRUCT.id}`);
+    .toHaveAttribute("href", `/retirement/${RETIRED_SPELL.id}`);
 });
 
-test("a definition page's Retired tab lists its own kind with no kind filter", async () => {
+test("Graveyard lists spells without a kind filter", async () => {
   await render(
-    inWorkspace(
-      <RetirementList definitions={RETIRED_DEFINITIONS} kind="construct" />,
-    ),
+    inWorkspace(<RetirementList definitions={RETIRED_DEFINITIONS} />),
   );
   expect(page.getByRole("listitem").elements()).toHaveLength(
-    RETIRED_DEFINITIONS.filter((definition) => definition.kind === "construct")
+    RETIRED_DEFINITIONS.filter((definition) => definition.kind === "spell")
       .length,
   );
   await expect
-    .element(page.getByText(RETIRED_CONSTRUCT.name, { exact: true }))
+    .element(page.getByText(RETIRED_SPELL.name, { exact: true }))
     .toBeVisible();
   await expect
     .element(page.getByRole("button", { name: RETIREMENT_COPY.allKinds }))
@@ -112,11 +107,11 @@ test("Delete forever names the definition, supports cancellation, and submits on
   applyTheme("parchment");
   await renderRetirement();
   const trigger = page.getByRole("button", {
-    name: RETIREMENT_COPY.deleteLabel(RETIRED_CONSTRUCT.name),
+    name: RETIREMENT_COPY.deleteLabel(RETIRED_SPELL.name),
   });
   await trigger.click();
   const dialog = page.getByRole("alertdialog", {
-    name: RETIREMENT_COPY.deleteTitle(RETIRED_CONSTRUCT.name),
+    name: RETIREMENT_COPY.deleteTitle(RETIRED_SPELL.name),
   });
   await expect
     .element(dialog.getByRole("button", { name: RETIREMENT_COPY.keep }))
@@ -128,9 +123,7 @@ test("Delete forever names the definition, supports cancellation, and submits on
   await trigger.click();
   await expect
     .element(
-      dialog.getByText(
-        RETIREMENT_COPY.deleteDescription(RETIRED_CONSTRUCT.kind),
-      ),
+      dialog.getByText(RETIREMENT_COPY.deleteDescription(RETIRED_SPELL.kind)),
     )
     .toBeVisible();
   const deleteForever = dialog.getByRole("button", {
@@ -139,10 +132,10 @@ test("Delete forever names the definition, supports cancellation, and submits on
   });
   expect(paintOf(deleteForever.element()).fill).toBe(tokenColor("danger"));
   await deleteForever.click();
-  expect((await submitted.promise).get("promptId")).toBe(RETIRED_CONSTRUCT.id);
+  expect((await submitted.promise).get("promptId")).toBe(RETIRED_SPELL.id);
 });
 
-test("the read-only retired view shows its saved Visual description and restores the same definition", async () => {
+test("the read-only retired view shows its saved destination and restores the same definition", async () => {
   const submitted = Promise.withResolvers<FormData>();
   vi.mocked(restoreDefinitionAction).mockImplementation((form) => {
     submitted.resolve(form);
@@ -151,16 +144,12 @@ test("the read-only retired view shows its saved Visual description and restores
   await render(
     inWorkspace(
       await RetiredDefinitionPage({
-        params: Promise.resolve({ promptId: RETIRED_CONSTRUCT.id }),
+        params: Promise.resolve({ promptId: RETIRED_SPELL.id }),
         searchParams: Promise.resolve({}),
       }),
     ),
   );
-  await expect
-    .element(
-      page.getByText("A moss-covered clockwork guide.", { exact: false }),
-    )
-    .toBeVisible();
+  await expect.element(page.getByText("Ideas", { exact: true })).toBeVisible();
   expect(
     page.getByRole("heading", { level: 1 }).query(),
     "the trail band, not the page, names it",
@@ -168,10 +157,10 @@ test("the read-only retired view shows its saved Visual description and restores
   expect(page.getByRole("textbox").elements()).toHaveLength(0);
   await page
     .getByRole("button", {
-      name: RETIREMENT_COPY.restoreLabel(RETIRED_CONSTRUCT.name),
+      name: RETIREMENT_COPY.restoreLabel(RETIRED_SPELL.name),
     })
     .click();
-  expect((await submitted.promise).get("promptId")).toBe(RETIRED_CONSTRUCT.id);
+  expect((await submitted.promise).get("promptId")).toBe(RETIRED_SPELL.id);
 });
 
 test("an empty Graveyard explains where retired things will appear", async () => {
@@ -192,7 +181,7 @@ for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
         LONG_NAME_REPEATS,
       );
       vi.mocked(listRetiredDefinitions).mockResolvedValue([
-        { ...RETIRED_CONSTRUCT, name },
+        { ...RETIRED_SPELL, name },
       ]);
       await renderRetirement();
       const heading = page.getByRole("heading", { name, level: 2 }).element();

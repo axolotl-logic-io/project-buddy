@@ -15,10 +15,6 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
-import type {
-  getOwnConstruct,
-  listConstructs,
-} from "@/constructs/construct-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
@@ -27,7 +23,7 @@ import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
+
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -99,10 +95,6 @@ vi.mock(
   "@/dailies/day-store.ts",
   () => import("../dailies/day-store-test-kit.ts"),
 );
-vi.mock("@/constructs/construct-store.ts", () => ({
-  getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
-  listConstructs: vi.fn<typeof listConstructs>(),
-}));
 vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
 }));
@@ -164,7 +156,7 @@ interface PhoneMeasures {
 
 // The rows of tabs a page may have, besides its tab lists: the Workshop's
 // kinds.
-const TAB_ROW_NAVIGATIONS: readonly string[] = [WORKSHOP_PAGE_COPY.kindsLabel];
+const TAB_ROW_NAVIGATIONS: readonly string[] = [];
 
 // The tab lists that aren't one row by design: the Quests list's tabs, a
 // grid of two columns on a phone, and the quest sidebar's six tabs, which
@@ -194,16 +186,17 @@ function tabRows(): Element[] {
 
 // The names of the rows of tabs whose tabs don't all share one line.
 function measureWrappedTabRows(): string[] {
-  return tabRows()
-    .filter((row) => {
-      const tops = new Set(
-        Array.from(row.querySelectorAll("a, button"), (tab) =>
-          Math.round(tab.getBoundingClientRect().top),
-        ),
-      );
-      return tops.size > 1;
-    })
-    .map((row) => row.getAttribute("aria-label") ?? row.tagName);
+  return tabRows().flatMap((row) => {
+    const tops = new Set(
+      Array.from(row.querySelectorAll("a, button"), (tab) =>
+        Math.round(tab.getBoundingClientRect().top),
+      ),
+    );
+    if (tops.size > 1) {
+      return [`${row.getAttribute("aria-label") ?? row.tagName}: ${tops.size}`];
+    }
+    return [];
+  });
 }
 
 // Waits until the page shows its heading and each button laid out only
@@ -293,7 +286,14 @@ describe("use_case_use_on_phone", () => {
               viewport.width,
             );
             expect(wideDialogs, "no sideways scroll in a dialog").toEqual([]);
-            expect(wrappedTabRows, "each row of tabs is one row").toEqual([]);
+            let expectedWrappedRows: readonly string[] = [];
+            if (viewport.width === NARROWEST_VIEWPORT.width) {
+              expectedWrappedRows = phonePage.wrappedTabRowsAt320 ?? [];
+            }
+            expect(
+              wrappedTabRows,
+              "tabs follow the approved row layout",
+            ).toEqual(expectedWrappedRows);
             expect(pageHeadings, "one page heading").toBe(1);
             expect(
               smallTargets(targets),
@@ -325,3 +325,8 @@ vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
 }));
+
+vi.mock(
+  "@/visits/signed-in-days-store.ts",
+  () => import("../visits/signed-in-days-store-test-kit.ts"),
+);

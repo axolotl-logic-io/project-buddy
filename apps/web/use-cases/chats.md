@@ -27,6 +27,7 @@ The user reads a reply laid out with headings, lists and code, the way a written
 - **Prerequisites:** `use_case_send_message`, using `help`.
 - **Steps:**
   - The user opens the saved reply.
+  - At desktop and 320 px, the Folio transcript keeps people’s names before their messages, construct portraits above replies, readable prose and a composer with usable action targets.
   - The command list and inline command names appear formatted.
 - **Outcome:** once the reply has finished, it shows no raw formatting marks, such as `**`, a leading `#` or backticks, and it looks the same after the user reopens the conversation. Their own messages appear exactly as the user typed them, marks included.
 - **Next:**

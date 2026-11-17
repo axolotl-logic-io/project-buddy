@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Constructs run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Conversations keep their construct snapshots; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
 
-Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed tasks; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and spells.
+Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed tasks; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Spellbook holds built-in and own spells.
 
 A conversation is a [quest](#quest)'s one conversation, with its tasks, ideas and progress timeline.
 
@@ -18,19 +18,19 @@ The product: a site where constructs help each user with their quests and ideas,
 
 ### Site panel
 
-The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Light, Dark and System modes, and Credits. It opens over the page, which keeps its size. On a wide screen it docks there and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
+The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Ivory Vellum, Soot & Brass and Espresso Leather appearance choices, and Credits. It opens over the page, which keeps its size. On a wide screen it docks there and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
 
 - **UI:** "Site panel", "Close site panel", "Places", "You".
 
-### Workshop
+### Spellbook
 
-The shared page for editing constructs and inspecting Tasks and Brainstorm. It has no test drawer: a saved definition is tried in a quest.
+The standalone spell collection at `/spellbook`, linked from Places in the main menu. It lists built-in and own spells with name search and All, Built-in and Yours filters. Built-ins are read-only and can be copied. Own spells can be created, edited, copied and retired; Graveyard restores or permanently deletes retired spells. A saved spell is tried in a quest.
 
 ## Prompts and context
 
 ### Prompt
 
-Internal instructions assembled by the application. Workshop has no prose Prompt or Instructions field; the local engine follows commands, spell destinations and reply templates. Stored construct prompt text is neither editable nor read by the engine.
+Internal instructions assembled by the application. Spellbook has no prose Prompt or Instructions field; the local engine follows commands, spell destinations and reply templates. Stored construct prompt text is neither editable nor read by the engine.
 
 ### Character Sheet
 
@@ -40,25 +40,25 @@ A heading in the built-in constructs' stored prompt text. It is not an editable 
 
 A construct or one of the two fixed spells that ships with the site.
 
-### Own construct
+### Historical own construct
 
-A user’s private editable construct, created from starter instructions or by copying another construct. Using it in a conversation gives no one access to the original.
+A private construct created by an older build. Custom construct creation, copying, editing and retirement are no longer available. Stored rows and artwork remain intact; existing conversations keep their saved construct snapshots.
 
 ### Retire, Graveyard, restore, delete forever
 
-To **retire** an own construct is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new quest. Existing conversation snapshots and past casts stay intact.
+To **retire** an own spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be cast again until restored. Existing conversation snapshots and past casts stay intact.
 
-**Graveyard** is the central page listing the user's retired constructs and spells.
+**Graveyard** is the central page listing the user's retired spells.
 **Restore** makes the same definition available again, preserving its source.
 **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
 ### Create, make a copy, edit, save, cancel
 
-**Create construct** make a private definition from starter instructions. **Make a copy** makes a private, editable copy of either a built-in or an own definition and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
+**Create spell** makes a private spell. **Make a copy** makes a private, editable copy of either a built-in or an own spell and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
 
 **Edit** opens an own definition. **Save** stores its name and functional settings. **Cancel** puts back the saved fields and clears the browser draft without changing saved data. Leaving the editor without Save or Cancel preserves draft recovery. These actions never start a quest. Creating, copying and saving settings makes no model request. **Rename** means changing the name in the editor.
 
-- **UI:** "Create construct", "Make a copy", "Edit", "Save", "Cancel".
+- **UI:** "Create spell", "Make a copy", "Edit", "Save", "Cancel".
 
 ### Message
 
@@ -88,25 +88,19 @@ Shared instructions every conversation receives, including the role and rules fo
 
 ## Constructs
 
-### Workshop
-
-The single collection destination for inspecting built-in constructs and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Each quest starting point assigns its construct.
-
-- **UI:** "Workshop", "Constructs", "Spells".
-
 ### Construct
 
-A named presence with a Visual description and artwork. Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in a conversation.
+A named presence with a Visual description and artwork. Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs assigned by premade quests. Historical custom snapshots continue to work. A construct writes the replies, calls the tools and casts the spells in a conversation.
 
 The local engine does not interpret a construct’s historical voice or habits text.
 
-- **UI:** "Construct", "Constructs", "Built-in constructs", "Your constructs", "Create construct".
+- **UI:** "Construct".
 
 ### Construct code names
 
-Use **construct** in code, stored kinds and configuration. Own constructs and spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`. Constructs always use the local command engine.
+Use **construct** in code, stored kinds and configuration. Historical own constructs and current own spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`. Constructs always use the local command engine.
 
-Browser drafts use the construct key. New copies store current built-in wording; user-written prompts and conversation snapshots keep their text.
+Spell browser drafts keep their existing keys. Historical construct rows and conversation snapshots keep their text.
 
 The product name remains **Project Buddy**.
 
@@ -134,7 +128,7 @@ Habits describe the construct’s personal style across conversations.
 
 A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open tasks; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
-Workshop’s Spells tab offers creation and copying. Own spells can be edited, retired and restored like constructs. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
+Spellbook offers creation and copying. Own spells can be edited, retired, restored and deleted forever. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
 
 ### Cast
 
@@ -214,7 +208,7 @@ The user's one ongoing quest for starting the day, continued every day in its on
 
 ### Start Day
 
-The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. The button sends `/start-day`, and Undo Start Day sends `/undo-start-day`.
+The Dailies quest's way to begin a new day, at the top of the Dailies sidebar. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. The button sends `/start-day`, and Undo Start Day sends `/undo-start-day`.
 
 Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
 
@@ -246,7 +240,7 @@ A recurring task's [streak](#streak), drawn under the task in Tasks as a row of 
 
 ### Gap
 
-A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Progress section's day grid, a dashed square marks it.
+A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Day grid tab, a dashed square marks it.
 
 - **UI:** “no day started”.
 
@@ -272,7 +266,7 @@ Something the user got done in a quest: one short line, in the past tense, that 
 
 ### Progress timeline
 
-A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, a day grid sits above it: each [recurring task](#recurring-task)'s last seven dates, with each date marked done, not done or a [gap](#gap).
+A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, the separate Day grid tab shows: each [recurring task](#recurring-task)'s last seven dates, with each date marked done, not done or a [gap](#gap).
 
 - **UI:** "Progress".
 
@@ -294,21 +288,21 @@ A quest's saved possibilities that the user has not committed to. Ideas is separ
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel without opening the quest, or directly from its Quick Notes bucket, without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where an always-visible composer adds to the current quest, each note can be edited, and deleting one sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the bucket and the collection.
 
 ### Buckets
 
-The quest sidebar's first tab, which opens a menu of the quest's buckets: Tasks, Ideas, Quick Notes and Progress. The menu checks the open bucket, and the bucket's name heads the panel under the tab. The sidebar's other tabs are [Actions](#quest-sidebar-actions) and Members. Every bucket stays loaded, so switching keeps drafts.
+The quest sidebar's collections: Tasks, Ideas, Quick Notes and Progress, each reached by a direct tab. Dailies also has Day grid for recurring history. Each collection stays loaded so switching preserves drafts. The Control desk treatment distinguishes agreed tasks, possibilities and dated notes.
 
-- **UI:** "Buckets".
+- **UI:** "Tasks", "Ideas", "Quick Notes", "Progress", "Day grid".
 
 ### Quest sidebar actions
 
-The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest. Like every sidebar control, each sends its [command](#command) to the conversation.
+The quest sidebar's **Spells & status** disclosure holds the spell picker and quest status controls. The existing `?section=actions` link opens it. Dailies keeps Start Day and its available Undo above the collection tabs. Like every sidebar command control, each sends its command to the conversation.
 
-- **UI:** "Actions".
+- **UI:** "Spells & status".
 
 ### Tasks
 
@@ -386,9 +380,15 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 ### Profile
 
-The user's own page: their name, which constructs and quest members see, and their [experience](#experience).
+The user's own page: their name, which constructs and quest members see, their [experience](#experience), and their [days signed in](#days-signed-in).
 
 - **UI:** "Profile".
+
+### Days signed in
+
+The total number of distinct UTC calendar dates on which the user visits while signed in, including returns with an existing session. Each date counts once across tabs and devices. Tracking begins with their first qualifying visit after the feature is released; earlier days are not inferred. The total is private and separate from Dailies, streaks, abilities and experience.
+
+- **UI:** "Days signed in", "1 day total", "24 days total", "Tracked since YYYY-MM-DD · Days use UTC".
 
 ### Settings
 
@@ -418,7 +418,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it. The quest is open to its owner and its [members](#member), and no one can remove the owner from it. The site can't delete a quest yet; when it can, only the owner will.
 
-Ownership and access are distinct: own constructs and spells belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own spells and historical construct records belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 
@@ -452,7 +452,7 @@ Wherever quests are listed or chosen, a multi-user quest carries a short marker,
 
 ### Member
 
-A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own constructs, spells or other quests. A removed member loses access; what they wrote stays. Members' controls send `/invite`, `/withdraw`, `/remove` and `/leave` to the conversation.
+A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own spells, historical construct records or other quests. A removed member loses access; what they wrote stays. Members' controls send `/invite`, `/withdraw`, `/remove` and `/leave` to the conversation.
 
 - **UI:** "Member", "Members", "Remove", "Leave quest".
 

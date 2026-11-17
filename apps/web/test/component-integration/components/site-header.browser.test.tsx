@@ -46,9 +46,9 @@ import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { MABEL_EXPERIENCE } from "../experience/experience-store-test-kit.ts";
 import {
@@ -101,7 +101,7 @@ const PHONE_LAYOUT_BELOW_PX = 512;
 // The site panel's links, in their groups and order, by their names.
 const PLACES = [
   QUESTS_COPY.headerLink,
-  WORKSHOP_COPY.heading,
+  SPELLBOOK_COPY.heading,
   TIMER_COPY.panelLink,
   RETIREMENT_COPY.heading,
 ] as const;
@@ -347,7 +347,7 @@ describe("use_case_experience_ring", () => {
 });
 
 describe("the site panel", () => {
-  test("groups Quests and Workshop apart from Profile and Settings, above the appearance choices and Credits", async () => {
+  test("groups Quests and Spellbook apart from Profile and Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openPanel();
 
@@ -777,3 +777,5 @@ describe("the trail band", () => {
       .toBeVisible();
   });
 });
+
+vi.mock("next/navigation", () => import("./router-test-kit.ts"));

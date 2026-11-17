@@ -23,6 +23,7 @@ export default async function QuestPage({
   const { questId } = await params;
   const { section } = await searchParams;
   let current:
+    | "days"
     | "conversation"
     | "tasks"
     | "ideas"
@@ -31,6 +32,7 @@ export default async function QuestPage({
     | "members"
     | "actions" = "conversation";
   if (
+    section === "days" ||
     section === "tasks" ||
     section === "ideas" ||
     section === "progress" ||

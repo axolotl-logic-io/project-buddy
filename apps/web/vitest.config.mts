@@ -7,6 +7,7 @@ import {
   type TestProjectInlineConfiguration,
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
+import { materialPixels } from "./test/component-integration/components/appearance-material-test-kit.mts";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 import { playwrightProvider } from "./vitest.browser-provider.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
@@ -51,11 +52,19 @@ async function reduceMotion(context: BrowserCommandContext): Promise<void> {
   await context.page.emulateMedia({ reducedMotion: "reduce" });
 }
 
+// Real touch input for a locator supplied by a browser test.
+async function tap(
+  context: BrowserCommandContext,
+  selector: string,
+): Promise<void> {
+  await context.iframe.locator(selector).tap();
+}
+
 const WHEEL_UP_PIXELS = -400;
 
 // Deliver wheel input through the browser, including its native default scroll.
 async function wheelUp(context: BrowserCommandContext): Promise<void> {
-  const frame = await context.page.locator("iframe").boundingBox();
+  const frame = await context.page.locator("iframe[data-vitest]").boundingBox();
   if (frame === null) {
     throw new Error("The browser test iframe is not visible");
   }
@@ -138,7 +147,13 @@ function contextBrowserProject(
             provider: playwrightProvider({ contextOptions }),
           },
         ],
-        commands: { emulateColorScheme, reduceMotion, wheelUp },
+        commands: {
+          emulateColorScheme,
+          reduceMotion,
+          wheelUp,
+          tap,
+          materialPixels,
+        },
       },
     },
   };
@@ -211,7 +226,13 @@ export default defineConfig({
             headless: true,
             provider: playwrightProvider(),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
-            commands: { emulateColorScheme, reduceMotion, wheelUp },
+            commands: {
+              emulateColorScheme,
+              reduceMotion,
+              wheelUp,
+              tap,
+              materialPixels,
+            },
           },
         },
       },

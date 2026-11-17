@@ -32,7 +32,20 @@ export const QUICK_NOTE_COPY = {
 
 export const QUEST_NOTES_COPY = {
   heading: "Quick Notes",
-  none: "No Quick Notes yet. Save one from Quick Note in the site panel.",
+  emptyHeading: "A blank page for a thought",
+  bucketIntro: "Dated thoughts, kept for later.",
+  summary: (count: number): string => `${count} saved · Newest first`,
+  none: "No Quick Notes yet.",
+  composer: "Add Quick Note",
+  placeholder: "Something to remember…",
+  textHint: `1–${NOTE_MAX_LENGTH} characters`,
+  clear: "Clear",
+  saved: "Quick Note saved.",
+  inactive:
+    "Only Active quests take new Quick Notes. You can still read, edit and delete saved notes.",
+  unavailable:
+    "This quest is no longer Active or open to you. The Quick Note wasn’t saved; your text is still here.",
+  count: (length: number): string => `${length}/${NOTE_MAX_LENGTH}`,
   edit: "Edit Quick Note",
   save: "Save Quick Note",
   cancel: "Cancel editing Quick Note",

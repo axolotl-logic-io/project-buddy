@@ -20,6 +20,7 @@ import {
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
+import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
@@ -62,6 +63,7 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 const MODE_COUNT = 3;
 const TEXTURE_SIZE = 1024;
 const SWATCH_TARGET_PX = 44;
+const COMPACT_ROW_MAX_WIDTH = 460;
 const BACKGROUND_URL = /^url\(["']?(?<url>[^"')]+)["']?\)$/u;
 
 const VITEST_VIEWPORT = { width: 414, height: 896 } as const;
@@ -152,6 +154,172 @@ describe("use_case_choose_theme", () => {
       ),
     );
   });
+
+  test.each(THEME_MODES)(
+    "%s has a tooltip with no caption or content over the texture",
+    async (mode) => {
+      await openPanel();
+      const radio = choice(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      const label = radio.element().closest("label");
+      if (label === null) {
+        throw new Error("The swatch has no label");
+      }
+      // The decorative material is empty and displays the actual page texture.
+      const material = label.querySelector('[aria-hidden="true"]');
+      if (material === null) {
+        throw new Error("The swatch has no material");
+      }
+      expect(material.childNodes).toHaveLength(0);
+      expect(getComputedStyle(material).backgroundImage).toContain(".webp");
+      const tooltip = page.getByRole("tooltip", {
+        name: THEME_COPY.modes[mode],
+      });
+      await expect.element(tooltip).not.toBeInTheDocument();
+      await radio.hover();
+      await expect.element(tooltip).toBeVisible();
+      await tooltip.hover();
+      await expect.element(tooltip).toBeVisible();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(tooltip).not.toBeInTheDocument();
+      await page.getByRole("heading", { name: THEME_COPY.picker }).hover();
+      await radio.hover();
+      await expect.element(tooltip).toBeVisible();
+      await page.getByRole("heading", { name: THEME_COPY.picker }).hover();
+      await expect.element(tooltip).not.toBeInTheDocument();
+      expect(label.textContent?.trim()).toBe(THEME_COPY.modes[mode]);
+    },
+  );
+
+  test("Escape dismisses a focused name without changing the choice or closing the panel", async () => {
+    await openPanel();
+    await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+    const radio = choice(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+    const tooltip = page.getByRole("tooltip", { name: THEME_COPY.modes.dark });
+    await expect.element(tooltip).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(tooltip).not.toBeInTheDocument();
+    await expect.element(radio).toHaveFocus();
+    await expect.element(radio).toBeChecked();
+    await expect.element(page.getByRole("dialog")).toBeVisible();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect
+      .element(
+        page.getByRole("tooltip", { name: THEME_COPY.modes["soot-brass"] }),
+      )
+      .toBeVisible();
+  });
+
+  test.each([LAPTOP_VIEWPORT, NARROWEST_VIEWPORT])(
+    "Settings keeps compact swatches and tooltips clear of the legend at $width px",
+    async (viewport) => {
+      await resize(viewport);
+      await render(<AppearanceChoices settings={true} />);
+      const group = page.getByRole("group", { name: THEME_COPY.modeLabel });
+      const first = group.getByRole("radio", { name: THEME_COPY.modes.light });
+      const last = group.getByRole("radio", { name: THEME_COPY.modes.dark });
+      const rowWidth =
+        last.element().getBoundingClientRect().right -
+        first.element().getBoundingClientRect().left;
+      expect(rowWidth).toBeLessThanOrEqual(COMPACT_ROW_MAX_WIDTH);
+      await first.hover();
+      const tooltip = page.getByRole("tooltip", {
+        name: THEME_COPY.modes.light,
+      });
+      await expect.element(tooltip).toBeVisible();
+      const legend = group.element().querySelector("legend");
+      if (legend === null) {
+        throw new Error("The theme choices have no legend");
+      }
+      expect(
+        tooltip.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(legend.getBoundingClientRect().bottom);
+    },
+  );
+
+  test.each(THEME_MODES)(
+    "%s tooltip never tints the rendered material",
+    async (mode) => {
+      await render(<AppearanceChoices settings={true} />);
+      const radio = choice(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      await radio.click();
+      await page
+        .getByRole("heading", { name: SITE_COPY.name, exact: true })
+        .hover();
+      await userEvent.keyboard("{Escape}");
+      const material = radio
+        .element()
+        .closest("label")
+        ?.querySelector('[aria-hidden="true"]');
+      if (material === null || material === undefined) {
+        throw new Error("The theme has no material");
+      }
+      const { url = "" } =
+        BACKGROUND_URL.exec(getComputedStyle(material).backgroundImage)
+          ?.groups ?? {};
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      const { selector } = page.elementLocator(material);
+      const uncovered = await commands.materialPixels(selector);
+      await radio.hover();
+      await expect
+        .element(page.getByRole("tooltip", { name: THEME_COPY.modes[mode] }))
+        .toBeVisible();
+      expect(await commands.materialPixels(selector)).toBe(uncovered);
+    },
+  );
+
+  test.each(
+    THEME_MODES.flatMap((mode) => [
+      { mode, settings: true },
+      { mode, settings: false },
+    ]),
+  )(
+    "$mode keeps every material unchanged when settings=$settings",
+    async ({ mode, settings }) => {
+      if (settings) {
+        await render(<AppearanceChoices settings={true} />);
+      } else {
+        await openPanel();
+      }
+      const materials = THEME_MODES.map((swatchMode) => {
+        const radio = choice(
+          THEME_COPY.modeLabel,
+          THEME_COPY.modes[swatchMode],
+        );
+        const material = radio
+          .element()
+          .closest("label")
+          ?.querySelector('[aria-hidden="true"]');
+        if (material === null || material === undefined) {
+          throw new Error("The theme has no material");
+        }
+        return material;
+      });
+      await Promise.all(
+        materials.map(async (material) => {
+          const { url = "" } =
+            BACKGROUND_URL.exec(getComputedStyle(material).backgroundImage)
+              ?.groups ?? {};
+          const image = new Image();
+          image.src = url;
+          await image.decode();
+        }),
+      );
+      const selectors = materials.map(
+        (material) => page.elementLocator(material).selector,
+      );
+      const before = await Promise.all(
+        selectors.map((selector) => commands.materialPixels(selector)),
+      );
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      await userEvent.keyboard("{Escape}");
+      const after = await Promise.all(
+        selectors.map((selector) => commands.materialPixels(selector)),
+      );
+      expect(after).toEqual(before);
+    },
+  );
 
   test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
     "a saved %s choice uses parchment and keeps Dark before paint",
@@ -250,7 +418,9 @@ describe("use_case_choose_theme", () => {
     if (label === null || label === undefined) {
       throw new Error("The focused swatch has no label");
     }
-    await expect.poll(() => getComputedStyle(label).outlineStyle).toBe("solid");
+    await expect
+      .poll(() => getComputedStyle(label).outlineStyle)
+      .toBe("dashed");
   });
 
   test.each([NARROWEST_VIEWPORT, PHONE_VIEWPORT])(

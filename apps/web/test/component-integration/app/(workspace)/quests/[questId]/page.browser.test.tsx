@@ -24,7 +24,7 @@ import {
 } from "../../../../auth/current-user-test-kit.ts";
 import {
   bucket,
-  bucketsTab,
+  collectionTab,
 } from "../../../../components/quest-sidebar-test-kit.ts";
 import { runChatCommandAction } from "../../../../tasks/tasks-actions-test-kit.ts";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
@@ -129,7 +129,9 @@ test.each(["completed", "abandoned"] as const)(
     stores.getQuest.mockResolvedValue({ ...FOX_QUEST, status });
     await renderQuest();
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await expect.element(bucketsTab()).toHaveAttribute("aria-selected", "true");
+    await expect
+      .element(collectionTab())
+      .toHaveAttribute("aria-selected", "true");
     await expect.element(bucket("Tasks")).toBeVisible();
     await expect.element(composer()).toBeVisible();
   },
@@ -270,7 +272,9 @@ test("the Tasks section shows the todo list without Goal, Preferences or Journal
 
 test("Ideas opens as a separate quest section beside Tasks", async () => {
   await renderQuest("ideas");
-  await expect.element(bucketsTab()).toHaveAttribute("aria-selected", "true");
+  await expect
+    .element(collectionTab("Ideas"))
+    .toHaveAttribute("aria-selected", "true");
   await expect.element(bucket("Ideas")).toBeVisible();
   await expect
     .element(page.getByRole("button", { name: "Add idea" }))
@@ -279,7 +283,7 @@ test("Ideas opens as a separate quest section beside Tasks", async () => {
 
 test("Actions offers Complete and Abandon for the active quest", async () => {
   await renderQuest("actions");
-  const actions = page.getByRole("tabpanel", { name: "Actions", exact: true });
+  const actions = page.getByRole("region", { name: "Actions", exact: true });
   await expect
     .element(actions.getByRole("button", { name: "Complete", exact: true }))
     .toBeVisible();
@@ -295,7 +299,7 @@ test("status failures stay visible and focused inside the phone Actions drawer",
     feedback: { kind: "invalid", message: "Refresh and try again." },
   });
   await renderQuest("actions");
-  const actions = page.getByRole("tabpanel", { name: "Actions", exact: true });
+  const actions = page.getByRole("region", { name: "Actions", exact: true });
   await actions.getByRole("button", { name: "Complete", exact: true }).click();
   expect(runChatCommandAction).toHaveBeenCalledWith(
     expect.objectContaining({ chatId: FOX_CONVERSATION.id, text: "/complete" }),

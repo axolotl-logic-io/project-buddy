@@ -1,6 +1,6 @@
 # Quick Notes
 
-A Quick Note is a short, dated line that the user saves to one of their quests without opening it. The glossary entry is [Quick Note](../GLOSSARY.md#quick-note). The use case is [`use_case_quick_note`](../apps/web/use-cases/quick-notes.md#use_case_quick_note).
+A Quick Note is a short, dated line that the user saves to one of their quests from the site panel or directly from its bucket. The glossary entry is [Quick Note](../GLOSSARY.md#quick-note). The use case is [`use_case_quick_note`](../apps/web/use-cases/quick-notes.md#use_case_quick_note).
 
 ## The Quick Note dialog
 
@@ -14,4 +14,12 @@ Quick Notes live in the `quest_notes` table: an id, the quest, the text and when
 
 ## A quest's Quick Notes
 
-The quest sidebar's **Quick Notes** bucket, in its Buckets menu, lists the quest's notes, newest first, each with the day it was saved. Select a note to edit it in a multiline text area. Enter inserts a line break; **Save Quick Note** saves the edit and **Cancel editing Quick Note** discards it. Text keeps its line breaks and must contain 1 to 1000 characters after trimming. A refused edit keeps the draft. The note’s actions menu offers **Delete**. Edits send `/edit-note NOTE TEXT` to the conversation and record the change without changing its saved date or awarding experience. `?section=notes` opens it. Deleting is idempotent: a note that is already gone is left as it is. Completed and Abandoned quests keep their Quick Notes to read, edit and delete, though they take no new ones.
+The quest sidebar's **Quick Notes** tab has an always-visible composer above its saved notes, including when the bucket is empty. It targets the current quest without offering another quest choice. **Save Quick Note** saves the trimmed multiline text through the same Server Action as the site-panel dialog, clears the composer and returns focus to its text area. The response supplies the ordered notes and their saved dates.
+
+**Clear** discards the draft, clears feedback and focuses the text area without hiding it. Enter adds a line break; leaving the field does not save. A failed or refused save keeps the draft and explains the problem.
+
+While a save is pending, the draft is read-only and Save, Clear and the saved notes' controls are unavailable. Saving also waits for bucket edits and deletions or a conversation reply. Without a conversation, or for a Completed or Abandoned quest, the composer explains why Save is unavailable. The server still checks access and Active status; it grants no additional permissions.
+
+The bucket lists the quest's notes, newest first, each with the day it was saved. Select a note to edit it in a multiline text area. Enter inserts a line break; **Save Quick Note** saves the edit and **Cancel editing Quick Note** discards it. Text keeps its line breaks and must contain 1 to 1000 characters after trimming. A refused edit keeps the draft. The note’s actions menu offers **Delete**. Edits send `/edit-note NOTE TEXT` to the conversation and record the change without changing its saved date or awarding experience. `?section=notes` opens it. Deleting is idempotent: a note that is already gone is left as it is. Completed and Abandoned quests keep their Quick Notes to read, edit and delete, though they take no new ones.
+
+The Control desk layout keeps the composer above a toolbar that counts saved notes and labels their newest-first order. Each saved note has its date in a separate leading column, multiline text beside it, and an always-visible actions menu. Row rules group each note with its date. The empty log keeps the composer available. Tasks uses completion controls and Ideas uses possibility symbols and decision actions; Quick Notes keeps the same ledger rules without those controls.

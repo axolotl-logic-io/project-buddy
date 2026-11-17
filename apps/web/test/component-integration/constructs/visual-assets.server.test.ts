@@ -4,26 +4,23 @@ import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import { createChat } from "@/chats/new-chat-store.ts";
-import {
-  cloneConstruct,
-  createConstruct,
-  deleteConstruct,
-  getOwnConstruct,
-  updateConstruct,
-} from "@/constructs/construct-store.ts";
-import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { CONSTRUCT_VISUAL } from "@/constructs/visual.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
-import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import {
   constructAssetGrants,
   constructAssets,
 } from "@/db/tables/construct-visuals.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { seedGeneratedArtwork } from "../../support/test-database/artwork-test-kit.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
+import {
+  cloneConstruct,
+  createConstruct,
+  deleteConstruct,
+  getOwnConstruct,
+} from "../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 const DESCRIPTION = "A friendly brass owl with a round face and blue wings.";
@@ -174,7 +171,10 @@ describe("legacy construct artwork storage", () => {
       },
     });
     const bought = await legacyBoughtCopy(user, construct.id, buyer);
-    await retireDefinition(user.id, "construct", construct.id);
+    await getDb()
+      .update(ownPrompts)
+      .set({ retiredAt: new Date() })
+      .where(eq(ownPrompts.id, construct.id));
     expect(
       await getVisualAsset(
         user.id,
@@ -219,42 +219,16 @@ describe("legacy construct artwork storage", () => {
     ).rejects.toMatchObject({ errorCase: "not-found" });
   });
 
-  test("partial metadata saves preserve live-build matching and the saved artwork", async () => {
-    const user = await testUser();
-    const builtIn = getConstruct("lumen");
-    const copy = await cloneConstruct(user.id, "lumen");
-    if (copy === undefined) {
-      throw new Error("No copy");
-    }
-    expect(
-      await editConstructMetadata(user.id, copy.id, {
-        prompt: builtIn.definition.prompt,
-      }),
-    ).toMatchObject({ kind: "saved" });
-    const saved = await getOwnConstruct(user.id, copy.id);
-    expect(saved?.definition).toEqual(builtIn.definition);
-    const [row] = await getDb()
-      .select()
-      .from(ownPrompts)
-      .where(eq(ownPrompts.id, copy.id));
-    expect(row?.parts).toMatchObject({
-      voice: builtIn.definition.prompt,
-    });
-    await seedGeneratedArtwork(user.id, copy.id);
-    const visual = (await getOwnConstruct(user.id, copy.id))?.definition.visual;
-    await editConstructMetadata(user.id, copy.id, { name: "Lumen 2" });
-    expect(
-      (await getOwnConstruct(user.id, copy.id))?.definition.visual,
-    ).toEqual(visual);
-  });
-
   test("collection removes bytes only after the final destination grant is released", async () => {
     const { user, construct, assetId } = await setup();
     const clone = await cloneConstruct(user.id, construct.id);
     if (clone === undefined) {
       throw new Error("No clone");
     }
-    await retireDefinition(user.id, "construct", clone.id);
+    await getDb()
+      .update(ownPrompts)
+      .set({ retiredAt: new Date() })
+      .where(eq(ownPrompts.id, clone.id));
     await deleteConstruct(user.id, clone.id);
     expect(
       await getVisualAsset(
@@ -263,37 +237,11 @@ describe("legacy construct artwork storage", () => {
         assetId,
       ),
     ).toBeDefined();
-    await retireDefinition(user.id, "construct", construct.id);
+    await getDb()
+      .update(ownPrompts)
+      .set({ retiredAt: new Date() })
+      .where(eq(ownPrompts.id, construct.id));
     await deleteConstruct(user.id, construct.id);
     expect(await storedAsset(assetId)).toEqual([]);
-  });
-
-  test("concurrent edits of sibling copies retain grants without locking each other", async () => {
-    const { user, construct, assetId } = await setup();
-    const clone = await cloneConstruct(user.id, construct.id);
-    const visual = (await getOwnConstruct(user.id, construct.id))?.definition
-      .visual;
-    if (clone === undefined || visual === undefined) {
-      throw new Error("No clone");
-    }
-    const edits = await Promise.all([
-      updateConstruct(user.id, construct.id, {
-        definition: { prompt: "First voice", visual },
-      }),
-      updateConstruct(user.id, clone.id, {
-        definition: { prompt: "Second voice", visual },
-      }),
-    ]);
-    expect(edits.map((edit) => edit?.definition.prompt)).toEqual([
-      "First voice",
-      "Second voice",
-    ]);
-    expect(
-      await getVisualAsset(
-        user.id,
-        { kind: "construct", id: clone.id },
-        assetId,
-      ),
-    ).toBeDefined();
   });
 });

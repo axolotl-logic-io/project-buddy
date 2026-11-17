@@ -77,39 +77,37 @@ function QuestStatusTabs({
     <QuestStatusFeedback>
       <LeftQuestStatus />
       <Tabs.Root value={status} onValueChange={onValueChange}>
-        <div className="border-line border-b">
-          <Tabs.List
-            aria-label={QUEST_STATUS_COPY.tabs}
-            className="workspace-tablist"
-          >
-            {QUEST_STATUSES.map((choice) => (
-              <Tabs.Trigger
-                key={choice}
-                value={choice}
-                className="workspace-tab"
-                {...POINTER_FOCUS_HANDLERS}
-              >
-                {QUEST_STATUS_COPY.labels[choice]}
-                <span aria-hidden="true" className="quests-index-count">
-                  {quests.filter((quest) => quest.status === choice).length}
-                </span>
-              </Tabs.Trigger>
-            ))}
-            {pending !== undefined && (
-              <Tabs.Trigger
-                value="pending"
-                aria-label={PENDING_COPY.tabLabel(stillPending.length)}
-                className="workspace-tab"
-                {...POINTER_FOCUS_HANDLERS}
-              >
-                {PENDING_COPY.label}
-                <span aria-hidden="true" className="quests-index-count">
-                  {stillPending.length}
-                </span>
-              </Tabs.Trigger>
-            )}
-          </Tabs.List>
-        </div>
+        <Tabs.List
+          aria-label={QUEST_STATUS_COPY.tabs}
+          className="quests-index-tabs"
+        >
+          {QUEST_STATUSES.map((choice) => (
+            <Tabs.Trigger
+              key={choice}
+              value={choice}
+              className="quests-index-tab"
+              {...POINTER_FOCUS_HANDLERS}
+            >
+              {QUEST_STATUS_COPY.labels[choice]}
+              <span aria-hidden="true" className="quests-index-count">
+                {quests.filter((quest) => quest.status === choice).length}
+              </span>
+            </Tabs.Trigger>
+          ))}
+          {pending !== undefined && (
+            <Tabs.Trigger
+              value="pending"
+              aria-label={PENDING_COPY.tabLabel(stillPending.length)}
+              className="quests-index-tab"
+              {...POINTER_FOCUS_HANDLERS}
+            >
+              {PENDING_COPY.label}
+              <span aria-hidden="true" className="quests-index-count">
+                {stillPending.length}
+              </span>
+            </Tabs.Trigger>
+          )}
+        </Tabs.List>
         {QUEST_STATUSES.map((choice) => (
           <Tabs.Content
             key={choice}

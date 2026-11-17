@@ -30,7 +30,7 @@ function StartConversationForm({
   return (
     <form action={action} className="flex flex-col items-start gap-3">
       <input type="hidden" name="questId" value={questId} />
-      <Button disabled={pending} type="submit">
+      <Button aria-busy={pending} disabled={pending} type="submit">
         {QUEST_CONVERSATION_COPY.start}
       </Button>
       <FormStatus>{status}</FormStatus>

@@ -39,7 +39,7 @@ const SAVE_NOTE_REQUEST = z.object({ questId: QUEST_ID, text: z.string() });
 
 // What a save did: done, or a reason for the user.
 type NoteResult =
-  | { readonly kind: "saved" }
+  | { readonly kind: "saved"; readonly notes: readonly Note[] }
   | { readonly kind: "problem"; readonly text: string };
 
 // An Active quest a Quick Note can go to, and how it is shared.

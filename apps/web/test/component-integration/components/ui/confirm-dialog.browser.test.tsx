@@ -53,8 +53,8 @@ for (const mode of ["light", "dark"]) {
 
     test("confirms with the primary button by default", async () => {
       expect(paintOf(await openDialog(dialog()))).toEqual({
-        fill: tokenColor("primary"),
-        text: tokenColor("on-primary"),
+        fill: tokenColor("action-fill"),
+        text: tokenColor("on-action"),
       });
     });
 

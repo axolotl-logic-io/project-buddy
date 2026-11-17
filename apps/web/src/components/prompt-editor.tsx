@@ -22,7 +22,6 @@ import {
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { TextListField } from "@/components/ui/text-list-field.tsx";
 import { parseTextList } from "@/components/ui/text-list-value.ts";
-import type { PromptKind } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
 // An unsaved draft as this browser keeps it (local-draft.ts), with the save
@@ -88,7 +87,7 @@ const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
   restored: PROMPT_COPY.restored,
 };
 
-// Saves an own construct’s name and text fields. Drafts survive navigation in
+// Saves an own spell’s name and text fields. Drafts survive navigation in
 // this browser until Save or Cancel; a newer savedAt invalidates an older draft.
 function PromptEditor({
   action,
@@ -118,7 +117,7 @@ function PromptEditor({
   readonly saving?: boolean;
   readonly disabled?: boolean;
   readonly action: (formData: FormData) => void | Promise<void>;
-  readonly kind: PromptKind;
+  readonly kind: "spell";
   readonly idName: string;
   readonly promptId: string;
   readonly savedAt: string;
@@ -407,6 +406,7 @@ function PromptEditor({
         <Button
           aria-describedby={(saveHint !== undefined && saveHintId) || undefined}
           className="self-start"
+          aria-busy={saving}
           disabled={saving === true || disabled === true}
           type="submit"
         >

@@ -2,11 +2,11 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ChatPanel } from "@/components/chat-panel.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { MembershipResult } from "@/quests/membership.ts";
 import type { PendingQuest, QuestPeople } from "@/quests/membership-store.ts";
+import { THEME_MODES } from "@/themes/themes.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { PENDING_COPY, QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -30,6 +30,7 @@ import {
   inConversation,
   sentTexts,
 } from "./chat/chat-send-test-kit.tsx";
+import { QuestSidebar } from "./quest-panel-test-kit.tsx";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
@@ -95,14 +96,14 @@ function members(viewer = OWNER.id, dailies = false): JSX.Element {
 // for viewer, opened on Members: a drawer below 1024 px.
 function sidebarMembers(viewer = OWNER.id): JSX.Element {
   return (
-    <ChatPanel
+    <QuestSidebar
       initialSection="members"
       sideSections={[
         { id: "members", label: "Members", content: members(viewer) },
       ]}
     >
       <p>{CONVERSATION}</p>
-    </ChatPanel>
+    </QuestSidebar>
   );
 }
 
@@ -524,7 +525,7 @@ describe("Pending on Quests", () => {
 
 describe("members and Pending on phones", () => {
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
-    for (const mode of ["light", "dark"]) {
+    for (const mode of THEME_MODES) {
       test(`fit ${viewport.width} px in ${mode}`, async () => {
         applyTheme("parchment", mode);
         await setViewport(viewport);

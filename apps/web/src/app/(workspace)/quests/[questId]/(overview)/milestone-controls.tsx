@@ -71,7 +71,7 @@ function MilestoneEditor({
       />
       {problem !== undefined && <Alert id={errorId}>{problem}</Alert>}
       <div className="flex flex-wrap gap-2">
-        <Button disabled={busy} type="submit">
+        <Button aria-busy={busy} disabled={busy} type="submit">
           {PROGRESS_TIMELINE_COPY.save}
         </Button>
         <Button disabled={busy} onClick={onClose} variant="secondary">

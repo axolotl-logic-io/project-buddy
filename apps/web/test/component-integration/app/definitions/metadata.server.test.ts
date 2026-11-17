@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { generateMetadata as constructMetadata } from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import { generateMetadata as spellMetadata } from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
-import { createConstruct } from "@/constructs/construct-store.ts";
 import { listSpells } from "@/spells/spell.ts";
+import { createConstruct } from "../../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../../support/test-database/user-test-kit.ts";
 import { signIn } from "../../test-database/session-test-kit.ts";
 
@@ -19,7 +19,7 @@ test("definition titles identify the definition while a private foreign name sta
       params: Promise.resolve({ constructId: own.id }),
       searchParams: Promise.resolve({}),
     }),
-  ).toEqual({ title: "Private garden guide · Project Buddy" });
+  ).toEqual({ title: "Construct · Project Buddy" });
   const [spell] = listSpells();
   if (spell === undefined) {
     throw new Error("No built-in spell");

@@ -41,6 +41,7 @@ import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { questNotes } from "@/db/tables/quest-notes.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
+import { signedInDays } from "@/db/tables/signed-in-days.ts";
 import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
 import { tasksVersions } from "@/db/tables/tasks-versions.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
@@ -216,6 +217,11 @@ function timerPresenceOwnedBy(owner: UserId): SQL {
   return eq(timerPresence.userId, owner);
 }
 
+// A visiting date belongs to its account alone, regardless of membership.
+function signedInDayOwnedBy(owner: UserId): SQL {
+  return eq(signedInDays.userId, owner);
+}
+
 function replyRunOwnedBy(user: UserId): SQL {
   return and(replyRunOpenTo(user), eq(replyRuns.userId, user)) ?? sql`false`;
 }
@@ -241,6 +247,7 @@ export {
   questPendingFor,
   replyRunOpenTo,
   replyRunOwnedBy,
+  signedInDayOwnedBy,
   spellResultOpenTo,
   tasksVersionOpenTo,
   timerPresenceOwnedBy,
