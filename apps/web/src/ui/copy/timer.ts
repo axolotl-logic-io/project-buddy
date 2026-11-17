@@ -32,10 +32,6 @@ export const TIMER_COPY = {
   closePreferences: "Close timer preferences",
   displayLabel: "Running timer",
   dial: {
-    north: "XII",
-    east: "III",
-    south: "VI",
-    west: "IX",
     inscription: "TEMPUS · LABOR · QUIES",
     refrain: "AS THE HOUR TURNS, BEGIN AGAIN",
   },

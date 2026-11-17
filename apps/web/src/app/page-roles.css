@@ -1419,13 +1419,13 @@
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
 
-  /* The dial is printed directly on the site's material, without a second page. */
+  /* The illustration is printed directly on the site's material. */
   .timer-stage {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: --spacing(5);
-    padding-block: --spacing(6);
+    padding-block: var(--timer-stage-padding);
     color: var(--foreground);
     font-family: var(--timer-body-font);
   }
@@ -1434,12 +1434,17 @@
     position: relative;
     display: grid;
     place-items: center;
-    inline-size: min(100%, 30rem);
-    aspect-ratio: 1;
+    grid-template-columns: var(--timer-face-columns);
+    gap: --spacing(2.5);
+    inline-size: var(--timer-face-width);
+    min-block-size: var(--timer-face-height);
+    padding: var(--timer-face-padding);
+    aspect-ratio: var(--timer-face-ratio);
     container-type: inline-size;
   }
 
   .timer-ring {
+    display: var(--timer-ring-display);
     position: absolute;
     inset: 0;
     inline-size: 100%;
@@ -1472,9 +1477,6 @@
     font-size: 11px;
   }
 
-  .timer-roman {
-    display: var(--timer-roman-display);
-  }
   .timer-inscription {
     display: var(--timer-inscription-display);
     letter-spacing: 3px;
@@ -1497,9 +1499,6 @@
     fill: currentColor;
   }
 
-  .timer-tick {
-    display: var(--timer-tick-display);
-  }
   .timer-sigil {
     display: var(--timer-sigil-display);
   }
@@ -1543,15 +1542,20 @@
   }
 
   .timer-readout {
-    position: relative;
+    justify-self: stretch;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: var(--timer-readout-align);
+    text-align: var(--timer-readout-align);
+  }
+
+  .timer-value {
+    position: relative;
   }
 
   .timer-phase {
-    position: absolute;
+    position: var(--timer-phase-position);
+    margin-block-end: var(--timer-phase-gap);
     inset-inline: 0;
     inset-block-end: calc(100% + --spacing(1));
     font-family: var(--timer-phase-font);
@@ -1562,20 +1566,82 @@
 
   .timer-countdown {
     font-family: var(--timer-numeral-font);
-    font-size: min(var(--timer-numeral-size), 26cqi);
+    font-size: min(var(--timer-numeral-size), var(--timer-number-scale));
     font-weight: 500;
     font-variant-numeric: lining-nums tabular-nums;
     letter-spacing: -0.05em;
-    line-height: 1.1;
+    line-height: var(--timer-number-leading);
   }
 
   .timer-countdown[data-hours="true"] {
-    font-size: min(var(--timer-numeral-size), 16cqi);
+    font-size: min(var(--timer-numeral-size), var(--timer-hours-scale));
   }
 
   .timer-next {
-    @apply font-heading text-foreground text-sm;
+    @apply text-foreground text-sm;
+    font-family: var(--timer-next-font);
+    position: var(--timer-next-position);
+    inset-block-start: var(--timer-next-offset);
+    margin-block-start: var(--timer-next-margin);
+    padding-block-start: var(--timer-next-padding);
     letter-spacing: 0.08em;
+  }
+
+  .timer-next::before {
+    content: "";
+    display: var(--timer-next-rule);
+    position: absolute;
+    inset-block-start: 0;
+    inline-size: 3rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .timer-hourglass {
+    display: var(--timer-hourglass-display);
+    inline-size: 100%;
+    max-inline-size: 14.375rem;
+  }
+
+  .timer-hourglass-wood {
+    fill: var(--foreground);
+  }
+
+  .timer-hourglass-frame,
+  .timer-hourglass-glass {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 2px;
+  }
+
+  .timer-hourglass-glass {
+    stroke-width: 1.3px;
+  }
+
+  .timer-sand {
+    fill: var(--timer-sand);
+  }
+
+  .timer-sand-grain {
+    stroke: var(--background);
+    stroke-width: 0.7px;
+    opacity: 0.35;
+  }
+
+  .timer-sand-stream {
+    fill: none;
+    stroke: var(--timer-sand);
+    stroke-width: 1.7px;
+    stroke-dasharray: 1 4;
+  }
+
+  @media (width <= 28.75rem) {
+    .timer-hourglass {
+      max-inline-size: 8.25rem;
+    }
+
+    .timer-next::before {
+      inset-inline-start: calc(50% - 1.5rem);
+    }
   }
 
   .timer-panel {

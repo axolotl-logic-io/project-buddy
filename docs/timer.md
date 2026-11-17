@@ -27,7 +27,7 @@ The link holds no quest, conversation or account data, so the proxy (`src/proxy.
 
 ## Running timer
 
-The page shows a dial on the site’s own texture: a ring that fills as the period passes, the period's name, **Work** or **Break**, and the time left as `MM:SS`, or `HH:MM:SS` from an hour. The ring is decoration; the name and time say everything in text. The countdown has the `timer` role, so screen readers don't read every second. A hidden status line announces the period's name as each one begins.
+The page shows an hourglass or dial on the site’s own texture, the period's name, **Work** or **Break**, and the time left as `MM:SS`, or `HH:MM:SS` from an hour. The illustration is decoration; the name and time say everything in text. The countdown has the `timer` role, so screen readers don't read every second. A hidden status line announces the period's name as each one begins.
 
 The browser's clock decides the period: `src/timer/schedule.ts` works it out from the time since the start. The page reads the clock at each second the countdown shows and whenever its tab comes back into view. A tab that slept therefore shows the current period at once and replays nothing. Two devices agree when their clocks do; the site doesn't synchronize clocks.
 
@@ -37,13 +37,17 @@ The timer writes no message, completes no task, records no milestone, sends no n
 
 ## Timer appearance preferences
 
-The Timer follows the site's saved appearance. Each site appearance has a paired dial:
+The Timer follows the site's saved appearance. Each site appearance has a paired timer illustration:
 
-- **Ivory Vellum**: a fine engraved folio dial in sepia ink.
-- **Soot & Brass**: a new Gothic hour dial with pointed chapter marks in muted brass on burgundy.
+- **Ivory Vellum**: the scribe’s hourglass in sepia ink with golden sand.
+- **Soot & Brass**: a Gothic hour dial with pointed chapter marks in muted brass on burgundy.
 - **Espresso Leather**: the necromantic seal and blackletter phase label, in warm brass and ivory on leather.
 
-The dial is transparent over the page's existing texture. It adds no second paper surface, repeated site title, folio heading or schedule caption. The countdown uses lining, tabular numerals so the visible digits stay centered in the circle, with the phase above it and the next period below the dial. A thick progress arc stands apart from the fine ornamental lines. The dial ornaments are live SVG markup styled by semantic CSS tokens. Twelve markers brighten, thicken and fill as the elapsed arc passes them clockwise, and reset at each new period. A brief transition respects reduced motion. Supplementary text and guide lines use stronger site ink for contrast. Self-hosted fonts and the dial ornaments retain the manuscript character of the approved mockups; the original mockups in `outputs/timer-mockups/` record the earlier standalone designs.
+The illustration is transparent over the page's existing texture. It adds no second paper surface, repeated site title, folio heading or schedule caption. The countdown uses lining, tabular numerals, with the phase above it. All ornament is live SVG markup styled by semantic CSS tokens, with self-hosted manuscript fonts.
+
+In Ivory Vellum, sand drains from the upper bowl and collects in the lower bowl as the current period passes. Both levels follow the schedule rather than a separate animation, so returning to a sleeping tab shows the current levels immediately. Each new work or break period resets the hourglass. The countdown sits beside the glass on desktop and below it on phones. On phone viewports up to 672 px tall, compact vertical spacing keeps the countdown and next-period label visible below the header, preserving the illustration and numeral sizes. A short rule separates the next-period label. The approved light design is `outputs/light-timer-alternatives/scribes-hourglass.html`.
+
+The two darker appearances keep their circular dials. The visible digits stay centered in the circle, and the next period sits below the dial. A thick progress arc stands apart from the fine ornamental lines. Twelve markers brighten, thicken and fill as the elapsed arc passes them clockwise, and reset at each new period. A brief transition respects reduced motion. Supplementary text and guide lines use stronger site ink for contrast. The original mockups in `outputs/timer-mockups/` record the earlier standalone designs.
 
 The right sidebar mirrors the site's left panel: it docks over the page on wide screens, remembers whether it is docked, and opens as a modal drawer on phones. Escape closes a phone drawer and restores focus to its button; keyboard focus stays within the open drawer. Signed-out visitors have the same copy control. Setup also offers preferences; **Copy link** appears only for a running timer.
 
