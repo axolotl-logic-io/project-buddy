@@ -69,7 +69,7 @@ beforeEach(() => {
 describe("use_case_quick_note", () => {
   test("the site panel's Quick Note saves a note to the open quest and keeps it chosen", async () => {
     route.pathname = `/quests/${FOX_QUEST.id}`;
-    vi.mocked(saveNoteAction).mockResolvedValue({ kind: "saved" });
+    vi.mocked(saveNoteAction).mockResolvedValue({ kind: "saved", notes: [] });
     await openQuickNote();
 
     const dialog = page.getByRole("dialog", { name: "Quick Note" });
@@ -204,7 +204,9 @@ describe("use_case_quick_note", () => {
       sent: true,
       note: "Deleted the Quick Note “Buy more clay”.",
     });
-    await render(inConversation(send, <QuestNotes notes={notes} />));
+    await render(
+      inConversation(send, <QuestNotes notes={notes} quest={FOX_QUEST} />),
+    );
 
     const list = page.getByRole("list", { name: "Quick Notes" });
     await expect
@@ -220,7 +222,7 @@ describe("use_case_quick_note", () => {
       .click();
     expect(sentTexts(send)).toEqual(["/drop-note 1"]);
     await expect
-      .element(page.getByRole("status"))
+      .element(page.getByRole("status").filter({ hasText: "Deleted" }))
       .toHaveTextContent("Deleted the Quick Note “Buy more clay”.");
     await expect
       .element(page.getByText("Buy more clay"))
@@ -234,6 +236,7 @@ describe("use_case_quick_note", () => {
       inConversation(
         send,
         <QuestNotes
+          quest={FOX_QUEST}
           notes={[
             {
               id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
@@ -246,10 +249,12 @@ describe("use_case_quick_note", () => {
     );
     const edit = page.getByRole("button", { name: "Edit Quick Note" });
     await edit.click();
-    const field = page.getByRole("textbox", {
-      name: "Quick Note",
-      exact: true,
-    });
+    const field = page
+      .getByRole("group", { name: "Quick Note", exact: true })
+      .getByRole("textbox", {
+        name: "Quick Note",
+        exact: true,
+      });
     expect(field.element().tagName).toBe("TEXTAREA");
     await field.fill("Clay");
     await userEvent.keyboard("{End}");
@@ -258,6 +263,7 @@ describe("use_case_quick_note", () => {
     await expect.element(field).toHaveValue("Clay\nGlaze");
     expect(send).not.toHaveBeenCalled();
     await page
+      .getByRole("group", { name: "Quick Note" })
       .getByRole("button", { name: "Save Quick Note", exact: true })
       .click();
     expect(sentTexts(send)).toEqual(["/edit-note 1 Clay\nGlaze"]);
@@ -283,6 +289,7 @@ describe("use_case_quick_note", () => {
       inConversation(
         send,
         <QuestNotes
+          quest={FOX_QUEST}
           notes={[
             {
               id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
@@ -294,14 +301,18 @@ describe("use_case_quick_note", () => {
       ),
     );
     await page.getByRole("button", { name: "Edit Quick Note" }).click();
-    const field = page.getByRole("textbox", {
-      name: "Quick Note",
-      exact: true,
-    });
-    const save = page.getByRole("button", {
-      name: "Save Quick Note",
-      exact: true,
-    });
+    const field = page
+      .getByRole("group", { name: "Quick Note", exact: true })
+      .getByRole("textbox", {
+        name: "Quick Note",
+        exact: true,
+      });
+    const save = page
+      .getByRole("group", { name: "Quick Note" })
+      .getByRole("button", {
+        name: "Save Quick Note",
+        exact: true,
+      });
     await field.fill("   ");
     await save.click();
     await expect.element(field).toHaveAttribute("aria-invalid", "true");
@@ -324,6 +335,7 @@ describe("use_case_quick_note", () => {
       inConversation(
         send,
         <QuestNotes
+          quest={FOX_QUEST}
           notes={[
             {
               id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),

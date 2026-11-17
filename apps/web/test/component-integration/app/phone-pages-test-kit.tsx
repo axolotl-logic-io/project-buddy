@@ -326,6 +326,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the quest's Quick Notes composer",
+    path: QUEST_PATH,
+    render: projectPageFor("notes"),
+  },
+  {
     name: "the Profile page",
     path: ["profile"],
     render: workspacePage(noData, async () =>
