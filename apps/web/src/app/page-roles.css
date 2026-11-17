@@ -695,6 +695,10 @@
     );
   }
 
+  .signed-in-days-card {
+    @apply flex min-w-0 flex-col gap-2 rounded-box border-2 border-line bg-field p-5;
+  }
+
   .profile-card-body {
     @apply flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start;
   }
