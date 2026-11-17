@@ -1078,7 +1078,7 @@
 
   /* Both pickers use native radios; only their material appears inside. */
   .panel-modes {
-    @apply mx-2 grid grid-cols-3 gap-3;
+    @apply mx-2 grid max-w-md grid-cols-3 gap-3 pt-10;
   }
 
   .panel-mode {
