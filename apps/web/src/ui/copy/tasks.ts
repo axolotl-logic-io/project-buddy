@@ -70,6 +70,7 @@ const TASKS_COMMAND_DESCRIPTIONS: Readonly<Record<TasksCommandName, string>> = {
 
 export const TASKS_COPY = {
   heading: "Tasks",
+  intro: "Agreed work. One step at a time.",
   tasksLabel: "Open tasks",
   openSummary: (count: number): string => `${count} open · Agreed work`,
   empty: "No open tasks. Add the next piece of agreed work.",
