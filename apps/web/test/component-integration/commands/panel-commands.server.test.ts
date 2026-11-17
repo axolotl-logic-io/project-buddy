@@ -4,7 +4,7 @@
 // Ideas, Quick Notes, milestones, members and status have theirs tested
 // beside the rest of their cases.
 
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
@@ -31,6 +31,13 @@ const notes: typeof PANEL_COMMANDS_COPY.notes = PANEL_COMMANDS_COPY.notes;
 const problems: typeof PANEL_COMMANDS_COPY.problems =
   PANEL_COMMANDS_COPY.problems;
 const LOCAL_DATE = "2026-11-14";
+// The server's clock, a day past the browser's date and so within the
+// distance the server trusts a browser's date.
+const SERVER_NOW = new Date("2026-11-15T12:00:00Z");
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 // A signed-in user's Dailies conversation.
 async function signedInDailies(): Promise<{
@@ -70,6 +77,8 @@ describe("use_case_start_day", () => {
       clearTasks: false,
       clearIdeas: true,
     });
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(SERVER_NOW);
 
     expect(await runCommand(chat.id, command, LOCAL_DATE)).toMatchObject({
       kind: "noted",
