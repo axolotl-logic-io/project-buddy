@@ -38,3 +38,14 @@ test.each(["ivory-vellum", "soot-brass", "espresso-leather"])(
     expect(failures).toContain(`GET ${path}: expected a WebP image`);
   },
 );
+
+test("reads or cancels every response body, so no connection stays open", async () => {
+  const responses: Response[] = [];
+  await smokeChecks("https://example.test", (): Promise<Response> => {
+    const response = new Response("body", { status: 200 });
+    responses.push(response);
+    return Promise.resolve(response);
+  });
+  expect(responses.length).toBeGreaterThan(0);
+  expect(responses.filter((response) => !response.bodyUsed)).toEqual([]);
+});
