@@ -25,6 +25,8 @@
 }
 
 @theme inline {
+  --font-timer: var(--timer-body-font);
+
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-navigation-surface: var(--navigation-surface);

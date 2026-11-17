@@ -131,9 +131,10 @@ function QuickNote(): JSX.Element {
   }
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <button className="panel-link" onClick={openDialog} type="button">
+      <Button className="w-full justify-start" onClick={openDialog}>
+        <Icon name="plus" />
         {QUICK_NOTE_COPY.panelItem}
-      </button>
+      </Button>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
         <Dialog.Content

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   type JSX,
+  type KeyboardEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -23,7 +24,6 @@ import { THEME_COPY } from "@/ui/copy/theme.ts";
 // Whether the panel is docked on a wide screen is the user's choice, kept
 // in this browser, so it stays docked from page to page and after a reload.
 // It starts closed.
-const DOCKED_KEY = "site-panel";
 const DOCKED = "docked";
 const dockedListeners = new Set<() => void>();
 
@@ -36,19 +36,19 @@ function subscribeDocked(notify: () => void): () => void {
   };
 }
 
-function isDocked(): boolean {
-  return localStorage.getItem(DOCKED_KEY) === DOCKED;
+function isDocked(key: string): boolean {
+  return localStorage.getItem(key) === DOCKED;
 }
 
 function serverDocked(): boolean {
   return false;
 }
 
-function setDocked(docked: boolean): void {
+function setDocked(key: string, docked: boolean): void {
   if (docked) {
-    localStorage.setItem(DOCKED_KEY, DOCKED);
+    localStorage.setItem(key, DOCKED);
   } else {
-    localStorage.removeItem(DOCKED_KEY);
+    localStorage.removeItem(key);
   }
   for (const notify of dockedListeners) {
     notify();
@@ -71,6 +71,33 @@ function PanelLink({
   );
 }
 
+const PANEL_CONTROLS = "button, a[href], input, select, textarea";
+
+// Native dialogs can send a final Tab to the document body. Keep the drawer's
+// first and last controls adjacent in keyboard order instead.
+function containDrawerFocus(event: KeyboardEvent<HTMLDialogElement>): void {
+  if (event.key !== "Tab" || !event.currentTarget.matches(":modal")) {
+    return;
+  }
+  const controls = [
+    ...event.currentTarget.querySelectorAll<HTMLElement>(PANEL_CONTROLS),
+  ].filter(
+    (control) =>
+      !control.matches(":disabled") &&
+      control.getClientRects().length > 0 &&
+      getComputedStyle(control).visibility !== "hidden",
+  );
+  const first = controls.at(0);
+  const last = controls.at(-1);
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last?.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first?.focus();
+  }
+}
+
 // The site panel, on the left of every page, mirroring the chat panel on
 // the right: a button at the breadcrumb row's left end opens it from
 // that row, holding links (the @header slot's, or none for a visitor),
@@ -87,9 +114,37 @@ function PanelLink({
 // Opening it from its button moves focus to the close button, and closing
 // it returns focus to its button. The links are in the page's first HTML,
 // inside the closed panel.
-function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
+function SidePanel({
+  children,
+  title,
+  closeLabel,
+  storageKey,
+  side = "left",
+}: {
+  readonly children: ReactNode;
+  readonly title: string;
+  readonly closeLabel: string;
+  readonly storageKey: string;
+  readonly side?: "left" | "right";
+}): JSX.Element {
   const wide = useWideScreen();
-  const docked = useSyncExternalStore(subscribeDocked, isDocked, serverDocked);
+  const readDocked = useCallback(
+    (): boolean => isDocked(storageKey),
+    [storageKey],
+  );
+  const docked = useSyncExternalStore(
+    subscribeDocked,
+    readDocked,
+    serverDocked,
+  );
+  let panelClass = "site-panel";
+  let toggleClass = "panel-toggle panel-edge-tab site-panel-toggle";
+  let icon: "site-panel" | "sidebar" = "site-panel";
+  if (side === "right") {
+    panelClass += " timer-panel";
+    toggleClass += " timer-panel-toggle";
+    icon = "sidebar";
+  }
   const [drawerOpen, setDrawerOpen] = useState(false);
   let panelOpen: boolean = drawerOpen;
   if (wide) {
@@ -100,7 +155,6 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
   const closeRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const titleId = useId();
-  const appearanceId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -143,18 +197,18 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
   const toggle = useCallback((): void => {
     toggleRef.current?.focus({ preventScroll: true });
     if (wide) {
-      setDocked(!docked);
+      setDocked(storageKey, !docked);
     } else {
       setDrawerOpen(true);
     }
-  }, [docked, wide]);
+  }, [docked, storageKey, wide]);
   const close = useCallback((): void => {
     if (wide) {
-      setDocked(false);
+      setDocked(storageKey, false);
     } else {
       dialogRef.current?.close();
     }
-  }, [wide]);
+  }, [storageKey, wide]);
   // The drawer closes itself on Escape, a click beside it or a link; the
   // panel follows. A panel the effect has opened again since stays open.
   const markClosed = useCallback((): void => {
@@ -162,64 +216,78 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
       return;
     }
     if (wide) {
-      setDocked(false);
+      setDocked(storageKey, false);
     } else {
       setDrawerOpen(false);
     }
-  }, [wide]);
+  }, [storageKey, wide]);
 
   return (
     <>
       <Button
         aria-controls={panelId}
         aria-expanded={panelOpen}
-        className="panel-toggle panel-edge-tab site-panel-toggle"
+        className={toggleClass}
         onClick={toggle}
         ref={toggleRef}
-        title={SITE_PANEL_COPY.title}
+        title={title}
         variant="quiet"
       >
-        <Icon name="site-panel" />
-        <span className="sr-only">{SITE_PANEL_COPY.title}</span>
+        <Icon name={icon} />
+        <span className="sr-only">{title}</span>
       </Button>
       <dialog
         aria-labelledby={titleId}
-        className="site-panel"
+        className={panelClass}
         closedby="any"
         id={panelId}
         onClose={markClosed}
+        onKeyDown={containDrawerFocus}
         ref={dialogRef}
       >
         <div className="site-panel-heading">
           <Button
             aria-controls={panelId}
             aria-expanded={panelOpen}
-            aria-label={SITE_PANEL_COPY.close}
+            aria-label={closeLabel}
             className="panel-toggle panel-edge-tab site-panel-close"
             onClick={close}
             ref={closeRef}
-            title={SITE_PANEL_COPY.close}
+            title={closeLabel}
             variant="quiet"
           >
-            <Icon name="site-panel" />
+            <Icon name={icon} />
           </Button>
           <h2 className="header-title" id={titleId}>
-            {SITE_PANEL_COPY.title}
+            {title}
           </h2>
         </div>
-        {links}
-        <hr className="panel-rule" />
-        <section aria-labelledby={appearanceId} className="flex flex-col">
-          <h3 className="panel-label" id={appearanceId}>
-            {THEME_COPY.picker}
-          </h3>
-          <AppearanceChoices />
-        </section>
-        <hr className="panel-rule" />
-        <PanelLink href="/credits">{CREDITS_COPY.panelLink}</PanelLink>
+        {children}
       </dialog>
     </>
   );
 }
 
-export { PanelLink, SitePanel };
+function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
+  const appearanceId = useId();
+  return (
+    <SidePanel
+      title={SITE_PANEL_COPY.title}
+      closeLabel={SITE_PANEL_COPY.close}
+      storageKey="site-panel"
+    >
+      {links}
+      <hr className="panel-rule" />
+      <section aria-labelledby={appearanceId} className="flex flex-col">
+        <h3 className="panel-label" id={appearanceId}>
+          {THEME_COPY.picker}
+        </h3>
+        <AppearanceChoices />
+      </section>
+      <hr className="panel-rule" />
+      <PanelLink href="/credits">{CREDITS_COPY.panelLink}</PanelLink>
+    </SidePanel>
+  );
+}
+
+export { PanelLink, SidePanel, SitePanel };

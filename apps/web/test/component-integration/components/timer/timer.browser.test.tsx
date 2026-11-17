@@ -10,6 +10,7 @@ import { timerRouter } from "../../../support/timer/timer-router.ts";
 import {
   countdown,
   minutesAfter,
+  openTimerPreferences,
   phaseHeading,
   renderSetup,
   renderTimer,
@@ -141,6 +142,7 @@ describe("use_case_timer_see_others", () => {
     await renderTimer(FIFTY_TEN);
 
     await expect.element(page.getByText("2 others here")).toBeVisible();
+    await openTimerPreferences();
     await expect
       .element(page.getByRole("button", { name: TIMER_COPY.copyLink }))
       .toBeVisible();
@@ -157,6 +159,7 @@ describe("use_case_timer_see_others", () => {
     });
 
     await expect.element(countdown()).toHaveTextContent("45:00");
+    await openTimerPreferences();
     await expect
       .element(page.getByRole("button", { name: TIMER_COPY.copyLink }))
       .toBeVisible();

@@ -76,7 +76,11 @@ function QuestStatusTabs({
   return (
     <QuestStatusFeedback>
       <LeftQuestStatus />
-      <Tabs.Root value={status} onValueChange={onValueChange}>
+      <Tabs.Root
+        value={status}
+        onValueChange={onValueChange}
+        className="flex min-w-0 flex-1 flex-col"
+      >
         <Tabs.List
           aria-label={QUEST_STATUS_COPY.tabs}
           className="quests-index-tabs"

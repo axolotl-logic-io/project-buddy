@@ -20,7 +20,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Prerequisites:** someone shared a timer's link with them ([`use_case_timer_start`](#use_case_timer_start) or [`use_case_timer_join_global`](#use_case_timer_join_global)).
 - **Steps:**
   - They open the link, at any time after the timer began, signed in or not.
-- **Outcome:** they see the schedule's current period and the time left of it, not a new countdown, and refreshing keeps the same schedule. A signed-out visitor sees the same timer and Copy link, with no sign-in first. A link that doesn't name a timer, such as one with a missing, zero, negative or other length than the presets, or a start more than a minute ahead of their clock, says so and offers the way to set up a timer, with no countdown. Opening a link changes no one else's timer.
+- **Outcome:** they see the schedule's current period and the time left of it, not a new countdown, and refreshing keeps the same schedule. A signed-out visitor sees the same timer and Copy link in Timer preferences, with no sign-in first. A link that doesn't name a timer, such as one with a missing, zero, negative or other length than the presets, or a start more than a minute ahead of their clock, says so and offers the way to set up a timer, with no countdown. Opening a link changes no one else's timer.
 - **Next:**
   - [`use_case_timer_follow_cycle`](#use_case_timer_follow_cycle): follow the cycle.
   - [`use_case_timer_return_to_setup`](#use_case_timer_return_to_setup): leave it for another schedule.
@@ -65,3 +65,20 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Outcome:** setup offers the lengths of the timer last shown in this browser tab; another tab or device offers its own. A new Start makes a new schedule with a new link. Links already shared, and other people's timers, are unchanged.
 - **Next:**
   - [`use_case_timer_start`](#use_case_timer_start) or [`use_case_timer_join_global`](#use_case_timer_join_global): begin another timer.
+
+## use_case_timer_choose_appearance
+
+- **Intent:** Choose a site appearance and its paired timer dial without changing the timer schedule.
+- **Prerequisites:** the Timer is open, signed in or not.
+- **Steps:**
+  - They open Timer preferences at the right of the trail.
+  - They choose Ivory Vellum, Soot & Brass or Espresso Leather.
+- **Outcome:** the site and timer change appearance together immediately, using the same preference as the left panel and Settings. The browser remembers the site appearance across timer links and reloads. The schedule and shared link stay unchanged. On phones, preferences opens as a modal drawer with keyboard focus kept inside; Escape closes it and returns focus to the opening button. On wide screens it docks on the right and remembers whether it is open.
+
+## use_case_timer_copy_link
+
+- **Intent:** Share the current schedule.
+- **Prerequisites:** a running timer is open, signed in or not.
+- **Steps:**
+  - They open Timer preferences and choose Copy link.
+- **Outcome:** the current address is copied. The button briefly reads Copied or Copy failed, with the same result announced to a screen reader. A failed copy leaves the countdown running.

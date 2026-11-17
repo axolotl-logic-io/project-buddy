@@ -40,7 +40,7 @@ import {
 
 const TAB_TARGET_PX = 44;
 const INACTIVE_TAB_OPACITY = 0.35;
-const SELECTED_TAB_OPACITY = 0.85;
+const SELECTED_TAB_OPACITY = 0.7;
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
