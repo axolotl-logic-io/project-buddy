@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { type ChangeEvent, type JSX, useCallback, useState } from "react";
-import { Button } from "@/components/ui/button.tsx";
+import {
+  type ChangeEvent,
+  type JSX,
+  type ReactNode,
+  useCallback,
+  useState,
+} from "react";
 import { TextField } from "@/components/ui/field.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import {
@@ -17,15 +22,19 @@ interface SpellEntry {
   readonly destination: SpellDestination;
   readonly builtIn: boolean;
 }
-type Filter = "all" | "built-in" | "own";
-const FILTERS: readonly Filter[] = ["all", "built-in", "own"];
+type Filter = "all" | "built-in" | "own" | "forgotten";
+const FILTERS: readonly Filter[] = ["all", "built-in", "own", "forgotten"];
 const LABELS: Readonly<Record<Filter, string>> = {
+  forgotten: SPELLBOOK_COPY.forgotten,
   all: SPELLBOOK_COPY.all,
   "built-in": SPELLBOOK_COPY.builtInFilter,
   own: SPELLBOOK_COPY.ownFilter,
 };
 
 function matchesFilter(entry: SpellEntry, filter: Filter): boolean {
+  if (filter === "forgotten") {
+    return false;
+  }
   if (filter === "built-in") {
     return entry.builtIn;
   }
@@ -33,6 +42,17 @@ function matchesFilter(entry: SpellEntry, filter: Filter): boolean {
     return !entry.builtIn;
   }
   return true;
+}
+
+function filterCount(
+  entries: readonly SpellEntry[],
+  filter: Filter,
+  forgottenCount: number,
+): number {
+  if (filter === "forgotten") {
+    return forgottenCount;
+  }
+  return entries.filter((entry) => matchesFilter(entry, filter)).length;
 }
 
 function FilterButton({
@@ -54,12 +74,16 @@ function FilterButton({
   return (
     <button
       type="button"
-      className="workspace-tab"
+      className="quests-index-tab"
+      aria-label={SPELLBOOK_COPY.filterCount(LABELS[filter], count)}
       aria-pressed={selected === filter}
       data-state={state}
       onClick={choose}
     >
-      {SPELLBOOK_COPY.filterCount(LABELS[filter], count)}
+      {LABELS[filter]}
+      <span aria-hidden="true" className="quests-index-count">
+        {count}
+      </span>
     </button>
   );
 }
@@ -76,35 +100,50 @@ function SpellRow({
     action = SPELLBOOK_COPY.view;
   }
   return (
-    <li className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-line border-b py-3">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <h2 className="card-title wrap-anywhere">{name}</h2>
-          <span className="text-muted text-sm">{label}</span>
-        </div>
-        <p className="text-muted">
-          {SPELLBOOK_COPY.collectionDestination(
-            spellDestinationLabel(destination),
-          )}
-        </p>
-      </div>
-      <Button asChild={true} variant="secondary">
-        <Link href={`/spellbook/${id}`} aria-label={`${action} ${name}`}>
-          {action}
-          <Icon name="chevron-right" />
+    <li className="quests-index-row">
+      <span className="quests-index-mark">
+        <Icon name="book" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
+        <Link
+          className="card-title quests-index-link"
+          href={`/spellbook/${id}`}
+          aria-label={`${action} ${name}`}
+        >
+          {name}
         </Link>
-      </Button>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted text-sm">
+          <span>{label}</span>
+          <span>
+            {SPELLBOOK_COPY.collectionDestination(
+              spellDestinationLabel(destination),
+            )}
+          </span>
+        </span>
+      </div>
+      <Icon name="chevron-right" />
     </li>
   );
 }
 
 function SpellIndex({
   entries,
+  forgotten,
+  forgottenCount,
+  initialFilter,
 }: {
   readonly entries: readonly SpellEntry[];
+  readonly forgotten: ReactNode;
+  readonly forgottenCount: number;
+  readonly initialFilter?: string | undefined;
 }): JSX.Element {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>(() => {
+    if (initialFilter === "forgotten") {
+      return "forgotten";
+    }
+    return "all";
+  });
   const changeSearch = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void =>
       setSearch(event.currentTarget.value),
@@ -127,38 +166,49 @@ function SpellIndex({
   }
   return (
     <>
-      <TextField
-        label={SPELLBOOK_COPY.search}
-        type="search"
-        value={search}
-        onChange={changeSearch}
-        className="min-h-(--target-size)"
-      />
-      <fieldset
-        aria-label={SPELLBOOK_COPY.filters}
-        className="workspace-tablist"
-      >
-        {FILTERS.map((option) => (
-          <FilterButton
-            key={option}
-            filter={option}
-            selected={filter}
-            select={setFilter}
-            count={
-              entries.filter((entry) => matchesFilter(entry, option)).length
-            }
-          />
-        ))}
-      </fieldset>
-      <p className="text-muted text-sm" role="status">
-        {SPELLBOOK_COPY.results(filtered.length)}
-      </p>
-      {filtered.length === 0 && <p className="text-muted">{empty}</p>}
-      <ul className="grid min-w-0">
-        {filtered.map((entry) => (
-          <SpellRow key={entry.id} entry={entry} />
-        ))}
-      </ul>
+      {filter !== "forgotten" && (
+        <TextField
+          label={SPELLBOOK_COPY.search}
+          type="search"
+          value={search}
+          onChange={changeSearch}
+          className="min-h-(--target-size)"
+        />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <fieldset
+          aria-label={SPELLBOOK_COPY.filters}
+          className="quests-index-tabs"
+        >
+          {FILTERS.map((option) => (
+            <FilterButton
+              key={option}
+              filter={option}
+              selected={filter}
+              select={setFilter}
+              count={filterCount(entries, option, forgottenCount)}
+            />
+          ))}
+        </fieldset>
+        <div className="quests-index-content">
+          {filter === "forgotten" && forgotten}
+          {filter !== "forgotten" && (
+            <>
+              <p className="sr-only" role="status">
+                {SPELLBOOK_COPY.results(filtered.length)}
+              </p>
+              {filtered.length === 0 && (
+                <p className="quests-index-empty">{empty}</p>
+              )}
+              <ul className="quests-index-list">
+                {filtered.map((entry) => (
+                  <SpellRow key={entry.id} entry={entry} />
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </div>
     </>
   );
 }

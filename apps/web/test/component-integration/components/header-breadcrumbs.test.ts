@@ -38,7 +38,6 @@ beforeEach(() => {
 describe("header navigation hierarchy", () => {
   test.each([
     { section: "spellbook", label: "Spellbook" },
-    { section: "retirement", label: "Graveyard" },
     { section: "settings", label: "Settings" },
     { section: "timer", label: "Timer" },
   ])("$label is a top-level destination", async ({ section, label }) => {
@@ -89,6 +88,8 @@ describe("header navigation hierarchy", () => {
       paths.map((path) => headerBreadcrumbs(MEMBER, path)),
     );
     expect(trails).toEqual([[], [], [], []]);
+    expect(await headerBreadcrumbs(MEMBER, ["retirement"])).toEqual([]);
+    expect(await headerBreadcrumbs(MEMBER, ["retirement", "own"])).toEqual([]);
     expect(await headerBreadcrumbs(MEMBER, ["quests"])).toEqual([
       { label: "Quests" },
     ]);

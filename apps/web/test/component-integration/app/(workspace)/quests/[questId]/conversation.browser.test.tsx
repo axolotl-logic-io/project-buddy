@@ -132,6 +132,7 @@ vi.mock(
   () => import("../../../../experience/experience-store-test-kit.ts"),
 );
 vi.mock("@/retirement/retirement-store.ts", () => ({
+  listRetiredDefinitions: vi.fn().mockResolvedValue([]),
   getRetiredDefinition: vi.fn(),
 }));
 
