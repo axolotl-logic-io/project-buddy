@@ -43,7 +43,6 @@ import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
-import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
@@ -103,7 +102,6 @@ const PLACES = [
   QUESTS_COPY.headerLink,
   SPELLBOOK_COPY.heading,
   TIMER_COPY.panelLink,
-  RETIREMENT_COPY.heading,
 ] as const;
 const YOU = [PROFILE_COPY.headerLink, SETTINGS_COPY.headerLink] as const;
 

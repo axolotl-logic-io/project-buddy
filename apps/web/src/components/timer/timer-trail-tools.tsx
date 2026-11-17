@@ -80,7 +80,7 @@ function OthersFollowing({
   return <p className="timer-others">{othersText(presence)}</p>;
 }
 
-// Presence stays in the trail; appearance and sharing live in the right panel.
+// Presence stays in the trail; sharing lives in the right panel.
 // Signed-out visitors have the same preferences and sharing action.
 function TimerTrailTools({
   schedule,
@@ -97,7 +97,6 @@ function TimerTrailTools({
     <div className="timer-trail-tools">
       {others}
       <TimerPreferences>
-        <hr className="panel-rule" />
         <CopyLink />
       </TimerPreferences>
     </div>

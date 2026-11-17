@@ -1578,10 +1578,6 @@
     letter-spacing: 0.08em;
   }
 
-  .timer-preferences-hint {
-    @apply px-2 pt-4 pb-2 text-muted text-sm;
-  }
-
   .timer-panel {
     inset-inline: auto 0;
     border-inline: var(--line-width) solid var(--line);

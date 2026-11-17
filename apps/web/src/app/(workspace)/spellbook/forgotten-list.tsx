@@ -9,14 +9,14 @@ import {
   useState,
 } from "react";
 import { LocalTime } from "@/components/local-time.tsx";
-import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import type { RetiredDefinition } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { RetirementActions } from "./retirement-actions.tsx";
+import { ForgottenSpellControls } from "./forgotten-controls.tsx";
 
-// The user’s retired spells, filtered by name.
-function RetirementList({
+// The user’s forgotten spells, filtered by name.
+function ForgottenSpellList({
   definitions,
   children,
 }: {
@@ -40,7 +40,7 @@ function RetirementList({
     emptyMessage = RETIREMENT_COPY.empty;
   }
   return (
-    <div className="workspace-content workspace-rows">
+    <div className="flex min-w-0 flex-col gap-4 pt-4">
       <TextField
         className="min-h-(--target-size)"
         label={RETIREMENT_COPY.search}
@@ -54,14 +54,22 @@ function RetirementList({
         {filtered.length > 0 && <p>{RETIREMENT_COPY.sort}</p>}
       </div>
       {filtered.length === 0 && <p className="text-muted">{emptyMessage}</p>}
-      <ul className="grid min-w-0">
+      <ul className="quests-index-list">
         {filtered.map((definition) => (
-          <li
-            className="card flex flex-col items-start gap-2"
-            key={definition.id}
-          >
-            <div className="w-full min-w-0">
-              <h2 className="card-title wrap-anywhere">{definition.name}</h2>
+          <li className="quests-index-row" key={definition.id}>
+            <span className="quests-index-mark">
+              <Icon name="book" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="card-title wrap-anywhere">
+                <Link
+                  className="quests-index-link"
+                  aria-label={RETIREMENT_COPY.viewLabel(definition.name)}
+                  href={`/spellbook/${definition.id}`}
+                >
+                  {definition.name}
+                </Link>
+              </h2>
               <p className="text-muted text-sm">
                 {RETIREMENT_COPY.kind[definition.kind]}
                 {RETIREMENT_COPY.separator}
@@ -69,16 +77,9 @@ function RetirementList({
                 <LocalTime dateTime={definition.retiredAt} detail="day" />
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-x-5">
-              <Button asChild={true} variant="quiet">
-                <Link
-                  aria-label={RETIREMENT_COPY.viewLabel(definition.name)}
-                  href={`/retirement/${definition.id}`}
-                >
-                  {RETIREMENT_COPY.view}
-                </Link>
-              </Button>
-              <RetirementActions definition={definition} restore="quiet" />
+            <Icon name="chevron-right" />
+            <div className="quests-index-restore flex flex-wrap items-center gap-x-5">
+              <ForgottenSpellControls definition={definition} restore="quiet" />
             </div>
           </li>
         ))}
@@ -88,4 +89,4 @@ function RetirementList({
   );
 }
 
-export { RetirementList };
+export { ForgottenSpellList };

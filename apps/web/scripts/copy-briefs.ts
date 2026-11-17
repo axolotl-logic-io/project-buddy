@@ -704,47 +704,47 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "RETIREMENT_COPY.deleted",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm permanent deletion while explaining that existing conversations keep their saved settings.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Confirm permanent deletion while explaining that existing conversations keep their saved settings.",
   ],
   [
     "RETIREMENT_COPY.deleteDescription",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm permanent deletion of the retired spell and its settings; existing conversations remain unchanged.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Confirm permanent deletion of the forgotten spell and its settings; existing conversations remain unchanged.",
   ],
   [
     "RETIREMENT_COPY.empty",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. When Graveyard has no retired spells, explain that retired items will appear here.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. When Spellbook’s Forgotten tab has no forgotten spells, explain that forgotten spells will appear here.",
   ],
   [
     "RETIREMENT_COPY.fields.invalidReply",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Label beside saved text that can be read but not changed here for a spell's reply to an invalid message.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Label beside saved text that can be read but not changed here for a spell's reply to an invalid message.",
   ],
   [
     "RETIREMENT_COPY.fields.savedReply",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Label beside saved text that can be read but not changed here for a spell's reply when a message is saved.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Label beside saved text that can be read but not changed here for a spell's reply when a message is saved.",
   ],
   [
     "RETIREMENT_COPY.help",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Explain that retired spells cannot be cast until restored. Conversations already started keep their saved settings.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Explain that forgotten spells cannot be cast until restored. Conversations already started keep their saved settings.",
   ],
   [
     "RETIREMENT_COPY.intro",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Introduce the Graveyard as storage for retired spells until restored or permanently deleted.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Introduce the Spellbook’s Forgotten tab as storage for forgotten spells until restored or permanently deleted.",
   ],
   [
     "RETIREMENT_COPY.noMatches",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. When a search in Graveyard finds nothing, suggest a different retired-item name.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. When a search in Spellbook’s Forgotten tab finds nothing, suggest a different forgotten-spell name.",
   ],
   [
     "RETIREMENT_COPY.restored",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm restoring an item and making it available again.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Confirm restoring an item and making it available again.",
   ],
   [
     "RETIREMENT_COPY.retired",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm that the spell has been put aside. Explain that Graveyard lets the person bring it back, and conversations already started keep their saved settings.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Confirm that the spell has been put aside. Explain that Spellbook’s Forgotten tab lets the person bring it back, and conversations already started keep their saved settings.",
   ],
   [
     "RETIREMENT_COPY.sort",
-    "In Graveyard, where a person can restore or permanently delete their retired spells. Label explaining that retired items are ordered newest retirement first.",
+    "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Label explaining that forgotten spells are ordered most recently forgotten first.",
   ],
   [
     "SIGNUP_COPY.intro",
@@ -897,10 +897,6 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "PROFILE_COPY.loading",
     "On the Profile page, while it loads. Say the person's name and experience are loading.",
-  ],
-  [
-    "WORKSPACES_COPY.settingsIntro",
-    "On the Settings page. Introduce Settings as the place for appearance and security preferences.",
   ],
   [
     "TIMER_COPY.runningTitle",
