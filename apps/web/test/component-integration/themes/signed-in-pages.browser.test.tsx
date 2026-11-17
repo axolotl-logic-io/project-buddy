@@ -160,7 +160,7 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("tab", { name: "Buckets", exact: true });
+  const link = page.getByRole("heading", { name: "Quest", exact: true });
   const brand = page.getByRole("link", { name: SITE_COPY.name });
   const sectionBounds = link.element().getBoundingClientRect();
   return (

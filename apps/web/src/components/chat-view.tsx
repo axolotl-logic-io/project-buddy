@@ -7,6 +7,7 @@ import type { UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import {
   type JSX,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -32,8 +33,9 @@ import {
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import type { ReplyStop } from "@/components/chat/reply-stop.ts";
-import { ChatPanel } from "@/components/chat-panel.tsx";
+import { ConversationPanel } from "@/components/conversation-panel.tsx";
 import { noteLeftQuest } from "@/components/left-quest.ts";
+import { QuestPanel } from "@/components/quest-panel.tsx";
 import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import {
   type TasksActions,
@@ -41,7 +43,6 @@ import {
   useTasksController,
 } from "@/components/tasks/use-tasks.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
-import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { type DailiesDay, todayHere } from "@/dailies/dailies.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
@@ -66,6 +67,7 @@ import {
 import { awaitsReply, TASKS_CARD_PART } from "@/tasks/tasks-message.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 import {
@@ -167,11 +169,13 @@ function ChatView({
   tasksActions,
   dailiesDays,
   spellName,
-  sideSections,
+  panel,
+  panelTitle,
   initialSection,
 }: {
   spellName?: string | undefined;
-  sideSections?: readonly WorkspaceSection[] | undefined;
+  panel?: ReactNode;
+  panelTitle?: string | undefined;
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
@@ -487,12 +491,15 @@ function ChatView({
             <ChatSendContext.Provider value={send}>
               {tasks === undefined && conversation}
               {tasks !== undefined && (
-                <ChatPanel
+                <ConversationPanel
                   initialSection={initialSection}
-                  sideSections={sideSections}
+                  panel={
+                    panel ?? <QuestPanel initialSection={initialSection} />
+                  }
+                  title={panelTitle ?? QUEST_SIDEBAR_COPY.quest}
                 >
                   {conversation}
-                </ChatPanel>
+                </ConversationPanel>
               )}
             </ChatSendContext.Provider>
           </ChatBusyContext.Provider>

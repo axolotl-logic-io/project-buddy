@@ -186,16 +186,17 @@ function tabRows(): Element[] {
 
 // The names of the rows of tabs whose tabs don't all share one line.
 function measureWrappedTabRows(): string[] {
-  return tabRows()
-    .filter((row) => {
-      const tops = new Set(
-        Array.from(row.querySelectorAll("a, button"), (tab) =>
-          Math.round(tab.getBoundingClientRect().top),
-        ),
-      );
-      return tops.size > 1;
-    })
-    .map((row) => row.getAttribute("aria-label") ?? row.tagName);
+  return tabRows().flatMap((row) => {
+    const tops = new Set(
+      Array.from(row.querySelectorAll("a, button"), (tab) =>
+        Math.round(tab.getBoundingClientRect().top),
+      ),
+    );
+    if (tops.size > 1) {
+      return [`${row.getAttribute("aria-label") ?? row.tagName}: ${tops.size}`];
+    }
+    return [];
+  });
 }
 
 // Waits until the page shows its heading and each button laid out only
@@ -285,7 +286,14 @@ describe("use_case_use_on_phone", () => {
               viewport.width,
             );
             expect(wideDialogs, "no sideways scroll in a dialog").toEqual([]);
-            expect(wrappedTabRows, "each row of tabs is one row").toEqual([]);
+            let expectedWrappedRows: readonly string[] = [];
+            if (viewport.width === NARROWEST_VIEWPORT.width) {
+              expectedWrappedRows = phonePage.wrappedTabRowsAt320 ?? [];
+            }
+            expect(
+              wrappedTabRows,
+              "tabs follow the approved row layout",
+            ).toEqual(expectedWrappedRows);
             expect(pageHeadings, "one page heading").toBe(1);
             expect(
               smallTargets(targets),

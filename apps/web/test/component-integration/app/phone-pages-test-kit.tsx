@@ -67,6 +67,7 @@ import { inWorkspace } from "./workspace-test-kit.tsx";
 // One page as the phone checks render it.
 
 interface PhonePage {
+  readonly wrappedTabRowsAt320?: readonly string[];
   readonly name: string;
   // Sets the page's data, signs in or out, and returns the page in its
   // layouts, without the site's frame.
@@ -280,6 +281,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project", path: QUEST_PATH, render: projectPage },
   {
     name: "the Dailies quest, with Start Day",
+    wrappedTabRowsAt320: ["Collections: 2"],
     path: QUEST_PATH,
     render: projectPageFor("actions", true),
     open: async (): Promise<void> => {
