@@ -22,6 +22,10 @@ import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
+import {
+  bucket,
+  bucketsTab,
+} from "../../../../components/quest-sidebar-test-kit.ts";
 import { runChatCommandAction } from "../../../../tasks/tasks-actions-test-kit.ts";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
@@ -125,9 +129,8 @@ test.each(["completed", "abandoned"] as const)(
     stores.getQuest.mockResolvedValue({ ...FOX_QUEST, status });
     await renderQuest();
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await expect
-      .element(page.getByRole("tab", { name: "Tasks", exact: true }))
-      .toHaveAttribute("aria-selected", "true");
+    await expect.element(bucketsTab()).toHaveAttribute("aria-selected", "true");
+    await expect.element(bucket("Tasks")).toBeVisible();
     await expect.element(composer()).toBeVisible();
   },
 );
@@ -252,9 +255,7 @@ test("the quest opens directly on the conversation without a portrait bar", asyn
 
 test("the Tasks section shows the todo list without Goal, Preferences or Journal", async () => {
   await renderQuest("tasks");
-  await expect
-    .element(page.getByRole("tabpanel", { name: "Tasks", exact: true }))
-    .toBeVisible();
+  await expect.element(bucket("Tasks")).toBeVisible();
   await page.getByRole("button", { name: "Add a task", exact: true }).click();
   await expect.element(page.getByPlaceholder("Add a task")).toBeVisible();
   for (const name of ["Goal", "Preferences"]) {
@@ -269,12 +270,8 @@ test("the Tasks section shows the todo list without Goal, Preferences or Journal
 
 test("Ideas opens as a separate quest section beside Tasks", async () => {
   await renderQuest("ideas");
-  await expect
-    .element(page.getByRole("tab", { name: "Ideas", exact: true }))
-    .toHaveAttribute("aria-selected", "true");
-  await expect
-    .element(page.getByRole("tabpanel", { name: "Ideas", exact: true }))
-    .toBeVisible();
+  await expect.element(bucketsTab()).toHaveAttribute("aria-selected", "true");
+  await expect.element(bucket("Ideas")).toBeVisible();
   await expect
     .element(page.getByRole("button", { name: "Add idea" }))
     .toBeVisible();

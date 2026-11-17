@@ -480,6 +480,13 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "A person's level, set by their experience. Each circle needs a little more experience than the one before. Some circles bring a new title: Initiate, Apprentice, Practitioner, Expert, Master, Pathfinder, Grand Master, Legendary and Transcendent.",
   },
   {
+    term: "Buckets",
+    heading: "Buckets",
+    aliases: ["Buckets", "bucket", "buckets"],
+    definition:
+      "The first tab beside a quest conversation. It opens a short menu of the quest's Tasks, Ideas, Quick Notes and Progress, and shows the one chosen, with its name as the heading.",
+  },
+  {
     term: "Quest sidebar actions",
     heading: "Quest sidebar actions",
     aliases: ["quest sidebar actions", "Actions tab", "side menu"],
