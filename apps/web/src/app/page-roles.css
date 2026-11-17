@@ -15,7 +15,7 @@
   /* The quest Quests offers to pick up again: its label, name and next
      step, with Continue beside them, or below them on a narrow screen. */
   .current-quest {
-    @apply flex flex-wrap items-center gap-x-4 gap-y-3 rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+    @apply flex flex-wrap items-center gap-x-4 gap-y-3 rounded-box border border-line bg-surface/70 px-4 py-3 shadow-control;
   }
 
   .current-quest-body {
@@ -45,7 +45,7 @@
   /* One starting point: the whole tile is its target. */
   .quest-start-tile {
     min-block-size: var(--target-size);
-    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-box border border-line bg-surface px-3 py-2.5 text-left shadow-control transition-shadow hover:shadow-raised motion-safe:active:translate-y-px;
+    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-box border border-line bg-surface/70 px-3 py-2.5 text-left shadow-control transition-shadow hover:shadow-raised motion-safe:active:translate-y-px;
   }
 
   /* A tab's count, raised beside its name. */
@@ -422,9 +422,12 @@
     @apply rounded-box border border-line bg-surface p-5 shadow-raised sm:p-6;
   }
 
-  /* One item of a list, such as an activity. */
+  /* One item of a list, such as an activity. Cards that sit on the page
+     (this, .current-quest, .quest-start-tile and .tasks-change) let the
+     page's decoration show faintly through a slightly translucent
+     surface; notices, panels and dialogs stay opaque. */
   .card {
-    @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+    @apply rounded-box border border-line bg-surface/70 px-4 py-3 shadow-control;
   }
 
   /* A list whose items are rows divided by rules rather than cards, as the
@@ -922,21 +925,22 @@
      chosen in it shows on the page beside it, and the page under it doesn't
      scroll. From lg it docks over the page. A closed <dialog> is hidden
      by the browser's own display: none, so the panel is a flex column only
-     while open. Each theme dresses it through the panel tokens
+     while open. Its surface is slightly translucent, blurring the page
+     beneath it. Each theme dresses it through the panel tokens
      (src/themes/themes.ts). */
   .site-panel {
     inset-block-start: var(--panel-top);
     block-size: calc(100dvh - var(--panel-top));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-navigation-surface p-3 text-foreground shadow-raised open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-navigation-surface/85 p-3 text-foreground shadow-raised backdrop-blur-md open:flex;
     padding-block-start: 0;
     padding-inline: var(--header-gutter);
     background-image: var(--panel-decoration);
   }
 
   .site-panel-toggle {
-    @apply absolute inset-y-0 start-0;
+    @apply absolute inset-y-0 start-0 bg-navigation-surface;
     block-size: auto;
   }
 
@@ -950,8 +954,10 @@
     @apply flex items-center gap-4 border-line border-b;
   }
 
+  /* Inside the open panel, the close button lets the panel's own
+     translucent surface show through rather than painting a patch. */
   .site-panel-close {
-    @apply m-0;
+    @apply m-0 bg-transparent;
   }
 
   .site-panel:modal {
@@ -1487,7 +1493,7 @@
      what the construct or a person changed, set apart from the words around
      it as the adventure's other notes are (.card), with Undo. */
   .tasks-change {
-    @apply flex flex-col gap-2 rounded-box border border-line bg-surface px-4 py-3 text-sm shadow-control;
+    @apply flex flex-col gap-2 rounded-box border border-line bg-surface/70 px-4 py-3 text-sm shadow-control;
   }
 
   .tasks-change-heading {
@@ -1675,11 +1681,6 @@
 
   .panel-edge-tab .icon > svg {
     @apply size-7;
-  }
-
-  .site-panel-toggle,
-  .site-panel-close {
-    @apply bg-navigation-surface;
   }
 
   .quest-sidebar-expand,
