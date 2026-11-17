@@ -1,4 +1,4 @@
-// The text of multi-user quests: a quest's Members tab, the Quests page's
+// The text of multi-user quests: a quest's Members disclosure, the Quests page's
 // Pending tab, the page an invitation's acceptance link opens, and the
 // invitation email.
 

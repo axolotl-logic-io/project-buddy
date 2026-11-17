@@ -491,14 +491,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Buckets",
     aliases: ["Buckets", "bucket", "buckets"],
     definition:
-      "The first tab beside a quest conversation. It opens a short menu of the quest's Tasks, Ideas, Quick Notes and Progress, and shows the one chosen, with its name as the heading.",
+      "The collections beside a quest conversation: Tasks, Ideas, Quick Notes and Progress, each reached by a direct tab. Dailies also has Day grid for recurring history. Switching collections keeps unfinished edits.",
   },
   {
     term: "Quest sidebar actions",
     heading: "Quest sidebar actions",
-    aliases: ["quest sidebar actions", "Actions tab", "side menu"],
+    aliases: ["quest sidebar actions", "Spells & status", "side menu"],
     definition:
-      "The Actions section of the area beside a quest conversation. It contains controls for choosing a spell and, for an Active Dailies quest, Start Day.",
+      "The Spells & status disclosure beside a quest conversation. It contains the spell picker and quest status controls. Active Dailies keeps Start Day and its available Undo above the collection tabs.",
   },
   {
     term: "Tasks",
