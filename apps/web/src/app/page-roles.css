@@ -1964,6 +1964,10 @@
     @apply gap-3;
   }
 
+  .quest-sidebar .bucket-desk {
+    @apply gap-0;
+  }
+
   @media (width >= --theme(--breakpoint-lg)) {
     .adventure-layout[data-sidebar-open="true"] {
       padding-inline-end: 22rem;
