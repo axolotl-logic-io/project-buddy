@@ -1727,7 +1727,7 @@
   }
 
   .bucket-notes .editable-leading {
-    @apply my-3 me-2 border-line border-e px-2 py-1 text-xs;
+    @apply my-3 me-2 self-stretch border-line border-e px-2 py-1 text-xs;
   }
 
   .bucket-notes .bucket-toolbar {
