@@ -488,7 +488,7 @@ The Timer is a destination of its own in the site panel's Places. It belongs to 
 
 ### Timer
 
-A repeating work and break timer: a large ring that fills over the current period, the period's name and the time left. Anyone may open it, signed in or not.
+A repeating work and break timer: an hourglass that drains in Ivory Vellum or a ring that fills in the darker appearances, the period's name and the time left. Anyone may open it, signed in or not.
 
 ### Timer schedule
 

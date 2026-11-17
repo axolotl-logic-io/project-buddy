@@ -178,8 +178,11 @@ test.each(THEME_MODES)(
         wcagContrast(getComputedStyle(element).color, paper),
       ).toBeGreaterThanOrEqual(AA_TEXT_CONTRAST);
     }
-    const progress = stage.querySelector("pattern rect");
-    if (progress === null) {
+    const illustration = [...stage.querySelectorAll("svg")].find(
+      (svg) => svg.getBoundingClientRect().width > 0,
+    );
+    const progress = illustration?.querySelector("pattern rect");
+    if (progress === null || progress === undefined) {
       throw new Error("The timer has no visible progress paint");
     }
     expect(
@@ -188,15 +191,13 @@ test.each(THEME_MODES)(
     await userEvent.keyboard("{Escape}");
     await expect.element(countdown()).toHaveTextContent("02:00:00");
     const bounds = countdown().element().getBoundingClientRect();
-    const dial = stage.querySelector("svg");
-    if (dial === null) {
+    const dial = illustration;
+    if (dial === undefined) {
       throw new Error("The timer has no dial");
     }
     const circle = dial.getBoundingClientRect();
     const centerX = bounds.left + bounds.width / 2;
-    const centerY = bounds.top + bounds.height / 2;
     expect(centerX).toBeCloseTo(circle.left + circle.width / 2, 0);
-    expect(centerY).toBeCloseTo(circle.top + circle.height / 2, 0);
     expect(bounds.left).toBeGreaterThanOrEqual(0);
     expect(bounds.right).toBeLessThanOrEqual(PHONE_WIDTH);
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
@@ -224,12 +225,25 @@ function litMarkers(): number {
     .length;
 }
 
-test.each(THEME_MODES)(
+test.each(["soot-brass", "dark"] as const)(
   "%s lights symbols as the arc passes them and resets with the next period",
   async (mode) => {
     await commands.reduceMotion();
     applyTheme("parchment", mode);
+    await page.viewport(PHONE_WIDTH, HEIGHT);
     await renderTimer(SCHEDULE);
+    const ring = document
+      .querySelector("svg circle[stroke-dasharray]")
+      ?.closest("svg");
+    if (ring === null || ring === undefined) {
+      throw new Error("The timer has no dial");
+    }
+    const dialBounds = ring.getBoundingClientRect();
+    const timeBounds = countdown().element().getBoundingClientRect();
+    expect(timeBounds.top + timeBounds.height / 2).toBeCloseTo(
+      dialBounds.top + dialBounds.height / 2,
+      0,
+    );
     expect(litMarkers()).toBe(1);
     returnToTabAt(minutesAfter(SCHEDULE, PARTWAY));
     await expect.element(countdown()).toHaveTextContent("25:00");
@@ -238,5 +252,77 @@ test.each(THEME_MODES)(
     returnToTabAt(minutesAfter(SCHEDULE, SCHEDULE.workMinutes));
     await expect.element(phaseHeading("Break")).toBeVisible();
     expect(litMarkers()).toBe(1);
+  },
+);
+
+test("the hourglass drains, fills, and resets with the next period", async () => {
+  await page.viewport(PHONE_WIDTH, HEIGHT);
+  await renderTimer(SCHEDULE);
+  const stage = page
+    .getByRole("region", { name: TIMER_COPY.displayLabel })
+    .element();
+  const top = stage.querySelector("rect[data-sand-top]");
+  const bottom = stage.querySelector("rect[data-sand-bottom]");
+  if (!(top instanceof SVGRectElement && bottom instanceof SVGRectElement)) {
+    throw new Error("The timer has no hourglass sand");
+  }
+  expect(top.getBoundingClientRect().width).toBeGreaterThan(0);
+  const glass = top.ownerSVGElement;
+  if (glass === null) {
+    throw new Error("The sand has no hourglass");
+  }
+  expect(countdown().element().getBoundingClientRect().top).toBeGreaterThan(
+    glass.getBoundingClientRect().bottom,
+  );
+  const fullTop = top.height.baseVal.value;
+  expect(fullTop).toBeGreaterThan(0);
+  expect(bottom.height.baseVal.value).toBe(0);
+  returnToTabAt(minutesAfter(SCHEDULE, PARTWAY));
+  await expect.element(countdown()).toHaveTextContent("25:00");
+  expect(top.height.baseVal.value).toBeCloseTo(fullTop / 2);
+  const halfBottom = bottom.height.baseVal.value;
+  expect(halfBottom).toBeGreaterThan(0);
+  returnToTabAt(minutesAfter(SCHEDULE, SCHEDULE.workMinutes - 1));
+  await expect.element(countdown()).toHaveTextContent("01:00");
+  expect(top.height.baseVal.value).toBeLessThan(fullTop / 2);
+  expect(bottom.height.baseVal.value).toBeGreaterThan(halfBottom);
+  returnToTabAt(minutesAfter(SCHEDULE, SCHEDULE.workMinutes));
+  await expect.element(phaseHeading("Break")).toBeVisible();
+  expect(top.height.baseVal.value).toBe(fullTop);
+  expect(bottom.height.baseVal.value).toBe(0);
+  returnToTabAt(
+    minutesAfter(SCHEDULE, SCHEDULE.workMinutes + SCHEDULE.breakMinutes / 2),
+  );
+  await expect.element(countdown()).toHaveTextContent("05:00");
+  expect(top.height.baseVal.value).toBeCloseTo(fullTop / 2);
+  expect(bottom.height.baseVal.value).toBeCloseTo(halfBottom);
+});
+
+test.each([
+  { width: 320, height: 568 },
+  { width: 360, height: 640 },
+  { width: 390, height: 667 },
+])(
+  "the hourglass readout fits a short $width × $height phone",
+  async ({ width, height }) => {
+    await page.viewport(width, height);
+    await renderTimer(SCHEDULE, minutesAfter(SCHEDULE, PARTWAY));
+    const next = page
+      .getByText(TIMER_COPY.next("break"), { exact: true })
+      .element();
+    const time = countdown().element();
+    const edgeSpace = 16;
+    const readableNumberSize = 64;
+    expect(time.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
+    expect(time.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      height - edgeSpace,
+    );
+    expect(next.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      height - edgeSpace,
+    );
+    expect(
+      Number.parseFloat(getComputedStyle(time).fontSize),
+    ).toBeGreaterThanOrEqual(readableNumberSize);
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
   },
 );
