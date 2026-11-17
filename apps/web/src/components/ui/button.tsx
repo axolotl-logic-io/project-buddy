@@ -4,13 +4,19 @@ import type { ComponentProps, JSX } from "react";
 // How much a button stands out: the page's or form's main action, another
 // action beside it, or a small action inside a list or form. A main action
 // that removes something for good is danger instead of primary.
-type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "quiet"
+  | "danger"
+  | "quiet-danger";
 
 const VARIANT_ROLES: Readonly<Record<ButtonVariant, string>> = {
   primary: "button-primary",
   secondary: "button-secondary",
   quiet: "button-quiet",
   danger: "button-danger",
+  "quiet-danger": "button-quiet-danger",
 };
 
 type ButtonProps = ComponentProps<"button"> & {

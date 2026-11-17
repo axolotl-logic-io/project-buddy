@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, onTestFinished, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatPanel } from "@/components/chat-panel.tsx";
@@ -317,6 +317,20 @@ describe("the sidebar's three tabs", () => {
     "all show on one row, unclipped, the selected one included, at $width px",
     async (viewport) => {
       await setViewport(viewport);
+      // CI's system fallback is wider than the site's loaded face. Keep the
+      // no-clipping promise while fonts are unavailable as well.
+      const originalFont =
+        document.documentElement.style.getPropertyValue("--typeface-nunito");
+      document.documentElement.style.setProperty(
+        "--typeface-nunito",
+        "DejaVu Sans, sans-serif",
+      );
+      onTestFinished(() => {
+        document.documentElement.style.setProperty(
+          "--typeface-nunito",
+          originalFont,
+        );
+      });
       await render(
         <ChatPanel
           initialSection="members"

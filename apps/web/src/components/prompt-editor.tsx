@@ -406,6 +406,7 @@ function PromptEditor({
         <Button
           aria-describedby={(saveHint !== undefined && saveHintId) || undefined}
           className="self-start"
+          aria-busy={saving}
           disabled={saving === true || disabled === true}
           type="submit"
         >

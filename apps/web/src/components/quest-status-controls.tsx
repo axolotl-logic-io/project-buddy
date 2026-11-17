@@ -95,7 +95,12 @@ function ChatUndoControl({
     return null;
   }
   return (
-    <Button variant="quiet" disabled={pending} onClick={undo}>
+    <Button
+      variant="quiet"
+      aria-busy={pending}
+      disabled={pending}
+      onClick={undo}
+    >
       {QUEST_STATUS_COPY.undo}
     </Button>
   );
@@ -120,7 +125,12 @@ function FormUndoControl({
       <input type="hidden" name="fromStatus" value={change.toStatus} />
       <input type="hidden" name="toStatus" value={change.fromStatus} />
       <input type="hidden" name="revision" value={change.revision} />
-      <Button type="submit" variant="quiet" disabled={pending}>
+      <Button
+        type="submit"
+        variant="quiet"
+        aria-busy={pending}
+        disabled={pending}
+      >
         {QUEST_STATUS_COPY.undo}
       </Button>
     </form>
@@ -171,17 +181,27 @@ function ChatStatusControls({
   if (quest.status === "active") {
     buttons = (
       <>
-        <Button disabled={busy} onClick={complete}>
+        <Button aria-busy={busy} disabled={busy} onClick={complete}>
           {QUEST_STATUS_COPY.complete}
         </Button>
-        <Button variant="secondary" disabled={busy} onClick={abandon}>
+        <Button
+          variant="secondary"
+          aria-busy={busy}
+          disabled={busy}
+          onClick={abandon}
+        >
           {QUEST_STATUS_COPY.abandon}
         </Button>
       </>
     );
   } else {
     buttons = (
-      <Button variant="secondary" disabled={busy} onClick={restore}>
+      <Button
+        variant="secondary"
+        aria-busy={busy}
+        disabled={busy}
+        onClick={restore}
+      >
         {QUEST_STATUS_COPY.restore}
       </Button>
     );
@@ -233,6 +253,7 @@ function FormStatusControls({
             type="submit"
             name="toStatus"
             value="completed"
+            aria-busy={pending}
             disabled={pending}
           >
             {QUEST_STATUS_COPY.complete}
@@ -242,6 +263,7 @@ function FormStatusControls({
             name="toStatus"
             value="abandoned"
             variant="secondary"
+            aria-busy={pending}
             disabled={pending}
           >
             {QUEST_STATUS_COPY.abandon}
@@ -254,6 +276,7 @@ function FormStatusControls({
           name="toStatus"
           value="active"
           variant="secondary"
+          aria-busy={pending}
           disabled={pending}
         >
           {QUEST_STATUS_COPY.restore}

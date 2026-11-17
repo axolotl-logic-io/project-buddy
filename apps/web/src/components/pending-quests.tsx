@@ -58,6 +58,7 @@ function PendingRow({
       <div className="quests-index-answer">
         <Button
           aria-label={PENDING_COPY.acceptLabel(quest.name)}
+          aria-busy={busy}
           disabled={busy}
           onClick={accept}
         >
@@ -65,6 +66,7 @@ function PendingRow({
         </Button>
         <Button
           aria-label={PENDING_COPY.declineLabel(quest.name)}
+          aria-busy={busy}
           disabled={busy}
           onClick={decline}
           variant="secondary"
