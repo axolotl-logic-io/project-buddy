@@ -1,0 +1,252 @@
+{
+  "branch": "integration",
+  "head": "c4ef8ddce033204f2426ff49fd9477018b57b0ab",
+  "workingTree": "Uncommitted timer changes; concurrent unrelated edits preserved.",
+  "page": "http://localhost:3000/timer/50/10/0",
+  "comparisonClockMs": 1549000,
+  "pairings": {
+    "light": "Original folio",
+    "dark": "Original necromantic seal on Espresso Leather",
+    "soot-brass": "New Gothic hour dial on burgundy"
+  },
+  "visualChanges": [
+    "Transparent page; no separate paper panel",
+    "Removed duplicate branding, quotes and schedule caption",
+    "Countdown centered independently of phase",
+    "Thicker progress arc",
+    "Live SVG/CSS symbols brighten and fill clockwise",
+    "Higher-contrast supplementary text and guide lines"
+  ],
+  "expanderVerification": {
+    "desktop": "Real click opens docked panel",
+    "phone320": "Real click opens modal drawer; Escape restores focus"
+  },
+  "minimumTextureContrast": {
+    "light": {
+      "text": 9.6365,
+      "lines": 5.236,
+      "progress": 6.5915
+    },
+    "dark": {
+      "text": 8.1131,
+      "lines": 4.9771,
+      "progress": 5.8194
+    },
+    "soot-brass": {
+      "text": 7.4071,
+      "lines": 4.9383,
+      "progress": 4.594
+    }
+  },
+  "contrastMethod": "Worst contrast against every decoded pixel of the three original site WebP textures; text uses foreground, guides use muted, progress uses primary. Active dark markers use foreground.",
+  "screenshots": [
+    {
+      "mode": "light",
+      "width": 1200,
+      "metrics": {
+        "box": {
+          "bottom": 470.796875,
+          "height": 105.59375,
+          "left": 507.78125,
+          "right": 692.203125,
+          "top": 365.203125,
+          "width": 184.421875,
+          "x": 507.78125,
+          "y": 365.203125
+        },
+        "circle": {
+          "bottom": 658,
+          "height": 480,
+          "left": 360,
+          "right": 840,
+          "top": 178,
+          "width": 480,
+          "x": 360,
+          "y": 178
+        },
+        "color": "rgb(53, 33, 17)",
+        "mode": "light",
+        "scrollWidth": 1200,
+        "width": 1200
+      },
+      "state": "After audit fixes: Work24:11, lining numerals centered, 7 symbols lit",
+      "file": "outputs/timer-mockups/paired-evidence/integrated-light-1200.png",
+      "opticalCenterErrorPx": 0
+    },
+    {
+      "mode": "dark",
+      "width": 1200,
+      "metrics": {
+        "box": {
+          "bottom": 470.796875,
+          "height": 105.59375,
+          "left": 507.78125,
+          "right": 692.203125,
+          "top": 365.203125,
+          "width": 184.421875,
+          "x": 507.78125,
+          "y": 365.203125
+        },
+        "circle": {
+          "bottom": 658,
+          "height": 480,
+          "left": 360,
+          "right": 840,
+          "top": 178,
+          "width": 480,
+          "x": 360,
+          "y": 178
+        },
+        "color": "rgb(250, 229, 185)",
+        "mode": "dark",
+        "scrollWidth": 1200,
+        "width": 1200
+      },
+      "state": "After audit fixes: Work24:11, lining numerals centered, 7 symbols lit",
+      "file": "outputs/timer-mockups/paired-evidence/integrated-dark-1200.png",
+      "opticalCenterErrorPx": 0
+    },
+    {
+      "mode": "soot-brass",
+      "width": 1200,
+      "metrics": {
+        "box": {
+          "bottom": 470.796875,
+          "height": 105.59375,
+          "left": 507.78125,
+          "right": 692.203125,
+          "top": 365.203125,
+          "width": 184.421875,
+          "x": 507.78125,
+          "y": 365.203125
+        },
+        "circle": {
+          "bottom": 658,
+          "height": 480,
+          "left": 360,
+          "right": 840,
+          "top": 178,
+          "width": 480,
+          "x": 360,
+          "y": 178
+        },
+        "color": "rgb(238, 228, 210)",
+        "mode": "soot-brass",
+        "scrollWidth": 1200,
+        "width": 1200
+      },
+      "state": "After audit fixes: Work24:11, lining numerals centered, 7 symbols lit",
+      "file": "outputs/timer-mockups/paired-evidence/integrated-soot-brass-1200.png",
+      "opticalCenterErrorPx": 0
+    },
+    {
+      "mode": "light",
+      "width": 320,
+      "metrics": {
+        "box": {
+          "bottom": 357.171875,
+          "height": 82.359375,
+          "left": 88.09375,
+          "right": 231.90625,
+          "top": 274.8125,
+          "width": 143.8125,
+          "x": 88.09375,
+          "y": 274.8125
+        },
+        "circle": {
+          "bottom": 460,
+          "height": 288,
+          "left": 16,
+          "right": 304,
+          "top": 172,
+          "width": 288,
+          "x": 16,
+          "y": 172
+        },
+        "color": "rgb(53, 33, 17)",
+        "mode": "light",
+        "scrollWidth": 320,
+        "width": 320
+      },
+      "state": "After audit fixes: Work24:11, lining numerals centered, 7 symbols lit",
+      "file": "outputs/timer-mockups/paired-evidence/integrated-light-320.png",
+      "opticalCenterErrorPx": 0.5
+    },
+    {
+      "mode": "dark",
+      "width": 320,
+      "metrics": {
+        "box": {
+          "bottom": 357.171875,
+          "height": 82.359375,
+          "left": 88.09375,
+          "right": 231.90625,
+          "top": 274.8125,
+          "width": 143.8125,
+          "x": 88.09375,
+          "y": 274.8125
+        },
+        "circle": {
+          "bottom": 460,
+          "height": 288,
+          "left": 16,
+          "right": 304,
+          "top": 172,
+          "width": 288,
+          "x": 16,
+          "y": 172
+        },
+        "color": "rgb(250, 229, 185)",
+        "mode": "dark",
+        "scrollWidth": 320,
+        "width": 320
+      },
+      "state": "After audit fixes: Work24:11, lining numerals centered, 7 symbols lit",
+      "file": "outputs/timer-mockups/paired-evidence/integrated-dark-320.png",
+      "opticalCenterErrorPx": 0.5
+    },
+    {
+      "mode": "soot-brass",
+      "width": 320,
+      "metrics": {
+        "box": {
+          "bottom": 357.171875,
+          "height": 82.359375,
+          "left": 88.09375,
+          "right": 231.90625,
+          "top": 274.8125,
+          "width": 143.8125,
+          "x": 88.09375,
+          "y": 274.8125
+        },
+        "circle": {
+          "bottom": 460,
+          "height": 288,
+          "left": 16,
+          "right": 304,
+          "top": 172,
+          "width": 288,
+          "x": 16,
+          "y": 172
+        },
+        "color": "rgb(238, 228, 210)",
+        "mode": "soot-brass",
+        "scrollWidth": 320,
+        "width": 320
+      },
+      "state": "After audit fixes: Work24:11, lining numerals centered, 7 symbols lit",
+      "file": "outputs/timer-mockups/paired-evidence/integrated-soot-brass-320.png",
+      "opticalCenterErrorPx": 0.5
+    }
+  ],
+  "audit": {
+    "link": "<t3-thread://v2/cd00f7f5-d9fd-4995-a6d8-37d5a456c024/mcp:launch:6ebcf0d5c9e720e5744d1721a89c79c5613dc6081ca43273c6321773aeb930e4>",
+    "findings": 2,
+    "resolved": [
+      "Use lining tabular numerals for optical centering",
+      "Give phase more clearance and open the seal top line around it"
+    ],
+    "hourFormatInkCenterErrorPx": 0.5,
+    "afterEvidence": "dark-hour-after-audit-320.png"
+  }
+}

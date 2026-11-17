@@ -36,7 +36,7 @@ export default async function QuestsPage({
     <>
       <CurrentQuestCard quest={current} />
       <QuestStartChoices dailiesId={dailies?.id} />
-      <section className="flex min-w-0 flex-col gap-3">
+      <section className="flex min-w-0 flex-1 flex-col gap-3">
         <h2 className="section-heading">{QUESTS_COPY.collectionHeading}</h2>
         <QuestStatusTabs
           quests={quests}

@@ -23,6 +23,9 @@ describe("use_case_timer_join_link", () => {
     "/timer/25/15/1763197200000",
     "/timer/50/10/0",
     "/timer/25/16/0",
+    "/timer/50",
+    "/timer/50/10",
+    "/timer/50/10/0/extra",
   ])("a signed-out visitor opens %s without signing in", async (path) => {
     const response = await signedOut(path);
 

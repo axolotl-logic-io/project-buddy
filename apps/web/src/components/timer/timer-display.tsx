@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useEffect, useState } from "react";
+import { type JSX, useEffect, useId, useState } from "react";
 import { rememberDurations } from "@/components/timer/remembered-durations.ts";
+import { TimerDial } from "@/components/timer/timer-dial.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import {
@@ -15,9 +16,10 @@ import {
 } from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
-// The ring's radius and circumference, in the SVG's 100-unit box.
-const RING_RADIUS = 45;
-const RING_LENGTH: number = 2 * Math.PI * RING_RADIUS;
+// Normalize progress so the site appearance can choose its dial radius.
+const RING_RADIUS = 173;
+const RING_LENGTH = 100;
+const MS_PER_HOUR = 3_600_000;
 
 // The current time in milliseconds since the epoch.
 function currentTimeMs(): number {
@@ -66,30 +68,46 @@ function TimerFace({
 }: {
   readonly phase: Extract<TimerPhase, { kind: "work" | "break" }>;
 }): JSX.Element {
-  let arc = "stroke-primary";
+  const giltId = useId();
+  let arc = "timer-progress";
   if (phase.kind === "break") {
-    arc = "stroke-accent";
+    arc += " timer-progress-rest";
   }
   return (
     <div className="timer-face">
-      <svg aria-hidden="true" className="timer-ring" viewBox="0 0 100 100">
+      <svg aria-hidden="true" className="timer-ring" viewBox="0 0 420 420">
+        <defs>
+          <pattern
+            id={giltId}
+            width="12"
+            height="12"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect className="timer-gilt" width="12" height="12" />
+            <path
+              className="timer-gilt-grain"
+              d="M0 0 12 12M-6 6l12 12M6-6l12 12"
+            />
+          </pattern>
+        </defs>
+        <TimerDial elapsedFraction={phase.elapsedFraction} />
         <circle
-          className="fill-none stroke-line"
-          cx="50"
-          cy="50"
+          className="timer-track"
+          cx="210"
+          cy="210"
           r={RING_RADIUS}
-          strokeWidth="6"
+          pathLength={RING_LENGTH}
         />
         <circle
-          className={`fill-none ${arc}`}
-          cx="50"
-          cy="50"
+          className={arc}
+          stroke={`url(#${giltId})`}
+          cx="210"
+          cy="210"
           r={RING_RADIUS}
           strokeDasharray={RING_LENGTH}
           strokeDashoffset={RING_LENGTH * (1 - phase.elapsedFraction)}
-          strokeLinecap="round"
-          strokeWidth="6"
-          transform="rotate(-90 50 50)"
+          pathLength={RING_LENGTH}
+          transform="rotate(-90 210 210)"
         />
       </svg>
       <div className="timer-readout">
@@ -97,6 +115,7 @@ function TimerFace({
         <p
           aria-label={TIMER_COPY.remainingLabel}
           className="timer-countdown"
+          data-hours={phase.remainingMs >= MS_PER_HOUR}
           role="timer"
         >
           {formatRemaining(phase.remainingMs)}
@@ -108,7 +127,7 @@ function TimerFace({
 
 // A running timer: the schedule's current phase, the time left of it and
 // a ring of its progress, kept to the browser's clock. The count of others
-// and the link to copy are in the trail band (timer-trail-tools.tsx). It
+// and the preferences panel are in the trail band (timer-trail-tools.tsx). It
 // remembers the schedule's durations for setup in this tab. A schedule
 // that hasn't started yet shows no countdown.
 function TimerDisplay({
@@ -133,14 +152,19 @@ function TimerDisplay({
   if (phase?.kind === "not-started") {
     return <InvalidTimer />;
   }
+  let next = TIMER_COPY.next("break");
+  if (phase?.kind === "break") {
+    next = TIMER_COPY.next("work");
+  }
   return (
-    <div className="flex flex-col items-center gap-6">
+    <section aria-label={TIMER_COPY.displayLabel} className="timer-stage">
       {phase === undefined && <div aria-hidden="true" className="timer-face" />}
       {phase !== undefined && <TimerFace phase={phase} />}
       <p className="sr-only" role="status">
         {phase !== undefined && TIMER_COPY.phaseStarted(phase.kind)}
       </p>
-    </div>
+      <p className="timer-next">{next}</p>
+    </section>
   );
 }
 

@@ -34,16 +34,16 @@ The site cannot load or save the user's quests and conversations.
 The user starts a quest without a model provider or API key.
 
 - **Prerequisites:** [`use_case_new_quest`](quests.md#use_case_new_quest).
-- **Steps:** the user names the quest, chooses a construct and starts it.
+- **Steps:** the user chooses a premade starting point, optionally fills in Why where offered, and starts it with its assigned construct.
 - **Outcome:** the quest opens with its locally produced greeting and available commands. Starting it makes no model request. Storage errors still follow `use_case_storage_unavailable`.
 
 ## use_case_send_while_construct_replies
 
-The user sends another message while the construct is still replying to them last one.
+The user sends another message while the construct is still replying to their last one.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with the reply still arriving.
 - **Steps:**
-  - While the construct is still replying, the user opens the same conversation in another tab and sends a new message there.
+  - While the construct is still replying, another tab that has not yet learned of the running reply sends a new message to the same conversation.
   - The construct answers the new message.
   - Later, the first reply finishes.
 - **Outcome:** once the user reloads the conversation, each reply comes right after the message it answers: their first message, its reply, their second message, then its reply. No reply is lost or shown twice.

@@ -37,7 +37,47 @@ const jetBrainsMono = localFont({
   preload: false,
 });
 
+const fell = localFont({
+  src: "./fonts/im-fell-english/im-fell-english-latin-400-normal.woff2",
+  weight: "400",
+  style: "normal",
+  display: "swap",
+  variable: "--typeface-im-fell-english",
+  preload: false,
+});
+
+const fellItalic = localFont({
+  src: "./fonts/im-fell-english/im-fell-english-latin-400-italic.woff2",
+  weight: "400",
+  style: "italic",
+  display: "swap",
+  variable: "--typeface-im-fell-english-italic",
+  preload: false,
+});
+
+const cormorant = localFont({
+  src: "./fonts/cormorant-garamond/cormorant-garamond-latin-wght-normal.woff2",
+  weight: "300 700",
+  style: "normal",
+  display: "swap",
+  variable: "--typeface-cormorant-garamond",
+  preload: false,
+});
+
+const blackletter = localFont({
+  src: "./fonts/unifrakturmaguntia/unifrakturmaguntia-latin-400-normal.woff2",
+  weight: "400",
+  style: "normal",
+  display: "swap",
+  variable: "--typeface-unifrakturmaguntia",
+  preload: false,
+});
+
 const THEME_FONT_VARIABLES = [
+  fell.variable,
+  fellItalic.variable,
+  cormorant.variable,
+  blackletter.variable,
   sourceSerif.variable,
   nunito.variable,
   jetBrainsMono.variable,
