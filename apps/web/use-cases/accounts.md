@@ -84,7 +84,7 @@ The user, or someone else, asks for many sign-in emails in a short time.
 Two users each see only the quests open to them, their own and those they are an accepted member of, with their conversations, Tasks, Ideas and Progress, and only their own private definitions.
 
 - **Prerequisites:** two signed-in accounts, each with a quest.
-- **Steps:** the second user tries to open and change the first user's quest, conversation, Tasks, Ideas, milestones, construct and spell, including by using their addresses directly.
+- **Steps:** the second user tries to open and change the first user's quest, conversation, Tasks, Ideas, milestones and own spells, including by using their addresses directly.
 - **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only accessible definitions and the quests open to the user: their own and those they are a member of ([`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)).
 - **Next:** [`use_case_view_quests`](quests.md#use_case_view_quests).
 
@@ -96,7 +96,7 @@ The user tells the construct what to call them, so a construct that says `{{name
 - **Steps:**
   - On Profile, the user chooses Rename beside their name, types their name, such as "Mabel", and saves. A user with no saved name finds the field already open.
   - The page says it is saved, the field closes, and Profile's card shows their name, also after a reload.
-  - The user starts a quest with a construct of their own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](constructs.md#use_case_edit_construct)).
+  - The user casts an own spell whose replies use `{{name}}` ([`use_case_customize_spell`](spellbook.md#use_case_customize_spell)).
 - **Outcome:** their name is saved trimmed. Spell reply templates replace `{{name}}` with that acting user’s name, or "the user" when unset. Another user’s saved name is never used. The field’s hint explains the placeholder.
 - **Variations:**
   - The user empties the field and saves: the form requires a name and keeps the previous saved name.
@@ -104,7 +104,7 @@ The user tells the construct what to call them, so a construct that says `{{name
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what the user typed, and nothing is saved.
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**
-  - [`use_case_edit_construct`](constructs.md#use_case_edit_construct): put `{{name}}` in a construct of theirs.
+  - [`use_case_customize_spell`](spellbook.md#use_case_customize_spell): put `{{name}}` in an own spell’s replies.
 
 ## use_case_sign_out
 

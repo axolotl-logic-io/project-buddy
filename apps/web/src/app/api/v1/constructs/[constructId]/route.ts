@@ -10,7 +10,7 @@ interface ConstructParams {
   readonly constructId: string;
 }
 
-// A built-in construct, or one of the user's own.
+// A built-in construct.
 export const GET = apiRoute(
   async ({ user, params }: ApiCall<ConstructParams>): Promise<Response> => {
     const construct = await findConstructView(user.id, params.constructId);
