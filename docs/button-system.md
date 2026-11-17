@@ -30,7 +30,7 @@ Tabs, menu options, checkboxes, radio swatches, native selects, disclosures, por
 | Control | Deliberate treatment |
 | --- | --- |
 | Workspace, quest-status and definition-kind tabs | A selected rule and heavier label; folder tabs retain their attachment to the list |
-| Buckets menu and row actions | Full-height option rows, highlighted surface, checked selection; preserve Radix keyboard operation |
+| Row action menus | Full-height option rows, highlighted surface, checked selection; preserve Radix keyboard operation |
 | Command suggestions | Native option buttons with an active mark/weight and field fill; preserve listbox and active descendant behavior |
 | Editable list text | Body type for readable content; quiet edit affordance, checkboxes for completion, grips for reorder |
 | Panel handles | Attached edge silhouette and panel glyph; preserve expanded state and focus restoration |
