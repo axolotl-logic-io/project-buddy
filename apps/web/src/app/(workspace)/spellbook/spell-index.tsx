@@ -175,37 +175,39 @@ function SpellIndex({
           className="min-h-(--target-size)"
         />
       )}
-      <fieldset
-        aria-label={SPELLBOOK_COPY.filters}
-        className="quests-index-tabs"
-      >
-        {FILTERS.map((option) => (
-          <FilterButton
-            key={option}
-            filter={option}
-            selected={filter}
-            select={setFilter}
-            count={filterCount(entries, option, forgottenCount)}
-          />
-        ))}
-      </fieldset>
-      <div className="quests-index-content">
-        {filter === "forgotten" && forgotten}
-        {filter !== "forgotten" && (
-          <>
-            <p className="sr-only" role="status">
-              {SPELLBOOK_COPY.results(filtered.length)}
-            </p>
-            {filtered.length === 0 && (
-              <p className="quests-index-empty">{empty}</p>
-            )}
-            <ul className="quests-index-list">
-              {filtered.map((entry) => (
-                <SpellRow key={entry.id} entry={entry} />
-              ))}
-            </ul>
-          </>
-        )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <fieldset
+          aria-label={SPELLBOOK_COPY.filters}
+          className="quests-index-tabs"
+        >
+          {FILTERS.map((option) => (
+            <FilterButton
+              key={option}
+              filter={option}
+              selected={filter}
+              select={setFilter}
+              count={filterCount(entries, option, forgottenCount)}
+            />
+          ))}
+        </fieldset>
+        <div className="quests-index-content">
+          {filter === "forgotten" && forgotten}
+          {filter !== "forgotten" && (
+            <>
+              <p className="sr-only" role="status">
+                {SPELLBOOK_COPY.results(filtered.length)}
+              </p>
+              {filtered.length === 0 && (
+                <p className="quests-index-empty">{empty}</p>
+              )}
+              <ul className="quests-index-list">
+                {filtered.map((entry) => (
+                  <SpellRow key={entry.id} entry={entry} />
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
       </div>
     </>
   );
