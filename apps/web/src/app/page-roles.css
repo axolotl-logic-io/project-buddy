@@ -56,7 +56,7 @@
 
   .quests-index-tab {
     min-block-size: var(--target-size);
-    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-t-control border-x border-t-2 border-line bg-field px-3 py-2 text-muted text-sm sm:px-4;
+    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-t-control border-x border-t-2 border-line bg-field/35 px-3 py-2 text-muted text-sm sm:px-4;
   }
 
   .quests-index-tab:hover {
@@ -142,7 +142,7 @@
   }
 
   .quests-index-row {
-    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b px-3 py-4 last:border-b-0;
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-2 border-line border-b px-2 py-4 last:border-b-0 sm:gap-x-3 sm:px-3;
   }
 
   .quests-index-row:has(.quests-index-link):hover {
@@ -165,12 +165,11 @@
   }
 
   .quests-index-mark {
-    min-inline-size: var(--target-size);
-    min-block-size: var(--target-size);
-    @apply flex shrink-0 items-center justify-center rounded-control border border-line text-primary;
+    @apply flex size-7.5 shrink-0 items-center justify-center rounded-control border border-line text-primary sm:size-9;
   }
 
-  .quests-index-link {
+  .quests-index-row .quests-index-link {
+    @apply inline-block min-h-6 text-quest-title sm:text-card-title;
     overflow-wrap: anywhere;
     @apply hover:text-primary after:absolute after:inset-0;
   }

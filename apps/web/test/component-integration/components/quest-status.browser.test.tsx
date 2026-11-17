@@ -1,3 +1,4 @@
+import { parse } from "culori";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -38,6 +39,7 @@ import {
 } from "./chat/chat-send-test-kit.tsx";
 
 const TAB_TARGET_PX = 44;
+const INACTIVE_TAB_OPACITY = 0.35;
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
@@ -399,3 +401,28 @@ test("no quests gives first-quest guidance while an empty status tab keeps filte
     .element(page.getByText(QUESTS_COPY.none))
     .not.toBeInTheDocument();
 });
+
+for (const mode of THEME_MODES) {
+  test(`inactive folder surfaces reveal the page while selected tabs stay opaque in ${mode}`, async () => {
+    applyTheme("parchment", mode);
+    await setViewport({ width: 1280, height: 800 });
+    await render(<QuestStatusTabs quests={[FOX_QUEST]} />);
+    const active = page.getByRole("tab", { name: "Active", exact: true });
+    const completed = page.getByRole("tab", { name: "Completed", exact: true });
+    const selectedPaint = getComputedStyle(active.element());
+    const inactivePaint = getComputedStyle(completed.element());
+    expect(parse(inactivePaint.backgroundColor)?.alpha).toBeCloseTo(
+      INACTIVE_TAB_OPACITY,
+    );
+    expect(parse(selectedPaint.backgroundColor)?.alpha ?? 1).toBe(1);
+    expect(inactivePaint.borderTopStyle).toBe("solid");
+    expect(Number.parseFloat(inactivePaint.borderTopWidth)).toBeGreaterThan(0);
+    expect(
+      Number.parseFloat(inactivePaint.borderTopLeftRadius),
+    ).toBeGreaterThan(0);
+    await completed.click();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect.element(active).toHaveFocus();
+    expect(getComputedStyle(active.element()).outlineStyle).toBe("solid");
+  });
+}
