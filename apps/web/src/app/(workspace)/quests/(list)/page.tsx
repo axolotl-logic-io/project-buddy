@@ -36,11 +36,14 @@ export default async function QuestsPage({
     <>
       <CurrentQuestCard quest={current} />
       <QuestStartChoices dailiesId={dailies?.id} />
-      <QuestStatusTabs
-        quests={quests}
-        initialStatus={initialStatus}
-        pending={{ quests: pending, answer: answerInvitationAction }}
-      />
+      <section className="flex min-w-0 flex-col gap-3">
+        <h2 className="section-heading">{QUESTS_COPY.collectionHeading}</h2>
+        <QuestStatusTabs
+          quests={quests}
+          initialStatus={initialStatus}
+          pending={{ quests: pending, answer: answerInvitationAction }}
+        />
+      </section>
     </>
   );
 }
