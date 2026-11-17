@@ -777,3 +777,5 @@ describe("the trail band", () => {
       .toBeVisible();
   });
 });
+
+vi.mock("next/navigation", () => import("./router-test-kit.ts"));

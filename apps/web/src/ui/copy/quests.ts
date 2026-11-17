@@ -6,6 +6,7 @@ export const QUESTS_COPY = {
   title: pageTitle("Quests"),
   headerLink: "Quests",
   heading: "Quests",
+  collectionHeading: "Your quests",
   loading: "Loading quests…",
   none: "No quests yet. Choose a way to start one above.",
   created: (createdAt: string): string => `started ${createdAt}`,

@@ -575,7 +575,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Profile",
     aliases: ["Profile"],
     definition:
-      "A person's own page, where they change their saved name and see their experience, circle and points in each ability.",
+      "A person's own page, where they change their saved name and see their experience, circle, points in each ability and days signed in.",
+  },
+  {
+    term: "Days signed in",
+    heading: "Days signed in",
+    aliases: ["days signed in", "day signed in", "days total"],
+    definition:
+      "The private total of UTC calendar dates when a person visited while signed in. Each date counts once across tabs and devices, including returns without a fresh sign-in. Tracking starts with their first visit after release; earlier days are not included. It earns no experience and is separate from Dailies and streaks.",
   },
   {
     term: "Settings",
