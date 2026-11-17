@@ -3,7 +3,7 @@ import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { NOTE_ID, NOTE_MAX_LENGTH } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
-import { editNote, listNotes } from "@/notes/note-store.ts";
+import { editNote, listNotes, saveNote } from "@/notes/note-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
@@ -35,10 +35,13 @@ describe("use_case_quick_note", () => {
         questId: quest.id,
         text: "  Try a slower wheel ",
       }),
-    ).toEqual({ kind: "saved" });
-    expect(
-      await saveNoteAction({ questId: quest.id, text: "Buy more clay" }),
-    ).toEqual({ kind: "saved" });
+    ).toMatchObject({ kind: "saved" });
+    const saved = await saveNoteAction({
+      questId: quest.id,
+      text: "Buy more clay",
+    });
+    const notesAfterSave = await listNotes(user.id, quest.id);
+    expect(saved).toEqual({ kind: "saved", notes: notesAfterSave });
     const notes = await listNotes(user.id, quest.id);
     expect(notes.map((note) => note.text)).toEqual([
       "Buy more clay",
@@ -158,6 +161,36 @@ describe("use_case_quick_note", () => {
     expect((await listNotes(owner.id, quest.id))[0]?.text).toBe("Member");
   });
 
+  test("only owners and accepted members can create, with multiline text and server dates", async () => {
+    const [owner, member, pending, removed, stranger] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const quest = await testData(owner).quest();
+    await addMember(owner, quest.id, member);
+    await addInvitee(owner, quest.id, pending);
+    await addRemovedMember(owner, quest.id, removed);
+    const refused = await Promise.all(
+      [pending, removed, stranger].map((user) =>
+        saveNote(user.id, { questId: quest.id, text: "Denied" }),
+      ),
+    );
+    expect(refused).toEqual([false, false, false]);
+    await signIn(member);
+    const result = await saveNoteAction({
+      questId: quest.id,
+      text: "  Clay\n\nGlaze  ",
+    });
+    const notes = await listNotes(owner.id, quest.id);
+    expect(result).toEqual({ kind: "saved", notes });
+    expect(notes).toHaveLength(1);
+    expect(notes[0]?.text).toBe("Clay\n\nGlaze");
+    expect(notes[0]?.savedAt).toBeInstanceOf(Date);
+  });
+
   test("an empty or overlong Quick Note is refused with its reason", async () => {
     const user = await testUser();
     const quest = await testData(user).quest();
@@ -178,7 +211,7 @@ describe("use_case_quick_note", () => {
         questId: quest.id,
         text: "a".repeat(NOTE_MAX_LENGTH),
       }),
-    ).toEqual({ kind: "saved" });
+    ).toMatchObject({ kind: "saved" });
     expect(await saveNoteAction({ questId: "nope", text: "Hi" })).toEqual({
       kind: "problem",
       text: QUICK_NOTE_COPY.invalid,
@@ -186,35 +219,42 @@ describe("use_case_quick_note", () => {
     expect(await listNotes(user.id, quest.id)).toHaveLength(1);
   });
 
-  test("a Completed quest takes no new Quick Note but keeps its notes", async () => {
-    const user = await testUser();
-    const data = testData(user);
-    const quest = await data.quest("Finished");
-    const chat = await data.chat(quest);
-    await signIn(user);
-    await saveNoteAction({ questId: quest.id, text: "Kept" });
-    await changeQuestStatus(user.id, {
-      questId: quest.id,
-      fromStatus: "active",
-      toStatus: "completed",
-      revision: 0,
-    });
+  test.each(["completed", "abandoned"] as const)(
+    "a %s quest takes no new Quick Note but keeps its notes",
+    async (status) => {
+      const user = await testUser();
+      const data = testData(user);
+      const quest = await data.quest("Finished");
+      const chat = await data.chat(quest);
+      await signIn(user);
+      await saveNoteAction({ questId: quest.id, text: "Kept" });
+      await changeQuestStatus(user.id, {
+        questId: quest.id,
+        fromStatus: "active",
+        toStatus: status,
+        revision: 0,
+      });
 
-    expect(await listNoteQuestsAction()).toEqual([]);
-    expect(await saveNoteAction({ questId: quest.id, text: "Late" })).toEqual({
-      kind: "problem",
-      text: QUICK_NOTE_COPY.notFound,
-    });
-    const [kept] = await listNotes(user.id, quest.id);
-    expect(kept?.text).toBe("Kept");
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.editNote(1, "Edited later")),
-    ).toMatchObject({ kind: "noted" });
-    expect(await runCommand(chat.id, PANEL_COMMAND.dropNote(1))).toMatchObject({
-      kind: "noted",
-    });
-    expect(await listNotes(user.id, quest.id)).toEqual([]);
-  });
+      expect(await listNoteQuestsAction()).toEqual([]);
+      expect(await saveNoteAction({ questId: quest.id, text: "Late" })).toEqual(
+        {
+          kind: "problem",
+          text: QUICK_NOTE_COPY.notFound,
+        },
+      );
+      const [kept] = await listNotes(user.id, quest.id);
+      expect(kept?.text).toBe("Kept");
+      expect(
+        await runCommand(chat.id, PANEL_COMMAND.editNote(1, "Edited later")),
+      ).toMatchObject({ kind: "noted" });
+      expect(
+        await runCommand(chat.id, PANEL_COMMAND.dropNote(1)),
+      ).toMatchObject({
+        kind: "noted",
+      });
+      expect(await listNotes(user.id, quest.id)).toEqual([]);
+    },
+  );
 
   test("another user can neither save to, list nor delete a quest's Quick Notes", async () => {
     const owner = await testUser();
