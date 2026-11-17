@@ -3,6 +3,8 @@
 // page. A browser test calls them through `commands` from vitest/browser.
 declare module "vitest/browser" {
   interface BrowserCommands {
+    // Composite pixels inside a material, excluding rounded transparent edges.
+    materialPixels: (selector: string) => Promise<string>;
     // Native touch input, in a touch-enabled browser project.
     tap: (selector: string) => Promise<void>;
     // Native upward wheel input over the rendered list.
