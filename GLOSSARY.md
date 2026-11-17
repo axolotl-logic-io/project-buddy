@@ -302,7 +302,7 @@ The quest sidebar's collections: Tasks, Ideas, Quick Notes and Progress, each re
 
 The quest sidebar's **Spells & status** disclosure holds the spell picker and quest status controls. The existing `?section=actions` link opens it. Dailies keeps Start Day and its available Undo above the collection tabs. Like every sidebar command control, each sends its command to the conversation.
 
-- **UI:** "Actions".
+- **UI:** "Spells & status".
 
 ### Tasks
 
