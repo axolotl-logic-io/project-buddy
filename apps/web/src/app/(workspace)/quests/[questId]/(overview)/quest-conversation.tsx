@@ -1,13 +1,13 @@
 import type { JSX } from "react";
 import { listMessages, readStoppedReply } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import { DayGrid } from "@/components/dailies/day-grid.tsx";
+import { DailiesPanel } from "@/components/dailies-panel.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestNotes } from "@/components/quest-notes.tsx";
+import { QuestPanel } from "@/components/quest-panel.tsx";
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
-import { StartDay } from "@/components/start-day.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
@@ -55,14 +55,8 @@ function membersSection(
   ];
 }
 
-// A quest's one conversation, as viewer sees it, with the quest's sidebar
-// beside it: Buckets, whose menu holds Tasks, Ideas, Quick Notes and
-// Progress, then Actions, which holds the spell picker, and Members. Opening it marks it read for viewer alone. Reading it spends
-// nothing: a quest whose conversation hasn't started, as after the move
-// from adventures, offers to start it instead. The active Dailies quest
-// offers Start Day, which begins a new day with an empty conversation and
-// reopens its done recurring tasks, and shows their streaks and day grid.
-// The Dailies quest's days while it is active; undefined in any other quest.
+// Only an Active Dailies quest exposes day controls. The persisted mark,
+// independent of the editable name, also selects its panel composition below.
 function readRecord(
   quest: Quest,
   viewer: UserId,
@@ -112,55 +106,60 @@ async function questConversation(
   if (section === "conversation") {
     initialSection = undefined;
   }
+  const sections: WorkspaceSection[] = [
+    {
+      id: "ideas",
+      label: IDEAS_COPY.heading,
+      icon: <Icon name="sparkle" />,
+      description: IDEAS_COPY.bucketIntro,
+      content: <QuestIdeas embedded={true} ideas={ideas} />,
+      bucket: true,
+    },
+    {
+      id: "notes",
+      label: QUEST_NOTES_COPY.heading,
+      icon: <Icon name="note" />,
+      description: QUEST_NOTES_COPY.bucketIntro,
+      content: <QuestNotes notes={notes} quest={quest} />,
+      bucket: true,
+    },
+    {
+      id: "progress",
+      label: PROGRESS_TIMELINE_COPY.heading,
+      content: <ProgressTimeline milestones={milestones} />,
+      bucket: true,
+    },
+    {
+      id: "actions",
+      label: QUEST_SIDEBAR_COPY.actions,
+      content: (
+        <div className="flex flex-col gap-3">
+          <QuestStatusControls quest={quest} />
+          <SpellPicker spells={[...listSpells(), ...ownSpells]} />
+        </div>
+      ),
+    },
+    ...membersSection(quest, viewer, people),
+  ];
+  let panel = (
+    <QuestPanel sections={sections} initialSection={initialSection} />
+  );
+  let panelTitle: string = QUEST_SIDEBAR_COPY.quest;
+  if (quest.dailies) {
+    panel = (
+      <DailiesPanel
+        sections={sections}
+        record={record}
+        initialSection={initialSection}
+      />
+    );
+    panelTitle = QUEST_SIDEBAR_COPY.dailies;
+  }
   return (
     <ChatScreen
       initialSection={initialSection}
-      sideSections={[
-        {
-          id: "ideas",
-          label: IDEAS_COPY.heading,
-          icon: <Icon name="sparkle" />,
-          description: IDEAS_COPY.bucketIntro,
-          content: <QuestIdeas embedded={true} ideas={ideas} />,
-          bucket: true,
-        },
-        {
-          id: "notes",
-          label: QUEST_NOTES_COPY.heading,
-          icon: <Icon name="note" />,
-          description: QUEST_NOTES_COPY.bucketIntro,
-          content: <QuestNotes notes={notes} quest={quest} />,
-          bucket: true,
-        },
-        {
-          id: "progress",
-          label: PROGRESS_TIMELINE_COPY.heading,
-          content: (
-            <div className="flex flex-col gap-4">
-              <DayGrid />
-              <ProgressTimeline milestones={milestones} />
-            </div>
-          ),
-          bucket: true,
-        },
-        {
-          id: "actions",
-          label: QUEST_SIDEBAR_COPY.actions,
-          content: (
-            <div className="flex flex-col gap-3">
-              <QuestStatusControls quest={quest} />
-              {record !== undefined && (
-                <StartDay
-                  lastStartedAt={record.days.at(-1)?.startedAt}
-                  undoable={record.undoable}
-                />
-              )}
-              <SpellPicker spells={[...listSpells(), ...ownSpells]} />
-            </div>
-          ),
-        },
-        ...membersSection(quest, viewer, people),
-      ]}
+      panel={panel}
+      panelTitle={panelTitle}
       conversation={conversation}
       messages={messages}
       stoppedReplyId={stoppedReplyId}
