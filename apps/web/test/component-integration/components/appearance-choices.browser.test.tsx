@@ -236,6 +236,91 @@ describe("use_case_choose_theme", () => {
     },
   );
 
+  test.each(THEME_MODES)(
+    "%s tooltip never tints the rendered material",
+    async (mode) => {
+      await render(<AppearanceChoices settings={true} />);
+      const radio = choice(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      await radio.click();
+      await page
+        .getByRole("heading", { name: SITE_COPY.name, exact: true })
+        .hover();
+      await userEvent.keyboard("{Escape}");
+      const material = radio
+        .element()
+        .closest("label")
+        ?.querySelector('[aria-hidden="true"]');
+      if (material === null || material === undefined) {
+        throw new Error("The theme has no material");
+      }
+      const { url = "" } =
+        BACKGROUND_URL.exec(getComputedStyle(material).backgroundImage)
+          ?.groups ?? {};
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      const { selector } = page.elementLocator(material);
+      const uncovered = await commands.materialPixels(selector);
+      await radio.hover();
+      await expect
+        .element(page.getByRole("tooltip", { name: THEME_COPY.modes[mode] }))
+        .toBeVisible();
+      expect(await commands.materialPixels(selector)).toBe(uncovered);
+    },
+  );
+
+  test.each(
+    THEME_MODES.flatMap((mode) => [
+      { mode, settings: true },
+      { mode, settings: false },
+    ]),
+  )(
+    "$mode keeps every material unchanged when settings=$settings",
+    async ({ mode, settings }) => {
+      if (settings) {
+        await render(<AppearanceChoices settings={true} />);
+      } else {
+        await openPanel();
+      }
+      const materials = THEME_MODES.map((swatchMode) => {
+        const radio = choice(
+          THEME_COPY.modeLabel,
+          THEME_COPY.modes[swatchMode],
+        );
+        const material = radio
+          .element()
+          .closest("label")
+          ?.querySelector('[aria-hidden="true"]');
+        if (material === null || material === undefined) {
+          throw new Error("The theme has no material");
+        }
+        return material;
+      });
+      await Promise.all(
+        materials.map(async (material) => {
+          const { url = "" } =
+            BACKGROUND_URL.exec(getComputedStyle(material).backgroundImage)
+              ?.groups ?? {};
+          const image = new Image();
+          image.src = url;
+          await image.decode();
+        }),
+      );
+      const selectors = materials.map(
+        (material) => page.elementLocator(material).selector,
+      );
+      const before = await Promise.all(
+        selectors.map((selector) => commands.materialPixels(selector)),
+      );
+      await choose(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      await userEvent.keyboard("{Escape}");
+      const after = await Promise.all(
+        selectors.map((selector) => commands.materialPixels(selector)),
+      );
+      expect(after).toEqual(before);
+    },
+  );
+
   test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
     "a saved %s choice uses parchment and keeps Dark before paint",
     (retiredTheme) => {

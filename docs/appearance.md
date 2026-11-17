@@ -6,7 +6,13 @@ The site panel and Settings offer three texture swatches:
 - **Soot & Brass** uses a burgundy book cover, warm charcoal panels, ivory text, and restrained brass accents. Its header, navigation, fields, buttons, and quest sidebar follow the approved palette.
 - **Espresso Leather** uses dark brown leather with the sepia and gold dark palette.
 
-The swatch row stays compact on desktop and reserves space above the tiles so tooltips do not cover the Theme label. Each swatch shows only its background texture, with no content overlays or captions underneath. A solid outline around the chosen tile marks selection; a separate dashed outline marks keyboard focus. Each native radio has its appearance name as its accessible name. A tooltip shows that name on hover, keyboard focus, or a tap that selects the swatch. Escape dismisses the tooltip without moving focus or changing the selection. The same controls work by touch at 320 px, with targets at least 44 px wide and tall. There is no Light, Dark, or System control, and operating system appearance changes do not change the selection.
+The swatch row stays compact on desktop and reserves space above the tiles so tooltips do not cover the Theme label.
+
+Each material remains fully opaque and keeps its own colors under every active appearance. Tooltip borders have no shadow that can tint the texture. Each swatch shows only its background texture, with no content overlays or captions underneath.
+
+A solid outline around the chosen tile marks selection; a separate dashed outline marks keyboard focus. Each native radio has its appearance name as its accessible name. A tooltip shows that name on hover, keyboard focus, or a tap that selects the swatch. Escape dismisses the tooltip without moving focus or changing the selection.
+
+The same controls work by touch at 320 px, with targets at least 44 px wide and tall. There is no Light, Dark, or System control, and operating system appearance changes do not change the selection.
 
 Selecting a swatch changes the page immediately and saves the selection in this browser's theme cookie. Navigation, reloading, signing out, and failed pages keep it. The inline script in the document head applies the saved choice before the first paint. Existing Light or System cookies resolve to Ivory Vellum; existing Dark cookies resolve to Espresso Leather. Invalid values use Ivory Vellum.
 
