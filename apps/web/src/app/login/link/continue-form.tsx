@@ -79,7 +79,7 @@ function ContinueForm({
           error={error}
         />
       )}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" aria-busy={pending} disabled={pending}>
         {LINK_PAGE_COPY.continue}
       </Button>
     </form>

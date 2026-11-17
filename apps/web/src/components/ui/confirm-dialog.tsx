@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 
 // The modal <dialog> the element is in, if any. A modal dialog sits in the
 // browser's top layer, above anything portalled to the body.
@@ -105,6 +106,7 @@ export function ConfirmDialog({
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild={true}>
               <Button onClick={confirm} variant={variant}>
+                {variant === "danger" && <Icon name="trash" />}
                 {confirmLabel}
               </Button>
             </AlertDialog.Action>

@@ -89,7 +89,7 @@ function QuestStartForm({
         </Alert>
       )}
       <div className="flex flex-wrap items-center gap-3">
-        <Button disabled={pending} type="submit">
+        <Button aria-busy={pending} disabled={pending} type="submit">
           {QUEST_START_COPY.start}
         </Button>
         <FormStatus>{status}</FormStatus>

@@ -45,7 +45,22 @@
   /* One starting point: the whole tile is its target. */
   .quest-start-tile {
     min-block-size: var(--target-size);
-    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-box border border-line bg-surface/70 px-3 py-2.5 text-left shadow-control transition-shadow hover:shadow-raised motion-safe:active:translate-y-px;
+    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-action border border-line bg-action-paper px-3 py-2.5 text-left;
+    border-width: var(--action-line-width);
+  }
+
+  .quest-start-tile:focus-visible {
+    outline-style: dashed;
+  }
+
+  @media (hover: hover) {
+    .quest-start-tile:hover {
+      @apply shadow-action-hover;
+    }
+  }
+
+  .quest-start-tile:active {
+    box-shadow: var(--action-pressed-shadow);
   }
 
   /* Quests uses folder tabs, scoped apart from the workspace rail. The
@@ -56,7 +71,7 @@
 
   .quests-index-tab {
     min-block-size: var(--target-size);
-    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-t-control border-x border-t-2 border-line bg-field px-3 py-2 text-muted text-sm sm:px-4;
+    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-t-action border-x border-t-2 border-line bg-field px-3 py-2 text-muted text-sm sm:px-4;
   }
 
   .quests-index-tab:hover {
@@ -365,36 +380,111 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  /* Buttons, and links that look like one. Every button is at least a
-     target's height and keeps one border, so buttons of different weights
-     line up in a row. */
+  /* Letterpress actions: brass commits, paper offers alternatives, ink
+     edits, and sealing wax confirms removal. Their targets stay generous
+     while the fine keyline and flat resting surface keep them light. */
   .button-primary,
   .button-secondary,
-  .button-danger {
-    @apply inline-flex min-h-(--target-size) items-center justify-center gap-2 rounded-control border px-4 py-2 font-medium shadow-control transition-shadow hover:shadow-raised disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none motion-safe:active:translate-y-px;
+  .button-danger,
+  .button-quiet,
+  .button-quiet-danger {
+    min-block-size: var(--target-size);
+    min-inline-size: var(--target-size);
+    border-width: var(--action-line-width);
+    @apply inline-flex max-w-full items-center justify-center gap-2 rounded-action border-solid px-3.5 py-2 font-action font-semibold text-base leading-tight;
+    text-align: center;
+    overflow-wrap: anywhere;
   }
 
-  /* The main action of a page or form. */
   .button-primary {
-    @apply border-transparent bg-primary text-on-primary;
+    @apply border-action-fill bg-action-fill text-on-action;
   }
 
-  /* Another action beside the main one. */
   .button-secondary {
-    @apply border-line bg-secondary-surface text-foreground;
+    @apply border-line bg-action-paper text-action-ink;
   }
 
-  /* The main action when it removes something for good, such as a confirm
-     dialog's Delete forever: the primary button's shape in the danger
-     colour. */
   .button-danger {
-    @apply border-transparent bg-danger text-on-danger;
+    @apply border-danger bg-danger text-on-danger;
   }
 
-  /* A small action inside a list or a form, such as restoring a version:
-     its words alone, in a box a target's height. */
-  .button-quiet {
-    @apply inline-flex min-h-(--target-size) items-center gap-1.5 rounded-control font-medium text-primary text-sm underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-60;
+  .button-quiet,
+  .button-quiet-danger {
+    @apply justify-start border-transparent bg-transparent px-2 text-action-ink underline underline-offset-4;
+  }
+
+  .button-quiet-danger {
+    @apply text-danger;
+  }
+
+  /* Icons keep a square target. Text actions keep their visible underline;
+     a pencil, handle or ellipsis needs no underline beneath its drawing. */
+  :is(.button-quiet, .button-quiet-danger):has(> .icon:only-child) {
+    @apply justify-center no-underline;
+  }
+
+  :is(
+    .button-primary,
+    .button-secondary,
+    .button-danger,
+    .button-quiet,
+    .button-quiet-danger
+  ):focus-visible {
+    outline: var(--focus-outline);
+    outline-style: dashed;
+    outline-offset: var(--focus-offset);
+  }
+
+  :is(
+    .button-primary,
+    .button-secondary,
+    .button-danger,
+    .button-quiet,
+    .button-quiet-danger
+  ):disabled {
+    @apply cursor-not-allowed opacity-55 shadow-none;
+  }
+
+  /* Busy remains distinct from an unavailable action, even without motion.
+     Status wording belongs to the form's existing live feedback. */
+  :is(
+    .button-primary,
+    .button-secondary,
+    .button-danger,
+    .button-quiet,
+    .button-quiet-danger
+  )[aria-busy="true"] {
+    @apply opacity-100;
+    border-style: dashed;
+  }
+
+  :is(
+    .button-primary,
+    .button-secondary,
+    .button-danger,
+    .button-quiet,
+    .button-quiet-danger
+  )[aria-busy="true"]::before {
+    content: "";
+    @apply size-4 shrink-0 rounded-full border-current border-2 border-t-transparent;
+  }
+
+  @media (hover: hover) {
+    :is(.button-primary, .button-secondary, .button-danger):not(:disabled):not(
+        [aria-busy="true"]
+      ):hover {
+      @apply underline underline-offset-4 shadow-action-hover;
+    }
+
+    :is(.button-quiet, .button-quiet-danger):not(:disabled):hover {
+      text-decoration-thickness: var(--line-width);
+    }
+  }
+
+  :is(.button-primary, .button-secondary, .button-danger):not(:disabled):not(
+    [aria-busy="true"]
+  ):active {
+    box-shadow: var(--action-pressed-shadow);
   }
 
   /* A labelled control: its label, the control, a hint and an error, in a
@@ -464,6 +554,18 @@
 
   .icon > svg {
     @apply size-4;
+  }
+
+  :is(
+      .button-primary,
+      .button-secondary,
+      .button-danger,
+      .button-quiet,
+      .button-quiet-danger
+    )
+    > .icon
+    > svg {
+    @apply size-4.5;
   }
 
   /* A line of text led by an icon, such as an alert or a search of the
@@ -1068,11 +1170,12 @@
   /* A link in the site panel: a row a target's height, highlighted when pointed
      at or focused. */
   .panel-link {
-    @apply flex min-h-(--target-size) items-center gap-2 rounded-control px-2 hover:bg-accent hover:text-on-accent;
+    @apply flex min-h-(--target-size) items-center gap-2 rounded-action px-2 text-action-ink hover:bg-field hover:underline hover:underline-offset-4;
   }
 
   .panel-link:focus-visible {
-    @apply bg-accent text-on-accent;
+    outline-style: dashed;
+    @apply bg-field text-action-ink;
   }
 
   /* Both pickers use native radios; only their material appears inside. */
@@ -1287,11 +1390,19 @@
 
   .workspace-tab[data-state="active"],
   .workspace-tab[aria-current="page"] {
-    @apply border-primary text-foreground;
+    @apply border-action-fill font-semibold text-foreground;
   }
 
   /* A tab focused by a click shows no focus ring beside its underline;
      keyboard focus keeps it (src/components/tab-pointer-focus.ts). */
+  .workspace-tab:focus-visible {
+    outline-style: dashed;
+  }
+
+  .workspace-tab:hover {
+    @apply text-action-ink underline underline-offset-4;
+  }
+
   .workspace-tab[data-pointer-focus]:focus-visible {
     outline: none;
     box-shadow: none;
@@ -1462,7 +1573,7 @@
   }
 
   .editable-text {
-    @apply wrap-anywhere whitespace-pre-wrap min-w-0 justify-start py-2.5 text-left font-normal text-foreground hover:no-underline disabled:opacity-100;
+    @apply wrap-anywhere whitespace-pre-wrap min-w-0 justify-start px-0 py-2.5 text-left font-body font-normal text-foreground no-underline hover:underline disabled:opacity-100;
   }
 
   .editable-row[data-completed="true"] .editable-text {
@@ -1569,11 +1680,11 @@
 
   .editable-menu-item {
     min-block-size: var(--target-size);
-    @apply flex cursor-pointer items-center gap-2 rounded-control px-3 text-foreground outline-none data-[highlighted]:bg-field data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50;
+    @apply flex cursor-pointer items-center gap-2 rounded-action px-3 text-action-ink outline-none data-[highlighted]:bg-field data-[highlighted]:underline data-[highlighted]:underline-offset-4 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50;
   }
 
   .editable-add {
-    @apply w-full justify-start gap-3 rounded-control px-3 text-left text-primary hover:bg-field/60 hover:no-underline;
+    @apply w-full justify-start gap-3 rounded-action px-3 text-left text-action-ink hover:bg-field/60;
   }
 
   .editable-add-form {
@@ -1893,7 +2004,7 @@
 
   .command-option {
     min-block-size: var(--target-size);
-    @apply col-span-full flex w-full flex-col justify-center rounded-control px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
+    @apply col-span-full flex w-full flex-col justify-center rounded-action px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field aria-selected:font-semibold sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
   }
 
   .command-option > code {

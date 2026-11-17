@@ -96,7 +96,12 @@ function TitleEditor({
         ref={focus}
       />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending} onKeyDown={cancelOnEscape}>
+        <Button
+          type="submit"
+          aria-busy={pending}
+          disabled={pending}
+          onKeyDown={cancelOnEscape}
+        >
           {QUEST_COPY.saveTitle}
         </Button>
         <Button

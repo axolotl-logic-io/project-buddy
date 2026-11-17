@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Button system](button-system.md): Letterpress action roles, color vocabulary and control inventory.
+
 - [Appearance](appearance.md): the three textured swatches and browser preferences.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share.
