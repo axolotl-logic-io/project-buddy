@@ -1111,7 +1111,7 @@
   }
 
   .theme-choice-name {
-    @apply block whitespace-nowrap rounded-control border border-line bg-surface px-2 py-1 text-xs text-foreground shadow-raised;
+    @apply block whitespace-nowrap rounded-control border border-line bg-surface px-2 py-1 text-xs text-foreground;
   }
 
   .panel-mode:first-child .theme-choice-tooltip {
