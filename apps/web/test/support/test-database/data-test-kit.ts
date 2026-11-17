@@ -13,11 +13,6 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import {
-  cloneConstruct,
-  type OwnConstruct,
-  updateConstruct,
-} from "@/constructs/construct-store.ts";
-import {
   type ConstructId,
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
@@ -28,6 +23,10 @@ import type { ChatId, UserId } from "@/ids.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest, type Quest } from "@/quests/store.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
+import {
+  createConstruct,
+  type OwnConstruct,
+} from "./historical-construct-test-kit.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
@@ -61,21 +60,15 @@ interface TestData {
 }
 
 // The owner's clone of the default construct, with its voice edited.
-async function testEditedConstruct(owner: UserId): Promise<OwnConstruct> {
-  const clone = await cloneConstruct(owner, DEFAULT_CONSTRUCT_ID);
-  if (clone === undefined) {
-    throw new Error("The default construct wasn't cloned");
-  }
-  const edited = await updateConstruct(owner, clone.id, {
+function testEditedConstruct(owner: UserId): Promise<OwnConstruct> {
+  const source = getConstruct(DEFAULT_CONSTRUCT_ID);
+  return createConstruct(owner, {
+    name: `${source.name} (historical)`,
     definition: {
-      ...clone.definition,
-      prompt: `${clone.definition.prompt}\n\nEdited.`,
+      ...source.definition,
+      prompt: `${source.definition.prompt}\n\nEdited.`,
     },
   });
-  if (edited === undefined) {
-    throw new Error("The clone wasn't edited");
-  }
-  return edited;
 }
 
 // Removes what the test added to the manual index.
