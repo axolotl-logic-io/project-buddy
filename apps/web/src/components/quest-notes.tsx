@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import {
   checkNoteText,
   NOTE_MAX_LENGTH,
@@ -71,7 +72,7 @@ function NoteRow({
       actionsLabel={QUEST_NOTES_COPY.actions(note.text)}
       disabled={busy}
       onSave={save}
-      badge={
+      leading={
         <span className="text-muted">
           <LocalTime dateTime={note.savedAt} detail="day" />
         </span>
@@ -159,7 +160,7 @@ function QuestNotes({
     [notes, send],
   );
   return (
-    <section className="page-slot">
+    <section className="page-slot bucket-desk bucket-notes">
       <p className="sr-only" ref={headingRef} tabIndex={-1}>
         {QUEST_NOTES_COPY.heading}
       </p>
@@ -172,8 +173,19 @@ function QuestNotes({
       />
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
+      <div className="bucket-toolbar">
+        <p className="bucket-summary">
+          {QUEST_NOTES_COPY.summary(notes.length)}
+        </p>
+      </div>
       {notes.length === 0 && (
-        <p className="text-muted">{QUEST_NOTES_COPY.none}</p>
+        <div className="bucket-empty bucket-empty-copy">
+          <Icon name="note" />
+          <p className="bucket-empty-heading">
+            {QUEST_NOTES_COPY.emptyHeading}
+          </p>
+          <p>{QUEST_NOTES_COPY.none}</p>
+        </div>
       )}
       {notes.length > 0 && (
         <EditableList label={QUEST_NOTES_COPY.heading}>
