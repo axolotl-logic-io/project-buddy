@@ -1071,17 +1071,18 @@
     @apply bg-accent text-on-accent;
   }
 
-  /* Texture swatches share native radio behavior in both appearance pickers. */
+  /* Both pickers use native radios; only their material appears inside. */
   .panel-modes {
-    @apply mx-2 grid grid-cols-3 gap-2;
+    @apply mx-2 grid grid-cols-3 gap-3;
   }
 
   .panel-mode {
-    @apply relative flex min-h-(--target-size) min-w-0 cursor-pointer flex-col items-center gap-2 rounded-control border border-line p-2 text-center text-xs hover:bg-field has-checked:border-primary has-checked:font-semibold;
+    @apply relative block min-h-(--target-size) min-w-0 cursor-pointer rounded-control border border-transparent p-1 hover:border-muted has-checked:border-primary;
   }
 
   .panel-mode:focus-within {
     outline: var(--focus-outline);
+    outline-style: dashed;
     outline-offset: var(--focus-offset);
   }
 
@@ -1089,26 +1090,36 @@
     @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none rounded-control;
   }
 
-  /* The label draws focus around the whole swatch and its name. */
+  /* Focus and selection surround the texture instead of covering it. */
   .theme-choice-input:focus-visible {
     outline: none;
     box-shadow: none;
   }
 
   .theme-swatch {
-    @apply relative block h-12 w-full overflow-hidden rounded-control border border-line bg-background bg-(image:--page-decoration) bg-cover;
+    @apply block h-16 w-full rounded-control bg-background bg-(image:--page-decoration) bg-cover;
   }
 
-  .theme-swatch-panel {
-    @apply absolute right-1 bottom-1 left-2 h-6 rounded-control border border-line bg-surface;
+  /* The padded bridge keeps the tooltip hoverable without covering a tile. */
+  .theme-choice-tooltip {
+    @apply invisible absolute bottom-full left-1/2 z-10 -translate-x-1/2 pb-2;
   }
 
-  .theme-swatch-accent {
-    @apply absolute right-2 bottom-2 h-2 w-4 rounded-control bg-primary;
+  .theme-choice-name {
+    @apply block whitespace-nowrap rounded-control border border-line bg-surface px-2 py-1 text-xs text-foreground shadow-raised;
   }
 
-  .theme-choice-mark {
-    @apply flex h-4 items-center justify-center text-primary;
+  .panel-mode:first-child .theme-choice-tooltip {
+    @apply left-0 translate-x-0;
+  }
+
+  .panel-mode:last-child .theme-choice-tooltip {
+    @apply right-0 left-auto translate-x-0;
+  }
+
+  .panel-mode:not([data-tooltip-dismissed]):hover .theme-choice-tooltip,
+  .panel-mode:not([data-tooltip-dismissed]):focus-within .theme-choice-tooltip {
+    visibility: visible;
   }
 
   /* The rule between the site panel's groups. */
