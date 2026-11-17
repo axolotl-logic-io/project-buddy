@@ -8,13 +8,15 @@ import { parseUserId } from "@/ids.ts";
 
 const stores = vi.hoisted(() => ({
   getQuest: vi.fn(),
-  getOwnConstruct: vi.fn(),
   getRetiredDefinition: vi.fn(),
   readQuestConversation: vi.fn(),
 }));
 vi.mock("@/quests/store.ts", () => stores);
 vi.mock("@/conversations/start-quest.ts", () => stores);
-vi.mock("@/constructs/construct-store.ts", () => stores);
+vi.mock(
+  "../../support/test-database/historical-construct-test-kit.ts",
+  () => stores,
+);
 vi.mock("@/retirement/retirement-store.ts", () => stores);
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
@@ -35,7 +37,7 @@ beforeEach(() => {
 
 describe("header navigation hierarchy", () => {
   test.each([
-    { section: "workshop", label: "Workshop" },
+    { section: "spellbook", label: "Spellbook" },
     { section: "retirement", label: "Graveyard" },
     { section: "settings", label: "Settings" },
     { section: "timer", label: "Timer" },
@@ -165,29 +167,17 @@ describe("header navigation hierarchy", () => {
     expect(await headerBreadcrumbs(MEMBER, ["missing"])).toEqual([]);
   });
 
-  test("keeps definition names and their existing destinations", async () => {
-    stores.getOwnConstruct.mockResolvedValue({ name: "My construct" });
-    const trail = await headerBreadcrumbs(MEMBER, ["constructs", "own"]);
-    expect(trail).toEqual([
-      { label: "Workshop", href: "/workshop" },
-      { label: "Constructs", href: "/workshop" },
-      { label: "My construct" },
-    ]);
-    expect(stores.getOwnConstruct).toHaveBeenCalledWith(USER, "own");
+  test("historical custom constructs have no trail, and built-ins remain named", async () => {
+    expect(await headerBreadcrumbs(MEMBER, ["constructs", "own"])).toEqual([]);
     expect(
       (await headerBreadcrumbs(MEMBER, ["constructs", "lumen"])).at(-1)?.label,
     ).toBe("Lumen");
   });
-
-  test("leads from a spell to the Workshop’s Spells tab", async () => {
+  test("a spell leads directly to Spellbook", async () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["spellbook", "brainstorm"]),
     ).toEqual([
-      { label: "Workshop", href: "/workshop" },
-      {
-        label: "Spells",
-        href: `/workshop?${new URLSearchParams({ kind: "spell" })}`,
-      },
+      { label: "Spellbook", href: "/spellbook" },
       { label: "Brainstorm" },
     ]);
   });

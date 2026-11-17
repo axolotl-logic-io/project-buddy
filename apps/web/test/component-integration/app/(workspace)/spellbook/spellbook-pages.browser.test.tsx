@@ -81,13 +81,13 @@ async function ownPage(): Promise<void> {
   );
 }
 
-test("the spell collection offers built-ins, own spells and creation", async () => {
+test("use_case_spellbook_page", async () => {
   await render(inWorkspace(await SpellLists()));
   await expect
-    .element(page.getByRole("link", { name: "Tasks", exact: true }))
+    .element(page.getByRole("link", { name: "View Tasks", exact: true }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: OWN.name, exact: true }))
+    .element(page.getByRole("link", { name: `Edit ${OWN.name}`, exact: true }))
     .toBeVisible();
   await page
     .getByRole("button", { name: SPELLBOOK_COPY.newSpell, exact: true })
@@ -323,4 +323,87 @@ test("reply alternatives can be reordered and removed while keeping one choice",
     .click();
   const [form] = vi.mocked(saveSpellAction).mock.calls[0] ?? [];
   expect(form?.get("savedReply")).toBe(JSON.stringify(["Second"]));
+});
+
+test("name search combines with source filters and explains unmatched results", async () => {
+  await render(inWorkspace(await SpellLists()));
+  await page.getByRole("button", { name: "Yours · 1", exact: true }).click();
+  await expect
+    .element(page.getByRole("button", { name: "Yours · 1", exact: true }))
+    .toHaveAttribute("aria-pressed", "true");
+  await expect
+    .element(page.getByRole("link", { name: `Edit ${OWN.name}`, exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("link", { name: "View Tasks", exact: true }))
+    .not.toBeInTheDocument();
+  await page
+    .getByRole("searchbox", { name: SPELLBOOK_COPY.search })
+    .fill("  SKETCH  ");
+  await expect
+    .element(page.getByRole("link", { name: `Edit ${OWN.name}`, exact: true }))
+    .toBeVisible();
+  await page.getByRole("button", { name: "Built-in · 2", exact: true }).click();
+  await expect.element(page.getByText(SPELLBOOK_COPY.noMatches)).toBeVisible();
+  await page
+    .getByRole("searchbox", { name: SPELLBOOK_COPY.search })
+    .fill("tasks");
+  await expect
+    .element(page.getByRole("link", { name: "View Tasks", exact: true }))
+    .toHaveAttribute("href", "/spellbook/tasks");
+  await expect
+    .element(page.getByRole("link", { name: `Edit ${OWN.name}`, exact: true }))
+    .not.toBeInTheDocument();
+});
+
+test("an empty own collection offers guidance without hiding built-ins", async () => {
+  vi.mocked(listOwnSpells).mockResolvedValue([]);
+  await render(inWorkspace(await SpellLists()));
+  await page.getByRole("button", { name: "Yours · 0", exact: true }).click();
+  await expect.element(page.getByText(SPELLBOOK_COPY.empty)).toBeVisible();
+  await page.getByRole("button", { name: "All · 2", exact: true }).click();
+  await expect
+    .element(page.getByRole("link", { name: "View Brainstorm", exact: true }))
+    .toBeVisible();
+});
+
+test("Cancel restores saved spell fields and clears the recovered browser draft", async () => {
+  await ownPage();
+  await page
+    .getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true })
+    .fill("Unsaved spell name");
+  await page
+    .getByRole("combobox", { name: SPELLBOOK_COPY.destination, exact: true })
+    .selectOptions("tasks");
+  await cleanup();
+  await ownPage();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
+    )
+    .toHaveValue("Unsaved spell name");
+  await page
+    .getByRole("button", { name: PROMPT_COPY.discard, exact: true })
+    .click();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
+    )
+    .toHaveValue(OWN.name);
+  await expect
+    .element(
+      page.getByRole("combobox", {
+        name: SPELLBOOK_COPY.destination,
+        exact: true,
+      }),
+    )
+    .toHaveValue(OWN.definition.destination);
+  await cleanup();
+  await ownPage();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
+    )
+    .toHaveValue(OWN.name);
+  expect(saveSpellAction).not.toHaveBeenCalled();
 });

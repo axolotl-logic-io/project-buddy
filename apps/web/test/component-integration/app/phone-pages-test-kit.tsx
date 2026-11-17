@@ -21,19 +21,15 @@ import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
+import SpellbookPage from "@/app/(workspace)/spellbook/page.tsx";
 import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
 import TimerLayout from "@/app/(workspace)/timer/layout.tsx";
 import TimerSetupPage from "@/app/(workspace)/timer/page.tsx";
-import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { listMessages } from "@/chats/store.ts";
-import {
-  getOwnConstruct,
-  listConstructs,
-} from "@/constructs/construct-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
@@ -42,7 +38,11 @@ import {
   getRetiredDefinition,
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
-import { findSpell, getOwnSpell } from "@/spells/own-spell-store.ts";
+import {
+  findSpell,
+  getOwnSpell,
+  listOwnSpells,
+} from "@/spells/own-spell-store.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -53,15 +53,15 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import {
-  RETIRED_CONSTRUCT,
   RETIRED_DEFINITIONS,
+  RETIRED_SPELL,
 } from "../retirement/retirement-fixtures.ts";
 import {
   FOX_CONVERSATION,
   FOX_MILESTONES,
   FOX_QUEST,
 } from "./(workspace)/page-fixtures.ts";
-import { LINK_USER, OWN_SPELL, VELLUM_CLONE } from "./phone-pages-fixtures.ts";
+import { LINK_USER, OWN_SPELL } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
 // One page as the phone checks render it.
@@ -156,7 +156,6 @@ const projectsPage = workspacePage(
       sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
       nextTask: "Sketch the fox's ears from three angles",
     });
-    vi.mocked(listConstructs).mockResolvedValue([]);
   },
   async () =>
     QuestListLayout({
@@ -184,7 +183,6 @@ function projectPageFor(
       vi.mocked(listMessages).mockResolvedValue([]);
       vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
-      vi.mocked(listConstructs).mockResolvedValue([]);
     },
     async () => (
       <QuestLayout params={QUEST_PARAMS}>
@@ -201,23 +199,6 @@ function projectPageFor(
 
 const projectPage = projectPageFor();
 
-// The Workshop's page on the kind's tab, with one of her own of each kind.
-function workshopPage(
-  kind: "construct" | "activity" | "spell",
-): () => Promise<JSX.Element> {
-  return workspacePage(
-    () => {
-      vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
-      vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
-    },
-    () =>
-      WorkshopPage({
-        params: Promise.resolve({}),
-        searchParams: Promise.resolve({ kind }),
-      }),
-  );
-}
-
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "Retirement",
@@ -233,14 +214,14 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a retired definition",
-    path: ["retirement", RETIRED_CONSTRUCT.id],
+    path: ["retirement", RETIRED_SPELL.id],
     render: workspacePage(
       () => {
-        vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_CONSTRUCT);
+        vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_SPELL);
       },
       () =>
         RetiredDefinitionPage({
-          params: Promise.resolve({ promptId: RETIRED_CONSTRUCT.id }),
+          params: Promise.resolve({ promptId: RETIRED_SPELL.id }),
           searchParams: NO_PARAMS,
         }),
     ),
@@ -259,7 +240,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (): Promise<void> => {
       await page
         .getByRole("button", {
-          name: RETIREMENT_COPY.deleteLabel(RETIRED_CONSTRUCT.name),
+          name: RETIREMENT_COPY.deleteLabel(RETIRED_SPELL.name),
         })
         .click();
     },
@@ -359,11 +340,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the Settings page",
     path: ["settings"],
-    render: workspacePage(
-      () => {
-        vi.mocked(listConstructs).mockResolvedValue([]);
-      },
-      () => Promise.resolve(SettingsLayout({ children: SettingsPage() })),
+    render: workspacePage(noData, () =>
+      Promise.resolve(SettingsLayout({ children: SettingsPage() })),
     ),
   },
 
@@ -373,30 +351,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(noData, () => constructPage("vellum")),
   },
   {
-    name: "her own construct's page",
-    path: ["constructs", VELLUM_CLONE.id],
+    name: "the searchable Spellbook",
+    path: ["spellbook"],
     render: workspacePage(
       () => {
-        vi.mocked(getOwnConstruct).mockResolvedValue(VELLUM_CLONE);
+        vi.mocked(listOwnSpells).mockResolvedValue([
+          { ...OWN_SPELL, name: LONG_QUEST_NAME },
+        ]);
       },
-      () => constructPage(VELLUM_CLONE.id),
+      () => SpellbookPage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
     ),
-  },
-
-  {
-    name: "the Workshop's Constructs tab",
-    path: ["workshop"],
-    render: workshopPage("construct"),
-  },
-  {
-    name: "the former Activities bookmark",
-    path: ["workshop"],
-    render: workshopPage("activity"),
-  },
-  {
-    name: "the Workshop's Spells tab",
-    path: ["workshop"],
-    render: workshopPage("spell"),
   },
   {
     name: "a built-in spell's page",
