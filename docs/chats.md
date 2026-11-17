@@ -18,6 +18,10 @@ Quests (`/quests`) opens after sign-in when no explicit return destination was s
 
 Quests is laid out flush on the page, as Workshop is: its heading and introduction, then Continue, for the user's current quest, then Start a quest's four tiles, Dailies, Learn a thing, Make a thing and Do a thing, then the user's quests under Active, Completed and Abandoned tabs. Continue names the user's own Active quest whose conversation was most recently active, with its next task, and opens its conversation; with no Active quest it is absent (`src/quests/current-quest-store.ts`). Reading it makes no model call.
 
+The quest list uses shaped folder tabs with inline count badges. The selected tab joins the list's surface. On phones the tabs form two columns so every category stays visible. The list's surface and side rules fade into the page below the last row, with no bottom border.
+
+Quest names lead each row, with sharing markers and dates beneath; the whole row opens its conversation and highlights on hover or keyboard focus. Completed and Abandoned quests keep Restore quest below their names. Pending lists invitations with Accept and Decline; its count describes invitations, not a quest status. Switching tabs keeps the selection in the URL.
+
 ## Spells and constructs
 
 A quest conversation can have Tasks or Brainstorm active, or neither. Cast one to save subsequent ordinary messages into Tasks or Ideas, and stop it with the button beside the composer or the stop command. Reopening preserves the active spell. New conversations start with no active spell. See [Spells](spellbook.md).

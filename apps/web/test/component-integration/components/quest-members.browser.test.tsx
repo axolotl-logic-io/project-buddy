@@ -7,6 +7,7 @@ import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { MembershipResult } from "@/quests/membership.ts";
 import type { PendingQuest, QuestPeople } from "@/quests/membership-store.ts";
+import { THEME_MODES } from "@/themes/themes.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { PENDING_COPY, QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -524,7 +525,7 @@ describe("Pending on Quests", () => {
 
 describe("members and Pending on phones", () => {
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
-    for (const mode of ["light", "dark"]) {
+    for (const mode of THEME_MODES) {
       test(`fit ${viewport.width} px in ${mode}`, async () => {
         applyTheme("parchment", mode);
         await setViewport(viewport);
