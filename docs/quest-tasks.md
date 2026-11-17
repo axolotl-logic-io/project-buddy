@@ -63,6 +63,8 @@ Only the quest's owner and its accepted [members](multi-user-quests.md) can chan
 
 ## Shared list controls
 
+Tasks uses a Control desk ledger: a toolbar counts open tasks beside the add control, square completion controls mark agreed work, and a leading rule identifies the next task. Done tasks stay folded below the open tasks until expanded. An empty ledger keeps the add control available. The same structure appears in the quest section and sidebar.
+
 Tasks and Ideas use `src/components/ui/editable-list.tsx` for rows, inline editing, adding, action menus and pointer or keyboard reordering. Domain modules validate text and save their own operations. A failed save keeps the editor and its draft open. Sidebar changes stay out of conversation history.
 
 ## Storage

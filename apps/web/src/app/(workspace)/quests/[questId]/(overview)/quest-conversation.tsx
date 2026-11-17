@@ -9,6 +9,7 @@ import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
 import { StartDay } from "@/components/start-day.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { DailiesRecord } from "@/dailies/dailies.ts";
@@ -118,12 +119,16 @@ async function questConversation(
         {
           id: "ideas",
           label: IDEAS_COPY.heading,
+          icon: <Icon name="sparkle" />,
+          description: IDEAS_COPY.bucketIntro,
           content: <QuestIdeas embedded={true} ideas={ideas} />,
           bucket: true,
         },
         {
           id: "notes",
           label: QUEST_NOTES_COPY.heading,
+          icon: <Icon name="note" />,
+          description: QUEST_NOTES_COPY.bucketIntro,
           content: <QuestNotes notes={notes} quest={quest} />,
           bucket: true,
         },
