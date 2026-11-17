@@ -33,10 +33,6 @@ export const TIMER_COPY = {
   appearanceHint: "Uses the site appearance. Changes apply to every page.",
   displayLabel: "Running timer",
   dial: {
-    north: "XII",
-    east: "III",
-    south: "VI",
-    west: "IX",
     inscription: "TEMPUS · LABOR · QUIES",
     refrain: "AS THE HOUR TURNS, BEGIN AGAIN",
   },

@@ -96,13 +96,25 @@ function countdown(): ReturnType<typeof page.getByRole> {
   return page.getByRole("timer", { name: "Time left" });
 }
 
-// How much of the ring's arc is drawn, from 0 to 1, as the user sees it.
-function ringDrawn(): number {
-  const arcs = document.querySelectorAll("svg circle");
-  const arc = arcs.item(arcs.length - 1);
-  const length = Number(arc.getAttribute("stroke-dasharray"));
-  const offset = Number(arc.getAttribute("stroke-dashoffset"));
-  return 1 - offset / length;
+// The fraction shown by the visible illustration, measured from its geometry.
+function progressShown(): number {
+  const visible = [...document.querySelectorAll("svg")].filter(
+    (svg) => svg.getBoundingClientRect().width > 0,
+  );
+  for (const svg of visible) {
+    const sand = svg.querySelector("rect[data-sand-top]");
+    const bowl = svg.querySelector("clipPath path");
+    if (sand instanceof SVGRectElement && bowl instanceof SVGPathElement) {
+      return 1 - sand.height.baseVal.value / bowl.getBBox().height;
+    }
+    const arc = svg.querySelector("circle[stroke-dasharray]");
+    if (arc !== null) {
+      const length = Number(arc.getAttribute("stroke-dasharray"));
+      const offset = Number(arc.getAttribute("stroke-dashoffset"));
+      return 1 - offset / length;
+    }
+  }
+  throw new Error("The timer has no visible progress illustration");
 }
 
 export {
@@ -110,9 +122,9 @@ export {
   minutesAfter,
   openTimerPreferences,
   phaseHeading,
+  progressShown,
   renderSetup,
   renderTimer,
   returnToTabAt,
-  ringDrawn,
   T,
 };

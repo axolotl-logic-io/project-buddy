@@ -12,10 +12,10 @@ import {
   minutesAfter,
   openTimerPreferences,
   phaseHeading,
+  progressShown,
   renderSetup,
   renderTimer,
   returnToTabAt,
-  ringDrawn,
   T,
 } from "../../../support/timer/timer-test-kit.tsx";
 
@@ -71,7 +71,7 @@ describe("use_case_timer_start", () => {
 
     await expect.element(phaseHeading("Work")).toBeVisible();
     await expect.element(countdown()).toHaveTextContent("25:00");
-    expect(ringDrawn()).toBe(0);
+    expect(progressShown()).toBe(0);
     await expect
       .element(page.getByRole("status").filter({ hasText: "Work time." }))
       .toBeInTheDocument();
@@ -84,7 +84,7 @@ describe("use_case_timer_join_link", () => {
 
     await expect.element(phaseHeading("Break")).toBeVisible();
     await expect.element(countdown()).toHaveTextContent("05:00");
-    expect(ringDrawn()).toBeCloseTo(PARTWAY / BREAK);
+    expect(progressShown()).toBeCloseTo(PARTWAY / BREAK);
   });
 
   test("a link to a schedule that hasn't started shows why, and the way to setup", async () => {
@@ -121,7 +121,7 @@ describe("use_case_timer_follow_cycle", () => {
     returnToTabAt(minutesAfter(FIFTY_TEN, WORK));
     await expect.element(phaseHeading("Break")).toBeVisible();
     await expect.element(countdown()).toHaveTextContent("10:00");
-    expect(ringDrawn()).toBe(0);
+    expect(progressShown()).toBe(0);
 
     returnToTabAt(minutesAfter(FIFTY_TEN, CYCLE));
     await expect.element(phaseHeading("Work")).toBeVisible();
