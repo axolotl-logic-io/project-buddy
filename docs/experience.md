@@ -30,7 +30,7 @@ The release that added experience gave each quest's owner the points for what th
 
 ## Profile
 
-Profile (`/profile`) opens on the **Experience** card (`src/components/experience/experience-card.tsx`): the user's circle in a ring, their name with Rename, their title, a bar toward the next circle, their experience, how much more the next circle needs and the next title to reach. The card's id is `experience`. Below it, **Abilities** (`src/components/experience/ability-tiles.tsx`) shows each ability's points and the experience they're worth, the most experience first; an ability with no points says what its first point is worth. Reading Profile makes no model call.
+Profile (`/profile`) opens on the **Experience** card (`src/components/experience/experience-card.tsx`): the user's circle in a ring, their name with Rename, their title, a bar toward the next circle, their experience, how much more the next circle needs and the next title to reach. The card's id is `experience`. A separate **Days signed in** card sits between Experience and Abilities ([Profile visiting days](profile.md)). It grants no points. Below it, **Abilities** (`src/components/experience/ability-tiles.tsx`) shows each ability's points and the experience they're worth, the most experience first; an ability with no points says what its first point is worth. Reading Profile makes no model call.
 
 ## The header's ring
 

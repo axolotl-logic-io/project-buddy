@@ -56,6 +56,7 @@ Each area's cases are in their own file:
 - [Tasks](tasks.md)
 - [Ideas](ideas.md)
 - [Experience](experience.md): ability points, experience and circles.
+- [Profile](profile.md): distinct days signed in.
 - [Quick Notes](quick-notes.md)
 - [Timer](timer.md): a repeating work and break timer, shared by its link.
 - [Command line](command-line.md): work with quests through the `project-buddy` command.
