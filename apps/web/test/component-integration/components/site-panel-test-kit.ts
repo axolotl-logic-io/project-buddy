@@ -58,6 +58,9 @@ async function openPanel(): Promise<void> {
 // Closes the panel, and waits until it has gone: a drawer with Escape, and
 // a docked panel, which Escape leaves open, with its close button.
 async function closePanel(): Promise<void> {
+  if (page.getByRole("tooltip").query() !== null) {
+    await userEvent.keyboard("{Escape}");
+  }
   if (sitePanel().element().matches(":modal")) {
     await userEvent.keyboard("{Escape}");
   } else {
