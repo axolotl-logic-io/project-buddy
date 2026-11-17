@@ -40,6 +40,7 @@ import {
 
 const TAB_TARGET_PX = 44;
 const INACTIVE_TAB_OPACITY = 0.35;
+const SELECTED_TAB_OPACITY = 0.85;
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
@@ -403,7 +404,7 @@ test("no quests gives first-quest guidance while an empty status tab keeps filte
 });
 
 for (const mode of THEME_MODES) {
-  test(`inactive folder surfaces reveal the page while selected tabs stay opaque in ${mode}`, async () => {
+  test(`inactive folder surfaces reveal the page while selected tabs remain distinct in ${mode}`, async () => {
     applyTheme("parchment", mode);
     await setViewport({ width: 1280, height: 800 });
     await render(<QuestStatusTabs quests={[FOX_QUEST]} />);
@@ -414,7 +415,9 @@ for (const mode of THEME_MODES) {
     expect(parse(inactivePaint.backgroundColor)?.alpha).toBeCloseTo(
       INACTIVE_TAB_OPACITY,
     );
-    expect(parse(selectedPaint.backgroundColor)?.alpha ?? 1).toBe(1);
+    expect(parse(selectedPaint.backgroundColor)?.alpha).toBeCloseTo(
+      SELECTED_TAB_OPACITY,
+    );
     expect(inactivePaint.borderTopStyle).toBe("solid");
     expect(Number.parseFloat(inactivePaint.borderTopWidth)).toBeGreaterThan(0);
     expect(
