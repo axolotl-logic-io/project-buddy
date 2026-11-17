@@ -280,15 +280,21 @@ The conversation’s saved mode: Tasks, Brainstorm or no spell. `cast tasks` and
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas tab or with the `/idea` [commands](#command). Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas [bucket](#buckets) or with the `/idea` [commands](#command). Ideas have no done state.
 
 - **UI:** "Ideas", "Add idea", "Move to Tasks".
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
 
-- **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the tab and the collection.
+- **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the bucket and the collection.
+
+### Buckets
+
+The quest sidebar's first tab, which opens a menu of the quest's buckets: Tasks, Ideas, Quick Notes and Progress. The menu checks the open bucket, and the bucket's name heads the panel under the tab. The sidebar's other tabs are [Actions](#quest-sidebar-actions) and Members. Every bucket stays loaded, so switching keeps drafts.
+
+- **UI:** "Buckets".
 
 ### Quest sidebar actions
 

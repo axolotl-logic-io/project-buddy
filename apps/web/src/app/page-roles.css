@@ -1557,20 +1557,99 @@
     padding-inline: var(--header-gutter);
   }
 
+  /* The sidebar's tabs take one row, the breadcrumb row's height, so the
+     line under them meets the line under the breadcrumbs. Its three tabs,
+     Buckets, Actions and Members, fit at 320 px, so the row neither wraps
+     nor scrolls, and an open tab can reach past its own edges. */
   .quest-sidebar .workspace-rail {
+    --sidebar-tab-pad: --spacing(2.5);
     margin-inline: calc(-1 * var(--header-gutter));
-    padding-inline-start: var(--header-gutter);
-    @apply sticky top-0 z-10 flex-nowrap items-start gap-x-4 border-t-0 bg-sidebar-surface pe-0;
+    padding-inline-start: calc(var(--header-gutter) - var(--sidebar-tab-pad));
+    @apply sticky top-0 z-10 flex-nowrap items-stretch gap-x-2 border-t-0 bg-sidebar-surface pe-0;
   }
 
-  /* The sidebar is too narrow for all its tabs in one row, so they wrap
-     onto further rows instead of scrolling: every label stays in view,
-     the selected one included. */
   .quest-sidebar .workspace-tablist {
-    flex-wrap: wrap;
+    min-block-size: var(--panel-tab-height);
     overflow-x: visible;
     animation: none;
-    @apply flex-1 gap-x-3;
+    @apply flex-1 gap-x-0;
+  }
+
+  .quest-sidebar .workspace-tab {
+    position: relative;
+    padding-inline: var(--sidebar-tab-pad);
+    background-clip: padding-box;
+  }
+
+  /* The selected tab's underline spans its label, not its padding. */
+  .quest-sidebar .workspace-tab[data-state="active"] {
+    border-color: transparent;
+  }
+
+  .quest-sidebar .workspace-tab[data-state="active"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: var(--sidebar-tab-pad);
+    inset-block-end: -2px;
+    block-size: 2px;
+    @apply bg-primary;
+  }
+
+  .workspace-menu-tab {
+    position: relative;
+  }
+
+  .workspace-menu-tab .icon > svg {
+    @apply size-3.5;
+  }
+
+  .workspace-menu-tab[aria-expanded="true"] .icon {
+    rotate: 180deg;
+  }
+
+  /* An open menu's tab: the menu's fill and border, with no bottom edge,
+     dropping through the row's line into the menu under it, so the two
+     read as one shape. The tab sits over the menu's top edge. */
+  .workspace-menu-tab[aria-expanded="true"] {
+    z-index: 1;
+    @apply text-foreground;
+  }
+
+  .workspace-menu-tab[aria-expanded="true"]::after {
+    display: none;
+  }
+
+  .workspace-menu-tab[aria-expanded="true"]::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset-inline: 0;
+    inset-block-start: --spacing(2);
+    inset-block-end: calc(-1 * var(--line-width));
+    @apply rounded-t-control border border-line border-b-0 bg-secondary-surface;
+  }
+
+  /* The menu's top edge lies on the row's line, so the line runs on into it. */
+  .workspace-menu {
+    z-index: 0;
+    margin-block-start: calc(-1 * var(--line-width));
+    @apply min-w-44 rounded-control rounded-ss-none border border-line bg-secondary-surface p-1 text-sm shadow-raised;
+  }
+
+  .workspace-menu-item {
+    @apply justify-between;
+  }
+
+  .workspace-menu-check {
+    @apply flex text-primary;
+  }
+
+  .bucket-panel {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+
+  .bucket-heading {
+    @apply font-heading font-semibold text-foreground text-lg;
   }
 
   .quest-sidebar .workspace-content {
