@@ -5,12 +5,12 @@ import {
   type JSX,
   type SyntheticEvent,
   useCallback,
+  useId,
   useRef,
   useState,
   useTransition,
 } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { QuestId } from "@/ids.ts";
 import { checkNoteText, type Note } from "@/notes/note.ts";
@@ -32,10 +32,17 @@ function QuestNoteComposer({
   readonly onSaved: (notes: readonly Note[]) => void;
   readonly onPending: (pending: boolean) => void;
 }): JSX.Element {
+  const fieldId = useId();
+  const hintId = useId();
+  const problemId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef<boolean>(false);
   const [text, setText] = useState("");
   const [problem, setProblem] = useState<string | undefined>();
+  let describedBy = hintId;
+  if (problem !== undefined) {
+    describedBy = `${hintId} ${problemId}`;
+  }
   const [failure, setFailure] = useState<string | undefined>();
   const [status, setStatus] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
@@ -111,20 +118,27 @@ function QuestNoteComposer({
       onSubmit={save}
       aria-busy={pending}
     >
-      <TextAreaField
+      <label className="field-label" htmlFor={fieldId}>
+        {QUICK_NOTE_COPY.textLabel}
+      </label>
+      <textarea
         ref={inputRef}
-        label={QUICK_NOTE_COPY.textLabel}
-        hint={QUICK_NOTE_COPY.textHint}
-        error={problem}
+        id={fieldId}
+        className="input-field"
+        aria-describedby={describedBy}
+        aria-invalid={problem !== undefined}
+        placeholder={QUEST_NOTES_COPY.placeholder}
         name="text"
         rows={4}
         value={text}
         onChange={change}
         readOnly={pending}
       />
-      <p className="text-muted text-sm">
-        {QUEST_NOTES_COPY.count(text.trim().length)}
-      </p>
+      <div className="quest-note-hint text-muted text-xs">
+        <p id={hintId}>{QUEST_NOTES_COPY.textHint}</p>
+        <p>{QUEST_NOTES_COPY.count(text.trim().length)}</p>
+      </div>
+      {problem !== undefined && <Alert id={problemId}>{problem}</Alert>}
       {unavailable !== undefined && <p className="text-muted">{unavailable}</p>}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={blocked}>

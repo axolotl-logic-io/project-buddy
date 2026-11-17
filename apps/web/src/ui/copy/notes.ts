@@ -34,6 +34,8 @@ export const QUEST_NOTES_COPY = {
   heading: "Quick Notes",
   none: "No Quick Notes yet.",
   composer: "Add Quick Note",
+  placeholder: "Something to remember…",
+  textHint: `1–${NOTE_MAX_LENGTH} characters`,
   clear: "Clear",
   saved: "Quick Note saved.",
   inactive:
