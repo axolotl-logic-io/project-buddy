@@ -22,10 +22,10 @@ import {
   countdown,
   minutesAfter,
   phaseHeading,
+  progressShown,
   renderSetup,
   renderTimer,
   returnToTabAt,
-  ringDrawn,
   T,
 } from "../../support/timer/timer-test-kit.tsx";
 
@@ -111,12 +111,12 @@ describe("Feature: Visual work and break timer", () => {
     returnToTabAt(minutesAfter(FIFTY_TEN, WORK));
     await expect.element(phaseHeading("Break")).toBeVisible();
     await expect.element(countdown()).toHaveTextContent("10:00");
-    expect(ringDrawn()).toBe(0);
+    expect(progressShown()).toBe(0);
 
     returnToTabAt(minutesAfter(FIFTY_TEN, CYCLE));
     await expect.element(phaseHeading("Work")).toBeVisible();
     await expect.element(countdown()).toHaveTextContent("50:00");
-    expect(ringDrawn()).toBe(0);
+    expect(progressShown()).toBe(0);
   });
 
   test("Scenario: Join and refresh an existing schedule", async () => {
