@@ -3,6 +3,7 @@
 import { type JSX, useCallback, useRef, useState } from "react";
 import { PANEL_COMMAND, placeBefore } from "@/commands/panel-commands.ts";
 import { usePanelSend } from "@/components/chat/chat-send.ts";
+import { Button } from "@/components/ui/button.tsx";
 import {
   AddListItem,
   EditableList,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { IDEA_TEXT_MAX_LENGTH, type Idea } from "@/ideas/idea.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 
@@ -64,6 +66,16 @@ function IdeaRow({
       actionsLabel={IDEAS_COPY.actions(idea.text)}
       disabled={busy}
       onSave={save}
+      leading={<Icon name="sparkle" />}
+      detail={
+        <span className="idea-decision">
+          <span>{IDEAS_COPY.possibility}</span>
+          <Button variant="quiet" onClick={move} disabled={busy}>
+            {IDEAS_COPY.move}
+            <Icon name="checklist" />
+          </Button>
+        </span>
+      }
     >
       <EditableListAction icon="checklist" onSelect={move}>
         {IDEAS_COPY.move}
@@ -147,20 +159,31 @@ function QuestIdeas({
     headingClass = "sr-only";
   }
   return (
-    <section className="page-slot">
+    <section className="page-slot bucket-desk bucket-ideas">
       <Heading ref={headingRef} tabIndex={-1} className={headingClass}>
         {IDEAS_COPY.heading}
       </Heading>
       {embedded !== true && <p className="text-muted">{IDEAS_COPY.intro}</p>}
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
-      {ideas.length === 0 && <p className="text-muted">{IDEAS_COPY.empty}</p>}
-      <AddListItem
-        label={IDEAS_COPY.add}
-        editor={ADD_EDITOR}
-        disabled={busy}
-        onSave={add}
-      />
+      <div className="bucket-toolbar" data-empty={ideas.length === 0}>
+        {ideas.length === 0 && (
+          <div className="bucket-empty-copy">
+            <Icon name="sparkle" />
+            <p className="bucket-empty-heading">{IDEAS_COPY.emptyHeading}</p>
+            <p>{IDEAS_COPY.empty}</p>
+          </div>
+        )}
+        {ideas.length > 0 && (
+          <p className="bucket-summary">{IDEAS_COPY.summary(ideas.length)}</p>
+        )}
+        <AddListItem
+          label={IDEAS_COPY.add}
+          editor={ADD_EDITOR}
+          disabled={busy}
+          onSave={add}
+        />
+      </div>
       <EditableList label={IDEAS_COPY.heading} onMove={reorder}>
         {ideas.map((idea) => (
           <IdeaRow key={idea.id} idea={idea} busy={busy} run={run} />
