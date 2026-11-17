@@ -81,7 +81,7 @@ The user opens one of their quests, from Quests.
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Tasks, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Tasks; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. The sidebar's top row holds three tabs, Buckets, Actions and Members, with nothing above them, and the line under them meets the line under the breadcrumbs. Buckets opens a menu of Tasks, Ideas, Quick Notes and Progress that checks the open one, and the chosen bucket's name heads the panel. Switching tabs or buckets retains drafts. Actions holds the spell picker, and Start Day for Dailies. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Tasks, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Tasks; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. The sidebar puts Next task above direct collection tabs in ordinary quests, and Start Day above Tasks, Day grid, Quick Notes, Ideas and Progress in Dailies. Spells & status and Members remain reachable below the collections. The shell heading aligns with the breadcrumbs. Switching collections retains drafts. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
 - **Variations:**
   - The Dailies quest: `use_case_dailies`.
   - A quest with no conversation yet offers Start the conversation, which sends `/start`: the conversation shows the command, then the construct's opening.
@@ -99,7 +99,7 @@ The user starts their day in Dailies, their one ongoing quest for it.
 - **Steps:**
   - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
   - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
-  - They begin each new day with Start Day in the sidebar's Actions tab.
+  - They begin each new day with Start Day in the Dailies day controls.
 - **Outcome:** Dailies is a quest like any other, with its name, Tasks and conversation theirs to change. It opens with local command guidance. Opening the quest sends nothing. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. While it is Active and its conversation has started, the construct's portrait and name sit after the breadcrumbs and before the quest-panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). Any other quest's trail band shows no construct.
 - **Variations:**
   - A quest the user named Dailies by hand has no Start Day, recurring tasks or streaks: only a quest started as Dailies offers them.
@@ -113,7 +113,7 @@ The user begins a new day in Dailies.
 
 - **Prerequisites:** `use_case_dailies`.
 - **Steps:**
-  - The user opens the sidebar's Actions tab. Under Start Day, a line says how long ago the last day started.
+  - The user opens the Dailies sidebar. Under Start Day, a line says how long ago the last day started.
   - The user chooses Start Day. They can choose to remove all tasks and all Ideas; both options are off by default.
   - The user confirms in the dialog, which sends `/start-day` to the conversation, followed by `clear-tasks`, `clear-ideas` or both for the options chosen. The user can also type the command.
 - **Outcome:** a new day is recorded with the calendar date of the user's browser. The conversation starts empty with the same construct, without a model request, and the active spell ends. Done recurring tasks become open again, keeping their text, numbers and order. One-off tasks stay as they are, done or open. Ideas, Progress and quest status remain. Each recurring task's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
@@ -130,7 +130,7 @@ The user begins a new day in Dailies.
 The user takes back a Start Day chosen by mistake.
 
 - **Prerequisites:** `use_case_start_day`, with no message sent in the new day's conversation.
-- **Steps:** the user chooses Undo Start Day in the sidebar's Actions tab, which sends `/undo-start-day`, or types it.
+- **Steps:** the user chooses Undo Start Day in the Dailies day controls, which sends `/undo-start-day`, or types it.
 - **Outcome:** the conversation from before Start Day comes back, with its messages, active spell and artwork. Tasks and Ideas come back as they were before Start Day, and a task added since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
 - **Variations:**
   - Once anyone sends a message in the new day's conversation, Undo Start Day is gone and the day stays.
@@ -175,3 +175,10 @@ Anyone in the quest, its owner or an accepted member, changes the quest title in
 - **Prerequisites:** signed in as the quest's owner or one of its members.
 - **Steps:** choose the pencil beside the quest name, enter the name, then choose Save title or press Enter.
 - **Outcome:** the trimmed title is saved and appears as the quest's heading, in its list. Cancel title edit or Escape discards the draft. Closing the editor returns focus to Rename. Empty names and names longer than 80 characters are refused; failures retain the draft for retry. Pending saves prevent duplicate submissions and cancellation. Everyone in the quest sees the new name. Other users, a pending invitee or removed member included, cannot rename the quest.
+
+
+## use_case_tailored_quest_panels
+
+- **Prerequisites:** an open quest conversation.
+- **Steps:** open the sidebar on desktop or at 320 px, choose collections, edit an item, collapse and reopen the panel.
+- **Outcome:** a persisted Dailies quest keeps its day-first composition after renaming. An ordinary quest named Dailies shows live Next task context and no day controls. Direct collection tabs keep editors and drafts mounted. Spells, status and Members stay reachable below the collections. Completed and Abandoned Dailies retain their composition but offer no Start Day until restored. Existing section URLs and command sending retain their behavior.

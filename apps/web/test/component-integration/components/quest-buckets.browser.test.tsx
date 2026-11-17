@@ -2,7 +2,6 @@ import type { JSX } from "react";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ChatPanel } from "@/components/chat-panel.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { SiteHeader } from "@/components/site-header.tsx";
@@ -38,6 +37,7 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 import { chatSendMock, inConversation } from "./chat/chat-send-test-kit.tsx";
+import { QuestSidebar } from "./quest-panel-test-kit.tsx";
 import { openBucket } from "./quest-sidebar-test-kit.ts";
 
 const QUEST_ID = questIdFixture();
@@ -108,9 +108,9 @@ function buckets(sidebar: boolean): JSX.Element {
       chatSendMock(),
       <>
         <SiteHeader />
-        <ChatPanel sideSections={entries} initialSection="tasks">
+        <QuestSidebar sideSections={entries} initialSection="tasks">
           <p>{CONVERSATION}</p>
-        </ChatPanel>
+        </QuestSidebar>
       </>,
     );
   }

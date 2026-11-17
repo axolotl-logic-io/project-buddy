@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, onTestFinished, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ChatPanel } from "@/components/chat-panel.tsx";
 import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -16,12 +15,8 @@ import {
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
-import {
-  bucket,
-  bucketItem,
-  bucketsTab,
-  openBucket,
-} from "./quest-sidebar-test-kit.ts";
+import { QuestSidebar } from "./quest-panel-test-kit.tsx";
+import { bucket, collectionTab, openBucket } from "./quest-sidebar-test-kit.ts";
 import { openPanel, panelButton, sitePanel } from "./site-panel-test-kit.ts";
 
 const TASKS_CONTENT = "Tasks steps";
@@ -49,7 +44,7 @@ async function sidebar(initialSection?: string): Promise<void> {
           />
         }
       />
-      <ChatPanel
+      <QuestSidebar
         initialSection={initialSection}
         sideSections={[
           {
@@ -86,7 +81,7 @@ async function sidebar(initialSection?: string): Promise<void> {
           {MESSAGE_LABEL}
           <input className="input-field" />
         </label>
-      </ChatPanel>
+      </QuestSidebar>
     </>,
   );
 }
@@ -217,86 +212,41 @@ test("a phone starts with the conversation and Escape closes its drawer", async 
     .toHaveValue("Keep this draft");
 });
 
-test("sidebar tabs switch with arrow keys and show one section at a time", async () => {
+test("collection tabs switch with arrow keys and preserve the hidden editor", async () => {
   await setViewport(LAPTOP_VIEWPORT);
   await sidebar("tasks");
-  const buckets = bucketsTab();
-  await expect.element(buckets).toHaveAttribute("aria-selected", "true");
-  await expect.element(bucket("Tasks").getByText(TASKS_CONTENT)).toBeVisible();
-  buckets.element().focus();
+  const tasks = collectionTab();
+  await expect.element(tasks).toHaveAttribute("aria-selected", "true");
+  tasks.element().focus();
   await userEvent.keyboard("{ArrowRight}");
-  await expect
-    .element(page.getByRole("tab", { name: "Actions", exact: true }))
-    .toHaveFocus();
-  await expect
-    .element(page.getByRole("tabpanel"))
-    .toHaveTextContent(ACTIONS_CONTENT);
+  await expect.element(collectionTab("Ideas")).toHaveFocus();
+  await expect.element(page.getByLabelText(DRAFT_LABEL)).toBeVisible();
   await expect.element(page.getByText(TASKS_CONTENT)).not.toBeVisible();
   await userEvent.keyboard("{ArrowLeft}");
-  await expect.element(buckets).toHaveFocus();
+  await expect.element(tasks).toHaveFocus();
   await expect.element(page.getByText(TASKS_CONTENT)).toBeVisible();
 });
 
-describe("the Buckets menu", () => {
-  test("lists the buckets, checks the open one, and its choice heads the panel", async () => {
-    await setViewport(LAPTOP_VIEWPORT);
-    await sidebar("ideas");
-    await expect.element(bucketsTab()).toHaveAttribute("aria-selected", "true");
-    await expect
-      .element(bucket("Ideas").getByRole("heading", { name: "Ideas" }))
-      .toBeVisible();
-    await bucketsTab().click();
-    await expect
-      .element(page.getByRole("menu", { name: "Buckets" }))
-      .toBeVisible();
-    expect(
-      page
-        .getByRole("menuitemradio")
-        .elements()
-        .map((item) => item.textContent),
-    ).toEqual(["Tasks", "Ideas", "Progress"]);
-    await expect
-      .element(bucketItem("Ideas"))
-      .toHaveAttribute("aria-checked", "true");
-    await bucketItem("Progress").click();
-    await expect
-      .element(page.getByRole("menu", { name: "Buckets" }))
-      .not.toBeInTheDocument();
-    await expect
-      .element(bucket("Progress").getByText(PROGRESS_CONTENT))
-      .toBeVisible();
-    await expect.element(page.getByLabelText(DRAFT_LABEL)).not.toBeVisible();
-  });
-
-  test("opens from another tab and selects Buckets", async () => {
-    await setViewport(LAPTOP_VIEWPORT);
-    await sidebar("actions");
-    await expect.element(page.getByText(TASKS_CONTENT)).not.toBeVisible();
-    await openBucket("Progress");
-    await expect.element(bucketsTab()).toHaveAttribute("aria-selected", "true");
-    await expect.element(bucket("Progress")).toBeVisible();
-  });
-
-  test("works from the keyboard, and Escape closes it back to its tab", async () => {
-    await setViewport(LAPTOP_VIEWPORT);
-    await sidebar("tasks");
-    bucketsTab().element().focus();
-    await userEvent.keyboard("{Enter}");
-    await expect.element(bucketItem("Tasks")).toHaveFocus();
-    await userEvent.keyboard("{Escape}");
-    await expect
-      .element(page.getByRole("menu", { name: "Buckets" }))
-      .not.toBeInTheDocument();
-    await expect.element(bucketsTab()).toHaveFocus();
-    await userEvent.keyboard("{Enter}");
-    await userEvent.keyboard("{ArrowDown}");
-    await userEvent.keyboard("{Enter}");
-    await expect.element(bucket("Ideas")).toBeVisible();
-    await expect.element(bucketsTab()).toHaveFocus();
-  });
+test("direct collection tabs expose every bucket and utility entry remains available", async () => {
+  await setViewport(LAPTOP_VIEWPORT);
+  await sidebar("actions");
+  await expect
+    .element(bucket("Actions").getByText(ACTIONS_CONTENT))
+    .toBeVisible();
+  await openBucket("Ideas");
+  await expect
+    .element(collectionTab("Ideas"))
+    .toHaveAttribute("aria-selected", "true");
+  await expect
+    .element(bucket("Ideas").getByRole("heading", { name: "Ideas" }))
+    .toBeVisible();
+  await openBucket("Progress");
+  await expect
+    .element(bucket("Progress").getByText(PROGRESS_CONTENT))
+    .toBeVisible();
 });
 
-// The quest page's sidebar sections: four buckets, then two tabs.
+// The quest page's sidebar sections: four collections, then utilities.
 const SIX_SECTIONS = [
   { label: "Tasks", bucket: true },
   { label: "Ideas", bucket: true },
@@ -305,16 +255,16 @@ const SIX_SECTIONS = [
   { label: "Actions", bucket: false },
   { label: "Members", bucket: false },
 ];
-const SIDEBAR_TABS = ["Buckets", "Actions", "Members"];
+const SIDEBAR_TABS = ["Tasks", "Ideas", "Quick Notes", "Progress"];
 
-describe("the sidebar's three tabs", () => {
+describe("the sidebar's direct collection tabs", () => {
   test.each([
     { width: 320, height: 640 },
     { width: 360, height: 780 },
     { width: 768, height: 1024 },
     { width: 1920, height: 1080 },
   ])(
-    "all show on one row, unclipped, the selected one included, at $width px",
+    "all remain unclipped, the selected one included, at $width px",
     async (viewport) => {
       await setViewport(viewport);
       // CI's system fallback is wider than the site's loaded face. Keep the
@@ -332,7 +282,7 @@ describe("the sidebar's three tabs", () => {
         );
       });
       await render(
-        <ChatPanel
+        <QuestSidebar
           initialSection="members"
           sideSections={SIX_SECTIONS.map(({ label, bucket: inMenu }) => ({
             id: label.toLowerCase(),
@@ -362,10 +312,11 @@ describe("the sidebar's three tabs", () => {
           tab.element().clientWidth,
         );
       }
-      expect(tops.size).toBe(1);
+      // The approved direct tabs may wrap, but remain a compact two-row rail.
+      expect(tops.size).toBeLessThanOrEqual(2);
       await expect
-        .element(page.getByRole("tab", { name: "Members" }))
-        .toHaveAttribute("aria-selected", "true");
+        .element(page.getByRole("region", { name: "Members" }))
+        .toBeVisible();
     },
   );
 });
@@ -376,7 +327,9 @@ test.each(["light", "soot-brass", "dark"])(
     applyTheme("parchment", mode);
     await setViewport(LAPTOP_VIEWPORT);
     await sidebar("tasks");
-    const rail = page.getByRole("tablist").element().parentElement;
+    const rail = page
+      .getByRole("heading", { name: "Quest", exact: true })
+      .element().parentElement;
     const trail = page
       .getByRole("region", { name: SITE_COPY.breadcrumbs })
       .element()
@@ -384,3 +337,27 @@ test.each(["light", "soot-brass", "dark"])(
     expect(rail?.getBoundingClientRect().bottom).toBeCloseTo(trail.bottom, 0);
   },
 );
+
+test("crossing the docking breakpoint preserves the mounted editor", async () => {
+  await setViewport(PHONE_VIEWPORT);
+  await sidebar("ideas");
+  const draft = page.getByLabelText(DRAFT_LABEL);
+  await draft.fill("Keep across docking");
+  await setViewport(LAPTOP_VIEWPORT);
+  await expect.element(draft).toHaveValue("Keep across docking");
+  await expect.element(page.getByLabelText(MESSAGE_LABEL)).toBeVisible();
+  await setViewport(PHONE_VIEWPORT);
+  await expect
+    .poll(() =>
+      page
+        .getByRole("dialog", { name: "Quest side menu" })
+        .element()
+        .matches(":modal"),
+    )
+    .toBe(true);
+  await expect.element(draft).toHaveValue("Keep across docking");
+  await userEvent.keyboard("{Escape}");
+  await expect
+    .element(page.getByRole("button", { name: "Open quest sidebar" }))
+    .toHaveFocus();
+});
