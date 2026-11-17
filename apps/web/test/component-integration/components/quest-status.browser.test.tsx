@@ -410,6 +410,9 @@ for (const mode of THEME_MODES) {
     await render(<QuestStatusTabs quests={[FOX_QUEST]} />);
     const active = page.getByRole("tab", { name: "Active", exact: true });
     const completed = page.getByRole("tab", { name: "Completed", exact: true });
+    await completed.hover();
+    // Leave the inactive tab before measuring its resting surface.
+    await active.hover();
     const selectedPaint = getComputedStyle(active.element());
     const inactivePaint = getComputedStyle(completed.element());
     expect(parse(inactivePaint.backgroundColor)?.alpha).toBeCloseTo(
