@@ -6,7 +6,6 @@ import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
-import { Workshop } from "@/components/workshop/workshop.tsx";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { findSpell, getOwnSpell } from "@/spells/own-spell-store.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
@@ -42,7 +41,7 @@ async function SpellPage({
   if (builtin.success) {
     const spell = getSpell(builtin.data);
     return (
-      <Workshop kind="spell">
+      <section className="definition-editor flex min-w-0 flex-col gap-4">
         <h2 className="section-heading">{spell.name}</h2>
         <p>{SPELLBOOK_COPY.builtIn}</p>
         <form action={cloneSpellAction}>
@@ -63,7 +62,7 @@ async function SpellPage({
             maxLength={SPELL_REPLY_MAX}
           />
         ))}
-      </Workshop>
+      </section>
     );
   }
   const spell = await getOwnSpell(user.id, spellId);
@@ -77,7 +76,7 @@ async function SpellPage({
   const { saved } = await searchParams;
   const revision = JSON.stringify([spell.name, spell.definition]);
   return (
-    <Workshop kind="spell">
+    <section className="definition-editor flex min-w-0 flex-col gap-4">
       <FormStatus>{saved === "1" && SPELLBOOK_COPY.saved}</FormStatus>
       <p className="wrap-anywhere text-muted">
         {SPELLBOOK_COPY.command(spell.name)}
@@ -130,7 +129,7 @@ async function SpellPage({
           </Button>
         </form>
       </div>
-    </Workshop>
+    </section>
   );
 }
 

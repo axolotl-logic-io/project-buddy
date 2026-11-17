@@ -42,7 +42,7 @@ The same rules hold for commands such as `/complete`, direct controls, construct
 
 The site has no quest deletion today. When it gains one, deletion must use the owner-only predicate `questOwnedBy`, never `questOpenTo`.
 
-Membership opens only that quest. It gives no access to another member's own constructs, spells or other quests. A conversation keeps the construct snapshot saved when it started, and an active spell keeps its cast snapshot, so members see those snapshots and never the private definitions.
+Membership opens only that quest. It gives no access to another member's own spells, historical construct records or other quests. A conversation keeps the construct snapshot saved when it started, and an active spell keeps its cast snapshot, so members see those snapshots and never the private definitions.
 
 ## Accounts created by invitations
 

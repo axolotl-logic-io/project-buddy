@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
-import { workshopPath } from "@/routes.ts";
 import {
   cloneSpell,
   createSpell,
@@ -90,7 +89,7 @@ async function retireSpellAction(formData: FormData): Promise<never> {
     notFound();
   }
   revalidatePath("/", "layout");
-  redirect(`${workshopPath("spell")}&retired=1`);
+  redirect("/spellbook?retired=1");
 }
 
 export { cloneSpellAction, newSpellAction, retireSpellAction, saveSpellAction };

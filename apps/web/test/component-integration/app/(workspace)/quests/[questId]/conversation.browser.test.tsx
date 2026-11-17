@@ -126,9 +126,6 @@ vi.mock(
   () => import("../../../../dailies/day-store-test-kit.ts"),
 );
 
-vi.mock("@/constructs/construct-store.ts", () => ({
-  getOwnConstruct: vi.fn(),
-}));
 vi.mock("@/quests/store.ts", () => ({ getQuest: store.getQuest }));
 // The header's ring of the user's circle reads their experience, server code.
 vi.mock(
