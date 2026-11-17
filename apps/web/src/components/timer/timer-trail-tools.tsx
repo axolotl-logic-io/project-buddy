@@ -1,6 +1,7 @@
 "use client";
 
 import { type JSX, useCallback, useEffect, useState } from "react";
+import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
 import { useTimerPresence } from "@/components/timer/use-timer-presence.ts";
 import { Button } from "@/components/ui/button.tsx";
 import type { TimerPresence } from "@/timer/presence.ts";
@@ -48,11 +49,13 @@ function CopyLink(): JSX.Element {
     const timeout = setTimeout(() => setResult("idle"), COPY_RESULT_MS);
     return (): void => clearTimeout(timeout);
   }, [result]);
-  const copy = useCallback((): void => {
-    navigator.clipboard.writeText(globalThis.location.href).then(
-      () => setResult("copied"),
-      () => setResult("failed"),
-    );
+  const copy = useCallback(async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(globalThis.location.href);
+      setResult("copied");
+    } catch {
+      setResult("failed");
+    }
   }, []);
   return (
     <>
@@ -77,10 +80,8 @@ function OthersFollowing({
   return <p className="timer-others">{othersText(presence)}</p>;
 }
 
-// A running timer's tools at the right of the trail band: how many others
-// follow its schedule and a button that copies its link. Presence belongs
-// to accounts, so a signed-out visitor neither reports nor sees the count,
-// only Copy link.
+// Presence stays in the trail; appearance and sharing live in the right panel.
+// Signed-out visitors have the same preferences and sharing action.
 function TimerTrailTools({
   schedule,
   signedIn,
@@ -95,7 +96,10 @@ function TimerTrailTools({
   return (
     <div className="timer-trail-tools">
       {others}
-      <CopyLink />
+      <TimerPreferences>
+        <hr className="panel-rule" />
+        <CopyLink />
+      </TimerPreferences>
     </div>
   );
 }

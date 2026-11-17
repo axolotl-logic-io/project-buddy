@@ -6,7 +6,7 @@ Each quest has Tasks: its ordered tasks of remaining work, which the construct a
 
 A task is one line of at most 200 characters (`TASK_TEXT` in `src/tasks/tasks.ts`), open or done. Each has a number, given in order and never given again, which names it for the whole of the quest, such as #3. Tasks has no limit on the number of tasks. Done tasks keep their places, and the site shows them folded away under **Done**.
 
-The next task is the first open task in Tasks. Tasks shows the remaining work as compact todo rows, with no separate duplicate next-task card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a task opens a new editor above the list and saves the new task first. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable task number. In the Dailies quest, it also holds Make recurring or Make one-off, and a recurring task's row shows its streak (see [Dailies](dailies.md)). A new quest starts with an empty Tasks.
+The next task is the first open task in Tasks. Tasks shows the remaining work as compact todo rows, with no separate duplicate next-task card. Click text to edit inline; Enter or clicking outside saves and closes the editor; clicking another row also opens its editor. Escape cancels. Add a task opens a new editor above the list and saves the new task at the end of Tasks. Drag a row’s handle to change its position, or use the arrow keys while the handle is focused. The row menu holds move and remove actions and its stable task number. In the Dailies quest, it also holds Make recurring or Make one-off, and a recurring task's row shows its streak (see [Dailies](dailies.md)). A new quest starts with an empty Tasks.
 
 ## Operations
 
@@ -65,7 +65,7 @@ Only the quest's owner and its accepted [members](multi-user-quests.md) can chan
 
 Tasks uses a Control desk ledger: a toolbar counts open tasks beside the add control, square completion controls mark agreed work, and a leading rule identifies the next task. Done tasks stay folded below the open tasks until expanded. An empty ledger keeps the add control available. The same structure appears in the quest section and sidebar.
 
-Tasks and Ideas use `src/components/ui/editable-list.tsx` for rows, inline editing, adding, action menus and pointer or keyboard reordering. Domain modules validate text and save their own operations. A failed save keeps the editor and its draft open. Sidebar changes stay out of conversation history.
+Tasks and Ideas use `src/components/ui/editable-list.tsx` for rows, inline editing, adding, action menus and pointer or keyboard reordering. Domain modules validate text and save their own operations. A failed save keeps the editor and its draft open. Sidebar changes send commands and save their results in conversation history. Direct changes from the quest section add no conversation message.
 
 ## Storage
 

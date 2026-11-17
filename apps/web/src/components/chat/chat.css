@@ -193,9 +193,9 @@
     min-block-size: 1.5rem;
   }
 
-  /* Folio: one reading measure, inline author rubrics for people, and
-     fine rules before construct replies. Only conversation prose changes
-     font; tool feedback and the composer retain the body's face. */
+  /* One reading measure with a shared card for each user message and its
+     reply. Only conversation prose changes font; tool feedback and the
+     composer retain the body's face. */
   .chat-thread {
     inline-size: 100%;
     max-inline-size: 43rem;
@@ -212,11 +212,19 @@
   .chat-message {
     display: flow-root;
     min-inline-size: 0;
-    padding-block: calc(var(--space-unit) * 2);
+    margin-block-start: calc(var(--space-unit) * 5);
+    border: calc(var(--line-width) / 2) solid var(--line);
+    border-radius: var(--box-radius);
+    padding: calc(var(--space-unit) * 3);
+    background-color: color-mix(in oklab, var(--field) 70%, transparent);
     font-family: var(--conversation-font);
     font-size: var(--conversation-text-size);
     line-height: var(--conversation-leading);
     overflow-wrap: anywhere;
+  }
+
+  .chat-message:first-child {
+    margin-block-start: 0;
   }
 
   .chat-speaker {
@@ -239,15 +247,26 @@
     block-size: calc(var(--space-unit) * 6);
   }
 
-  .chat-message-user > .chat-speaker {
-    float: inline-start;
-    margin-block: 0;
-    margin-inline-end: calc(var(--space-unit) * 2.5);
+  .chat-message-user {
+    background-color: color-mix(in oklab, var(--surface) 70%, transparent);
   }
 
-  .chat-message-construct {
-    margin-block-start: var(--space-unit);
-    border-block-start: calc(var(--line-width) / 2) solid var(--line);
+  /* Join adjacent message edges without changing the ordered list or the
+     runtime's message boundaries. Openings and unanswered user messages
+     keep a complete card. Several construct messages continue one reply. */
+  :is(.chat-message-user, .chat-message-construct):has(
+    + .chat-message-construct
+  ) {
+    border-block-end: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  :is(.chat-message-user, .chat-message-construct) + .chat-message-construct {
+    margin-block-start: 0;
+    border-block-start: 0;
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
   }
 
   .chat-message-body > * + * {

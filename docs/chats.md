@@ -8,7 +8,7 @@ A conversation keeps the construct it started with. Casting or stopping a spell 
 
 ## Start a quest
 
-On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. Edit the name and starting context, and optionally fill in Why. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell.
+On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. The starting point supplies the name, starting context and construct. Learn a thing, Make a thing and Do a thing offer an optional Why field; Dailies starts without one. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell.
 
 Failed openings save nothing and keep the form's edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one. See [Premade quests](premade-quests.md).
 
@@ -40,7 +40,9 @@ A quest's conversation starts below the site header's trail band, without a sepa
 
 ## Conversation layout
 
-The Folio layout reads as one continuous manuscript. Source Serif 4 prose stays at 17 px with a 1.55 line height. A person's small-cap name starts their message inline; a construct's name and 24 px portrait sit above its reply, after a fine rule. Messages use the full reading width without bubbles or a user-message inset. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available.
+Each user message and its following construct reply share one card. The user message has a slightly translucent tinted surface that lets the page texture show through, with the author's name above the text. The reply continues directly below it, inside the same side borders, with the construct's name and 24 px portrait above its prose. Space separates each exchange. An opening or an unanswered user message has its own complete card; consecutive construct messages continue the same reply card. Consecutive user messages remain separate cards, with the reply joining the latest one.
+
+Source Serif 4 prose stays at 17 px with a 1.55 line height. User messages and replies have the same inset within the reading width. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available.
 
 The reading measure is at most 43 rem. Compact message spacing and Markdown paragraph gaps reduce scrolling without shrinking prose or action targets. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
 
