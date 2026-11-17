@@ -141,7 +141,7 @@ function QuestNoteComposer({
       {problem !== undefined && <Alert id={problemId}>{problem}</Alert>}
       {unavailable !== undefined && <p className="text-muted">{unavailable}</p>}
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={blocked}>
+        <Button type="submit" aria-busy={pending} disabled={blocked}>
           {saveLabel}
         </Button>
         <Button variant="secondary" disabled={pending} onClick={clear}>
