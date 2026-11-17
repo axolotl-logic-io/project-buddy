@@ -7,11 +7,11 @@ export const PROFILE_COPY = {
   heading: "Profile",
   daysHeading: "Days signed in",
   daysExplanation: "Each day you visit while signed in counts once.",
-  daysTotal: (total: number): string => {
+  daysUnit: (total: number): "day total" | "days total" => {
     if (total === 1) {
-      return "1 day total";
+      return "day total";
     }
-    return `${total} days total`;
+    return "days total";
   },
   daysTracking: (since: string | null): string => {
     if (since === null) {
