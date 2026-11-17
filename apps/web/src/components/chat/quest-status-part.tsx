@@ -86,6 +86,7 @@ function ApprovalCard({
             type="submit"
             name="decision"
             value="approve"
+            aria-busy={pending}
             disabled={pending}
           >
             {QUEST_STATUS_COPY.confirm[proposal.toStatus]}
@@ -95,6 +96,7 @@ function ApprovalCard({
             name="decision"
             value="decline"
             variant="secondary"
+            aria-busy={pending}
             disabled={pending}
           >
             {QUEST_STATUS_COPY.decline}

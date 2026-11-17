@@ -136,7 +136,12 @@ function StartDay({
               {QUEST_CONVERSATION_COPY.cancel}
             </Button>
           </Dialog.Close>
-          <Button type="submit" variant="secondary" disabled={busy}>
+          <Button
+            type="submit"
+            variant="secondary"
+            aria-busy={busy}
+            disabled={busy}
+          >
             {label}
           </Button>
           {problem !== undefined && <Alert>{problem}</Alert>}
@@ -145,7 +150,12 @@ function StartDay({
       <LastStarted startedAt={lastStartedAt} />
       {undoable === true && (
         <div className="flex flex-col gap-1">
-          <Button variant="quiet" disabled={busy} onClick={undo}>
+          <Button
+            variant="quiet"
+            aria-busy={busy}
+            disabled={busy}
+            onClick={undo}
+          >
             {QUEST_CONVERSATION_COPY.undoStartDay}
           </Button>
           <p className="text-muted text-sm">

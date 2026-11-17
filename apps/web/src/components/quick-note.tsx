@@ -196,7 +196,12 @@ function QuickNote(): JSX.Element {
                 rows={4}
                 value={text}
               />
-              <Button className="self-start" disabled={pending} type="submit">
+              <Button
+                className="self-start"
+                aria-busy={pending}
+                disabled={pending}
+                type="submit"
+              >
                 {saveLabel}
               </Button>
             </form>

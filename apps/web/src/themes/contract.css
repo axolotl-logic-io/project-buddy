@@ -36,6 +36,15 @@
   --color-header-line: var(--header-line);
   --color-header-gold: var(--header-gold);
 
+  --color-action-fill: var(--action-fill);
+  --color-on-action: var(--on-action);
+  --color-action-paper: var(--action-paper);
+  --color-action-ink: var(--action-ink);
+  --font-action: var(--action-font);
+  --radius-action: var(--action-radius);
+  --shadow-action-hover: var(--action-hover-shadow);
+  --inset-shadow-action-pressed: var(--action-pressed-shadow);
+
   --color-field: var(--field);
   --color-code-surface: var(--code-surface);
   --color-foreground: var(--foreground);
@@ -126,6 +135,10 @@
   :root,
   [data-mode="light"] {
     color-scheme: light;
+    --action-fill: var(--light-action-fill);
+    --on-action: var(--light-on-action);
+    --action-paper: var(--light-action-paper);
+    --action-ink: var(--light-action-ink);
     --background: var(--light-background);
     --surface: var(--light-surface);
     --field: var(--light-field);
@@ -159,6 +172,10 @@
 
   [data-mode="soot-brass"] {
     color-scheme: dark;
+    --action-fill: var(--soot-brass-action-fill);
+    --on-action: var(--soot-brass-on-action);
+    --action-paper: var(--soot-brass-action-paper);
+    --action-ink: var(--soot-brass-action-ink);
     --background: var(--soot-brass-background);
     --surface: var(--soot-brass-surface);
     --field: var(--soot-brass-field);
@@ -192,6 +209,10 @@
 
   [data-mode="dark"] {
     color-scheme: dark;
+    --action-fill: var(--dark-action-fill);
+    --on-action: var(--dark-on-action);
+    --action-paper: var(--dark-action-paper);
+    --action-ink: var(--dark-action-ink);
     --background: var(--dark-background);
     --surface: var(--dark-surface);
     --field: var(--dark-field);

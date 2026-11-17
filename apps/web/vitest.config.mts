@@ -7,6 +7,7 @@ import {
   type TestProjectInlineConfiguration,
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
+import { materialPixels } from "./test/component-integration/components/appearance-material-test-kit.mts";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 import { playwrightProvider } from "./vitest.browser-provider.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
@@ -146,7 +147,13 @@ function contextBrowserProject(
             provider: playwrightProvider({ contextOptions }),
           },
         ],
-        commands: { emulateColorScheme, reduceMotion, wheelUp, tap },
+        commands: {
+          emulateColorScheme,
+          reduceMotion,
+          wheelUp,
+          tap,
+          materialPixels,
+        },
       },
     },
   };
@@ -219,7 +226,13 @@ export default defineConfig({
             headless: true,
             provider: playwrightProvider(),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
-            commands: { emulateColorScheme, reduceMotion, wheelUp, tap },
+            commands: {
+              emulateColorScheme,
+              reduceMotion,
+              wheelUp,
+              tap,
+              materialPixels,
+            },
           },
         },
       },
