@@ -9,7 +9,6 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
-import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
@@ -88,9 +87,6 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <PanelLink href="/timer">{TIMER_COPY.panelLink}</PanelLink>
-        </li>
-        <li>
-          <PanelLink href="/retirement">{RETIREMENT_COPY.heading}</PanelLink>
         </li>
       </ul>
       <hr className="panel-rule" />

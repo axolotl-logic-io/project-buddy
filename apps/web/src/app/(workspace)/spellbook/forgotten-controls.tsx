@@ -8,11 +8,11 @@ import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import {
   deleteRetiredDefinitionAction,
   restoreDefinitionAction,
-} from "./actions.ts";
+} from "./forgotten-actions.ts";
 
-// Restore and Delete forever for a retired definition. restore is the
+// Restore and Delete forever for a forgotten spell. restore is the
 // Restore button's variant: quiet in a list's row, secondary on its page.
-function RetirementActions({
+function ForgottenSpellControls({
   definition,
   restore = "secondary",
 }: {
@@ -59,4 +59,4 @@ function RetirementActions({
   );
 }
 
-export { RetirementActions };
+export { ForgottenSpellControls };

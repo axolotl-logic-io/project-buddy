@@ -24,7 +24,7 @@ The panel on the left of every page, mirroring the quest sidebar on the right. T
 
 ### Spellbook
 
-The standalone spell collection at `/spellbook`, linked from Places in the main menu. It lists built-in and own spells with name search and All, Built-in and Yours filters. Built-ins are read-only and can be copied. Own spells can be created, edited, copied and retired; Graveyard restores or permanently deletes retired spells. A saved spell is tried in a quest.
+The standalone spell collection at `/spellbook`, linked from Places in the main menu. It lists built-in and own spells with name search and All, Built-in, Yours and Forgotten filters. Built-ins are read-only and can be copied. Own spells can be created, edited, copied and forgotten; the Forgotten tab restores or permanently deletes forgotten spells. A saved spell is tried in a quest.
 
 ## Prompts and context
 
@@ -44,13 +44,13 @@ A construct or one of the two fixed spells that ships with the site.
 
 A private construct created by an older build. Custom construct creation, copying, editing and retirement are no longer available. Stored rows and artwork remain intact; existing conversations keep their saved construct snapshots.
 
-### Retire, Graveyard, restore, delete forever
+### Forget, forgotten spells, restore, delete forever
 
-To **retire** an own spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be cast again until restored. Existing conversation snapshots and past casts stay intact.
+To **forget** an own spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be cast again until restored. Existing conversation snapshots and past casts stay intact.
 
-**Graveyard** is the central page listing the user's retired spells.
+**Forgotten spells** are listed in Spellbook’s Forgotten tab.
 **Restore** makes the same definition available again, preserving its source.
-**Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
+**Delete forever** permanently removes a forgotten definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be forgotten.
 
 ### Create, make a copy, edit, save, cancel
 
@@ -128,7 +128,7 @@ Habits describe the construct’s personal style across conversations.
 
 A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open tasks; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
-Spellbook offers creation and copying. Own spells can be edited, retired, restored and deleted forever. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
+Spellbook offers creation and copying. Own spells can be edited, forgotten, restored and deleted forever. Cast by name. Casting keeps a snapshot, so editing or forgetting a definition changes future casts.
 
 ### Cast
 

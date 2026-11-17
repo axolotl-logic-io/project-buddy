@@ -30,7 +30,6 @@ export const TIMER_COPY = {
   heading: "Timer",
   preferences: "Timer preferences",
   closePreferences: "Close timer preferences",
-  appearanceHint: "Uses the site appearance. Changes apply to every page.",
   displayLabel: "Running timer",
   dial: {
     north: "XII",

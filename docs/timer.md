@@ -31,7 +31,7 @@ The page shows a dial on the site’s own texture: a ring that fills as the peri
 
 The browser's clock decides the period: `src/timer/schedule.ts` works it out from the time since the start. The page reads the clock at each second the countdown shows and whenever its tab comes back into view. A tab that slept therefore shows the current period at once and replays nothing. Two devices agree when their clocks do; the site doesn't synchronize clocks.
 
-The bar with the page's trail, **Timer › Work 25 · Break 15**, holds the count of others following the schedule. **Timer preferences** at its right opens a sidebar with appearance choices and **Copy link**. **Copy link** copies the page's address and reads **Copied** for two seconds, or **Copy failed** when the browser refuses. A hidden status line says the same to a screen reader. **Timer** in the trail leads back to setup. A link whose start is still ahead of the server's clock shows neither the count nor **Copy link**.
+The bar with the page's trail, **Timer › Work 25 · Break 15**, holds the count of others following the schedule. **Timer preferences** at its right opens a sidebar with **Copy link**. **Copy link** copies the page's address and reads **Copied** for two seconds, or **Copy failed** when the browser refuses. A hidden status line says the same to a screen reader. **Timer** in the trail leads back to setup. A link whose start is still ahead of the server's clock shows neither the count nor **Copy link**.
 
 The timer writes no message, completes no task, records no milestone, sends no notification and makes no model request.
 
@@ -45,9 +45,9 @@ The Timer follows the site's saved appearance. Each site appearance has a paired
 
 The dial is transparent over the page's existing texture. It adds no second paper surface, repeated site title, folio heading or schedule caption. The countdown uses lining, tabular numerals so the visible digits stay centered in the circle, with the phase above it and the next period below the dial. A thick progress arc stands apart from the fine ornamental lines. The dial ornaments are live SVG markup styled by semantic CSS tokens. Twelve markers brighten, thicken and fill as the elapsed arc passes them clockwise, and reset at each new period. A brief transition respects reduced motion. Supplementary text and guide lines use stronger site ink for contrast. Self-hosted fonts and the dial ornaments retain the manuscript character of the approved mockups; the original mockups in `outputs/timer-mockups/` record the earlier standalone designs.
 
-The right sidebar mirrors the site's left panel: it docks over the page on wide screens, remembers whether it is docked, and opens as a modal drawer on phones. Escape closes a phone drawer and restores focus to its button; keyboard focus stays within the open drawer. Signed-out visitors have the same appearance and copy controls. Setup also offers preferences; **Copy link** appears only for a running timer.
+The right sidebar mirrors the site's left panel: it docks over the page on wide screens, remembers whether it is docked, and opens as a modal drawer on phones. Escape closes a phone drawer and restores focus to its button; keyboard focus stays within the open drawer. Signed-out visitors have the same copy control. Setup also offers preferences; **Copy link** appears only for a running timer.
 
-Its appearance swatches are the same site-wide choices offered in the left panel and Settings. Selecting one restyles both the page and the timer immediately, and saves the site's existing theme cookie. There is no separate timer choice; old `timer-appearance` local-storage values no longer affect rendering. The schedule and shared link stay unchanged.
+Appearance swatches are available in the left site panel and Settings, rather than the timer sidebar. Selecting one restyles both the page and the timer immediately, and saves the site's existing theme cookie. There is no separate timer choice; old `timer-appearance` local-storage values no longer affect rendering. The schedule and shared link stay unchanged.
 
 ## Others following
 

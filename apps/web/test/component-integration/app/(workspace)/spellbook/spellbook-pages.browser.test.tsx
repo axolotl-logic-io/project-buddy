@@ -10,6 +10,10 @@ import { SpellLists } from "@/app/(workspace)/spellbook/spell-lists.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
 import { OWN_PROMPT_ID } from "@/ids.ts";
 import {
+  getRetiredDefinition,
+  listRetiredDefinitions,
+} from "@/retirement/retirement-store.ts";
+import {
   getOwnSpell,
   listOwnSpells,
   type OwnSpell,
@@ -20,6 +24,7 @@ import {
 } from "@/spells/spell-definition.ts";
 import { EDITABLE_LIST_COPY } from "@/ui/copy/editable-list.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TEXT_LIST_COPY } from "@/ui/copy/text-list.ts";
 import {
@@ -31,6 +36,7 @@ import {
   inConversation,
   sentTexts,
 } from "../../../components/chat/chat-send-test-kit.tsx";
+import { RETIRED_SPELL } from "../../../retirement/retirement-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
 vi.mock(
@@ -69,6 +75,7 @@ beforeEach(() => {
   localStorage.clear();
   vi.mocked(getOwnSpell).mockResolvedValue(OWN);
   vi.mocked(listOwnSpells).mockResolvedValue([OWN]);
+  vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
 });
 async function ownPage(): Promise<void> {
   await render(
@@ -203,6 +210,7 @@ test("name, replies and destination survive navigation and submit together", asy
 });
 
 vi.mock("@/retirement/retirement-store.ts", () => ({
+  listRetiredDefinitions: vi.fn().mockResolvedValue([]),
   getRetiredDefinition: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -406,4 +414,46 @@ test("Cancel restores saved spell fields and clears the recovered browser draft"
     )
     .toHaveValue(OWN.name);
   expect(saveSpellAction).not.toHaveBeenCalled();
+});
+
+vi.mock("@/app/(workspace)/spellbook/forgotten-actions.ts", () => ({
+  restoreDefinitionAction: vi.fn(),
+  deleteRetiredDefinitionAction: vi.fn(),
+}));
+
+test("Forgotten lists only forgotten spells and keeps their details in Spellbook", async () => {
+  vi.mocked(listRetiredDefinitions).mockResolvedValue([RETIRED_SPELL]);
+  await render(inWorkspace(await SpellLists()));
+  await page
+    .getByRole("button", { name: "Forgotten · 1", exact: true })
+    .click();
+  await expect
+    .element(
+      page.getByRole("link", {
+        name: RETIREMENT_COPY.viewLabel(RETIRED_SPELL.name),
+      }),
+    )
+    .toHaveAttribute("href", `/spellbook/${RETIRED_SPELL.id}`);
+  await expect
+    .element(page.getByRole("link", { name: "View Tasks", exact: true }))
+    .not.toBeInTheDocument();
+  await cleanup();
+  vi.mocked(getOwnSpell).mockResolvedValue(undefined);
+  vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_SPELL);
+  await render(
+    inWorkspace(
+      await SpellPage({
+        params: Promise.resolve({ spellId: RETIRED_SPELL.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: RETIREMENT_COPY.restoreLabel(RETIRED_SPELL.name),
+      }),
+    )
+    .toBeVisible();
+  await expect.element(page.getByRole("textbox")).not.toBeInTheDocument();
 });

@@ -20,7 +20,8 @@ async function restoreDefinitionAction(formData: FormData): Promise<never> {
     notFound();
   }
   revalidatePath("/", "layout");
-  return redirect("/retirement?restored=1");
+  const query = new URLSearchParams({ filter: "forgotten", restored: "1" });
+  return redirect(`/spellbook?${query}`);
 }
 
 async function deleteRetiredDefinitionAction(
@@ -37,7 +38,8 @@ async function deleteRetiredDefinitionAction(
     notFound();
   }
   revalidatePath("/", "layout");
-  return redirect("/retirement?deleted=1");
+  const query = new URLSearchParams({ filter: "forgotten", deleted: "1" });
+  return redirect(`/spellbook?${query}`);
 }
 
 export { deleteRetiredDefinitionAction, restoreDefinitionAction };
