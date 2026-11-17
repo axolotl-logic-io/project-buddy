@@ -366,3 +366,44 @@ test("an empty own collection offers guidance without hiding built-ins", async (
     .element(page.getByRole("link", { name: "View Brainstorm", exact: true }))
     .toBeVisible();
 });
+
+test("Cancel restores saved spell fields and clears the recovered browser draft", async () => {
+  await ownPage();
+  await page
+    .getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true })
+    .fill("Unsaved spell name");
+  await page
+    .getByRole("combobox", { name: SPELLBOOK_COPY.destination, exact: true })
+    .selectOptions("tasks");
+  await cleanup();
+  await ownPage();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
+    )
+    .toHaveValue("Unsaved spell name");
+  await page
+    .getByRole("button", { name: PROMPT_COPY.discard, exact: true })
+    .click();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
+    )
+    .toHaveValue(OWN.name);
+  await expect
+    .element(
+      page.getByRole("combobox", {
+        name: SPELLBOOK_COPY.destination,
+        exact: true,
+      }),
+    )
+    .toHaveValue(OWN.definition.destination);
+  await cleanup();
+  await ownPage();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: PROMPT_COPY.nameLabel, exact: true }),
+    )
+    .toHaveValue(OWN.name);
+  expect(saveSpellAction).not.toHaveBeenCalled();
+});

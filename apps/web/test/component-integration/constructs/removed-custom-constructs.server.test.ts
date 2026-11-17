@@ -1,6 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import {
+  cloneSpellAction,
+  retireSpellAction,
+  saveSpellAction,
+} from "@/app/(workspace)/spellbook/actions.ts";
 import { GET as getConstruct } from "@/app/api/v1/constructs/[constructId]/route.ts";
 import { GET as listConstructs } from "@/app/api/v1/constructs/route.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
@@ -9,6 +14,7 @@ import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { SPELL_RESPONSE_KEYS } from "@/spells/spell-definition.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { createConstruct } from "../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -64,6 +70,16 @@ test("custom construct pages and API reads are unavailable while existing quests
     name: construct.name,
     definition: construct.definition,
   });
+  const forged = new FormData();
+  forged.set("spellId", construct.id);
+  forged.set("name", "Forged spell edit");
+  forged.set("destination", "tasks");
+  for (const key of SPELL_RESPONSE_KEYS) {
+    forged.set(key, JSON.stringify(["A valid reply"]));
+  }
+  await expectNotFound(() => cloneSpellAction(forged));
+  await expectNotFound(() => saveSpellAction(forged));
+  await expectNotFound(() => retireSpellAction(forged));
   const [row] = await getDb()
     .select()
     .from(ownPrompts)
