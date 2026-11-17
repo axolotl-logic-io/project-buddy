@@ -48,17 +48,92 @@
     @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-box border border-line bg-surface/70 px-3 py-2.5 text-left shadow-control transition-shadow hover:shadow-raised motion-safe:active:translate-y-px;
   }
 
-  /* A tab's count, raised beside its name. */
+  /* Quests uses folder tabs, scoped apart from the workspace rail. The
+     phone grid keeps every category visible, including Pending. */
+  .quests-index-tabs {
+    @apply relative z-10 grid min-w-0 grid-cols-2 gap-2 pb-2 sm:flex sm:flex-wrap sm:gap-1 sm:pb-0;
+  }
+
+  .quests-index-tab {
+    min-block-size: var(--target-size);
+    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-t-control border-x border-t-2 border-line bg-field px-3 py-2 text-muted text-sm sm:px-4;
+  }
+
+  .quests-index-tab:hover {
+    @apply bg-surface text-primary;
+  }
+
+  .quests-index-tab[data-state="active"] {
+    @apply border-primary bg-surface font-semibold text-foreground;
+  }
+
+  .quests-index-tab[data-pointer-focus]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  @media (min-width: 40rem) {
+    .quests-index-tab {
+      margin-block-end: calc(-1 * var(--line-width));
+    }
+
+    .quests-index-tab[data-state="active"]::after {
+      content: "";
+      inset-inline: var(--line-width);
+      inset-block-end: calc(-1 * var(--line-width));
+      block-size: var(--line-width);
+      @apply pointer-events-none absolute bg-surface;
+    }
+
+    .quests-index-tab[data-state="active"] {
+      @apply relative;
+    }
+  }
+
+  /* A count stays on the label's baseline, inside its own small badge. */
   .quests-index-count {
-    @apply -ms-1 -translate-y-1.5 text-muted text-xs;
+    @apply inline-flex min-w-6 shrink-0 items-center justify-center rounded-control border border-line px-1 text-foreground text-xs tabular-nums;
   }
 
   .quests-index-content {
-    @apply min-w-0;
+    @apply relative isolate min-w-0 border-line border-t px-1 pb-16 sm:px-2;
   }
 
-  .quests-index-content > .text-muted {
-    @apply py-6;
+  /* Fade only the panel's surface and side rules, in the space below its
+     last row. Text, controls and focus rings remain fully opaque. There
+     is no bottom border to jump when another tab has fewer quests. */
+  .quests-index-content::before {
+    content: "";
+    background-image:
+      linear-gradient(
+        to bottom,
+        var(--line) calc(100% - --spacing(16)),
+        transparent
+      ),
+      linear-gradient(
+        to bottom,
+        var(--line) calc(100% - --spacing(16)),
+        transparent
+      ),
+      linear-gradient(
+        to bottom,
+        var(--surface) calc(100% - --spacing(16)),
+        transparent
+      );
+    background-size:
+      var(--line-width) 100%,
+      var(--line-width) 100%,
+      100% 100%;
+    background-position:
+      left top,
+      right top,
+      center top;
+    background-repeat: no-repeat;
+    @apply pointer-events-none absolute inset-0 -z-10;
+  }
+
+  .quests-index-empty {
+    @apply px-3 py-6 text-muted;
   }
 
   .quests-index-list {
@@ -66,7 +141,15 @@
   }
 
   .quests-index-row {
-    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b py-3 last:border-b-0;
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-line border-b px-3 py-4 last:border-b-0;
+  }
+
+  .quests-index-row:has(.quests-index-link):hover {
+    @apply bg-field;
+  }
+
+  .quests-index-row:has(.quests-index-link:focus-visible) {
+    @apply bg-field;
   }
 
   .quests-index-restore {
@@ -988,17 +1071,18 @@
     @apply bg-accent text-on-accent;
   }
 
-  /* Texture swatches share native radio behavior in both appearance pickers. */
+  /* Both pickers use native radios; only their material appears inside. */
   .panel-modes {
-    @apply mx-2 grid grid-cols-3 gap-2;
+    @apply mx-2 grid grid-cols-3 gap-3;
   }
 
   .panel-mode {
-    @apply relative flex min-h-(--target-size) min-w-0 cursor-pointer flex-col items-center gap-2 rounded-control border border-line p-2 text-center text-xs hover:bg-field has-checked:border-primary has-checked:font-semibold;
+    @apply relative block min-h-(--target-size) min-w-0 cursor-pointer rounded-control border border-transparent p-1 hover:border-muted has-checked:border-primary;
   }
 
   .panel-mode:focus-within {
     outline: var(--focus-outline);
+    outline-style: dashed;
     outline-offset: var(--focus-offset);
   }
 
@@ -1006,26 +1090,36 @@
     @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none rounded-control;
   }
 
-  /* The label draws focus around the whole swatch and its name. */
+  /* Focus and selection surround the texture instead of covering it. */
   .theme-choice-input:focus-visible {
     outline: none;
     box-shadow: none;
   }
 
   .theme-swatch {
-    @apply relative block h-12 w-full overflow-hidden rounded-control border border-line bg-background bg-(image:--page-decoration) bg-cover;
+    @apply block h-16 w-full rounded-control bg-background bg-(image:--page-decoration) bg-cover;
   }
 
-  .theme-swatch-panel {
-    @apply absolute right-1 bottom-1 left-2 h-6 rounded-control border border-line bg-surface;
+  /* The padded bridge keeps the tooltip hoverable without covering a tile. */
+  .theme-choice-tooltip {
+    @apply invisible absolute bottom-full left-1/2 z-10 -translate-x-1/2 pb-2;
   }
 
-  .theme-swatch-accent {
-    @apply absolute right-2 bottom-2 h-2 w-4 rounded-control bg-primary;
+  .theme-choice-name {
+    @apply block whitespace-nowrap rounded-control border border-line bg-surface px-2 py-1 text-xs text-foreground shadow-raised;
   }
 
-  .theme-choice-mark {
-    @apply flex h-4 items-center justify-center text-primary;
+  .panel-mode:first-child .theme-choice-tooltip {
+    @apply left-0 translate-x-0;
+  }
+
+  .panel-mode:last-child .theme-choice-tooltip {
+    @apply right-0 left-auto translate-x-0;
+  }
+
+  .panel-mode:not([data-tooltip-dismissed]):hover .theme-choice-tooltip,
+  .panel-mode:not([data-tooltip-dismissed]):focus-within .theme-choice-tooltip {
+    visibility: visible;
   }
 
   /* The rule between the site panel's groups. */

@@ -19,7 +19,7 @@ export function QuestList({
   readonly emptyMessage?: string;
 }): JSX.Element {
   if (quests.length === 0) {
-    return <p className="text-muted">{emptyMessage}</p>;
+    return <p className="quests-index-empty">{emptyMessage}</p>;
   }
   return (
     <ul className="quests-index-list">
