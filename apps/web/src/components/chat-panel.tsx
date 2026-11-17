@@ -59,8 +59,12 @@ function BucketPanels({
           className="bucket-panel"
         >
           <h2 id={`bucket-${bucket.id}`} className="bucket-heading">
-            {bucket.label}
+            {bucket.icon}
+            <span>{bucket.label}</span>
           </h2>
+          {bucket.description !== undefined && (
+            <p className="bucket-description">{bucket.description}</p>
+          )}
           {bucket.content}
         </section>
       ))}
@@ -162,6 +166,8 @@ function ChatPanel({
     sections.push({
       id: "tasks",
       label: TASKS_COPY.heading,
+      icon: <Icon name="checklist" />,
+      description: TASKS_COPY.intro,
       content: <TaskRows />,
       bucket: true,
     });

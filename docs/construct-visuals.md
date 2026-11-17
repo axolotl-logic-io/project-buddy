@@ -1,6 +1,6 @@
 # Construct visuals
 
-A construct has a Visual description and may have artwork. `look` shows the Visual description in the conversation's saved construct. Constructs don't generate artwork; Workshop saves a Visual description without replacing the artwork.
+A construct has a Visual description and may have artwork. `look` shows the Visual description in the conversation's saved construct. Custom construct editing is removed. Built-in visuals and historical snapshots retain their Visual descriptions and artwork.
 
 ## Metadata and identity
 
@@ -10,7 +10,7 @@ A construct has a Visual description and may have artwork. `look` shows the Visu
 
 A built-in reference is `{ kind: "built-in", artwork: "lumen-v1" }` or `vellum-v1`. A generated reference is `{ kind: "generated", assetId: UUID }`. References contain no owner, source construct, provider URL, storage key or expiring signature. A UUID identifies immutable bytes, never an editable slot.
 
-`resolveConstructVisual(construct, role)` accepts a name and definition and returns `asset`, `frame`, `initials` and `description`. It never infers artwork from names, prompt matching or ids. Missing metadata, old own snapshots and custom constructs use initials. Built-ins carry explicit metadata, as do new copies of them. Snapshots are not backfilled from today's source construct.
+`resolveConstructVisual(construct, role)` accepts a name and definition and returns `asset`, `frame`, `initials` and `description`. It never infers artwork from names, prompt matching or ids. Missing metadata, old own snapshots and custom constructs use initials. Built-ins carry explicit metadata, as do historical copies of them. Snapshots are not backfilled from today's source construct.
 
 `constructVisualSource(asset, destination?)` returns the versioned repository path for built-in assets. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure", id: UUID }`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery route authorizes that destination on every request; the path alone grants no access. Failed image delivery shows initials.
 

@@ -13,7 +13,6 @@ import {
 } from "@/app/(workspace)/quests/actions.ts";
 import type { ChatQuest } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
-import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
@@ -25,6 +24,7 @@ import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { listQuests } from "@/quests/store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
+import { cloneConstruct } from "../../../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { formOf, messageText } from "../../../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
