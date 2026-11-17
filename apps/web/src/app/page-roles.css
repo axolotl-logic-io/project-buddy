@@ -1904,3 +1904,9 @@
     @apply shrink-0 border-line/40 border-t px-2 pt-2 text-muted text-xs;
   }
 }
+
+@layer components {
+  .quest-note-composer {
+    @apply flex min-w-0 flex-col gap-3 rounded-control border border-line bg-field p-3;
+  }
+}
