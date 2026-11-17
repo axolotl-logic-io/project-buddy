@@ -1562,7 +1562,7 @@
      Buckets, Actions and Members, fit at 320 px, so the row neither wraps
      nor scrolls, and an open tab can reach past its own edges. */
   .quest-sidebar .workspace-rail {
-    --sidebar-tab-pad: --spacing(2.5);
+    --sidebar-tab-pad: --spacing(2);
     margin-inline: calc(-1 * var(--header-gutter));
     padding-inline-start: calc(var(--header-gutter) - var(--sidebar-tab-pad));
     @apply sticky top-0 z-10 flex-nowrap items-stretch gap-x-2 border-t-0 bg-sidebar-surface pe-0;
