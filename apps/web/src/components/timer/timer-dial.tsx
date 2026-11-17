@@ -33,18 +33,6 @@ function TimerDial({
         />
       </g>
       <g className="timer-dial-labels">
-        <text className="timer-roman" x="210" y="14" textAnchor="middle">
-          {TIMER_COPY.dial.north}
-        </text>
-        <text className="timer-roman" x="409" y="214" textAnchor="middle">
-          {TIMER_COPY.dial.east}
-        </text>
-        <text className="timer-roman" x="210" y="418" textAnchor="middle">
-          {TIMER_COPY.dial.south}
-        </text>
-        <text className="timer-roman" x="12" y="214" textAnchor="middle">
-          {TIMER_COPY.dial.west}
-        </text>
         <text className="timer-inscription">
           <textPath href={`#${topId}`} startOffset="50%" textAnchor="middle">
             {TIMER_COPY.dial.inscription}
@@ -63,7 +51,6 @@ function TimerDial({
           key={index}
           transform={`rotate(${(index * FULL_TURN) / MARKER_COUNT} 210 210)`}
         >
-          <path className="timer-tick" d="M210 22v15" />
           <g className="timer-sigil">
             <path className="timer-marker-fill" d="m210 17 5 7-5 7-5-7Z" />
             <path d="M202 24h16M210 16v16" />

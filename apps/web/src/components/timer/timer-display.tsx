@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type JSX, useEffect, useId, useState } from "react";
 import { rememberDurations } from "@/components/timer/remembered-durations.ts";
 import { TimerDial } from "@/components/timer/timer-dial.tsx";
+import { TimerHourglass } from "@/components/timer/timer-hourglass.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import {
@@ -61,8 +62,8 @@ function useNow(
   return now;
 }
 
-// The phase as a ring that fills as it passes, with its name and the time
-// left inside. The ring is decoration: the name and the time say it all.
+// The appearance chooses an hourglass or dial. Both illustrations follow
+// the same phase; the shared name and countdown provide its accessible text.
 function TimerFace({
   phase,
 }: {
@@ -73,8 +74,13 @@ function TimerFace({
   if (phase.kind === "break") {
     arc += " timer-progress-rest";
   }
+  let next = TIMER_COPY.next("break");
+  if (phase.kind === "break") {
+    next = TIMER_COPY.next("work");
+  }
   return (
     <div className="timer-face">
+      <TimerHourglass elapsedFraction={phase.elapsedFraction} />
       <svg aria-hidden="true" className="timer-ring" viewBox="0 0 420 420">
         <defs>
           <pattern
@@ -111,22 +117,25 @@ function TimerFace({
         />
       </svg>
       <div className="timer-readout">
-        <h2 className="timer-phase">{TIMER_COPY.phase(phase.kind)}</h2>
-        <p
-          aria-label={TIMER_COPY.remainingLabel}
-          className="timer-countdown"
-          data-hours={phase.remainingMs >= MS_PER_HOUR}
-          role="timer"
-        >
-          {formatRemaining(phase.remainingMs)}
-        </p>
+        <div className="timer-value">
+          <h2 className="timer-phase">{TIMER_COPY.phase(phase.kind)}</h2>
+          <p
+            aria-label={TIMER_COPY.remainingLabel}
+            className="timer-countdown"
+            data-hours={phase.remainingMs >= MS_PER_HOUR}
+            role="timer"
+          >
+            {formatRemaining(phase.remainingMs)}
+          </p>
+        </div>
+        <p className="timer-next">{next}</p>
       </div>
     </div>
   );
 }
 
 // A running timer: the schedule's current phase, the time left of it and
-// a ring of its progress, kept to the browser's clock. The count of others
+// its progress, kept to the browser's clock. The count of others
 // and the preferences panel are in the trail band (timer-trail-tools.tsx). It
 // remembers the schedule's durations for setup in this tab. A schedule
 // that hasn't started yet shows no countdown.
@@ -152,10 +161,6 @@ function TimerDisplay({
   if (phase?.kind === "not-started") {
     return <InvalidTimer />;
   }
-  let next = TIMER_COPY.next("break");
-  if (phase?.kind === "break") {
-    next = TIMER_COPY.next("work");
-  }
   return (
     <section aria-label={TIMER_COPY.displayLabel} className="timer-stage">
       {phase === undefined && <div aria-hidden="true" className="timer-face" />}
@@ -163,7 +168,6 @@ function TimerDisplay({
       <p className="sr-only" role="status">
         {phase !== undefined && TIMER_COPY.phaseStarted(phase.kind)}
       </p>
-      <p className="timer-next">{next}</p>
     </section>
   );
 }
