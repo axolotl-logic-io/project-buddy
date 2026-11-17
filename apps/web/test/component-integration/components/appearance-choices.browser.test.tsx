@@ -20,6 +20,7 @@ import {
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
+import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
@@ -62,6 +63,7 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 const MODE_COUNT = 3;
 const TEXTURE_SIZE = 1024;
 const SWATCH_TARGET_PX = 44;
+const COMPACT_ROW_MAX_WIDTH = 460;
 const BACKGROUND_URL = /^url\(["']?(?<url>[^"')]+)["']?\)$/u;
 
 const VITEST_VIEWPORT = { width: 414, height: 896 } as const;
@@ -206,6 +208,33 @@ describe("use_case_choose_theme", () => {
       )
       .toBeVisible();
   });
+
+  test.each([LAPTOP_VIEWPORT, NARROWEST_VIEWPORT])(
+    "Settings keeps compact swatches and tooltips clear of the legend at $width px",
+    async (viewport) => {
+      await resize(viewport);
+      await render(<AppearanceChoices settings={true} />);
+      const group = page.getByRole("group", { name: THEME_COPY.modeLabel });
+      const first = group.getByRole("radio", { name: THEME_COPY.modes.light });
+      const last = group.getByRole("radio", { name: THEME_COPY.modes.dark });
+      const rowWidth =
+        last.element().getBoundingClientRect().right -
+        first.element().getBoundingClientRect().left;
+      expect(rowWidth).toBeLessThanOrEqual(COMPACT_ROW_MAX_WIDTH);
+      await first.hover();
+      const tooltip = page.getByRole("tooltip", {
+        name: THEME_COPY.modes.light,
+      });
+      await expect.element(tooltip).toBeVisible();
+      const legend = group.element().querySelector("legend");
+      if (legend === null) {
+        throw new Error("The theme choices have no legend");
+      }
+      expect(
+        tooltip.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(legend.getBoundingClientRect().bottom);
+    },
+  );
 
   test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
     "a saved %s choice uses parchment and keeps Dark before paint",

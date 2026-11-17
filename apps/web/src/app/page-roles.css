@@ -695,6 +695,10 @@
     );
   }
 
+  .signed-in-days-card {
+    @apply flex min-w-0 flex-col gap-2 rounded-box border-2 border-line bg-field p-5;
+  }
+
   .profile-card-body {
     @apply flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start;
   }
@@ -1073,7 +1077,7 @@
 
   /* Both pickers use native radios; only their material appears inside. */
   .panel-modes {
-    @apply mx-2 grid grid-cols-3 gap-3;
+    @apply mx-2 grid max-w-md grid-cols-3 gap-3 pt-10;
   }
 
   .panel-mode {
@@ -2056,5 +2060,13 @@
 @layer components {
   .quest-note-composer {
     @apply flex min-w-0 flex-col gap-3 rounded-control border border-line bg-field p-3;
+  }
+
+  .quest-note-composer .input-field {
+    @apply min-h-30 text-base;
+  }
+
+  .quest-note-hint {
+    @apply flex flex-wrap justify-between gap-2;
   }
 }
