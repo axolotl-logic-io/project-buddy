@@ -28,6 +28,19 @@ const PHASES = { work: "Work", break: "Break" } as const;
 
 export const TIMER_COPY = {
   heading: "Timer",
+  preferences: "Timer preferences",
+  closePreferences: "Close timer preferences",
+  appearanceHint: "Uses the site appearance. Changes apply to every page.",
+  displayLabel: "Running timer",
+  dial: {
+    north: "XII",
+    east: "III",
+    south: "VI",
+    west: "IX",
+    inscription: "TEMPUS · LABOR · QUIES",
+    refrain: "AS THE HOUR TURNS, BEGIN AGAIN",
+  },
+  next: (kind: keyof typeof PHASES): string => `Next · ${PHASES[kind]}`,
   title: pageTitle("Timer"),
   panelLink: "Timer",
   runningTitle: pageTitle("Running timer"),

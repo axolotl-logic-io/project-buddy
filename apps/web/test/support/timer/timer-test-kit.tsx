@@ -5,10 +5,12 @@
 // the presence action.
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { TimerDisplay } from "@/components/timer/timer-display.tsx";
 import { TimerSetup } from "@/components/timer/timer-setup.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
 import type { TimerSchedule } from "@/timer/schedule.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 const MS_PER_MINUTE = 60_000;
 
@@ -37,11 +39,39 @@ async function renderTimer(
   clock.now = nowMs;
   const screen = await render(
     <>
-      <TimerTrailTools schedule={schedule} signedIn={signedIn} />
+      <SiteHeader
+        trail={
+          <TrailBand
+            items={[
+              {
+                label: TIMER_COPY.scheduleName(
+                  schedule.workMinutes,
+                  schedule.breakMinutes,
+                ),
+                action: (
+                  <TimerTrailTools schedule={schedule} signedIn={signedIn} />
+                ),
+              },
+            ]}
+          />
+        }
+      />
       <TimerDisplay clock={readClock} schedule={schedule} />
     </>,
   );
   return { unmount: (): Promise<void> => Promise.resolve(screen.unmount()) };
+}
+
+async function openTimerPreferences(): Promise<void> {
+  await page
+    .getByRole("button", { name: TIMER_COPY.preferences, exact: true })
+    .click();
+  const dialog = page
+    .getByRole("dialog", { name: TIMER_COPY.preferences })
+    .element();
+  await Promise.all(
+    dialog.getAnimations().map((animation) => animation.finished),
+  );
 }
 
 // Sets the clock to nowMs and brings the tab back into view, as when a
@@ -78,6 +108,7 @@ function ringDrawn(): number {
 export {
   countdown,
   minutesAfter,
+  openTimerPreferences,
   phaseHeading,
   renderSetup,
   renderTimer,
