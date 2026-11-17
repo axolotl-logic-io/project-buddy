@@ -41,6 +41,7 @@ const SPELL_MODE_COPY = {
   ambiguous:
     "Several spells share that name. Rename one in Workshop before casting it.",
   stop: (name: string): string => `Stop ${name}`,
+  active: (name: string): string => `${name} active`,
 };
 
 export { SPELL_MODE_COPY, SPELLBOOK_COPY };

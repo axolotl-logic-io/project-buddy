@@ -8,7 +8,6 @@ import { ChatHistory } from "@/components/chat/chat-history.tsx";
 import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
-import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { ChatId } from "@/ids.ts";
@@ -45,7 +44,11 @@ export function ChatThread({
   stop?: ReplyStop | undefined;
   stopStatus?: string;
   spellStop?:
-    | { readonly label: string; readonly onStop: () => void }
+    | {
+        readonly label: string;
+        readonly activeLabel: string;
+        readonly onStop: () => void;
+      }
     | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
@@ -62,11 +65,11 @@ export function ChatThread({
         scrollToBottomOnInitialize={false}
         scrollToBottomOnRunStart={false}
         scrollToBottomOnThreadSwitch={false}
-        className="chat-viewport flex flex-col gap-6"
+        className="chat-viewport flex flex-col gap-3"
       >
         <ol
           aria-label={CHAT_COPY.conversationLabel}
-          className="flex flex-col gap-8"
+          className="chat-transcript"
         >
           <ChatHistory
             construct={construct}
@@ -87,14 +90,7 @@ export function ChatThread({
         )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
-          <div className="flex flex-wrap gap-2">
-            {spellStop !== undefined && (
-              <Button variant="secondary" onClick={spellStop.onStop}>
-                {spellStop.label}
-              </Button>
-            )}
-          </div>
-          <ChatComposer inputRef={inputRef} stop={stop} />
+          <ChatComposer inputRef={inputRef} stop={stop} spellStop={spellStop} />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>

@@ -193,15 +193,132 @@
     min-block-size: 1.5rem;
   }
 
-  /* The composer's dock (chat-thread.tsx), pinned to the bottom of the
-     window over the conversation, and fading into it. It paints the page's
-     own background, fixed to the window, so a theme's decoration, such as
-     edges down both sides, runs on through it unbroken, as the chat's
-     header does (src/app/page-roles.css). */
+  /* Folio: one reading measure, inline author rubrics for people, and
+     fine rules before construct replies. Only conversation prose changes
+     font; tool feedback and the composer retain the body's face. */
   .chat-thread {
+    inline-size: 100%;
+    max-inline-size: 43rem;
+    margin-inline: auto;
     --chat-keyboard-inset: 0px;
     padding-block-end: var(--chat-keyboard-inset);
     flex: 1;
+  }
+
+  .chat-transcript {
+    min-inline-size: 0;
+  }
+
+  .chat-message {
+    display: flow-root;
+    min-inline-size: 0;
+    padding-block: calc(var(--space-unit) * 2);
+    font-family: var(--conversation-font);
+    font-size: var(--conversation-text-size);
+    line-height: var(--conversation-leading);
+    overflow-wrap: anywhere;
+  }
+
+  .chat-speaker {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 2);
+    max-inline-size: 100%;
+    margin-block-end: calc(var(--space-unit) * 1.5);
+    color: var(--primary);
+    font-family: var(--heading-font);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .chat-speaker .construct-avatar {
+    inline-size: calc(var(--space-unit) * 6);
+    block-size: calc(var(--space-unit) * 6);
+  }
+
+  .chat-message-user > .chat-speaker {
+    float: inline-start;
+    margin-block: 0;
+    margin-inline-end: calc(var(--space-unit) * 2.5);
+  }
+
+  .chat-message-construct {
+    margin-block-start: var(--space-unit);
+    border-block-start: calc(var(--line-width) / 2) solid var(--line);
+  }
+
+  .chat-message-body > * + * {
+    margin-block-start: calc(var(--space-unit) * 2);
+  }
+
+  .chat-message-body .markdown {
+    line-height: inherit;
+  }
+
+  .chat-message-body .markdown :is(h1, h2, h3) {
+    --text-3xl: var(--section-heading-size);
+    --text-2xl: var(--section-heading-size);
+    --text-xl: var(--section-heading-size);
+  }
+
+  .chat-message-body :is(.tasks-message, .tasks-change) {
+    clear: both;
+    font-family: var(--body-font);
+  }
+
+  .chat-message-body .tasks-change {
+    border: 0;
+    border-inline-start: calc(var(--line-width) / 2) solid var(--line);
+    border-radius: 0;
+    padding: var(--space-unit) calc(var(--space-unit) * 3);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .chat-reply-stopped {
+    border-inline-start: calc(var(--line-width) / 2) solid var(--line);
+    padding-inline-start: calc(var(--space-unit) * 3);
+  }
+
+  .chat-composer {
+    border-block-start: var(--line-width) solid var(--line);
+    padding-block-start: calc(var(--space-unit) * 2);
+  }
+
+  .chat-composer-spell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--space-unit) * 2);
+    min-block-size: var(--target-size);
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .chat-composer-spell > span {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .chat-composer-spell > button {
+    flex-shrink: 0;
+    max-inline-size: 60%;
+    overflow-wrap: anywhere;
+  }
+
+  .chat-composer .chat-composer-field {
+    border-width: calc(var(--line-width) / 2);
+    border-radius: var(--conversation-field-radius);
+    padding: calc(var(--space-unit) * 1.5);
+    box-shadow: none;
+  }
+
+  .chat-composer-field .field-box-control {
+    padding: var(--space-unit);
+    line-height: 1.5;
   }
 
   /* The scroll controller owns following and preserving the reading position.
@@ -216,10 +333,15 @@
     flex: 1;
   }
 
+  /* The composer's dock (chat-thread.tsx), pinned to the bottom of the
+     window over the conversation, and fading into it. It paints the page's
+     own background, fixed to the window, so a theme's decoration, such as
+     edges down both sides, runs on through it unbroken, as the chat's
+     header does (src/app/page-roles.css). */
   .chat-composer-dock {
     margin-block-start: auto;
     inset-block-end: var(--chat-keyboard-inset);
-    @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-cover bg-fixed bg-no-repeat pt-2 pb-4;
+    @apply sticky flex flex-col gap-0 bg-background bg-(image:--page-decoration) bg-cover bg-fixed bg-no-repeat pt-2 pb-3;
   }
 
   @supports (mask-image: none) {
