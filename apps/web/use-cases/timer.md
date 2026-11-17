@@ -9,7 +9,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Steps:**
   - They open Timer from the site panel, or open `/timer` when signed out.
   - They choose how long to work for and how long to break for, and choose Start.
-- **Outcome:** each length is one of 10, 15, 25, 30, 45, 50, 60 or 120 minutes; a tab that has shown no timer offers 50 minutes of work and 10 of break. Start opens the new timer's link. It begins with work and its whole length left. A large ring fills as each period passes, and the period's name, Work or Break, and the time left, as MM:SS or from an hour HH:MM:SS, show in it. The timer moves between work and break by itself.
+- **Outcome:** each length is one of 10, 15, 25, 30, 45, 50, 60 or 120 minutes; a tab that has shown no timer offers 50 minutes of work and 10 of break. Start opens the new timer's link. It begins with work and its whole length left. An hourglass drains in Ivory Vellum; a large ring fills in the darker appearances. The period's name, Work or Break, and the time left, as MM:SS or from an hour HH:MM:SS, accompany the illustration. The timer moves between work and break by itself.
 - **Next:**
   - [`use_case_timer_follow_cycle`](#use_case_timer_follow_cycle): work and rest by the timer.
   - [`use_case_timer_join_link`](#use_case_timer_join_link): share the page's link so someone else follows the same schedule.
@@ -41,7 +41,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Prerequisites:** [`use_case_timer_start`](#use_case_timer_start), [`use_case_timer_join_link`](#use_case_timer_join_link) or [`use_case_timer_join_global`](#use_case_timer_join_global).
 - **Steps:**
   - They read the period and the countdown, and may leave the tab in the background or let the device sleep, then come back.
-- **Outcome:** at exactly the end of work the timer shows Break with the whole break left, and at exactly the end of the break Work with the whole work period left; the ring starts empty each time. Coming back after missed periods shows the current period and time left at once, without replaying the ones missed. A screen reader hears the period's name as each one begins, not every second. The timer writes no message, completes no step, records no milestone, sends no notification and makes no model request.
+- **Outcome:** at exactly the end of work the timer shows Break with the whole break left, and at exactly the end of the break Work with the whole work period left; the ring starts empty or the hourglass resets with a full upper bowl each time. Coming back after missed periods shows the current period and time left at once, without replaying the ones missed. A screen reader hears the period's name as each one begins, not every second. The timer writes no message, completes no step, records no milestone, sends no notification and makes no model request.
 - **Next:**
   - [`use_case_timer_return_to_setup`](#use_case_timer_return_to_setup): change the timer.
 
@@ -68,12 +68,12 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 
 ## use_case_timer_choose_appearance
 
-- **Intent:** Choose a site appearance and its paired timer dial without changing the timer schedule.
+- **Intent:** Choose a site appearance and its paired timer illustration without changing the timer schedule.
 - **Prerequisites:** the Timer is open, signed in or not.
 - **Steps:**
   - They open Timer preferences at the right of the trail.
   - They choose Ivory Vellum, Soot & Brass or Espresso Leather.
-- **Outcome:** the site and timer change appearance together immediately, using the same preference as the left panel and Settings. The browser remembers the site appearance across timer links and reloads. The schedule and shared link stay unchanged. On phones, preferences opens as a modal drawer with keyboard focus kept inside; Escape closes it and returns focus to the opening button. On wide screens it docks on the right and remembers whether it is open.
+- **Outcome:** the site and timer change appearance together immediately, using the same preference as the left panel and Settings. The browser remembers the site appearance across timer links and reloads. Ivory Vellum uses the scribe’s hourglass, with the countdown beside it on desktop and below it on phones; the darker appearances retain their dials. The schedule and shared link stay unchanged. On phones, preferences opens as a modal drawer with keyboard focus kept inside; Escape closes it and returns focus to the opening button. On wide screens it docks on the right and remembers whether it is open.
 
 ## use_case_timer_copy_link
 

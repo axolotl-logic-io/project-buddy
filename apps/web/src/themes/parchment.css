@@ -13,13 +13,34 @@
   }
 
   [data-theme="parchment"] {
-    /* Timer dials share the site's paper and ink. Only ornament and lettering differ. */
+    /* Timer illustrations share the site's material and follow its appearance. */
     --timer-body-font: var(--typeface-im-fell-english);
     --timer-phase-font: var(--typeface-im-fell-english-italic);
     --timer-numeral-font: var(--typeface-cormorant-garamond);
     --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
-    --timer-phase-size: 1.75rem;
-    --timer-numeral-size: 6rem;
+    --timer-phase-size: 2rem;
+    --timer-numeral-size: 7.25rem;
+    --timer-number-scale: max(4.25rem, 26cqi);
+    --timer-hours-scale: 23cqi;
+    --timer-number-leading: 1;
+    --timer-next-font: var(--timer-body-font);
+    --timer-hourglass-display: block;
+    --timer-ring-display: none;
+    --timer-face-columns: 1fr 1.12fr;
+    --timer-face-width: 100%;
+    --timer-face-ratio: auto;
+    --timer-face-height: 35.625rem;
+    --timer-stage-padding: 1.5rem 4rem;
+    --timer-face-padding: 2.5rem 3.4375rem;
+    --timer-readout-align: start;
+    --timer-phase-position: static;
+    --timer-phase-gap: 0.8125rem;
+    --timer-next-position: relative;
+    --timer-next-offset: auto;
+    --timer-next-margin: 2.1875rem;
+    --timer-next-padding: 1.0625rem;
+    --timer-next-rule: block;
+    --timer-sand: rgb(165 119 40);
     --timer-radius: 173px;
     --timer-stroke: 10px;
     --timer-arc: var(--primary);
@@ -29,9 +50,7 @@
     --timer-guide-outer: 182px;
     --timer-guide-middle: 165px;
     --timer-guide-inner: 0px;
-    --timer-roman-display: block;
     --timer-inscription-display: none;
-    --timer-tick-display: block;
     --timer-sigil-display: none;
     --timer-chapter-display: none;
     --timer-seal-display: none;
@@ -201,6 +220,58 @@
     );
     --panel-separator-size: 1px;
   }
+  /* The compact hourglass stacks above its readout on a narrow page. */
+  @media (width <= 28.75rem) {
+    [data-theme="parchment"] {
+      --timer-face-columns: 1fr;
+      --timer-face-height: 32.5rem;
+      --timer-face-padding: 2.5rem 1.5rem;
+      --timer-readout-align: center;
+      --timer-phase-size: 1.5625rem;
+      --timer-numeral-size: 4.25rem;
+      --timer-phase-gap: 0.3125rem;
+      --timer-next-margin: 1.125rem;
+      --timer-next-padding: 0.75rem;
+    }
+  }
+
+  /* Keep the complete readout visible below the header on short phones. */
+  @media (width <= 28.75rem) and (height <= 42rem) {
+    [data-theme="parchment"] {
+      --timer-face-height: auto;
+      --timer-face-padding: 0 1.5rem;
+      --timer-stage-padding: 0;
+      --timer-next-margin: 0.75rem;
+      --timer-next-padding: 0.5rem;
+    }
+  }
+
+  [data-mode="soot-brass"],
+  [data-mode="dark"] {
+    --timer-hourglass-display: none;
+    --timer-ring-display: block;
+    --timer-face-columns: 1fr;
+    --timer-face-width: min(100%, 30rem);
+    --timer-face-ratio: 1;
+    --timer-face-height: auto;
+    --timer-stage-padding: 1.5rem 4rem;
+    --timer-face-padding: 0;
+    --timer-readout-align: center;
+    --timer-phase-position: absolute;
+    --timer-phase-size: 1.75rem;
+    --timer-numeral-size: 6rem;
+    --timer-number-scale: 26cqi;
+    --timer-hours-scale: 16cqi;
+    --timer-number-leading: 1.1;
+    --timer-next-font: var(--heading-font);
+    --timer-phase-gap: 0;
+    --timer-next-position: absolute;
+    --timer-next-offset: calc(100% + 1.25rem);
+    --timer-next-margin: 0;
+    --timer-next-padding: 0;
+    --timer-next-rule: none;
+  }
+
   [data-mode="soot-brass"] {
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--heading-font);
@@ -210,8 +281,6 @@
     --timer-guide-outer: 186px;
     --timer-guide-middle: 176px;
     --timer-guide-inner: 151px;
-    --timer-roman-display: none;
-    --timer-tick-display: none;
     --timer-chapter-display: block;
   }
 
@@ -224,9 +293,7 @@
     --timer-guide-outer: 186px;
     --timer-guide-middle: 0px;
     --timer-guide-inner: 136px;
-    --timer-roman-display: none;
     --timer-inscription-display: block;
-    --timer-tick-display: none;
     --timer-sigil-display: block;
     --timer-seal-display: block;
   }
