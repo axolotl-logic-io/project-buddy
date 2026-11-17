@@ -123,7 +123,7 @@ If a reply to the removed member's message is still running, removal stops it an
 
 Members use the mechanisms that already keep one user's tabs consistent:
 
-- **Messages and replies:** the conversation takes one reply at a time. While a reply runs, other members see that the construct is replying and can Stop it.
+- **Messages and replies:** a viewer who sees a running reply waits to send and can Stop it. Reply claims prevent duplicate replies to the same message. Distinct messages sent from stale tabs can be answered concurrently; each saved reply appears immediately after the message it answers.
 - **Tasks:** every change saves a numbered version, so two changes made at once are both kept, one after the other. Undo undoes a specific tasks change, whoever made it.
 - **Status:** status changes check the revision shown on screen, so a stale control or card fails instead of overwriting a newer change.
 - **Spells:** the active spell is the conversation's, so a member's cast or Stop applies to everyone.

@@ -4,13 +4,13 @@ The conventions for these cases are in [the index](README.md#conventions). Anyon
 
 ## use_case_visit_signed_out
 
-The user opens any page of the site without being signed in.
+The user opens a page that requires sign-in without being signed in.
 
 - **Prerequisites:** none.
 - **Steps:**
-  - The user opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
+  - The user opens a page, either from a bookmark or by typing the address. The address requires sign-in, such as Quests or a conversation, or does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page and the site panel's button. The site panel offers Light, Dark and System modes and a Credits link. It doesn't ask for a shared code. No one's quests, conversations or Tasks appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows the site's name, the email field, a link to the sign-up page and the site panel's button. The site panel offers Ivory Vellum, Soot & Brass and Espresso Leather appearances and a Credits link. Timer, Credits, sign-up and emailed sign-in pages remain public. It doesn't ask for a shared code. No one's quests, conversations or Tasks appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): the user has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): the user has no account yet.
@@ -38,7 +38,7 @@ The user returns after their sign-in has lapsed.
 - **Steps:**
   - The user opens the site.
   - The site shows the sign-in page.
-- **Outcome:** every page shows the sign-in page until the user signs in again with a new emailed link. Once the user does, the user is signed in for another 30 days.
+- **Outcome:** every page that requires sign-in shows the sign-in page until the user signs in again with a new emailed link. Once the user does, the user is signed in for another 30 days.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): sign in again.
 
