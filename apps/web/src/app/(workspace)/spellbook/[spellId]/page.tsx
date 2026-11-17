@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
@@ -23,12 +23,16 @@ import {
   retireSpellAction,
   saveSpellAction,
 } from "../actions.ts";
+import { ForgottenSpellDetail } from "../forgotten-detail.tsx";
 
 async function generateMetadata({
   params,
 }: PageProps<"/spellbook/[spellId]">): Promise<Metadata> {
   const user = await requireUser();
-  const spell = await findSpell(user.id, (await params).spellId);
+  const { spellId } = await params;
+  const spell =
+    (await findSpell(user.id, spellId)) ??
+    (await getRetiredDefinition(user.id, spellId));
   return { title: pageTitle(spell?.name ?? SPELLBOOK_COPY.name) };
 }
 async function SpellPage({
@@ -69,7 +73,7 @@ async function SpellPage({
   if (spell === undefined) {
     const retired = await getRetiredDefinition(user.id, spellId);
     if (retired?.kind === "spell") {
-      redirect(`/retirement/${retired.id}`);
+      return ForgottenSpellDetail({ definition: retired });
     }
     notFound();
   }

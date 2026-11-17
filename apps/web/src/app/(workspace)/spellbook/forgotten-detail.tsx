@@ -1,23 +1,15 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import type { JSX } from "react";
-import { requireUser } from "@/auth/current-user.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
+import type { RetiredDetail } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
-import { RetirementActions } from "../retirement-actions.tsx";
+import { ForgottenSpellControls } from "./forgotten-controls.tsx";
 
-const metadata: Metadata = { title: RETIREMENT_COPY.title };
-async function RetiredDefinitionPage({
-  params,
-}: PageProps<"/retirement/[promptId]">): Promise<JSX.Element> {
-  const user = await requireUser();
-  const { promptId } = await params;
-  const definition = await getRetiredDefinition(user.id, promptId);
-  if (definition === undefined) {
-    notFound();
-  }
+function ForgottenSpellDetail({
+  definition,
+}: {
+  readonly definition: RetiredDetail;
+}): JSX.Element {
   return (
     <>
       <p className="text-muted">
@@ -26,7 +18,7 @@ async function RetiredDefinitionPage({
         {RETIREMENT_COPY.dateLabel}{" "}
         <LocalTime dateTime={definition.retiredAt} detail="day" />
       </p>
-      <RetirementActions definition={definition} />
+      <ForgottenSpellControls definition={definition} />
       <h2 className="section-heading">{RETIREMENT_COPY.instructions}</h2>
       {definition.texts.map((field) => (
         <PromptText
@@ -42,5 +34,4 @@ async function RetiredDefinitionPage({
   );
 }
 
-export { metadata };
-export default RetiredDefinitionPage;
+export { ForgottenSpellDetail };
