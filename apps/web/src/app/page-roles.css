@@ -1825,6 +1825,7 @@
   }
 
   .quest-sidebar .workspace-tab {
+    @apply gap-1;
     position: relative;
     padding-inline: var(--sidebar-tab-pad);
     background-clip: padding-box;
