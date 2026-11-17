@@ -246,7 +246,7 @@ test("direct collection tabs expose every bucket and utility entry remains avail
     .toBeVisible();
 });
 
-// The quest page's sidebar sections: four buckets, then two tabs.
+// The quest page's sidebar sections: four collections, then utilities.
 const SIX_SECTIONS = [
   { label: "Tasks", bucket: true },
   { label: "Ideas", bucket: true },
@@ -312,7 +312,8 @@ describe("the sidebar's direct collection tabs", () => {
           tab.element().clientWidth,
         );
       }
-      expect(tops.size).toBeGreaterThanOrEqual(1);
+      // The approved direct tabs may wrap, but remain a compact two-row rail.
+      expect(tops.size).toBeLessThanOrEqual(2);
       await expect
         .element(page.getByRole("region", { name: "Members" }))
         .toBeVisible();
