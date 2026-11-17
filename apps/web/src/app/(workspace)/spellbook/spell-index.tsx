@@ -151,7 +151,7 @@ function SpellIndex({
         ))}
       </fieldset>
       <p className="text-muted text-sm" role="status">
-        {filtered.length} {SPELLBOOK_COPY.results}
+        {SPELLBOOK_COPY.results(filtered.length)}
       </p>
       {filtered.length === 0 && <p className="text-muted">{empty}</p>}
       <ul className="grid min-w-0">

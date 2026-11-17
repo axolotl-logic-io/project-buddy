@@ -2,7 +2,12 @@ import { pageTitle } from "@/ui/copy/site.ts";
 
 const SPELLBOOK_COPY = {
   heading: "Spellbook",
-  results: "spells",
+  results: (count: number): string => {
+    if (count === 1) {
+      return "1 spell";
+    }
+    return `${count} spells`;
+  },
   filterCount: (label: string, count: number): string => `${label} · ${count}`,
   title: pageTitle("Spellbook"),
   collectionLoading: "Loading Spellbook…",
