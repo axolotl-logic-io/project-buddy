@@ -917,7 +917,11 @@ describe("use_case_daily_streaks", () => {
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
-      .element(page.getByText(TASKS_COPY.streak(STRETCH_STREAK)))
+      .element(
+        page.getByText(
+          `${TASKS_COPY.streak(STRETCH_STREAK)}. Milestone reached.`,
+        ),
+      )
       .toBeInTheDocument();
 
     await page.getByRole("button", { name: TASKS_COPY.actions(VET) }).click();

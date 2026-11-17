@@ -414,6 +414,7 @@ function EditableListRow({
   toggleLabel,
   onToggle,
   badge,
+  detail,
 }: {
   readonly id: string;
   readonly text: string;
@@ -428,8 +429,11 @@ function EditableListRow({
   readonly toggleLabel?: string;
   readonly onToggle?: () => Promise<void>;
   // A short note about the item, shown before its actions, such as a
-  // recurring task's streak.
+  // recurring task's repeat icon.
   readonly badge?: ReactNode;
+  // More about the item, shown under its text while it isn't being edited,
+  // such as a recurring task's streak chain.
+  readonly detail?: ReactNode;
 }): JSX.Element {
   const sort = useContext(SortContext);
   const [editing, setEditing] = useState(false);
@@ -567,6 +571,9 @@ function EditableListRow({
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </span>
+      {editing === false && detail !== undefined && (
+        <span className="editable-detail">{detail}</span>
+      )}
     </li>
   );
 }

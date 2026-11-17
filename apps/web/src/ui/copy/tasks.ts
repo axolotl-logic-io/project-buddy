@@ -3,11 +3,17 @@
 // changes and tasks cards in it, and the composer's commands. The tasks have no
 // deadlines.
 
+import type { StreakChain } from "@/dailies/dailies.ts";
 import { TASK_TEXT_MAX_LENGTH, type TasksChangeLine } from "@/tasks/tasks.ts";
 import type {
   CommandProblem,
   TasksCommandName,
 } from "@/tasks/tasks-commands.ts";
+
+// A streak's length, such as "3-day streak".
+function streak(count: number): string {
+  return `${count}-day streak`;
+}
 
 function quoted(text: string): string {
   return `“${text}”`;
@@ -80,14 +86,26 @@ export const TASKS_COPY = {
   makeOneOff: (text: string): string => `Make ${quoted(text)} a one-off task`,
   makeRecurringLabel: "Make recurring",
   makeOneOffLabel: "Make one-off",
-  // A recurring task's streak, as its badge shows it: the count, and the
-  // rest for screen readers.
-  streak: (count: number): string => {
-    if (count === 1) {
-      return "1-day streak";
+  streak,
+  // The line under a recurring task's streak chain: the streak, and what
+  // checking the task off does next.
+  streakNote: ({
+    streak: count,
+    doneToday,
+    milestone,
+  }: StreakChain): string => {
+    if (count === 0) {
+      return "Check it off to start a streak.";
     }
-    return `${count}-day streak`;
+    if (!doneToday) {
+      return `${streak(count)}. Check it off to make it ${count + 1}.`;
+    }
+    if (count === milestone) {
+      return `${streak(count)}. Milestone reached.`;
+    }
+    return `${streak(count)}. ${milestone - count} more to ${milestone}.`;
   },
+  recurring: "Recurring",
   recurringNoStreak: "Recurring, no streak",
   textLabel: "Task",
   save: "Save",
