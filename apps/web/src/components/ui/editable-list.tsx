@@ -415,6 +415,7 @@ function EditableListRow({
   onToggle,
   badge,
   detail,
+  leading,
 }: {
   readonly id: string;
   readonly text: string;
@@ -431,6 +432,8 @@ function EditableListRow({
   // A short note about the item, shown before its actions, such as a
   // recurring task's repeat icon.
   readonly badge?: ReactNode;
+  // Content before the text, such as a symbol or a saved date.
+  readonly leading?: ReactNode;
   // More about the item, shown under its text while it isn't being edited,
   // such as a recurring task's streak chain.
   readonly detail?: ReactNode;
@@ -507,6 +510,9 @@ function EditableListRow({
             disabled={disabled}
           />
         </span>
+      )}
+      {editing === false && leading !== undefined && (
+        <span className="editable-leading">{leading}</span>
       )}
       {editing === true && (
         <TextEditor
