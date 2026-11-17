@@ -147,6 +147,9 @@ describe("bucket Quick Note creation", () => {
       .element(page.getByRole("button", { name: "Edit Quick Note" }))
       .toBeDisabled();
     const form = page.getByRole("form", { name: "Add Quick Note" }).element();
+    if (!(form instanceof HTMLFormElement)) {
+      throw new Error("The composer is not a form");
+    }
     form.requestSubmit();
     expect(saveNoteAction).toHaveBeenCalledTimes(1);
     pending.resolve({ kind: "saved", notes: [NEW_NOTE, OLD_NOTE] });
