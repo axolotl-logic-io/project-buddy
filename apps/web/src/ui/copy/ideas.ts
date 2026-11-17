@@ -1,5 +1,6 @@
 const IDEAS_COPY = {
   heading: "Ideas",
+  bucketIntro: "Possibilities you haven’t committed to.",
   summary: (count: number): string => `${count} saved · Uncommitted`,
   possibility: "Possibility",
   intro:

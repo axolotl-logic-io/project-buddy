@@ -71,7 +71,7 @@ function NoteRow({
       actionsLabel={QUEST_NOTES_COPY.actions(note.text)}
       disabled={busy}
       onSave={save}
-      badge={
+      leading={
         <span className="text-muted">
           <LocalTime dateTime={note.savedAt} detail="day" />
         </span>
@@ -159,7 +159,7 @@ function QuestNotes({
     [notes, send],
   );
   return (
-    <section className="page-slot">
+    <section className="page-slot bucket-desk bucket-notes">
       <p className="sr-only" ref={headingRef} tabIndex={-1}>
         {QUEST_NOTES_COPY.heading}
       </p>
@@ -172,8 +172,13 @@ function QuestNotes({
       />
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
+      <div className="bucket-toolbar">
+        <p className="bucket-summary">
+          {QUEST_NOTES_COPY.summary(notes.length)}
+        </p>
+      </div>
       {notes.length === 0 && (
-        <p className="text-muted">{QUEST_NOTES_COPY.none}</p>
+        <p className="bucket-empty">{QUEST_NOTES_COPY.none}</p>
       )}
       {notes.length > 0 && (
         <EditableList label={QUEST_NOTES_COPY.heading}>

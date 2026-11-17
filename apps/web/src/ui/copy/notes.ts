@@ -32,6 +32,8 @@ export const QUICK_NOTE_COPY = {
 
 export const QUEST_NOTES_COPY = {
   heading: "Quick Notes",
+  bucketIntro: "Dated thoughts, kept for later.",
+  summary: (count: number): string => `${count} saved · Newest first`,
   none: "No Quick Notes yet.",
   composer: "Add Quick Note",
   clear: "Clear",
