@@ -5,6 +5,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import InvalidTimerPage from "@/app/(workspace)/timer/[...invalid]/page.tsx";
 import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
 import { TimerDisplay } from "@/components/timer/timer-display.tsx";
 import { TimerSetup } from "@/components/timer/timer-setup.tsx";
@@ -242,6 +243,18 @@ describe("Feature: Visual work and break timer", () => {
       .toHaveAttribute("href", "/timer");
     await expect.element(countdown()).not.toBeInTheDocument();
     expect(document.querySelector("svg")).toBeNull();
+  });
+
+  test("Scenario: Recover from an incomplete timer link", async () => {
+    await render(<InvalidTimerPage />);
+
+    await expect
+      .element(page.getByRole("heading", { name: TIMER_COPY.invalidHeading }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("link", { name: TIMER_COPY.invalidAction }))
+      .toHaveAttribute("href", "/timer");
+    await expect.element(countdown()).not.toBeInTheDocument();
   });
 
   test.each(PHONE_LAYOUTS)(
