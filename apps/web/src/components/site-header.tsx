@@ -12,8 +12,8 @@ import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
-import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 // The header's parts, free of server code, so a client component such as the
 // header slot's error boundary can draw the header too. The signed-in header,
@@ -84,7 +84,7 @@ function AccountLinks(): JSX.Element {
         </li>
 
         <li>
-          <PanelLink href="/workshop">{WORKSHOP_COPY.heading}</PanelLink>
+          <PanelLink href="/spellbook">{SPELLBOOK_COPY.heading}</PanelLink>
         </li>
         <li>
           <PanelLink href="/timer">{TIMER_COPY.panelLink}</PanelLink>

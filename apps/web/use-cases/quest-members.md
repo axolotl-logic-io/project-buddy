@@ -58,7 +58,7 @@ Everyone in a quest shares it; no one else sees it.
 
 - **Prerequisites:** `use_case_accept_pending_quest` or `use_case_join_quest_by_link`.
 - **Steps:** the owner, a member, a pending invitee, a removed member and another user each try to open the quest, read and send messages, see its images, change its Tasks, Ideas, milestones and spell, and continue its conversation, including through direct addresses.
-- **Outcome:** the owner and members read and change all of it, and see each user message with its author: "You" on their own messages and the author's name on everyone else's. A pending invitee, a removed member and another user see nothing, exactly as of a quest that doesn't exist, and change nothing. Membership never opens a member's own constructs, spells or other quests.
+- **Outcome:** the owner and members read and change all of it, and see each user message with its author: "You" on their own messages and the author's name on everyone else's. A pending invitee, a removed member and another user see nothing, exactly as of a quest that doesn't exist, and change nothing. Membership never opens a member's own spells, historical construct records or other quests.
 - **Next:**
   - `use_case_quest_member_powers`: manage the quest together.
 

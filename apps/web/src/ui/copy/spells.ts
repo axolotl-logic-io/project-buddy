@@ -1,4 +1,27 @@
+import { pageTitle } from "@/ui/copy/site.ts";
+
 const SPELLBOOK_COPY = {
+  heading: "Spellbook",
+  results: (count: number): string => {
+    if (count === 1) {
+      return "1 spell";
+    }
+    return `${count} spells`;
+  },
+  filterCount: (label: string, count: number): string => `${label} · ${count}`,
+  title: pageTitle("Spellbook"),
+  collectionLoading: "Loading Spellbook…",
+  search: "Search spells by name",
+  filters: "Filter spells",
+  all: "All",
+  builtInFilter: "Built-in",
+  ownFilter: "Yours",
+  view: "View",
+  edit: "Edit",
+  noMatches: "No spells match. Try another name or filter.",
+  empty:
+    "You have no spells of your own yet. Create one or copy a built-in spell.",
+  help: "Cast and stop spells inside a quest. Copy and retirement actions are on each spell’s page.",
   loading: "Loading spell…",
   ownHeading: "Your spells",
   newSpell: "Create spell",
@@ -17,6 +40,8 @@ const SPELLBOOK_COPY = {
     "Add one or more replies. One is chosen randomly each time. Use {{spell}} for the spell’s name, {{bucket}} for Tasks or Ideas, {{message}} for the sent message, and {{name}} for your name.",
   responseRequired: "Write a reply for this spell.",
   destination: "Message destination",
+  collectionDestination: (destination: string): string =>
+    `Saves to ${destination}`,
   destinationLabel: (destination: string): string =>
     `Message destination: ${destination}`,
   destinationHelp:
@@ -32,14 +57,13 @@ const SPELLBOOK_COPY = {
   builtIn: "Built-in spells are read-only. Make a copy to customize one.",
 
   builtInHeading: "Built-in spells",
-  intro:
-    "Create or copy a spell, then customize its replies and message destination. Stop beside the composer ends the spell.",
+  intro: "Find a spell to inspect or customize.",
 };
 const SPELL_MODE_COPY = {
   castUsage:
     "Use cast followed by the spell’s name, such as cast Tasks or cast Brainstorm.",
   ambiguous:
-    "Several spells share that name. Rename one in Workshop before casting it.",
+    "Several spells share that name. Rename one in Spellbook before casting it.",
   stop: (name: string): string => `Stop ${name}`,
 };
 

@@ -111,14 +111,6 @@ const COPY_BRIEFS = new Map<string, string>([
     "In a quest conversation, where a person exchanges messages with its construct. Short waiting message while the site confirms that it has stopped writing the reply.",
   ],
   [
-    "CONSTRUCT_COPY.builtInIntro",
-    "On the page for viewing or editing one construct in Workshop. Explain that built-in constructs cannot be edited; users can make an editable copy.",
-  ],
-  [
-    "CONSTRUCT_COPY.ownIntro",
-    "On the page for viewing or editing one construct in Workshop. Explain editing a construct's name and Visual description; existing quests keep the name and appearance saved when they started.",
-  ],
-  [
     "CONSTRUCT_DISCOVERY_COPY.lumen.approach",
     "In the information shown about a construct before someone chooses it for a quest. Describe Lumen's approach: connecting possibilities and helping choose an idea to begin.",
   ],
@@ -153,22 +145,6 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "CONSTRUCT_DISCOVERY_COPY.vellum.temperament",
     "In the information shown about a construct before someone chooses it for a quest. Describe Vellum as calm, patient, precise and warmly curious.",
-  ],
-  [
-    "CONSTRUCTS_COPY.cloneLabel",
-    "In Workshop, on the list of available constructs. Text read aloud by screen-reading software on the button that makes a separate editable copy of the named construct.",
-  ],
-  [
-    "CONSTRUCTS_COPY.customizeLabel",
-    "In Workshop, on the list of available constructs. Text read aloud by screen-reading software on the button that makes a separate editable copy of the named construct.",
-  ],
-  [
-    "CONSTRUCTS_COPY.intro",
-    "In Workshop, on the list of available constructs. Explain creating or copying a construct and changing its name and Visual description.",
-  ],
-  [
-    "CONSTRUCTS_COPY.noOwn",
-    "In Workshop, on the list of available constructs. When Workshop has no constructs the person has made, explain copying a built-in construct or creating one from scratch.",
   ],
   [
     "CREDITS_COPY.iconCredit",
@@ -728,51 +704,47 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "RETIREMENT_COPY.deleted",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Confirm permanent deletion while explaining that existing conversations keep their saved settings.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm permanent deletion while explaining that existing conversations keep their saved settings.",
   ],
   [
     "RETIREMENT_COPY.deleteDescription",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Confirm permanent deletion of the retired construct or spell and its settings; existing conversations remain unchanged.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm permanent deletion of the retired spell and its settings; existing conversations remain unchanged.",
   ],
   [
     "RETIREMENT_COPY.empty",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. When Graveyard has no retired constructs or spells, explain that retired items will appear here.",
-  ],
-  [
-    "RETIREMENT_COPY.fallback",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Explain that existing quests keep the construct saved when they started. For a new quest, the chosen starting point determines which construct it uses.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. When Graveyard has no retired spells, explain that retired items will appear here.",
   ],
   [
     "RETIREMENT_COPY.fields.invalidReply",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Label beside saved text that can be read but not changed here for a spell's reply to an invalid message.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Label beside saved text that can be read but not changed here for a spell's reply to an invalid message.",
   ],
   [
     "RETIREMENT_COPY.fields.savedReply",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Label beside saved text that can be read but not changed here for a spell's reply when a message is saved.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Label beside saved text that can be read but not changed here for a spell's reply when a message is saved.",
   ],
   [
     "RETIREMENT_COPY.help",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Explain that retired constructs and spells cannot be chosen for new quests or new spell casts. Conversations already started keep their saved settings.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Explain that retired spells cannot be cast until restored. Conversations already started keep their saved settings.",
   ],
   [
     "RETIREMENT_COPY.intro",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Introduce the Graveyard as storage for retired constructs and spells until restored or permanently deleted.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Introduce the Graveyard as storage for retired spells until restored or permanently deleted.",
   ],
   [
     "RETIREMENT_COPY.noMatches",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. When a search in Graveyard finds nothing, suggest a different retired-item name.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. When a search in Graveyard finds nothing, suggest a different retired-item name.",
   ],
   [
     "RETIREMENT_COPY.restored",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Confirm restoring an item and making it available again.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm restoring an item and making it available again.",
   ],
   [
     "RETIREMENT_COPY.retired",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Confirm that the construct or spell has been put aside. Explain that Graveyard lets the person bring it back, and conversations already started keep their saved settings.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Confirm that the spell has been put aside. Explain that Graveyard lets the person bring it back, and conversations already started keep their saved settings.",
   ],
   [
     "RETIREMENT_COPY.sort",
-    "In Graveyard, where a person can restore or permanently delete their retired constructs and spells. Label explaining that retired items are ordered newest retirement first.",
+    "In Graveyard, where a person can restore or permanently delete their retired spells. Label explaining that retired items are ordered newest retirement first.",
   ],
   [
     "SIGNUP_COPY.intro",

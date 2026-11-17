@@ -4,19 +4,19 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_retire_definitions
 
-The user puts aside an own construct or spell.
+The user puts aside an own spell.
 
 - **Prerequisites:** the user is signed in and has an own definition.
-- **Steps:** on its collection card or editing page, the user chooses Retire.
+- **Steps:** on its editing page, the user chooses Retire.
 - **Outcome:** the definition disappears from active lists, choices, and future spell casts. Stale edits, clones, and starts cannot use it. The central Graveyard page preserves its name, instructions, source, identity, and retirement date. Existing conversations keep their snapshots and past casts. Built-in and foreign definitions cannot be retired.
 
 ## use_case_view_retirement
 
-The user finds a retired definition across both kinds.
+The user finds a retired definition by name.
 
 - **Prerequisites:** the user is signed in.
-- **Steps:** open Graveyard from the site panel or a collection page. Filter by kind, search by name, and choose View.
-- **Outcome:** the page lists only the user's retired definitions, most recently retired first. Filters combine with the name search. Empty collections and searches with no matches are explained. View shows saved instructions as read-only text. Workshop lists active definitions; Graveyard keeps retired definitions and their restore and delete controls.
+- **Steps:** open Graveyard from the site panel or a collection page. Search by name, and choose View.
+- **Outcome:** the page lists only the user's retired definitions, most recently retired first. Empty collections and searches with no matches are explained. View shows saved destination and reply lists as read-only text. Spellbook lists active spells; Graveyard keeps retired definitions and their restore and delete controls.
 
 ## use_case_restore_retired_definition
 
@@ -36,4 +36,4 @@ The user permanently removes a retired definition.
 
 Graveyard dates use the browser’s local day. On phones, names use the card width and actions wrap below them. Search uses a labelled text field with the shared input styling and touch target.
 
-Graveyard, restoration and permanent-deletion feedback uses the shared page notice treatment, distinct from explanatory copy. Graveyard completion retains keyboard focus after its card disappears. Notices persist, wrap at 320 px in Light and Dark modes, and keep links and actions keyboard-accessible. Static fallback state is a notice without a live announcement.
+Graveyard, restoration and permanent-deletion feedback uses the shared page notice treatment, distinct from explanatory copy. Graveyard completion retains keyboard focus after its card disappears. Notices persist, wrap at 320 px in Light and Dark modes, and keep links and actions keyboard-accessible. Historical custom constructs are unavailable here, and cannot be retired, restored or deleted. Their records and conversation snapshots remain intact.
