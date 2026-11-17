@@ -1,7 +1,6 @@
 import type { JSX, ReactNode } from "react";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { PageFrame } from "@/components/ui/page-frame.tsx";
-import { WORKSPACES_COPY } from "@/ui/copy/workspaces.ts";
 
 export default function RouteLayout({
   children,
@@ -10,9 +9,7 @@ export default function RouteLayout({
 }): JSX.Element {
   return (
     <PageFrame>
-      <PageWorkspace intro={WORKSPACES_COPY.settingsIntro}>
-        {children}
-      </PageWorkspace>
+      <PageWorkspace>{children}</PageWorkspace>
     </PageFrame>
   );
 }

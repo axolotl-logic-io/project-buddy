@@ -1,13 +1,13 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
 import {
   deleteRetiredDefinitionAction,
   restoreDefinitionAction,
-} from "@/app/(workspace)/retirement/actions.ts";
-import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
-import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
+} from "@/app/(workspace)/spellbook/forgotten-actions.ts";
+import { ForgottenSpellDetail } from "@/app/(workspace)/spellbook/forgotten-detail.tsx";
+import { ForgottenSpellList } from "@/app/(workspace)/spellbook/forgotten-list.tsx";
+import RetirementPage from "@/app/(workspace)/spellbook/page.tsx";
 import {
   getRetiredDefinition,
   listRetiredDefinitions,
@@ -33,7 +33,7 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn<typeof getRetiredDefinition>(),
   listRetiredDefinitions: vi.fn<typeof listRetiredDefinitions>(),
 }));
-vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+vi.mock("@/app/(workspace)/spellbook/forgotten-actions.ts", () => ({
   deleteRetiredDefinitionAction: vi.fn<typeof deleteRetiredDefinitionAction>(),
   restoreDefinitionAction: vi.fn<typeof restoreDefinitionAction>(),
 }));
@@ -49,7 +49,7 @@ async function renderRetirement(): Promise<void> {
     inWorkspace(
       await RetirementPage({
         params: Promise.resolve({}),
-        searchParams: Promise.resolve({}),
+        searchParams: Promise.resolve({ filter: "forgotten" }),
       }),
     ),
   );
@@ -76,12 +76,12 @@ test("use_case_view_retirement", async () => {
         name: RETIREMENT_COPY.viewLabel(RETIRED_SPELL.name),
       }),
     )
-    .toHaveAttribute("href", `/retirement/${RETIRED_SPELL.id}`);
+    .toHaveAttribute("href", `/spellbook/${RETIRED_SPELL.id}`);
 });
 
-test("Graveyard lists spells without a kind filter", async () => {
+test("Forgotten spells lists spells without a kind filter", async () => {
   await render(
-    inWorkspace(<RetirementList definitions={RETIRED_DEFINITIONS} />),
+    inWorkspace(<ForgottenSpellList definitions={RETIRED_DEFINITIONS} />),
   );
   expect(page.getByRole("listitem").elements()).toHaveLength(
     RETIRED_DEFINITIONS.filter((definition) => definition.kind === "spell")
@@ -143,9 +143,8 @@ test("the read-only retired view shows its saved destination and restores the sa
   });
   await render(
     inWorkspace(
-      await RetiredDefinitionPage({
-        params: Promise.resolve({ promptId: RETIRED_SPELL.id }),
-        searchParams: Promise.resolve({}),
+      await ForgottenSpellDetail({
+        definition: RETIRED_SPELL,
       }),
     ),
   );
@@ -163,7 +162,7 @@ test("the read-only retired view shows its saved destination and restores the sa
   expect((await submitted.promise).get("promptId")).toBe(RETIRED_SPELL.id);
 });
 
-test("an empty Graveyard explains where retired things will appear", async () => {
+test("an empty Forgotten spells explains where retired things will appear", async () => {
   vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
   await renderRetirement();
   await expect.element(page.getByText(RETIREMENT_COPY.empty)).toBeVisible();
@@ -174,17 +173,20 @@ const TOUCH_TARGET_PX = 44;
 for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
   const { width } = viewport;
   for (const mode of ["light", "dark"] as const) {
-    test(`Graveyard names and search remain readable at ${width}px in ${mode}`, async () => {
+    test(`Forgotten spells names and search remain readable at ${width}px in ${mode}`, async () => {
       applyTheme("parchment", mode);
       await setViewport(viewport);
-      const name = "A very long retired construct name".repeat(
-        LONG_NAME_REPEATS,
-      );
+      const name = "A very long forgotten spell name".repeat(LONG_NAME_REPEATS);
       vi.mocked(listRetiredDefinitions).mockResolvedValue([
         { ...RETIRED_SPELL, name },
       ]);
       await renderRetirement();
-      const heading = page.getByRole("heading", { name, level: 2 }).element();
+      const heading = page
+        .getByRole("heading", {
+          name: RETIREMENT_COPY.viewLabel(name),
+          level: 2,
+        })
+        .element();
       expect(heading.getBoundingClientRect().width).toBeGreaterThan(width / 2);
       const search = page
         .getByRole("searchbox", { name: RETIREMENT_COPY.search })
@@ -202,3 +204,10 @@ for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
     });
   }
 }
+
+vi.mock("@/spells/own-spell-store.ts", () => ({
+  listOwnSpells: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  newSpellAction: vi.fn(),
+}));

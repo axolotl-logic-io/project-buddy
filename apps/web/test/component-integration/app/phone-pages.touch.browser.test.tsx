@@ -321,7 +321,7 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   listRetiredDefinitions: vi.fn(),
 }));
 
-vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+vi.mock("@/app/(workspace)/spellbook/forgotten-actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
 }));

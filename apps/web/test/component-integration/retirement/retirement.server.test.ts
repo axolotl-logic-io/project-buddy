@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
+import { retireSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
   deleteRetiredDefinitionAction,
   restoreDefinitionAction,
-} from "@/app/(workspace)/retirement/actions.ts";
-import { retireSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
+} from "@/app/(workspace)/spellbook/forgotten-actions.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import {
@@ -90,7 +90,7 @@ describe("use_case_restore_retired_definition", () => {
     await retireDefinition(owner.id, "spell", copy.id);
     await expectRedirect(
       () => restoreDefinitionAction(form(copy.id)),
-      "/retirement?restored=1",
+      `/spellbook?${new URLSearchParams({ filter: "forgotten", restored: "1" })}`,
     );
     expect(await getOwnSpell(owner.id, copy.id)).toEqual(copy);
     expect(await listRetiredDefinitions(owner.id)).toEqual([]);
@@ -108,7 +108,7 @@ describe("use_case_delete_retired_definition", () => {
     await retireDefinition(owner.id, "spell", copy.id);
     await expectRedirect(
       () => deleteRetiredDefinitionAction(form(copy.id)),
-      "/retirement?deleted=1",
+      `/spellbook?${new URLSearchParams({ filter: "forgotten", deleted: "1" })}`,
     );
     expect(await getRetiredDefinition(owner.id, copy.id)).toBeUndefined();
     expect(await deleteRetiredDefinition(owner.id, copy.id)).toBe(false);

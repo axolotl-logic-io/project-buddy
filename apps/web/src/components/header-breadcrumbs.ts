@@ -16,7 +16,6 @@ import {
 } from "@/timer/schedule.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
-import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
@@ -49,7 +48,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
     ["constructs", QUESTS],
     ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
-    ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
   ]);
@@ -162,10 +160,10 @@ async function headerBreadcrumbs(
     if (parsed.success) {
       ({ name } = getSpell(parsed.data));
     } else {
-      name = (await findSpell(user.id, id))?.name;
+      name =
+        (await findSpell(user.id, id))?.name ??
+        (await getRetiredDefinition(user.id, id))?.name;
     }
-  } else if (section === "retirement") {
-    name = (await getRetiredDefinition(user.id, id))?.name;
   }
   if (name === undefined) {
     return [];
