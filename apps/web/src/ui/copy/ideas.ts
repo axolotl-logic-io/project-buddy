@@ -6,6 +6,7 @@ const IDEAS_COPY = {
   intro:
     "Keep possibilities here until you’re ready to make them part of the Tasks.",
   empty: "No ideas yet. Add something you might want to try.",
+  emptyHeading: "Nothing to commit to yet",
   label: "Idea",
   add: "Add idea",
   save: "Save idea",

@@ -129,6 +129,50 @@ function buckets(sidebar: boolean): JSX.Element {
 beforeAll(installThemeFonts);
 
 describe.each(THEME_MODES)("Control desk in %s", (mode) => {
+  test("empty buckets keep their add editors usable at 320 px", async () => {
+    applyTheme("parchment", mode);
+    await setViewport(NARROWEST_VIEWPORT);
+    await loadFonts();
+    await render(
+      inConversation(
+        chatSendMock(),
+        <div className="page-slot p-4">
+          <QuestTasks
+            questId={QUEST_ID}
+            tasks={{ ...TASKS, tasks: { items: [], nextNumber: 1 } }}
+            actions={ACTIONS}
+          />
+          <QuestIdeas ideas={[]} />
+          <QuestNotes quest={{ id: QUEST_ID, status: "active" }} notes={[]} />
+        </div>,
+      ),
+    );
+    await expect.element(page.getByText(TASKS_COPY.emptyHeading)).toBeVisible();
+    await expect.element(page.getByText(IDEAS_COPY.emptyHeading)).toBeVisible();
+    await expect
+      .element(page.getByText(QUEST_NOTES_COPY.emptyHeading))
+      .toBeVisible();
+    expect(pageScrollWidth()).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
+    expect(smallTargets(await measureTargets())).toEqual([]);
+    await page.getByRole("button", { name: TASKS_COPY.addPlaceholder }).click();
+    await expect
+      .element(page.getByRole("textbox", { name: TASKS_COPY.addLabel }))
+      .toHaveFocus();
+    expect(pageScrollWidth()).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
+    await page
+      .getByRole("button", { name: TASKS_COPY.cancel, exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: IDEAS_COPY.add, exact: true })
+      .click();
+    await expect
+      .element(
+        page.getByRole("textbox", { name: IDEAS_COPY.label, exact: true }),
+      )
+      .toHaveFocus();
+    expect(pageScrollWidth()).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
+  });
+
   for (const viewport of [NARROWEST_VIEWPORT, LAPTOP_VIEWPORT]) {
     test.each([false, true])(
       `fits at ${viewport.width} px with sidebar %s, including editors and menus`,

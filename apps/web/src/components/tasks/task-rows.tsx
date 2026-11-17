@@ -328,8 +328,19 @@ function TaskRows(): JSX.Element | null {
   const done = doneTasks(tasks.state.tasks);
   return (
     <div className="tasks bucket-desk bucket-tasks">
-      <div className="bucket-toolbar">
-        <p className="bucket-summary">{TASKS_COPY.openSummary(open.length)}</p>
+      <div className="bucket-toolbar" data-empty={open.length === 0}>
+        {open.length === 0 && (
+          <div className="bucket-empty-copy">
+            <Icon name="checklist" />
+            <p className="bucket-empty-heading">{TASKS_COPY.emptyHeading}</p>
+            <p>{TASKS_COPY.empty}</p>
+          </div>
+        )}
+        {open.length > 0 && (
+          <p className="bucket-summary">
+            {TASKS_COPY.openSummary(open.length)}
+          </p>
+        )}
         <AddListItem
           label={TASKS_COPY.addPlaceholder}
           editor={ADD_EDITOR}
@@ -337,7 +348,6 @@ function TaskRows(): JSX.Element | null {
           onSave={add}
         />
       </div>
-      {open.length === 0 && <p className="bucket-empty">{TASKS_COPY.empty}</p>}
       <EditableList label={TASKS_COPY.tasksLabel} onMove={reorder}>
         {open.map((task, index) => (
           <TaskRow

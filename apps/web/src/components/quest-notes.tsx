@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import {
   checkNoteText,
   NOTE_MAX_LENGTH,
@@ -178,7 +179,13 @@ function QuestNotes({
         </p>
       </div>
       {notes.length === 0 && (
-        <p className="bucket-empty">{QUEST_NOTES_COPY.none}</p>
+        <div className="bucket-empty bucket-empty-copy">
+          <Icon name="note" />
+          <p className="bucket-empty-heading">
+            {QUEST_NOTES_COPY.emptyHeading}
+          </p>
+          <p>{QUEST_NOTES_COPY.none}</p>
+        </div>
       )}
       {notes.length > 0 && (
         <EditableList label={QUEST_NOTES_COPY.heading}>

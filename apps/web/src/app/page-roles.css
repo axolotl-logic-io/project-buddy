@@ -1734,6 +1734,30 @@
     @apply mt-4;
   }
 
+  .bucket-toolbar[data-empty="true"] {
+    @apply flex-col items-stretch gap-4 border-line border-dashed bg-surface px-4 py-6 text-foreground;
+  }
+
+  .bucket-toolbar[data-empty="true"] .editable-add {
+    @apply justify-center border border-line text-primary hover:bg-field;
+  }
+
+  .bucket-toolbar[data-empty="true"] .editable-add-form {
+    @apply border border-line;
+  }
+
+  .bucket-empty-copy {
+    @apply flex flex-col items-center gap-2 text-center text-muted text-sm;
+  }
+
+  .bucket-empty-copy > .icon {
+    @apply text-2xl;
+  }
+
+  .bucket-empty-heading {
+    @apply font-heading text-foreground text-xl;
+  }
+
   /* A tasks change in an adventure (src/components/chat/tasks-change-part.tsx):
      what the construct or a person changed, set apart from the words around
      it as the adventure's other notes are (.card), with Undo. */

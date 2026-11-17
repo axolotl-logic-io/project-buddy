@@ -66,7 +66,9 @@ describe("use_case_quest_ideas", () => {
     send.mockResolvedValueOnce(noted("Moved the idea to Tasks."));
     await move.click();
     expect(sentTexts(send)).toEqual(["/idea-to-tasks 1", "/idea-to-tasks 1"]);
-    await expect.element(page.getByText("0 saved · Uncommitted")).toBeVisible();
+    await expect
+      .element(page.getByText("Nothing to commit to yet"))
+      .toBeVisible();
     await expect
       .element(page.getByRole("status"))
       .toHaveTextContent("Moved the idea to Tasks.");
