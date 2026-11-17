@@ -327,13 +327,17 @@ function TaskRows(): JSX.Element | null {
   const open = openTasks(tasks.state.tasks);
   const done = doneTasks(tasks.state.tasks);
   return (
-    <div className="tasks">
-      <AddListItem
-        label={TASKS_COPY.addPlaceholder}
-        editor={ADD_EDITOR}
-        disabled={disabled}
-        onSave={add}
-      />
+    <div className="tasks bucket-desk bucket-tasks">
+      <div className="bucket-toolbar">
+        <p className="bucket-summary">{TASKS_COPY.openSummary(open.length)}</p>
+        <AddListItem
+          label={TASKS_COPY.addPlaceholder}
+          editor={ADD_EDITOR}
+          disabled={disabled}
+          onSave={add}
+        />
+      </div>
+      {open.length === 0 && <p className="bucket-empty">{TASKS_COPY.empty}</p>}
       <EditableList label={TASKS_COPY.tasksLabel} onMove={reorder}>
         {open.map((task, index) => (
           <TaskRow
