@@ -55,8 +55,8 @@ function membersSection(
 }
 
 // A quest's one conversation, as viewer sees it, with the quest's sidebar
-// beside it: Tasks, Ideas, Progress, Quick Notes, Members, and Actions,
-// which holds the spell picker. Opening it marks it read for viewer alone. Reading it spends
+// beside it: Buckets, whose menu holds Tasks, Ideas, Quick Notes and
+// Progress, then Actions, which holds the spell picker, and Members. Opening it marks it read for viewer alone. Reading it spends
 // nothing: a quest whose conversation hasn't started, as after the move
 // from adventures, offers to start it instead. The active Dailies quest
 // offers Start Day, which begins a new day with an empty conversation and
@@ -119,6 +119,13 @@ async function questConversation(
           id: "ideas",
           label: IDEAS_COPY.heading,
           content: <QuestIdeas embedded={true} ideas={ideas} />,
+          bucket: true,
+        },
+        {
+          id: "notes",
+          label: QUEST_NOTES_COPY.heading,
+          content: <QuestNotes notes={notes} />,
+          bucket: true,
         },
         {
           id: "progress",
@@ -129,13 +136,8 @@ async function questConversation(
               <ProgressTimeline milestones={milestones} />
             </div>
           ),
+          bucket: true,
         },
-        {
-          id: "notes",
-          label: QUEST_NOTES_COPY.heading,
-          content: <QuestNotes notes={notes} />,
-        },
-        ...membersSection(quest, viewer, people),
         {
           id: "actions",
           label: QUEST_SIDEBAR_COPY.actions,
@@ -152,6 +154,7 @@ async function questConversation(
             </div>
           ),
         },
+        ...membersSection(quest, viewer, people),
       ]}
       conversation={conversation}
       messages={messages}

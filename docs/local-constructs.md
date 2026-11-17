@@ -24,7 +24,7 @@ Replies keep the shared context assembly, streaming, tool execution, ownership c
 
 ## Limits
 
-The engine does not infer intent, interpret prose instructions, understand images, infer tasks or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Tasks or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. Tasks, Ideas, Progress, Quick Notes and Actions are tabs at the top of the collapsible sidebar. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, cast and exp keep their command behavior. New quest openings use the shared greeting request.
+The engine does not infer intent, interpret prose instructions, understand images, infer tasks or propose quest-status changes. Conversations keep their chosen construct snapshot. Casting Tasks or Brainstorm activates its deterministic routing, and the saved active spell controls message capture. Stop [Spell] appears above the composer. The collapsible sidebar's tabs are Buckets, which opens Tasks, Ideas, Quick Notes and Progress, then Actions and Members. Each message is one item, up to 200 characters. Longer messages remain in the conversation with feedback. Other commands such as help, cast and exp keep their command behavior. New quest openings use the shared greeting request.
 
 The composer accepts text only. Saving a Visual description changes text without replacing artwork. Existing artwork and saved conversation images remain readable.
 

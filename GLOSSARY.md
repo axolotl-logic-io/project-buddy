@@ -222,7 +222,7 @@ Under the button, a line says how long ago the last day started: in hours for th
 
 ### Recurring task
 
-A [task](#task) in the Dailies quest that the user means to do every day. The task's menu in Tasks offers Make recurring and Make one-off. Start Day records whether each recurring task was done that day, then reopens the done ones. A recurring task shows a repeat icon with its [streak](#streak).
+A [task](#task) in the Dailies quest that the user means to do every day. The task's menu in Tasks offers Make recurring and Make one-off. Start Day records whether each recurring task was done that day, then reopens the done ones. A recurring task shows a repeat icon, and its [streak chain](#streak-chain) once the user has started a day.
 
 - **UI:** “Make recurring”, “Make one-off”.
 
@@ -231,6 +231,18 @@ A [task](#task) in the Dailies quest that the user means to do every day. The ta
 The number of days in a row, up to the current day, on which the user did a [recurring task](#recurring-task). The current day counts once the task is done, and an open task doesn't end the streak until the next Start Day. A day the task wasn't done ends the streak, and so does a [gap](#gap). Two days started on one date count as one date, done if the task was done in either.
 
 - **UI:** “3-day streak”.
+
+### Milestone
+
+A length a [streak](#streak) can reach: 3, 7, 14 or 30 days, then each further multiple of 30 days, such as 60 or 90. A [recorded milestone](#milestone-recorded) in Progress is a different thing.
+
+- **UI:** “2 more to 14”, “Milestone reached”.
+
+### Streak chain
+
+A recurring task's [streak](#streak), drawn under the task in Tasks as a row of links that ends at its next [milestone](#milestone). Each day of the streak before the current day fills one link. The current day's link comes next: dashed while the task is open, filled once it is done. A line under the chain gives the streak and what checking the task off does next. Once a streak passes 30 days, its chain starts at the last multiple of 30, so a chain has at most 30 links.
+
+- **UI:** “4-day streak. Check it off to make it 5.”, “Check it off to start a streak.”
 
 ### Gap
 
@@ -252,10 +264,6 @@ A quest with no [members](#member): open to its [owner](#owner) alone. Every que
 
 The outcome the user wants to achieve through a quest. It is discussed in the conversation; agreed work becomes tasks in Tasks. There is no separate Goal field.
 
-### Milestone
-
-A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. A [recorded milestone](#milestone-recorded) captures a result already reached; a task list alone must not be recorded as completed progress.
-
 ### Milestone (recorded)
 
 Something the user got done in a quest: one short line, in the past tense, that the construct records in a quest's conversation, dated and linked to the quest. The user can edit or delete it.
@@ -270,7 +278,7 @@ A quest's collection of recorded milestones. It celebrates what the user has don
 
 ### Next task
 
-The one small thing the user means to do next in a quest: the first open [task](#task) in its [Tasks](#tasks). It is the first action toward a planned milestone. A quest with no open tasks has no next task.
+The one small thing the user means to do next in a quest: the first open [task](#task) in its [Tasks](#tasks). It is the first action toward the quest's [goal](#goal). A quest with no open tasks has no next task.
 
 - **UI:** "Next task".
 
@@ -280,15 +288,21 @@ The conversation’s saved mode: Tasks, Brainstorm or no spell. `cast tasks` and
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas tab or with the `/idea` [commands](#command). Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas [bucket](#buckets) or with the `/idea` [commands](#command). Ideas have no done state.
 
 - **UI:** "Ideas", "Add idea", "Move to Tasks".
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes tab, where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel, without opening the quest and without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where each can be deleted, which sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
 
-- **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the tab and the collection.
+- **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the bucket and the collection.
+
+### Buckets
+
+The quest sidebar's first tab, which opens a menu of the quest's buckets: Tasks, Ideas, Quick Notes and Progress. The menu checks the open bucket, and the bucket's name heads the panel under the tab. The sidebar's other tabs are [Actions](#quest-sidebar-actions) and Members. Every bucket stays loaded, so switching keeps drafts.
+
+- **UI:** "Buckets".
 
 ### Quest sidebar actions
 

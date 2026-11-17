@@ -1,10 +1,11 @@
 // The days of a Dailies quest and the streaks of its recurring tasks. Start
 // Day begins a day, dated by the user's own calendar, and ends the one
 // before it, recording whether each recurring task was done. A streak is a
-// recurring task's run of consecutive calendar days with it done; a
-// calendar day on which no day was started is a gap, and a gap ends every
-// streak. It imports nothing from the server, because the browser shows the
-// streaks of the tasks as they change.
+// recurring task's run of consecutive calendar days with it done, and its
+// chain leads to its next milestone; a calendar day on which no day was
+// started is a gap, and a gap ends every streak. It imports nothing from
+// the server, because the browser shows the streaks of the tasks as they
+// change.
 import { z } from "zod";
 import type { Tasks } from "@/tasks/tasks.ts";
 
@@ -159,23 +160,76 @@ function markOf(
   return "missed";
 }
 
-// Each recurring task's streak, by its number: how many consecutive
-// calendar days, up to the newest day's date, it was done. The newest day
-// counts once the task is done; until then the streak runs to the day
-// before. A gap, or a day that ended without the task, ends it. Tasks with
-// no streak are left out.
-function streaks(
+// The milestones in days, before they settle into steps of MILESTONE_STEP
+// days.
+const FIRST_MILESTONES: readonly { readonly days: number }[] = [
+  { days: 3 },
+  { days: 7 },
+  { days: 14 },
+  { days: 30 },
+];
+const MILESTONE_STEP = 30;
+
+// The first milestone longer than days.
+function milestoneAfter(days: number): number {
+  const fixed = FIRST_MILESTONES.find((milestone) => milestone.days > days);
+  if (fixed !== undefined) {
+    return fixed.days;
+  }
+  return (Math.floor(days / MILESTONE_STEP) + 1) * MILESTONE_STEP;
+}
+
+// A recurring task's streak, drawn as a chain of links that ends at its
+// next milestone. The links before earned stand for days of the streak
+// before the current day, and the one at earned for the current day, done
+// when doneToday. Past MILESTONE_STEP days the chain starts at the last multiple
+// of MILESTONE_STEP, so it never has more than MILESTONE_STEP links.
+interface StreakChain {
+  // How many consecutive calendar days, up to the newest day's date, the
+  // task was done: the newest day counts once the task is done; until then
+  // the streak runs to the day before.
+  readonly streak: number;
+  readonly doneToday: boolean;
+  readonly milestone: number;
+  readonly links: number;
+  readonly earned: number;
+}
+
+function chainOf(streak: number, doneToday: boolean): StreakChain {
+  let before = streak;
+  if (doneToday) {
+    before -= 1;
+  }
+  const milestone = milestoneAfter(before);
+  let start = 0;
+  if (before >= MILESTONE_STEP) {
+    start = Math.floor(before / MILESTONE_STEP) * MILESTONE_STEP;
+  }
+  return {
+    streak,
+    doneToday,
+    milestone,
+    links: milestone - start,
+    earned: before - start,
+  };
+}
+
+// Each recurring task's streak chain, by its number. A gap, or a day that
+// ended without the task, ends a streak. Before the first day, and for
+// one-off tasks, there are none.
+function streakChains(
   days: readonly DailiesDay[],
   tasks: Tasks,
-): ReadonlyMap<number, number> {
-  const found = new Map<number, number>();
+): ReadonlyMap<number, StreakChain> {
+  const found = new Map<number, StreakChain>();
   const newest = days.at(-1);
   if (newest === undefined) {
     return found;
   }
   for (const task of tasks.items.filter((each) => each.recurring === true)) {
+    const doneToday = doneOn(days, tasks, task.number, newest.date) === "done";
     let count = 0;
-    if (doneOn(days, tasks, task.number, newest.date) === "done") {
+    if (doneToday) {
       count = 1;
     }
     let date = addDays(newest.date, -1);
@@ -183,9 +237,7 @@ function streaks(
       count += 1;
       date = addDays(date, -1);
     }
-    if (count > 0) {
-      found.set(task.number, count);
-    }
+    found.set(task.number, chainOf(count, doneToday));
   }
   return found;
 }
@@ -220,5 +272,13 @@ function dayGrid(
   };
 }
 
-export type { DailiesDay, DailiesRecord, DayGrid, DayMark, DayTask, LocalDate };
-export { DAY_TASK, dayDate, dayGrid, LOCAL_DATE, streaks, todayHere };
+export type {
+  DailiesDay,
+  DailiesRecord,
+  DayGrid,
+  DayMark,
+  DayTask,
+  LocalDate,
+  StreakChain,
+};
+export { DAY_TASK, dayDate, dayGrid, LOCAL_DATE, streakChains, todayHere };

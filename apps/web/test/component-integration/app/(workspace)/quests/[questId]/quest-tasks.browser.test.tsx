@@ -423,3 +423,45 @@ describe("use_case_recurring_tasks", () => {
       .not.toBeInTheDocument();
   });
 });
+
+describe("use_case_daily_streaks", () => {
+  test("a recurring task's chain says what checking it off does, and the check-off moves it on", async () => {
+    actions.changeTasksAction.mockResolvedValue({
+      kind: "changed",
+      version: RECURRING.version + 1,
+      lines: [{ kind: "complete", text: SCULPT }],
+      state: {
+        ...RECURRING,
+        version: RECURRING.version + 1,
+        tasks: {
+          ...RECURRING.tasks,
+          items: [
+            { number: 1, text: BLOCK_OUT, done: false },
+            { number: 2, text: SCULPT, done: true, recurring: true },
+          ],
+        },
+      },
+    });
+    await render(
+      <QuestTasks
+        questId={QUEST_ID}
+        tasks={RECURRING}
+        actions={TASKS_ACTIONS}
+        days={[
+          { date: "2026-11-14", startedAt: new Date("2026-11-14T08:00:00Z") },
+        ]}
+      />,
+    );
+
+    await expect
+      .element(page.getByText("Check it off to start a streak."))
+      .toBeVisible();
+    await page
+      .getByRole("checkbox", { name: TASKS_COPY.checkOff(SCULPT) })
+      .click();
+    await page.getByText(TASKS_COPY.done(1)).click();
+    await expect
+      .element(page.getByText("1-day streak. 2 more to 3."))
+      .toBeVisible();
+  });
+});
