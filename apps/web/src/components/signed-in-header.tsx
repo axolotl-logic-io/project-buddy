@@ -9,6 +9,7 @@ import {
 } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import { readExperience } from "@/experience/experience-store.ts";
+import { SignedInVisits } from "@/visits/signed-in-visits.tsx";
 
 // Reads the session for the header slot and supplies the header with the
 // page's trail and either the signed-in site panel and the ring of the
@@ -32,7 +33,12 @@ async function SignedInHeader({
   return (
     <SiteHeader
       panel={<SitePanel links={<AccountLinks />} />}
-      ring={<CircleProgress experience={experience} />}
+      ring={
+        <>
+          <CircleProgress experience={experience} />
+          <SignedInVisits key={user.id} />
+        </>
+      }
       trail={trail}
     />
   );

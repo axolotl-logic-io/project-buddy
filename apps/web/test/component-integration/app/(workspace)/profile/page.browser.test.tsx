@@ -15,6 +15,7 @@ import {
   MABEL_EXPERIENCE,
   readExperience,
 } from "../../../experience/experience-store-test-kit.ts";
+import { readSignedInDays } from "../../../visits/signed-in-days-store-test-kit.ts";
 
 const actions = vi.hoisted(() => ({
   setNameAction: vi.fn<typeof setNameAction>(),
@@ -184,3 +185,44 @@ test("Profile says what an untried ability's first point is worth", async () => 
     .element(noting.getByText(EXPERIENCE_COPY.worth(0)))
     .not.toBeInTheDocument();
 });
+
+vi.mock(
+  "@/visits/signed-in-days-store.ts",
+  () => import("../../../visits/signed-in-days-store-test-kit.ts"),
+);
+
+test.each([0, 1, 24])(
+  "Profile shows %i days in its own card with the honest tracking start",
+  async (total) => {
+    let trackedSince: string | null = "2026-10-20";
+    if (total === 0) {
+      trackedSince = null;
+    }
+    readSignedInDays.mockResolvedValueOnce({ total, trackedSince });
+    await renderProfile();
+    const card = page.getByRole("region", { name: "Days signed in" });
+    let label = `${total} days total`;
+    if (total === 1) {
+      label = "1 day total";
+    }
+    await expect.element(card.getByText(label, { exact: true })).toBeVisible();
+    await expect
+      .element(
+        card.getByText("Each day you visit while signed in counts once."),
+      )
+      .toBeVisible();
+    let tracking =
+      "Tracked since 2026-10-20 · Days use UTC. Earlier days are not included.";
+    if (trackedSince === null) {
+      tracking =
+        "Tracking starts with your first signed-in visit. Days use UTC; earlier days are not included.";
+    }
+    await expect.element(card.getByText(tracking)).toBeVisible();
+    expect(
+      page
+        .getByRole("region", { name: "Experience" })
+        .element()
+        .contains(card.element()),
+    ).toBe(false);
+  },
+);

@@ -386,9 +386,15 @@ Project Buddy added to a phone's Home Screen, where it opens in a window of its 
 
 ### Profile
 
-The user's own page: their name, which constructs and quest members see, and their [experience](#experience).
+The user's own page: their name, which constructs and quest members see, their [experience](#experience), and their [days signed in](#days-signed-in).
 
 - **UI:** "Profile".
+
+### Days signed in
+
+The total number of distinct UTC calendar dates on which the user visits while signed in, including returns with an existing session. Each date counts once across tabs and devices. Tracking begins with their first qualifying visit after the feature is released; earlier days are not inferred. The total is private and separate from Dailies, streaks, abilities and experience.
+
+- **UI:** "Days signed in", "1 day total", "24 days total", "Tracked since YYYY-MM-DD · Days use UTC".
 
 ### Settings
 
