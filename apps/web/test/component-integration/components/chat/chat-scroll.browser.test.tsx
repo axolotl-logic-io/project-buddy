@@ -3,7 +3,7 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, onTestFinished, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -387,6 +387,11 @@ describe("use_case_follow_latest_messages", () => {
   });
 
   test("browser wheel navigation survives content growth and composer focus", async () => {
+    // Recording tools can add a sibling iframe outside the test surface.
+    const auxiliary = document.createElement("iframe");
+    auxiliary.className = "rr-block";
+    window.parent.document.body.append(auxiliary);
+    onTestFinished(() => auxiliary.remove());
     await openChat();
     await expect.element(firstParagraph).toBeInTheDocument();
     await expect.poll(bottomGap).toBeLessThanOrEqual(1);
