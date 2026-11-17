@@ -54,6 +54,12 @@ import {
   holdBeforeChunk,
 } from "../../../../components/chat-stream-test-kit.ts";
 import {
+  bucket,
+  bucketItem,
+  bucketsTab,
+  openBucket,
+} from "../../../../components/quest-sidebar-test-kit.ts";
+import {
   closePanel,
   openPanel,
   sitePanel,
@@ -595,10 +601,16 @@ describe("use_case_open_quest", () => {
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
     await Promise.all(
-      ["Tasks", "Ideas", "Progress", "Quick Notes", "Actions"].map((name) =>
+      ["Buckets", "Actions"].map((name) =>
         expect
           .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),
+      ),
+    );
+    await bucketsTab().click();
+    await Promise.all(
+      ["Tasks", "Ideas", "Quick Notes", "Progress"].map((name) =>
+        expect.element(bucketItem(name)).toBeVisible(),
       ),
     );
     await expect
@@ -917,7 +929,11 @@ describe("use_case_daily_streaks", () => {
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await expect
-      .element(page.getByText(TASKS_COPY.streak(STRETCH_STREAK)))
+      .element(
+        page.getByText(
+          `${TASKS_COPY.streak(STRETCH_STREAK)}. Milestone reached.`,
+        ),
+      )
       .toBeInTheDocument();
 
     await page.getByRole("button", { name: TASKS_COPY.actions(VET) }).click();
@@ -928,8 +944,8 @@ describe("use_case_daily_streaks", () => {
       .toBeVisible();
     await userEvent.keyboard("{Escape}");
 
-    await page.getByRole("tab", { name: "Progress", exact: true }).click();
-    const progress = page.getByRole("tabpanel", { name: "Progress" });
+    await openBucket("Progress");
+    const progress = bucket("Progress");
     await expect
       .element(progress.getByRole("heading", { name: DAY_GRID_COPY.heading }))
       .toBeVisible();
@@ -949,7 +965,7 @@ describe("use_case_daily_streaks", () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await page.getByRole("tab", { name: "Progress", exact: true }).click();
+    await openBucket("Progress");
     await expect
       .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
       .not.toBeInTheDocument();

@@ -24,7 +24,7 @@ The user keeps the tasks beside a conversation.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a conversation in one of their quests.
 - **Steps:**
-  - Tasks, Ideas, Progress, Quick Notes and Actions are sidebar tabs in the quest side menu. A panel icon opens or collapses the sidebar without discarding drafts. The sidebar sits flush with the right page edge on wide screens; phones start collapsed and open a modal drawer, which Escape closes.
+  - Tasks, Ideas, Progress and Quick Notes are buckets in the quest side menu's Buckets tab, beside the Actions and Members tabs. A panel icon opens or collapses the sidebar without discarding drafts. The sidebar sits flush with the right page edge on wide screens; phones start collapsed and open a modal drawer, which Escape closes.
   - The user changes the tasks there, as on the Tasks section.
 - **Outcome:** each sidebar change sends its tasks command to the conversation, as if the user had typed it: adding a task sends `/add TEXT`, which puts it at the end of the Tasks. The conversation shows the command and the change, without a model request, and the sidebar shows feedback with Undo, which sends `/undo`. The construct reads the current Tasks on its next reply. The panel follows the construct's changes as they arrive. While the construct replies, the panel's controls wait for the reply to end. While their last message has no reply because its reply failed or stopped, they wait too and say why, so that Retry or "send again" still answers that message; the user can change the tasks on the quest's page meanwhile.
 - **Next:**
@@ -65,10 +65,13 @@ The user sees how many days in a row they have done each recurring task.
 - **Prerequisites:** `use_case_recurring_tasks`, and days begun with [`use_case_start_day`](quests.md#use_case_start_day).
 - **Steps:**
   - The user looks at a recurring task in Tasks.
-  - The user opens the sidebar's Progress tab.
-- **Outcome:** each recurring task shows its streak beside its repeat icon: the number of days in a row, up to the current day, on which it was done. The current day counts once the task is done, and an open task doesn't end the streak until the next Start Day. A day the task wasn't done ends the streak. So does a gap: a calendar date with no day started. Two days started on one date count as one date. Above the progress timeline, a day grid shows each recurring task's last seven dates: filled when done, empty when not, and dashed for a gap. Screen readers announce each date's weekday, date and mark.
+  - The user opens Progress from the sidebar's Buckets menu.
+- **Outcome:** each recurring task shows its streak chain under its text: one filled link for each day in a row, up to the current day, on which it was done, then the current day's link, dashed until the task is done. The chain ends at the next milestone: 3, 7, 14 or 30 days, then every 30 days. A line under the chain gives the streak and what checking the task off does next, such as “4-day streak. Check it off to make it 5.” The current day counts once the task is done, and an open task doesn't end the streak until the next Start Day. A day the task wasn't done ends the streak. So does a gap: a calendar date with no day started. Two days started on one date count as one date. Above the progress timeline, a day grid shows each recurring task's last seven dates: filled when done, empty when not, and dashed for a gap. Screen readers announce each date's weekday, date and mark.
 - **Variations:**
   - Before the first Start Day, the grid says that Start Day begins counting. With no recurring tasks, it says how to make one.
-  - A recurring task with no streak shows its repeat icon alone.
+  - Before the first Start Day, a recurring task shows its repeat icon alone.
+  - A recurring task with no streak shows an empty chain toward 3 and says “Check it off to start a streak.”
+  - On the day a streak reaches a milestone, the chain is full and the line says “Milestone reached.”
+  - Past 30 days, the chain starts at the last multiple of 30, so it never has more than 30 links.
   - A date before a task became recurring shows as untracked.
   - A quest not started as Dailies shows no streaks or day grid.

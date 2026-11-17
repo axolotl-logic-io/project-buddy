@@ -15,7 +15,7 @@ import {
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { streaks } from "@/dailies/dailies.ts";
+import { type StreakChain, streakChains } from "@/dailies/dailies.ts";
 import {
   doneTasks,
   moveAmongOpen,
@@ -51,33 +51,73 @@ const ADD_EDITOR: EditorOptions = {
   save: TASKS_COPY.add,
 };
 
-const NO_STREAKS: ReadonlyMap<number, number> = new Map();
+const NO_CHAINS: ReadonlyMap<number, StreakChain> = new Map();
 
-// A recurring task's badge in the Dailies quest: the repeat icon and its
-// streak, or the icon alone with no streak; nothing for a one-off task.
-function streakBadge(task: Task, streak: number | undefined): ReactNode {
+// A recurring task's badge in the Dailies quest: the repeat icon, which
+// says whether the task has a streak chain yet; nothing for a one-off task.
+function recurringBadge(task: Task, chain: StreakChain | undefined): ReactNode {
   if (task.recurring !== true) {
     return null;
   }
-  if (streak === undefined) {
-    return (
-      <span className="editable-badge" title={TASKS_COPY.recurringNoStreak}>
-        <Icon name="repeat" />
-        <span className="sr-only">{TASKS_COPY.recurringNoStreak}</span>
-      </span>
-    );
+  let label: string = TASKS_COPY.recurring;
+  if (chain === undefined) {
+    label = TASKS_COPY.recurringNoStreak;
   }
   return (
-    <span className="editable-badge" title={TASKS_COPY.streak(streak)}>
+    <span className="editable-badge" title={label}>
       <Icon name="repeat" />
-      <span aria-hidden="true">{streak}</span>
-      <span className="sr-only">{TASKS_COPY.streak(streak)}</span>
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}
+
+// What a link of a streak chain stands for: a day of the streak before the
+// current day, the current day, open or done, a day still to come, or the
+// milestone at the chain's end.
+type LinkKind = "earned" | "today" | "milestone" | "ahead";
+
+function linkKind(chain: StreakChain, index: number): LinkKind {
+  if (index < chain.earned) {
+    return "earned";
+  }
+  if (index === chain.earned) {
+    if (chain.doneToday) {
+      return "earned";
+    }
+    return "today";
+  }
+  if (index === chain.links - 1) {
+    return "milestone";
+  }
+  return "ahead";
+}
+
+// A recurring task's streak chain, under its text: the links toward its
+// next milestone, which screen readers skip, and the line that says them.
+function StreakChainLine({
+  chain,
+}: {
+  readonly chain: StreakChain;
+}): JSX.Element {
+  const links = Array.from({ length: chain.links }, (_, index) => index);
+  return (
+    <span className="streak-chain">
+      <span className="streak-links" aria-hidden="true">
+        {links.map((index) => (
+          <span
+            key={index}
+            className="streak-link"
+            data-link={linkKind(chain, index)}
+          />
+        ))}
+      </span>
+      <span className="streak-note">{TASKS_COPY.streakNote(chain)}</span>
     </span>
   );
 }
 
 // One task's row. In the Dailies quest (dailies), its menu makes it
-// recurring or one-off, and a recurring task shows its streak.
+// recurring or one-off, and a recurring task shows its streak chain.
 function TaskRow({
   tasks,
   task,
@@ -85,7 +125,7 @@ function TaskRow({
   last,
   disabled,
   dailies,
-  streak,
+  chain,
 }: {
   readonly tasks: TasksController;
   readonly task: Task;
@@ -93,7 +133,7 @@ function TaskRow({
   readonly last: boolean;
   readonly disabled: boolean;
   readonly dailies: boolean;
-  readonly streak: number | undefined;
+  readonly chain: StreakChain | undefined;
 }): JSX.Element {
   const { change } = tasks;
   const toggle = useCallback(async (): Promise<void> => {
@@ -136,6 +176,10 @@ function TaskRow({
     recurLabel = TASKS_COPY.makeOneOff(task.text);
     recurText = TASKS_COPY.makeOneOffLabel;
   }
+  let detail: ReactNode;
+  if (chain !== undefined) {
+    detail = <StreakChainLine chain={chain} />;
+  }
   let checkLabel = TASKS_COPY.checkOff(task.text);
   if (task.done) {
     checkLabel = TASKS_COPY.reopen(task.text);
@@ -153,7 +197,8 @@ function TaskRow({
       toggleLabel={checkLabel}
       onToggle={toggle}
       onSave={save}
-      badge={dailies && streakBadge(task, streak)}
+      badge={dailies && recurringBadge(task, chain)}
+      detail={detail}
     >
       {!task.done && (
         <>
@@ -235,11 +280,11 @@ function TaskRows(): JSX.Element | null {
   const tasks = useTasks();
   const days = tasks?.days;
   const current = tasks?.state.tasks;
-  const streakOf = useMemo(() => {
+  const chainOf = useMemo(() => {
     if (days === undefined || current === undefined) {
-      return NO_STREAKS;
+      return NO_CHAINS;
     }
-    return streaks(days, current);
+    return streakChains(days, current);
   }, [days, current]);
   const add = useCallback(
     async (text: string): Promise<boolean> => {
@@ -299,7 +344,7 @@ function TaskRows(): JSX.Element | null {
             last={index === open.length - 1}
             disabled={disabled}
             dailies={days !== undefined}
-            streak={streakOf.get(task.number)}
+            chain={chainOf.get(task.number)}
           />
         ))}
       </EditableList>
@@ -316,7 +361,7 @@ function TaskRows(): JSX.Element | null {
                 last={true}
                 disabled={disabled}
                 dailies={days !== undefined}
-                streak={streakOf.get(task.number)}
+                chain={chainOf.get(task.number)}
               />
             ))}
           </EditableList>

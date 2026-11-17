@@ -377,6 +377,20 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "How many days in a row the person has done a recurring task in Dailies. A day the task wasn't done ends it, and so does a day with no Start Day.",
   },
   {
+    term: "Milestone",
+    heading: "Milestone",
+    aliases: ["milestone", "milestones", "Milestone reached"],
+    definition:
+      "A length a streak can reach: 3, 7, 14 or 30 days, then every 30 days after that. A milestone in the Progress list is a different thing.",
+  },
+  {
+    term: "Streak chain",
+    heading: "Streak chain",
+    aliases: ["streak chain", "streak chains"],
+    definition:
+      "A row of links under a recurring task in Dailies. Each day of the streak fills one, and today's stays dashed until the task is done. The chain ends at the next milestone, and a line under it says what checking the task off does.",
+  },
+  {
     term: "Gap",
     heading: "Gap",
     aliases: ["gap", "no day started"],
@@ -403,13 +417,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     aliases: ["goal", "goals"],
     definition:
       "What the person wants to achieve through a quest. It is discussed in the conversation; there is no separate Goal box to fill in.",
-  },
-  {
-    term: "Milestone",
-    heading: "Milestone",
-    aliases: ["milestone", "milestones"],
-    definition:
-      "A meaningful result toward a quest's goal. In the Progress list, a milestone describes something already finished, not merely planned work.",
   },
   {
     term: "Recorded milestone",
@@ -478,6 +485,13 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     aliases: ["circle", "circles"],
     definition:
       "A person's level, set by their experience. Each circle needs a little more experience than the one before. Some circles bring a new title: Initiate, Apprentice, Practitioner, Expert, Master, Pathfinder, Grand Master, Legendary and Transcendent.",
+  },
+  {
+    term: "Buckets",
+    heading: "Buckets",
+    aliases: ["Buckets", "bucket", "buckets"],
+    definition:
+      "The first tab beside a quest conversation. It opens a short menu of the quest's Tasks, Ideas, Quick Notes and Progress, and shows the one chosen, with its name as the heading.",
   },
   {
     term: "Quest sidebar actions",
