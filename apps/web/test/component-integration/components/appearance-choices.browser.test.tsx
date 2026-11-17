@@ -153,6 +153,60 @@ describe("use_case_choose_theme", () => {
     );
   });
 
+  test.each(THEME_MODES)(
+    "%s has a tooltip with no caption or content over the texture",
+    async (mode) => {
+      await openPanel();
+      const radio = choice(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
+      const label = radio.element().closest("label");
+      if (label === null) {
+        throw new Error("The swatch has no label");
+      }
+      // The decorative material is empty and displays the actual page texture.
+      const material = label.querySelector('[aria-hidden="true"]');
+      if (material === null) {
+        throw new Error("The swatch has no material");
+      }
+      expect(material.childNodes).toHaveLength(0);
+      expect(getComputedStyle(material).backgroundImage).toContain(".webp");
+      const tooltip = page.getByRole("tooltip", {
+        name: THEME_COPY.modes[mode],
+      });
+      await expect.element(tooltip).not.toBeInTheDocument();
+      await radio.hover();
+      await expect.element(tooltip).toBeVisible();
+      await tooltip.hover();
+      await expect.element(tooltip).toBeVisible();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(tooltip).not.toBeInTheDocument();
+      await page.getByRole("heading", { name: THEME_COPY.picker }).hover();
+      await radio.hover();
+      await expect.element(tooltip).toBeVisible();
+      await page.getByRole("heading", { name: THEME_COPY.picker }).hover();
+      await expect.element(tooltip).not.toBeInTheDocument();
+      expect(label.textContent?.trim()).toBe(THEME_COPY.modes[mode]);
+    },
+  );
+
+  test("Escape dismisses a focused name without changing the choice or closing the panel", async () => {
+    await openPanel();
+    await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+    const radio = choice(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+    const tooltip = page.getByRole("tooltip", { name: THEME_COPY.modes.dark });
+    await expect.element(tooltip).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(tooltip).not.toBeInTheDocument();
+    await expect.element(radio).toHaveFocus();
+    await expect.element(radio).toBeChecked();
+    await expect.element(page.getByRole("dialog")).toBeVisible();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect
+      .element(
+        page.getByRole("tooltip", { name: THEME_COPY.modes["soot-brass"] }),
+      )
+      .toBeVisible();
+  });
+
   test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
     "a saved %s choice uses parchment and keeps Dark before paint",
     (retiredTheme) => {
@@ -250,7 +304,9 @@ describe("use_case_choose_theme", () => {
     if (label === null || label === undefined) {
       throw new Error("The focused swatch has no label");
     }
-    await expect.poll(() => getComputedStyle(label).outlineStyle).toBe("solid");
+    await expect
+      .poll(() => getComputedStyle(label).outlineStyle)
+      .toBe("dashed");
   });
 
   test.each([NARROWEST_VIEWPORT, PHONE_VIEWPORT])(
