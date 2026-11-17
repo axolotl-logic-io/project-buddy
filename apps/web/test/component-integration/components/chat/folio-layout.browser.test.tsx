@@ -22,11 +22,19 @@ const PROSE_SIZE = 17;
 const INPUT_SIZE = 16;
 const TARGET_SIZE = 44;
 const TWO_LINES_HEIGHT = 48;
-const FULL_READING_WIDTH = 0.95;
+const CARD_READING_WIDTH = 0.85;
 const LONG_NAME = "AlexandriaMorgan".repeat(NAME_REPEATS);
 const QUESTION = "Keep the map readable on a small phone.";
 const REPLY = "A bell sounds beyond the river.";
+const OPENING = "Welcome to the river crossing.";
+const CONTINUATION = "The lanterns will mark your way.";
+const NEXT_MESSAGE = "I will follow the lanterns.";
 const MESSAGES: UIMessage[] = [
+  {
+    id: "opening",
+    role: "assistant",
+    parts: [{ type: "text", text: OPENING }],
+  },
   { id: "you", role: "user", parts: [{ type: "text", text: "cast tasks" }] },
   { id: "member", role: "user", parts: [{ type: "text", text: QUESTION }] },
   {
@@ -39,13 +47,23 @@ const MESSAGES: UIMessage[] = [
       },
     ],
   },
+  {
+    id: "continuation",
+    role: "assistant",
+    parts: [{ type: "text", text: CONTINUATION }],
+  },
+  {
+    id: "next",
+    role: "user",
+    parts: [{ type: "text", text: NEXT_MESSAGE }],
+  },
 ];
 
 afterEach(async () => {
   await page.viewport(DESKTOP_WIDTH, VIEWPORT_HEIGHT);
 });
 
-describe("Folio reading layout", () => {
+describe("Shared-card reading layout", () => {
   for (const mode of ["light", "soot-brass", "dark"] as const) {
     for (const width of [PHONE_WIDTH, DESKTOP_WIDTH]) {
       test(`readable shared conversation and composer at ${width}px in ${mode}`, async () => {
@@ -59,6 +77,7 @@ describe("Folio reading layout", () => {
             constructName="Lumen"
             construct={getConstruct("lumen")}
             initialMessages={MESSAGES}
+            stoppedReplyId="next"
             authorNames={new Map([["member", LONG_NAME]])}
           />,
         );
@@ -80,9 +99,63 @@ describe("Folio reading layout", () => {
         expect(
           prose.getBoundingClientRect().width /
             conversation.element().getBoundingClientRect().width,
-        ).toBeGreaterThan(FULL_READING_WIDTH);
+        ).toBeGreaterThan(CARD_READING_WIDTH);
         expect(author.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-          prose.getBoundingClientRect().bottom,
+          prose.getBoundingClientRect().top,
+        );
+        const opening = conversation
+          .getByRole("listitem")
+          .filter({ hasText: OPENING })
+          .element();
+        const earlier = conversation
+          .getByRole("listitem")
+          .filter({ hasText: "cast tasks" })
+          .element();
+        const answer = conversation
+          .getByRole("listitem")
+          .filter({ hasText: REPLY })
+          .element();
+        const next = conversation
+          .getByRole("listitem")
+          .filter({ hasText: NEXT_MESSAGE })
+          .element();
+        const promptBounds = member.element().getBoundingClientRect();
+        const answerBounds = answer.getBoundingClientRect();
+        expect(promptBounds.bottom).toBe(answerBounds.top);
+        expect(promptBounds.left).toBe(answerBounds.left);
+        expect(promptBounds.right).toBe(answerBounds.right);
+        expect(getComputedStyle(member.element()).borderBottomWidth).toBe(
+          "0px",
+        );
+        expect(getComputedStyle(answer).borderTopWidth).toBe("0px");
+        expect(getComputedStyle(member.element()).backgroundColor).not.toBe(
+          getComputedStyle(answer).backgroundColor,
+        );
+        // The runtime combines consecutive saved construct messages into
+        // one reply, so its continuation stays inside the same card.
+        expect(answer.textContent).toContain(CONTINUATION);
+        expect(
+          Number.parseFloat(getComputedStyle(answer).borderBottomWidth),
+        ).toBeGreaterThan(0);
+        for (const message of [opening, earlier, next]) {
+          const style = getComputedStyle(message);
+          expect(Number.parseFloat(style.borderTopWidth)).toBeGreaterThan(0);
+          expect(Number.parseFloat(style.borderBottomWidth)).toBeGreaterThan(0);
+          expect(Number.parseFloat(style.borderTopLeftRadius)).toBeGreaterThan(
+            0,
+          );
+          expect(
+            Number.parseFloat(style.borderBottomLeftRadius),
+          ).toBeGreaterThan(0);
+        }
+        expect(earlier.getBoundingClientRect().top).toBeGreaterThan(
+          opening.getBoundingClientRect().bottom,
+        );
+        expect(promptBounds.top).toBeGreaterThan(
+          earlier.getBoundingClientRect().bottom,
+        );
+        expect(next.getBoundingClientRect().top).toBeGreaterThan(
+          answerBounds.bottom,
         );
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           window.innerWidth,

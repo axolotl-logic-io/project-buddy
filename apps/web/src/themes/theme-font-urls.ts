@@ -34,6 +34,14 @@ import type { ThemeId } from "@/themes/themes.ts";
 // Each typeface's font file, keyed by the variable theme-fonts.ts sets,
 // without "--".
 const TYPEFACE_FONT_URLS: Readonly<Record<string, string>> = {
+  "typeface-im-fell-english":
+    "/_next/static/media/im_fell_english_latin_400_normal-s.19q4vxlgtk0rb.woff2",
+  "typeface-im-fell-english-italic":
+    "/_next/static/media/im_fell_english_latin_400_italic-s.1y9qe_7x2ofb7.woff2",
+  "typeface-cormorant-garamond":
+    "/_next/static/media/cormorant_garamond_latin_wght_normal-s.0jvcp-grhfvvq.woff2",
+  "typeface-unifrakturmaguntia":
+    "/_next/static/media/unifrakturmaguntia_latin_400_normal-s.149sar0gtc4by.woff2",
   "typeface-source-serif-4":
     "/_next/static/media/source_serif_4_latin_wght_normal-s.2bbm7w9b-e07f.woff2",
   "typeface-nunito":
@@ -46,6 +54,10 @@ const TYPEFACE_FONT_URLS: Readonly<Record<string, string>> = {
 // theme-fonts.test.ts checks this against the CSS.
 const THEME_TYPEFACES: Readonly<Record<ThemeId, readonly string[]>> = {
   parchment: [
+    "typeface-im-fell-english",
+    "typeface-im-fell-english-italic",
+    "typeface-cormorant-garamond",
+    "typeface-unifrakturmaguntia",
     "typeface-source-serif-4",
     "typeface-nunito",
     "typeface-jetbrains-mono",

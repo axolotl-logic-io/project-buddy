@@ -1,5 +1,9 @@
 # Quick Notes
 
+The site panel presents Quick Note as a full-width brass action above Places.
+Its filled Letterpress button and plus icon distinguish the action from
+navigation links. It opens the Quick Note dialog.
+
 A Quick Note is a short, dated line that the user saves to one of their quests from the site panel or directly from its bucket. The glossary entry is [Quick Note](../GLOSSARY.md#quick-note). The use case is [`use_case_quick_note`](../apps/web/use-cases/quick-notes.md#use_case_quick_note).
 
 ## The Quick Note dialog

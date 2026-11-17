@@ -8,6 +8,7 @@ import {
 } from "@/components/header-breadcrumbs.ts";
 import { QuestTitle } from "@/components/quest-title.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
+import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 
@@ -62,6 +63,9 @@ async function HeaderLinksAt({
           ...item,
           action: <TimerTrailTools schedule={timer} signedIn={signedIn} />,
         };
+      }
+      if (path[0] === "timer" && path.length === 1) {
+        return { ...item, action: <TimerPreferences /> };
       }
       return item;
     },

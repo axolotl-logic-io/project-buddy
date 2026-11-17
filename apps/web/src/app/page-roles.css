@@ -45,7 +45,7 @@
   /* One starting point: the whole tile is its target. */
   .quest-start-tile {
     min-block-size: var(--target-size);
-    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-action border border-line bg-action-paper px-3 py-2.5 text-left;
+    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-action border border-line bg-action-paper/70 px-3 py-2.5 text-left;
     border-width: var(--action-line-width);
   }
 
@@ -75,11 +75,11 @@
   }
 
   .quests-index-tab:hover {
-    @apply bg-surface text-primary;
+    @apply bg-surface/70 text-primary;
   }
 
   .quests-index-tab[data-state="active"] {
-    @apply border-primary bg-surface/85 font-semibold text-foreground;
+    @apply border-primary bg-surface/70 font-semibold text-foreground;
   }
 
   .quests-index-tab[data-pointer-focus]:focus-visible {
@@ -97,7 +97,7 @@
       inset-inline: var(--line-width);
       inset-block-end: calc(-1 * var(--line-width));
       block-size: var(--line-width);
-      @apply pointer-events-none absolute bg-surface;
+      @apply pointer-events-none absolute bg-surface/70;
     }
 
     .quests-index-tab[data-state="active"] {
@@ -111,10 +111,10 @@
   }
 
   .quests-index-content {
-    @apply relative isolate min-w-0 border-line border-t px-1 pb-8 sm:px-2;
+    @apply relative isolate min-w-0 flex-1 border-line border-t px-1 pb-8 sm:px-2;
   }
 
-  /* Keep the panel solid until the last four spacing steps, then fade only
+  /* Keep the panel's translucent fill until the last four spacing steps, then fade only
      its surface and side rules, in the space below its
      last row. Text, controls and focus rings remain fully opaque. There
      is no bottom border to jump when another tab has fewer quests. */
@@ -133,7 +133,7 @@
       ),
       linear-gradient(
         to bottom,
-        color-mix(in oklab, var(--surface) 85%, transparent)
+        color-mix(in oklab, var(--surface) 70%, transparent)
           calc(100% - --spacing(4)),
         transparent
       );
@@ -162,11 +162,11 @@
   }
 
   .quests-index-row:has(.quests-index-link):hover {
-    @apply bg-field;
+    @apply bg-field/70;
   }
 
   .quests-index-row:has(.quests-index-link:focus-visible) {
-    @apply bg-field;
+    @apply bg-field/70;
   }
 
   .quests-index-restore {
@@ -1012,6 +1012,11 @@
     inset-block-start: calc(-1 * var(--header-controls-height));
     padding-block-end: 0;
     border-block-end: 0;
+    /* Keep the ink behind the site bar and rim, leaving the page header
+       below them free to show the page through its translucent surface. */
+    background:
+      linear-gradient(var(--hud-ink), var(--hud-ink)) top / 100%
+      var(--header-controls-height) no-repeat;
   }
 
   /* The trail band: a parchment strip, the header's full width, of the
@@ -1025,7 +1030,7 @@
     padding-block: var(--trail-band-padding-top)
       var(--trail-band-padding-bottom);
     border-block-start: var(--header-rim) solid var(--hud-gold);
-    @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
+    @apply flex min-w-0 items-center border-line border-b bg-trail-surface/70 text-foreground;
   }
 
   .trail-content {
@@ -1041,7 +1046,8 @@
 
   /* Docked panels cover the row's ends, not its breadcrumb actions. */
   @media (width >= 64rem) {
-    .trail-band:has(.site-panel[open]) .trail-content {
+    .trail-band:has(.site-panel:where(:not(.timer-panel))[open])
+      .trail-content {
       margin-inline-start: calc(var(--site-panel-width) + var(--header-gutter));
     }
 
@@ -1413,27 +1419,210 @@
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
 
-  /* A running timer's ring, as large as the screen allows beside the
-     header and the details under it, with the phase and countdown inside.
-     It reserves its size before the browser's clock is read. */
+  /* The dial is printed directly on the site's material, without a second page. */
+  .timer-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: --spacing(5);
+    padding-block: --spacing(6);
+    color: var(--foreground);
+    font-family: var(--timer-body-font);
+  }
+
   .timer-face {
-    @apply relative grid aspect-square w-[min(100%,60dvh,32rem)] place-items-center;
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: min(100%, 30rem);
+    aspect-ratio: 1;
+    container-type: inline-size;
   }
 
   .timer-ring {
-    @apply absolute inset-0 size-full;
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .timer-guide-lines {
+    fill: none;
+    stroke: var(--timer-ornament-ink);
+    stroke-width: 1.1px;
+  }
+
+  .timer-outer-guide {
+    r: var(--timer-guide-outer);
+  }
+  .timer-middle-guide {
+    r: var(--timer-guide-middle);
+  }
+  .timer-inner-guide {
+    r: var(--timer-guide-inner);
+  }
+
+  .timer-seal {
+    display: var(--timer-seal-display);
+  }
+
+  .timer-dial-labels {
+    fill: var(--foreground);
+    font-family: var(--timer-body-font);
+    font-size: 11px;
+  }
+
+  .timer-roman {
+    display: var(--timer-roman-display);
+  }
+  .timer-inscription {
+    display: var(--timer-inscription-display);
+    letter-spacing: 3px;
+  }
+
+  .timer-marker {
+    color: var(--timer-ornament-ink);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2px;
+  }
+
+  .timer-marker[data-passed="true"] {
+    color: var(--timer-marker-active);
+    stroke-width: 2.2px;
+    filter: var(--timer-mark-glow);
+  }
+
+  .timer-marker[data-passed="true"] .timer-marker-fill {
+    fill: currentColor;
+  }
+
+  .timer-tick {
+    display: var(--timer-tick-display);
+  }
+  .timer-sigil {
+    display: var(--timer-sigil-display);
+  }
+  .timer-chapter {
+    display: var(--timer-chapter-display);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .timer-marker {
+      transition:
+        color 160ms ease-out,
+        stroke-width 160ms ease-out;
+    }
+  }
+
+  .timer-track,
+  .timer-progress {
+    fill: none;
+    r: var(--timer-radius);
+    stroke-width: var(--timer-stroke);
+  }
+
+  .timer-track {
+    stroke: var(--timer-track);
+    opacity: 0.2;
+  }
+
+  .timer-gilt {
+    fill: var(--timer-arc);
+  }
+
+  .timer-gilt-grain {
+    fill: none;
+    stroke: var(--background);
+    stroke-width: 0.7px;
+    opacity: var(--timer-hatch-opacity);
+  }
+
+  .timer-progress-rest {
+    stroke: var(--accent);
   }
 
   .timer-readout {
-    @apply relative flex flex-col items-center gap-1 text-center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .timer-phase {
-    @apply font-heading font-semibold text-page-heading-phone sm:text-page-heading;
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: calc(100% + --spacing(1));
+    font-family: var(--timer-phase-font);
+    font-size: min(var(--timer-phase-size), 10.5cqi);
+    font-weight: 400;
+    line-height: 1.3;
   }
 
   .timer-countdown {
-    @apply font-heading font-semibold text-site-title tabular-nums tracking-tight sm:text-site-title-wide;
+    font-family: var(--timer-numeral-font);
+    font-size: min(var(--timer-numeral-size), 26cqi);
+    font-weight: 500;
+    font-variant-numeric: lining-nums tabular-nums;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+  }
+
+  .timer-countdown[data-hours="true"] {
+    font-size: min(var(--timer-numeral-size), 16cqi);
+  }
+
+  .timer-next {
+    @apply font-heading text-foreground text-sm;
+    letter-spacing: 0.08em;
+  }
+
+  .timer-preferences-hint {
+    @apply px-2 pt-4 pb-2 text-muted text-sm;
+  }
+
+  .timer-panel {
+    inset-inline: auto 0;
+    border-inline: var(--line-width) solid var(--line);
+    border-inline-end: 0;
+    background-color: var(--sidebar-surface);
+  }
+
+  .timer-panel-toggle {
+    inset-inline: auto 0;
+  }
+
+  .timer-panel .site-panel-heading {
+    flex-direction: row-reverse;
+  }
+
+  .timer-panel:modal {
+    animation-name: timer-panel-slide-in;
+  }
+
+  @keyframes timer-panel-slide-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+
+  .trail-band:has(.timer-panel) .trail-content {
+    margin-inline-end: calc(var(--panel-tab-width) + var(--header-gutter));
+  }
+
+  @media (width >= 64rem) {
+    .trail-band:has(.timer-panel[open]) .trail-content {
+      margin-inline-end: calc(var(--site-panel-width) + var(--header-gutter));
+    }
+  }
+
+  .page-column:has(.timer-stage) {
+    max-inline-size: 49rem;
+  }
+
+  .workspace-content:has(> .timer-stage) {
+    padding: 0;
   }
 
   /* A running timer's count of others and Copy link, at the right end of
@@ -2065,13 +2254,17 @@
     @apply shrink-0 justify-center rounded-control text-muted hover:bg-field hover:text-foreground hover:no-underline;
   }
 
-  /* Edge tabs belong to the panel surfaces and span the breadcrumb row,
-     rather than sitting inside it as separate floating buttons. */
+  /* Edge tabs span the breadcrumb row, with an inset divider at their
+     right edge separating the icon from the adjoining content. */
   .panel-edge-tab {
     inline-size: var(--panel-tab-width);
     block-size: var(--panel-tab-height);
     outline-offset: calc(-1 * var(--focus-offset));
-    @apply rounded-none border-line text-foreground;
+    background-image: linear-gradient(var(--line), var(--line));
+    background-position: right center;
+    background-size: var(--line-width) calc(100% - --spacing(6));
+    background-repeat: no-repeat;
+    @apply rounded-none border-0 text-foreground;
   }
 
   .panel-edge-tab .icon > svg {
