@@ -1,0 +1,163 @@
+import type { JSX } from "react";
+import { beforeAll, describe, expect, test } from "vitest";
+import { page } from "vitest/browser";
+import { render } from "vitest-browser-react";
+import { ChatPanel } from "@/components/chat-panel.tsx";
+import { QuestIdeas } from "@/components/quest-ideas.tsx";
+import { SiteHeader } from "@/components/site-header.tsx";
+import type { TasksActions } from "@/components/tasks/use-tasks.ts";
+import type { WorkspaceSection } from "@/components/workspace-section.ts";
+import { IDEA } from "@/ideas/idea.ts";
+import type { TasksState } from "@/tasks/tasks.ts";
+import { THEME_MODES } from "@/themes/themes.ts";
+import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
+import { TASKS_COPY } from "@/ui/copy/tasks.ts";
+import { questIdFixture } from "../../support/id-fixtures.ts";
+import { QuestTasks } from "../app/(workspace)/quests/[questId]/task-rows-test-kit.tsx";
+import {
+  changeTasksAction,
+  runChatCommandAction,
+  undoTasksChangeAction,
+} from "../tasks/tasks-actions-test-kit.ts";
+import {
+  installThemeFonts,
+  loadFonts,
+} from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
+import {
+  measureTargets,
+  pageScrollWidth,
+  smallTargets,
+} from "../touch-targets-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
+  setViewport,
+} from "../viewports-test-kit.ts";
+import { chatSendMock, inConversation } from "./chat/chat-send-test-kit.tsx";
+import { openBucket } from "./quest-sidebar-test-kit.ts";
+
+const QUEST_ID = questIdFixture();
+const CONVERSATION = "Conversation";
+const LONG_TEXT = "Unbroken".repeat(24);
+const TASKS: TasksState = {
+  version: 1,
+  tasks: {
+    items: [{ number: 1, text: LONG_TEXT, done: false, recurring: true }],
+    nextNumber: 2,
+  },
+  undone: [],
+};
+const IDEA_FIXTURE = IDEA.parse({ id: crypto.randomUUID(), text: LONG_TEXT });
+const ACTIONS: TasksActions = {
+  change: changeTasksAction,
+  undo: undoTasksChangeAction,
+  command: runChatCommandAction,
+};
+
+function sections(): WorkspaceSection[] {
+  return [
+    {
+      id: "tasks",
+      label: TASKS_COPY.heading,
+      bucket: true,
+      content: (
+        <QuestTasks
+          questId={QUEST_ID}
+          tasks={TASKS}
+          actions={ACTIONS}
+          days={[]}
+        />
+      ),
+    },
+    {
+      id: "ideas",
+      label: IDEAS_COPY.heading,
+      bucket: true,
+      content: <QuestIdeas ideas={[IDEA_FIXTURE]} embedded={true} />,
+    },
+  ];
+}
+
+function buckets(sidebar: boolean): JSX.Element {
+  const entries = sections();
+  if (sidebar) {
+    return inConversation(
+      chatSendMock(),
+      <>
+        <SiteHeader />
+        <ChatPanel sideSections={entries} initialSection="tasks">
+          <p>{CONVERSATION}</p>
+        </ChatPanel>
+      </>,
+    );
+  }
+  return inConversation(
+    chatSendMock(),
+    <div className="page-slot p-4">
+      {entries.map((entry) => (
+        <section key={entry.id} aria-label={entry.label}>
+          {entry.content}
+        </section>
+      ))}
+    </div>,
+  );
+}
+
+beforeAll(installThemeFonts);
+
+describe.each(THEME_MODES)("Control desk in %s", (mode) => {
+  for (const viewport of [NARROWEST_VIEWPORT, LAPTOP_VIEWPORT]) {
+    test.each([false, true])(
+      `fits at ${viewport.width} px with sidebar %s, including editors and menus`,
+      async (sidebar) => {
+        applyTheme("parchment", mode);
+        await setViewport(viewport);
+        await loadFonts();
+        await render(buckets(sidebar));
+        await expect
+          .element(
+            page.getByRole("button", { name: TASKS_COPY.addPlaceholder }),
+          )
+          .toBeVisible();
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+        expect(smallTargets(await measureTargets())).toEqual([]);
+        await page
+          .getByRole("button", { name: TASKS_COPY.addPlaceholder })
+          .click();
+        await expect
+          .element(page.getByRole("textbox", { name: TASKS_COPY.addLabel }))
+          .toBeVisible();
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+        await page
+          .getByRole("button", { name: TASKS_COPY.cancel, exact: true })
+          .click();
+        if (sidebar) {
+          await openBucket(IDEAS_COPY.heading);
+        }
+        await expect
+          .element(page.getByRole("button", { name: IDEAS_COPY.move }))
+          .toBeVisible();
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+        expect(smallTargets(await measureTargets())).toEqual([]);
+        await page.getByRole("button", { name: IDEAS_COPY.edit }).click();
+        await expect
+          .element(page.getByRole("textbox", { name: IDEAS_COPY.label }))
+          .toHaveValue(LONG_TEXT);
+        await expect
+          .element(page.getByRole("button", { name: IDEAS_COPY.move }))
+          .not.toBeInTheDocument();
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+        await page.getByRole("button", { name: IDEAS_COPY.cancel }).click();
+        await page
+          .getByRole("list", { name: IDEAS_COPY.heading, exact: true })
+          .getByRole("button", { name: IDEAS_COPY.actions(LONG_TEXT) })
+          .click();
+        await expect
+          .element(page.getByRole("menuitem", { name: IDEAS_COPY.move }))
+          .toBeVisible();
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+      },
+    );
+  }
+});

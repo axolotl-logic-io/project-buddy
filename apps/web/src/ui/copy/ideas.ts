@@ -1,5 +1,7 @@
 const IDEAS_COPY = {
   heading: "Ideas",
+  summary: (count: number): string => `${count} saved · Uncommitted`,
+  possibility: "Possibility",
   intro:
     "Keep possibilities here until you’re ready to make them part of the Tasks.",
   empty: "No ideas yet. Add something you might want to try.",
