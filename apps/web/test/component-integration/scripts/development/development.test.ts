@@ -115,8 +115,8 @@ describe("development setup and diagnosis", () => {
     expect(commands).toContain("npm run test-db:reset DATABASE_URL=\n");
   });
 
-  test("refuses a hosted database before installing dependencies or changing configuration", () => {
-    const file = join(web, ".env.local");
+  test("refuses an explicit hosted development database before installing dependencies or changing configuration", () => {
+    const file = join(web, ".env.development.local");
     const contents = "DATABASE_URL=postgres://example.invalid/project\n";
     writeFileSync(file, contents);
     const result = run("setup");
@@ -133,6 +133,46 @@ describe("development setup and diagnosis", () => {
     );
   });
 
+  test.each(["postgres", "postgresql"])(
+    "uses a local development override for a pulled %s configuration",
+    (protocol) => {
+      const file = join(web, ".env.local");
+      const contents = `# pulled configuration\nDATABASE_URL="${protocol}://example.invalid/project"\nSESSION_SECRET=kept\n`;
+      writeFileSync(file, contents);
+      const developmentFile = join(web, ".env.development.local");
+      writeFileSync(
+        developmentFile,
+        "# mine\nEMAIL_OUTBOX_DIR=custom-outbox\n",
+      );
+      const diagnosis = run("doctor");
+      expect(diagnosis.status).toBe(1);
+      expect(readFileSync(developmentFile, "utf8")).toBe(
+        "# mine\nEMAIL_OUTBOX_DIR=custom-outbox\n",
+      );
+      const result = run("setup");
+      expect(result.status).toBe(0);
+      expect(readFileSync(file, "utf8")).toBe(contents);
+      const updated = readFileSync(developmentFile, "utf8");
+      expect(updated).toContain("EMAIL_OUTBOX_DIR=custom-outbox");
+      expect(updated).toMatch(OWN_DATABASE);
+      expect(updated).toContain("EMAIL_TRANSPORT=outbox");
+      expect(updated).not.toContain("SESSION_SECRET=");
+      expect(String(result.stdout)).not.toContain("example.invalid");
+      expect(run("setup").status).toBe(0);
+      expect(readFileSync(developmentFile, "utf8")).toBe(updated);
+      expect(readFileSync(file, "utf8")).toBe(contents);
+    },
+  );
+
+  test("does not replace another worktree's or the test database's local settings", () => {
+    const file = join(web, ".env.local");
+    const contents = "DATABASE_URL=postgres://127.0.0.1:5433/test_database\n";
+    writeFileSync(file, contents);
+    expect(run("setup").status).toBe(1);
+    expect(readFileSync(file, "utf8")).toBe(contents);
+    expect(existsSync(join(web, ".env.development.local"))).toBe(false);
+  });
+
   test("moves a worktree off the shared development database and keeps its other settings", () => {
     const file = join(web, ".env.local");
     const shared = new URL("postgres://127.0.0.1:5434/project_buddy_dev");
@@ -147,6 +187,21 @@ describe("development setup and diagnosis", () => {
     expect(updated.startsWith("# mine\nDATABASE_URL=")).toBe(true);
     expect(updated).toMatch(OWN_DATABASE);
     expect(updated).toContain("\nSESSION_SECRET=kept\n");
+  });
+
+  test("rejects hosted opt-in and unknown setup flags before changing configuration", () => {
+    const file = join(web, ".env.local");
+    const contents = "DATABASE_URL=postgres://example.invalid/project\n";
+    writeFileSync(file, contents);
+    for (const flag of ["--hosted", "--unknown"]) {
+      const result = run("setup", flag);
+      expect(result.status).toBe(1);
+      expect(String(result.stderr)).toContain("Usage:");
+      expect(readFileSync(file, "utf8")).toBe(contents);
+      expect(existsSync(join(web, ".env.development.local"))).toBe(false);
+      expect(existsSync(join(root, "commands"))).toBe(false);
+      expect(existsSync(join(web, "commands"))).toBe(false);
+    }
   });
 
   test("gives each worktree its own development database", () => {

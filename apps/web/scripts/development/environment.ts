@@ -118,11 +118,53 @@ function testCommandEnvironment(
   return result;
 }
 
-// Points an apps/web/.env.local that names the shared development database
-// at this worktree's own. The shared database and its data are left alone.
-function adoptWorktreeDatabase(webRoot: string): void {
+function isHostedDatabase(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "postgres:" || url.protocol === "postgresql:") &&
+      url.hostname !== "" &&
+      !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Adopts the old shared local database, or adds a development-only override
+// for a hosted .env.local. Neither existing database is changed.
+function adoptWorktreeDatabase(
+  webRoot: string,
+  overrides: NodeJS.ProcessEnv,
+): void {
   const file = join(webRoot, ".env.local");
   if (!existsSync(file)) {
+    return;
+  }
+  const { DATABASE_URL: inheritedDatabase } = overrides;
+  const contents = readFileSync(file, "utf8");
+  const { DATABASE_URL } = parseEnv(contents);
+  const developmentFile = join(webRoot, ".env.development.local");
+  let developmentDatabase: string | undefined;
+  if (existsSync(developmentFile)) {
+    ({ DATABASE_URL: developmentDatabase } = parseEnv(
+      readFileSync(developmentFile, "utf8"),
+    ));
+  }
+  // A pulled hosted configuration can stay available to other modes. Only
+  // the development mode gets a local target; explicit overrides still win.
+  if (
+    DATABASE_URL &&
+    isHostedDatabase(DATABASE_URL) &&
+    inheritedDatabase === undefined &&
+    !developmentDatabase
+  ) {
+    const content = `\n# Local development database added by mise setup.\nDATABASE_URL=${developmentDatabaseUrl(webRoot)}\n`;
+    if (existsSync(developmentFile)) {
+      appendFileSync(developmentFile, content);
+    } else {
+      writeFileSync(developmentFile, content, { flag: "wx", mode: 0o600 });
+    }
     return;
   }
   const shared = `DATABASE_URL=${SHARED_DATABASE_URL}`;
@@ -159,7 +201,11 @@ function prepareEnvironment(
   if (additions.length === 0) {
     return;
   }
-  const file = join(webRoot, ".env.local");
+  let file = join(webRoot, ".env.local");
+  const developmentFile = join(webRoot, ".env.development.local");
+  if (existsSync(developmentFile)) {
+    file = developmentFile;
+  }
   const content = `\n# Local development defaults added by mise setup.\n${additions.join("\n")}\n`;
   if (existsSync(file)) {
     appendFileSync(file, content);

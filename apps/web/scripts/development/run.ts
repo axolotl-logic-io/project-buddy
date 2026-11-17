@@ -73,7 +73,7 @@ function setup(): void {
   for (const [ok, message] of prerequisites()) {
     requireStep(ok, message);
   }
-  adoptWorktreeDatabase(WEB_ROOT);
+  adoptWorktreeDatabase(WEB_ROOT, process.env);
   // Validate the target before installation, file creation or database writes.
   localSettings(WEB_ROOT, process.env);
   prepareEnvironment(WEB_ROOT, process.env);
@@ -229,7 +229,7 @@ async function signInLink(address?: string): Promise<URL> {
 
 const [action, ...actionArgs] = process.argv.slice(2);
 try {
-  if (action === "setup") {
+  if (action === "setup" && actionArgs.length === 0) {
     setup();
   } else if (action === "doctor") {
     await doctor();
