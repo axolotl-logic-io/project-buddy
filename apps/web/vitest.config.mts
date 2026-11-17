@@ -51,6 +51,14 @@ async function reduceMotion(context: BrowserCommandContext): Promise<void> {
   await context.page.emulateMedia({ reducedMotion: "reduce" });
 }
 
+// Real touch input for a locator supplied by a browser test.
+async function tap(
+  context: BrowserCommandContext,
+  selector: string,
+): Promise<void> {
+  await context.iframe.locator(selector).tap();
+}
+
 const WHEEL_UP_PIXELS = -400;
 
 // Deliver wheel input through the browser, including its native default scroll.
@@ -138,7 +146,7 @@ function contextBrowserProject(
             provider: playwrightProvider({ contextOptions }),
           },
         ],
-        commands: { emulateColorScheme, reduceMotion, wheelUp },
+        commands: { emulateColorScheme, reduceMotion, wheelUp, tap },
       },
     },
   };
@@ -211,7 +219,7 @@ export default defineConfig({
             headless: true,
             provider: playwrightProvider(),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
-            commands: { emulateColorScheme, reduceMotion, wheelUp },
+            commands: { emulateColorScheme, reduceMotion, wheelUp, tap },
           },
         },
       },

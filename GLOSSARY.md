@@ -18,7 +18,7 @@ The product: a site where constructs help each user with their quests and ideas,
 
 ### Site panel
 
-The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Light, Dark and System modes, and Credits. It opens over the page, which keeps its size. On a wide screen it docks there and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
+The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Ivory Vellum, Soot & Brass and Espresso Leather appearance choices, and Credits. It opens over the page, which keeps its size. On a wide screen it docks there and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
 
 - **UI:** "Site panel", "Close site panel", "Places", "You".
 
