@@ -1,9 +1,8 @@
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import type { TasksActions } from "@/components/tasks/use-tasks.ts";
-import type { WorkspaceSection } from "@/components/workspace-section.ts";
 import type { DailiesDay } from "@/dailies/dailies.ts";
 import type { UserId } from "@/ids.ts";
 import { getSpell } from "@/spells/spell.ts";
@@ -34,7 +33,8 @@ function ChatScreen({
   stoppedReplyId,
   viewer,
   tasks,
-  sideSections,
+  panel,
+  panelTitle,
   initialSection,
   dailiesDays,
 }: {
@@ -43,7 +43,8 @@ function ChatScreen({
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
   readonly tasks?: TasksState | undefined;
-  readonly sideSections?: readonly WorkspaceSection[] | undefined;
+  readonly panel?: ReactNode;
+  readonly panelTitle?: string | undefined;
   readonly initialSection?: string | undefined;
   // The Dailies quest's days, for its recurring tasks' streaks.
   readonly dailiesDays?: readonly DailiesDay[] | undefined;
@@ -57,7 +58,8 @@ function ChatScreen({
   return (
     <ChatView
       spellName={spellName}
-      sideSections={sideSections}
+      panel={panel}
+      panelTitle={panelTitle}
       initialSection={initialSection}
       viewer={viewer}
       chatId={conversation.id}

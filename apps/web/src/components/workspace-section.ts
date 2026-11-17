@@ -15,7 +15,7 @@ interface WorkspaceSection {
   readonly content: ReactNode;
   readonly icon?: ReactNode;
   readonly description?: string;
-  // A bucket goes in the quest sidebar's Buckets menu, not a tab of its own.
+  // A collection in a tailored panel, rather than a utility disclosure.
   readonly bucket?: boolean;
   readonly menu?: WorkspaceMenu;
 }

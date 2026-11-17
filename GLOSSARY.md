@@ -208,7 +208,7 @@ The user's one ongoing quest for starting the day, continued every day in its on
 
 ### Start Day
 
-The Dailies quest's way to begin a new day, in the quest sidebar's Actions tab. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. The button sends `/start-day`, and Undo Start Day sends `/undo-start-day`.
+The Dailies quest's way to begin a new day, at the top of the Dailies sidebar. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. The button sends `/start-day`, and Undo Start Day sends `/undo-start-day`.
 
 Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
 
@@ -240,7 +240,7 @@ A recurring task's [streak](#streak), drawn under the task in Tasks as a row of 
 
 ### Gap
 
-A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Progress section's day grid, a dashed square marks it.
+A calendar date on which the user started no day in the Dailies quest, between days they did start. A gap ends every [streak](#streak). In the Day grid tab, a dashed square marks it.
 
 - **UI:** “no day started”.
 
@@ -266,7 +266,7 @@ Something the user got done in a quest: one short line, in the past tense, that 
 
 ### Progress timeline
 
-A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, a day grid sits above it: each [recurring task](#recurring-task)'s last seven dates, with each date marked done, not done or a [gap](#gap).
+A quest's collection of recorded milestones. It celebrates what the user has done. In the Dailies quest, the separate Day grid tab shows: each [recurring task](#recurring-task)'s last seven dates, with each date marked done, not done or a [gap](#gap).
 
 - **UI:** "Progress".
 
@@ -294,15 +294,15 @@ A short, dated line the user saves to an Active quest open to them from the site
 
 ### Buckets
 
-The quest sidebar's first tab, which opens a menu of the quest's buckets: Tasks, Ideas, Quick Notes and Progress. The menu checks the open bucket, and the bucket's name heads the panel under the tab. The sidebar's other tabs are [Actions](#quest-sidebar-actions) and Members. Every bucket stays loaded, so switching keeps drafts.
+The quest sidebar's collections: Tasks, Ideas, Quick Notes and Progress, each reached by a direct tab. Dailies also has Day grid for recurring history. Each collection stays loaded so switching preserves drafts. The Control desk treatment distinguishes agreed tasks, possibilities and dated notes.
 
-- **UI:** "Buckets".
+- **UI:** "Tasks", "Ideas", "Quick Notes", "Progress", "Day grid".
 
 ### Quest sidebar actions
 
-The quest sidebar's **Actions** tab holds what the user does to the quest's conversation rather than reads: the spell picker with Cast spell, and [Start Day](#start-day) for an Active Dailies quest. Like every sidebar control, each sends its [command](#command) to the conversation.
+The quest sidebar's **Spells & status** disclosure holds the spell picker and quest status controls. The existing `?section=actions` link opens it. Dailies keeps Start Day and its available Undo above the collection tabs. Like every sidebar command control, each sends its command to the conversation.
 
-- **UI:** "Actions".
+- **UI:** "Spells & status".
 
 ### Tasks
 

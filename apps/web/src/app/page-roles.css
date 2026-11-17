@@ -1938,43 +1938,54 @@
     padding-inline: var(--header-gutter);
   }
 
-  /* The sidebar's tabs take one row, the breadcrumb row's height, so the
-     line under them meets the line under the breadcrumbs. Its three tabs,
-     Buckets, Actions and Members, fit at 320 px, so the row neither wraps
-     nor scrolls, and an open tab can reach past its own edges. */
+  /* The shell header meets the trail band; the domain body scrolls beneath it. */
+  .quest-panel-heading {
+    min-block-size: var(--panel-tab-height);
+    margin-inline: calc(-1 * var(--header-gutter));
+    padding-inline-start: var(--header-gutter);
+    @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-sidebar-surface;
+  }
+
   .quest-sidebar .workspace-rail {
     --sidebar-tab-pad: --spacing(2);
     margin-inline: calc(-1 * var(--header-gutter));
-    padding-inline-start: calc(var(--header-gutter) - var(--sidebar-tab-pad));
-    @apply sticky top-0 z-10 flex-nowrap items-stretch gap-x-2 border-t-0 bg-sidebar-surface pe-0;
+    @apply gap-0 border-line/40 border-t-0 px-2;
   }
 
   .quest-sidebar .workspace-tablist {
-    min-block-size: var(--panel-tab-height);
     overflow-x: visible;
     animation: none;
-    @apply flex-1 gap-x-0;
+    @apply w-full flex-wrap gap-x-0;
   }
 
   .quest-sidebar .workspace-tab {
-    @apply gap-1;
-    position: relative;
     padding-inline: var(--sidebar-tab-pad);
-    background-clip: padding-box;
+    @apply gap-1;
   }
 
-  /* The selected tab's underline spans its label, not its padding. */
-  .quest-sidebar .workspace-tab[data-state="active"] {
-    border-color: transparent;
+  .dailies-day-controls {
+    @apply flex flex-col items-start gap-2 py-4;
   }
 
-  .quest-sidebar .workspace-tab[data-state="active"]::after {
-    content: "";
-    position: absolute;
-    inset-inline: var(--sidebar-tab-pad);
-    inset-block-end: -2px;
-    block-size: 2px;
-    @apply bg-primary;
+  .quest-next-task {
+    @apply my-4 flex flex-col gap-2 border-primary border-s-2 ps-3;
+  }
+
+  .panel-utilities {
+    @apply border-line/40 border-t;
+  }
+
+  .panel-utilities > details {
+    @apply border-line/40 border-b;
+  }
+
+  .panel-utilities summary {
+    min-block-size: var(--target-size);
+    @apply cursor-pointer py-3 font-semibold;
+  }
+
+  .panel-utility-content {
+    @apply flex min-w-0 flex-col gap-3 pb-4;
   }
 
   .workspace-menu-tab {
