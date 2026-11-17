@@ -9,11 +9,14 @@ import {
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
+import type { AnswerInvitation } from "@/quests/membership.ts";
 import {
   STATUS_APPROVAL_ID,
   type StatusActionState,
   type StatusApproval,
 } from "@/quests/quest-status.ts";
+import { THEME_MODES } from "@/themes/themes.ts";
+import { PENDING_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
@@ -33,6 +36,8 @@ import {
   inConversation,
   sentTexts,
 } from "./chat/chat-send-test-kit.tsx";
+
+const TAB_TARGET_PX = 44;
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
@@ -242,6 +247,9 @@ describe("quest status tabs", () => {
     await expect
       .element(page.getByRole("button", { name: "Restore quest" }))
       .toBeVisible();
+    expect(new URL(globalThis.location.href).searchParams.get("status")).toBe(
+      "completed",
+    );
   });
   test("restoring from a list keeps Undo available outside the card", async () => {
     vi.mocked(changeQuestStatusAction).mockResolvedValue({
@@ -285,7 +293,69 @@ describe("quest status tabs", () => {
 
 describe("quest status on phones", () => {
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
-    for (const mode of ["light", "dark"]) {
+    for (const mode of THEME_MODES) {
+      test(`all categories and a shared quest fit ${viewport.width} px in ${mode}`, async () => {
+        applyTheme("parchment", mode);
+        await setViewport(viewport);
+        const answer = vi.fn<AnswerInvitation>();
+        const name = "One layer up: interface, associativity explorer";
+        await render(
+          <QuestStatusTabs
+            quests={[{ ...FOX_QUEST, name, sharing: { kind: "shared" } }]}
+            pending={{ quests: [], answer }}
+          />,
+        );
+        const active = page.getByRole("tab", { name: "Active", exact: true });
+        const completed = page.getByRole("tab", {
+          name: "Completed",
+          exact: true,
+        });
+        const panel = page.getByRole("tabpanel", { name: "Active" });
+        await expect.element(panel.getByRole("listitem")).toBeVisible();
+        await expect
+          .element(panel.getByText("Shared", { exact: true }))
+          .toBeVisible();
+        await expect.element(panel.getByRole("link", { name })).toBeVisible();
+        await expect
+          .element(active.getByText("1", { exact: true }))
+          .toBeVisible();
+        for (const tab of page.getByRole("tab").elements()) {
+          const box = tab.getBoundingClientRect();
+          expect(box.left).toBeGreaterThanOrEqual(0);
+          expect(box.right).toBeLessThanOrEqual(viewport.width);
+          expect(box.height).toBeGreaterThanOrEqual(TAB_TARGET_PX);
+        }
+        expect(getComputedStyle(active.element()).backgroundColor).not.toBe(
+          getComputedStyle(completed.element()).backgroundColor,
+        );
+        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+        expect(smallTargets(await measureTargets())).toEqual([]);
+
+        await active.click();
+        await userEvent.keyboard("{ArrowRight}");
+        await expect.element(completed).toHaveFocus();
+        await expect
+          .element(completed)
+          .toHaveAttribute("aria-selected", "true");
+        expect(getComputedStyle(completed.element()).outlineStyle).toBe(
+          "solid",
+        );
+        await expect
+          .element(page.getByRole("tabpanel", { name: "Completed" }))
+          .toHaveTextContent(QUEST_STATUS_COPY.empty);
+        await userEvent.keyboard("{End}");
+        await expect
+          .element(page.getByRole("tab", { name: PENDING_COPY.tabLabel(0) }))
+          .toHaveFocus();
+        await expect
+          .element(
+            page
+              .getByRole("tabpanel", { name: PENDING_COPY.tabLabel(0) })
+              .getByText(PENDING_COPY.none, { exact: true }),
+          )
+          .toBeVisible();
+      });
+
       test(`approval and restoration fit ${viewport.width} px in ${mode}`, async () => {
         applyTheme("parchment", mode);
         await setViewport(viewport);
