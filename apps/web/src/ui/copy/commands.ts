@@ -100,11 +100,11 @@ const PANEL_COMMANDS_COPY = {
       "There's no Start Day to take back, or someone has written in the new day's conversation.",
     noEmail: "Write an email address after /invite, such as name@example.com.",
     noInvitation: (email: string): string =>
-      `There's no invitation for ${email}. The Members tab lists the invitations.`,
+      `There's no invitation for ${email}. Members lists the invitations.`,
     noMember: (name: string): string =>
-      `There's no member named ${name}. The Members tab lists the members.`,
+      `There's no member named ${name}. Members lists the members.`,
     sameName: (name: string): string =>
-      `More than one member is named ${name}. Remove them from the Members tab.`,
+      `More than one member is named ${name}. Remove them from Members.`,
     removeSelf: "To leave this quest, use /leave.",
     owner: "The quest's owner can't leave it or be removed.",
     dailies: "Dailies is yours alone, so no one can be invited to it.",

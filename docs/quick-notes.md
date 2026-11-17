@@ -14,7 +14,7 @@ Quick Notes live in the `quest_notes` table: an id, the quest, the text and when
 
 ## A quest's Quick Notes
 
-The quest sidebar's **Quick Notes** bucket, in its Buckets menu, has an always-visible composer above its saved notes, including when the bucket is empty. It targets the current quest without offering another quest choice. **Save Quick Note** saves the trimmed multiline text through the same Server Action as the site-panel dialog, clears the composer and returns focus to its text area. The response supplies the ordered notes and their saved dates.
+The quest sidebar's **Quick Notes** tab has an always-visible composer above its saved notes, including when the bucket is empty. It targets the current quest without offering another quest choice. **Save Quick Note** saves the trimmed multiline text through the same Server Action as the site-panel dialog, clears the composer and returns focus to its text area. The response supplies the ordered notes and their saved dates.
 
 **Clear** discards the draft, clears feedback and focuses the text area without hiding it. Enter adds a line break; leaving the field does not save. A failed or refused save keeps the draft and explains the problem.
 
