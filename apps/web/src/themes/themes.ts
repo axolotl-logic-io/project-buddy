@@ -64,6 +64,9 @@
 //   --body-font       body text (set on <body>)         font-body
 //   --heading-font    headings (set on h1 to h6)        font-heading
 //   --mono-font       code                              font-mono
+// Conversation roles in chat.css use --conversation-font, --conversation-text-size
+// and --conversation-leading for manuscript prose, and --conversation-field-radius
+// for the composer's field. These do not restyle shared buttons or other pages.
 // Spacing, one value for all three appearances:
 //   --space-unit      the step of every spacing         any spacing
 //                     utility, such as 0.25rem          utility: p-4,

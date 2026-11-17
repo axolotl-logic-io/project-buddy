@@ -64,7 +64,7 @@ const WHEEL_UP_PIXELS = -400;
 
 // Deliver wheel input through the browser, including its native default scroll.
 async function wheelUp(context: BrowserCommandContext): Promise<void> {
-  const frame = await context.page.locator("iframe").boundingBox();
+  const frame = await context.page.locator("iframe[data-vitest]").boundingBox();
   if (frame === null) {
     throw new Error("The browser test iframe is not visible");
   }

@@ -38,6 +38,14 @@ Conversation behavior stays in Vitest. Playwright covers authentication flows on
 
 A quest's conversation starts below the site header's trail band, without a separate portrait bar. The trail band names the quest and keeps its rename pencil pinned. On the Active Dailies quest, once its conversation has started, the trail band also shows the construct's portrait and name after the breadcrumbs and before the quest-panel control, as a running timer's tools show there; on a phone the portrait alone shows. Choosing it opens the construct's profile. Quest status changes use `/complete`, `/abandon` and `/restore` in the composer. Scroll clearance keeps quest messages below the trail band.
 
+## Conversation layout
+
+The Folio layout reads as one continuous manuscript. Source Serif 4 prose stays at 17 px with a 1.55 line height. A person's small-cap name starts their message inline; a construct's name and 24 px portrait sit above its reply, after a fine rule. Messages use the full reading width without bubbles or a user-message inset. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available.
+
+The reading measure is at most 43 rem. Compact message spacing and Markdown paragraph gaps reduce scrolling without shrinking prose or action targets. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
+
+The docked composer has a lightly squared field and two initial lines, growing to twelve. Its active spell and shared Stop control share one row. Send and Stop reply keep the shared button styles and 44 px targets. The command hint remains visible. These roles apply through semantic tokens in all three appearances and do not change other page typography or buttons.
+
 ## Message authors
 
 Each user message records its author, the user who sent it, in the nullable column `messages.user_id`. A message with no author recorded belongs to the quest's owner, and the construct's messages never have one. `listMessages` reads every user message with its author in the message's metadata, and `src/chats/message-author.ts` defines the author type.

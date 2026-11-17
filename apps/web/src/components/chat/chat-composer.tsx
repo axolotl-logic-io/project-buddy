@@ -36,9 +36,17 @@ const MOST_MESSAGE_ROWS = 12;
 export function ChatComposer({
   inputRef,
   stop,
+  spellStop,
 }: {
   readonly inputRef?: RefObject<HTMLTextAreaElement | null>;
   readonly stop?: ReplyStop | undefined;
+  readonly spellStop?:
+    | {
+        readonly label: string;
+        readonly activeLabel: string;
+        readonly onStop: () => void;
+      }
+    | undefined;
 }): JSX.Element {
   // Whether focus left Stop reply for another element, or was never on it;
   // a Stop that goes when the reply ends leaves focus nowhere instead.
@@ -93,7 +101,7 @@ export function ChatComposer({
   }
   return (
     <ComposerPrimitive.Root
-      className="relative flex flex-col gap-1.5"
+      className="chat-composer relative flex flex-col gap-1.5"
       onSubmit={commands.intercept}
     >
       {commands.listings.length > 0 && (
@@ -104,7 +112,15 @@ export function ChatComposer({
           onChoose={commands.complete}
         />
       )}
-      <div className="field-box">
+      {spellStop !== undefined && (
+        <div className="chat-composer-spell">
+          <span>{spellStop.activeLabel}</span>
+          <Button variant="quiet" onClick={spellStop.onStop}>
+            {spellStop.label}
+          </Button>
+        </div>
+      )}
+      <div className="field-box chat-composer-field">
         <ComposerPrimitive.Input
           aria-describedby={describedBy}
           aria-controls={menuControls}
@@ -146,7 +162,7 @@ export function ChatComposer({
       {commands.problem !== undefined && (
         <Alert id={problemId}>{commands.problem}</Alert>
       )}
-      <p className="px-2 text-muted text-xs" id={hintId}>
+      <p className="text-muted text-xs" id={hintId}>
         {CHAT_COPY.keyHint}
       </p>
     </ComposerPrimitive.Root>

@@ -3,7 +3,7 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -16,6 +16,7 @@ import {
   questIdFixture,
   userIdFixture,
 } from "../../../support/id-fixtures.ts";
+import { applyTheme } from "../../themes/theme-test-kit.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -51,7 +52,7 @@ const BUILT_IN_VISUAL_PATH =
 const CONSTRUCT_NAME = /Lumen|Vellum|Paper Bird/u;
 const LAPTOP_WIDTH = 1280;
 const LAPTOP_HEIGHT = 900;
-const AVATAR_SIZE = 32;
+const AVATAR_SIZE = 24;
 const PHONE_WIDTH = 320;
 const PHONE_HEIGHT = 700;
 
@@ -100,6 +101,8 @@ function activity(text: string): {
 function motionAllowed(): boolean {
   return !matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+beforeEach(() => applyTheme("parchment"));
 
 afterEach(async () => {
   vi.unstubAllGlobals();
