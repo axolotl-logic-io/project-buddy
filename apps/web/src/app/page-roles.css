@@ -1571,6 +1571,14 @@
     @apply wrap-anywhere whitespace-pre-wrap min-w-0 justify-start px-0 py-2.5 text-left font-body font-normal text-foreground no-underline hover:underline disabled:opacity-100;
   }
 
+  .bucket-desk .editable-text {
+    @apply px-1;
+  }
+
+  .bucket-notes .editable-text {
+    @apply py-3 leading-relaxed;
+  }
+
   .editable-row[data-completed="true"] .editable-text {
     @apply text-muted line-through;
   }
@@ -1624,6 +1632,14 @@
   /* More about an item, on its own line under the text and the actions. */
   .editable-detail {
     @apply col-start-1 -col-end-1 -mt-1.5 min-w-0 pb-2.5;
+  }
+
+  .bucket-tasks .editable-detail {
+    @apply ps-1;
+  }
+
+  .bucket-ideas .editable-detail {
+    @apply mt-0 pb-1 ps-7;
   }
 
   .editable-row:has(.editable-check) > .editable-detail {
@@ -1730,6 +1746,126 @@
 
   .tasks-done[open] > summary::before {
     content: "▾";
+  }
+
+  /* Control desk buckets share a toolbar and ledger rules. Domain wrappers
+     give agreed work, possibilities and dated notes their own structure. */
+  .bucket-desk {
+    @apply min-w-0 gap-0;
+  }
+
+  .bucket-toolbar {
+    @apply flex min-w-0 flex-wrap items-center justify-between border border-primary bg-primary text-on-primary;
+  }
+
+  .bucket-summary {
+    @apply min-w-0 flex-1 px-3 py-2 font-medium text-xs;
+  }
+
+  .bucket-toolbar .editable-add {
+    @apply w-auto min-w-0 shrink-0 rounded-none border-on-primary border-s text-on-primary hover:bg-on-primary/10;
+  }
+
+  .bucket-toolbar:has(.editable-add-form) {
+    @apply bg-field text-foreground;
+  }
+
+  .bucket-toolbar .editable-add-form {
+    @apply w-full rounded-none border-primary border-t bg-field;
+  }
+
+  .bucket-desk .editable-list {
+    @apply border border-line border-t-0 bg-surface;
+  }
+
+  .bucket-desk .editable-list:empty {
+    @apply border-0;
+  }
+
+  .bucket-desk .editable-row {
+    @apply rounded-none border-line border-b px-1 last:border-b-0;
+  }
+
+  .bucket-desk .editable-row:has(.editable-leading) {
+    @apply grid-cols-[auto_minmax(0,1fr)_auto];
+  }
+
+  .editable-leading {
+    @apply min-w-0;
+  }
+
+  .bucket-ideas .editable-leading {
+    min-block-size: var(--target-size);
+    @apply flex w-7 items-center justify-center text-primary;
+  }
+
+  .bucket-desk .editable-grip,
+  .bucket-desk .editable-more {
+    min-inline-size: calc(var(--target-size) * 0.75);
+  }
+
+  .bucket-tasks > .editable-list > .editable-row:first-child {
+    @apply border-primary border-s-4;
+  }
+
+  .bucket-tasks .editable-check input::before {
+    @apply rounded-none;
+  }
+
+  .bucket-desk .tasks-done {
+    @apply mt-3 border-line border-t;
+  }
+
+  .bucket-desk .tasks-done .editable-list {
+    @apply border-t;
+  }
+
+  .idea-decision {
+    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-2 text-muted text-xs;
+  }
+
+  .idea-decision .button-quiet {
+    @apply text-xs underline;
+  }
+
+  .bucket-empty {
+    @apply border border-line border-t-0 bg-surface px-4 py-5 text-muted text-sm;
+  }
+
+  .bucket-notes .editable-row:has(.editable-leading) {
+    @apply grid-cols-[auto_minmax(0,1fr)_auto];
+  }
+
+  .bucket-notes .editable-leading {
+    @apply my-3 me-2 self-stretch border-line border-e px-2 py-1 text-xs;
+  }
+
+  .bucket-notes .bucket-toolbar {
+    @apply mt-4;
+  }
+
+  .bucket-toolbar[data-empty="true"] {
+    @apply flex-col items-stretch gap-4 border-line border-dashed bg-surface px-4 py-6 text-foreground;
+  }
+
+  .bucket-toolbar[data-empty="true"] .editable-add {
+    @apply justify-center border border-line text-primary hover:bg-field;
+  }
+
+  .bucket-toolbar[data-empty="true"] .editable-add-form {
+    @apply border border-line;
+  }
+
+  .bucket-empty-copy {
+    @apply flex flex-col items-center gap-2 text-center text-muted text-sm;
+  }
+
+  .bucket-empty-copy > .icon {
+    @apply text-2xl;
+  }
+
+  .bucket-empty-heading {
+    @apply font-heading text-foreground text-xl;
   }
 
   /* A tasks change in an adventure (src/components/chat/tasks-change-part.tsx):
@@ -1902,6 +2038,14 @@
     @apply font-heading font-semibold text-foreground text-lg;
   }
 
+  .bucket-panel:has(.bucket-desk) > .bucket-heading {
+    @apply flex items-center justify-between gap-3 border-foreground border-t-4 pt-3 text-end font-body font-bold;
+  }
+
+  .bucket-description {
+    @apply text-muted text-xs;
+  }
+
   .quest-sidebar .workspace-content {
     @apply px-0 py-4;
   }
@@ -1967,12 +2111,20 @@
     @apply min-w-0 flex-[1_1_8rem] rounded-none border-0 bg-transparent px-0 py-2.5 text-sm shadow-none disabled:cursor-not-allowed disabled:opacity-60;
   }
 
+  .bucket-toolbar[data-empty="true"] .editable-form .input-field {
+    @apply basis-full;
+  }
+
   .quest-sidebar .notice {
     @apply rounded-none border-0 bg-transparent p-0 text-sm shadow-none;
   }
 
   .quest-sidebar .page-slot {
     @apply gap-3;
+  }
+
+  .quest-sidebar .bucket-desk {
+    @apply gap-0;
   }
 
   @media (width >= --theme(--breakpoint-lg)) {

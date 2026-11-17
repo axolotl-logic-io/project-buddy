@@ -50,6 +50,33 @@ function ideasPanel({
 }
 
 describe("use_case_quest_ideas", () => {
+  test("the visible Move to Tasks action keeps a refused idea and moves it with feedback and focus on success", async () => {
+    const send = chatSendMock().mockResolvedValueOnce({
+      sent: false,
+      problem: "Tasks is full. Make room first.",
+    });
+    await render(ideasPanel({ send, ideas: [IDEA_FIXTURE] }));
+    const move = page.getByRole("button", { name: "Move to Tasks" });
+    await expect.element(move).toBeVisible();
+    await move.click();
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent("Tasks is full. Make room first.");
+    await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
+    send.mockResolvedValueOnce(noted("Moved the idea to Tasks."));
+    await move.click();
+    expect(sentTexts(send)).toEqual(["/idea-to-tasks 1", "/idea-to-tasks 1"]);
+    await expect
+      .element(page.getByText("Nothing to commit to yet"))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Moved the idea to Tasks.");
+    await expect
+      .element(page.getByRole("heading", { name: "Ideas" }))
+      .toHaveFocus();
+  });
+
   test("Add idea sends /idea with the text", async () => {
     const send = chatSendMock().mockResolvedValue(
       noted("Added the idea “Try charcoal” to Ideas."),
