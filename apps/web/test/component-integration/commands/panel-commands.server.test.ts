@@ -30,7 +30,11 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 const notes: typeof PANEL_COMMANDS_COPY.notes = PANEL_COMMANDS_COPY.notes;
 const problems: typeof PANEL_COMMANDS_COPY.problems =
   PANEL_COMMANDS_COPY.problems;
-const LOCAL_DATE = "2026-11-14";
+// The browser's date: the day before the server's UTC date, so it differs
+// from the date the server would pick yet stays within the days dayDate
+// trusts. A fixed date would stop being trusted once the clock moved on.
+const DAY_MS = 86_400_000;
+const LOCAL_DATE = new Date(Date.now() - DAY_MS).toISOString().slice(0, 10);
 
 // A signed-in user's Dailies conversation.
 async function signedInDailies(): Promise<{
