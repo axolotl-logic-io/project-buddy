@@ -104,6 +104,10 @@
     --body-font: var(--typeface-nunito);
     --heading-font: var(--typeface-source-serif-4);
     --mono-font: var(--typeface-jetbrains-mono);
+    --conversation-font: var(--typeface-source-serif-4);
+    --conversation-text-size: 1.0625rem;
+    --conversation-leading: 1.55;
+    --conversation-field-radius: 0.125rem;
 
     /* Tailwind's own unit, as the site had before themes. */
     --space-unit: 0.25rem;

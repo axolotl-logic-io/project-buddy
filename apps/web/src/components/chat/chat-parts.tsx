@@ -26,7 +26,13 @@ function ChatText({
   if (role === "user") {
     return <p className="whitespace-pre-wrap">{part.text}</p>;
   }
-  return <Markdown running={part.status.type === "running"} text={part.text} />;
+  return (
+    <Markdown
+      className="space-y-2 [&_blockquote]:not-italic [&_li]:my-0"
+      running={part.status.type === "running"}
+      text={part.text}
+    />
+  );
 }
 
 // One part of a message from role: text, tool calls through their entries
