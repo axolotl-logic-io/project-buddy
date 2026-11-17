@@ -325,3 +325,8 @@ vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
   restoreDefinitionAction: vi.fn(),
   deleteRetiredDefinitionAction: vi.fn(),
 }));
+
+vi.mock(
+  "@/visits/signed-in-days-store.ts",
+  () => import("../visits/signed-in-days-store-test-kit.ts"),
+);
