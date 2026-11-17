@@ -28,7 +28,7 @@ function ChatText({
   }
   return (
     <Markdown
-      className="space-y-2 [&_blockquote]:not-italic [&_li]:my-0"
+      className="space-y-2 [&_blockquote]:not-italic [&_li]:py-0"
       running={part.status.type === "running"}
       text={part.text}
     />
