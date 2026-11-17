@@ -232,16 +232,22 @@ const SCROLL_OFFSETS: readonly number[] = [
 // most: a quarter.
 const HEADER_SHARE = 4;
 
-// The smallest part of the conversation drawn across the band around the
-// window's middle, or undefined for none.
+// The smallest text block whose centre is near the window's middle.
+// Image fallback glyphs can remain in the DOM underneath a loaded portrait.
+// A large parent may cross that band while its centre is behind the composer.
 function smallestAcrossMiddle(conversation: Element): Element | undefined {
   const middle = window.innerHeight / 2;
-  const [smallest] = [...conversation.querySelectorAll("*")]
+  const [smallest] = [
+    ...conversation.querySelectorAll(
+      "p, li, pre, blockquote, h1, h2, h3, h4, h5, h6",
+    ),
+  ]
     .filter((element) => {
       const { top, bottom } = element.getBoundingClientRect();
       return (
-        top <= middle - ONE_SCREEN_DOWN_BAND / 2 &&
-        bottom >= middle + ONE_SCREEN_DOWN_BAND / 2
+        bottom > top &&
+        (top + bottom) / 2 >= middle - ONE_SCREEN_DOWN_BAND / 2 &&
+        (top + bottom) / 2 <= middle + ONE_SCREEN_DOWN_BAND / 2
       );
     })
     .toSorted(

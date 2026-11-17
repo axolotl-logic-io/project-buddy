@@ -446,10 +446,13 @@ function ChatView({
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
   }
-  let spellStop: { label: string; onStop: () => void } | undefined;
+  let spellStop:
+    | { label: string; activeLabel: string; onStop: () => void }
+    | undefined;
   if (spellName !== undefined && replyStop === undefined) {
     spellStop = {
       label: SPELL_MODE_COPY.stop(spellName),
+      activeLabel: SPELL_MODE_COPY.active(spellName),
       onStop: stopSpell,
     };
   }
