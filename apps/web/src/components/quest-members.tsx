@@ -55,6 +55,7 @@ function RemoveControl({
     return (
       <Button
         aria-label={QUEST_MEMBERS_COPY.withdrawLabel(person.displayName)}
+        aria-busy={busy}
         disabled={busy}
         onClick={remove}
         variant="quiet"
@@ -67,7 +68,7 @@ function RemoveControl({
     return (
       <ConfirmDialog
         trigger={
-          <Button disabled={busy} variant="secondary">
+          <Button aria-busy={busy} disabled={busy} variant="secondary">
             {QUEST_MEMBERS_COPY.leave}
           </Button>
         }
@@ -86,6 +87,7 @@ function RemoveControl({
       trigger={
         <Button
           aria-label={QUEST_MEMBERS_COPY.removeLabel(person.displayName)}
+          aria-busy={busy}
           disabled={busy}
           variant="quiet"
         >
@@ -177,7 +179,12 @@ function InviteForm(): JSX.Element {
         required={true}
         error={problem}
       />
-      <Button className="self-start" disabled={busy} type="submit">
+      <Button
+        className="self-start"
+        aria-busy={busy}
+        disabled={busy}
+        type="submit"
+      >
         {label}
       </Button>
       <FormStatus>{status}</FormStatus>

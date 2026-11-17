@@ -105,7 +105,7 @@ export function LinkRequestForm({
         type="email"
       />
       {state.kind === "error" && <Alert>{state.message}</Alert>}
-      <Button disabled={pending} type="submit">
+      <Button aria-busy={pending} disabled={pending} type="submit">
         {words.send}
       </Button>
       <FormStatus>

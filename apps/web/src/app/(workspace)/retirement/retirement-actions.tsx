@@ -48,8 +48,7 @@ function RetirementActions({
           trigger={
             <Button
               aria-label={RETIREMENT_COPY.deleteLabel(definition.name)}
-              className="text-danger"
-              variant="quiet"
+              variant="quiet-danger"
             >
               {RETIREMENT_COPY.delete}
             </Button>
