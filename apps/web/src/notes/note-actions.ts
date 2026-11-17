@@ -8,7 +8,7 @@ import {
   type NoteResult,
   SAVE_NOTE_REQUEST,
 } from "@/notes/note.ts";
-import { saveNote } from "@/notes/note-store.ts";
+import { listNotes, saveNote } from "@/notes/note-store.ts";
 import { listQuests } from "@/quests/store.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 
@@ -46,8 +46,9 @@ async function saveNoteAction(request: unknown): Promise<NoteResult> {
   if (!saved) {
     return noteProblem(QUICK_NOTE_COPY.notFound);
   }
+  const notes = await listNotes(user.id, parsed.data.questId);
   refresh();
-  return { kind: "saved" };
+  return { kind: "saved", notes };
 }
 
 export { listNoteQuestsAction, saveNoteAction };

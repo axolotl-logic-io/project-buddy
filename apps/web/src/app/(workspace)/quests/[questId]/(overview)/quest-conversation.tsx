@@ -124,7 +124,7 @@ async function questConversation(
         {
           id: "notes",
           label: QUEST_NOTES_COPY.heading,
-          content: <QuestNotes notes={notes} />,
+          content: <QuestNotes notes={notes} quest={quest} />,
           bucket: true,
         },
         {
