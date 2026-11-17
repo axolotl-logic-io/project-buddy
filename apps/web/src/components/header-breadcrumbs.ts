@@ -1,13 +1,11 @@
 import type { Route } from "next";
 import type { User } from "@/accounts/users-store.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { getOwnConstruct } from "@/constructs/construct-store.ts";
 import { getConstruct, isConstructId } from "@/constructs/index.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
-import { workshopPath } from "@/routes.ts";
 import { findSpell } from "@/spells/own-spell-store.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
 import {
@@ -20,8 +18,8 @@ import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
-import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
   readonly quest?: Pick<Quest, "id" | "name">;
@@ -37,7 +35,7 @@ const CHILD_DEPTH = 3;
 // /timer/<work>/<break>/<start>.
 const TIMER_LINK_DEPTH = 4;
 
-const QUESTS: Breadcrumb = {
+const QUESTS: Breadcrumb & { readonly href: Route } = {
   label: QUESTS_COPY.heading,
   href: "/quests",
 };
@@ -49,18 +47,8 @@ const TIMER_ROOT: Breadcrumb & { readonly href: Route } = {
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
-    [
-      "constructs",
-      {
-        label: WORKSHOP_PAGE_COPY.kinds.construct,
-        href: workshopPath("construct"),
-      },
-    ],
-    [
-      "spellbook",
-      { label: WORKSHOP_PAGE_COPY.kinds.spell, href: workshopPath("spell") },
-    ],
-    ["workshop", { label: WORKSHOP_COPY.heading, href: "/workshop" }],
+    ["constructs", QUESTS],
+    ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
     ["retirement", { label: RETIREMENT_COPY.heading, href: "/retirement" }],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
@@ -168,8 +156,6 @@ async function headerBreadcrumbs(
   if (section === "constructs") {
     if (isConstructId(id)) {
       ({ name } = getConstruct(id));
-    } else {
-      name = (await getOwnConstruct(user.id, id))?.name;
     }
   } else if (section === "spellbook") {
     const parsed = SPELL_ID.safeParse(id);
@@ -183,13 +169,6 @@ async function headerBreadcrumbs(
   }
   if (name === undefined) {
     return [];
-  }
-  if (section === "constructs" || section === "spellbook") {
-    return [
-      { label: WORKSHOP_COPY.heading, href: "/workshop" },
-      root,
-      { label: name },
-    ];
   }
   return [root, { label: name }];
 }

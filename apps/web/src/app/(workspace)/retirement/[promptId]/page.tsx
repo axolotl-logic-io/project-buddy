@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
-import { Notice } from "@/components/ui/form-message.tsx";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { RetirementActions } from "../retirement-actions.tsx";
@@ -28,14 +27,10 @@ async function RetiredDefinitionPage({
         <LocalTime dateTime={definition.retiredAt} detail="day" />
       </p>
       <RetirementActions definition={definition} />
-      {definition.kind === "construct" && (
-        <Notice>{RETIREMENT_COPY.fallback}</Notice>
-      )}
       <h2 className="section-heading">{RETIREMENT_COPY.instructions}</h2>
       {definition.texts.map((field) => (
         <PromptText
           editable={false}
-          literal={field.name === "visualDescription"}
           help=""
           key={field.name}
           label={RETIREMENT_COPY.fields[field.name]}

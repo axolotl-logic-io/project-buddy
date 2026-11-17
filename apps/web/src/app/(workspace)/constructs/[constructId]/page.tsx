@@ -1,150 +1,45 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { JSX } from "react";
-import { cache } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ConstructVisualPreview } from "@/components/constructs/construct-visual-preview.tsx";
-import { PromptEditor } from "@/components/prompt-editor.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { FormStatus } from "@/components/ui/form-message.tsx";
-import { Workshop } from "@/components/workshop/workshop.tsx";
-import {
-  getOwnConstruct,
-  type OwnConstruct,
-} from "@/constructs/construct-store.ts";
-import {
-  type Construct,
-  getConstruct,
-  isConstructId,
-} from "@/constructs/index.ts";
-import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
+import { getConstruct, isConstructId } from "@/constructs/index.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
-import { CONSTRUCT_COPY, CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
-import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
-import { editBuiltInConstructAction, saveConstructAction } from "../actions.ts";
-import { RetireConstructForm } from "../retire-construct-form.tsx";
 
-function BuiltInConstruct({
-  construct,
-}: {
-  readonly construct: Construct;
-}): JSX.Element {
-  return (
-    <>
-      <p className="text-muted">{CONSTRUCT_COPY.builtInIntro}</p>
-      <form action={editBuiltInConstructAction}>
-        <input name="constructId" type="hidden" value={construct.id} />
-        <Button type="submit">{CONSTRUCTS_COPY.customize}</Button>
-      </form>
-      <section
-        className="flex min-w-0 flex-col gap-4"
-        aria-label={VISUAL_COPY.heading}
-      >
-        <h2 className="section-heading">{VISUAL_COPY.heading}</h2>
-        <p className="whitespace-pre-wrap break-words">
-          {construct.definition.visual?.description}
-        </p>
-        <ConstructVisualPreview construct={construct} />
-      </section>
-    </>
-  );
-}
-
-function visualRequiredMessage(
-  construct: OwnConstruct,
-): typeof VISUAL_COPY.requiredDescription | undefined {
-  if (construct.definition.visual !== undefined) {
-    return VISUAL_COPY.requiredDescription;
-  }
-  return undefined;
-}
-
-function OwnConstructForm({
-  construct,
-  viewer,
-}: {
-  readonly construct: OwnConstruct;
-  readonly viewer: string;
-}): JSX.Element {
-  // Artwork attachments must not invalidate an otherwise current browser draft.
-  const draftRevision = JSON.stringify([
-    construct.name,
-    construct.definition.visual?.description ?? "",
-  ]);
-  return (
-    <>
-      <p className="text-muted">{CONSTRUCT_COPY.ownIntro}</p>
-      <PromptEditor
-        action={saveConstructAction}
-        heading={VISUAL_COPY.heading}
-        idName="constructId"
-        key={draftRevision}
-        kind="construct"
-        name={construct.name}
-        promptId={construct.id}
-        savedAt={draftRevision}
-        viewer={viewer}
-        texts={[
-          {
-            name: "visualDescription",
-            text: construct.definition.visual?.description ?? "",
-            label: VISUAL_COPY.description,
-            help: VISUAL_COPY.descriptionHelp,
-            maxLength: 4000,
-            requiredMessage: visualRequiredMessage(construct),
-          },
-        ]}
-      />
-      <RetireConstructForm name={construct.name} constructId={construct.id} />
-    </>
-  );
-}
-
-// Shared only within one React server request; acting user remains part of the key.
-const readOwnDefinition = cache(getOwnConstruct);
-
-export async function generateMetadata({
+async function generateMetadata({
   params,
 }: PageProps<"/constructs/[constructId]">): Promise<Metadata> {
+  await requireUser();
   const { constructId } = await params;
-  const user = await requireUser();
-  let name: string | undefined;
+  let name = "Construct";
   if (isConstructId(constructId)) {
     ({ name } = getConstruct(constructId));
-  } else {
-    name = (await readOwnDefinition(user.id, constructId))?.name;
   }
-  return { title: pageTitle(name ?? "Construct") };
+  return { title: pageTitle(name) };
 }
 
 export default async function ConstructPage({
   params,
-  searchParams,
 }: PageProps<"/constructs/[constructId]">): Promise<JSX.Element> {
+  await requireUser();
   const { constructId } = await params;
-  const { saved } = await searchParams;
-  const user = await requireUser();
-  if (isConstructId(constructId)) {
-    const construct = getConstruct(constructId);
-    return (
-      <Workshop kind="construct">
-        <BuiltInConstruct construct={construct} />
-      </Workshop>
-    );
-  }
-  const construct = await readOwnDefinition(user.id, constructId);
-  if (construct === undefined) {
-    const retired = await getRetiredDefinition(user.id, constructId);
-    if (retired?.kind === "construct") {
-      redirect(`/retirement/${retired.id}`);
-    }
+  if (!isConstructId(constructId)) {
     notFound();
   }
+  const construct = getConstruct(constructId);
   return (
-    <Workshop kind="construct">
-      <FormStatus>{saved === "1" && PROMPT_COPY.saved}</FormStatus>
-      <OwnConstructForm viewer={user.id} construct={construct} />
-    </Workshop>
+    <section
+      className="definition-editor flex min-w-0 flex-col gap-4"
+      aria-label={VISUAL_COPY.heading}
+    >
+      <h2 className="section-heading">{VISUAL_COPY.heading}</h2>
+      <p className="whitespace-pre-wrap break-words">
+        {construct.definition.visual?.description}
+      </p>
+      <ConstructVisualPreview construct={construct} />
+    </section>
   );
 }
+
+export { generateMetadata };
