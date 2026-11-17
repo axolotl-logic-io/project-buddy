@@ -28,10 +28,12 @@ async function SpellLists(): Promise<JSX.Element> {
   ];
   return (
     <section className="flex min-w-0 flex-col gap-4">
-      <p className="text-muted">{SPELLBOOK_COPY.intro}</p>
-      <form action={newSpellAction}>
-        <Button type="submit">{SPELLBOOK_COPY.newSpell}</Button>
-      </form>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-muted">{SPELLBOOK_COPY.intro}</p>
+        <form action={newSpellAction}>
+          <Button type="submit">{SPELLBOOK_COPY.newSpell}</Button>
+        </form>
+      </div>
       <SpellIndex entries={entries} />
       <p className="text-muted">{SPELLBOOK_COPY.help}</p>
       <Link href="/retirement" className="text-link">

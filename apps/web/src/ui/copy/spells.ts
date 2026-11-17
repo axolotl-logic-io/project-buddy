@@ -35,6 +35,8 @@ const SPELLBOOK_COPY = {
     "Add one or more replies. One is chosen randomly each time. Use {{spell}} for the spell’s name, {{bucket}} for Tasks or Ideas, {{message}} for the sent message, and {{name}} for your name.",
   responseRequired: "Write a reply for this spell.",
   destination: "Message destination",
+  collectionDestination: (destination: string): string =>
+    `Saves to ${destination}`,
   destinationLabel: (destination: string): string =>
     `Message destination: ${destination}`,
   destinationHelp:
@@ -50,8 +52,7 @@ const SPELLBOOK_COPY = {
   builtIn: "Built-in spells are read-only. Make a copy to customize one.",
 
   builtInHeading: "Built-in spells",
-  intro:
-    "Create or copy a spell, then customize its replies and message destination. Stop beside the composer ends the spell.",
+  intro: "Find a spell to inspect or customize.",
 };
 const SPELL_MODE_COPY = {
   castUsage:

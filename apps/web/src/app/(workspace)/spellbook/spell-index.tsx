@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type ChangeEvent, type JSX, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import {
   type SpellDestination,
   spellDestinationLabel,
@@ -75,17 +76,22 @@ function SpellRow({
     action = SPELLBOOK_COPY.view;
   }
   return (
-    <li className="card flex min-w-0 flex-wrap items-center justify-between gap-3">
+    <li className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-line border-b py-3">
       <div className="min-w-0">
-        <h2 className="card-title wrap-anywhere">{name}</h2>
-        <p className="text-muted text-sm">{label}</p>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h2 className="card-title wrap-anywhere">{name}</h2>
+          <span className="text-muted text-sm">{label}</span>
+        </div>
         <p className="text-muted">
-          {SPELLBOOK_COPY.destinationLabel(spellDestinationLabel(destination))}
+          {SPELLBOOK_COPY.collectionDestination(
+            spellDestinationLabel(destination),
+          )}
         </p>
       </div>
       <Button asChild={true} variant="secondary">
         <Link href={`/spellbook/${id}`} aria-label={`${action} ${name}`}>
           {action}
+          <Icon name="chevron-right" />
         </Link>
       </Button>
     </li>
