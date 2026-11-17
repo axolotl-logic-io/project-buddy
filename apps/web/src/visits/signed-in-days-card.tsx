@@ -15,8 +15,11 @@ function SignedInDaysCard({
       <h2 className="font-bold font-heading text-section-heading">
         {PROFILE_COPY.daysHeading}
       </h2>
-      <p className="font-bold text-page-heading tabular-nums">
-        {PROFILE_COPY.daysTotal(days.total)}
+      <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <strong className="font-bold font-heading text-site-title-wide tabular-nums">
+          {days.total}
+        </strong>{" "}
+        <span>{PROFILE_COPY.daysUnit(days.total)}</span>
       </p>
       <p>{PROFILE_COPY.daysExplanation}</p>
       <p className="text-muted text-sm">
