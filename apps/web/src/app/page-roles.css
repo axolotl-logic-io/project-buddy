@@ -1417,6 +1417,45 @@
     @apply inline-flex shrink-0 items-center gap-1 px-1 text-muted text-sm tabular-nums;
   }
 
+  /* More about an item, on its own line under the text and the actions. */
+  .editable-detail {
+    @apply col-start-1 -col-end-1 -mt-1.5 min-w-0 pb-2.5;
+  }
+
+  .editable-row:has(.editable-check) > .editable-detail {
+    @apply col-start-2;
+  }
+
+  /* A recurring task's streak chain: a row of links toward its next
+     milestone, and a line that says what they show. */
+  .streak-chain {
+    @apply flex flex-col gap-1;
+  }
+
+  .streak-links {
+    @apply flex max-w-80 gap-0.5;
+  }
+
+  .streak-link {
+    @apply h-1.5 min-w-0.5 flex-1 rounded-full bg-line/25;
+  }
+
+  .streak-link[data-link="earned"] {
+    @apply bg-primary;
+  }
+
+  .streak-link[data-link="today"] {
+    @apply border border-primary border-dashed bg-transparent;
+  }
+
+  .streak-link[data-link="milestone"] {
+    @apply border border-accent;
+  }
+
+  .streak-note {
+    @apply text-muted text-xs;
+  }
+
   .editable-grip {
     touch-action: none;
     @apply cursor-grab active:cursor-grabbing;
