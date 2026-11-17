@@ -55,9 +55,6 @@ vi.mock(
   () => import("../auth/current-user-test-kit.ts"),
 );
 // The header slot reads the balance and resolves the trail's names.
-vi.mock("@/constructs/construct-store.ts", () => ({
-  getOwnConstruct: vi.fn(),
-}));
 vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
 }));

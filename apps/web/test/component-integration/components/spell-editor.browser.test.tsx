@@ -5,7 +5,6 @@ import { render } from "vitest-browser-react";
 import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
-import { Workshop } from "@/components/workshop/workshop.tsx";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -29,21 +28,26 @@ vi.mock(
 
 const PROMPT = "Offer one small experiment.";
 const PROMPT_ONLY: ComponentProps<typeof PromptEditor>["texts"] = [
-  { name: "prompt", text: PROMPT, label: "Prompt", help: "Instructions." },
+  {
+    name: "prompt",
+    text: PROMPT,
+    label: "Spell Messages",
+    help: "Reply when cast.",
+  },
 ];
 const EDITOR_SECTIONS: ComponentProps<typeof PromptEditor>["texts"] = [
   {
     name: "prompt",
     text: PROMPT,
-    label: "Instructions",
-    help: "Voice and habits.",
+    label: "Reply when cast",
+    help: "Casting replies.",
   },
   {
-    name: "visualDescription",
+    name: "stopReply",
     text: "An owl with amber eyes.",
-    label: "Visual description",
-    help: "Appearance.",
-    requiredMessage: "Describe the construct’s appearance.",
+    label: "Reply when stopped",
+    help: "Stopping replies.",
+    requiredMessage: "Write a reply.",
   },
 ];
 const TEST_CONTROL = /try|test/iu;
@@ -63,26 +67,26 @@ async function show(
         trail={
           <TrailBand
             items={[
-              { label: "Workshop", href: "/workshop" },
-              { label: "My construct" },
+              { label: "Spellbook", href: "/spellbook" },
+              { label: "My spell" },
             ]}
           />
         }
       />
       {inWorkspace(
-        <Workshop kind="construct">
+        <section className="definition-editor">
           <PromptEditor
             action={saveAction}
-            heading="Prompt"
-            idName="constructId"
-            kind="construct"
-            name="My construct"
-            promptId="vellum"
+            heading="Spell Messages"
+            idName="spellId"
+            kind="spell"
+            name="My spell"
+            promptId="tasks"
             savedAt="2026-11-04T00:00:00.000Z"
-            viewer="workshop-test"
+            viewer="spellbook-test"
             texts={texts}
           />
-        </Workshop>,
+        </section>,
       )}
     </>,
   );
@@ -109,39 +113,45 @@ afterEach(async () => {
   localStorage.clear();
 });
 
-test("use_case_workshop_editor", async () => {
+test("spell editor submits every section", async () => {
   await show(EDITOR_SECTIONS);
   const submitted = submission();
   await page
     .getByRole("textbox", { name: "Name", exact: true })
-    .fill("Renamed construct");
+    .fill("Renamed spell");
   await page
-    .getByRole("textbox", { name: "Instructions", exact: true })
+    .getByRole("textbox", { name: "Reply when cast", exact: true })
     .fill("Ask one useful question.");
   await page
-    .getByRole("button", { name: "Visual description", exact: true })
+    .getByRole("button", { name: "Reply when stopped", exact: true })
     .click();
   await expect
-    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .element(
+      page.getByRole("textbox", { name: "Reply when cast", exact: true }),
+    )
     .not.toBeInTheDocument();
   await page
-    .getByRole("textbox", { name: "Visual description", exact: true })
+    .getByRole("textbox", { name: "Reply when stopped", exact: true })
     .fill("An owl holding a notebook.");
-  await page.getByRole("button", { name: "Instructions", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Reply when cast", exact: true })
+    .click();
   await expect
-    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
+    .element(
+      page.getByRole("textbox", { name: "Reply when cast", exact: true }),
+    )
     .toHaveValue("Ask one useful question.");
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
     .click();
   const form = await submitted;
-  expect(form.get("name")).toBe("Renamed construct");
+  expect(form.get("name")).toBe("Renamed spell");
   expect(form.get("prompt")).toBe("Ask one useful question.");
-  expect(form.get("visualDescription")).toBe("An owl holding a notebook.");
+  expect(form.get("stopReply")).toBe("An owl holding a notebook.");
   expect(fetchSpy).not.toHaveBeenCalled();
 });
 
-test("the Workshop offers no test conversation", async () => {
+test("the Spellbook offers no test conversation", async () => {
   await show();
   await expect
     .element(page.getByRole("button", { name: TEST_CONTROL }))
@@ -150,44 +160,46 @@ test("the Workshop offers no test conversation", async () => {
 });
 
 test("a recovered editor draft is shown and saved", async () => {
-  keepLocalDraft("prompt:workshop-test:construct:vellum", {
+  keepLocalDraft("prompt:spellbook-test:spell:tasks", {
     basedOn: "2026-11-04T00:00:00.000Z",
-    name: "Recovered construct",
-    texts: { prompt: "Recovered instructions." },
+    name: "Recovered spell",
+    texts: { prompt: "Recovered replies." },
   });
   await show();
   await expect
-    .element(page.getByRole("textbox", { name: "Prompt", exact: true }))
-    .toHaveValue("Recovered instructions.");
+    .element(page.getByRole("textbox", { name: "Spell Messages", exact: true }))
+    .toHaveValue("Recovered replies.");
   const submitted = submission();
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
     .click();
   const form = await submitted;
-  expect(form.get("name")).toBe("Recovered construct");
-  expect(form.get("prompt")).toBe("Recovered instructions.");
+  expect(form.get("name")).toBe("Recovered spell");
+  expect(form.get("prompt")).toBe("Recovered replies.");
 });
 
 test("saving reveals and focuses an invalid field in another section", async () => {
   await show(EDITOR_SECTIONS);
   await page
-    .getByRole("button", { name: "Visual description", exact: true })
+    .getByRole("button", { name: "Reply when stopped", exact: true })
     .click();
   await page
-    .getByRole("textbox", { name: "Visual description", exact: true })
+    .getByRole("textbox", { name: "Reply when stopped", exact: true })
     .fill("");
-  await page.getByRole("button", { name: "Instructions", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Reply when cast", exact: true })
+    .click();
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Visual description", exact: true }),
+      page.getByRole("textbox", { name: "Reply when stopped", exact: true }),
     )
     .toHaveFocus();
   await expect
     .element(page.getByRole("alert"))
-    .toHaveTextContent("Describe the construct’s appearance.");
+    .toHaveTextContent("Write a reply.");
   expect(saveAction).not.toHaveBeenCalled();
 });
 
@@ -199,7 +211,10 @@ test.each([
   async (viewport) => {
     await setViewport(viewport);
     await show();
-    const prompt = page.getByRole("textbox", { name: "Prompt", exact: true });
+    const prompt = page.getByRole("textbox", {
+      name: "Spell Messages",
+      exact: true,
+    });
     prompt.element().scrollIntoView({ block: "center" });
     prompt.element().focus();
     await userEvent.keyboard("Edited ");
@@ -239,7 +254,10 @@ test.each([{ width: 360, height: 700 }, NARROWEST_VIEWPORT])(
   async (viewport) => {
     await setViewport(viewport);
     await show();
-    const prompt = page.getByRole("textbox", { name: "Prompt", exact: true });
+    const prompt = page.getByRole("textbox", {
+      name: "Spell Messages",
+      exact: true,
+    });
     await prompt.fill("An edited prompt");
     window.scrollTo({ top: 0, behavior: "instant" });
     await expect.poll(() => window.scrollY).toBe(0);
@@ -264,12 +282,14 @@ test("name-first validation marks hidden errors without losing edits in other se
   await show(EDITOR_SECTIONS);
   await page.getByRole("textbox", { name: "Name", exact: true }).fill("");
   await page
-    .getByRole("button", { name: "Visual description", exact: true })
+    .getByRole("button", { name: "Reply when stopped", exact: true })
     .click();
   await page
-    .getByRole("textbox", { name: "Visual description", exact: true })
+    .getByRole("textbox", { name: "Reply when stopped", exact: true })
     .fill("");
-  await page.getByRole("button", { name: "Instructions", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Reply when cast", exact: true })
+    .click();
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
     .click();
@@ -277,36 +297,36 @@ test("name-first validation marks hidden errors without losing edits in other se
     .element(page.getByRole("textbox", { name: "Name", exact: true }))
     .toHaveFocus();
   const errorSection = page.getByRole("button", {
-    name: `Visual description${PROMPT_COPY.sectionError}`,
+    name: `Reply when stopped${PROMPT_COPY.sectionError}`,
     exact: true,
   });
   await expect.element(errorSection).toBeVisible();
   await errorSection.click();
   await expect
-    .element(
-      page
-        .getByRole("alert")
-        .filter({ hasText: "Describe the construct’s appearance." }),
-    )
+    .element(page.getByRole("alert").filter({ hasText: "Write a reply." }))
     .toBeVisible();
   await page
-    .getByRole("textbox", { name: "Visual description", exact: true })
+    .getByRole("textbox", { name: "Reply when stopped", exact: true })
     .fill("Keep this appearance.");
   await expect
     .element(
-      page.getByRole("button", { name: "Visual description", exact: true }),
+      page.getByRole("button", { name: "Reply when stopped", exact: true }),
     )
     .toBeVisible();
-  await page.getByRole("button", { name: "Instructions", exact: true }).click();
-  await expect
-    .element(page.getByRole("textbox", { name: "Instructions", exact: true }))
-    .toHaveValue(PROMPT);
   await page
-    .getByRole("button", { name: "Visual description", exact: true })
+    .getByRole("button", { name: "Reply when cast", exact: true })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Visual description", exact: true }),
+      page.getByRole("textbox", { name: "Reply when cast", exact: true }),
+    )
+    .toHaveValue(PROMPT);
+  await page
+    .getByRole("button", { name: "Reply when stopped", exact: true })
+    .click();
+  await expect
+    .element(
+      page.getByRole("textbox", { name: "Reply when stopped", exact: true }),
     )
     .toHaveValue("Keep this appearance.");
   expect(saveAction).not.toHaveBeenCalled();

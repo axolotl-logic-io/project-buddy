@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Constructs run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Conversations keep their construct snapshots; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
 
-Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed tasks; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Workshop holds constructs and spells.
+Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed tasks; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Spellbook holds built-in and own spells.
 
 A conversation is a [quest](#quest)'s one conversation, with its tasks, ideas and progress timeline.
 
@@ -22,15 +22,15 @@ The panel on the left of every page, mirroring the quest sidebar on the right. T
 
 - **UI:** "Site panel", "Close site panel", "Places", "You".
 
-### Workshop
+### Spellbook
 
-The shared page for editing constructs and inspecting Tasks and Brainstorm. It has no test drawer: a saved definition is tried in a quest.
+The standalone spell collection at `/spellbook`, linked from Places in the main menu. It lists built-in and own spells with name search and All, Built-in and Yours filters. Built-ins are read-only and can be copied. Own spells can be created, edited, copied and retired; Graveyard restores or permanently deletes retired spells. A saved spell is tried in a quest.
 
 ## Prompts and context
 
 ### Prompt
 
-Internal instructions assembled by the application. Workshop has no prose Prompt or Instructions field; the local engine follows commands, spell destinations and reply templates. Stored construct prompt text is neither editable nor read by the engine.
+Internal instructions assembled by the application. Spellbook has no prose Prompt or Instructions field; the local engine follows commands, spell destinations and reply templates. Stored construct prompt text is neither editable nor read by the engine.
 
 ### Character Sheet
 
@@ -40,25 +40,25 @@ A heading in the built-in constructs' stored prompt text. It is not an editable 
 
 A construct or one of the two fixed spells that ships with the site.
 
-### Own construct
+### Historical own construct
 
-A user’s private editable construct, created from starter instructions or by copying another construct. Using it in a conversation gives no one access to the original.
+A private construct created by an older build. Custom construct creation, copying, editing and retirement are no longer available. Stored rows and artwork remain intact; existing conversations keep their saved construct snapshots.
 
 ### Retire, Graveyard, restore, delete forever
 
-To **retire** an own construct is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new quest. Existing conversation snapshots and past casts stay intact.
+To **retire** an own spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be cast again until restored. Existing conversation snapshots and past casts stay intact.
 
-**Graveyard** is the central page listing the user's retired constructs and spells.
+**Graveyard** is the central page listing the user's retired spells.
 **Restore** makes the same definition available again, preserving its source.
 **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
 
 ### Create, make a copy, edit, save, cancel
 
-**Create construct** make a private definition from starter instructions. **Make a copy** makes a private, editable copy of either a built-in or an own definition and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
+**Create spell** makes a private spell. **Make a copy** makes a private, editable copy of either a built-in or an own spell and opens its editor. Built-ins remain read-only. New copies add " (copy)" to the source name; existing saved names are unchanged.
 
 **Edit** opens an own definition. **Save** stores its name and functional settings. **Cancel** puts back the saved fields and clears the browser draft without changing saved data. Leaving the editor without Save or Cancel preserves draft recovery. These actions never start a quest. Creating, copying and saving settings makes no model request. **Rename** means changing the name in the editor.
 
-- **UI:** "Create construct", "Make a copy", "Edit", "Save", "Cancel".
+- **UI:** "Create spell", "Make a copy", "Edit", "Save", "Cancel".
 
 ### Message
 
@@ -88,25 +88,19 @@ Shared instructions every conversation receives, including the role and rules fo
 
 ## Constructs
 
-### Workshop
-
-The single collection destination for inspecting built-in constructs and spells and editing private copies. Each kind has a tab. Built-ins offer Make a copy; private definitions offer Edit, Make a copy and retirement. Each quest starting point assigns its construct.
-
-- **UI:** "Workshop", "Constructs", "Spells".
-
 ### Construct
 
-A named presence with a Visual description and artwork. Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in a conversation.
+A named presence with a Visual description and artwork. Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs assigned by premade quests. Historical custom snapshots continue to work. A construct writes the replies, calls the tools and casts the spells in a conversation.
 
 The local engine does not interpret a construct’s historical voice or habits text.
 
-- **UI:** "Construct", "Constructs", "Built-in constructs", "Your constructs", "Create construct".
+- **UI:** "Construct".
 
 ### Construct code names
 
-Use **construct** in code, stored kinds and configuration. Own constructs and spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`. Constructs always use the local command engine.
+Use **construct** in code, stored kinds and configuration. Historical own constructs and current own spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`. Constructs always use the local command engine.
 
-Browser drafts use the construct key. New copies store current built-in wording; user-written prompts and conversation snapshots keep their text.
+Spell browser drafts keep their existing keys. Historical construct rows and conversation snapshots keep their text.
 
 The product name remains **Project Buddy**.
 
@@ -134,7 +128,7 @@ Habits describe the construct’s personal style across conversations.
 
 A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open tasks; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
-Workshop’s Spells tab offers creation and copying. Own spells can be edited, retired and restored like constructs. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
+Spellbook offers creation and copying. Own spells can be edited, retired, restored and deleted forever. Cast by name. Casting keeps a snapshot, so editing or retiring a definition changes future casts.
 
 ### Cast
 
@@ -424,7 +418,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it. The quest is open to its owner and its [members](#member), and no one can remove the owner from it. The site can't delete a quest yet; when it can, only the owner will.
 
-Ownership and access are distinct: own constructs and spells belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own spells and historical construct records belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 
@@ -458,7 +452,7 @@ Wherever quests are listed or chosen, a multi-user quest carries a short marker,
 
 ### Member
 
-A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own constructs, spells or other quests. A removed member loses access; what they wrote stays. Members' controls send `/invite`, `/withdraw`, `/remove` and `/leave` to the conversation.
+A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own spells, historical construct records or other quests. A removed member loses access; what they wrote stays. Members' controls send `/invite`, `/withdraw`, `/remove` and `/leave` to the conversation.
 
 - **UI:** "Member", "Members", "Remove", "Leave quest".
 

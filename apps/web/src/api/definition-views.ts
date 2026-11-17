@@ -1,13 +1,8 @@
 // The constructs and spells open to a user, as the API lists them: the
-// built-ins, then the user's own. Only their functional fields are shown,
+// built-ins and the user's own spells. Only their functional fields are shown,
 // never a construct's private definition.
 
 import { type SpellView, spellView } from "@/api/api-views.ts";
-import {
-  getOwnConstruct,
-  listConstructs as listOwnConstructs,
-  type OwnConstruct,
-} from "@/constructs/construct-store.ts";
 import {
   type Construct,
   getConstruct,
@@ -18,8 +13,7 @@ import type { UserId } from "@/ids.ts";
 import { findSpell, listOwnSpells } from "@/spells/own-spell-store.ts";
 import { listSpells } from "@/spells/spell.ts";
 
-// A construct: a built-in, or the user's own, which may be a copy of
-// another.
+// A built-in construct assigned by a premade quest.
 interface ConstructView {
   readonly id: string;
   readonly name: string;
@@ -38,36 +32,18 @@ function builtInConstructView(construct: Construct): ConstructView {
   };
 }
 
-function ownConstructView(construct: OwnConstruct): ConstructView {
-  return {
-    id: construct.id,
-    name: construct.name,
-    description: null,
-    builtIn: false,
-    clonedFrom: construct.clonedFrom ?? null,
-  };
+function listConstructViews(_owner: UserId): Promise<ConstructView[]> {
+  return Promise.resolve(listConstructs().map(builtInConstructView));
 }
 
-async function listConstructViews(owner: UserId): Promise<ConstructView[]> {
-  const own = await listOwnConstructs(owner);
-  return [
-    ...listConstructs().map(builtInConstructView),
-    ...own.map(ownConstructView),
-  ];
-}
-
-async function findConstructView(
-  owner: UserId,
+function findConstructView(
+  _owner: UserId,
   id: string,
 ): Promise<ConstructView | undefined> {
   if (isConstructId(id)) {
-    return builtInConstructView(getConstruct(id));
+    return Promise.resolve(builtInConstructView(getConstruct(id)));
   }
-  const own = await getOwnConstruct(owner, id);
-  if (own === undefined) {
-    return undefined;
-  }
-  return ownConstructView(own);
+  return Promise.resolve(undefined);
 }
 
 async function listSpellViews(owner: UserId): Promise<SpellView[]> {
