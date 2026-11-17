@@ -24,3 +24,7 @@ if (failures.length > 0) {
   exit(1);
 }
 console.log(`Every smoke check passed against ${baseUrl}.`);
+// Exit once the result is printed, rather than when the event loop
+// empties: a connection the site keeps open must not hold the workflow
+// until its job times out.
+exit(0);

@@ -166,6 +166,15 @@ function describeError(error: unknown): string {
   return String(error);
 }
 
+// Most checks read only the status and headers. A body left unread keeps
+// its connection open, which can hold the command past its last check, so
+// each one is cancelled once its check is done.
+async function releaseBody(response: Response): Promise<void> {
+  if (!response.bodyUsed) {
+    await response.body?.cancel();
+  }
+}
+
 // Runs every check against the site at baseUrl and returns the failures, one
 // line each, or an empty list if all pass. Redirects are not followed, so a
 // redirect is checked as the answer itself.
@@ -179,7 +188,11 @@ function smokeChecks(baseUrl: string, fetchFn: SmokeFetch): Promise<string[]> {
       let problem: string | undefined;
       try {
         const response = await fetchFn(url, { ...init, redirect: "manual" });
-        problem = await check(response, baseUrl);
+        try {
+          problem = await check(response, baseUrl);
+        } finally {
+          await releaseBody(response);
+        }
       } catch (error) {
         problem = `request failed: ${describeError(error)}`;
       }
