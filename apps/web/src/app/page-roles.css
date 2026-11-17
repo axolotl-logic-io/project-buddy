@@ -99,7 +99,8 @@
     @apply relative isolate min-w-0 border-line border-t px-1 pb-16 sm:px-2;
   }
 
-  /* Fade only the panel's surface and side rules, in the space below its
+  /* Keep the panel solid until the last six spacing steps, then fade only
+     its surface and side rules, in the space below its
      last row. Text, controls and focus rings remain fully opaque. There
      is no bottom border to jump when another tab has fewer quests. */
   .quests-index-content::before {
@@ -107,17 +108,17 @@
     background-image:
       linear-gradient(
         to bottom,
-        var(--line) calc(100% - --spacing(16)),
+        var(--line) calc(100% - --spacing(6)),
         transparent
       ),
       linear-gradient(
         to bottom,
-        var(--line) calc(100% - --spacing(16)),
+        var(--line) calc(100% - --spacing(6)),
         transparent
       ),
       linear-gradient(
         to bottom,
-        var(--surface) calc(100% - --spacing(16)),
+        var(--surface) calc(100% - --spacing(6)),
         transparent
       );
     background-size:
