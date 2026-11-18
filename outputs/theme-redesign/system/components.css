@@ -1133,6 +1133,10 @@
      it; the tooltip names the appearance. */
   /* The fieldset that groups the swatches (the elements layer resets its
      box); its legend names the choice. */
+  .appearance-fieldset {
+    container-type: inline-size;
+  }
+
   .appearance-fieldset > legend {
     margin-block-end: 0.5rem;
     padding: 0;
@@ -1159,6 +1163,12 @@
 
   .appearance-swatch[data-size="large"] {
     --swatch-size: 5.5rem;
+  }
+
+  @container (width < 19.5rem) {
+    .appearance-swatch[data-size="large"] {
+      --swatch-size: 3.25rem;
+    }
   }
 
   .appearance-swatch-input {
@@ -1304,23 +1314,11 @@
 
   /* ==== Collection: folder tabs over a list of rows =====================
      The quests list and the Spellbook share it. */
-  /* The folder tabs wrap rather than scroll, so no label is cut off on a
-     phone. wrap-reverse keeps the first tabs on the row that touches the
-     panel and stacks the rest above them. */
   .collection-tabs {
     display: flex;
-    flex-wrap: wrap-reverse;
+    flex-wrap: wrap;
     gap: 0.25rem;
     padding-inline: 0.5rem;
-  }
-
-  /* On a phone each row of tabs fills the width, so a wrapped row reads
-     as a second rank of folders rather than a stray tab. */
-  @media (width < 30rem) {
-    .collection-tab {
-      flex: 1 0 auto;
-      justify-content: center;
-    }
   }
 
   .collection-tab {
@@ -1347,6 +1345,25 @@
     background: var(--surface);
     color: var(--foreground);
     font-weight: 600;
+  }
+
+  @media (width < 30rem) {
+    .collection-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .collection-tab {
+      justify-content: center;
+      padding-inline: 0.5rem;
+      border-block-end: var(--line-width) solid var(--line);
+      border-radius: var(--action-radius);
+    }
+
+    .collection-tab:is([aria-current="page"], [aria-selected="true"]) {
+      margin-block-end: 0;
+      border-color: var(--primary);
+    }
   }
 
   .collection-count {
@@ -1769,9 +1786,20 @@
 
   .dialog-actions {
     display: flex;
-    flex-wrap: wrap-reverse;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 0.75rem;
+  }
+
+  @media (width < 30rem) {
+    .dialog-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  .spell-metadata {
+    max-inline-size: 36rem;
   }
 
   /* ==== Progress ring ===================================================

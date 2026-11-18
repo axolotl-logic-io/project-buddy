@@ -299,7 +299,7 @@ Folder tabs over a list of rows. The quests list and the Spellbook share it.
 
 - **Classes:** `collection-tabs`, `collection-tab`, `collection-count`, `collection-panel`, `collection-list`, `collection-row`, `collection-mark`, `collection-text`, `collection-link`, `collection-meta`, `collection-end`.
 - **States:** `collection-tab[aria-current="page"]` joins the panel; hover and focus on the tab and the row's link.
-- **Layout:** the tabs wrap with `wrap-reverse`, so the first tabs touch the panel; below 30rem each row of tabs fills the width. The count uses lining figures.
+- **Layout:** the tabs wrap in source order. Below 30rem they use two columns and the selected tab has a visible border. The count uses lining figures.
 - **Replaces:** all `quests-index-*` roles, `quest-sharing-mark`, `divided-rows`, `divided-row-action`. React: `components/quest-status-tabs.tsx`, `components/quest-list.tsx`, `components/pending-quests.tsx`, `app/(workspace)/spellbook/spell-index.tsx`, `forgotten-list.tsx`, `progress-timeline.tsx`, `quest-members.tsx`.
 - **Fixes:** the Spellbook no longer borrows the quests list's roles; `forgotten-list.tsx`'s utility cluster on Restore goes.
 

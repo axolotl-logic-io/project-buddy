@@ -571,6 +571,12 @@ VIEW_JS = r"""/* Mockup page behaviour. Query parameters:
 
   function wireBare() {
     setMode(mode);
+    var latest = document.querySelector("[data-preview-latest]");
+    if (latest) {
+      document.fonts.ready.then(function () {
+        latest.scrollIntoView({ block: "center" });
+      });
+    }
     document.addEventListener("change", function (event) {
       var t = event.target;
       if (t.classList && t.classList.contains("appearance-swatch-input")) {
