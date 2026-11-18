@@ -196,6 +196,9 @@
 
     --body-font: var(--typeface-nunito);
     --heading-font: var(--typeface-source-serif-4);
+    --display-font: var(--typeface-im-fell-english);
+    --display-weight: 400;
+    --display-tracking: 0.01em;
     --mono-font: var(--typeface-jetbrains-mono);
     --conversation-font: var(--typeface-source-serif-4);
     --conversation-text-size: 1.0625rem;
@@ -319,9 +322,6 @@
     --timer-chapter-display: block;
 
     /* Display, frame and ornament roles. */
-    --display-font: var(--typeface-cormorant-garamond);
-    --display-weight: 600;
-    --display-tracking: 0.02em;
     --label-font: var(--typeface-source-serif-4);
     --label-ink: var(--muted);
     --label-case: none;
@@ -399,9 +399,6 @@
     --timer-seal-display: block;
 
     /* Display, frame and ornament roles. */
-    --display-font: var(--typeface-im-fell-english);
-    --display-weight: 400;
-    --display-tracking: 0.01em;
     --label-font: var(--typeface-source-serif-4);
     --label-ink: var(--muted);
     --label-case: uppercase;
@@ -463,9 +460,6 @@
     --box-radius: 3px;
     --line-width: 1px;
 
-    --display-font: var(--typeface-im-fell-english);
-    --display-weight: 400;
-    --display-tracking: 0.01em;
     --label-font: var(--heading-font);
     --label-ink: var(--rubric);
     --label-case: none;
