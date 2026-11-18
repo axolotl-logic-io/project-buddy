@@ -175,6 +175,87 @@ A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integratio
 
 The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, and Espresso Leather. Texture swatches in the site panel and Settings apply the choice immediately and remember it in this browser. There is no system-following appearance. See [Appearance](docs/appearance.md). Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Tasks link.
 
+### Review accounts
+
+Three accounts in your worktree's development database show the site at different levels of use, for design reviews and screenshots:
+
+- **Empty**, `review+empty@project-buddy.test`: a name and nothing else, for the empty states.
+- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with construct replies, command replies, tasks, ideas, Quick Notes, milestones and a cast spell; three spells with reply lists; and about 45 experience, circle 4.
+- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen spells, with every name and text at its length limit, words too long to wrap, long messages, a construct reply in rich Markdown with a table and code, and long Tasks, Ideas, Quick Notes and Progress lists.
+
+To make the accounts, start the site with `mise //apps/web:dev`, then run this command from the repository root:
+
+```sh
+mise run review-data
+```
+
+The command deletes the three accounts, makes them again and prints a 30-minute sign-in link for each. To use other addresses, pass a base address, such as `mise run review-data me@example.test`, which gives `me+empty@example.test` and so on. The base address itself is never changed. If the site runs on another port, set `PROJECT_BUDDY_URL`, such as `PROJECT_BUDDY_URL=http://localhost:3210`.
+
+The command refuses any database but your worktree's own development database, and any site address but `localhost`. It starts quests and sends messages through the running site's API, so the construct's replies are the local engine's own. It makes everything else with the site's own stores. Two kinds of message go straight into the database, because the local construct engine never writes them: replies that record a milestone, and replies in Markdown. The content is in `apps/web/scripts/development/review-content.ts`.
+
+### Visual comparison
+
+The visual comparison screenshots each critical view of the site as the review accounts, in each appearance at each width. Given a folder of mockups, it also screenshots each view's mockup and writes a page that shows the two side by side.
+
+To compare the site with mockups, make the review accounts first, then run this command from the repository root:
+
+```sh
+mise run visual-compare -- --mockups MOCKUPS
+```
+
+`MOCKUPS` is a folder of mockup pages named `<view>--<state>.html`, such as `quests--list.html`. Each page must show itself alone in the appearance and at the width given by `?bare&appearance=<appearance>&width=<width>`.
+
+The command builds this worktree for production, starts it on a free port with your worktree's development database, takes the screenshots and stops the site. It writes these files to `project-buddy-visual` in your temporary folder, or to `--out`:
+
+- `site/` and `mockups/`: the screenshots, named `<view>--<state>--<appearance>--<width>.png`.
+- `index.html`: the comparison page. It lists the views with no mockup, the mockups that match no view and any view that didn't reach its state, and filters by appearance and width.
+- `results.json`: the same, for other tools.
+- `site.log`: the site's own output.
+
+The command exits with an error if a view had a problem, such as a page error or a step that failed.
+
+These options change what it shows:
+
+- `--only PARTS`: only the views whose names contain one of these comma-separated parts, such as `--only quest--,settings`.
+- `--widths LIST`: the widths in pixels, `1280,360` by default, the theme redesign's widths. [The site's agent rules](apps/web/AGENTS.md) ask for a 320 px check, so add it with `--widths 1280,360,320`. Widths below 1024 px get the phone layout.
+- `--appearances LIST`: `light,soot-brass,dark` by default.
+- `--dev`: start the development server instead of a production build. A worktree runs one development server at a time, so stop your own first.
+- `--no-build`: start the last production build without building again.
+- `--site URL`: use a site already running on this computer, such as `http://localhost:3000`. It must use your worktree's development database.
+- `--email EMAIL`: the base address given to `mise run review-data`.
+
+Run `mise run visual-compare -- --help` for the full list.
+
+The views are in `apps/web/scripts/visual/views.ts`. Each one names its view and state, its review account, its page and the steps that bring it to its state, such as opening the row menu or holding a construct reply. To add a view, add an entry there. A view's state steps use Playwright, as the end-to-end tests do.
+
+### Visual baseline
+
+The visual baseline measures the site so the theme redesign's effect can be compared. It loads each view marked `measure` in `apps/web/scripts/visual/views.ts` as the typical review account, or signed out, in each appearance at each width. For each load it records:
+
+- the bytes transferred, split into document, CSS, JS, fonts, images and other;
+- the font files fetched;
+- Largest Contentful Paint (LCP) and Cumulative Layout Shift (CLS);
+- the accessibility violations [axe](https://github.com/dequelabs/axe-core) finds, for WCAG 2.2 A and AA and best practice.
+
+It also brings every other view to its state and scans it with axe.
+
+Make the review accounts first, then run this command from the repository root:
+
+```sh
+mise run visual-baseline -- --out OUT
+```
+
+The command builds this worktree for production, starts it on a free port with your worktree's development database, measures and stops the site. It writes these files to `OUT`, or to `project-buddy-baseline` in your temporary folder:
+
+- `baseline.json`: every figure, for comparing runs.
+- `summary.md`: the heaviest loads, any layout shift or slow LCP, each axe rule violated and where, a table of every load and the font files.
+
+Each load uses a fresh browser with an empty cache, after one unmeasured request that lets the site compile and warm up. Nothing is throttled, so LCP and CLS are this computer's: compare them between runs on the same computer, not with field data. Transfer sizes are bytes on the wire, headers included.
+
+It takes the same options as the visual comparison, except `--mockups`. Run `mise run visual-baseline -- --help` for the list. Measure a production build; `--dev` sizes are much larger.
+
+The axe scans use the `@axe-core/playwright` development dependency.
+
 ## Installed app
 
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
