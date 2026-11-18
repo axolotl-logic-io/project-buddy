@@ -1,16 +1,25 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
+import type { QuestActionResult } from "@/components/use-quest-action.ts";
+import { QUEST_ID } from "@/ids.ts";
 import {
   checkNoteText,
+  NOTE_ID,
   type NoteQuest,
   type NoteResult,
   SAVE_NOTE_REQUEST,
 } from "@/notes/note.ts";
-import { listNotes, saveNote } from "@/notes/note-store.ts";
+import {
+  deleteNote,
+  editNote,
+  listNotes,
+  saveNote,
+} from "@/notes/note-store.ts";
 import { listQuests } from "@/quests/store.ts";
-import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
+import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 
 // The signed-in user's Active quests, newest first, for the Quick Note
 // dialog to offer.
@@ -51,4 +60,32 @@ async function saveNoteAction(request: unknown): Promise<NoteResult> {
   return { kind: "saved", notes };
 }
 
-export { listNoteQuestsAction, saveNoteAction };
+const NOTE_CHANGE = z.object({
+  questId: QUEST_ID,
+  id: NOTE_ID,
+  text: z.string().optional(),
+});
+
+async function changeNoteAction(request: unknown): Promise<QuestActionResult> {
+  const user = await requireUser();
+  const change = NOTE_CHANGE.safeParse(request).data;
+  if (change === undefined) {
+    return { kind: "problem", text: QUICK_NOTE_COPY.invalid };
+  }
+  if (change.text === undefined) {
+    await deleteNote(user.id, change);
+    refresh();
+    return { kind: "saved", message: QUEST_NOTES_COPY.deleted };
+  }
+  const checked = checkNoteText(change.text);
+  if ("problem" in checked) {
+    return { kind: "problem", text: QUICK_NOTE_COPY.problem(checked.problem) };
+  }
+  if (!(await editNote(user.id, { ...change, text: checked.text }))) {
+    return { kind: "problem", text: QUEST_NOTES_COPY.unavailable };
+  }
+  refresh();
+  return { kind: "saved", message: QUEST_NOTES_COPY.saved };
+}
+
+export { changeNoteAction, listNoteQuestsAction, saveNoteAction };

@@ -198,9 +198,9 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(await listMessages(user.id, chat.id)).toEqual([]);
   });
 
-  test("sidebar edits and Undo update the tasks without saving conversation messages", async () => {
+  test("direct edits and Undo update Tasks without saving conversation messages", async () => {
     const { user, chat } = await signedInChat();
-    await sendChatMessage(chat.id, "Help me with this quest");
+    await sendChatMessage(chat.id, "help");
     const before = await listMessages(user.id, chat.id);
     const added = await changeTasksAction({
       questId: chat.quest.id,
@@ -326,7 +326,7 @@ describe("a quest's tasks, changed without the construct", () => {
 
   test("Continue's next task comes only from the tasks", async () => {
     const { user, chat } = await signedInChat();
-    await sendChatMessage(chat.id, "Hello");
+    await sendChatMessage(chat.id, "help");
     expect((await readCurrentQuest(user.id))?.nextTask).toBeUndefined();
     await laidOut(chat.quest.id);
     expect((await readCurrentQuest(user.id))?.nextTask).toBe(BLOCK_OUT);
@@ -392,7 +392,7 @@ describe("a quest's tasks, changed without the construct", () => {
   });
 });
 
-describe("use_case_tasks_commands", () => {
+describe("tasks command behavior", () => {
   test("after a failed reply, tasks changes in the adventure wait, so the message can still be sent again", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);

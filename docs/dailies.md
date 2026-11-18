@@ -4,7 +4,7 @@ Dailies is the user's one ongoing quest for starting the day ([Premade quests](p
 
 ## Start Day
 
-A day begins only when the user chooses **Start Day** at the top of the Dailies sidebar and confirms. Nothing starts a day on a timer. Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. The browser fills in the line after the page loads, because only the browser knows its own clock.
+A day begins only when the user chooses **Start Day** on Dailies Overview and confirms. Nothing starts a day on a timer. Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. The browser fills in the line after the page loads, because only the browser knows its own clock.
 
 Start Day (`startDay` in `apps/web/src/dailies/day-store.ts`) does all of this in one transaction:
 

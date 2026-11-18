@@ -44,7 +44,10 @@ const QUEST_ID = questIdFixture();
 const CONVERSATION = "Conversation";
 const LONG_TEXT = "Unbroken".repeat(24);
 const NOTE_TEXT = `${LONG_TEXT}\nKeep the next step small.`;
-vi.mock("@/notes/note-actions.ts", () => ({ saveNoteAction: vi.fn() }));
+vi.mock("@/notes/note-actions.ts", () => ({
+  saveNoteAction: vi.fn(),
+  changeNoteAction: vi.fn(),
+}));
 const TASKS: TasksState = {
   version: 1,
   tasks: {
@@ -79,7 +82,9 @@ function sections(): WorkspaceSection[] {
       id: "ideas",
       label: IDEAS_COPY.heading,
       bucket: true,
-      content: <QuestIdeas ideas={[IDEA_FIXTURE]} embedded={true} />,
+      content: (
+        <QuestIdeas questId={QUEST_ID} ideas={[IDEA_FIXTURE]} embedded={true} />
+      ),
     },
     {
       id: "notes",
@@ -142,7 +147,7 @@ describe.each(THEME_MODES)("Control desk in %s", (mode) => {
             tasks={{ ...TASKS, tasks: { items: [], nextNumber: 1 } }}
             actions={ACTIONS}
           />
-          <QuestIdeas ideas={[]} />
+          <QuestIdeas questId={QUEST_ID} ideas={[]} />
           <QuestNotes quest={{ id: QUEST_ID, status: "active" }} notes={[]} />
         </div>,
       ),

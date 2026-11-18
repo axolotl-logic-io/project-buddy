@@ -10,14 +10,14 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share.
 - [Local constructs](local-constructs.md): MUD-inspired commands, the no-model-request policy and the retained harness.
-- [Page workspaces](page-workspaces.md): tabbed navigation, form drafts and page sections.
+- [Page workspaces](page-workspaces.md): quest overviews, linked sections and the Timer panel.
 - [Premade quests](premade-quests.md): the four starting points, Dailies, and the one quest start.
 - [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
 - [Conversations](chats.md): the Quests landing page, quest conversations and reply behavior.
 - [Prompts](prompts.md): editable construct and spell fields, and their storage.
 - [Spells](spellbook.md): Tasks and Brainstorm modes, casts, stopping and message capture.
 - [Dailies](dailies.md): Start Day and its Undo, recurring tasks, streaks and the day grid.
-- [Quest tasks](quest-tasks.md): a quest's tasks of remaining work, the construct's `change_tasks` tool, the Tasks section and panel, and the composer's commands.
+- [Quest tasks](quest-tasks.md): a quest's tasks of remaining work, the construct's `change_tasks` tool, and the Tasks section.
 - [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Tasks.
 - [Progress timeline](progress-timeline.md): the milestones the construct records in a quest's conversation, and how the user edits them.
 - [Profile visiting days](profile.md): distinct days signed in, the UTC boundary and tracking start.

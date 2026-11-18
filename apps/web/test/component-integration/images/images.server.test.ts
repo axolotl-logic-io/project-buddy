@@ -11,6 +11,7 @@ import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { deliverImage } from "@/images/image-http.ts";
 import { getImage } from "@/images/store.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
 import { seedImage } from "../../support/test-database/artwork-test-kit.ts";
@@ -71,6 +72,7 @@ describe("saved conversation image access", () => {
   test("a new message holds text only", async () => {
     const { her, herData } = await twoUsers();
     const chat = await herData.chat(await herData.quest());
+    await setSpell(her.id, { chatId: chat.id, spell: "tasks" });
     const id = await seedImage(chat.id);
     await signIn(her);
 

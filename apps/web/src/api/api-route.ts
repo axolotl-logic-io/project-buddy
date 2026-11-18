@@ -19,6 +19,7 @@ import { getQuest, type Quest } from "@/quests/store.ts";
 const API_PROBLEM_CODES = [
   "invalid_input",
   "authorization_required",
+  "spell_required",
   "not_found",
   "conflict",
   "reply_in_progress",
@@ -42,6 +43,8 @@ function problemKind(code: ApiProblemCode): ProblemKind {
       return { status: HTTP_STATUS.badRequest, retryable: false };
     case "authorization_required":
       return { status: HTTP_STATUS.unauthorized, retryable: false };
+    case "spell_required":
+      return { status: HTTP_STATUS.forbidden, retryable: false };
     case "not_found":
       return { status: HTTP_STATUS.notFound, retryable: false };
     case "conflict":

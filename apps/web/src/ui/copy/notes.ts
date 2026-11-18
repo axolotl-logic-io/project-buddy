@@ -41,6 +41,7 @@ export const QUEST_NOTES_COPY = {
   textHint: `1–${NOTE_MAX_LENGTH} characters`,
   clear: "Clear",
   saved: "Quick Note saved.",
+  deleted: "Quick Note deleted.",
   inactive:
     "Only Active quests take new Quick Notes. You can still read, edit and delete saved notes.",
   unavailable:

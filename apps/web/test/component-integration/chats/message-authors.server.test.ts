@@ -1,3 +1,4 @@
+import { setSpell } from "@/spells/spell-store.ts";
 // Regression coverage for saved message authors.
 // test database: a chat records who wrote each user message, reads a message
 // saved with no author as the chat owner's, and, once more than one person
@@ -82,6 +83,7 @@ async function samAndAlex(): Promise<{
   await saveUserName(sam.id, "Sam");
   const data = testData(sam);
   const chat = await data.chat(await data.quest());
+  await setSpell(sam.id, { chatId: chat.id, spell: "tasks" });
   return { sam, alex, chat };
 }
 
@@ -166,7 +168,7 @@ describe("saved message authors", () => {
     ]);
     await signIn(sam);
 
-    const reply = await constructReply(chat.id, "Can we look at the shell?");
+    const reply = await constructReply(chat.id, "/unknown");
     expect(messageText(reply)).toBe(LOCAL_CONSTRUCT_COPY.unknownCommand);
     expect(await constructPrompt(chat.id)).not.toContain(SEVERAL_AUTHORS_RULES);
   });

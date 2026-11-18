@@ -24,12 +24,12 @@ describe("use_case_construct_casts_spell", () => {
 
   test("casting switches the persistent spell and saves its identity", async () => {
     const { user, chat } = await signedInChat();
-    const reply = await constructReply(chat.id, "cast tasks");
+    const reply = await constructReply(chat.id, "/cast tasks");
     expect(messageText(reply)).toBe(
       spellResponse(
         getSpell("tasks").definition.castReply,
         getSpell("tasks"),
-        "cast tasks",
+        "/cast tasks",
       ),
     );
     expect(await currentSpell(user.id, chat)).toBe("tasks");
@@ -44,10 +44,10 @@ describe("use_case_construct_casts_spell", () => {
       spellResponse(
         getSpell("tasks").definition.castReply,
         getSpell("tasks"),
-        "cast tasks",
+        "/cast tasks",
       ),
     );
-    await constructReply(chat.id, "cast brainstorm");
+    await constructReply(chat.id, "/cast brainstorm");
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
   });
 
@@ -55,16 +55,13 @@ describe("use_case_construct_casts_spell", () => {
     const { user, chat } = await signedInChat();
     const tasks = getSpell("tasks");
     const brainstorm = getSpell("brainstorm");
-    await constructReply(chat.id, PANEL_COMMAND.cast(tasks.name));
+    await constructReply(chat.id, `/cast ${tasks.name}`);
     expect(await currentSpell(user.id, chat)).toBe("tasks");
 
-    await constructReply(chat.id, PANEL_COMMAND.cast(brainstorm.name));
+    await constructReply(chat.id, `/cast ${brainstorm.name}`);
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
 
-    const again = await constructReply(
-      chat.id,
-      PANEL_COMMAND.cast(brainstorm.name),
-    );
+    const again = await constructReply(chat.id, `/cast ${brainstorm.name}`);
     expect(messageText(again)).not.toBe("");
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
     expect(await constructPrompt(chat.id)).toContain(

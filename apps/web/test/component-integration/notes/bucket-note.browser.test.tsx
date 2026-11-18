@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ChatBusyContext } from "@/components/chat/chat-send.ts";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { NOTE_ID, NOTE_MAX_LENGTH, type NoteResult } from "@/notes/note.ts";
 import { saveNoteAction } from "@/notes/note-actions.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import {
@@ -194,42 +192,17 @@ describe("bucket Quick Note creation", () => {
     },
   );
 
-  test("outside a conversation no new Quick Note can be submitted", async () => {
-    await render(<QuestNotes quest={FOX_QUEST} notes={[]} />);
-    await expect
-      .element(page.getByRole("button", { name: QUEST_NOTES_COPY.save }))
-      .toBeDisabled();
-    await expect
-      .element(page.getByText(PANEL_COMMANDS_COPY.problems.noConversation))
-      .toBeVisible();
-  });
-
-  test("a reply pauses saving without losing a draft", async () => {
-    const screen = await render(
-      inConversation(
-        chatSendMock(),
-        <ChatBusyContext.Provider value={false}>
-          <QuestNotes quest={FOX_QUEST} notes={[]} />
-        </ChatBusyContext.Provider>,
-      ),
-    );
-    const field = page.getByRole("textbox", {
-      name: QUICK_NOTE_COPY.textLabel,
+  test("a Quick Note can be saved without a conversation", async () => {
+    vi.mocked(saveNoteAction).mockResolvedValue({
+      kind: "saved",
+      notes: [NEW_NOTE],
     });
-    await field.fill("Keep me");
-    await screen.rerender(
-      inConversation(
-        chatSendMock(),
-        <ChatBusyContext.Provider value={true}>
-          <QuestNotes quest={FOX_QUEST} notes={[]} />
-        </ChatBusyContext.Provider>,
-      ),
-    );
-    await expect
-      .element(page.getByRole("button", { name: QUEST_NOTES_COPY.save }))
-      .toBeDisabled();
-    await expect.element(field).toHaveValue("Keep me");
-    expect(saveNoteAction).not.toHaveBeenCalled();
+    await render(<QuestNotes quest={FOX_QUEST} notes={[]} />);
+    await page
+      .getByRole("textbox", { name: QUICK_NOTE_COPY.textLabel })
+      .fill(NEW_NOTE.text);
+    await page.getByRole("button", { name: QUEST_NOTES_COPY.save }).click();
+    await expect.element(page.getByText(NEW_NOTE.text)).toBeVisible();
   });
 
   test.each(["light", "dark", "soot-brass"])(

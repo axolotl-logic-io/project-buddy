@@ -4,6 +4,7 @@ import { startDailies } from "@/conversations/dailies.ts";
 import { getDb } from "@/db/client.ts";
 import { goldBalances } from "@/db/tables/gold.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import {
@@ -12,13 +13,13 @@ import {
   signedInChat,
 } from "../../../test-database/chat-test-kit.ts";
 
-test("use_case_ask_any_subject", async () => {
+test("a spell and a Dailies quest work without a credit balance", async () => {
   const { user, chat } = await signedInChat();
   await getDb()
     .insert(goldBalances)
     .values({ userId: user.id, microUsd: 0 })
     .onConflictDoUpdate({ target: goldBalances.userId, set: { microUsd: 0 } });
-  const reply = await constructReply(chat.id, "I want a balcony garden");
+  const reply = await constructReply(chat.id, "/unknown");
   expect(messageText(reply)).toBe(LOCAL_CONSTRUCT_COPY.unknownCommand);
   const started = await startDailies(user.id, {
     name: QUEST_NAME.parse("A fresh day"),
@@ -33,6 +34,7 @@ test("use_case_same_facts_any_construct", async () => {
   const data = testData(user);
   const quest = await data.quest("Another construct");
   const other = await data.chat(quest, "lumen");
+  await setSpell(user.id, { chatId: other.id, spell: "tasks" });
   const replies = await Promise.all([
     constructReply(chat.id, "help"),
     constructReply(other.id, "help"),

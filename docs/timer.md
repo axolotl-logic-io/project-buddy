@@ -70,3 +70,7 @@ The trail shows the count as **3 others here**, or **Unknown others** when a rep
 | `src/timer/presence-store.ts` | The `timer_presence` table's reads and writes |
 | `src/timer/presence-action.ts` | The Server Action the running timer calls |
 | `src/components/timer/` | Setup, the running timer, its tools in the trail and the tab's remembered lengths |
+
+## Quest Timer panel
+
+On a quest page, open Timer to set **Work for** and **Break for**. Choose **Start** to begin the work phase in the panel. The panel uses the same presets, phase calculation and appearance as the Timer page. On phones, it opens as a drawer. Closing the panel keeps the countdown running while the quest page stays open.
