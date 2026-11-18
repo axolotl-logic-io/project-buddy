@@ -1,0 +1,158 @@
+foreground           on texture darkest      15.89  needs 4.5  ok
+foreground           on texture median       13.55  needs 4.5  ok
+foreground           on texture 99.9%        10.67  needs 4.5  ok
+foreground           on texture brightest     8.02  needs 4.5  ok
+foreground           on background           13.82  needs 4.5  ok
+foreground           on surface              12.46  needs 4.5  ok
+foreground           on field                14.65  needs 4.5  ok
+muted                on texture darkest      10.46  needs 4.5  ok
+muted                on texture median        8.92  needs 4.5  ok
+muted                on texture 99.9%         7.03  needs 4.5  ok
+muted                on texture brightest     5.28  needs 4.5  ok
+muted                on background            9.10  needs 4.5  ok
+muted                on surface               8.21  needs 4.5  ok
+muted                on field                 9.64  needs 4.5  ok
+primary              on texture darkest      11.46  needs 4.5  ok
+primary              on texture median        9.77  needs 4.5  ok
+primary              on texture 99.9%         7.70  needs 4.5  ok
+primary              on texture brightest     5.78  needs 4.5  ok
+primary              on background            9.97  needs 4.5  ok
+primary              on surface               8.99  needs 4.5  ok
+primary              on field                10.56  needs 4.5  ok
+accent               on texture darkest       9.07  needs 4.5  ok
+accent               on texture median        7.74  needs 4.5  ok
+accent               on texture 99.9%         6.09  needs 4.5  ok
+accent               on texture brightest     4.58  needs 4.5  ok
+accent               on background            7.89  needs 4.5  ok
+accent               on surface               7.11  needs 4.5  ok
+accent               on field                 8.36  needs 4.5  ok
+danger               on texture darkest      10.04  needs 4.5  ok
+danger               on texture median        8.56  needs 4.5  ok
+danger               on texture 99.9%         6.75  needs 4.5  ok
+danger               on texture brightest     5.07  needs 4.5  ok
+danger               on background            8.74  needs 4.5  ok
+danger               on surface               7.88  needs 4.5  ok
+danger               on field                 9.26  needs 4.5  ok
+rubric               on texture darkest       9.10  needs 4.5  ok
+rubric               on texture median        7.76  needs 4.5  ok
+rubric               on texture 99.9%         6.11  needs 4.5  ok
+rubric               on texture brightest     4.59  needs 4.5  ok
+rubric               on background            7.92  needs 4.5  ok
+rubric               on surface               7.14  needs 4.5  ok
+rubric               on field                 8.39  needs 4.5  ok
+label-ink            on texture darkest      10.46  needs 4.5  ok
+label-ink            on texture median        8.92  needs 4.5  ok
+label-ink            on texture 99.9%         7.03  needs 4.5  ok
+label-ink            on texture brightest     5.28  needs 4.5  ok
+label-ink            on background            9.10  needs 4.5  ok
+label-ink            on surface               8.21  needs 4.5  ok
+label-ink            on field                 9.64  needs 4.5  ok
+foreground           on navigation-surface   13.44  needs 4.5  ok
+foreground           on trail-surface        13.25  needs 4.5  ok
+foreground           on sidebar-surface      12.96  needs 4.5  ok
+foreground           on secondary-surface    10.49  needs 4.5  ok
+muted                on navigation-surface    8.85  needs 4.5  ok
+muted                on trail-surface         8.73  needs 4.5  ok
+muted                on sidebar-surface       8.53  needs 4.5  ok
+muted                on secondary-surface     6.91  needs 4.5  ok
+primary              on navigation-surface    9.69  needs 4.5  ok
+primary              on trail-surface         9.56  needs 4.5  ok
+primary              on sidebar-surface       9.34  needs 4.5  ok
+primary              on secondary-surface     7.57  needs 4.5  ok
+label-ink            on navigation-surface    8.85  needs 4.5  ok
+label-ink            on trail-surface         8.73  needs 4.5  ok
+label-ink            on sidebar-surface       8.53  needs 4.5  ok
+label-ink            on secondary-surface     6.91  needs 4.5  ok
+line                 on texture darkest       6.43  needs 3  ok
+line                 on texture median        5.48  needs 3  ok
+line                 on texture 99.9%         4.32  needs 3  ok
+line                 on texture brightest     3.24  needs 3  ok
+line                 on background            5.59  needs 3  ok
+line                 on surface               5.04  needs 3  ok
+line                 on field                 5.92  needs 3  ok
+rule-ink             on texture darkest       6.43  needs 3  ok
+rule-ink             on texture median        5.48  needs 3  ok
+rule-ink             on texture 99.9%         4.32  needs 3  ok
+rule-ink             on texture brightest     3.24  needs 3  ok
+rule-ink             on background            5.59  needs 3  ok
+rule-ink             on surface               5.04  needs 3  ok
+rule-ink             on field                 5.92  needs 3  ok
+frame-ink            on texture darkest       6.43  needs 3  ok
+frame-ink            on texture median        5.48  needs 3  ok
+frame-ink            on texture 99.9%         4.32  needs 3  ok
+frame-ink            on texture brightest     3.24  needs 3  ok
+frame-ink            on background            5.59  needs 3  ok
+frame-ink            on surface               5.04  needs 3  ok
+frame-ink            on field                 5.92  needs 3  ok
+focus                on texture darkest      14.16  needs 3  ok
+focus                on texture median       12.08  needs 3  ok
+focus                on texture 99.9%         9.52  needs 3  ok
+focus                on texture brightest     7.15  needs 3  ok
+focus                on background           12.32  needs 3  ok
+focus                on surface              11.11  needs 3  ok
+focus                on field                13.05  needs 3  ok
+ornament-ink         on texture darkest       6.43  needs 3  ok
+ornament-ink         on texture median        5.48  needs 3  ok
+ornament-ink         on texture 99.9%         4.32  needs 3  ok
+ornament-ink         on texture brightest     3.24  needs 3  ok
+ornament-ink         on background            5.59  needs 3  ok
+ornament-ink         on surface               5.04  needs 3  ok
+ornament-ink         on field                 5.92  needs 3  ok
+ornament-accent-ink  on texture darkest      11.46  needs 3  ok
+ornament-accent-ink  on texture median        9.77  needs 3  ok
+ornament-accent-ink  on texture 99.9%         7.70  needs 3  ok
+ornament-accent-ink  on texture brightest     5.78  needs 3  ok
+ornament-accent-ink  on background            9.97  needs 3  ok
+ornament-accent-ink  on surface               8.99  needs 3  ok
+ornament-accent-ink  on field                10.56  needs 3  ok
+code-comment         on code-surface          7.92  needs 4.5  ok
+code-keyword         on code-surface          9.72  needs 4.5  ok
+code-string          on code-surface         10.53  needs 4.5  ok
+code-function        on code-surface         10.39  needs 4.5  ok
+code-constant        on code-surface         11.54  needs 4.5  ok
+foreground           on code-surface         14.35  needs 4.5  ok
+header-paper         on header-ink           14.45  needs 4.5  ok
+header-gold          on header-ink           10.42  needs 3  ok
+header-line          on header-ink            5.84  needs 3  ok
+focus                on header-ink           12.88  needs 3  ok
+on-action            on action-fill           9.59  needs 4.5  ok
+action-ink           on action-paper         12.46  needs 4.5  ok
+on-primary           on primary               9.59  needs 4.5  ok
+on-accent            on accent                7.59  needs 4.5  ok
+on-danger            on danger                8.69  needs 4.5  ok
+ring-arc             on ring-disc             8.99  needs 3  ok
+ring-ink             on ring-disc            12.46  needs 4.5  ok
+ring-arc             on ring-track            5.10  needs 1.5  ok
+
+Lowest ratio for each ink:
+  accent                4.58 on texture brightest    (needs 4.5)
+  action-ink           12.46 on action-paper         (needs 4.5)
+  code-comment          7.92 on code-surface         (needs 4.5)
+  code-constant        11.54 on code-surface         (needs 4.5)
+  code-function        10.39 on code-surface         (needs 4.5)
+  code-keyword          9.72 on code-surface         (needs 4.5)
+  code-string          10.53 on code-surface         (needs 4.5)
+  danger                5.07 on texture brightest    (needs 4.5)
+  focus                 7.15 on texture brightest    (needs 3)
+  foreground            8.02 on texture brightest    (needs 4.5)
+  frame-ink             3.24 on texture brightest    (needs 3)
+  header-gold          10.42 on header-ink           (needs 3)
+  header-line           5.84 on header-ink           (needs 3)
+  header-paper         14.45 on header-ink           (needs 4.5)
+  label-ink             5.28 on texture brightest    (needs 4.5)
+  line                  3.24 on texture brightest    (needs 3)
+  muted                 5.28 on texture brightest    (needs 4.5)
+  on-accent             7.59 on accent               (needs 4.5)
+  on-action             9.59 on action-fill          (needs 4.5)
+  on-danger             8.69 on danger               (needs 4.5)
+  on-primary            9.59 on primary              (needs 4.5)
+  ornament-accent-ink   5.78 on texture brightest    (needs 3)
+  ornament-ink          3.24 on texture brightest    (needs 3)
+  primary               5.78 on texture brightest    (needs 4.5)
+  ring-arc              5.10 on ring-track           (needs 1.5)
+  ring-arc              8.99 on ring-disc            (needs 3)
+  ring-ink             12.46 on ring-disc            (needs 4.5)
+  rubric                4.59 on texture brightest    (needs 4.5)
+  rule-ink              3.24 on texture brightest    (needs 3)
+
+125 pairs, 0 below the bar
