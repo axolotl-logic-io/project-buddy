@@ -286,6 +286,26 @@
       }
     },
 
+    // The visual comparison and baseline commands start the local site in a
+    // child process with its local settings, write screenshots and results
+    // to disk, and report on the terminal.
+    {
+      "includes": ["scripts/visual/*.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
     // Database reset refusals and development commands are tested in child
     // processes with temporary configuration, using Node platform APIs.
     {

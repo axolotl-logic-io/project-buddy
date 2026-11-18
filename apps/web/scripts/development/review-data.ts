@@ -18,6 +18,7 @@ import type { UIMessage } from "ai";
 import { z } from "zod";
 import {
   closeAppDatabase,
+  loopbackOrigin,
   pointAtLocalDatabase,
   type ReviewAccount,
   type ReviewKind,
@@ -34,7 +35,6 @@ import {
 import { createSignInLink } from "./sign-in-link.ts";
 
 const DEFAULT_SITE = "http://localhost:3000";
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const REQUEST_TIMEOUT_MS = 30_000;
 const IDEA_COMMAND = /^\/idea\s+/u;
 
@@ -61,13 +61,13 @@ interface Scene {
 // hosted site sharing the secret, and nothing here is for one.
 function localSiteOrigin(): string {
   const { PROJECT_BUDDY_URL = DEFAULT_SITE } = process.env;
-  const url = new URL(PROJECT_BUDDY_URL);
-  if (!LOOPBACK_HOSTS.has(url.hostname)) {
+  const origin = loopbackOrigin(PROJECT_BUDDY_URL);
+  if (origin === undefined) {
     throw new Error(
       `PROJECT_BUDDY_URL must be the local site, such as ${DEFAULT_SITE}.`,
     );
   }
-  return url.origin;
+  return origin;
 }
 
 // The data of a JSON answer from the site's API at path, as the account.
