@@ -228,6 +228,34 @@ Run `mise run visual-compare -- --help` for the full list.
 
 The views are in `apps/web/scripts/visual/views.ts`. Each one names its view and state, its review account, its page and the steps that bring it to its state, such as opening the row menu or holding a construct reply. To add a view, add an entry there. A view's state steps use Playwright, as the end-to-end tests do.
 
+### Visual baseline
+
+The visual baseline measures the site so the theme redesign's effect can be compared. It loads each view marked `measure` in `apps/web/scripts/visual/views.ts` as the typical review account, or signed out, in each appearance at each width. For each load it records:
+
+- the bytes transferred, split into document, CSS, JS, fonts, images and other;
+- the font files fetched;
+- Largest Contentful Paint (LCP) and Cumulative Layout Shift (CLS);
+- the accessibility violations [axe](https://github.com/dequelabs/axe-core) finds, for WCAG 2.2 A and AA and best practice.
+
+It also brings every other view to its state and scans it with axe.
+
+Make the review accounts first, then run this command from the repository root:
+
+```sh
+mise run visual-baseline -- --out OUT
+```
+
+The command builds this worktree for production, starts it on a free port with your worktree's development database, measures and stops the site. It writes these files to `OUT`, or to `project-buddy-baseline` in your temporary folder:
+
+- `baseline.json`: every figure, for comparing runs.
+- `summary.md`: the heaviest loads, any layout shift or slow LCP, each axe rule violated and where, a table of every load and the font files.
+
+Each load uses a fresh browser with an empty cache, after one unmeasured request that lets the site compile and warm up. Nothing is throttled, so LCP and CLS are this computer's: compare them between runs on the same computer, not with field data. Transfer sizes are bytes on the wire, headers included.
+
+It takes the same options as the visual comparison, except `--mockups`. Run `mise run visual-baseline -- --help` for the list. Measure a production build; `--dev` sizes are much larger.
+
+The axe scans use the `@axe-core/playwright` development dependency.
+
 ## Installed app
 
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
