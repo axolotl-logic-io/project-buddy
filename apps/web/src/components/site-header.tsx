@@ -57,7 +57,10 @@ function TrailBand({
           </ol>
         </nav>
       )}
-      <h1 className="trail-heading">{current.label}</h1>
+      {/* page-error.tsx finds the band's heading by data-trail-heading. */}
+      <h1 className="trail-heading" data-trail-heading="">
+        {current.label}
+      </h1>
       {current.action}
     </div>
   );

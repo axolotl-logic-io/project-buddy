@@ -7,6 +7,7 @@ import { vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
 import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
+import { animationsSettled } from "../../support/animations-test-kit.ts";
 
 // The theme and mode on <html>, as the page applies them.
 interface AppliedChoice {
@@ -50,9 +51,7 @@ async function openPanel(): Promise<void> {
     }
     return open;
   });
-  await Promise.all(
-    dialog.getAnimations().map((animation) => animation.finished),
-  );
+  await animationsSettled(dialog, "The site panel");
 }
 
 // Closes the panel, and waits until it has gone: a drawer with Escape, and

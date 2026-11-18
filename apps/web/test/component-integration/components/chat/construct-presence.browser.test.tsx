@@ -12,6 +12,10 @@ import { getConstruct } from "@/constructs/index.ts";
 import { VISUAL_WIDTH } from "@/constructs/visual-delivery.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
+  builtInArtwork,
+  builtInArtworkPaths,
+} from "../../../support/constructs/built-in-artwork.ts";
+import {
   chatIdFixture,
   questIdFixture,
   userIdFixture,
@@ -47,8 +51,6 @@ const OWN: ConstructSnapshot = {
   name: "Paper Bird",
   definition: { prompt: "An own construct." },
 };
-const BUILT_IN_VISUAL_PATH =
-  /^\/constructs\/(?:lumen|vellum)-v1-(?:64|128|256|512|1024)\.webp$/u;
 const CONSTRUCT_NAME = /Lumen|Vellum|Paper Bird/u;
 const LAPTOP_WIDTH = 1280;
 const LAPTOP_HEIGHT = 900;
@@ -132,8 +134,9 @@ describe("use_case_construct_presence", () => {
       const image = portrait.querySelector("img");
       const source = new URL(image?.getAttribute("src") ?? "", location.href);
       expect(source.origin).toBe(location.origin);
-      expect(source.pathname).toMatch(BUILT_IN_VISUAL_PATH);
-      expect(source.pathname).toContain(`/constructs/${id}-v1-`);
+      expect(builtInArtworkPaths(builtInArtwork(id))).toContain(
+        source.pathname,
+      );
       expect(image?.getAttribute("srcset")).toBeTruthy();
       expect(portrait.getBoundingClientRect().width).toBe(AVATAR_SIZE);
       const avatar = portrait.querySelector("[data-visual-role]");
