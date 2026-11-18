@@ -14,16 +14,19 @@ export function SignOutButtons(): JSX.Element {
   }, []);
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-col gap-4">
       <form action={signOutAction}>
         <Button type="submit" variant="secondary">
           {ACCOUNT_COPY.signOut}
         </Button>
       </form>
+      <div className="ornamented-divider" aria-hidden="true">
+        <span className="ornament" data-ornament="divider" />
+      </div>
+      <p className="text-muted">{ACCOUNT_COPY.signOutEverywhereDescription}</p>
       <form action={signOutEverywhereAction} ref={everywhereFormRef}>
         <noscript>
-          <p>{ACCOUNT_COPY.signOutEverywhereDescription}</p>
-          <Button type="submit" variant="secondary">
+          <Button type="submit" variant="danger">
             {ACCOUNT_COPY.signOutEverywhere}
           </Button>
         </noscript>
@@ -34,9 +37,7 @@ export function SignOutButtons(): JSX.Element {
           onConfirm={signOutEverywhere}
           title={ACCOUNT_COPY.signOutEverywhereTitle}
           trigger={
-            <Button variant="secondary">
-              {ACCOUNT_COPY.signOutEverywhere}
-            </Button>
+            <Button variant="danger">{ACCOUNT_COPY.signOutEverywhere}</Button>
           }
         />
       </form>
