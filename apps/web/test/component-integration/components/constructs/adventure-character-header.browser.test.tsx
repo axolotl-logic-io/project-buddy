@@ -5,11 +5,13 @@ import { AdventureCharacterHeader } from "@/components/constructs/adventure-char
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
+import {
+  builtInArtwork,
+  builtInArtworkPaths,
+} from "../../../support/constructs/built-in-artwork.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
 
-const PROFILE_VISUAL_PATH =
-  /^\/constructs\/vellum-v1-(?:64|128|256|512|1024)\.webp$/u;
 const PRIVATE_TEXT = "Private instructions that must stay hidden";
 const OWN: ConstructSnapshot = {
   name: "Lumen",
@@ -34,7 +36,9 @@ describe("use_case_view_character_profile", () => {
     const image = dialog.element().querySelector("img");
     const source = new URL(image?.src ?? "", globalThis.location.href);
     expect(source.origin).toBe(globalThis.location.origin);
-    expect(source.pathname).toMatch(PROFILE_VISUAL_PATH);
+    expect(builtInArtworkPaths(builtInArtwork("vellum"))).toContain(
+      source.pathname,
+    );
     expect(image?.getAttribute("srcset")).toBeTruthy();
     await tabForward();
     expect(dialog.element().contains(document.activeElement)).toBe(true);
