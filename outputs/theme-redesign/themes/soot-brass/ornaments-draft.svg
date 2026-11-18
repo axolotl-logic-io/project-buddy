@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- Soot & Brass ornament set (draft). Hand-written geometry by the
+       Soot & Brass thread, 2026-11-17; written by tools/draw_ornaments.py.
+       No third-party artwork. Each element is painted in currentColor:
+       as a mask, only opacity counts. data-ink="accent" marks the
+       second ornament ink. -->
+
+  <!-- The mark before a section heading: the dial's chapter mark as a pointed arch. -->
+  <symbol id="orn-heading" viewBox="0 0 16 16">
+    <path d="M3 10A7 7 0 0 1 8 3.29A7 7 0 0 1 13 10M3 10V15M13 10V15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7"/>
+    <path data-ink="accent" d="M8 7L10 9.6L8 12.2L6 9.6Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- A divider's centre: a quatrefoil in a lozenge between chapter ticks. -->
+  <symbol id="orn-divider" viewBox="0 0 48 24">
+    <path d="M24 2L34 12L24 22L14 12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+    <path d="M4 12H11M37 12H44M8 9V15M40 9V15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+    <circle data-ink="accent" cx="24" cy="9.4" r="2.3" fill="currentColor"/>
+    <circle data-ink="accent" cx="26.6" cy="12" r="2.3" fill="currentColor"/>
+    <circle data-ink="accent" cx="24" cy="14.6" r="2.3" fill="currentColor"/>
+    <circle data-ink="accent" cx="21.4" cy="12" r="2.3" fill="currentColor"/>
+  </symbol>
+
+  <!-- Frame corner, top left: an arch spandrel with a brass lozenge. -->
+  <symbol id="orn-corner" viewBox="0 0 24 24">
+    <path d="M2 22V2H22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <path d="M2 15A13 13 0 0 1 15 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path data-ink="accent" d="M6.6 3.6L9.6 6.6L6.6 9.6L3.6 6.6Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- One bay of the blind arcade under the trail band. -->
+  <symbol id="orn-band" viewBox="0 0 12 8">
+    <path d="M1 8A6 6 0 0 1 6 2.08A6 6 0 0 1 11 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M6 3.6L7.2 5.2L6 6.8L4.8 5.2Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- Empty state and sign-in emblem: a rose window of eight cusped openings. -->
+  <symbol id="orn-emblem" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="21.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <circle cx="24" cy="24" r="18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.9"/>
+    <circle cx="28.82" cy="12.36" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="35.64" cy="19.18" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="35.64" cy="28.82" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="28.82" cy="35.64" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="19.18" cy="35.64" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="12.36" cy="28.82" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="12.36" cy="19.18" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="19.18" cy="12.36" r="4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M24 8.5L24 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M34.96 13.04L36.73 11.27" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M39.5 24L42 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M34.96 34.96L36.73 36.73" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M24 39.5L24 42" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M13.04 34.96L11.27 36.73" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M8.5 24L6 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M13.04 13.04L11.27 11.27" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle data-ink="accent" cx="24" cy="20.9" r="2.8" fill="currentColor"/>
+    <circle data-ink="accent" cx="27.1" cy="24" r="2.8" fill="currentColor"/>
+    <circle data-ink="accent" cx="24" cy="27.1" r="2.8" fill="currentColor"/>
+    <circle data-ink="accent" cx="20.9" cy="24" r="2.8" fill="currentColor"/>
+  </symbol>
+
+  <!-- Appearance swatch: the hour dial's ring and chapter marks over the texture. -->
+  <symbol id="orn-swatch" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <circle cx="32" cy="32" r="19.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M41.75 15.11L44 11.22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M48.89 22.25L52.78 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M48.89 41.75L52.78 44" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M41.75 48.89L44 52.78" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M22.25 48.89L20 52.78" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M15.11 41.75L11.22 44" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M15.11 22.25L11.22 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M22.25 15.11L20 11.22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M27.5 9.5L27.5 6.5L32 2L36.5 6.5L36.5 9.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <path d="M54.5 27.5L57.5 27.5L62 32L57.5 36.5L54.5 36.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <path d="M36.5 54.5L36.5 57.5L32 62L27.5 57.5L27.5 54.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <path d="M9.5 36.5L6.5 36.5L2 32L6.5 27.5L9.5 27.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+    <path data-ink="accent" d="M32 1.9L35 5.5L32 9.1L29 5.5Z" fill="currentColor"/>
+    <path data-ink="accent" d="M60.9 32L58.5 33.9L56.1 32L58.5 30.1Z" fill="currentColor"/>
+    <path data-ink="accent" d="M32 60.9L30.1 58.5L32 56.1L33.9 58.5Z" fill="currentColor"/>
+    <path data-ink="accent" d="M3.1 32L5.5 30.1L7.9 32L5.5 33.9Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- Construct portrait frame: a bezel with arch spandrels and chapter lozenges. -->
+  <symbol id="orn-portrait" viewBox="0 0 100 100">
+    <path d="M1.5 1.5H98.5V98.5H1.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M4 4H96V96H4Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.7"/>
+    <path d="M4 20A16 16 0 0 1 20 4M96 20A16 16 0 0 0 80 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.9"/>
+    <path d="M9.2 7L11.4 9.2L9.2 11.4L7 9.2ZM90.8 7L93 9.2L90.8 11.4L88.6 9.2Z" fill="currentColor"/>
+    <path data-ink="accent" d="M50 -2.1L53 1.5L50 5.1L47 1.5ZM50 94.9L53 98.5L50 102.1L47 98.5ZM1.5 47L5.1 50L1.5 53L-2.1 50ZM98.5 47L102.1 50L98.5 53L94.9 50Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- A list item's marker: the chapter lozenge. -->
+  <symbol id="orn-bullet" viewBox="0 0 8 8">
+    <path d="M4 0.4L6.6 4L4 7.6L1.4 4Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- A rule's right-hand end: a lozenge and pointed finial. Mirror it for the left. -->
+  <symbol id="orn-rule-end" viewBox="0 0 24 12">
+    <path d="M0 6H13M18 6H23" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path d="M13 6L15.5 3.5L18 6L15.5 8.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path data-ink="accent" d="M15.5 5L16.5 6L15.5 7L14.5 6Z" fill="currentColor"/>
+  </symbol>
+
+  <!-- Empty-state vignette: a two-light lancet window with a rose, between rules. -->
+  <symbol id="orn-vignette" viewBox="0 0 120 72">
+    <path d="M42 34A30 30 0 0 1 60 6.5A30 30 0 0 1 78 34V70H42Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+    <path d="M47 44A10 10 0 0 1 53 34.83A10 10 0 0 1 59 44V66H47ZM61 44A10 10 0 0 1 67 34.83A10 10 0 0 1 73 44V66H61Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle cx="60" cy="27" r="7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <circle data-ink="accent" cx="60" cy="24.6" r="2.1" fill="currentColor"/>
+    <circle data-ink="accent" cx="62.4" cy="27" r="2.1" fill="currentColor"/>
+    <circle data-ink="accent" cx="60" cy="29.4" r="2.1" fill="currentColor"/>
+    <circle data-ink="accent" cx="57.6" cy="27" r="2.1" fill="currentColor"/>
+    <path d="M4 58H36M84 58H116" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    <path data-ink="accent" d="M4 55L6.4 58L4 61L1.6 58ZM116 55L118.4 58L116 61L113.6 58Z" fill="currentColor"/>
+    <path d="M36 70H84" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+  </symbol>
+
+  <!-- A notice marker: a small lancet arch with a lozenge. -->
+  <symbol id="orn-notice" viewBox="0 0 12 12">
+    <path d="M1.5 7A6 6 0 0 1 6 1.19A6 6 0 0 1 10.5 7V11H1.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+    <path data-ink="accent" d="M6 5.1L7.4 7L6 8.9L4.6 7Z" fill="currentColor"/>
+  </symbol>
+</svg>
